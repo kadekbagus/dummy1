@@ -8,6 +8,9 @@
 		"laravel/framework": "4.2.9"
 	},
 	"autoload": {
+                "psr-0": {
+                    "DominoPOS\\OrbitAPI\\": "vendor/dominopos/orbit-api/"
+                },
 		"classmap": [
 			"app/commands",
 			"app/controllers",
