@@ -1,4 +1,6 @@
 /bootstrap/compiled.php
+/vendor/autoload.php
+/vendor/composer/autoload_real.php
 composer.phar
 .env.*.php
 .env.php
