@@ -13,7 +13,8 @@ return array(
     */
     'allowed_ips' => array(
         '127.0.0.1',     // home sweet home...
-        '::1',          // home of 21st century a.k.a IPv6 :D
+        '::1',           // home of 21st century a.k.a IPv6 :D
+        '10.10.0.11',    // Orbit Gateway
     ),
 
     /*
