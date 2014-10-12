@@ -26,13 +26,11 @@ phpunit && {
   echo " Deploying Orbit API Application"
   echo "-------------------------------------------------------"
   [ ! -z "$ORBIT_DEPLOY_DIR" ] && {
+    echo "Running deployment as " $( whoami )
     echo "Deploying application to ${ORBIT_DEPLOY_DIR}..."
 
     # remove trailing slash
     ORBIT_DEPLOY_DIR="$( echo "$ORBIT_DEPLOY_DIR" | sed "s,/\+$,," )"
     rsync -lrv --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
-  } || {
-    # No deploy dir defined
-    echo "No deployment directory specified, skip deployment."
   }
 }
