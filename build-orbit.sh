@@ -32,5 +32,8 @@ phpunit && {
     # remove trailing slash
     ORBIT_DEPLOY_DIR="$( echo "$ORBIT_DEPLOY_DIR" | sed "s,/\+$,," )"
     rsync -lrv --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
+
+    # provide write access to storage directory
+    chmod g+w ${ORBIT_DEPLOY_DIR}/app/storage/{cache,logs,meta,sessions,views}
   }
 }
