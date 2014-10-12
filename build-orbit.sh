@@ -29,7 +29,7 @@ phpunit && {
     echo "Deploying application to ${ORBIT_DEPLOY_DIR}..."
 
     # remove trailing slash
-    ORBIT_DEPLOY_DIR="$( echo "$ORBIT_DEPLAY_DIR" | sed "s,/\+$,," )"
+    ORBIT_DEPLOY_DIR="$( echo "$ORBIT_DEPLOY_DIR" | sed "s,/\+$,," )"
     rsync -lrv --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
   } || {
     # No deploy dir defined
