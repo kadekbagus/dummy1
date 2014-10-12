@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ab5b63427a5a342d919946327fa65618",
+    "hash": "a84d86862ff30d72ac6839ab03fd5cfe",
     "packages": [
         {
             "name": "classpreloader/classpreloader",
@@ -1626,6 +1626,49 @@
             "description": "Symfony Translation Component",
             "homepage": "http://symfony.com",
             "time": "2014-09-23 05:25:11"
+        },
+        {
+            "name": "zendframework/zend-permissions-acl",
+            "version": "2.3.0",
+            "target-dir": "Zend/Permissions/Acl",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zendframework/Component_ZendPermissionsAcl.git",
+                "reference": "578391c391ca8fa5a877420acfdc98c5cf7ebf6a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://packages.zendframework.com/composer/zendframework-zend-permissions-acl-578391c391ca8fa5a877420acfdc98c5cf7ebf6a-zip-fa28bf.zip",
+                "reference": "2.3.0",
+                "shasum": "4cd1adf8d164ab982695a3762129999eaea4595c"
+            },
+            "require": {
+                "php": ">=5.3.23"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.2-dev",
+                    "dev-develop": "2.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Zend\\Permissions\\Acl\\": ""
+                }
+            },
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "provides a lightweight and flexible access control list (ACL) implementation for privileges management",
+            "keywords": [
+                "acl",
+                "zf2"
+            ],
+            "support": {
+                "source": "https://github.com/zendframework/Component_ZendPermissionsAcl/tree/release-2.3.0"
+            },
+            "time": "2014-03-14 16:21:57"
         }
     ],
     "packages-dev": [],
