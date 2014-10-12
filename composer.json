@@ -12,7 +12,8 @@
     ],
     "require": {
         "laravel/framework": "4.2.9",
-        "zendframework/zend-permissions-acl": "2.3"
+        "zendframework/zend-permissions-acl": "2.3",
+        "laraeval/laraeval": "dev-master"
     },
     "autoload": {
                 "psr-0": {

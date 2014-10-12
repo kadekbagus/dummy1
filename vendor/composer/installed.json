@@ -1722,5 +1722,51 @@
         "support": {
             "source": "https://github.com/zendframework/Component_ZendPermissionsAcl/tree/release-2.3.0"
         }
+    },
+    {
+        "name": "laraeval/laraeval",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/astasoft/laraeval.git",
+            "reference": "25679b40937886eb1acd5df50f5a1cb682f67902"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/astasoft/laraeval/zipball/25679b40937886eb1acd5df50f5a1cb682f67902",
+            "reference": "25679b40937886eb1acd5df50f5a1cb682f67902",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.7"
+        },
+        "time": "2013-09-21 01:54:52",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                "src/migrations"
+            ],
+            "psr-0": {
+                "Laraeval\\Laraeval": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Rio Astamal",
+                "email": "me@rioastamal.net"
+            }
+        ],
+        "description": "PHP Code evaluator for Laravel 4",
+        "keywords": [
+            "eval",
+            "illuminate",
+            "laravel"
+        ]
     }
 ]

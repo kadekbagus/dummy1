@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a84d86862ff30d72ac6839ab03fd5cfe",
+    "hash": "1015b4f795dd92e81ea5bba95bb60cfb",
     "packages": [
         {
             "name": "classpreloader/classpreloader",
@@ -231,6 +231,50 @@
                 "tokenizer"
             ],
             "time": "2013-10-09 04:20:00"
+        },
+        {
+            "name": "laraeval/laraeval",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/astasoft/laraeval.git",
+                "reference": "25679b40937886eb1acd5df50f5a1cb682f67902"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/astasoft/laraeval/zipball/25679b40937886eb1acd5df50f5a1cb682f67902",
+                "reference": "25679b40937886eb1acd5df50f5a1cb682f67902",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.7"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/migrations"
+                ],
+                "psr-0": {
+                    "Laraeval\\Laraeval": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rio Astamal",
+                    "email": "me@rioastamal.net"
+                }
+            ],
+            "description": "PHP Code evaluator for Laravel 4",
+            "keywords": [
+                "eval",
+                "illuminate",
+                "laravel"
+            ],
+            "time": "2013-09-21 01:54:52"
         },
         {
             "name": "laravel/framework",
@@ -1674,7 +1718,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "laraeval/laraeval": 20
+    },
     "prefer-stable": false,
     "platform": [],
     "platform-dev": []
