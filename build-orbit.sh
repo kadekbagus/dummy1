@@ -10,6 +10,14 @@ phpunit
 # Travese back to the original root directory
 cd ../../..
 
+[ -f app/config/app.php ] || {
+    # File does not exists, let's create it from app.php.sample
+    # 1) Get the host name from environment
+    # 2) Fallback to 'localhost' if it was empty
+    ORBIT_HOST="$( [ ! -z "$ORBIT_HOST" ] && echo "$ORBIT_HOST" || echo "localhost" )"
+    sed "s/'url' => 'http:\/\/localhost'/'url' => 'http:\/\/$ORBIT_HOST'/g" < app/config/app.php.sample > app/config/app.php
+}
+
 echo "-------------------------------------------------------"
 echo " Orbit API Application Unit Test"
 echo "-------------------------------------------------------"
