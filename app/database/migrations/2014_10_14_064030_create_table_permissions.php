@@ -25,8 +25,6 @@ class CreateTablePermissions extends Migration
             $table->bigInteger('modified_by')->unsigned();
             $table->timestamps();
             $table->primary(array('permission_id'));
-            $table->index(array('permission_name_order'), 'permission_name_order_idx');
-            $table->index(array('permission_group_order'), 'permission_group_order_idx');
         });
     }
 

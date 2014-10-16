@@ -21,9 +21,6 @@ class CreateTablePermissionRole extends Migration
             $table->string('allowed', 3);
             $table->timestamps();
             $table->primary(array('permission_role_id'));
-            $table->index(array('role_id'), 'role_id_idx');
-            $table->index(array('permission_id'), 'permission_id_idx');
-            $table->index(array('role_id', 'permission_id'), 'role_perm_idx');
         });
     }
 

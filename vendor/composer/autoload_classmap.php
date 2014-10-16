@@ -6,6 +6,11 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'AddIndexesToApikeys' => $baseDir . '/app/database/migrations/2014_10_16_021255_add_indexes_to_apikeys.php',
+    'AddIndexesToCustomPermission' => $baseDir . '/app/database/migrations/2014_10_16_021435_add_indexes_to_custom_permission.php',
+    'AddIndexesToPermissions' => $baseDir . '/app/database/migrations/2014_10_16_021700_add_indexes_to_permissions.php',
+    'AddIndexesToPermissonRole' => $baseDir . '/app/database/migrations/2014_10_16_021815_add_indexes_to_permisson_role.php',
+    'AddIndexesToUsers' => $baseDir . '/app/database/migrations/2014_10_16_020929_add_indexes_to_users.php',
     'BaseController' => $baseDir . '/app/controllers/BaseController.php',
     'Boris\\Boris' => $vendorDir . '/d11wtq/boris/lib/Boris/Boris.php',
     'Boris\\CLIOptionsHandler' => $vendorDir . '/d11wtq/boris/lib/Boris/CLIOptionsHandler.php',
