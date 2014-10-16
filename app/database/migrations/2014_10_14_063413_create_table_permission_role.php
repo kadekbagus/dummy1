@@ -3,34 +3,38 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateTablePermissionRole extends Migration {
+class CreateTablePermissionRole extends Migration
+{
 
-	/**
-	 * Run the migrations.
-	 *
-	 * @return void
-	 */
-	public function up()
-	{
-		Schema::create('permission_role', function(Blueprint $table)
-		{
-			$table->bigInteger('permission_role_id')->unsigned();
-			$table->integer('role_id')->unsigned();
-			$table->integer('permission_id')->unsigned();
-			$table->string('allowed',3);
-			$table->timestamps();
-			$table->primary(array('permission_role_id'));
-		});
-	}
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('permission_role', function(Blueprint $table)
+        {
+            $table->bigInteger('permission_role_id')->unsigned();
+            $table->integer('role_id')->unsigned();
+            $table->integer('permission_id')->unsigned();
+            $table->string('allowed', 3);
+            $table->timestamps();
+            $table->primary(array('permission_role_id'));
+            $table->index(array('role_id'), 'role_id_idx');
+            $table->index(array('permission_id'), 'permission_id_idx');
+            $table->index(array('role_id', 'permission_id'), 'role_perm_idx');
+        });
+    }
 
-	/**
-	 * Reverse the migrations.
-	 *
-	 * @return void
-	 */
-	public function down()
-	{
-		Schema::drop('permission_role');
-	}
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::drop('permission_role');
+    }
 
 }
