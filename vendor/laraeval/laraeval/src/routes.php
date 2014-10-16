@@ -77,7 +77,8 @@ Route::post('laraeval', array('before' => 'ipaddr', 'as' => 'laraeval-main', fun
         // So, we're getting the error message from the thrown PDOException
         $error = array(
             'message' => $e->getMessage(),
-            'line' => '?'
+            'line' => '?',
+            'file' => $e->getFile()
         );
 
         @ob_end_clean();
