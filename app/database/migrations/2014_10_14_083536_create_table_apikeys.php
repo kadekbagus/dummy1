@@ -22,11 +22,6 @@ class CreateTableApikeys extends Migration
             $table->string('status', 15);
             $table->timestamps();
             $table->primary(array('apikey_id'));
-            $table->index(array('api_key'), 'api_key_idx');
-            $table->index(array('user_id'), 'user_id_idx');
-            $table->index(array('api_key', 'user_id'), 'api_key_user_idx');
-            $table->index(array('api_key', 'status'), 'api_key_status_idx');
-            $table->index(array('api_key', 'user_id', 'status'), 'api_key_user_status_idx');
         });
     }
 

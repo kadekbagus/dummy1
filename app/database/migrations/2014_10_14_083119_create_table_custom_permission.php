@@ -21,9 +21,6 @@ class CreateTableCustomPermission extends Migration
             $table->string('allowed', 3);
             $table->timestamps();
             $table->primary(array('custom_permission_id'));
-            $table->index(array('user_id'), 'user_id_idx');
-            $table->index(array('permission_id'), 'permission_id_idx');
-            $table->index(array('user_id', 'permission_id'), 'user_perm_idx');
         });
     }
 
