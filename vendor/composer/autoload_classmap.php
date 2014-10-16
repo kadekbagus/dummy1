@@ -6,6 +6,12 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'AddIncrementsToApikeyId' => $baseDir . '/app/database/migrations/2014_10_16_055603_add_increments_to_apikey_id.php',
+    'AddIncrementsToCustomPermissionId' => $baseDir . '/app/database/migrations/2014_10_16_070246_add_increments_to_custom_permission_id.php',
+    'AddIncrementsToPermissionId' => $baseDir . '/app/database/migrations/2014_10_16_070755_add_increments_to_permission_id.php',
+    'AddIncrementsToPermissionRoleId' => $baseDir . '/app/database/migrations/2014_10_16_071152_add_increments_to_permission_role_id.php',
+    'AddIncrementsToRoleId' => $baseDir . '/app/database/migrations/2014_10_16_071435_add_increments_to_role_id.php',
+    'AddIncrementsToUserId' => $baseDir . '/app/database/migrations/2014_10_16_071723_add_increments_to_user_id.php',
     'AddIndexesToApikeys' => $baseDir . '/app/database/migrations/2014_10_16_021255_add_indexes_to_apikeys.php',
     'AddIndexesToCustomPermission' => $baseDir . '/app/database/migrations/2014_10_16_021435_add_indexes_to_custom_permission.php',
     'AddIndexesToPermissions' => $baseDir . '/app/database/migrations/2014_10_16_021700_add_indexes_to_permissions.php',
