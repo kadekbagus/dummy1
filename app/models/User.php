@@ -2,25 +2,27 @@
 
 use Illuminate\Auth\UserTrait;
 use Illuminate\Auth\UserInterface;
-use Illuminate\Auth\Reminders\RemindableTrait;
-use Illuminate\Auth\Reminders\RemindableInterface;
 
-class User extends Eloquent implements UserInterface, RemindableInterface {
+class User extends Eloquent implements UserInterface
+{
+    use UserTrait;
 
-	use UserTrait, RemindableTrait;
+    protected $primaryKey = 'user_id';
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'users';
+    protected $table = 'users';
 
-	/**
-	 * The attributes excluded from the model's JSON form.
-	 *
-	 * @var array
-	 */
-	protected $hidden = array('password', 'remember_token');
+    public function roles()
+    {
+        return $this->belongsTo('Role', 'user_role_id', 'role_id');
+    }
 
+    public function permissions()
+    {
+        return $this->belongsToMany('Permission', 'custom_permission', 'user_id', 'permission_id')->withPivot('allowed');
+    }
+
+    public function apiKeys()
+    {
+        return $this->hasMany('Apikey', 'user_id', 'user_id');
+    }
 }
