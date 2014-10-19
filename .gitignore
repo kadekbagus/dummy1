@@ -10,3 +10,4 @@ Thumbs.db
 # Config
 app/config/app.php
 app/config/database.php
+app/config/testing/database.php
