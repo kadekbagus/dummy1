@@ -6,7 +6,7 @@ class Apikey extends Eloquent
 
     protected $table = 'apikeys';
 
-    public function users()
+    public function user()
     {
         return $this->belongsTo('User', 'user_id', 'user_id');
     }
