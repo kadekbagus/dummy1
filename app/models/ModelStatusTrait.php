@@ -86,9 +86,15 @@ trait ModelStatusTrait
      * columnt to 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param boolean $force Force hard delete (wipe the record from database)
+     * @return boolean
      */
-    public function delete()
+    public function delete($force=FALSE)
     {
+        if ($force === TRUE) {
+            return parent::delete();
+        }
+
         $this->status = 'deleted';
 
         return $this->save();
