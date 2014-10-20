@@ -157,7 +157,7 @@ class ApikeyTest extends OrbitTestCase
     public function testScopeDeleted()
     {
         $expect = 1;
-        $return = Apikey::blocked()->count();
+        $return = Apikey::withDeleted()->count();
         $this->assertSame($expect, $return);
     }
 
@@ -217,7 +217,7 @@ class ApikeyTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testForceDeleteecordNumber2()
+    public function testForceDeleteRecordNumber2()
     {
         Apikey::find(2)->delete(TRUE);
 
