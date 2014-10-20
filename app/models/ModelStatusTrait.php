@@ -33,6 +33,18 @@ trait ModelStatusTrait
 
     /**
      * Scope to filter records based on status field. Only return records which
+     * had value 'pending'.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Illuminate\Database\Query\Builder
+     */
+    public function scopePending($query)
+    {
+        return $query->whereStatus('pending');
+    }
+
+    /**
+     * Scope to filter records based on status field. Only return records which
      * had value 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
