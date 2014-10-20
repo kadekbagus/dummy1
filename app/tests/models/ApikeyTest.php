@@ -79,7 +79,7 @@ class ApikeyTest extends OrbitTestCase
 
         // id
         $expect = '2';
-        $return = $apikey->apikey_id;
+        $return = (string)$apikey->apikey_id;
         $this->assertSame($expect, $return);
 
         // api key
@@ -94,7 +94,7 @@ class ApikeyTest extends OrbitTestCase
 
         // user id
         $expect = '2';
-        $return = $apikey->user_id;
+        $return = (string)$apikey->user_id;
         $this->assertSame($expect, $return);
 
         // status

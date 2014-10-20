@@ -140,16 +140,16 @@ class UserTest extends OrbitTestCase
     public function testRecordNumber3()
     {
         $user = User::find(3);
-        $this->assertSame('3', $user->user_id);
+        $this->assertSame('3', (string)$user->user_id);
         $this->assertSame('chuck', $user->username);
         $this->assertSame('chuck@localhost.org', $user->user_email);
         $this->assertSame('Chuck', $user->user_firstname);
         $this->assertSame('Norris', $user->user_lastname);
         $this->assertSame('2014-10-20 06:20:03', $user->user_last_login);
         $this->assertSame('10.10.0.13', (string)$user->user_ip);
-        $this->assertSame('3', $user->user_role_id);
+        $this->assertSame('3', (string)$user->user_role_id);
         $this->assertSame('active', $user->status);
-        $this->assertSame('1', $user->modified_by);
+        $this->assertSame('1', (string)$user->modified_by);
         $this->assertSame('2014-10-20 06:30:03', (string)$user->created_at);
         $this->assertSame('2014-10-20 06:31:03', (string)$user->updated_at);
     }
@@ -170,7 +170,7 @@ class UserTest extends OrbitTestCase
         $user = User::with(array('role', 'role.permissions'))->find(3);
 
         // The role of Chuck Norris should be customer
-        $this->assertSame('3', $user->role->role_id);
+        $this->assertSame('3', (string)$user->role->role_id);
         $this->assertSame('Customer', $user->role->role_name);
 
         // Number of Customer permission should be 5
@@ -205,7 +205,7 @@ class UserTest extends OrbitTestCase
     public function testRelationshipData_apikey_recordNumber3()
     {
         $user = User::with(array('Apikey'))->find(3);
-        $this->assertSame('3', $user->apikey->apikey_id);
+        $this->assertSame('3', (string)$user->apikey->apikey_id);
         $this->assertSame('cde345', $user->apikey->api_key);
         $this->assertSame('cde34567890100', $user->apikey->api_secret_key);
     }
@@ -224,7 +224,7 @@ class UserTest extends OrbitTestCase
     public function testRelationshipData_modifier_recordNumber3()
     {
         $user = User::with(array('Modifier'))->find(3);
-        $this->assertSame('1', $user->modifier->user_id);
+        $this->assertSame('1', (string)$user->modifier->user_id);
         $this->assertSame('john', $user->modifier->username);
         $this->assertSame('john@localhost.org', $user->modifier->user_email);
     }
