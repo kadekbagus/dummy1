@@ -6,12 +6,12 @@ class PermissionRole extends Eloquent
 
     protected $table = 'permission_role';
 
-    public function permissions()
+    public function permission()
     {
         return $this->belongsTo('Permission', 'permission_id', 'permission_id');
     }
 
-    public function roles()
+    public function role()
     {
         return $this->belongsTo('Role', 'role_id', 'role_id');
     }

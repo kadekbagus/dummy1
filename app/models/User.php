@@ -6,12 +6,13 @@ use Illuminate\Auth\UserInterface;
 class User extends Eloquent implements UserInterface
 {
     use UserTrait;
+    use ModelStatusTrait;
 
     protected $primaryKey = 'user_id';
 
     protected $table = 'users';
 
-    public function roles()
+    public function role()
     {
         return $this->belongsTo('Role', 'user_role_id', 'role_id');
     }
@@ -21,8 +22,13 @@ class User extends Eloquent implements UserInterface
         return $this->belongsToMany('Permission', 'custom_permission', 'user_id', 'permission_id')->withPivot('allowed');
     }
 
-    public function apiKeys()
+    public function apikey()
     {
-        return $this->hasMany('Apikey', 'user_id', 'user_id');
+        return $this->hasOne('Apikey', 'user_id', 'user_id');
+    }
+
+    public function userDetail()
+    {
+        return $this->hasOne('UserDetail', 'user_id', 'user_id');
     }
 }
