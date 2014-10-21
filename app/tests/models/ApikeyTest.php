@@ -231,4 +231,48 @@ class ApikeyTest extends OrbitTestCase
         $return = Apikey::count();
         $this->assertSame($expect, $return);
     }
+
+    public function testGenerateApiKey()
+    {
+        $john = User::find(1);
+
+        // Generate 10 randoms keys for user john
+        $keys = array();
+        for ($i=0; $i<10; $i++) {
+            $keys[] = Apikey::genApiKey($john);
+        }
+
+        // All the keys should not same each other
+        $unique = array_unique($keys);
+
+        // Number of unique should 10
+        $this->assertSame(10, count($unique));
+
+        // The length of the string should be 40
+        foreach ($keys as $key) {
+            $this->assertSame(40, strlen($key));
+        }
+    }
+
+    public function testGenerateAPISecretKey()
+    {
+        $john = User::find(1);
+
+        // Generate 10 randoms secret keys for user john
+        $keys = array();
+        for ($i=0; $i<10; $i++) {
+            $keys[] = Apikey::genSecretKey($john);
+        }
+
+        // All the keys should not same each other
+        $unique = array_unique($keys);
+
+        // Number of unique should 10
+        $this->assertSame(10, count($unique));
+
+        // The length of the string should be 64
+        foreach ($keys as $key) {
+            $this->assertSame(64, strlen($key));
+        }
+    }
 }
