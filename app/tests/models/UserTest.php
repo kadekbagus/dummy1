@@ -237,7 +237,7 @@ class UserTest extends OrbitTestCase
         $this->assertSame('john@localhost.org', $user->modifier->user_email);
     }
 
-    public function xtestRelationshipExists_permissions_andReturn_BelongsToMany()
+    public function testRelationshipExists_permissions_andReturn_BelongsToMany()
     {
         $user = new User();
         $return = method_exists($user, 'permissions');
@@ -248,7 +248,7 @@ class UserTest extends OrbitTestCase
         $this->assertInstanceOf($expect, $return);
     }
 
-    public function xtestRelationshipData_permissions_recordNumber3()
+    public function testRelationshipData_permissions_recordNumber3()
     {
         $user = User::with(array('Permissions'))->find(3);
 
@@ -425,6 +425,13 @@ class UserTest extends OrbitTestCase
         // Total record should be 5
         $expect = 5;
         $return = User::count();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testUserGetFullname_ChuckNorris()
+    {
+        $expect = 'Chuck Norris';
+        $return = User::find(3)->getFullName();
         $this->assertSame($expect, $return);
     }
 }
