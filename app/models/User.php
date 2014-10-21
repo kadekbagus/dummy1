@@ -37,7 +37,8 @@ class User extends Eloquent implements UserInterface
         return $this->hasOne('UserDetail', 'user_id', 'user_id');
     }
 
-    public function getFullName(){
+    public function getFullName()
+    {
         return $this->user_firstname . " " . $this->user_lastname;
     }
 }
