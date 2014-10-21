@@ -595,6 +595,8 @@ return array(
     'Net_SSH1' => $vendorDir . '/phpseclib/phpseclib/phpseclib/Net/SSH1.php',
     'Net_SSH2' => $vendorDir . '/phpseclib/phpseclib/phpseclib/Net/SSH2.php',
     'Normalizer' => $vendorDir . '/patchwork/utf8/class/Normalizer.php',
+    'OrbitShop\\API\\v1\\OrbitShopAPI' => $vendorDir . '/dominopos/orbit-shop-api/OrbitShop/API/v1/OrbitShopAPI.php',
+    'OrbitShop\\API\\v1\\OrbitShopLookupResponse' => $vendorDir . '/dominopos/orbit-shop-api/OrbitShop/API/v1/OrbitShopLookupResponse.php',
     'OrbitTestCase' => $baseDir . '/app/tests/OrbitTestCase.php',
     'PHPParser_Autoloader' => $vendorDir . '/nikic/php-parser/lib/PHPParser/Autoloader.php',
     'PHPParser_Builder' => $vendorDir . '/nikic/php-parser/lib/PHPParser/Builder.php',
