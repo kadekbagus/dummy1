@@ -17,6 +17,7 @@ return array(
     'AddIndexesToPermissions' => $baseDir . '/app/database/migrations/2014_10_16_021700_add_indexes_to_permissions.php',
     'AddIndexesToPermissonRole' => $baseDir . '/app/database/migrations/2014_10_16_021815_add_indexes_to_permisson_role.php',
     'AddIndexesToUsers' => $baseDir . '/app/database/migrations/2014_10_16_020929_add_indexes_to_users.php',
+    'AddUniqueConstraintToApikeys' => $baseDir . '/app/database/migrations/2014_10_21_074413_add_unique_constraint_to_apikeys.php',
     'Apikey' => $baseDir . '/app/models/Apikey.php',
     'Barryvdh\\Debugbar\\Console\\ClearCommand' => $vendorDir . '/barryvdh/laravel-debugbar/src/Console/ClearCommand.php',
     'Barryvdh\\Debugbar\\Console\\PublishCommand' => $vendorDir . '/barryvdh/laravel-debugbar/src/Console/PublishCommand.php',
