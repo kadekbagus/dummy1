@@ -54,7 +54,7 @@ class OrbitShopAPI extends API
      *
      * @author Rio Astamal <me@rioastamal.net>
      *
-     * @return Morra\Loyalty\API\LoyaltyLookupResponse
+     * @return OrbitShopLookupResponse
      */
     protected function lookupClientSecretKey($clientID)
     {
