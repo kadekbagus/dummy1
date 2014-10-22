@@ -28,7 +28,18 @@ class OrbitShopAPI extends API
      *
      * @var string
      */
-    protected $httpSignatureHeader = 'X-OrbitAPI-Signature';
+    protected $httpSignatureHeader = 'X-Orbit-Signature';
+
+    /**
+     * The query parameter name that API should accept on.
+     *
+     * @var array
+     */
+    protected $queryParamName = array(
+        'clientid'  => 'apikey',
+        'timestamp' => 'apitimestamp',
+        'version'   => 'apiver'
+    );
 
     /**
      * Class constructor

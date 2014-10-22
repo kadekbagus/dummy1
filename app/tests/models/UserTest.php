@@ -1,6 +1,6 @@
 <?php
 /**
- * Unit test for model ApiKey
+ * Unit test for model User
  *
  * @author Rio Astamal <me@rioastamal.net>
  * @copyright DominoPOS Ltd.
