@@ -54,8 +54,16 @@ class OrbitShopLookupResponse implements LookupResponseInterface
                 // If the user's property is object, we can assume that
                 // The user is found
                 if (is_object($apiKeys->user)) {
-                    $this->data['user_id'] = $apiKeys->user_id;
-                    $this->data['user'] = $apiKeys->user;
+                    $denied = array('blocked', 'pending', 'deleted');
+                    if (in_array($apiKeys->user->status, $denied)) {
+                        $this->statusLookup = static::LOOKUP_STATUS_ACCESS_DENIED;
+                    } else {
+                        $this->data['user_id'] = $apiKeys->user_id;
+                        $this->data['user'] = $apiKeys->user;
+                    }
+                } else {
+                    // The user status probably deleted
+                    $this->statusLookup = static::LOOKUP_STATUS_ACCESS_DENIED;
                 }
             }
         }
@@ -91,6 +99,7 @@ class OrbitShopLookupResponse implements LookupResponseInterface
      *
      * @author Rio Astamal <me@rioastamal.net>
      *
+     * @paramm string $clientID - The client API Key
      * @return User
      */
     public static function getApiKeys($clientID)
