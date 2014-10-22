@@ -6,6 +6,7 @@
  */
 use DominoPOS\OrbitAPI\v10\API;
 use OrbitShop\API\v1\OrbitShopLookupResponse;
+use Illuminate\Support\Facades\Config;
 
 class OrbitShopAPI extends API
 {
@@ -87,5 +88,17 @@ class OrbitShopAPI extends API
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * Clear the lookup response cache.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $clientID - The client API Key
+     * @return void
+     */
+    public static function clearLookupCache($clientID)
+    {
+        Config::set('orbitapi.lookup.response.' . $clientID, NULL);
     }
 }
