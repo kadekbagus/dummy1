@@ -143,7 +143,7 @@ abstract class ControllerAPI extends Controller
      */
     public function __call($method, $args)
     {
-        $this->response->code = 5;
+        $this->response->code = 404;
         $this->response->status = 'error';
         $this->response->message = 'Request URL not found';
         $this->response->data = NULL;
