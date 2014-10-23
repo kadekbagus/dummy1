@@ -163,7 +163,7 @@ class UserDetailTest extends OrbitTestCase
     public function testRelationshipData_user_ChuckNorris()
     {
         $detail = UserDetail::with(array('user'))->whereUserId(3)->first();
-        $this->assertSame('3', (string)$detail->modifier->user_id);
+        $this->assertSame('1', (string)$detail->modifier->user_id);
         $this->assertSame('chuck', $detail->detail->username);
         $this->assertSame('chuck@localhost.org', $detail->detail->user_email);
     }
