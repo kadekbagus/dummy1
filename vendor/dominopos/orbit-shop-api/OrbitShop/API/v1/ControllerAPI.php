@@ -148,6 +148,6 @@ abstract class ControllerAPI extends Controller
         $this->response->message = 'Request URL not found';
         $this->response->data = NULL;
 
-        return $this->render();
+        return $this->render(404);
     }
 }
