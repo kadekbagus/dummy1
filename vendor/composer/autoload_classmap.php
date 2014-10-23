@@ -18,6 +18,7 @@ return array(
     'AddIndexesToPermissonRole' => $baseDir . '/app/database/migrations/2014_10_16_021815_add_indexes_to_permisson_role.php',
     'AddIndexesToUsers' => $baseDir . '/app/database/migrations/2014_10_16_020929_add_indexes_to_users.php',
     'AddUniqueConstraintToApikeys' => $baseDir . '/app/database/migrations/2014_10_21_074413_add_unique_constraint_to_apikeys.php',
+    'AlterPermissionsAddPermissionDefaultValueColumn' => $baseDir . '/app/database/migrations/2014_10_23_112725_alter_permissions_add_permission_default_value_column.php',
     'AlterRolesAddRoleOrderColumn' => $baseDir . '/app/database/migrations/2014_10_23_111801_alter_roles_add_role_order_column.php',
     'AlterTblUserDetailsAddPK' => $baseDir . '/app/database/migrations/2014_10_23_025206_alter_tbl_user_details_add_PK.php',
     'AlterUserDetailsAddNewColumnsAndIndexes' => $baseDir . '/app/database/migrations/2014_10_22_042320_alter_user_details_add_new_columns_and_indexes.php',

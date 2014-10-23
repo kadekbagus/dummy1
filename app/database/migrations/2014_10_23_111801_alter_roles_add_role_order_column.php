@@ -13,7 +13,7 @@ class AlterRolesAddRoleOrderColumn extends Migration
     public function up()
     {
         Schema::table('roles', function (Blueprint $table) {
-            $table->integer('role_order')->unsigned()->default(0);
+            $table->integer('role_order')->unsigned()->default(0)->after('role_name');
             $table->index(array('role_order'), 'role_order_idx');
         });
     }
