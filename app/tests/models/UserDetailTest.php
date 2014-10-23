@@ -89,7 +89,7 @@ class UserDetailTest extends OrbitTestCase
 
     public function xtestRelationshipExists_user_andReturn_BelongsTo()
     {
-        $detail = new User();
+        $detail = new UserDetail();
         $return = method_exists($detail, 'user');
         $this->assertTrue($return);
 
@@ -162,7 +162,7 @@ class UserDetailTest extends OrbitTestCase
 
     public function testRelationshipData_user_ChuckNorris()
     {
-        $detail = User::with(array('user'))->whereUserId(3)->first();
+        $detail = UserDetail::with(array('user'))->whereUserId(3)->first();
         $this->assertSame('3', (string)$detail->modifier->user_id);
         $this->assertSame('chuck', $detail->detail->username);
         $this->assertSame('chuck@localhost.org', $detail->detail->user_email);
@@ -170,7 +170,7 @@ class UserDetailTest extends OrbitTestCase
 
     public function testRelationshipEmptyData_user_PinkPanther_statusDeleted()
     {
-        $detail = User::with(array('user'))->whereUserId(5)->first();
+        $detail = UserDetail::with(array('user'))->whereUserId(5)->first();
         $return = is_null($detail->user);
         $this->assertTrue($return);
     }
