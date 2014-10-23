@@ -20,6 +20,7 @@ class UserTest extends OrbitTestCase
         // Get the prefix of the table name
         $apikey_table = static::$dbPrefix . 'apikeys';
         $user_table = static::$dbPrefix . 'users';
+        $user_detail_table = static::$dbPrefix . 'user_details';
         $role_table = static::$dbPrefix . 'roles';
         $permission_table = static::$dbPrefix . 'permissions';
         $permission_role_table = static::$dbPrefix . 'permission_role';
@@ -94,6 +95,17 @@ class UserTest extends OrbitTestCase
                 VALUES
                 ('1', '3', '2', 'yes', NOW(), NOW())"
         );
+
+        // Insert dummy data on user_details
+        DB::statement("INSERT INTO `{$user_detail_table}`
+                    (user_detail_id, user_id, merchant_id, merchant_acquired_date, address_line1, address_line2, address_line3, postal_code, city_id, city, province_id, province, country_id, country, currency, currency_symbol, birthdate, gender, relationship_status, number_visit_all_shop, amount_spent_all_shop, average_spent_per_month_all_shop, last_visit_any_shop, last_visit_shop_id, last_purchase_any_shop, last_purchase_shop_id, last_spent_any_shop, last_spent_shop_id, modified_by, created_at, updated_at)
+                    VALUES
+                    ('1', '1', '1', '2014-10-21 06:20:01', 'Jl. Raya Semer', 'Kerobokan', 'Near Airplane Statue', '60219', '1', 'Denpasar', '1', 'Bali', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-01', 'm', 'single', '10', '8100000.00', '1100000.00', '2014-10-21 12:12:11', '1', '2014-10-16 12:12:12', '1', '1100000.00', '1', '1', '2014-10-11 06:20:01', '2014-10-11 06:20:01'),
+                    ('2', '2', '2', '2014-10-21 06:20:02', 'Jl. Raya Semer2', 'Kerobokan2', 'Near Airplane Statue2', '60229', '2', 'Denpasar2', '2', 'Bali2', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-02', 'm', 'single', '11', '8200000.00', '1200000.00', '2014-10-21 12:12:12', '2', '2014-10-17 12:12:12', '2', '1500000.00', '2', '1', '2014-10-12 06:20:01', '2014-10-12 06:20:02'),
+                    ('3', '3', '3', '2014-10-21 06:20:03', 'Jl. Raya Semer3', 'Kerobokan3', 'Near Airplane Statue3', '60239', '3', 'Denpasar3', '3', 'Bali3', '62', 'Indonesia', 'EUR', '€', '1980-04-03', 'm', 'single', '12', '8300000.00', '1300000.00', '2014-10-21 12:12:13', '3', '2014-10-18 12:12:12', '3', '1400000.00', '3', '1', '2014-10-13 06:20:01', '2014-10-13 06:20:03'),
+                    ('4', '4', '4', '2014-10-21 06:20:04', 'Jl. Raya Semer4', 'Kerobokan4', 'Near Airplane Statue4', '60249', '4', 'Denpasar4', '4', 'Bali4', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-04', 'm', 'single', '13', '8400000.00', '1400000.00', '2014-10-21 12:12:14', '4', '2014-10-19 12:12:12', '4', '1300000.00', '4', '1', '2014-10-14 06:20:04', '2014-10-14 06:20:04'),
+                    ('5', '$', '4', '2014-10-21 06:20:05', 'Jl. Raya Semer5', 'Kerobokan5', 'Near Airplane Statue5', '60259', '5', 'Denpasar5', '5', 'Bali5', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-05', 'm', 'single', '14', '8500000.00', '1500000.00', '2014-10-21 12:12:15', '5', '2014-10-20 12:12:12', '5', '1200000.00', '5', '1', '2014-10-15 06:20:05', '2014-10-15 06:20:05')"
+        );
     }
 
     /**
@@ -111,12 +123,14 @@ class UserTest extends OrbitTestCase
     {
         $apikey_table = static::$dbPrefix . 'apikeys';
         $user_table = static::$dbPrefix . 'users';
+        $user_detail_table = static::$dbPrefix . 'user_details';
         $role_table = static::$dbPrefix . 'roles';
         $permission_table = static::$dbPrefix . 'permissions';
         $permission_role_table = static::$dbPrefix . 'permission_role';
         $custom_permission_table = static::$dbPrefix . 'custom_permission';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
+                        TRUNCATE `{$user_detail_table}`;
                         TRUNCATE `{$role_table}`;
                         TRUNCATE `{$custom_permission_table}`;
                         TRUNCATE `{$permission_role_table}`;
@@ -258,6 +272,25 @@ class UserTest extends OrbitTestCase
             return $perm->permission_name == 'view_user';
         });
         $this->assertSame('yes', $viewUserPerm->first()->pivot->allowed);
+    }
+
+    public function testRelationshipExists_userdetail_andReturn_HasOne()
+    {
+        $user = new User();
+        $return = method_exists($user, 'userdetail');
+        $this->assertTrue($return);
+
+        $expect = 'Illuminate\Database\Eloquent\Relations\HasOne';
+        $return = $user->userDetail();
+        $this->assertInstanceOf($expect, $return);
+    }
+
+    public function testRelationshipData_userdetail_recordNumber3()
+    {
+        $user = User::with(array('userdetail'))->find(3);
+        $this->assertSame('3', (string)$user->userdetail->user_id);
+        $this->assertSame('Jl. Raya Semer3', $user->userdetail->address_line1);
+        $this->assertSame('1980-04-03', $user->userdetail->birthdate);
     }
 
     public function testInsertUserWithStatusPending()
