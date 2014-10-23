@@ -21,6 +21,14 @@ cd ../../..
 echo "-------------------------------------------------------"
 echo " Orbit API Application Unit Test"
 echo "-------------------------------------------------------"
+echo "Running artisan migrate for production..."
+php artisan migrate --force
+
+echo ""
+echo "Running artisan migrate for testing..."
+php artisan --env=testing migrate
+echo ""
+
 phpunit -c phpunit-nocolor.xml && {
   echo "-------------------------------------------------------"
   echo " Deploying Orbit API Application"
