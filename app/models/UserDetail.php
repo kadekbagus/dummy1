@@ -10,4 +10,9 @@ class UserDetail extends Eloquent
     {
         return $this->belongsTo('User', 'user_id', 'user_id');
     }
+
+    public function modifier()
+    {
+        return $this->belongsTo('User', 'modified_by', 'user_id');
+    }
 }
