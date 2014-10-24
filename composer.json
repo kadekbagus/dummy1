@@ -19,7 +19,8 @@
     "autoload": {
                 "psr-0": {
                     "DominoPOS\\OrbitAPI\\": "vendor/dominopos/orbit-api/",
-                    "OrbitShop\\API\\": "vendor/dominopos/orbit-shop-api/"
+                    "OrbitShop\\API\\": "vendor/dominopos/orbit-shop-api/",
+                    "DominoPOS\\OrbitACL\\": "vendor/dominopos/orbit-acl/"
                 },
         "classmap": [
             "app/commands",

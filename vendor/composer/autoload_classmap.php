@@ -133,6 +133,7 @@ return array(
     'DebugBar\\Storage\\PdoStorage' => $vendorDir . '/maximebf/debugbar/src/DebugBar/Storage/PdoStorage.php',
     'DebugBar\\Storage\\RedisStorage' => $vendorDir . '/maximebf/debugbar/src/DebugBar/Storage/RedisStorage.php',
     'DebugBar\\Storage\\StorageInterface' => $vendorDir . '/maximebf/debugbar/src/DebugBar/Storage/StorageInterface.php',
+    'DominoPOS\\OrbitACL\\ACL' => $vendorDir . '/dominopos/orbit-acl/DominoPOS/OrbitACL/ACL.php',
     'DominoPOS\\OrbitAPI\\v10\\API' => $vendorDir . '/dominopos/orbit-api/DominoPOS/OrbitAPI/v10/API.php',
     'DominoPOS\\OrbitAPI\\v10\\Exception\\APIException' => $vendorDir . '/dominopos/orbit-api/DominoPOS/OrbitAPI/v10/Exception/APIException.php',
     'DominoPOS\\OrbitAPI\\v10\\LookupResponseInterface' => $vendorDir . '/dominopos/orbit-api/DominoPOS/OrbitAPI/v10/LookupResponseInterface.php',
