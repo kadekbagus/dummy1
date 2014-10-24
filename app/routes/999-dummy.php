@@ -2,15 +2,22 @@
 /**
  * A dummy route file
  */
-
-Route::get('/api/dummy', function()
+Route::get('/api/v1/dummy/hisname', function()
 {
-    $data = array(
-        'code'      => 0,
-        'status'    => 'ok',
-        'message'   => 'Hello World',
-        'data'      => null
-    );
+    return DummyAPIController::create()->hisname();
+});
 
-    return Response::json($data);
+Route::get('/api/v1/dummy/hisname/auth', function()
+{
+    return DummyAPIController::create()->hisnameAuth();
+});
+
+Route::post('/api/v1/dummy/myname', function()
+{
+    return DummyAPIController::create()->myName();
+});
+
+Route::post('/api/v1/dummy/myname/auth', function()
+{
+    return DummyAPIController::create()->myNameAuth();
 });
