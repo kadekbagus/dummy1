@@ -90,7 +90,7 @@ class ACL
      * Static method to create OrbitACL instance.
      *
      * @param $user User - The User instance
-     * @return OrbitACL
+     * @return ACL
      */
     public static function create($user=NULL)
     {
