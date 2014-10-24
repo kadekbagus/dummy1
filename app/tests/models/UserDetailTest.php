@@ -164,14 +164,14 @@ class UserDetailTest extends OrbitTestCase
     {
         $detail = UserDetail::with(array('user'))->whereUserId(3)->first();
         $this->assertSame('1', (string)$detail->modifier->user_id);
-        $this->assertSame('chuck', $detail->detail->username);
-        $this->assertSame('chuck@localhost.org', $detail->detail->user_email);
+        $this->assertSame('chuck', $detail->user->username);
+        $this->assertSame('chuck@localhost.org', $detail->user->user_email);
     }
 
     public function testRelationshipEmptyData_user_PinkPanther_statusDeleted()
     {
         $detail = UserDetail::with(array('user'))->whereUserId(5)->first();
-        $return = is_null($detail->user);
+        $return = is_null($detail);
         $this->assertTrue($return);
     }
 
@@ -190,8 +190,8 @@ class UserDetailTest extends OrbitTestCase
     {
         $detail = UserDetail::with(array('modifier'))->whereUserId(3)->first();
         $this->assertSame('1', (string)$detail->modifier->user_id);
-        $this->assertSame('john', $detail->detail->username);
-        $this->assertSame('john@localhost.org', $detail->detail->user_email);
+        $this->assertSame('john', $detail->modifier->username);
+        $this->assertSame('john@localhost.org', $detail->modifier->user_email);
     }
 
     public function testScopeActive()

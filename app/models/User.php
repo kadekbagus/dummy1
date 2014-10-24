@@ -32,7 +32,7 @@ class User extends Eloquent implements UserInterface
         return $this->belongsTo('User', 'modified_by', 'user_id');
     }
 
-    public function userDetail()
+    public function userdetail()
     {
         return $this->hasOne('UserDetail', 'user_id', 'user_id');
     }
