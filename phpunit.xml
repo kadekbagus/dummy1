@@ -20,6 +20,10 @@
             <directory>./app/tests/api/v1/base/</directory>
         </testsuite>
 
+        <testsuite name="Orbit ACL Test Suite">
+            <directory>./app/tests/acl</directory>
+        </testsuite>
+
         <testsuite name="Application Test Suite">
             <directory>./app/tests/</directory>
         </testsuite>
