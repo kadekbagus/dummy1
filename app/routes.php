@@ -1,15 +1,34 @@
 <?php
+if (! defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 /*
 |--------------------------------------------------------------------------
-| Orbit API Roites
+| Orbit API Class Map
+|--------------------------------------------------------------------------
+|
+| Add additional class map that are not covered by composer autoloader.
+| This class map might change very often so it is best to put it here
+| instead.
+|
+*/
+$orbit_additional_classmap = array(
+    __DIR__ . DS . 'controllers' . DS . 'api' . DS . 'v1'
+);
+ClassLoader::addDirectories($orbit_additional_classmap);
+ClassLoader::register();
+
+/*
+|--------------------------------------------------------------------------
+| Orbit API Routes
 |--------------------------------------------------------------------------
 |
 | Search all php files inside the 'routes' the directory.
 |
 */
-$directory = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'routes';
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+$route_dir = __DIR__ . DS . 'routes';
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($route_dir));
 $it->rewind();
 while ($it->valid()) {
     if (! $it->isDot()) {
