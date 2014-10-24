@@ -130,7 +130,8 @@ class ACL
         };
 
         foreach ($globalCachePermissions() as $perm) {
-            if (property_exists($perm, 'permission_default_value')) {
+            $attributes = $perm->getAttributes();
+            if (isset($attributes['permission_default_value'])) {
                 $this->globalPermissions[$perm->permission_name] = $perm->permission_default_value;
             } else {
                 $this->globalPermissions[$perm->permission_name] = 'no';
