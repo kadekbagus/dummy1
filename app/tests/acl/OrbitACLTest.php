@@ -210,6 +210,32 @@ class OrbitACLTest extends OrbitTestCase
         $this->assertTrue($acl->isAllowed('view_product'));
         $this->assertTrue($acl->isAllowed('add_product'));
         $this->assertFalse($acl->isAllowed('delete_product'));
+
+        $permission->delete();
+    }
+
+    public function testUserChuckNorris_Customer_newDeleteProductGlobalPermission_Allowed()
+    {
+        $user = User::find(3);
+
+        // Add permission 'delete_product' which does not exists yet on both
+        // Role Permission and Custom Permission
+        // Set default value to 'yes'
+        $permission = new Permission();
+        $permission->permission_name = 'delete_product';
+        $permission->permission_default_value = 'yes';
+        $permission->save();
+
+        $acl = new ACL($user);
+
+        $this->assertTrue($acl->isAllowed('login'));
+        $this->assertTrue($acl->isAllowed('view_user'));
+        $this->assertFalse($acl->isAllowed('create_user'));
+        $this->assertTrue($acl->isAllowed('view_product'));
+        $this->assertTrue($acl->isAllowed('add_product'));
+        $this->assertTrue($acl->isAllowed('delete_product'));
+
+        $permission->delete();
     }
 
     public function testUserOptimusPrime_CustomerBlocked_allDenied()
