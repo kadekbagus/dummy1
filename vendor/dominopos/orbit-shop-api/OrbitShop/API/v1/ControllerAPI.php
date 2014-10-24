@@ -68,7 +68,7 @@ abstract class ControllerAPI extends Controller
     /**
      * Contructor
      *
-     * @param string $content_type - HTTP content type that would be sent to client
+     * @param string $contentType - HTTP content type that would be sent to client
      */
     public function __construct($contentType = 'application/json') {
         // default content type set to JSON
@@ -76,6 +76,17 @@ abstract class ControllerAPI extends Controller
 
         // Set the default response
         $this->response = new ResponseProvider();
+    }
+
+    /**
+     * Static method to instantiate the object.
+     *
+     * @param string $contentType
+     * @return ControllerAPI
+     */
+    public static function create($contentType = 'application/json')
+    {
+        return new static($contentType);
     }
 
     /**
