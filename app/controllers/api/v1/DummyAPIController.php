@@ -49,12 +49,15 @@ class DummyAPIController extends ControllerAPI
         $name->last_name = Input::post('lastname');
         $this->response->data = $name;
 
-        return $this->render;
+        return $this->render();
     }
 
     public function myNameAuth()
     {
         try {
+            // Require authentication
+            $this->checkAuth();
+
             $name = new stdclass();
             $name->first_name = Input::post('firstname');
             $name->last_name = Input::post('lastname');
@@ -66,6 +69,6 @@ class DummyAPIController extends ControllerAPI
             $this->response->data = NULL;
         }
 
-        return $this->render;
+        return $this->render();
     }
 }
