@@ -26,7 +26,7 @@ class Apikey extends Eloquent
      */
     public static function genApiKey($user)
     {
-        $chars  = strrev($user->email) . $user->id . $user->created_at;
+        $chars  = strrev($user->email) . $user->user_id . $user->created_at;
         $chars .= microtime(TRUE);
         $chars .= uniqid();
 
@@ -43,7 +43,7 @@ class Apikey extends Eloquent
     public static function genSecretKey($user)
     {
         $chars = strrev($user->username) . $user->user_lastname . $user->user_firstname;
-        $chars .= strrev($user->email) . $user->id . $user->created_at;
+        $chars .= strrev($user->email) . $user->user_id . (string)$user->created_at;
         $chars .= microtime(TRUE) . $user->user_password;
         $chars .= uniqid() . mt_rand(0, 0xffffff);
 
