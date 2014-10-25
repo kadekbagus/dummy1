@@ -26,7 +26,7 @@ class User extends Eloquent implements UserInterface
     {
         return $this->hasOne('Apikey', 'user_id', 'user_id')->where('apikeys.status','=','active');
     }
-    
+
     public function modifier()
     {
         return $this->belongsTo('User', 'modified_by', 'user_id');
@@ -40,5 +40,17 @@ class User extends Eloquent implements UserInterface
     public function getFullName()
     {
         return $this->user_firstname . ' ' . $this->user_lastname;
+    }
+
+    /**
+     * Tells Laravel the name of our password field so Laravel does not uses
+     * its default `password` field. Our field name is `user_password`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->user_password;
     }
 }
