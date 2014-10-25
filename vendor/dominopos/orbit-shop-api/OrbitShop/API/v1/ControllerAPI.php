@@ -6,6 +6,7 @@
  */
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\DB;
 
 abstract class ControllerAPI extends Controller
 {
@@ -76,6 +77,9 @@ abstract class ControllerAPI extends Controller
 
         // Set the default response
         $this->response = new ResponseProvider();
+
+        // Assign the PDO object
+        $this->pdo = DB::connection()->getPdo();
     }
 
     /**
