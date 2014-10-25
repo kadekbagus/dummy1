@@ -193,4 +193,17 @@ class ACL
     {
         Config::set('cache.permissions.all', NULL);
     }
+
+    /**
+     * Throw a forbidden exception.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $message - Forbidden access message
+     * @return void
+     * @throw DominoPOS\OrbitACL\Exception\ACLForbiddenException
+     */
+    public function throwAccessForbidden($message=NULL)
+    {
+        throw new Exception\ACLForbiddenException($message);
+    }
 }

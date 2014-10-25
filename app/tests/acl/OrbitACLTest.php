@@ -253,9 +253,9 @@ class OrbitACLTest extends OrbitTestCase
 
     public function testJohnDoe_SuperAdmin_unknownPermission()
     {
-        $user = User::find(3);
+        $user = User::find(1);
         $acl = new ACL($user);
-        $this->assertFalse($acl->isAllowed('some_dummy'));
+        $this->assertTrue($acl->isAllowed('some_dummy'));
     }
 
     public function testUserChuckNorris_Customer_unknownPermission()
@@ -263,5 +263,33 @@ class OrbitACLTest extends OrbitTestCase
         $user = User::find(3);
         $acl = new ACL($user);
         $this->assertFalse($acl->isAllowed('some_dummy'));
+    }
+
+    /**
+     * @expectedException   DominoPOS\OrbitACL\Exception\ACLForbiddenException
+     * @expectedExceptionMessage You do not have permission to access the specified resource
+     * @expectedExceptionCode 13
+     */
+    public function testException_ACLForbiddenEx_NoArguments()
+    {
+        $user = User::find(3);
+        $acl = new ACL($user);
+        if (! $acl->isAllowed('some_dummy')) {
+            $acl->throwAccessForbidden();
+        }
+    }
+
+    /**
+     * @expectedException   DominoPOS\OrbitACL\Exception\ACLForbiddenException
+     * @expectedExceptionMessage You do not have access to "Some Dummy" resource
+     * @expectedExceptionCode 13
+     */
+    public function testException_ACLForbiddenEx_withMessageArgument()
+    {
+        $user = User::find(3);
+        $acl = new ACL($user);
+        if (! $acl->isAllowed('some_dummy')) {
+            $acl->throwAccessForbidden('You do not have access to "Some Dummy" resource');
+        }
     }
 }
