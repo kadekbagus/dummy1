@@ -101,4 +101,17 @@ class OrbitShopAPI extends API
     {
         Config::set('orbitapi.lookup.response.' . $clientID, NULL);
     }
+
+    /**
+     * Static function to throw invalid argument (missing parameter).
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $message - Forbidden access message
+     * @return void
+     * @throw DominoPOS\OrbitACL\Exception\ACLForbiddenException
+     */
+    public static function throwInvalidArgument($message=NULL)
+    {
+        throw new Exception\InvalidArgsException($message);
+    }
 }
