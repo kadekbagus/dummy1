@@ -202,7 +202,7 @@ class ACL
      * @return void
      * @throw DominoPOS\OrbitACL\Exception\ACLForbiddenException
      */
-    public function throwAccessForbidden($message=NULL)
+    public static function throwAccessForbidden($message=NULL)
     {
         throw new Exception\ACLForbiddenException($message);
     }
