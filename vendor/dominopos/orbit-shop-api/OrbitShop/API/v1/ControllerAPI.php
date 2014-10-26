@@ -7,6 +7,7 @@
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
+use PDO;
 
 abstract class ControllerAPI extends Controller
 {
@@ -164,5 +165,42 @@ abstract class ControllerAPI extends Controller
         $this->response->data = NULL;
 
         return $this->render(404);
+    }
+
+    /**
+     * Begin the database transaction.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function beginTransaction()
+    {
+        $this->pdo->beginTransaction();
+    }
+
+    /**
+     * Rollback the transaction.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function rollBack()
+    {
+        // Make sure we are in transaction mode, to prevent the rollback()
+        // complaining
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+    }
+
+    /**
+     * Commit the changes to database.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function commit()
+    {
+        $this->pdo->commit();
     }
 }
