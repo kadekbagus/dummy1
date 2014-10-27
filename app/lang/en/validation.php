@@ -84,9 +84,9 @@ return array(
     |
     */
 
-    'custom' => array(
-        'attribute-name' => array(
-            'rule-name' => 'custom-message',
+    'orbit' => array(
+        'email' => array(
+            'exists' => 'The email address has already taken by someone else.',
         ),
     ),
 
@@ -102,7 +102,6 @@ return array(
     */
 
     'attributes' => array(
-        'password2' => 'confirmation password',
     ),
 
 );
