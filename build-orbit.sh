@@ -39,9 +39,12 @@ phpunit -c phpunit-nocolor.xml && {
 
     # remove trailing slash
     ORBIT_DEPLOY_DIR="$( echo "$ORBIT_DEPLOY_DIR" | sed "s,/\+$,," )"
+
+    # Change the ownership of the deployment dir to user jenkins
+    $( $ORBIT_CMD_CHOWN_DEPLOY_DIR jenkins )
     rsync -lrvq --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
 
-    # provide write access to storage directory
-    chmod g+w ${ORBIT_DEPLOY_DIR}/app/storage/{cache,logs,meta,sessions,views}
+    # Change the ownership back to orbitshop:git
+    $( $ORBIT_CMD_CHOWN_DEPLOY_DIR orbitshop )
   }
 }
