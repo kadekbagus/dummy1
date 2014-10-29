@@ -3,8 +3,8 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AlterUserAddRememberTokenColumn extends Migration {
-
+class AlterUserAddRememberTokenColumn extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -32,5 +32,4 @@ class AlterUserAddRememberTokenColumn extends Migration {
             $table->dropColumn('remember_token');
         });
     }
-
 }
