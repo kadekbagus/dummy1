@@ -8,6 +8,7 @@ use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use Illuminate\Database\QueryException;
 
 class DummyAPIController extends ControllerAPI
 {
@@ -233,6 +234,23 @@ class DummyAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = NULL;
             $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.user.postnewuser.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = NULL;
+            $httpCode = 500;
 
             // Rollback the changes
             $this->rollBack();
