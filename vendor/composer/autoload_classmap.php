@@ -25,6 +25,7 @@ return array(
     'AlterUserAddRememberTokenColumn' => $baseDir . '/app/database/migrations/2014_10_25_110811_alter_user_add_remember_token_column.php',
     'AlterUserDetailsAddNewColumnsAndIndexes' => $baseDir . '/app/database/migrations/2014_10_22_042320_alter_user_details_add_new_columns_and_indexes.php',
     'AlterUserDetailsAddPhoneAndPhotoColumn' => $baseDir . '/app/database/migrations/2014_10_24_195220_alter_user_details_add_phone_and_photo_column.php',
+    'AlterUsersColumnAccordingTo30Oct2014Changes' => $baseDir . '/app/database/migrations/2014_10_30_063154_alter_users_column_according_to_30-Oct-2014_changes.php',
     'Apikey' => $baseDir . '/app/models/Apikey.php',
     'Barryvdh\\Debugbar\\Console\\ClearCommand' => $vendorDir . '/barryvdh/laravel-debugbar/src/Console/ClearCommand.php',
     'Barryvdh\\Debugbar\\Console\\PublishCommand' => $vendorDir . '/barryvdh/laravel-debugbar/src/Console/PublishCommand.php',
