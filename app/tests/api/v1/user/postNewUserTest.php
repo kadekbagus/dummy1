@@ -413,6 +413,101 @@ class postNewUserTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testMissingRoleId_POST_api_v1_user_new()
+    {
+        // Data to be post
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['password'] = '123456';
+        $_POST['password_confirmation'] = '123456';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+        $_GET['apiver'] = '1.0';
+
+        $url = '/api/v1/user/new?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.required', array('attribute' => 'role id'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testRoleIdNotNumeric_POST_api_v1_user_new()
+    {
+        // Data to be post
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['password'] = '123456';
+        $_POST['password_confirmation'] = '123456';
+        $_POST['role_id'] = 'foo';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+        $_GET['apiver'] = '1.0';
+
+        $url = '/api/v1/user/new?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.numeric', array('attribute' => 'role id'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testRoleIdNotExists_POST_api_v1_user_new()
+    {
+        // Data to be post
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['password'] = '123456';
+        $_POST['password_confirmation'] = '123456';
+        $_POST['role_id'] = 99;
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+        $_GET['apiver'] = '1.0';
+
+        $url = '/api/v1/user/new?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.orbit.empty.role');
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
     public function testReqOK_POST_api_v1_user_new()
     {
         // Number of user account before this operation
@@ -422,6 +517,7 @@ class postNewUserTest extends OrbitTestCase
         $_POST['email'] = 'george@localhost.org';
         $_POST['password'] = 'cool-password';
         $_POST['password_confirmation'] = 'cool-password';
+        $_POST['role_id'] = 3;
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -478,6 +574,7 @@ class postNewUserTest extends OrbitTestCase
         $_POST['email'] = 'george2@localhost.org';
         $_POST['password'] = 'cool-password';
         $_POST['password_confirmation'] = 'cool-password';
+        $_POST['role_id'] = 3;
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
