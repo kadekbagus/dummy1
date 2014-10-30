@@ -88,6 +88,10 @@ return array(
         'email' => array(
             'exists' => 'The email address has already taken by someone else.',
         ),
+        'access' => array(
+            'forbidden' => 'You do not have permission to :action.',
+        ),
+        'queryerror' => 'Database query error, turn on debug mode to see the full query.',
     ),
 
     /*
