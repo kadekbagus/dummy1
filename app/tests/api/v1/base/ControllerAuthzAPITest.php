@@ -555,7 +555,7 @@ class ControllerAuthzAPITest extends OrbitTestCase
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-        // Add new permission name 'say_my_name'
+        // Add new permission name 'create_user'
         $chuck = User::find(3);
         $permission = new Permission();
         $permission->permission_name = 'create_user';
@@ -590,14 +590,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        // Add new permission name 'say_my_name'
-        $chuck = User::find(3);
-        $permission = new Permission();
-        $permission->permission_name = 'create_user';
-        $permission->save();
-
-        $chuck->permissions()->attach($permission->permission_id, array('allowed' => 'yes'));
 
         $data = new stdclass();
         $data->code = Status::INVALID_ARGUMENT;
