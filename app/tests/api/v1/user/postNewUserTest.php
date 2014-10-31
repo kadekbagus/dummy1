@@ -101,12 +101,14 @@ class postNewUserTest extends OrbitTestCase
     {
         $apikey_table = static::$dbPrefix . 'apikeys';
         $user_table = static::$dbPrefix . 'users';
+        $user_detail_table = static::$dbPrefix . 'user_details';
         $role_table = static::$dbPrefix . 'roles';
         $permission_table = static::$dbPrefix . 'permissions';
         $permission_role_table = static::$dbPrefix . 'permission_role';
         $custom_permission_table = static::$dbPrefix . 'custom_permission';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
+                        TRUNCATE `{$user_detail_table}`;
                         TRUNCATE `{$role_table}`;
                         TRUNCATE `{$custom_permission_table}`;
                         TRUNCATE `{$permission_role_table}`;
