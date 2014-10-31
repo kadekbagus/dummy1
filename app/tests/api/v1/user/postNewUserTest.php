@@ -553,6 +553,13 @@ class postNewUserTest extends OrbitTestCase
         $this->assertInstanceOf('UserDetail', $details);
         $this->assertSame((string)$response->data->user_id, (string)$details->user_id);
 
+        // Check the api keys, it should be active keys
+        $apikey = Apikey::active()->where('user_id', $response->data->user_id)->first();
+        $this->assertInstanceOf('Apikey', $apikey);
+        $this->assertSame((string)$response->data->user_id, (string)$apikey->user_id);
+        $this->assertSame(40, strlen($apikey->api_key));
+        $this->assertSame(64, strlen($apikey->api_secret_key));
+
         $numAfter = User::count();
         $this->assertSame($numBefore + 1, $numAfter);
     }
