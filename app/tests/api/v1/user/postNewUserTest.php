@@ -191,7 +191,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -216,7 +215,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time() - 3600;  // an hour ago
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -241,7 +239,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -270,7 +267,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -306,7 +302,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -334,7 +329,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -363,7 +357,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -394,7 +387,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -425,7 +417,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -457,7 +448,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
@@ -489,7 +479,6 @@ class postNewUserTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 

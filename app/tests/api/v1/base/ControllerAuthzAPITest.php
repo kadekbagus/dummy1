@@ -203,7 +203,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/hisname/auth?' . http_build_query($_GET);
 
@@ -227,7 +226,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/hisname/auth?' . http_build_query($_GET);
 
@@ -256,7 +254,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/hisname/authz?' . http_build_query($_GET);
 
@@ -281,7 +278,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time() - 3600;  // an hour ago
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/hisname/authz?' . http_build_query($_GET);
 
@@ -306,7 +302,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';     // Chuck Norris
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/hisname/authz?' . http_build_query($_GET);
 
@@ -389,7 +384,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/myname/auth?' . http_build_query($_GET);
 
@@ -422,7 +416,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/myname/authz?' . http_build_query($_GET);
 
@@ -451,7 +444,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time() - 3600;  // an hour ago
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/myname/authz?' . http_build_query($_GET);
 
@@ -480,7 +472,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/myname/authz?' . http_build_query($_GET);
 
@@ -509,7 +500,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/myname/authz?' . http_build_query($_GET);
 
@@ -546,7 +536,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -582,7 +571,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -610,7 +598,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -639,7 +626,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -669,7 +655,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -703,7 +688,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -737,7 +721,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
@@ -787,7 +770,6 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
-        $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/dummy/user/new?' . http_build_query($_GET);
 
