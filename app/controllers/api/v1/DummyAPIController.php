@@ -196,25 +196,25 @@ class DummyAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $user = new User();
-            $user->username = $email;
-            $user->user_email = $email;
-            $user->user_password = Hash::make($password);
-            $user->status = 'pending';
+            $newuser = new User();
+            $newuser->username = $email;
+            $newuser->user_email = $email;
+            $newuser->user_password = Hash::make($password);
+            $newuser->status = 'pending';
 
-            Event::fire('orbit.dummy.postreguser.before.save', array($this, $user));
+            Event::fire('orbit.dummy.postreguser.before.save', array($this, $newuser));
 
-            $user->save();
+            $newuser->save();
 
-            $user->setVisible(array('username', 'user_email', 'status'));
+            $newuser->setVisible(array('username', 'user_email', 'status'));
 
-            Event::fire('orbit.dummy.postreguser.after.save', array($this, $user));
-            $this->response->data = $user->toArray();
+            Event::fire('orbit.dummy.postreguser.after.save', array($this, $newuser));
+            $this->response->data = $newuser->toArray();
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.dummy.postreguser.after.commit', array($this, $user));
+            Event::fire('orbit.dummy.postreguser.after.commit', array($this, $newuser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.dummy.postreguser.access.forbidden', array($this, $e));
 
