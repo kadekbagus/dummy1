@@ -532,8 +532,6 @@ class postNewUserTest extends OrbitTestCase
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
         $_SERVER['REMOTE_ADDR'] = '10.10.0.99';
 
-        Config::set('app.debug', FALSE);
-        $message = Lang::get('validation.confirmed', array('attribute' => 'password'));
         $return = $this->call('POST', $url)->getContent();
 
         $response = json_decode($return);
@@ -548,12 +546,18 @@ class postNewUserTest extends OrbitTestCase
         $this->assertSame('pending', (string)$response->data->status);
         $this->assertTrue(property_exists($response->data, 'user_id'));
 
-        // Check the user detail, it should be exists also
+        // userdetail relationship property
+        $this->assertTrue(property_exists($response->data, 'userdetail'));
+
+        // apikey relationship property
+        $this->assertTrue(property_exists($response->data, 'apikey'));
+
+        // Check the user detail on database, it should be exists also
         $details = UserDetail::where('user_id', $response->data->user_id)->first();
         $this->assertInstanceOf('UserDetail', $details);
         $this->assertSame((string)$response->data->user_id, (string)$details->user_id);
 
-        // Check the api keys, it should be active keys
+        // Check the api keys on database, it should be active keys
         $apikey = Apikey::active()->where('user_id', $response->data->user_id)->first();
         $this->assertInstanceOf('Apikey', $apikey);
         $this->assertSame((string)$response->data->user_id, (string)$apikey->user_id);
