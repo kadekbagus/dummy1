@@ -5,6 +5,8 @@
  * @author Rio Astamal <me@rioastamal.net>
  */
 use DominoPOS\OrbitAPI\v10\API;
+use DominoPOS\OrbitAPI\v10\Exception\APIException as OrbitAPIException;
+use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\OrbitShopLookupResponse;
 use Illuminate\Support\Facades\Config;
 
@@ -88,6 +90,72 @@ class OrbitShopAPI extends API
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * Check the integrity of the signature.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * @return boolean
+     * @throws OrbitAPIException
+     */
+    public function checkSignature()
+    {
+        if (isset($_GET[$this->queryParamName['clientid']]) === FALSE) {
+            throw new OrbitAPIException(
+                Status::PARAM_MISSING_CLIENT_ID_MSG,
+                Status::PARAM_MISSING_CLIENT_ID
+            );
+        }
+
+        if (isset($_GET[$this->queryParamName['timestamp']]) === FALSE) {
+            throw new OrbitAPIException(
+                Status::PARAM_MISSING_TIMESTAMP_MSG,
+                Status::PARAM_MISSING_TIMESTAMP
+            );
+        }
+
+        if (is_numeric($_GET[$this->queryParamName['timestamp']]) === FALSE) {
+            throw new OrbitAPIException(
+                Status::PARAM_MISSING_TIMESTAMP_MSG,
+                Status::PARAM_MISSING_TIMESTAMP
+            );
+        }
+
+        $signatureHeader = static::toUnderScoreHeader($this->httpSignatureHeader);
+
+        // Append 'HTTP_' prefix to the header, so it can be read by PHP
+        $signatureHeader = 'HTTP_' . $signatureHeader;
+
+        if (isset($_SERVER[$signatureHeader]) === FALSE) {
+            throw new OrbitAPIException(
+                Status::PARAM_MISSING_SIGNATURE_MSG,
+                Status::PARAM_MISSING_SIGNATURE
+            );
+        }
+
+        $ourTime = gmdate('U');
+        $ourHash = $this->generateHash();
+
+        $userTime = abs($_GET[$this->queryParamName['timestamp']]);
+        $userHash = $_SERVER[$signatureHeader];
+
+        if ($ourHash !== $userHash) {
+            throw new OrbitAPIException(
+                Status::INVALID_SIGNATURE_MSG,
+                Status::INVALID_SIGNATURE
+            );
+        }
+
+        if ($userTime < $ourTime - $this->expiresTimeFrame) {
+            throw new OrbitAPIException(
+                Status::REQUEST_EXPIRED_MSG,
+                Status::REQUEST_EXPIRED
+            );
+        }
+
+        return TRUE;
     }
 
     /**
