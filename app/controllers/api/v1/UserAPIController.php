@@ -32,6 +32,97 @@ class UserAPIController extends ControllerAPI
         $httpCode = 200;
         try {
             // Put your code in here, see DummyAPIController for reference
+            Event::fire('orbit.user.postnewuser.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.user.postnewuser.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.user.postnewuser.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('create_user')) {
+                Event::fire('orbit.user.postnewuser.authz.notallowed', array($this, $user));
+
+                ACL::throwAccessForbidden('You do not have permission to add new user.');
+            }
+            Event::fire('orbit.user.postnewuser.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $email = OrbitInput::post('email');
+            $password = OrbitInput::post('password');
+            $password2 = OrbitInput::post('password_confirmation');
+            $user_role_id = OrbitInput::post('role_id');
+
+            $validator = Validator::make(
+                array(
+                    'email'     => $email,
+                    'password'  => $password,
+                    'password_confirmation' => $password2,
+                    'role_id' => $user_role_id,
+                ),
+                array(
+                    'email'     => 'required|email|orbit.email.exists',
+                    'password'  => 'required|min:5|confirmed',
+                    'role_id' => 'required|numeric|orbit.empty.role',
+                )
+            );
+
+            Event::fire('orbit.user.postnewuser.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.user.postnewuser.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $newuser = new User;
+            $newuser->username = $email;
+            $newuser->user_email = $email;
+            $newuser->user_password = Hash::make($password);
+            $newuser->status = 'pending';
+            $newuser->user_role_id = $user_role_id;
+            $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
+            $newuser->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.user.postnewuser.before.save', array($this, $newuser));
+
+            $newuser->save();
+
+            $userdetail = new UserDetail();
+            $userdetail = $newuser->userdetail()->save($userdetail);
+            $newuser->setRelation('userdetail', $userdetail);
+
+            $newuser->userdetail = $userdetail;
+
+            $apikey = new Apikey();
+            $apikey->api_key = Apikey::genApiKey($newuser);
+            $apikey->api_secret_key = Apikey::genSecretKey($newuser);
+            $apikey->status = 'active';
+            $apikey->user_id = $newuser->user_id;
+            $apikey = $newuser->apikey()->save($apikey);
+            $newuser->setRelation('apikey', $apikey);
+
+            $newuser->apikey = $apikey;
+
+            // $newuser->setVisible(array('user_id', 'username', 'user_email', 'status', 'user_role_id', 'user_ip', 'modified_by', 'userdetail', 'apikey'));
+            $newuser->setHidden(array('user_password'));
+
+            Event::fire('orbit.user.postnewuser.after.save', array($this, $newuser));
+            $this->response->data = $newuser->toArray();
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.user.postnewuser.after.commit', array($this, $newuser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.user.postnewuser.access.forbidden', array($this, $e));
 
