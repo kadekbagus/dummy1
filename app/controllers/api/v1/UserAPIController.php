@@ -177,6 +177,21 @@ class UserAPIController extends ControllerAPI
         return $this->render($httpCode);
     }
 
+    /**
+     * POST - Delete user
+     *
+     * @author <YOUR_NAME> <YOUR@EMAIL>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `user_id`                 (required) - ID of the user
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteUser()
+    {
+        // Write your code here
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
