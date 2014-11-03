@@ -180,7 +180,7 @@ class UserAPIController extends ControllerAPI
     /**
      * POST - Delete user
      *
-     * @author <YOUR_NAME> <YOUR@EMAIL>
+     * @author kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -189,7 +189,140 @@ class UserAPIController extends ControllerAPI
      */
     public function postDeleteUser()
     {
-        // Write your code here
+   
+        try {
+            // Write your code here
+            $httpCode = 200;
+
+            Event::fire('orbit.user.postdeleteuser.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.user.postdeleteuser.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.user.postdeleteuser.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('delete_user')) {
+                Event::fire('orbit.user.postdeleteuser.authz.notallowed', array($this, $user));
+
+                ACL::throwAccessForbidden('You do not have permission to delete user.');
+            }
+            Event::fire('orbit.user.postdeleteuser.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $user_id = OrbitInput::post('user_id');
+
+            $validator = Validator::make(
+                array(
+                    'user_id'     => $user_id,
+                ),
+                array(
+                    'user_id' => 'required|numeric|orbit.empty.user|no_delete_themself',
+                ),
+                array(
+                    'no_delete_themself'    => 'You do not have permission to delete your self.',
+                )
+            );  
+
+            Event::fire('orbit.user.postdeleteuser.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.user.postdeleteuser.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $deleteuser = User::with(array('apikey'))->find($user_id);
+            // $deleteuser = User::find($user_id);
+            $deleteuser->status = 'deleted';
+            // $deleteuser->apikey->status = 'deleted';
+            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+            $deleteapikey->status = 'deleted';
+
+
+            Event::fire('orbit.user.postdeleteuser.before.save', array($this, $deleteuser));
+
+            $deleteuser->save();
+            $deleteapikey->save();
+
+            // $deleteuser->setVisible(array('status'));
+            $deleteuser->setHidden(array('user_password'));
+
+            Event::fire('orbit.user.postdeleteuser.after.save', array($this, $deleteuser));
+            $this->response->data = null;
+            $this->response->message = Lang::get('statuses.orbit.deleted.user');
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.user.postdeleteuser.after.commit', array($this, $deleteuser));
+
+
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.user.postdeleteuser.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.user.postdeleteuser.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.user.postdeleteuser.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = NULL;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.user.postdeleteuser.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.user.postdeleteuser.before.render', array($this, $output));
+
+        return $output;
+        //return $this->render($httpCode);
     }
 
     /**
@@ -211,6 +344,7 @@ class UserAPIController extends ControllerAPI
     public function postUpdateUser()
     {
         // Write your code here
+
     }
 
     protected function registerCustomValidation()
@@ -238,12 +372,22 @@ class UserAPIController extends ControllerAPI
                         ->where('user_id', $value)
                         ->first();
 
-            if (! empty($user)) {
+            if (empty($user)) {
                 return FALSE;
             }
 
             App::instance('orbit.empty.user', $user);
 
+            return TRUE;
+        });
+
+        // Check self
+        Validator::extend('no_delete_themself', function($attribute, $value, $parameters)
+        {
+            if ((string)$value === (string)$this->api->user->user_id) {
+                return FALSE;
+            }
+            
             return TRUE;
         });
 
