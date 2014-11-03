@@ -96,6 +96,11 @@ return array(
             'user' => 'The User ID you specify is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
+        'actionlist' => array(
+            'add_new_user'  => 'add new user',
+            'delete_user'   => 'delete user',
+            'delete_your_self' => 'delete your self'
+        ),
     ),
 
     /*

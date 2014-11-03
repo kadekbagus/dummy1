@@ -435,7 +435,7 @@ class postDeleteUserTest extends OrbitTestCase
         $numBefore = User::excludeDeleted()->count();
 
         // Data to be post
-        $_POST['user_id'] = 2;  // John Smith
+        $_POST['user_id'] = 3;  // Optimus Prime
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -466,5 +466,41 @@ class postDeleteUserTest extends OrbitTestCase
 
         $numAfter = User::excludeDeleted()->count();
         $this->assertSame($numBefore, $numAfter);
+    }
+
+    public function testForbidDeletingYourSelf_POST_api_v1_user_delete()
+    {
+        // YOU CAN NOT DELETE YOUR SELF, IT IS STRANGE IF IT IS ALLOWED TO DO
+
+        // Data to be post
+        $_POST['user_id'] = 3;  // Chuck Norris
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+        $_GET['apiver'] = '1.0';
+
+        $url = '/api/v1/user/delete?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        // Error message when access is forbidden
+        $deleteYourSelf = Lang::get('validation.orbit.actionlist.delete_your_self');
+        $message = Lang::get('validation.orbit.access.forbidden',
+                             array('action' => $deleteYourSelf));
+
+        $return = $this->call('POST', $url)->getContent();
+        $data = new stdclass();
+        $data->code = Status::ACCESS_DENIED;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = null;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
     }
 }

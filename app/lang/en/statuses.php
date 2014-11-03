@@ -15,4 +15,5 @@ return array(
         'deleted'    => array(
             'user'      => 'User has been successfully deleted.'
         )
-    );
+    )
+);
