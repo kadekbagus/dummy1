@@ -214,7 +214,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testSignatureExpire_POST_api_v1_user_update)
+    public function testSignatureExpire_POST_api_v1_user_update()
     {
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -252,9 +252,9 @@ class postUpdateUserTest extends OrbitTestCase
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
         // Error message when access is forbidden
-        $updateUserLang = Lang::get('validation.orbit.access.forbidden.',
+        $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
         $message = Lang::get('validation.orbit.access.forbidden',
-                             array('action' => 'add new user'));
+                             array('action' => $updateUserLang));
 
         $data = new stdclass();
         $data->code = Status::ACCESS_DENIED;
