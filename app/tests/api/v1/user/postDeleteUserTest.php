@@ -216,7 +216,7 @@ class postDeleteUserTest extends OrbitTestCase
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time() - 3600;  // an hour ago
 
-        $url = '/api/v1/user/new?' . http_build_query($_GET);
+        $url = '/api/v1/user/delete?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';

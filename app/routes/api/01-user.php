@@ -20,9 +20,9 @@ Route::post('/api/v1/user/delete', function()
 });
 
 /**
- * Delete user
+ * Update user
  */
-Route::post('/api/v1/user/delete', function()
+Route::post('/api/v1/user/update', function()
 {
     return UserAPIController::create()->postUpdateUser();
 });
