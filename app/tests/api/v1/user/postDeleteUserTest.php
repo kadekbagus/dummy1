@@ -415,6 +415,7 @@ class postDeleteUserTest extends OrbitTestCase
         $this->assertSame('deleted', $smith->status);
 
         // Api key should be deleted also
+        $apikey = Apikey::where('user_id', $smith->user_id)->first();
         $this->assertSame('deleted', $smith->apikey->status);
 
         $numAfter = User::excludeDeleted()->count();
