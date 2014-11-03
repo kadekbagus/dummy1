@@ -271,7 +271,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -306,7 +306,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -333,7 +333,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -361,7 +361,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -391,7 +391,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -421,7 +421,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -452,7 +452,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -483,7 +483,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -518,7 +518,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
         $_SERVER['REMOTE_ADDR'] = '10.10.0.99';
@@ -586,7 +586,7 @@ class postNewUserTest extends OrbitTestCase
         $url = '/api/v1/user/new?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
         $_SERVER['REMOTE_ADDR'] = '10.10.0.99';
