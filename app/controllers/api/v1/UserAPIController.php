@@ -195,6 +195,22 @@ class UserAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check the existance of user id
+        Validator::extend('orbit.empty.user', function($attribute, $value, $parameters)
+        {
+            $user = User::excludeDeleted()
+                        ->where('user_id', $value)
+                        ->first();
+
+            if (! empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.user', $user);
+
+            return TRUE;
+        });
+
         // Check the existance of the Role
         Validator::extend('orbit.empty.role', function($attribute, $value, $parameters)
         {

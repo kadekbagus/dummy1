@@ -93,6 +93,7 @@ return array(
         ),
         'empty' => array(
             'role' => 'The Role ID you specify is not found.',
+            'user' => 'The User ID you specify is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
     ),
