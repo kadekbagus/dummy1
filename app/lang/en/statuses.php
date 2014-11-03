@@ -12,8 +12,11 @@ return array(
     */
 
     'orbit' => array(
-        'deleted'    => array(
-            'user'      => 'User has been successfully deleted.'
-        )
+        'deleted'   => array(
+            'user'      => 'User has been successfully deleted.',
+        ),
+        'updated'   => array(
+            'user'      => 'User has been successfully updated.',
+        ),
     )
 );

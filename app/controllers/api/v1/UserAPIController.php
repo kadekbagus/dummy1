@@ -192,6 +192,27 @@ class UserAPIController extends ControllerAPI
         // Write your code here
     }
 
+    /**
+     * POST - Update user (currently only basic info)
+     *
+     * @author <YOUR_NAME> <YOUR@EMAIL>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer   `user_id`               (required) - ID of the user
+     * @param string    `email`                 (optional) - User email address
+     * @param string    `username`              (optional) - Username
+     * @param integer   `role_id`               (optional) - Role ID
+     * @param string    `firstname`             (optional) - User first name
+     * @param string    `lastname`              (optional) - User last name
+     * @param string    `status`                (optional) - Status of the user 'active', 'pending', 'blocked', or 'deleted'
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUpdateUser()
+    {
+        // Write your code here
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists

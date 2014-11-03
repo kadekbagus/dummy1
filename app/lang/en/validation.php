@@ -85,21 +85,27 @@ return array(
     */
 
     'orbit' => array(
+        // This will moved soon to the 'exists' key
         'email' => array(
             'exists' => 'The email address has already taken by someone else.',
+        ),
+        'exists' => array(
+            'username' => 'The username has already taken by someone else.',
         ),
         'access' => array(
             'forbidden' => 'You do not have permission to :action.',
         ),
         'empty' => array(
-            'role' => 'The Role ID you specify is not found.',
-            'user' => 'The User ID you specify is not found.',
+            'role'          => 'The Role ID you specify is not found.',
+            'user'          => 'The User ID you specify is not found.',
+            'user_status'   => 'The user status you specify is not found.'
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
-            'add_new_user'  => 'add new user',
-            'delete_user'   => 'delete user',
-            'delete_your_self' => 'delete your self'
+            'add_new_user'          => 'add new user',
+            'delete_user'           => 'delete user',
+            'delete_your_self'      => 'delete your self',
+            'update_user'           => 'update user'
         ),
     ),
 

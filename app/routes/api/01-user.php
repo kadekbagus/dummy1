@@ -18,3 +18,11 @@ Route::post('/api/v1/user/delete', function()
 {
     return UserAPIController::create()->postDeleteUser();
 });
+
+/**
+ * Delete user
+ */
+Route::post('/api/v1/user/delete', function()
+{
+    return UserAPIController::create()->postUpdateUser();
+});
