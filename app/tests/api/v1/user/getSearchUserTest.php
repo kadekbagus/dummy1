@@ -2031,7 +2031,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(3, $matches);
     }
 
-    public function testOK_SearchStatusActive_OrderByEmailASC_Take2_Skip1_GET_api_v1_user_search()
+    public function testOK_SearchStatusActive_OrderByEmailASC_Take2_Skip2_GET_api_v1_user_search()
     {
         // Data
         // Should be ordered by registered date desc if not specified
@@ -2109,7 +2109,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(2, $matches);
     }
 
-    public function testOK_SearchUserId_OrderByEmailASC_Take2_Skip1_GET_api_v1_user_search()
+    public function testOK_SearchUserId_OrderByEmailASC_Take2_Skip2_GET_api_v1_user_search()
     {
         // Data
         // Should be ordered by registered date desc if not specified
