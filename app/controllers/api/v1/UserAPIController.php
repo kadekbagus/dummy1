@@ -189,9 +189,7 @@ class UserAPIController extends ControllerAPI
      */
     public function postDeleteUser()
     {
-   
         try {
-            // Write your code here
             $httpCode = 200;
 
             Event::fire('orbit.user.postdeleteuser.before.auth', array($this));
@@ -219,13 +217,13 @@ class UserAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'user_id'     => $user_id,
+                    'user_id' => $user_id,
                 ),
                 array(
                     'user_id' => 'required|numeric|orbit.empty.user|no_delete_themself',
                 ),
                 array(
-                    'no_delete_themself'    => 'You do not have permission to delete your self.',
+                    'no_delete_themself' => 'You do not have permission to delete your self.',
                 )
             );  
 
@@ -242,20 +240,15 @@ class UserAPIController extends ControllerAPI
             $this->beginTransaction();
 
             $deleteuser = User::with(array('apikey'))->find($user_id);
-            // $deleteuser = User::find($user_id);
             $deleteuser->status = 'deleted';
-            // $deleteuser->apikey->status = 'deleted';
+
             $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
             $deleteapikey->status = 'deleted';
-
 
             Event::fire('orbit.user.postdeleteuser.before.save', array($this, $deleteuser));
 
             $deleteuser->save();
             $deleteapikey->save();
-
-            // $deleteuser->setVisible(array('status'));
-            $deleteuser->setHidden(array('user_password'));
 
             Event::fire('orbit.user.postdeleteuser.after.save', array($this, $deleteuser));
             $this->response->data = null;
@@ -265,8 +258,6 @@ class UserAPIController extends ControllerAPI
             $this->commit();
 
             Event::fire('orbit.user.postdeleteuser.after.commit', array($this, $deleteuser));
-
-
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.user.postdeleteuser.access.forbidden', array($this, $e));
 
@@ -322,7 +313,6 @@ class UserAPIController extends ControllerAPI
         Event::fire('orbit.user.postdeleteuser.before.render', array($this, $output));
 
         return $output;
-        //return $this->render($httpCode);
     }
 
     /**
