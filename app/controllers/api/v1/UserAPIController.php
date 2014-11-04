@@ -29,9 +29,9 @@ class UserAPIController extends ControllerAPI
      */
     public function postNewUser()
     {
-        $httpCode = 200;
         try {
-            // Put your code in here, see DummyAPIController for reference
+            $httpCode = 200;
+
             Event::fire('orbit.user.postnewuser.before.auth', array($this));
 
             // Require authentication
@@ -46,8 +46,9 @@ class UserAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('create_user')) {
                 Event::fire('orbit.user.postnewuser.authz.notallowed', array($this, $user));
-
-                ACL::throwAccessForbidden('You do not have permission to add new user.');
+                $createUserLang = Lang::get('validation.orbit.actionlist.add_new_user');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createUserLang));
+                ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.user.postnewuser.after.authz', array($this, $user));
 
@@ -99,8 +100,8 @@ class UserAPIController extends ControllerAPI
 
             $userdetail = new UserDetail();
             $userdetail = $newuser->userdetail()->save($userdetail);
-            $newuser->setRelation('userdetail', $userdetail);
 
+            $newuser->setRelation('userdetail', $userdetail);
             $newuser->userdetail = $userdetail;
 
             $apikey = new Apikey();
@@ -109,11 +110,9 @@ class UserAPIController extends ControllerAPI
             $apikey->status = 'active';
             $apikey->user_id = $newuser->user_id;
             $apikey = $newuser->apikey()->save($apikey);
+
             $newuser->setRelation('apikey', $apikey);
-
             $newuser->apikey = $apikey;
-
-            // $newuser->setVisible(array('user_id', 'username', 'user_email', 'status', 'user_role_id', 'user_ip', 'modified_by', 'userdetail', 'apikey'));
             $newuser->setHidden(array('user_password'));
 
             Event::fire('orbit.user.postnewuser.after.save', array($this, $newuser));
@@ -206,8 +205,9 @@ class UserAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('delete_user')) {
                 Event::fire('orbit.user.postdeleteuser.authz.notallowed', array($this, $user));
-
-                ACL::throwAccessForbidden('You do not have permission to delete user.');
+                $deleteUserLang = Lang::get('validation.orbit.actionlist.delete_user');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteUserLang));
+                ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.user.postdeleteuser.after.authz', array($this, $user));
 
