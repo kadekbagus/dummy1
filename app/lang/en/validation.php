@@ -99,7 +99,7 @@ return array(
             'role'          => 'The Role ID you specify is not found.',
             'user'          => 'The User ID you specify is not found.',
             'user_status'   => 'The user status you specify is not found.',
-            'user_sortby'   => 'The sort by argument you specify is not valid, the valid value are: username, firstname, lastname, and registered_date.',
+            'user_sortby'   => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
