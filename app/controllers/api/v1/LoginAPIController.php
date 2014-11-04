@@ -25,20 +25,30 @@ class LoginAPIController extends ControllerAPI
      */
     function postLogin()
     {
-        $email = OrbitInput::post('email');
-        $password = OrbitInput::post('password');
+        try {
+            $email = OrbitInput::post('email');
+            $password = OrbitInput::post('password');
 
-        if (Auth::attempt(array('user_email' => $email, 'password' => $password))) {
-            $user = User::with('apikey', 'userdetail')->find(Auth::user()->user_id);
-            $user->setHidden(array('user_password'));
-            $this->response->data = $user->toArray();
-        } else {
-            $this->response->code = 13;
+            if (Auth::attempt(array('user_email' => $email, 'password' => $password, 'status' => 'active'))) {
+                $user = User::with('apikey', 'userdetail')->find(Auth::user()->user_id);
+                $user->setHidden(array('user_password'));
+                $this->response->data = $user->toArray();
+            } else {
+                $message = Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = Status::ACCESS_DENIED;
             $this->response->status = 'error';
-            $this->response->message = 'Access forbidden';
+            $this->response->message = $e->getMessage();
             $this->response->data = NULL;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
         }
-        
+
         return $this->render();
     }
 
