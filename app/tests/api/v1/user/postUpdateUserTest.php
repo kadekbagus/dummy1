@@ -308,7 +308,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testInvalidEmailFormat_POST_api_v1_dummy_user_new()
+    public function testInvalidEmailFormat_POST_api_v1_dummy_user_update()
     {
         // Data to be post
         $_POST['user_id'] = 3;
@@ -367,7 +367,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testUsernameAlreadExists_POST_api_v1_user_new()
+    public function testUsernameAlreadExists_POST_api_v1_user_update()
     {
         // Data to be post
         $_POST['user_id'] = 2;
@@ -485,37 +485,37 @@ class postUpdateUserTest extends OrbitTestCase
         $return = $this->call('POST', $url)->getContent();
 
         $response = json_decode($return);
-        var_dump($response);
-        // $this->assertSame(0, (int)$response->code);
-        // $this->assertSame('success', $response->status);
-        // $this->assertSame('Request OK', $response->message);
 
-        // $smith = User::with(array('userdetail', 'apikey'))->find(2);
-        // $this->assertSame('iansmith', $smith->username);
-        // $this->assertSame('Ian', $smith->user_firstname);
-        // $this->assertSame('Smith Jr.', $smith->user_lastname);
-        // $this->assertSame('smith@localhost.org', $smith->user_email);
-        // $this->assertSame('4', (string)$smith->user_role_id);
-        // $this->assertSame('3', (string)$smith->modified_by);
-        // $this->assertSame('blocked', (string)$smith->status);
-        // $this->assertTrue(property_exists($response->data, 'user_id'));
+        $this->assertSame(0, (int)$response->code);
+        $this->assertSame('success', $response->status);
+        $this->assertSame('Request OK', $response->message);
 
-        // // userdetail relationship property
-        // $this->assertTrue(property_exists($response->data, 'userdetail'));
+        $smith = User::with(array('userdetail', 'apikey'))->find(2);
+        $this->assertSame('iansmith', $smith->username);
+        $this->assertSame('Ian', $smith->user_firstname);
+        $this->assertSame('Smith Jr.', $smith->user_lastname);
+        $this->assertSame('smith@localhost.org', $smith->user_email);
+        $this->assertSame('4', (string)$smith->user_role_id);
+        $this->assertSame('3', (string)$smith->modified_by);
+        $this->assertSame('blocked', (string)$smith->status);
+        $this->assertTrue(property_exists($response->data, 'user_id'));
 
-        // // apikey relationship property
-        // $this->assertTrue(property_exists($response->data, 'apikey'));
+        // userdetail relationship property
+        $this->assertTrue(property_exists($response->data, 'userdetail'));
 
-        // // Check the user detail on database, it should be exists also
-        // $details = UserDetail::where('user_id', $response->data->user_id)->first();
-        // $this->assertInstanceOf('UserDetail', $details);
-        // $this->assertSame((string)$response->data->user_id, (string)$details->user_id);
+        // apikey relationship property
+        $this->assertTrue(property_exists($response->data, 'apikey'));
 
-        // // Check the api keys on database, it should be blocked by now
-        // $apikey = Apikey::where('user_id', $response->data->user_id)->first();
-        // $this->assertInstanceOf('Apikey', $apikey);
-        // $this->assertSame((string)$response->data->user_id, (string)$apikey->user_id);
-        // $this->assertSame('blocked', (string)$apikey->status);
+        // Check the user detail on database, it should be exists also
+        $details = UserDetail::where('user_id', $response->data->user_id)->first();
+        $this->assertInstanceOf('UserDetail', $details);
+        $this->assertSame((string)$response->data->user_id, (string)$details->user_id);
+
+        // Check the api keys on database, it should be blocked by now
+        $apikey = Apikey::where('user_id', $response->data->user_id)->first();
+        $this->assertInstanceOf('Apikey', $apikey);
+        $this->assertSame((string)$response->data->user_id, (string)$apikey->user_id);
+        $this->assertSame('blocked', (string)$apikey->status);
     }
 
     public function testReqOK_DifferentEmail_PendingToActive_POST_api_v1_user_update()
