@@ -84,7 +84,7 @@ class UserAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $newuser = new User;
+            $newuser = new User();
             $newuser->username = $email;
             $newuser->user_email = $email;
             $newuser->user_password = Hash::make($password);
@@ -129,7 +129,7 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
             $httpCode = 403;
 
             // Rollback the changes
@@ -140,7 +140,7 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
             $httpCode = 403;
 
             // Rollback the changes
@@ -157,7 +157,7 @@ class UserAPIController extends ControllerAPI
             } else {
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
-            $this->response->data = NULL;
+            $this->response->data = null;
             $httpCode = 500;
 
             // Rollback the changes
@@ -168,7 +168,7 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
 
             // Rollback the changes
             $this->rollBack();
@@ -225,7 +225,7 @@ class UserAPIController extends ControllerAPI
                 array(
                     'no_delete_themself' => 'You do not have permission to delete your self.',
                 )
-            );  
+            );
 
             Event::fire('orbit.user.postdeleteuser.before.validation', array($this, $validator));
 
@@ -264,7 +264,7 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
             $httpCode = 403;
 
             // Rollback the changes
@@ -275,7 +275,7 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
             $httpCode = 403;
 
             // Rollback the changes
@@ -292,7 +292,7 @@ class UserAPIController extends ControllerAPI
             } else {
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
-            $this->response->data = NULL;
+            $this->response->data = null;
             $httpCode = 500;
 
             // Rollback the changes
@@ -303,7 +303,7 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
 
             // Rollback the changes
             $this->rollBack();
@@ -318,7 +318,7 @@ class UserAPIController extends ControllerAPI
     /**
      * POST - Update user (currently only basic info)
      *
-     * @author <YOUR_NAME> <YOUR@EMAIL>
+     * @author <Ahmad Anshori> <ahmad@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -333,15 +333,164 @@ class UserAPIController extends ControllerAPI
      */
     public function postUpdateUser()
     {
-        // Write your code here
+        try {
+            $httpCode=200;
+
+            Event::fire('orbit.user.postupdateuser.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.user.postupdateuser.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.user.postupdateuser.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('update_user')) {
+                Event::fire('orbit.user.postupdateuser.authz.notallowed', array($this, $user));
+                $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.user.postupdateuser.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $user_id = OrbitInput::post('user_id');
+            $email = OrbitInput::post('email');
+            $username = OrbitInput::post('username');
+            $user_firstname = OrbitInput::post('firstname');
+            $user_lastname = OrbitInput::post('lastname');
+            $status = OrbitInput::post('status');
+            $user_role_id = OrbitInput::post('role_id');
+
+            $validator = Validator::make(
+                array(
+                    'user_id'           => $user_id,
+                    'username'          => $username,
+                    'email'             => $email,
+                    'role_id'           => $user_role_id,
+                    'status'            => $status,
+                ),
+                array(
+                    'user_id'           => 'required|numeric',
+                    'username'          => 'required|orbit.exists.username',
+                    'email'             => 'required|email|email_exists_but_me',
+                    'role_id'           => 'required|numeric|orbit.empty.role',
+                    'status'            => 'orbit.empty.user_status',
+                ),
+                array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
+            );
+
+            Event::fire('orbit.user.postupdateuser.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.user.postupdateuser.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $updateduser = User::find($user_id);
+            $updateduser->username = $username;
+            $updateduser->user_email = $email;
+            $updateduser->user_firstname = $user_firstname;
+            $updateduser->user_lastname = $user_lastname;
+            $updateduser->status = $status;
+            $updateduser->user_role_id = $user_role_id;
+            $updateduser->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.user.postupdateuser.before.save', array($this, $updateduser));
+
+            $updateduser->save();
+
+            $userdetail = UserDetail::where('user_id', '=', $user_id)->first();
+            $updateduser->setRelation('userdetail', $userdetail);
+
+            $updateduser->userdetail = $userdetail;
+
+            $apikey = Apikey::where('user_id', '=', $updateduser->user_id)->first();
+            if ($status != 'pending') {
+                $apikey->status = $status;
+            } else {
+                $apikey->status = 'blocked';
+            }
+            $apikey->save();
+            $updateduser->setRelation('apikey', $apikey);
+
+            $updateduser->apikey = $apikey;
+
+            Event::fire('orbit.user.postupdateuser.after.save', array($this, $updateduser));
+            $this->response->data = $updateduser->toArray();
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.user.postupdateuser.after.commit', array($this, $updateduser));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.user.postupdateuser.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.user.postupdateuser.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.user.postupdateuser.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.user.postupdateuser.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
 
     }
 
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
-        Validator::extend('orbit.email.exists', function($attribute, $value, $parameters)
-        {
+        Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
             $user = User::excludeDeleted()
                         ->where('user_email', $value)
                         ->first();
@@ -355,9 +504,23 @@ class UserAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check username, it should not exists
+        Validator::extend('orbit.exists.username', function ($attribute, $value, $parameters) {
+            $user = User::excludeDeleted()
+                        ->where('username', $value)
+                        ->first();
+
+            if (! empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.username', $user);
+
+            return TRUE;
+        });
+
         // Check the existance of user id
-        Validator::extend('orbit.empty.user', function($attribute, $value, $parameters)
-        {
+        Validator::extend('orbit.empty.user', function ($attribute, $value, $parameters) {
             $user = User::excludeDeleted()
                         ->where('user_id', $value)
                         ->first();
@@ -372,18 +535,16 @@ class UserAPIController extends ControllerAPI
         });
 
         // Check self
-        Validator::extend('no_delete_themself', function($attribute, $value, $parameters)
-        {
-            if ((string)$value === (string)$this->api->user->user_id) {
+        Validator::extend('no_delete_themself', function ($attribute, $value, $parameters) {
+            if ((string) $value === (string) $this->api->user->user_id) {
                 return FALSE;
             }
-            
+
             return TRUE;
         });
 
         // Check the existance of the Role
-        Validator::extend('orbit.empty.role', function($attribute, $value, $parameters)
-        {
+        Validator::extend('orbit.empty.role', function ($attribute, $value, $parameters) {
             $role = Role::find($value);
 
             if (empty($role)) {
@@ -391,6 +552,34 @@ class UserAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.role', $role);
+
+            return TRUE;
+        });
+
+        // Check the existance of the Role
+        Validator::extend('orbit.empty.user_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
+        });
+
+        // Check user email address, it should not exists
+        Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
+            $user_id = OrbitInput::post('user_id');
+            $user = User::excludeDeleted()
+                        ->where('user_email', $value)
+                        ->where('user_id', '!=', $user_id)
+                        ->first();
+
+            if (! empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.user', $user);
 
             return TRUE;
         });
