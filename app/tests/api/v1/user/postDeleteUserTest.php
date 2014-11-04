@@ -416,7 +416,7 @@ class postDeleteUserTest extends OrbitTestCase
 
         // Api key should be deleted also
         $apikey = Apikey::where('user_id', $smith->user_id)->first();
-        $this->assertSame('deleted', $smith->apikey->status);
+        $this->assertSame('deleted', $apikey->status);
 
         $numAfter = User::excludeDeleted()->count();
         $this->assertSame($numBefore - 1, $numAfter);
@@ -436,7 +436,7 @@ class postDeleteUserTest extends OrbitTestCase
         $numBefore = User::excludeDeleted()->count();
 
         // Data to be post
-        $_POST['user_id'] = 3;  // Optimus Prime
+        $_POST['user_id'] = 4;  // Optimus Prime
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -449,11 +449,6 @@ class postDeleteUserTest extends OrbitTestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $user = new stdclass();
-        $user->username = $_POST['email'];
-        $user->user_email = $_POST['email'];
-        $user->status = 'pending';
 
         $data = new stdclass();
         $data->code = 99;
@@ -493,9 +488,8 @@ class postDeleteUserTest extends OrbitTestCase
         $message = Lang::get('validation.orbit.access.forbidden',
                              array('action' => $deleteYourSelf));
 
-        $return = $this->call('POST', $url)->getContent();
         $data = new stdclass();
-        $data->code = Status::ACCESS_DENIED;
+        $data->code = Status::INVALID_ARGUMENT;
         $data->status = 'error';
         $data->message = $message;
         $data->data = null;
