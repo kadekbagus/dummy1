@@ -1957,7 +1957,7 @@ class getSearchUserTest extends OrbitTestCase
 
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
-        $max_record = 3;
+        $max_record = 4;
         Config::set('orbit.pagination.max_record', $max_record);
 
         // Set the client API Keys
@@ -2043,7 +2043,7 @@ class getSearchUserTest extends OrbitTestCase
 
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
-        $max_record = 2;
+        $max_record = 4;
         Config::set('orbit.pagination.max_record', $max_record);
 
         // Set the client API Keys
