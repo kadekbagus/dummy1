@@ -215,6 +215,11 @@ class UserAPIController extends ControllerAPI
 
             $user_id = OrbitInput::post('user_id');
 
+            // Error message when access is forbidden
+            $deleteYourSelf = Lang::get('validation.orbit.actionlist.delete_your_self');
+            $message = Lang::get('validation.orbit.access.forbidden',
+                                 array('action' => $deleteYourSelf));
+
             $validator = Validator::make(
                 array(
                     'user_id' => $user_id,
@@ -223,7 +228,7 @@ class UserAPIController extends ControllerAPI
                     'user_id' => 'required|numeric|orbit.empty.user|no_delete_themself',
                 ),
                 array(
-                    'no_delete_themself' => 'You do not have permission to delete your self.',
+                    'no_delete_themself' => $message,
                 )
             );  
 
