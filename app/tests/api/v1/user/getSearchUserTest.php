@@ -2108,4 +2108,82 @@ class getSearchUserTest extends OrbitTestCase
         }
         $this->assertSame(2, $matches);
     }
+
+    public function testOK_SearchUserId_OrderByEmailASC_Take2_Skip1_GET_api_v1_user_search()
+    {
+        // Data
+        // Should be ordered by registered date desc if not specified
+        $_GET['user_id'] = array(1, 2);
+        $_GET['sortby'] = 'email';
+        $_GET['sortmode'] = 'asc';
+        $_GET['take'] = 2;
+        $_GET['skip'] = 2;
+
+        // It should read from config named 'orbit.pagination.max_record'
+        // It should fallback to whathever you like when the config is not exists
+        $max_record = 4;
+        Config::set('orbit.pagination.max_record', $max_record);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/user/search?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $response = $this->call('GET', $url)->getContent();
+        $response = json_decode($response);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', (string)$response->status);
+        $this->assertSame(Status::OK_MSG, (string)$response->message);
+
+        // Number of total records should be 2 and returned records 2
+        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(2, (int)$response->data->returned_records);
+
+        // The records attribute should be array
+        $this->assertTrue(is_array($response->data->records));
+        $this->assertSame(2, count($response->data->records));
+
+        $expect = array(
+            array(
+                'id'                => '1',
+                'username'          => 'john',
+                'firstname'         => 'John',
+                'lastname'          => 'Doe',
+                'email'             => 'john@localhost.org',
+                'status'            => 'active'
+            ),
+            array(
+                'id'                => '2',
+                'username'          => 'smith',
+                'firstname'         => 'John',
+                'lastname'          => 'Smith',
+                'email'             => 'smith@localhost.org',
+                'status'            => 'active'
+            ),
+        );
+
+        // catwoman, chuck, john, smith
+
+        $matches = 0;
+        foreach ($response->data->records as $index=>$return)
+        {
+            if ((string)$return->user_id === $expect[$index]['id'])
+            {
+                $this->assertSame($expect[$index]['id'], (string)$return->user_id);
+                $this->assertSame($expect[$index]['username'], $return->username);
+                $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
+                $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
+                $this->assertSame($expect[$index]['email'], $return->user_email);
+                $this->assertSame($expect[$index]['status'], $return->status);
+                $matches++;
+            }
+        }
+        $this->assertSame(2, $matches);
+    }
 }
