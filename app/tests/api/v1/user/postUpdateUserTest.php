@@ -561,7 +561,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame('Request OK', $response->message);
 
         $smith = User::with(array('userdetail', 'apikey'))->find(2);
-        $this->assertSame('iansmith', $smith->username);
+        $this->assertSame('iansmith2', $smith->username);
         $this->assertSame('Ian', $smith->user_firstname);
         $this->assertSame('Smith Jr.', $smith->user_lastname);
         $this->assertSame('tom@localhost.org', $smith->user_email);
@@ -577,12 +577,12 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertTrue(property_exists($response->data, 'apikey'));
 
         // Check the user detail on database, it should be exists also
-        $details = $smith->details;
+        $details = UserDetail::where('user_id', $response->data->user_id)->first();
         $this->assertInstanceOf('UserDetail', $details);
         $this->assertSame((string)$response->data->user_id, (string)$details->user_id);
 
         // Check the api keys on database, it should be active by now
-        $apikey = $smith->apikey;
+        $apikey = Apikey::where('user_id', $response->data->user_id)->first();
         $this->assertInstanceOf('Apikey', $apikey);
         $this->assertSame((string)$response->data->user_id, (string)$apikey->user_id);
         $this->assertSame('active', (string)$apikey->status);
@@ -637,7 +637,7 @@ class postUpdateUserTest extends OrbitTestCase
 
         // The data should remain the same as the old one
         $smith = User::with(array('userdetail', 'apikey'))->find(2);
-        $this->assertSame('iansmith', $smith->username);
+        $this->assertSame('iansmith2', $smith->username);
         $this->assertSame('Ian', $smith->user_firstname);
         $this->assertSame('Smith Jr.', $smith->user_lastname);
         $this->assertSame('tom@localhost.org', $smith->user_email);
