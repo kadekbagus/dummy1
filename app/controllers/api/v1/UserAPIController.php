@@ -246,6 +246,7 @@ class UserAPIController extends ControllerAPI
 
             $deleteuser = User::with(array('apikey'))->find($user_id);
             $deleteuser->status = 'deleted';
+            $deleteuser->modified_by = $this->api->user->user_id;
 
             $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
             $deleteapikey->status = 'deleted';
