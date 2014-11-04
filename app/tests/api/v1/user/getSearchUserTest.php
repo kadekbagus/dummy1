@@ -483,7 +483,7 @@ class getSearchUserTest extends OrbitTestCase
 
         // It is ordered by registered date by default so
         // 2-smith, 6-droopy, 7-catwoan, 3-chuck, 1-john, 4-optimus
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -615,7 +615,7 @@ class getSearchUserTest extends OrbitTestCase
 
         // It is ordered by registered date by default so
         // 2-smith, 6-droopy, 7-catwoan, 3-chuck, 1-john, 4-optimus
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -715,7 +715,7 @@ class getSearchUserTest extends OrbitTestCase
 
         // It is ordered by registered date ASC, so
         // 4-optimus, 1-john, 3-chuck, 7-catwoman, 6-droopy, 2-smith
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -782,7 +782,7 @@ class getSearchUserTest extends OrbitTestCase
             )
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -851,7 +851,7 @@ class getSearchUserTest extends OrbitTestCase
         );
 
         // It is ordered by registered date by default so 1) smith 2) droopy
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -911,7 +911,7 @@ class getSearchUserTest extends OrbitTestCase
         );
 
         // It is ordered by registered date by default so 1) smith 2) droopy
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1012,7 +1012,7 @@ class getSearchUserTest extends OrbitTestCase
             )
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1080,7 +1080,7 @@ class getSearchUserTest extends OrbitTestCase
             ),
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1138,7 +1138,7 @@ class getSearchUserTest extends OrbitTestCase
             )
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1239,7 +1239,7 @@ class getSearchUserTest extends OrbitTestCase
             )
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1307,7 +1307,7 @@ class getSearchUserTest extends OrbitTestCase
             )
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1375,7 +1375,7 @@ class getSearchUserTest extends OrbitTestCase
             ),
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1476,7 +1476,7 @@ class getSearchUserTest extends OrbitTestCase
             ),
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1544,7 +1544,7 @@ class getSearchUserTest extends OrbitTestCase
             )
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1644,7 +1644,7 @@ class getSearchUserTest extends OrbitTestCase
             ),
         );
 
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             $this->assertSame($expect[$index]['id'], (string)$return->user_id);
             $this->assertSame($expect[$index]['username'], $return->username);
@@ -1764,7 +1764,7 @@ class getSearchUserTest extends OrbitTestCase
         // catwoman, chuck, john, smith
 
         $matches = 0;
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             if ((string)$return->user_id === $expect[$index]['id'])
             {
@@ -1830,7 +1830,7 @@ class getSearchUserTest extends OrbitTestCase
         );
 
         $matches = 0;
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             if ((string)$return->user_id === $expect[$index]['id'])
             {
@@ -1896,7 +1896,7 @@ class getSearchUserTest extends OrbitTestCase
         );
 
         $matches = 0;
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             if ((string)$return->user_id === $expect[$index]['id'])
             {
@@ -2015,7 +2015,7 @@ class getSearchUserTest extends OrbitTestCase
         // catwoman, chuck, john
 
         $matches = 0;
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             if ((string)$return->user_id === $expect[$index]['id'])
             {
@@ -2093,7 +2093,7 @@ class getSearchUserTest extends OrbitTestCase
         // catwoman, chuck, john, smith
 
         $matches = 0;
-        foreach ($response->data as $index=>$return)
+        foreach ($response->data->records as $index=>$return)
         {
             if ((string)$return->user_id === $expect[$index]['id'])
             {
