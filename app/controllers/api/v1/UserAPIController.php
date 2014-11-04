@@ -15,7 +15,7 @@ class UserAPIController extends ControllerAPI
     /**
      * POST - Create new user
      *
-     * @author <YOUR_NAME> <YOUR@EMAIL>
+     * @author <Ahmad Anshori> <ahmad@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
