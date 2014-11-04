@@ -18,5 +18,8 @@ return array(
         'updated'   => array(
             'user'      => 'User has been successfully updated.',
         ),
+        'nodata'    => array(
+            'user'  => 'There is no user found that matched your criteria.',
+        ),
     )
 );
