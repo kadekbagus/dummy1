@@ -537,7 +537,7 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['email'] = 'tom@localhost.org';
         $_POST['role_id'] = 4;  // Merchant
         $_POST['status'] = 'active';
-        $_POST['username'] = 'iansmith';
+        $_POST['username'] = 'iansmith2';
         $_POST['firstname'] = 'Ian';
         $_POST['lastname'] = 'Smith Jr.';
 
