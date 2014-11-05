@@ -19,7 +19,10 @@ class DummyAPIController extends ControllerAPI
         $name->last_name = 'Smith';
         $this->response->data = $name;
 
-        return $this->render();
+        $output = $this->render();
+        Event::fire('orbit.dummy.gethisname.before.render', array($this, &$output));
+
+        return $output;
     }
 
     public function hisNameAuth()
@@ -267,7 +270,7 @@ class DummyAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.dummy.postreguser.before.render', array($this, $output));
+        Event::fire('orbit.dummy.postreguser.before.render', array($this, &$output));
 
         return $output;
     }
