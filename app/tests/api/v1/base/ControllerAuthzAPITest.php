@@ -188,20 +188,8 @@ class ControllerAuthzAPITest extends OrbitTestCase
 
     public function testGET_EventFired_api_v1_dummy_hisname()
     {
-        Event::listen('orbit.dummy.gethisname.before.render', function($controller, &$rendered)
-        {
-            // The default output would be something like this:
-            // {"first_name":"John","last_name":"Smith"}
-
-            // We would like to intercept it and change it to
-            // {"first_name":"Chuck","last_name":"Norris"}
-            $chuck = new stdclass();
-            $chuck->first_name = 'Chuck';
-            $chuck->last_name = 'Norris';
-            $controller->response->data = $chuck;
-
-            $rendered = $controller->render();
-        });
+        $path = app_path();
+        require $path . DS . 'events' . DS . 'enabled' . DS . '99-dummy.php';
 
         $name = new stdclass();
         $name->first_name = 'Chuck';
@@ -213,9 +201,14 @@ class ControllerAuthzAPITest extends OrbitTestCase
         $data->message = 'Request OK';
         $data->data = $name;
 
+        // Pass query string
+        $_GET['call'] = 'chuck';
+
         $expect = json_encode($data);
         $return = $this->call('GET', '/api/v1/dummy/hisname')->getContent();
         $this->assertSame($expect, $return);
+
+        unset($_GET['call']);
     }
 
     public function testNoAuthData_GET_api_v1_dummy_hisname_auth()
