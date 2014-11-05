@@ -21,6 +21,28 @@ ClassLoader::register();
 
 /*
 |--------------------------------------------------------------------------
+| Orbit API Event lists
+|--------------------------------------------------------------------------
+|
+| Search all php files inside the 'routes' the directory.
+|
+*/
+$event_dir = __DIR__ . DS . 'events' . DS . 'enabled';
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($event_dir));
+$it->rewind();
+while ($it->valid()) {
+    if (! $it->isDot()) {
+        // Only for php files
+        if ($it->getExtension() === 'php') {
+            $fullpath = $it->key();
+            require $fullpath;
+        }
+    }
+    $it->next();
+}
+
+/*
+|--------------------------------------------------------------------------
 | Orbit API Routes
 |--------------------------------------------------------------------------
 |
