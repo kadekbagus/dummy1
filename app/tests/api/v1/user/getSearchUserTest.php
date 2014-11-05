@@ -519,7 +519,7 @@ class getSearchUserTest extends OrbitTestCase
         $response = json_decode($response);
         $message = Lang::get('validation.orbit.empty.user_sortby');
         $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
-        $this->assertSame('success', (string)$response->status);
+        $this->assertSame('error', (string)$response->status);
         $this->assertSame($message, (string)$response->message);
         $this->assertSame(0, (int)$response->data->total_records);
         $this->assertSame(0, (int)$response->data->returned_records);
