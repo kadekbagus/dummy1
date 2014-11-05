@@ -103,7 +103,7 @@ abstract class ControllerAPI extends Controller
      * @return void
      * @thrown Exception
      */
-    protected function checkAuth()
+    public function checkAuth()
     {
         // Get the api key from query string
         $clientkey = (isset($_GET['apikey']) ? $_GET['apikey'] : '');
@@ -125,7 +125,7 @@ abstract class ControllerAPI extends Controller
      * @param int $httpCode - The HTTP status code response.
      * @return OrbitShop\API\v1\ResponseProvider | string
      */
-    protected function render($httpCode=200)
+    public function render($httpCode=200)
     {
         $output = '';
 
@@ -173,7 +173,7 @@ abstract class ControllerAPI extends Controller
      * @author Rio Astamal <me@rioastamal.net>
      * @return void
      */
-    protected function beginTransaction()
+    public function beginTransaction()
     {
         $this->pdo->beginTransaction();
     }
@@ -184,7 +184,7 @@ abstract class ControllerAPI extends Controller
      * @author Rio Astamal <me@rioastamal.net>
      * @return void
      */
-    protected function rollBack()
+    public function rollBack()
     {
         // Make sure we are in transaction mode, to prevent the rollback()
         // complaining
@@ -199,7 +199,7 @@ abstract class ControllerAPI extends Controller
      * @author Rio Astamal <me@rioastamal.net>
      * @return void
      */
-    protected function commit()
+    public function commit()
     {
         $this->pdo->commit();
     }
