@@ -148,6 +148,7 @@ class ControllerAuthzAPITest extends OrbitTestCase
         // Clear every event dispatcher so we get no queue event on each
         // test
         $events = array(
+            'orbit.dummy.gethisname.before.render',
             'orbit.dummy.postreguser.before.auth',
             'orbit.dummy.postreguser.after.auth',
             'orbit.dummy.postreguser.before.authz',
@@ -173,6 +174,38 @@ class ControllerAuthzAPITest extends OrbitTestCase
         $name = new stdclass();
         $name->first_name = 'John';
         $name->last_name = 'Smith';
+
+        $data = new stdclass();
+        $data->code = 0;
+        $data->status = 'success';
+        $data->message = 'Request OK';
+        $data->data = $name;
+
+        $expect = json_encode($data);
+        $return = $this->call('GET', '/api/v1/dummy/hisname')->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testGET_EventFired_api_v1_dummy_hisname()
+    {
+        Event::listen('orbit.dummy.gethisname.before.render', function($controller, &$rendered)
+        {
+            // The default output would be something like this:
+            // {"first_name":"John","last_name":"Smith"}
+
+            // We would like to intercept it and change it to
+            // {"first_name":"Chuck","last_name":"Norris"}
+            $chuck = new stdclass();
+            $chuck->first_name = 'Chuck';
+            $chuck->last_name = 'Norris';
+            $controller->response->data = $chuck;
+
+            $rendered = $controller->render();
+        });
+
+        $name = new stdclass();
+        $name->first_name = 'Chuck';
+        $name->last_name = 'Norris';
 
         $data = new stdclass();
         $data->code = 0;
