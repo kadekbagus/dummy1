@@ -202,7 +202,7 @@ class getSearchUserTest extends OrbitTestCase
 
     public function testNoAuthData_GET_api_v1_user_search()
     {
-        $url = '/api/v1/user/update';
+        $url = '/api/v1/user/search';
 
         $data = new stdclass();
         $data->code = Status::CLIENT_ID_NOT_FOUND;
@@ -277,9 +277,9 @@ class getSearchUserTest extends OrbitTestCase
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
         // Error message when access is forbidden
-        $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
+        $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
         $message = Lang::get('validation.orbit.access.forbidden',
-                             array('action' => $updateUserLang));
+                             array('action' => $viewUserLang));
 
         $data = new stdclass();
         $data->code = Status::ACCESS_DENIED;
@@ -298,31 +298,6 @@ class getSearchUserTest extends OrbitTestCase
         $permission->save();
 
         $chuck->permissions()->attach($permission->permission_id, array('allowed' => 'yes'));
-    }
-
-    public function testMissingUserId_GET_api_v1_user_search()
-    {
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/user/search?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.required', array('attribute' => 'user id'));
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('GET', $url)->getContent();
-        $this->assertSame($expect, $return);
     }
 
     public function testOK_NoArgumentGiven_GET_api_v1_user_search()
@@ -373,7 +348,7 @@ class getSearchUserTest extends OrbitTestCase
                 'id'                => '6',
                 'username'          => 'droopy',
                 'firstname'         => 'Droopy',
-                'lastname'          => 'Doc',
+                'lastname'          => 'Dog',
                 'email'             => 'droopy@localhost.org',
                 'status'            => 'pending',
                 'addr'              => 'Orchard Road'
@@ -443,7 +418,7 @@ class getSearchUserTest extends OrbitTestCase
                 'id'                => '6',
                 'username'          => 'droopy',
                 'firstname'         => 'Droopy',
-                'lastname'          => 'Doc',
+                'lastname'          => 'Dog',
                 'email'             => 'droopy@localhost.org',
                 'status'            => 'pending'
             ),
@@ -575,7 +550,7 @@ class getSearchUserTest extends OrbitTestCase
                 'id'                => '6',
                 'username'          => 'droopy',
                 'firstname'         => 'Droopy',
-                'lastname'          => 'Doc',
+                'lastname'          => 'Dog',
                 'email'             => 'droopy@localhost.org',
                 'status'            => 'pending'
             ),
@@ -699,7 +674,7 @@ class getSearchUserTest extends OrbitTestCase
                 'id'                => '6',
                 'username'          => 'droopy',
                 'firstname'         => 'Droopy',
-                'lastname'          => 'Doc',
+                'lastname'          => 'Dog',
                 'email'             => 'droopy@localhost.org',
                 'status'            => 'pending'
             ),
@@ -756,7 +731,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
         // Number of total records should be 2 and returned records 2
-        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(2, (int)$response->data->total_records);
         $this->assertSame(2, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -887,6 +862,7 @@ class getSearchUserTest extends OrbitTestCase
 
         $response = $this->call('GET', $url)->getContent();
         $response = json_decode($response);
+
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', (string)$response->status);
         $this->assertSame(Status::OK_MSG, (string)$response->message);
@@ -946,13 +922,13 @@ class getSearchUserTest extends OrbitTestCase
         $response = $this->call('GET', $url)->getContent();
         $response = json_decode($response);
         $message = Lang::get('statuses.orbit.nodata.user');
-
+        
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', (string)$response->status);
         $this->assertSame($message, (string)$response->message);
         $this->assertSame(0, (int)$response->data->total_records);
         $this->assertSame(0, (int)$response->data->returned_records);
-        $this->assertSame( is_null($response->data->records) );
+        $this->assertTrue( is_null($response->data->records) );
     }
 
     public function testOK_SearchFirstName_OrderByFirstNameASC_GET_api_v1_user_search()
@@ -960,7 +936,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['firstname'] = array('Cat', 'Chuck');
-        $_GET['sortby'] = 'firstname';
+        $_GET['sortby'] = 'user_firstname';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -981,6 +957,7 @@ class getSearchUserTest extends OrbitTestCase
 
         $response = $this->call('GET', $url)->getContent();
         $response = json_decode($response);
+        
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', (string)$response->status);
         $this->assertSame(Status::OK_MSG, (string)$response->message);
@@ -996,9 +973,9 @@ class getSearchUserTest extends OrbitTestCase
         $expect = array(
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             ),
@@ -1028,7 +1005,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['firstname'] = array('Cat', 'Chuck');
-        $_GET['sortby'] = 'firstname';
+        $_GET['sortby'] = 'user_firstname';
         $_GET['sortmode'] = 'desc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1072,9 +1049,9 @@ class getSearchUserTest extends OrbitTestCase
             ),
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             ),
@@ -1179,7 +1156,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame($message, (string)$response->message);
         $this->assertSame(0, (int)$response->data->total_records);
         $this->assertSame(0, (int)$response->data->returned_records);
-        $this->assertSame( is_null($response->data->records) );
+        $this->assertTrue( is_null($response->data->records) );
     }
 
     public function testOK_SearchLastName_OrderByLastNameASC_GET_api_v1_user_search()
@@ -1187,7 +1164,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['lastname'] = array('Woman', 'Norris');
-        $_GET['sortby'] = 'lastname';
+        $_GET['sortby'] = 'user_lastname';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1231,9 +1208,9 @@ class getSearchUserTest extends OrbitTestCase
             ),
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             )
@@ -1255,7 +1232,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['lastname'] = array('Woman', 'Norris');
-        $_GET['sortby'] = 'lastname';
+        $_GET['sortby'] = 'user_lastname';
         $_GET['sortmode'] = 'desc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1291,9 +1268,9 @@ class getSearchUserTest extends OrbitTestCase
         $expect = array(
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             ),
@@ -1323,7 +1300,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['lastname_like'] = 'Do';
-        $_GET['sortby'] = 'lastname';
+        $_GET['sortby'] = 'user_lastname';
         $_GET['sortmode'] = 'desc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1416,15 +1393,15 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame($message, (string)$response->message);
         $this->assertSame(0, (int)$response->data->total_records);
         $this->assertSame(0, (int)$response->data->returned_records);
-        $this->assertSame( is_null($response->data->records) );
+        $this->assertTrue( is_null($response->data->records) );
     }
 
     public function testOK_SearchEmail_OrderByEmailASC_GET_api_v1_user_search()
     {
         // Data
         // Should be ordered by registered date desc if not specified
-        $_GET['lastname'] = array('catwoman@localhost.org', 'chuck@localhost.org');
-        $_GET['sortby'] = 'email';
+        $_GET['email'] = array('catwoman@localhost.org', 'chuck@localhost.org');
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1460,9 +1437,9 @@ class getSearchUserTest extends OrbitTestCase
         $expect = array(
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             ),
@@ -1492,7 +1469,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['email'] = array('catwoman@localhost.org', 'chuck@localhost.org');
-        $_GET['sortby'] = 'email';
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'desc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1536,9 +1513,9 @@ class getSearchUserTest extends OrbitTestCase
             ),
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             )
@@ -1560,7 +1537,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['email_like'] = '@localhost.org';
-        $_GET['sortby'] = 'email';
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1587,7 +1564,7 @@ class getSearchUserTest extends OrbitTestCase
 
         // Number of total records should be 6 and returned records 6
         $this->assertSame($max_record, (int)$response->data->total_records);
-        $this->assertSame(2, (int)$response->data->returned_records);
+        $this->assertSame(6, (int)$response->data->returned_records);
 
         // The records attribute should be array
         $this->assertTrue(is_array($response->data->records));
@@ -1614,7 +1591,7 @@ class getSearchUserTest extends OrbitTestCase
                 'id'                => '6',
                 'username'          => 'droopy',
                 'firstname'         => 'Droopy',
-                'lastname'          => 'Doc',
+                'lastname'          => 'Dog',
                 'email'             => 'droopy@localhost.org',
                 'status'            => 'pending'
             ),
@@ -1685,15 +1662,15 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame($message, (string)$response->message);
         $this->assertSame(0, (int)$response->data->total_records);
         $this->assertSame(0, (int)$response->data->returned_records);
-        $this->assertSame( is_null($response->data->records) );
+        $this->assertTrue( is_null($response->data->records) );
     }
 
     public function testOK_SearchStatusActive_OrderByEmailASC_GET_api_v1_user_search()
     {
         // Data
         // Should be ordered by registered date desc if not specified
-        $_GET['lastname'] = array('active');
-        $_GET['sortby'] = 'email';
+        $_GET['status'] = array('active');
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1719,7 +1696,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
         // Number of total records should be 4 and returned records 4
-        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(4, (int)$response->data->total_records);
         $this->assertSame(4, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -1729,9 +1706,9 @@ class getSearchUserTest extends OrbitTestCase
         $expect = array(
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             ),
@@ -1784,8 +1761,8 @@ class getSearchUserTest extends OrbitTestCase
     {
         // Data
         // Should be ordered by registered date desc if not specified
-        $_GET['lastname'] = array('blocked');
-        $_GET['sortby'] = 'email';
+        $_GET['status'] = array('blocked');
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1850,8 +1827,8 @@ class getSearchUserTest extends OrbitTestCase
     {
         // Data
         // Should be ordered by registered date desc if not specified
-        $_GET['lastname'] = array('pending');
-        $_GET['sortby'] = 'email';
+        $_GET['status'] = array('pending');
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1943,15 +1920,15 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame($message, (string)$response->message);
         $this->assertSame(0, (int)$response->data->total_records);
         $this->assertSame(0, (int)$response->data->returned_records);
-        $this->assertSame( is_null($response->data->records) );
+        $this->assertTrue( is_null($response->data->records) );
     }
 
     public function testOK_SearchStatusActive_OrderByEmailASC_Take2_GET_api_v1_user_search()
     {
         // Data
         // Should be ordered by registered date desc if not specified
-        $_GET['lastname'] = array('active');
-        $_GET['sortby'] = 'email';
+        $_GET['status'] = array('active');
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
         $_GET['take'] = 3;
 
@@ -1978,7 +1955,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
         // Number of total records should be 3 and returned records 3
-        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(3, (int)$response->data->total_records);
         $this->assertSame(3, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -1988,9 +1965,9 @@ class getSearchUserTest extends OrbitTestCase
         $expect = array(
             array(
                 'id'                => '7',
-                'username'          => 'cat',
+                'username'          => 'catwoman',
                 'firstname'         => 'Cat',
-                'lastname'          => 'Women',
+                'lastname'          => 'Woman',
                 'email'             => 'catwoman@localhost.org',
                 'status'            => 'active'
             ),
@@ -2035,8 +2012,8 @@ class getSearchUserTest extends OrbitTestCase
     {
         // Data
         // Should be ordered by registered date desc if not specified
-        $_GET['lastname'] = array('active');
-        $_GET['sortby'] = 'email';
+        $_GET['status'] = array('active');
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
         $_GET['take'] = 2;
         $_GET['skip'] = 2;
@@ -2064,7 +2041,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
         // Number of total records should be 2 and returned records 2
-        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(2, (int)$response->data->total_records);
         $this->assertSame(2, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -2114,10 +2091,10 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['user_id'] = array(1, 2);
-        $_GET['sortby'] = 'email';
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
         $_GET['take'] = 2;
-        $_GET['skip'] = 2;
+        $_GET['skip'] = 0;
 
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
@@ -2142,7 +2119,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
         // Number of total records should be 2 and returned records 2
-        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(2, (int)$response->data->total_records);
         $this->assertSame(2, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -2192,7 +2169,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['role_id'] = array('4');
-        $_GET['sortby'] = 'email';
+        $_GET['sortby'] = 'user_email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
