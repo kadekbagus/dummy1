@@ -493,6 +493,299 @@ class UserAPIController extends ControllerAPI
 
     }
 
+    /**
+     * GET - Search user (currently only basic info)
+     *
+     * @author <Ahmad Anshori> <ahmad@dominopos.com>
+     * @author <Kadek Bagus> <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string   `sort_by`               (optional) - column order by
+     * @param string   `sort_mode`             (optional) - asc or desc
+     * @param string   `arguments`              (optional) - keywords (username, user_email, user_firstname, user_lastname, status)
+     * @return Illuminate\Support\Facades\Response
+     */
+
+    public function getSearchUser()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.user.getsearchuser.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.user.getsearchuser.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.user.getsearchuser.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_user')) {
+                Event::fire('orbit.user.getsearchuser.authz.notallowed', array($this, $user));
+                $updateUserLang = Lang::get('validation.orbit.actionlist.view_user');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.user.getsearchuser.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $userid = OrbitInput::get('user_id');
+            $roleid = OrbitInput::get('role_id');
+            $username = OrbitInput::get('username');
+            $username_like = OrbitInput::get('username_like');
+            $firstname = OrbitInput::get('firstname');
+            $firstname_like = OrbitInput::get('firstname_like');
+            $lastname = OrbitInput::get('lastname');
+            $lastname_like = OrbitInput::get('lastname_like');
+            $email = OrbitInput::get('email');
+            $email_like = OrbitInput::get('email_like');
+            $status = OrbitInput::get('status');
+            $sort_mode = OrbitInput::get('sortmode');
+            $sort_by = OrbitInput::get('sortby');
+            $argument = OrbitInput::get('argument');
+            $take = OrbitInput::get('take');
+            $skip = OrbitInput::get('skip');
+            $sortByUserLang = Lang::get('validation.orbit.actionlist.');
+            $message = Lang::get('validation.orbit.access.forbidden', array('action' => $sortByUserLang));
+            $operator = '=';
+
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                ),
+                array(
+                    'sort_by' => 'in:username,user_email,user_firstname,user_lastname,registered_date',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                )
+            );
+
+            Event::fire('orbit.user.getsearchuser.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            Event::fire('orbit.user.getsearchuser.after.validation', array($this, $validator));
+
+            $this->beginTransaction();
+
+            if (! empty($username)) {
+                $field = 'username';
+                $keyword = $username;
+            } elseif (! empty($username_like)) {
+                $field = 'username';
+                $keyword = array();
+                if (is_array($username_like)) {
+                    foreach ($username_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$username_like.'%';
+                }
+            } elseif (! empty($firstname)) {
+                $field = 'user_firstname';
+                $keyword = $firstname;
+            } elseif (! empty($firstname_like)) {
+                $field = 'user_firstname';
+                $keyword = array();
+                if (is_array($firstname_like)) {
+                    foreach ($firstname_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$firstname_like.'%';
+                }
+            } elseif (! empty($lastname)) {
+                $field = 'user_lastname';
+                $keyword = $lastname;
+            } elseif (! empty($lastname_like)) {
+                $field = 'user_lastname';
+                $keyword = array();
+                if (is_array($lastname_like)) {
+                    foreach ($lastname_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$lastname_like.'%';
+                }
+            } elseif (! empty($email)) {
+                $field = 'user_email';
+                $keyword = $email;
+            } elseif (! empty($email_like)) {
+                $field = 'user_email';
+                $keyword = array();
+                if (is_array($email_like)) {
+                    foreach ($email_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$email_like.'%';
+                }
+            } elseif (! empty($status)) {
+                $field = 'status';
+                $keyword = $status;
+            } elseif (! empty($userid)) {
+                $field = 'user_id';
+                $keyword = $userid;
+            } elseif (! empty($roleid)) {
+                $field = 'user_role_id';
+                $keyword = $roleid;
+            } else {
+                $field = '';
+                $keyword = '';
+            }
+
+            // if using 'LIKE' operator change $operator from '=' to 'LIKE'
+            if (! empty($username_like) || ! empty($firstname_like) || ! empty($lastname_like) || ! empty($email_like)) {
+                $operator = 'LIKE';
+            }
+
+            // if sort_by is not defined then use registered_date
+            if (empty($sort_by) || $sort_by=='registered_date') {
+                $sort_by = 'created_at';
+            }
+
+            // if sort_mode is not defined then use 'desc' as default sort mode
+            if (empty($sort_mode)) {
+                $sort_mode = 'desc';
+            }
+
+            // if Config::get('orbit.pagination.max_record') is not defined then set default max_record to 10
+            if (!empty(Config::get('orbit.pagination.max_record'))) {
+                $maxrecord = Config::get('orbit.pagination.max_record');
+            } else {
+                $maxrecord = 10;
+            }
+
+            // if take exist then set max_record to $take
+            if (! empty($take)) {
+                $maxrecord = $take;
+            }
+
+            // if skip is not defined then set default skip to 0
+            if (empty($skip)) {
+                $skip = 0;
+            }
+
+            // if there is no arguments passed then select all records
+            if (empty($field) && empty($keyword)) {
+                $hit = User::count();
+                if ($hit<=$maxrecord) {
+                    $maxrecord = $hit;
+                }
+                $queryresult = User::with('apikey', 'userdetail')->where('status', '!=', 'deleted')->orderBy($sort_by, $sort_mode)->take($maxrecord)->skip($skip)->get();
+            } else {
+                $queryresult = User::with('apikey', 'userdetail')->where('status', '!=', 'deleted')->where(function ($query) use ($keyword, $field, $operator) {
+                    foreach ($keyword as $key) {
+                        $query->orWhere($field, $operator, $key);
+                    }
+                })->orderBy($sort_by, $sort_mode)->take($maxrecord)->skip($skip)->get();
+            }
+
+            $count = count($queryresult);
+
+            if ($count <= $maxrecord) {
+                $maxrecord = $count;
+            }
+
+            if ($count == 0) {
+                $error = Lang::get('statuses.orbit.nodata.user');
+                $result['total_records'] = 0;
+                $result['returned_records'] = 0;
+                $result['records'] = null;
+
+                $this->response->status = 'success';
+                $this->response->message = $error;
+                $this->response->data = $result;
+            } else {
+                if (! empty($take)) {
+                    $result['total_records'] = $count;
+                    $result['returned_records'] = $take;
+                } else {
+                    $result['total_records'] = $maxrecord;
+                    $result['returned_records'] = $count;
+                }
+                $result['records'] = $queryresult->toArray();
+
+                $this->response->data = $result;
+            }
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.user.getsearchuser.after.commit', array($this, $result));
+
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.user.getsearchuser.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.user.getsearchuser.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.user.getsearchuser.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.user.getsearchuser.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
@@ -589,5 +882,6 @@ class UserAPIController extends ControllerAPI
 
             return TRUE;
         });
+
     }
 }
