@@ -503,7 +503,19 @@ class UserAPIController extends ControllerAPI
      * ----------------------
      * @param string   `sort_by`               (optional) - column order by
      * @param string   `sort_mode`             (optional) - asc or desc
-     * @param string   `arguments`              (optional) - keywords (username, user_email, user_firstname, user_lastname, status)
+     * @param integer  `user_id`               (optional)
+     * @param integer  `role_id`               (optional)
+     * @param string   `username`              (optional)
+     * @param string   `email`                 (optional)
+     * @param string   `firstname`             (optional)
+     * @param string   `lastname`              (optional)
+     * @param string   `status`                (optional)
+     * @param string   `username_like`         (optional)
+     * @param string   `email_like`            (optional)
+     * @param string   `firstname_like`        (optional)
+     * @param string   `lastname_like`         (optional)
+     * @param integer  `take`                  (optional) - limit
+     * @param integer  `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -526,8 +538,8 @@ class UserAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('view_user')) {
                 Event::fire('orbit.user.getsearchuser.authz.notallowed', array($this, $user));
-                $updateUserLang = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
+                $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
                 ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.user.getsearchuser.after.authz', array($this, $user));
@@ -547,7 +559,6 @@ class UserAPIController extends ControllerAPI
             $status = OrbitInput::get('status');
             $sort_mode = OrbitInput::get('sortmode');
             $sort_by = OrbitInput::get('sortby');
-            $argument = OrbitInput::get('argument');
             $take = OrbitInput::get('take');
             $skip = OrbitInput::get('skip');
             $sortByUserLang = Lang::get('validation.orbit.actionlist.');
