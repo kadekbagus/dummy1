@@ -25,6 +25,10 @@ echo "Running artisan migrate for production..."
 php artisan migrate --force
 
 echo ""
+echo "Running artisan migrate for development..."
+php artisan migrate
+echo ""
+
 echo "Running artisan migrate for testing..."
 php artisan --env=testing migrate
 echo ""
