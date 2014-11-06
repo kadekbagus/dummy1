@@ -75,7 +75,7 @@ class getSearchUserTest extends OrbitTestCase
                 ('4', 'optimus', '{$password['optimus']}', 'optimus@localhost.org', 'Optimus', 'Prime', '2014-10-20 06:20:04', '10.10.0.13', '3', 'blocked', '1',   '2014-10-01 06:30:04', '2014-10-20 06:31:04'),
                 ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1',    '2014-10-20 06:30:05', '2014-10-20 06:31:05'),
                 ('6', 'droopy', '{$password['droopy']}', 'droopy@localhost.org', 'Droopy', 'Dog', '2014-10-20 06:20:06', '10.10.0.14', '3', 'pending', '1',         '2014-10-22 06:30:06', '2014-10-05 06:31:06'),
-                ('7', 'catwoman', '{$password['catwoman']}', 'catwoman@localhost.org', 'Cat', 'Woman', '2014-10-20 06:20:07', '10.10.0.17', '3', 'active', '1',     '2014-10-20 06:30:07', '2014-10-20 06:31:07')"
+                ('7', 'catwoman', '{$password['catwoman']}', 'catwoman@localhost.org', 'Cat', 'Woman', '2014-10-20 06:20:07', '10.10.0.17', '4', 'active', '1',     '2014-10-20 06:30:07', '2014-10-20 06:31:07')"
         );
 
         // Insert dummy data on user_details
@@ -2185,5 +2185,71 @@ class getSearchUserTest extends OrbitTestCase
             }
         }
         $this->assertSame(2, $matches);
+    }
+
+    public function testOK_SearchRoleId_OrderByEmailASC_GET_api_v1_user_search()
+    {
+        // Data
+        // Should be ordered by registered date desc if not specified
+        $_GET['role_id'] = array('4');
+        $_GET['sortby'] = 'email';
+        $_GET['sortmode'] = 'asc';
+
+        // It should read from config named 'orbit.pagination.max_record'
+        // It should fallback to whathever you like when the config is not exists
+        $max_record = 10;
+        Config::set('orbit.pagination.max_record', $max_record);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/user/search?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $response = $this->call('GET', $url)->getContent();
+        $response = json_decode($response);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', (string)$response->status);
+        $this->assertSame(Status::OK_MSG, (string)$response->message);
+
+        // Number of total records should be 1 and returned records 1
+        $this->assertSame(1, (int)$response->data->total_records);
+        $this->assertSame(1, (int)$response->data->returned_records);
+
+        // The records attribute should be array
+        $this->assertTrue(is_array($response->data->records));
+        $this->assertSame(1, count($response->data->records));
+
+        $expect = array(
+            array(
+                'id'                => '7',
+                'username'          => 'catwoman',
+                'firstname'         => 'Cat',
+                'lastname'          => 'Woman',
+                'email'             => 'catwoman@localhost.org',
+                'status'            => 'active'
+            ),
+        );
+
+        $matches = 0;
+        foreach ($response->data->records as $index=>$return)
+        {
+            if ((string)$return->user_id === $expect[$index]['id'])
+            {
+                $this->assertSame($expect[$index]['id'], (string)$return->user_id);
+                $this->assertSame($expect[$index]['username'], $return->username);
+                $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
+                $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
+                $this->assertSame($expect[$index]['email'], $return->user_email);
+                $this->assertSame($expect[$index]['status'], $return->status);
+                $matches++;
+            }
+        }
+        $this->assertSame(1, $matches);
     }
 }
