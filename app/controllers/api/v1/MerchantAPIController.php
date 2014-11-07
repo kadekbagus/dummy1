@@ -74,6 +74,7 @@ class MerchantAPIController extends ControllerAPI
 
             $deletemerchant = Merchant::find($merchant_id);
             $deletemerchant->status = 'deleted';
+            $deletemerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postdeletemerchant.before.save', array($this, $deletemerchant));
 
