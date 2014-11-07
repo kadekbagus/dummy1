@@ -2,6 +2,7 @@
 /**
  * An API controller for login user.
  */
+use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\ControllerAPI;
 use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
@@ -23,19 +24,31 @@ class LoginAPIController extends ControllerAPI
      * @param string    `password`              (required) - Password for the account
      * @return Illuminate\Support\Facades\Response
      */
-    function postLogin()
+    public function postLogin()
     {
         try {
-            $email = OrbitInput::post('email');
-            $password = OrbitInput::post('password');
+            $email = trim(OrbitInput::post('email'));
+            $password = trim(OrbitInput::post('password'));
 
-            if (Auth::attempt(array('user_email' => $email, 'password' => $password, 'status' => 'active'))) {
-                $user = User::with('apikey', 'userdetail')->find(Auth::user()->user_id);
-                $user->setHidden(array('user_password'));
-                $this->response->data = $user->toArray();
+            if ($email == '') {
+                $this->response->code = Status::INVALID_ARGUMENT;
+                $this->response->status = 'error';
+                $this->response->message = Lang::get('validation.required', array('attribute' => 'email'));
+                $this->response->data = NULL;
+            } elseif ($password == '') {
+                $this->response->code = Status::INVALID_ARGUMENT;
+                $this->response->status = 'error';
+                $this->response->message = Lang::get('validation.required', array('attribute' => 'password'));
+                $this->response->data = NULL;
             } else {
-                $message = Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
+                if (Auth::attempt(array('user_email' => $email, 'password' => $password, 'status' => 'active'))) {
+                    $user = User::with('apikey', 'userdetail')->find(Auth::user()->user_id);
+                    $user->setHidden(array('user_password'));
+                    $this->response->data = $user->toArray();
+                } else {
+                    $message = Lang::get('validation.orbit.access.loginfailed');
+                    ACL::throwAccessForbidden($message);
+                }
             }
         } catch (ACLForbiddenException $e) {
             $this->response->code = Status::ACCESS_DENIED;
@@ -52,7 +65,7 @@ class LoginAPIController extends ControllerAPI
         return $this->render();
     }
 
-    function postLogout()
+    public function postLogout()
     {
         Auth::logout();
     }
