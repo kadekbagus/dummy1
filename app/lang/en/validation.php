@@ -99,6 +99,7 @@ return array(
         'empty' => array(
             'role'          => 'The Role ID you specify is not found.',
             'user'          => 'The User ID you specify is not found.',
+            'merchant'          => 'The Merchant ID you specify is not found.',
             'user_status'   => 'The user status you specify is not found.',
             'user_sortby'   => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
         ),
@@ -107,7 +108,8 @@ return array(
             'add_new_user'          => 'add new user',
             'delete_user'           => 'delete user',
             'delete_your_self'      => 'delete your self',
-            'update_user'           => 'update user'
+            'update_user'           => 'update user',
+            'delete_merchant'           => 'delete merchant',
         ),
     ),
 
