@@ -94,13 +94,6 @@ class postLoginTest extends OrbitTestCase
                 (6, 'hij313', 'hijklmn0987623', '4', 'active', '2014-10-19 20:02:06', '2014-10-19 20:03:06'),
                 (7, 'klm432', 'klm09876543211', '5', 'active', '2014-10-19 20:02:07', '2014-10-19 20:03:07')"
         );
-
-        // TODO: Insert dummy data on user_details table.
-
-
-        // TODO: Insert dummy data on custom_permission table.
-
-
     }
 
     /**
@@ -191,9 +184,9 @@ class postLoginTest extends OrbitTestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $return = $this->call('POST', $url)->getContent();
-
         $response = json_decode($return);
 
+        // test data.
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', $response->status);
         $this->assertSame(Status::OK_MSG, $response->message);
@@ -216,10 +209,8 @@ class postLoginTest extends OrbitTestCase
         $this->assertSame('2', (string)$response->data->apikey->user_id);
         $this->assertSame('active', (string)$response->data->apikey->status);
 
-        // TODO: test userdetail data.
+        // test userdetail data.
         $this->assertTrue(property_exists($response->data, 'userdetail'));
-
-        // TODO: test custompermission data.
     }
 
     // testcase: wrong email and password.
@@ -234,6 +225,7 @@ class postLoginTest extends OrbitTestCase
         $return = $this->call('POST', $url)->getContent();
         $response = json_decode($return);
 
+        // test data.
         $this->assertSame(Status::ACCESS_DENIED, (int)$response->code);
         $this->assertSame('error', $response->status);
         $this->assertSame(Lang::get('validation.orbit.access.loginfailed'), $response->message);
@@ -258,6 +250,7 @@ class postLoginTest extends OrbitTestCase
         $data->data = NULL;
         $expect = json_encode($data);
 
+        // test data.
         $this->assertSame($expect, $return);
     }
 
@@ -280,6 +273,7 @@ class postLoginTest extends OrbitTestCase
         $data->data = NULL;
         $expect = json_encode($data);
 
+        // test data.
         $this->assertSame($expect, $return);
     }
 }
