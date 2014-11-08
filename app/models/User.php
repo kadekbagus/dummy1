@@ -42,6 +42,11 @@ class User extends Eloquent implements UserInterface
         return $this->user_firstname . ' ' . $this->user_lastname;
     }
 
+    public function merchants()
+    {
+        return $this->hasMany('Merchant', 'user_id', 'user_id');
+    }
+
     /**
      * Tells Laravel the name of our password field so Laravel does not uses
      * its default `password` field. Our field name is `user_password`.
