@@ -35,8 +35,13 @@ class Retailer extends Eloquent
         return $this->belongsTo('User', 'user_id', 'user_id');
     }
 
+    public function merchant()
+    {
+        return $this->belongsTo('Merchant', 'parent_id', 'merchant_id');
+    }
+
     public function parent()
     {
-        return $this->belongsTo('Retailer', 'parent_id', 'retailer_id');
+        return $this->merchant();
     }
 }
