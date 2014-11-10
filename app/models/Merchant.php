@@ -5,12 +5,26 @@ class Merchant extends Eloquent
     /**
      * Merchant Model
      *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
+     */
+
+    /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
      * with `status` field.
-     *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
      */
     use ModelStatusTrait;
+
+    /**
+     * Use Trait MerchantTypeTrait so we only displaying records with value
+     * `object_type` = 'merchant'
+     */
+    use MerchantTypeTrait;
+
+    /**
+     * Column name which determine the type of Merchant or Retailer.
+     */
+    const OBJECT_TYPE = 'object_type';
 
     protected $primaryKey = 'merchant_id';
 
