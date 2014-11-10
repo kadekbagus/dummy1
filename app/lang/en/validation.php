@@ -93,7 +93,7 @@ return array(
             'username' => 'The username has already taken by someone else.',
         ),
         'access' => array(
-            'forbidden'   => 'You do not have permission to :action.',
+            'forbidden'   => "You do not have permission to :action.",
             'loginfailed' => 'Email or password was wrong.'
         ),
         'empty' => array(
