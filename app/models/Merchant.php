@@ -35,8 +35,13 @@ class Merchant extends Eloquent
         return $this->belongsTo('User', 'user_id', 'user_id');
     }
 
+    public function retailers()
+    {
+        return $this->hasMany('Retailer', 'parent_id', 'merchant_id');
+    }
+
     public function children()
     {
-        return $this->hasMany('Merchant', 'parent_id', 'merchant_id');
+        return $this->retailer();
     }
 }

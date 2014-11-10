@@ -5,16 +5,30 @@ class Retailer extends Eloquent
     /**
      * Retailer Model
      *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
+     */
+
+    /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
      * with `status` field.
-     *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
      */
     use ModelStatusTrait;
 
-    protected $primaryKey = 'retailer_id';
+    /**
+     * Use Trait MerchantTypeTrait so we only displaying records with value
+     * `object_type` = 'merchant'
+     */
+    use MerchantTypeTrait;
 
-    protected $table = 'retailers';
+    /**
+     * Column name which determine the type of Merchant or Retailer.
+     */
+    const OBJECT_TYPE = 'object_type';
+
+    protected $primaryKey = 'merchant_id';
+
+    protected $table = 'merchants';
 
     public function user()
     {
@@ -24,10 +38,5 @@ class Retailer extends Eloquent
     public function parent()
     {
         return $this->belongsTo('Retailer', 'parent_id', 'retailer_id');
-    }
-
-    public function children()
-    {
-        return $this->hasMany('Retailer', 'parent_id', 'retailer_id');
     }
 }
