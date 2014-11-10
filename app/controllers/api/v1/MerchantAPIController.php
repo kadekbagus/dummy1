@@ -179,30 +179,30 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `parent_id`             (optional) - The merchant id
      * @return Illuminate\Support\Facades\Response
      */
-    public function postAddMerchant()
+    public function postNewMerchant()
     {
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.user.postaddmerchant.before.auth', array($this));
+            Event::fire('orbit.user.postnewmerchant.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postaddmerchant.after.auth', array($this));
+            Event::fire('orbit.user.postnewmerchant.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postaddmerchant.before.authz', array($this, $user));
+            Event::fire('orbit.user.postnewmerchant.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('add_merchant')) {
-                Event::fire('orbit.user.postaddmerchant.authz.notallowed', array($this, $user));
-                $createMerchantLang = Lang::get('validation.orbit.actionlist.add_merchant');
+            if (! ACL::create($user)->isAllowed('new_merchant')) {
+                Event::fire('orbit.user.postnewmerchant.authz.notallowed', array($this, $user));
+                $createMerchantLang = Lang::get('validation.orbit.actionlist.new_merchant');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createMerchantLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postaddmerchant.after.authz', array($this, $user));
+            Event::fire('orbit.user.postnewmerchant.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -243,59 +243,59 @@ class MerchantAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.user.postaddmerchant.before.validation', array($this, $validator));
+            Event::fire('orbit.user.postnewmerchant.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postaddmerchant.after.validation', array($this, $validator));
+            Event::fire('orbit.user.postnewmerchant.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
 
-            $addmerchant = new Merchant();
-            $addmerchant->user_id = $user_id;
-            $addmerchant->email = $email;
-            $addmerchant->name = $name;
-            $addmerchant->description = $description;
-            $addmerchant->address_line1 = $address_line1;
-            $addmerchant->address_line2 = $address_line2;
-            $addmerchant->address_line3 = $address_line3;
-            $addmerchant->city_id = $city_id;
-            $addmerchant->city = $city;
-            $addmerchant->country_id = $country_id;
-            $addmerchant->country = $country;
-            $addmerchant->phone = $phone;
-            $addmerchant->fax = $fax;
-            $addmerchant->start_date_activity = $start_date_activity;
-            $addmerchant->status = $status;
-            $addmerchant->logo = $logo;
-            $addmerchant->currency = $currency;
-            $addmerchant->currency_symbol = $currency_symbol;
-            $addmerchant->tax_code1 = $tax_code1;
-            $addmerchant->tax_code2 = $tax_code2;
-            $addmerchant->tax_code3 = $tax_code3;
-            $addmerchant->slogan = $slogan;
-            $addmerchant->vat_included = $vat_included;
-            $addmerchant->object_type = $object_type;
-            $addmerchant->parent_id = $parent_id;
-            $addmerchant->modified_by = $this->api->user->user_id;
+            $newmerchant = new Merchant();
+            $newmerchant->user_id = $user_id;
+            $newmerchant->email = $email;
+            $newmerchant->name = $name;
+            $newmerchant->description = $description;
+            $newmerchant->address_line1 = $address_line1;
+            $newmerchant->address_line2 = $address_line2;
+            $newmerchant->address_line3 = $address_line3;
+            $newmerchant->city_id = $city_id;
+            $newmerchant->city = $city;
+            $newmerchant->country_id = $country_id;
+            $newmerchant->country = $country;
+            $newmerchant->phone = $phone;
+            $newmerchant->fax = $fax;
+            $newmerchant->start_date_activity = $start_date_activity;
+            $newmerchant->status = $status;
+            $newmerchant->logo = $logo;
+            $newmerchant->currency = $currency;
+            $newmerchant->currency_symbol = $currency_symbol;
+            $newmerchant->tax_code1 = $tax_code1;
+            $newmerchant->tax_code2 = $tax_code2;
+            $newmerchant->tax_code3 = $tax_code3;
+            $newmerchant->slogan = $slogan;
+            $newmerchant->vat_included = $vat_included;
+            $newmerchant->object_type = $object_type;
+            $newmerchant->parent_id = $parent_id;
+            $newmerchant->modified_by = $this->api->user->user_id;
 
-            Event::fire('orbit.user.postaddmerchant.before.save', array($this, $addmerchant));
+            Event::fire('orbit.user.postnewmerchant.before.save', array($this, $newmerchant));
 
-            $addmerchant->save();
+            $newmerchant->save();
 
-            Event::fire('orbit.user.postaddmerchant.after.save', array($this, $addmerchant));
-            $this->response->data = $addmerchant->toArray();
+            Event::fire('orbit.user.postnewmerchant.after.save', array($this, $newmerchant));
+            $this->response->data = $newmerchant->toArray();
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postaddmerchant.after.commit', array($this, $addmerchant));
+            Event::fire('orbit.user.postnewmerchant.after.commit', array($this, $newmerchant));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postaddmerchant.access.forbidden', array($this, $e));
+            Event::fire('orbit.user.postnewmerchant.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -306,7 +306,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postaddmerchant.invalid.arguments', array($this, $e));
+            Event::fire('orbit.user.postnewmerchant.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -317,7 +317,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postaddmerchant.query.error', array($this, $e));
+            Event::fire('orbit.user.postnewmerchant.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -334,7 +334,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postaddmerchant.general.exception', array($this, $e));
+            Event::fire('orbit.user.postnewmerchant.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
