@@ -5,7 +5,7 @@
  * @author Rio Astamal <me@rioastamal.net>
  * @copyright DominoPOS Ltd.
  */
-class MerchantTest extends OrbitTestCase
+class RetailerTest extends OrbitTestCase
 {
     /**
      * Executed only once at the beginning of the test.
