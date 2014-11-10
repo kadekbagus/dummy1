@@ -68,6 +68,13 @@ abstract class ControllerAPI extends Controller
     public $expiresTime = 60;
 
     /**
+     * Custom headers sent to the client
+     *
+     * @var array
+     */
+    public $customHeaders = array();
+
+    /**
      * Contructor
      *
      * @param string $contentType - HTTP content type that would be sent to client
@@ -143,9 +150,15 @@ abstract class ControllerAPI extends Controller
                 $json->data = $this->response->data;
 
                 $output = json_encode($json);
+
+                // Allow Cross-Domain Request
+                // http://enable-cors.org/index.html
+                $this->customHeaders['Access-Control-Allow-Origin'] = '*';
         }
 
-        return Response::make($output, $httpCode, array('Content-Type' => $this->contentType));
+        $headers = array('Content-Type' => $this->contentType) + $this->customHeaders;
+
+        return Response::make($output, $httpCode, $headers);
     }
 
     /**
