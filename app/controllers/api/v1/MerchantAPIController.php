@@ -281,6 +281,7 @@ class MerchantAPIController extends ControllerAPI
             $addmerchant->vat_included = $vat_included;
             $addmerchant->object_type = $object_type;
             $addmerchant->parent_id = $parent_id;
+            $addmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.user.postaddmerchant.before.save', array($this, $addmerchant));
 
