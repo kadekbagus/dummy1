@@ -45,6 +45,18 @@ trait ModelStatusTrait
 
     /**
      * Scope to filter records based on status field. Only return records which
+     * had value 'inactive'.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Illuminate\Database\Query\Builder
+     */
+    public function scopeInactive($query)
+    {
+        return $query->whereStatus('inactive');
+    }
+
+    /**
+     * Scope to filter records based on status field. Only return records which
      * had value 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
