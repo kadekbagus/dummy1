@@ -347,6 +347,406 @@ class MerchantAPIController extends ControllerAPI
         return $this->render($httpCode);
     }
 
+    /**
+     * GET - Search merchant
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string   `sort_by`               (optional) - column order by
+     * @param string   `sort_mode`             (optional) - asc or desc
+     * @param integer  `take`                  (optional) - limit
+     * @param integer  `skip`                  (optional) - limit offset
+     * @param integer  `merchant_id`           (optional)
+     * @param integer  `user_id`               (optional)
+     * @param string   `email`                 (optional)
+     * @param string   `name`                  (optional)
+     * @param string   `description`           (optional)
+     * @param string   `address1`              (optional)
+     * @param string   `address2`              (optional)
+     * @param string   `address3`              (optional)
+     * @param string   `city_id`               (optional)
+     * @param string   `city`                  (optional)
+     * @param string   `country_id`            (optional)
+     * @param string   `country`               (optional)
+     * @param string   `phone`                 (optional)
+     * @param string   `fax`                   (optional)
+     * @param string   `status`                (optional)
+     * @param string   `currency`              (optional)
+     * @param string   `name_like`             (optional)
+     * @param string   `email_like`            (optional)
+     * @param string   `description_like`      (optional)
+     * @param string   `address1_like`         (optional)
+     * @param string   `address2_like`         (optional)
+     * @param string   `address3_like`         (optional)
+     * @param string   `city_like`             (optional)
+     * @param string   `country_like`          (optional)
+     * @return Illuminate\Support\Facades\Response
+     */
+
+    public function getSearchMerchant()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.merchant.getsearchmerchant.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.merchant.getsearchmerchant.after.auth', array($this));
+
+            // Try to check access control list, does this merchant allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.merchant.getsearchmerchant.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_merchant')) {
+                Event::fire('orbit.merchant.getsearchmerchant.authz.notallowed', array($this, $user));
+                $viewUserLang = Lang::get('validation.orbit.actionlist.view_merchant');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.merchant.getsearchmerchant.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $merchant_id = OrbitInput::get('merchant_id');
+            $user_id = OrbitInput::get('user_id');
+            $name = OrbitInput::get('name');
+            $name_like = OrbitInput::get('name_like');
+            $description = OrbitInput::get('description');
+            $description_like = OrbitInput::get('description_like');
+            $address1 = OrbitInput::get('address1');
+            $address2 = OrbitInput::get('address2');
+            $address3 = OrbitInput::get('address3');
+            $address1_like = OrbitInput::get('address1_like');
+            $address2_like = OrbitInput::get('address2_like');
+            $address3_like = OrbitInput::get('address3_like');
+            $city = OrbitInput::get('city');
+            $city_id = OrbitInput::get('city_id');
+            $city_like = OrbitInput::get('city_like');
+            $country = OrbitInput::get('country');
+            $country_id = OrbitInput::get('country_id');
+            $country_like = OrbitInput::get('country_like');
+            $email = OrbitInput::get('email');
+            $email_like = OrbitInput::get('email_like');
+            $phone = OrbitInput::get('phone');
+            $fax = OrbitInput::get('fax');
+            $status = OrbitInput::get('status');
+            $currency = OrbitInput::get('currency');
+            $sort_mode = OrbitInput::get('sortmode');
+            $sort_by = OrbitInput::get('sortby');
+            $take = OrbitInput::get('take');
+            $skip = OrbitInput::get('skip');
+            $sortByUserLang = Lang::get('validation.orbit.actionlist.');
+            $message = Lang::get('validation.orbit.access.forbidden', array('action' => $sortByUserLang));
+            $operator = '=';
+
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                ),
+                array(
+                    'sort_by' => 'in:merchant_id,user_id,email,name,registered_date,description,address1,address2,address3,city_id,city,country_id,country,phone,fax,status,currency',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                )
+            );
+
+            Event::fire('orbit.merchant.getsearchmerchant.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            Event::fire('orbit.merchant.getsearchmerchant.after.validation', array($this, $validator));
+
+            $this->beginTransaction();
+
+            if (! empty($name)) {
+                $field = 'name';
+                $keyword = $name;
+            } elseif (! empty($name_like)) {
+                $field = 'name';
+                $keyword = array();
+                if (is_array($name_like)) {
+                    foreach ($name_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$name_like.'%';
+                }
+            } elseif (! empty($description)) {
+                $field = 'description';
+                $keyword = $description;
+            } elseif (! empty($description_like)) {
+                $field = 'description';
+                $keyword = array();
+                if (is_array($description_like)) {
+                    foreach ($description_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$description_like.'%';
+                }
+            } elseif (! empty($email)) {
+                $field = 'email';
+                $keyword = $email;
+            } elseif (! empty($email_like)) {
+                $field = 'email';
+                $keyword = array();
+                if (is_array($email_like)) {
+                    foreach ($email_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$email_like.'%';
+                }
+            } elseif (! empty($address1)) {
+                $field = 'address_line1';
+                $keyword = $address1;
+            } elseif (! empty($address1_like)) {
+                $field = 'address_line1';
+                $keyword = array();
+                if (is_array($address1_like)) {
+                    foreach ($address1_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$address1_like.'%';
+                }
+            } elseif (! empty($address2)) {
+                $field = 'address_line2';
+                $keyword = $address2;
+            } elseif (! empty($address2_like)) {
+                $field = 'address_line2';
+                $keyword = array();
+                if (is_array($address2_like)) {
+                    foreach ($address2_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$address2_like.'%';
+                }
+            } elseif (! empty($address3)) {
+                $field = 'address_line3';
+                $keyword = $address3;
+            } elseif (! empty($address3_like)) {
+                $field = 'address_line3';
+                $keyword = array();
+                if (is_array($address3_like)) {
+                    foreach ($address3_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$address3_like.'%';
+                }
+            } elseif (! empty($city)) {
+                $field = 'city';
+                $keyword = $city;
+            } elseif (! empty($city_like)) {
+                $field = 'city';
+                $keyword = array();
+                if (is_array($city_like)) {
+                    foreach ($city_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$city_like.'%';
+                }
+            } elseif (! empty($country)) {
+                $field = 'country';
+                $keyword = $country;
+            } elseif (! empty($country_like)) {
+                $field = 'country';
+                $keyword = array();
+                if (is_array($country_like)) {
+                    foreach ($country_like as $keylike) {
+                        $keylike = '%'.$keylike;
+                        $keyword[] = $keylike;
+                    }
+                } else {
+                    $keyword[] = '%'.$country_like.'%';
+                }
+            } elseif (! empty($phone)) {
+                $field = 'phone';
+                $keyword = $phone;
+            } elseif (! empty($fax)) {
+                $field = 'fax';
+                $keyword = $fax;
+            } elseif (! empty($currency)) {
+                $field = 'currency';
+                $keyword = $currency;
+            } elseif (! empty($status)) {
+                $field = 'status';
+                $keyword = $status;
+            } elseif (! empty($merchant_id)) {
+                $field = 'merchant_id';
+                $keyword = $merchant_id;
+            } elseif (! empty($userid)) {
+                $field = 'user_id';
+                $keyword = $userid;
+            } elseif (! empty($city_id)) {
+                $field = 'city_id';
+                $keyword = $city_id;
+            } elseif (! empty($country_id)) {
+                $field = 'country_id';
+                $keyword = $country_id;
+            } else {
+                $field = '';
+                $keyword = '';
+            }
+
+            // if using 'LIKE' operator change $operator from '=' to 'LIKE'
+            if (! empty($email_like) || ! empty($name_like) || ! empty($description_like) || ! empty($address1_like) || ! empty($address2_like) || ! empty($address3_like) || ! empty($city_like) || ! empty($country_like)) {
+                $operator = 'LIKE';
+            }
+
+            // if sort_by is not defined then use registered_date
+            if (empty($sort_by) || $sort_by=='registered_date') {
+                $sort_by = 'created_at';
+            }
+
+            // if sort_mode is not defined then use 'desc' as default sort mode
+            if (empty($sort_mode)) {
+                $sort_mode = 'desc';
+            }
+
+            // if Config::get('orbit.pagination.max_record') is not defined then set default max_record to 10
+            if (!empty(Config::get('orbit.pagination.max_record'))) {
+                $maxrecord = Config::get('orbit.pagination.max_record');
+            } else {
+                $maxrecord = 10;
+            }
+
+            // if take exist then set max_record to $take
+            if (! empty($take)) {
+                $maxrecord = $take;
+            }
+
+            // if skip is not defined then set default skip to 0
+            if (empty($skip)) {
+                $skip = 0;
+            }
+
+            // if there is no arguments passed then select all records
+            if (empty($field) && empty($keyword)) {
+                $hit = Merchant::count();
+                if ($hit<=$maxrecord) {
+                    $maxrecord = $hit;
+                }
+                $queryresult = Merchant::where('status', '!=', 'deleted')->orderBy($sort_by, $sort_mode)->take($maxrecord)->skip($skip)->get();
+            } else {
+                $queryresult = Merchant::where('status', '!=', 'deleted')->where(function ($query) use ($keyword, $field, $operator) {
+                    foreach ($keyword as $key) {
+                        $query->orWhere($field, $operator, $key);
+                    }
+                })->orderBy($sort_by, $sort_mode)->take($maxrecord)->skip($skip)->get();
+            }
+
+            $count = count($queryresult);
+
+            if ($count <= $maxrecord) {
+                $maxrecord = $count;
+            }
+
+            if ($count == 0) {
+                $error = Lang::get('statuses.orbit.nodata.merchant');
+                $result['total_records'] = 0;
+                $result['returned_records'] = 0;
+                $result['records'] = null;
+
+                $this->response->status = 'success';
+                $this->response->message = $error;
+                $this->response->data = $result;
+            } else {
+                if (! empty($take)) {
+                    $result['total_records'] = $count;
+                    $result['returned_records'] = $take;
+                } else {
+                    $result['total_records'] = $maxrecord;
+                    $result['returned_records'] = $count;
+                }
+                $result['records'] = $queryresult->toArray();
+
+                $this->response->data = $result;
+            }
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.merchant.getsearchmerchant.after.commit', array($this, $result));
+
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.merchant.getsearchmerchant.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.merchant.getsearchmerchant.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.merchant.getsearchmerchant.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.merchant.getsearchmerchant.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
     protected function registerCustomValidation()
     {
         // Check the existance of merchant id
