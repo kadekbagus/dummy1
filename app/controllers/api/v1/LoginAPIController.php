@@ -65,8 +65,37 @@ class LoginAPIController extends ControllerAPI
         return $this->render();
     }
 
+    /**
+     * POST - Logout user
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
     public function postLogout()
     {
-        Auth::logout();
+        try {
+            // if user is login, then logout the user, otherwise throw access forbidden.
+            if (Auth::check()) {
+                Auth::logout();
+
+                // if the user is still in login, then throw unknown error.
+                if (Auth::check()) {
+                    $this->response->code = Status::UNKNOWN_ERROR;
+                    $this->response->status = 'error';
+                    $this->response->message = Status::UNKNOWN_ERROR_MSG;
+                    $this->response->data = NULL;
+                }
+            } else {
+                ACL::throwAccessForbidden();
+            }
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
     }
 }
