@@ -13,7 +13,7 @@ trait MerchantTypeTrait
         $class = get_called_class();
         switch ($class)
         {
-            case 'Retailer,':
+            case 'Retailer':
                 static::addGlobalScope(new MerchantRetailerScope('retailer'));
                 break;
 
@@ -30,5 +30,27 @@ trait MerchantTypeTrait
     public function getQualifiedObjectTypeColumn()
     {
         return $this->getTable() . '.' . static::OBJECT_TYPE;
+    }
+
+    /**
+     * Force the object type to be a 'merchant' for merchant class and 'retailer'
+     * for retailer class
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     */
+    public function save(array $options=array())
+    {
+        $class = get_called_class();
+        switch ($class)
+        {
+            case 'Retailer':
+                $this->setAttribute(static::OBJECT_TYPE, 'retailer');
+                break;
+
+            default:
+                $this->setAttribute(static::OBJECT_TYPE, 'merchant');
+        }
+
+        return parent::save( $options );
     }
 }
