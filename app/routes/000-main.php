@@ -14,3 +14,8 @@ Route::get('/', function()
 {
     return View::make('orbit-shop');
 });
+
+Route::options('/{all}', function()
+{
+    return DummyAPIController::create()->IamOK();
+});

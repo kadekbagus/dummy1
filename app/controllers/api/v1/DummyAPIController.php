@@ -12,6 +12,11 @@ use Illuminate\Database\QueryException;
 
 class DummyAPIController extends ControllerAPI
 {
+    public function IamOK()
+    {
+        return $this->render();
+    }
+
     public function hisName()
     {
         $name = new stdclass();
