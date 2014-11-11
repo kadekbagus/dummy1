@@ -327,7 +327,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
         // Number of total records should be 6 and returned records 2
-        $this->assertSame($max_record, (int)$response->data->total_records);
+        $this->assertSame(6, (int)$response->data->total_records);
         $this->assertSame(2, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -922,7 +922,7 @@ class getSearchUserTest extends OrbitTestCase
         $response = $this->call('GET', $url)->getContent();
         $response = json_decode($response);
         $message = Lang::get('statuses.orbit.nodata.user');
-        
+
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', (string)$response->status);
         $this->assertSame($message, (string)$response->message);
@@ -957,7 +957,7 @@ class getSearchUserTest extends OrbitTestCase
 
         $response = $this->call('GET', $url)->getContent();
         $response = json_decode($response);
-        
+
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', (string)$response->status);
         $this->assertSame(Status::OK_MSG, (string)$response->message);
@@ -1954,8 +1954,8 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame('success', (string)$response->status);
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
-        // Number of total records should be 3 and returned records 3
-        $this->assertSame(3, (int)$response->data->total_records);
+        // Number of total records should be 4 and returned records 3
+        $this->assertSame(4, (int)$response->data->total_records);
         $this->assertSame(3, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -2040,8 +2040,8 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame('success', (string)$response->status);
         $this->assertSame(Status::OK_MSG, (string)$response->message);
 
-        // Number of total records should be 2 and returned records 2
-        $this->assertSame(2, (int)$response->data->total_records);
+        // Number of total records should be 4 and returned records 2
+        $this->assertSame(4, (int)$response->data->total_records);
         $this->assertSame(2, (int)$response->data->returned_records);
 
         // The records attribute should be array
@@ -2067,7 +2067,7 @@ class getSearchUserTest extends OrbitTestCase
             ),
         );
 
-        // catwoman, chuck, john, smith
+        // john, smith
 
         $matches = 0;
         foreach ($response->data->records as $index=>$return)
@@ -2086,7 +2086,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertSame(2, $matches);
     }
 
-    public function testOK_SearchUserId_OrderByEmailASC_Take2_Skip2_GET_api_v1_user_search()
+    public function testOK_SearchUserId_OrderByEmailASC_Take2_Skip0_GET_api_v1_user_search()
     {
         // Data
         // Should be ordered by registered date desc if not specified
