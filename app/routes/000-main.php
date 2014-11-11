@@ -18,4 +18,4 @@ Route::get('/', function()
 Route::options('{all}', function()
 {
     return DummyAPIController::create()->IamOK();
-});
+})->where('all', '.*');
