@@ -184,25 +184,25 @@ class MerchantAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.user.postnewmerchant.before.auth', array($this));
+            Event::fire('orbit.merchant.postnewmerchant.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postnewmerchant.after.auth', array($this));
+            Event::fire('orbit.merchant.postnewmerchant.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postnewmerchant.before.authz', array($this, $user));
+            Event::fire('orbit.merchant.postnewmerchant.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('new_merchant')) {
-                Event::fire('orbit.user.postnewmerchant.authz.notallowed', array($this, $user));
+                Event::fire('orbit.merchant.postnewmerchant.authz.notallowed', array($this, $user));
                 $createMerchantLang = Lang::get('validation.orbit.actionlist.new_merchant');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createMerchantLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postnewmerchant.after.authz', array($this, $user));
+            Event::fire('orbit.merchant.postnewmerchant.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -243,14 +243,14 @@ class MerchantAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.user.postnewmerchant.before.validation', array($this, $validator));
+            Event::fire('orbit.merchant.postnewmerchant.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postnewmerchant.after.validation', array($this, $validator));
+            Event::fire('orbit.merchant.postnewmerchant.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
@@ -283,19 +283,19 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->parent_id = $parent_id;
             $newmerchant->modified_by = $this->api->user->user_id;
 
-            Event::fire('orbit.user.postnewmerchant.before.save', array($this, $newmerchant));
+            Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
 
             $newmerchant->save();
 
-            Event::fire('orbit.user.postnewmerchant.after.save', array($this, $newmerchant));
+            Event::fire('orbit.merchant.postnewmerchant.after.save', array($this, $newmerchant));
             $this->response->data = $newmerchant->toArray();
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postnewmerchant.after.commit', array($this, $newmerchant));
+            Event::fire('orbit.merchant.postnewmerchant.after.commit', array($this, $newmerchant));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postnewmerchant.access.forbidden', array($this, $e));
+            Event::fire('orbit.merchant.postnewmerchant.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -306,7 +306,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postnewmerchant.invalid.arguments', array($this, $e));
+            Event::fire('orbit.merchant.postnewmerchant.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -317,7 +317,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postnewmerchant.query.error', array($this, $e));
+            Event::fire('orbit.merchant.postnewmerchant.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -334,7 +334,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postnewmerchant.general.exception', array($this, $e));
+            Event::fire('orbit.merchant.postnewmerchant.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -788,25 +788,25 @@ class MerchantAPIController extends ControllerAPI
         try {
             $httpCode=200;
 
-            Event::fire('orbit.user.postupdatemerchant.before.auth', array($this));
+            Event::fire('orbit.merchant.postupdatemerchant.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postupdatemerchant.after.auth', array($this));
+            Event::fire('orbit.merchant.postupdatemerchant.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postupdatemerchant.before.authz', array($this, $user));
+            Event::fire('orbit.merchant.postupdatemerchant.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('update_merchant')) {
-                Event::fire('orbit.user.postupdatemerchant.authz.notallowed', array($this, $user));
+                Event::fire('orbit.merchant.postupdatemerchant.authz.notallowed', array($this, $user));
                 $updateMerchantLang = Lang::get('validation.orbit.actionlist.update_merchant');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateMerchantLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postupdatemerchant.after.authz', array($this, $user));
+            Event::fire('orbit.merchant.postupdatemerchant.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -850,14 +850,14 @@ class MerchantAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.user.postupdatemerchant.before.validation', array($this, $validator));
+            Event::fire('orbit.merchant.postupdatemerchant.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postupdatemerchant.after.validation', array($this, $validator));
+            Event::fire('orbit.merchant.postupdatemerchant.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
@@ -890,19 +890,19 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant->parent_id = $parent_id;
             $updatedmerchant->modified_by = $this->api->user->user_id;
 
-            Event::fire('orbit.user.postupdatemerchant.before.save', array($this, $updatedmerchant));
+            Event::fire('orbit.merchant.postupdatemerchant.before.save', array($this, $updatedmerchant));
 
             $updatedmerchant->save();
 
-            Event::fire('orbit.user.postupdatemerchant.after.save', array($this, $updatedmerchant));
+            Event::fire('orbit.merchant.postupdatemerchant.after.save', array($this, $updatedmerchant));
             $this->response->data = $updatedmerchant->toArray();
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postupdatemerchant.after.commit', array($this, $updatedmerchant));
+            Event::fire('orbit.merchant.postupdatemerchant.after.commit', array($this, $updatedmerchant));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postupdatemerchant.access.forbidden', array($this, $e));
+            Event::fire('orbit.merchant.postupdatemerchant.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -913,7 +913,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postupdatemerchant.invalid.arguments', array($this, $e));
+            Event::fire('orbit.merchant.postupdatemerchant.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -924,7 +924,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postupdatemerchant.query.error', array($this, $e));
+            Event::fire('orbit.merchant.postupdatemerchant.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -941,7 +941,7 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postupdatemerchant.general.exception', array($this, $e));
+            Event::fire('orbit.merchant.postupdatemerchant.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
