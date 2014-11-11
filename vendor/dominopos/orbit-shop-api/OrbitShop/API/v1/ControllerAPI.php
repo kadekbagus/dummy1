@@ -154,6 +154,8 @@ abstract class ControllerAPI extends Controller
                 // Allow Cross-Domain Request
                 // http://enable-cors.org/index.html
                 $this->customHeaders['Access-Control-Allow-Origin'] = '*';
+                $this->customHeaders['Access-Control-Allow-Methods'] = 'GET, POST';
+                $this->customHeaders['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Request-With';
         }
 
         $headers = array('Content-Type' => $this->contentType) + $this->customHeaders;
