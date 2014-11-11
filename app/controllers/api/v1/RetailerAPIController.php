@@ -184,25 +184,25 @@ class RetailerAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.user.postnewretailer.before.auth', array($this));
+            Event::fire('orbit.retailer.postnewretailer.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postnewretailer.after.auth', array($this));
+            Event::fire('orbit.retailer.postnewretailer.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postnewretailer.before.authz', array($this, $user));
+            Event::fire('orbit.retailer.postnewretailer.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('add_retailer')) {
-                Event::fire('orbit.user.postnewretailer.authz.notallowed', array($this, $user));
+                Event::fire('orbit.retailer.postnewretailer.authz.notallowed', array($this, $user));
                 $createRetailerLang = Lang::get('validation.orbit.actionlist.new_retailer');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createRetailerLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postnewretailer.after.authz', array($this, $user));
+            Event::fire('orbit.retailer.postnewretailer.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -243,14 +243,14 @@ class RetailerAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.user.postnewretailer.before.validation', array($this, $validator));
+            Event::fire('orbit.retailer.postnewretailer.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postnewretailer.after.validation', array($this, $validator));
+            Event::fire('orbit.retailer.postnewretailer.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
@@ -283,19 +283,19 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->parent_id = $parent_id;
             $newretailer->modified_by = $this->api->user->user_id;
 
-            Event::fire('orbit.user.postnewretailer.before.save', array($this, $newretailer));
+            Event::fire('orbit.retailer.postnewretailer.before.save', array($this, $newretailer));
 
             $newretailer->save();
 
-            Event::fire('orbit.user.postnewretailer.after.save', array($this, $newretailer));
+            Event::fire('orbit.retailer.postnewretailer.after.save', array($this, $newretailer));
             $this->response->data = $newretailer->toArray();
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postnewretailer.after.commit', array($this, $newretailer));
+            Event::fire('orbit.retailer.postnewretailer.after.commit', array($this, $newretailer));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postnewretailer.access.forbidden', array($this, $e));
+            Event::fire('orbit.retailer.postnewretailer.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -306,7 +306,7 @@ class RetailerAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postnewretailer.invalid.arguments', array($this, $e));
+            Event::fire('orbit.retailer.postnewretailer.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -317,7 +317,7 @@ class RetailerAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postnewretailer.query.error', array($this, $e));
+            Event::fire('orbit.retailer.postnewretailer.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -334,7 +334,7 @@ class RetailerAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postnewretailer.general.exception', array($this, $e));
+            Event::fire('orbit.retailer.postnewretailer.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
