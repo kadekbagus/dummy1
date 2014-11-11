@@ -2013,7 +2013,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['status'] = array('active');
-        $_GET['sortby'] = 'user_email';
+        $_GET['sortby'] = 'email';
         $_GET['sortmode'] = 'asc';
         $_GET['take'] = 2;
         $_GET['skip'] = 2;
@@ -2091,7 +2091,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['user_id'] = array(1, 2);
-        $_GET['sortby'] = 'user_email';
+        $_GET['sortby'] = 'email';
         $_GET['sortmode'] = 'asc';
         $_GET['take'] = 2;
         $_GET['skip'] = 0;
@@ -2169,7 +2169,7 @@ class getSearchUserTest extends OrbitTestCase
         // Data
         // Should be ordered by registered date desc if not specified
         $_GET['role_id'] = array('4');
-        $_GET['sortby'] = 'user_email';
+        $_GET['sortby'] = 'email';
         $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'

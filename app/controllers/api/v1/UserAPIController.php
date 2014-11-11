@@ -570,7 +570,7 @@ class UserAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:username,user_email,user_firstname,user_lastname,registered_date',
+                    'sort_by' => 'in:username,email,firstname,lastname,registered_date',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -686,24 +686,25 @@ class UserAPIController extends ControllerAPI
             // Default sort mode
             $sortMode = 'desc';
 
-            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy, &$sortMode)
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
+                // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'registered_date'   => 'users.created_at',
                     'username'          => 'users.username',
-                    'user_email'        => 'users.user_email',
-                    'user_lastname'     => 'users.user_lastname',
-                    'user_firstname'    => 'users.user_firstname'
+                    'email'             => 'users.user_email',
+                    'lastname'          => 'users.user_lastname',
+                    'firstname'         => 'users.user_firstname'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
+            });
 
-                OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
-                {
-                    if (strtolower($_sortMode) !== 'desc') {
-                        $sortMode = 'asc';
-                    }
-                });
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
             });
             $users->orderBy($sortBy, $sortMode);
 
