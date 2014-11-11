@@ -51,7 +51,7 @@ class LoginAPIController extends ControllerAPI
                 }
             }
         } catch (ACLForbiddenException $e) {
-            $this->response->code = Status::ACCESS_DENIED;
+            $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = NULL;
@@ -89,6 +89,11 @@ class LoginAPIController extends ControllerAPI
             } else {
                 ACL::throwAccessForbidden();
             }
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
