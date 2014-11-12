@@ -413,44 +413,13 @@ class MerchantAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-            $merchant_id = OrbitInput::get('merchant_id');
-            $user_id = OrbitInput::get('user_id');
-            $name = OrbitInput::get('name');
-            $name_like = OrbitInput::get('name_like');
-            $description = OrbitInput::get('description');
-            $description_like = OrbitInput::get('description_like');
-            $address1 = OrbitInput::get('address1');
-            $address2 = OrbitInput::get('address2');
-            $address3 = OrbitInput::get('address3');
-            $address1_like = OrbitInput::get('address1_like');
-            $address2_like = OrbitInput::get('address2_like');
-            $address3_like = OrbitInput::get('address3_like');
-            $city = OrbitInput::get('city');
-            $city_id = OrbitInput::get('city_id');
-            $city_like = OrbitInput::get('city_like');
-            $country = OrbitInput::get('country');
-            $country_id = OrbitInput::get('country_id');
-            $country_like = OrbitInput::get('country_like');
-            $email = OrbitInput::get('email');
-            $email_like = OrbitInput::get('email_like');
-            $phone = OrbitInput::get('phone');
-            $fax = OrbitInput::get('fax');
-            $status = OrbitInput::get('status');
-            $currency = OrbitInput::get('currency');
-            $sort_mode = OrbitInput::get('sortmode');
             $sort_by = OrbitInput::get('sortby');
-            $take = OrbitInput::get('take');
-            $skip = OrbitInput::get('skip');
-            $sortByUserLang = Lang::get('validation.orbit.actionlist.');
-            $message = Lang::get('validation.orbit.access.forbidden', array('action' => $sortByUserLang));
-            $operator = '=';
-
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:merchant_id,user_id,email,name,registered_date,description,address1,address2,address3,city_id,city,country_id,country,phone,fax,status,currency',
+                    'sort_by' => 'in:registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -467,228 +436,241 @@ class MerchantAPIController extends ControllerAPI
 
             Event::fire('orbit.merchant.getsearchmerchant.after.validation', array($this, $validator));
 
-            $this->beginTransaction();
-
-            if (! empty($name)) {
-                $field = 'name';
-                $keyword = $name;
-            } elseif (! empty($name_like)) {
-                $field = 'name';
-                $keyword = array();
-                if (is_array($name_like)) {
-                    foreach ($name_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$name_like.'%';
-                }
-            } elseif (! empty($description)) {
-                $field = 'description';
-                $keyword = $description;
-            } elseif (! empty($description_like)) {
-                $field = 'description';
-                $keyword = array();
-                if (is_array($description_like)) {
-                    foreach ($description_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$description_like.'%';
-                }
-            } elseif (! empty($email)) {
-                $field = 'email';
-                $keyword = $email;
-            } elseif (! empty($email_like)) {
-                $field = 'email';
-                $keyword = array();
-                if (is_array($email_like)) {
-                    foreach ($email_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$email_like.'%';
-                }
-            } elseif (! empty($address1)) {
-                $field = 'address_line1';
-                $keyword = $address1;
-            } elseif (! empty($address1_like)) {
-                $field = 'address_line1';
-                $keyword = array();
-                if (is_array($address1_like)) {
-                    foreach ($address1_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$address1_like.'%';
-                }
-            } elseif (! empty($address2)) {
-                $field = 'address_line2';
-                $keyword = $address2;
-            } elseif (! empty($address2_like)) {
-                $field = 'address_line2';
-                $keyword = array();
-                if (is_array($address2_like)) {
-                    foreach ($address2_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$address2_like.'%';
-                }
-            } elseif (! empty($address3)) {
-                $field = 'address_line3';
-                $keyword = $address3;
-            } elseif (! empty($address3_like)) {
-                $field = 'address_line3';
-                $keyword = array();
-                if (is_array($address3_like)) {
-                    foreach ($address3_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$address3_like.'%';
-                }
-            } elseif (! empty($city)) {
-                $field = 'city';
-                $keyword = $city;
-            } elseif (! empty($city_like)) {
-                $field = 'city';
-                $keyword = array();
-                if (is_array($city_like)) {
-                    foreach ($city_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$city_like.'%';
-                }
-            } elseif (! empty($country)) {
-                $field = 'country';
-                $keyword = $country;
-            } elseif (! empty($country_like)) {
-                $field = 'country';
-                $keyword = array();
-                if (is_array($country_like)) {
-                    foreach ($country_like as $keylike) {
-                        $keylike = '%'.$keylike;
-                        $keyword[] = $keylike;
-                    }
-                } else {
-                    $keyword[] = '%'.$country_like.'%';
-                }
-            } elseif (! empty($phone)) {
-                $field = 'phone';
-                $keyword = $phone;
-            } elseif (! empty($fax)) {
-                $field = 'fax';
-                $keyword = $fax;
-            } elseif (! empty($currency)) {
-                $field = 'currency';
-                $keyword = $currency;
-            } elseif (! empty($status)) {
-                $field = 'status';
-                $keyword = $status;
-            } elseif (! empty($merchant_id)) {
-                $field = 'merchant_id';
-                $keyword = $merchant_id;
-            } elseif (! empty($userid)) {
-                $field = 'user_id';
-                $keyword = $userid;
-            } elseif (! empty($city_id)) {
-                $field = 'city_id';
-                $keyword = $city_id;
-            } elseif (! empty($country_id)) {
-                $field = 'country_id';
-                $keyword = $country_id;
-            } else {
-                $field = '';
-                $keyword = '';
+            // Get the maximum record
+            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
             }
 
-            // if using 'LIKE' operator change $operator from '=' to 'LIKE'
-            if (! empty($email_like) || ! empty($name_like) || ! empty($description_like) || ! empty($address1_like) || ! empty($address2_like) || ! empty($address3_like) || ! empty($city_like) || ! empty($country_like)) {
-                $operator = 'LIKE';
-            }
+            $merchants = Merchant::excludeDeleted();
 
-            // if sort_by is not defined then use registered_date
-            if (empty($sort_by) || $sort_by=='registered_date') {
-                $sort_by = 'created_at';
-            }
+            // Filter merchant by Ids
+            OrbitInput::get('merchant_id', function($merchantIds) use ($merchants)
+            {
+                $merchants->whereIn('merchants.merchant_id', $merchantIds);
+            });
 
-            // if sort_mode is not defined then use 'desc' as default sort mode
-            if (empty($sort_mode)) {
-                $sort_mode = 'desc';
-            }
+            // Filter merchant by Ids
+            OrbitInput::get('user_id', function($userIds) use ($merchants)
+            {
+                $merchants->whereIn('merchants.user_id', $userIds);
+            });
 
-            // if Config::get('orbit.pagination.max_record') is not defined then set default max_record to 10
-            if (!empty(Config::get('orbit.pagination.max_record'))) {
-                $maxrecord = Config::get('orbit.pagination.max_record');
-            } else {
-                $maxrecord = 10;
-            }
+            // Filter merchant by name
+            OrbitInput::get('name', function($name) use ($merchants)
+            {
+                $merchants->whereIn('merchants.name', $name);
+            });
 
-            // if take exist then set max_record to $take
-            if (! empty($take)) {
-                $maxrecord = $take;
-            }
+            // Filter merchant by name pattern
+            OrbitInput::get('name_like', function($name) use ($merchants)
+            {
+                $merchants->where('merchants.name', 'like', "%$name%");
+            });
 
-            // if skip is not defined then set default skip to 0
-            if (empty($skip)) {
-                $skip = 0;
-            }
+            // Filter merchant by description
+            OrbitInput::get('description', function($description) use ($merchants)
+            {
+                $merchants->whereIn('merchants.description', $description);
+            });
 
-            // if there is no arguments passed then select all records
-            if (empty($field) && empty($keyword)) {
-                $hit = Merchant::count();
-                if ($hit<=$maxrecord) {
-                    $maxrecord = $hit;
+            // Filter merchant by description pattern
+            OrbitInput::get('description_like', function($description) use ($merchants)
+            {
+                $merchants->where('merchants.description', 'like', "%$description%");
+            });
+
+            // Filter merchant by email
+            OrbitInput::get('email', function($email) use ($merchants)
+            {
+                $merchants->whereIn('merchants.email', $email);
+            });
+
+            // Filter merchant by email pattern
+            OrbitInput::get('email_like', function($email) use ($merchants)
+            {
+                $merchants->where('merchants.email', 'like', "%$email%");
+            });
+
+            // Filter merchant by address1
+            OrbitInput::get('address1', function($address1) use ($merchants)
+            {
+                $merchants->whereIn('merchants.address_line1', $address1);
+            });
+
+            // Filter merchant by address1 pattern
+            OrbitInput::get('address1_like', function($address1) use ($merchants)
+            {
+                $merchants->where('merchants.address_line1', 'like', "%$address1%");
+            });
+
+            // Filter merchant by address2
+            OrbitInput::get('address2', function($address2) use ($merchants)
+            {
+                $merchants->whereIn('merchants.address_line2', $address2);
+            });
+
+            // Filter merchant by address2 pattern
+            OrbitInput::get('address2_like', function($address2) use ($merchants)
+            {
+                $merchants->where('merchants.address_line2', 'like', "%$address2%");
+            });
+
+            // Filter merchant by address3
+            OrbitInput::get('address3', function($address3) use ($merchants)
+            {
+                $merchants->whereIn('merchants.address_line3', $address3);
+            });
+
+            // Filter merchant by address3 pattern
+            OrbitInput::get('address3_like', function($address3) use ($merchants)
+            {
+                $merchants->where('merchants.address_line3', 'like', "%$address3%");
+            });
+
+            // Filter merchant by cityID
+            OrbitInput::get('city_id', function($cityIds) use ($merchants)
+            {
+                $merchants->whereIn('merchants.city_id', $cityIds);
+            });
+
+            // Filter merchant by city
+            OrbitInput::get('city', function($city) use ($merchants)
+            {
+                $merchants->whereIn('merchants.city', $city);
+            });
+
+            // Filter merchant by city pattern
+            OrbitInput::get('city_like', function($city) use ($merchants)
+            {
+                $merchants->where('merchants.city', 'like', "%$city%");
+            });
+
+            // Filter merchant by countryID
+            OrbitInput::get('country_id', function($countryId) use ($merchants)
+            {
+                $merchants->whereIn('merchants.country_id', $countryId);
+            });
+
+            // Filter merchant by country
+            OrbitInput::get('country', function($country) use ($merchants)
+            {
+                $merchants->whereIn('merchants.country', $country);
+            });
+
+            // Filter merchant by country pattern
+            OrbitInput::get('country_like', function($country) use ($merchants)
+            {
+                $merchants->where('merchants.country', 'like', "%$country%");
+            });
+
+            // Filter merchant by phone
+            OrbitInput::get('phone', function($phone) use ($merchants)
+            {
+                $merchants->whereIn('merchants.phone', $phone);
+            });
+
+            // Filter merchant by fax
+            OrbitInput::get('fax', function($fax) use ($merchants)
+            {
+                $merchants->whereIn('merchants.fax', $fax);
+            });
+
+            // Filter merchant by phone
+            OrbitInput::get('phone', function($phone) use ($merchants)
+            {
+                $merchants->whereIn('merchants.phone', $phone);
+            });
+
+            // Filter merchant by phone
+            OrbitInput::get('status', function($status) use ($merchants)
+            {
+                $merchants->whereIn('merchants.status', $status);
+            });
+
+            // Filter merchant by phone
+            OrbitInput::get('currency', function($currency) use ($merchants)
+            {
+                $merchants->whereIn('merchants.currency', $currency);
+            });
+
+            $_merchants = clone $merchants;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
+            {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
                 }
-                $queryresult = Merchant::where('status', '!=', 'deleted')->orderBy($sort_by, $sort_mode)->take($maxrecord)->skip($skip)->get();
-            } else {
-                $queryresult = Merchant::where('status', '!=', 'deleted')->where(function ($query) use ($keyword, $field, $operator) {
-                    foreach ($keyword as $key) {
-                        $query->orWhere($field, $operator, $key);
-                    }
-                })->orderBy($sort_by, $sort_mode)->take($maxrecord)->skip($skip)->get();
-            }
+                $take = $_take;
+            });
+            $merchants->take($take);
 
-            $count = count($queryresult);
-
-            if ($count <= $maxrecord) {
-                $maxrecord = $count;
-            }
-
-            if ($count == 0) {
-                $error = Lang::get('statuses.orbit.nodata.merchant');
-                $result['total_records'] = 0;
-                $result['returned_records'] = 0;
-                $result['records'] = null;
-
-                $this->response->status = 'success';
-                $this->response->message = $error;
-                $this->response->data = $result;
-            } else {
-                if (! empty($take)) {
-                    $result['total_records'] = $count;
-                    $result['returned_records'] = $take;
-                } else {
-                    $result['total_records'] = $maxrecord;
-                    $result['returned_records'] = $count;
+            $skip = 0;
+            OrbitInput::get('skip', function($_skip) use (&$skip, $merchants)
+            {
+                if ($_skip < 0) {
+                    $_skip = 0;
                 }
-                $result['records'] = $queryresult->toArray();
 
-                $this->response->data = $result;
+                $skip = $_skip;
+            });
+            $merchants->skip($skip);
+
+            // Default sort by
+            $sortBy = 'merchants.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+            {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'registered_date'      => 'merchants.created_at',
+                    'merchant_name'        => 'merchants.name',
+                    'merchant_email'       => 'merchants.email',
+                    'merchant_userid'      => 'merchants.user_id',
+                    'merchant_description' => 'merchants.description',
+                    'merchantid'           => 'merchants.merchant_id',
+                    'merchant_address1'    => 'merchants.address_line1',
+                    'merchant_address2'    => 'merchants.address_line2',
+                    'merchant_address3'    => 'merchants.address_line3',
+                    'merchant_cityid'      => 'merchants.city_id',
+                    'merchant_city'        => 'merchants.city',
+                    'merchant_countryid'   => 'merchants.country_id',
+                    'merchant_country'     => 'merchants.country',
+                    'merchant_phone'       => 'merchants.phone',
+                    'merchant_fax'         => 'merchants.fax',
+                    'merchant_status'      => 'merchants.status',
+                    'merchant_currency'    => 'merchants.currency',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $merchants->orderBy($sortBy, $sortMode);
+
+            $totalRec = $_merchants->count();
+            $listOfRec = $merchants->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRec;
+            $data->returned_records = count($listOfRec);
+            $data->records = $listOfRec;
+
+            if ($totalRec === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.merchant');
             }
 
-            // Commit the changes
-            $this->commit();
-
-            Event::fire('orbit.merchant.getsearchmerchant.after.commit', array($this, $result));
+            $this->response->data = $data;
 
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.merchant.getsearchmerchant.access.forbidden', array($this, $e));
@@ -744,8 +726,10 @@ class MerchantAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         }
+        $output = $this->render($httpCode);
+        Event::fire('orbit.user.getsearchuser.before.render', array($this, &$output));
 
-        return $this->render($httpCode);
+        return $output;
     }
 
     /**
