@@ -576,19 +576,13 @@ class MerchantAPIController extends ControllerAPI
                 $merchants->whereIn('merchants.fax', $fax);
             });
 
-            // Filter merchant by phone
-            OrbitInput::get('phone', function($phone) use ($merchants)
-            {
-                $merchants->whereIn('merchants.phone', $phone);
-            });
-
-            // Filter merchant by phone
+            // Filter merchant by status
             OrbitInput::get('status', function($status) use ($merchants)
             {
                 $merchants->whereIn('merchants.status', $status);
             });
 
-            // Filter merchant by phone
+            // Filter merchant by currency
             OrbitInput::get('currency', function($currency) use ($merchants)
             {
                 $merchants->whereIn('merchants.currency', $currency);
@@ -680,9 +674,6 @@ class MerchantAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
             $httpCode = 403;
-
-            // Rollback the changes
-            $this->rollBack();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.merchant.getsearchmerchant.invalid.arguments', array($this, $e));
 
@@ -695,9 +686,6 @@ class MerchantAPIController extends ControllerAPI
 
             $this->response->data = $result;
             $httpCode = 403;
-
-            // Rollback the changes
-            $this->rollBack();
         } catch (QueryException $e) {
             Event::fire('orbit.merchant.getsearchmerchant.query.error', array($this, $e));
 
@@ -712,9 +700,6 @@ class MerchantAPIController extends ControllerAPI
             }
             $this->response->data = null;
             $httpCode = 500;
-
-            // Rollback the changes
-            $this->rollBack();
         } catch (Exception $e) {
             Event::fire('orbit.merchant.getsearchmerchant.general.exception', array($this, $e));
 
@@ -722,12 +707,9 @@ class MerchantAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-
-            // Rollback the changes
-            $this->rollBack();
         }
         $output = $this->render($httpCode);
-        Event::fire('orbit.user.getsearchuser.before.render', array($this, &$output));
+        Event::fire('orbit.merchant.getsearchmerchant.before.render', array($this, &$output));
 
         return $output;
     }
