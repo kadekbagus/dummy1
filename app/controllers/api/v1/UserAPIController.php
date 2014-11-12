@@ -496,8 +496,9 @@ class UserAPIController extends ControllerAPI
     /**
      * GET - Search user (currently only basic info)
      *
-     * @author <Ahmad Anshori> <ahmad@dominopos.com>
-     * @author <Kadek Bagus> <kadek@dominopos.com>
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Kadek Bagus <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
