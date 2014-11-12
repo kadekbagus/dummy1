@@ -648,154 +648,154 @@ class RetailerAPIController extends ControllerAPI
             }
 
             // Builder object
-            $retailers = User::excludeDeleted();
+            $retailers = Retailer::excludeDeleted();
 
             // Filter retailer by Ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($retailers)
             {
-                $retailers->whereIn('retailers.merchant_id', $merchantIds);
+                $retailers->whereIn('merchants.merchant_id', $merchantIds);
             });
 
             // Filter retailer by Ids
             OrbitInput::get('user_id', function($userIds) use ($retailers)
             {
-                $retailers->whereIn('retailers.user_id', $userIds);
+                $retailers->whereIn('merchants.user_id', $userIds);
             });
 
             // Filter retailer by name
             OrbitInput::get('name', function($name) use ($retailers)
             {
-                $retailers->whereIn('retailers.name', $name);
+                $retailers->whereIn('merchants.name', $name);
             });
 
             // Filter retailer by matching name pattern
             OrbitInput::get('name_like', function($name) use ($retailers)
             {
-                $retailers->where('retailers.name', 'like', "%$name%");
+                $retailers->where('merchants.name', 'like', "%$name%");
             });
 
             // Filter retailer by description
             OrbitInput::get('description', function($description) use ($retailers)
             {
-                $retailers->whereIn('retailers.description', $description);
+                $retailers->whereIn('merchants.description', $description);
             });
 
             // Filter retailer by description pattern
             OrbitInput::get('description_like', function($description) use ($retailers)
             {
-                $description->where('retailers.description', 'like', "%$description%");
+                $description->where('merchants.description', 'like', "%$description%");
             });
 
             // Filter retailer by their email
             OrbitInput::get('email', function($email) use ($retailers)
             {
-                $retailers->whereIn('retailers.email', $email);
+                $retailers->whereIn('merchants.email', $email);
             });
 
             // Filter retailer by address1
             OrbitInput::get('address1', function($address1) use ($retailers)
             {
-                $retailers->where('retailers.address_line1', "%$address1%");
+                $retailers->where('merchants.address_line1', "%$address1%");
             });
 
             // Filter retailer by address1 pattern
             OrbitInput::get('address1', function($address1) use ($retailers)
             {
-                $retailers->where('retailers.address_line1', 'like', "%$address1%");
+                $retailers->where('merchants.address_line1', 'like', "%$address1%");
             });
 
             // Filter retailer by address2
             OrbitInput::get('address2', function($address2) use ($retailers)
             {
-                $retailers->where('retailers.address_line2', "%$address2%");
+                $retailers->where('merchants.address_line2', "%$address2%");
             });
 
             // Filter retailer by address2 pattern
             OrbitInput::get('address2', function($address2) use ($retailers)
             {
-                $retailers->where('retailers.address_line2', 'like', "%$address2%");
+                $retailers->where('merchants.address_line2', 'like', "%$address2%");
             });
             
              // Filter retailer by address3
             OrbitInput::get('address3', function($address3) use ($retailers)
             {
-                $retailers->where('retailers.address_line3', "%$address3%");
+                $retailers->where('merchants.address_line3', "%$address3%");
             });
 
              // Filter retailer by address3 pattern
             OrbitInput::get('address3', function($address3) use ($retailers)
             {
-                $retailers->where('retailers.address_line3', 'like', "%$address3%");
+                $retailers->where('merchants.address_line3', 'like', "%$address3%");
             });
 
              // Filter retailer by cityID
             OrbitInput::get('city_id', function($cityIds) use ($retailers)
             {
-                $retailers->whereIn('retailers.city_id', $cityIds);
+                $retailers->whereIn('merchants.city_id', $cityIds);
             });
 
              // Filter retailer by city
             OrbitInput::get('city', function($city) use ($retailers)
             {
-                $retailers->whereIn('retailers.city', $city);
+                $retailers->whereIn('merchants.city', $city);
             });
 
              // Filter retailer by city pattern
             OrbitInput::get('city_like', function($city) use ($retailers)
             {
-                $retailers->where('retailers.city', 'like', "%$city%");
+                $retailers->where('merchants.city', 'like', "%$city%");
             });
 
              // Filter retailer by countryID
             OrbitInput::get('country_id', function($countryId) use ($retailers)
             {
-                $retailers->whereIn('retailers.country_id', $countryId);
+                $retailers->whereIn('merchants.country_id', $countryId);
             });
 
              // Filter retailer by country
             OrbitInput::get('country', function($country) use ($retailers)
             {
-                $retailers->whereIn('retailers.country', $country);
+                $retailers->whereIn('merchants.country', $country);
             });
 
              // Filter retailer by country pattern
             OrbitInput::get('country_like', function($country) use ($retailers)
             {
-                $retailers->where('retailers.country', 'like', "%$country%");
+                $retailers->where('merchants.country', 'like', "%$country%");
             });
 
              // Filter retailer by phone
             OrbitInput::get('phone', function($phone) use ($retailers)
             {
-                $retailers->whereIn('retailers.phone', $phone);
+                $retailers->whereIn('merchants.phone', $phone);
             });
 
              // Filter retailer by fax
             OrbitInput::get('fax', function($fax) use ($retailers)
             {
-                $retailers->whereIn('retailers.fax', $fax);
+                $retailers->whereIn('merchants.fax', $fax);
             });
 
              // Filter retailer by phone
             OrbitInput::get('phone', function($phone) use ($retailers)
             {
-                $retailers->whereIn('retailers.phone', $phone);
+                $retailers->whereIn('merchants.phone', $phone);
             });
 
              // Filter retailer by status
             OrbitInput::get('status', function($status) use ($retailers)
             {
-                $retailers->whereIn('retailers.status', $status);
+                $retailers->whereIn('merchants.status', $status);
             });
 
             // Filter retailer by currency
             OrbitInput::get('currency', function($currency) use ($retailers)
             {
-                $retailers->whereIn('retailers.currency', $currency);
+                $retailers->whereIn('merchants.currency', $currency);
             });
             // Clone the query builder which still does not include the take,
             // skip, and order by
-            $_users = clone $users;
+            $_retailers = clone $retailers;
 
             // Get the take args
             $take = $maxRecord;
@@ -806,10 +806,10 @@ class RetailerAPIController extends ControllerAPI
                 }
                 $take = $_take;
             });
-            $users->take($take);
+            $retailers->take($take);
 
             $skip = 0;
-            OrbitInput::get('skip', function($_skip) use (&$skip, $users)
+            OrbitInput::get('skip', function($_skip) use (&$skip, $retailers)
             {
                 if ($_skip < 0) {
                     $_skip = 0;
@@ -820,7 +820,7 @@ class RetailerAPIController extends ControllerAPI
             $retailers->skip($skip);
 
             // Default sort by
-            $sortBy = 'retailers.created_at';
+            $sortBy = 'merchants.created_at';
             // Default sort mode
             $sortMode = 'desc';
 
@@ -828,23 +828,23 @@ class RetailerAPIController extends ControllerAPI
             {
                    // Map the sortby request to the real column name
                   $sortByMapping = array(
-                  'registered_date' => 'retailers.created_at',
-                  'retailer_name' => 'retailers.name',
-                  'retailer_email' => 'retailers.email',
-                  'retailer_userid' => 'retailers.user_id',
-                  'retailer_description' => 'retailers.description',
-                  'retailerid' => 'retailers.merchant_id',
-                  'retailer_address1' => 'retailers.address_line1',
-                  'retailer_address2' => 'retailers.address_line2',
-                  'retailer_address3' => 'retailers.address_line3',
-                  'retailer_cityid' => 'retailers.city_id',
-                  'retailer_city' => 'retailers.city',
-                  'retailer_countryid' => 'retailers.country_id',
-                  'retailer_country' => 'retailers.country',
-                  'retailer_phone' => 'retailers.phone',
-                  'retailer_fax' => 'retailers.fax',
-                  'retailer_status' => 'retailers.status',
-                  'retailer_currency' => 'retailers.currency',
+                  'registered_date' => 'merchants.created_at',
+                  'retailer_name' => 'merchants.name',
+                  'retailer_email' => 'merchants.email',
+                  'retailer_userid' => 'merchants.user_id',
+                  'retailer_description' => 'merchants.description',
+                  'retailerid' => 'merchants.merchant_id',
+                  'retailer_address1' => 'merchants.address_line1',
+                  'retailer_address2' => 'merchants.address_line2',
+                  'retailer_address3' => 'merchants.address_line3',
+                  'retailer_cityid' => 'merchants.city_id',
+                  'retailer_city' => 'merchants.city',
+                  'retailer_countryid' => 'merchants.country_id',
+                  'retailer_country' => 'merchants.country',
+                  'retailer_phone' => 'merchants.phone',
+                  'retailer_fax' => 'merchants.fax',
+                  'retailer_status' => 'merchants.status',
+                  'retailer_currency' => 'merchants.currency',
                   );
 
                 $sortBy = $sortByMapping[$_sortBy];
