@@ -547,25 +547,7 @@ class UserAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-            $userid = OrbitInput::get('user_id');
-            $roleid = OrbitInput::get('role_id');
-            $username = OrbitInput::get('username');
-            $username_like = OrbitInput::get('username_like');
-            $firstname = OrbitInput::get('firstname');
-            $firstname_like = OrbitInput::get('firstname_like');
-            $lastname = OrbitInput::get('lastname');
-            $lastname_like = OrbitInput::get('lastname_like');
-            $email = OrbitInput::get('email');
-            $email_like = OrbitInput::get('email_like');
-            $status = OrbitInput::get('status');
-            $sort_mode = OrbitInput::get('sortmode');
             $sort_by = OrbitInput::get('sortby');
-            $take = OrbitInput::get('take');
-            $skip = OrbitInput::get('skip');
-            $sortByUserLang = Lang::get('validation.orbit.actionlist.');
-            $message = Lang::get('validation.orbit.access.forbidden', array('action' => $sortByUserLang));
-            $operator = '=';
-
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
