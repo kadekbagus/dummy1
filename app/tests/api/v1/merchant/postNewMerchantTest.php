@@ -163,20 +163,20 @@ class postNewMerchantTest extends OrbitTestCase
         // Clear every event dispatcher so we get no queue event on each
         // test
         $events = array(
-            'orbit.user.postnewuser.before.auth',
-            'orbit.user.postnewuser.after.auth',
-            'orbit.user.postnewuser.before.authz',
-            'orbit.user.postnewuser.authz.notallowed',
-            'orbit.user.postnewuser.after.authz',
-            'orbit.user.postnewuser.before.validation',
-            'orbit.user.postnewuser.after.validation',
-            'orbit.user.postnewuser.before.save',
-            'orbit.user.postnewuser.after.save',
-            'orbit.user.postnewuser.after.commit',
-            'orbit.user.postnewuser.access.forbidden',
-            'orbit.user.postnewuser.invalid.arguments',
-            'orbit.user.postnewuser.general.exception',
-            'orbit.user.postnewuser.before.render'
+            'orbit.merchant.postnewmerchant.before.auth',
+            'orbit.merchant.postnewmerchant.after.auth',
+            'orbit.merchant.postnewmerchant.before.authz',
+            'orbit.merchant.postnewmerchant.authz.notallowed',
+            'orbit.merchant.postnewmerchant.after.authz',
+            'orbit.merchant.postnewmerchant.before.validation',
+            'orbit.merchant.postnewmerchant.after.validation',
+            'orbit.merchant.postnewmerchant.before.save',
+            'orbit.merchant.postnewmerchant.after.save',
+            'orbit.merchant.postnewmerchant.after.commit',
+            'orbit.merchant.postnewmerchant.access.forbidden',
+            'orbit.merchant.postnewmerchant.invalid.arguments',
+            'orbit.merchant.postnewmerchant.general.exception',
+            'orbit.merchant.postnewmerchant.before.render'
         );
         foreach ($events as $event) {
             Event::forget($event);
@@ -461,7 +461,7 @@ class postNewMerchantTest extends OrbitTestCase
 
     public function testReqOK_POST_api_v1_merchant_new()
     {
-        // Number of user account before this operation
+        // Number of merchant account before this operation
         $numBefore = Merchant::count();
 
         // Data to be post
