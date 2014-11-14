@@ -243,7 +243,7 @@ class MerchantAPIController extends ControllerAPI
                     'user_id'   => 'required|numeric|orbit.empty.user',
                     'email'     => 'required|email',
                     'name'      => 'required',
-                    'status'    => 'orbit.empty.merchant_status',
+                    'status'    => 'required|orbit.empty.merchant_status',
                 )
             );
 
@@ -818,7 +818,7 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'required|numeric|orbit.empty.user',
                     'email'             => 'required|email',
-                    'status'            => 'orbit.empty.merchant_status',
+                    'status'            => 'required|orbit.empty.merchant_status',
                 )
             );
 
