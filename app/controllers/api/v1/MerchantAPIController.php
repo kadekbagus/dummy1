@@ -237,11 +237,13 @@ class MerchantAPIController extends ControllerAPI
                     'user_id'   => $user_id,
                     'email'     => $email,
                     'name'      => $name,
+                    'status'    => $status,
                 ),
                 array(
                     'user_id'   => 'required|numeric|orbit.empty.user',
                     'email'     => 'required|email',
                     'name'      => 'required',
+                    'status'    => 'orbit.empty.merchant_status',
                 )
             );
 
@@ -810,11 +812,13 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_id'       => $merchant_id,
                     'user_id'           => $user_id,
                     'email'             => $email,
+                    'status'            => $status,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'required|numeric|orbit.empty.user',
                     'email'             => 'required|email',
+                    'status'            => 'orbit.empty.merchant_status',
                 )
             );
 
@@ -971,5 +975,15 @@ class MerchantAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check the existance of the merchant status
+        Validator::extend('orbit.empty.merchant_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
+        });
     }
 }
