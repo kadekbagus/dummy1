@@ -196,7 +196,7 @@ class MerchantAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.merchant.postnewmerchant.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('new_merchant')) {
+            if (! ACL::create($user)->isAllowed('create_merchant')) {
                 Event::fire('orbit.merchant.postnewmerchant.authz.notallowed', array($this, $user));
                 $createMerchantLang = Lang::get('validation.orbit.actionlist.new_merchant');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createMerchantLang));
@@ -236,10 +236,14 @@ class MerchantAPIController extends ControllerAPI
                 array(
                     'user_id'   => $user_id,
                     'email'     => $email,
+                    'name'      => $name,
+                    'status'    => $status,
                 ),
                 array(
-                    'user_id'   => 'required|numeric',
-                    'email'     => 'required|email|orbit.email.exists',
+                    'user_id'   => 'required|numeric|orbit.empty.user',
+                    'email'     => 'required|email',
+                    'name'      => 'required',
+                    'status'    => 'orbit.empty.merchant_status',
                 )
             );
 
@@ -808,11 +812,13 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_id'       => $merchant_id,
                     'user_id'           => $user_id,
                     'email'             => $email,
+                    'status'            => $status,
                 ),
                 array(
-                    'merchant_id'       => 'required|numeric',
-                    'user_id'           => 'required|numeric',
-                    'email'             => 'required|email|orbit.email.exists',
+                    'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'user_id'           => 'required|numeric|orbit.empty.user',
+                    'email'             => 'required|email',
+                    'status'            => 'orbit.empty.merchant_status',
                 )
             );
 
@@ -952,6 +958,32 @@ class MerchantAPIController extends ControllerAPI
             App::instance('orbit.validation.merchant', $merchant);
 
             return TRUE;
+        });
+
+        // Check the existance of user id
+        Validator::extend('orbit.empty.user', function ($attribute, $value, $parameters) {
+            $user = User::excludeDeleted()
+                        ->where('user_id', $value)
+                        ->first();
+
+            if (empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.user', $user);
+
+            return TRUE;
+        });
+
+        // Check the existance of the merchant status
+        Validator::extend('orbit.empty.merchant_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
         });
     }
 }
