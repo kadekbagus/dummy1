@@ -459,6 +459,79 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testMissingStatus_POST_api_v1_merchant_new()
+    {
+        // Number of merchant account before this operation
+        $numBefore = Merchant::count();
+
+        // Data to be post
+        $_POST['user_id'] = '3';
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['name'] = 'test missing status';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.required', array('attribute' => 'status'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+
+        $numAfter = Merchant::count();
+        $this->assertSame($numBefore, $numAfter);
+    }
+
+    public function testStatusNotExists_POST_api_v1_merchant_new()
+    {
+        // Number of merchant account before this operation
+        $numBefore = Merchant::count();
+
+        // Data to be post
+        $_POST['user_id'] = 3;
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['name'] = 'test status not exists';
+        $_POST['status'] = 'dummy';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.orbit.empty.merchant_status');
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+
+        $numAfter = Merchant::count();
+        $this->assertSame($numBefore, $numAfter);
+    }
+
     public function testReqOK_POST_api_v1_merchant_new()
     {
         // Number of merchant account before this operation
@@ -467,7 +540,8 @@ class postNewMerchantTest extends OrbitTestCase
         // Data to be post
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george@localhost.org';
-        $_POST['name'] = 'new merchant name';
+        $_POST['name'] = 'test request ok';
+        $_POST['status'] = 'active';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -488,7 +562,8 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame('Request OK', $response->message);
         $this->assertSame('3', (string)$response->data->user_id);
         $this->assertSame('george@localhost.org', $response->data->email);
-        $this->assertSame('new merchant name', $response->data->name);
+        $this->assertSame('test request ok', $response->data->name);
+        $this->assertSame('active', $response->data->status);
         $this->assertSame('3', (string)$response->data->modified_by);
         $this->assertSame('merchant', (string)$response->data->object_type);
 
@@ -512,7 +587,8 @@ class postNewMerchantTest extends OrbitTestCase
         // Data to be post
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george2@localhost.org';
-        $_POST['name'] = 'new merchant name';
+        $_POST['name'] = 'test saved then rollback';
+        $_POST['status'] = 'active';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
