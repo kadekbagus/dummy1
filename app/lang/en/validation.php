@@ -110,7 +110,9 @@ return array(
             'delete_user'           => 'delete user',
             'delete_your_self'      => 'delete your self',
             'update_user'           => 'update user',
-            'delete_merchant'           => 'delete merchant',
+            'new_merchant'          => 'add new merchant',
+            'update_merchant'       => 'update merchant',
+            'delete_merchant'       => 'delete merchant',
         ),
     ),
 

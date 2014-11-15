@@ -535,12 +535,75 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testMissingMerchantName_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = '3';
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['status'] = 'active';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.required', array('attribute' => 'name'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testMissingStatus_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = '3';
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['name'] = 'test missing status';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.required', array('attribute' => 'status'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
     public function testStatusNotExists_POST_api_v1_merchant_update()
     {
         // Data to be post
         $_POST['merchant_id'] = 7;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george@localhost.org';
+        $_POST['name'] = 'test status not exists';
         $_POST['status'] = 'dummy';
 
         // Set the client API Keys
@@ -566,4 +629,99 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testReqOK_POST_api_v1_merchant_update()
+    {
+        // Number of merchant account before this operation
+        $numBefore = Merchant::count();
+
+        // Data to be post
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = 2;
+        $_POST['email'] = 'test@merchant.update';
+        $_POST['name'] = 'test request ok: merchant update';
+        $_POST['status'] = 'pending';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(0, (int)$response->code);
+        $this->assertSame('success', $response->status);
+        $this->assertSame('Request OK', $response->message);
+        $this->assertSame('2', (string)$response->data->user_id);
+        $this->assertSame('test@merchant.update', $response->data->email);
+        $this->assertSame('test request ok: merchant update', $response->data->name);
+        $this->assertSame('pending', $response->data->status);
+        $this->assertSame('3', (string)$response->data->modified_by);
+        $this->assertSame('merchant', (string)$response->data->object_type);
+
+        $numAfter = Merchant::count();
+        $this->assertSame($numBefore, $numAfter);
+    }
+
+
+    public function testSavedThenRollback_POST_api_v1_merchant_update()
+    {
+        // Register an event on 'orbit.merchant.postupdatemerchant.after.save'
+        // and throw some exception so the data that has been saved
+        // does not commited
+        Event::listen('orbit.merchant.postupdatemerchant.after.save', function($controller, $merchant)
+        {
+            throw new Exception('This is bad bro!', 99);
+        });
+
+        // Number of merchant account before this operation
+        $numBefore = Merchant::count();
+
+        // Data to be post
+        $_POST['merchant_id'] = 1;
+        $_POST['user_id'] = 3;
+        $_POST['email'] = 'test@merchant.update';
+        $_POST['name'] = 'test saved then rollback';
+        $_POST['status'] = 'pending';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $data = new stdclass();
+        $data->code = 99;
+        $data->status = 'error';
+        $data->message = 'This is bad bro!';
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+
+        // The data should remain the same as the old one
+        $merchant = Merchant::find(1);
+        $this->assertSame('2', (string)$merchant->user_id);
+        $this->assertSame('alfamer@localhost.org', $merchant->email);
+        $this->assertSame('Alfa Mer', $merchant->name);
+        $this->assertSame('Super market Alfa', $merchant->description);
+        $this->assertSame('active', (string)$merchant->status);
+        $this->assertSame('merchant', (string)$merchant->object_type);
+        $this->assertSame('1', (string)$merchant->modified_by);
+
+        $numAfter = Merchant::count();
+        $this->assertSame($numBefore, $numAfter);
+    }
 }

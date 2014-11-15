@@ -461,9 +461,6 @@ class postNewMerchantTest extends OrbitTestCase
 
     public function testMissingStatus_POST_api_v1_merchant_new()
     {
-        // Number of merchant account before this operation
-        $numBefore = Merchant::count();
-
         // Data to be post
         $_POST['user_id'] = '3';
         $_POST['email'] = 'george@localhost.org';
@@ -490,16 +487,10 @@ class postNewMerchantTest extends OrbitTestCase
         $expect = json_encode($data);
         $return = $this->call('POST', $url)->getContent();
         $this->assertSame($expect, $return);
-
-        $numAfter = Merchant::count();
-        $this->assertSame($numBefore, $numAfter);
     }
 
     public function testStatusNotExists_POST_api_v1_merchant_new()
     {
-        // Number of merchant account before this operation
-        $numBefore = Merchant::count();
-
         // Data to be post
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george@localhost.org';
@@ -527,9 +518,6 @@ class postNewMerchantTest extends OrbitTestCase
         $expect = json_encode($data);
         $return = $this->call('POST', $url)->getContent();
         $this->assertSame($expect, $return);
-
-        $numAfter = Merchant::count();
-        $this->assertSame($numBefore, $numAfter);
     }
 
     public function testReqOK_POST_api_v1_merchant_new()
