@@ -11,3 +11,4 @@ Thumbs.db
 app/config/app.php
 app/config/database.php
 app/config/testing/database.php
+app/config/orbit.php
