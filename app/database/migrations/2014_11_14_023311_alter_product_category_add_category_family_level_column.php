@@ -27,7 +27,7 @@ class AlterProductCategoryAddCategoryFamilyLevelColumn extends Migration {
 	 */
 	public function down()
 	{
-        Schema::table('user_details', function (Blueprint $table) {
+        Schema::table('product_category', function (Blueprint $table) {
             $table->dropColumn('category_family_level');
             $table->dropIndex('category_family_level_idx');
             $table->dropIndex('categoryid_family_level_idx');
