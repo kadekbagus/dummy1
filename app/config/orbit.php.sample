@@ -6,7 +6,7 @@ return array(
     'api' => array(
         'signature' => array(
                 // How long signature should expires in seconds
-                'expiration' => 7200
+                'expiration' => 60
         )
     )
 );
