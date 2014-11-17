@@ -813,12 +813,14 @@ class MerchantAPIController extends ControllerAPI
                     'user_id'           => $user_id,
                     'email'             => $email,
                     'status'            => $status,
+                    'name'              => $name,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'required|numeric|orbit.empty.user',
                     'email'             => 'required|email',
                     'status'            => 'required|orbit.empty.merchant_status',
+                    'name'             => 'required',
                 )
             );
 
@@ -956,7 +958,7 @@ class MerchantAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.merchant', $merchant);
-
+ 
             return TRUE;
         });
 
