@@ -275,6 +275,73 @@ class ControllerAuthzAPITest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testReqOK_GET_api_v1_dummy_hisname_auth_longExpiresTime()
+    {
+        // Set expires config to 3 hours
+        $_3hours = 3600 * 3;
+        $_2hours = 3600 * 2;
+        $oldExpires = Config::get('orbit.api.signature.expiration');
+        Config::set('orbit.api.signature.expiration', $_3hours);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time() - $_2hours;
+
+        $url = '/api/v1/dummy/hisname/auth?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $name = new stdclass();
+        $name->first_name = 'John';
+        $name->last_name = 'Smith';
+
+        $data = new stdclass();
+        $data->code = 0;
+        $data->status = 'success';
+        $data->message = 'Request OK';
+        $data->data = $name;
+
+        $expect = json_encode($data);
+        $return = $this->call('GET', $url)->getContent();
+        $this->assertSame($expect, $return);
+
+        Config::set('orbit.api.signature.expiration', $oldExpires);
+    }
+
+    public function testReqSignatureExpires_GET_api_v1_dummy_hisname_auth_longExpiresTime()
+    {
+        // Set expires config to 3 hours
+        $_3hours = 3600 * 3;
+        $oldExpires = Config::get('orbit.api.signature.expiration');
+        Config::set('orbit.api.signature.expiration', $_3hours);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time() - ($_3hours + 5);
+
+        $url = '/api/v1/dummy/hisname/auth?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $data = new stdclass();
+        $data->code = Status::REQUEST_EXPIRED;
+        $data->status = 'error';
+        $data->message = Status::REQUEST_EXPIRED_MSG;
+        $data->data = null;
+
+        $expect = json_encode($data);
+        $return = $this->call('GET', $url)->getContent();
+        $this->assertSame($expect, $return);
+
+        Config::set('orbit.api.signature.expiration', $oldExpires);
+    }
+
     public function testAccessForbidden_GET_api_v1_dummy_hisname_authz()
     {
         // Set the client API Keys
