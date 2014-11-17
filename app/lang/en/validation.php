@@ -102,6 +102,7 @@ return array(
             'merchant'      => 'The Merchant ID you specify is not found.',
             'user_status'   => 'The user status you specify is not found.',
             'user_sortby'   => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
+            'merchant_status'   => 'The merchant status you specify is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
@@ -109,7 +110,9 @@ return array(
             'delete_user'           => 'delete user',
             'delete_your_self'      => 'delete your self',
             'update_user'           => 'update user',
-            'delete_merchant'           => 'delete merchant',
+            'new_merchant'          => 'add new merchant',
+            'update_merchant'       => 'update merchant',
+            'delete_merchant'       => 'delete merchant',
         ),
     ),
 
