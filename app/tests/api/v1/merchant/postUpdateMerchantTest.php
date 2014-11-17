@@ -1,6 +1,6 @@
 <?php
 /**
- * Unit testing for MerchantAPIController::postNewMerchant() method.
+ * Unit testing for MerchantAPIController::postUpdateMerchant() method.
  *
  * @author Tian <tian@dominopos.com>
  */
@@ -8,7 +8,7 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use OrbitShop\API\v1\OrbitShopAPI;
 
-class postNewMerchantTest extends OrbitTestCase
+class postUpdateMerchantTest extends OrbitTestCase
 {
     /**
      * Executed only once at the beginning of the test.
@@ -48,7 +48,8 @@ class postNewMerchantTest extends OrbitTestCase
             'smith'     => Hash::make('smith'),
             'chuck'     => Hash::make('chuck'),
             'optimus'   => Hash::make('optimus'),
-            'panther'   => Hash::make('panther')
+            'panther'   => Hash::make('panther'),
+            'droopy'   => Hash::make('droopy')
         );
 
         // Insert dummy data on users
@@ -59,7 +60,20 @@ class postNewMerchantTest extends OrbitTestCase
                 ('2', 'smith', '{$password['smith']}', 'smith@localhost.org', 'John', 'Smith', '2014-10-20 06:20:02', '10.10.0.12', '3', 'active', '1', '2014-10-20 06:30:02', '2014-10-20 06:31:02'),
                 ('3', 'chuck', '{$password['chuck']}', 'chuck@localhost.org', 'Chuck', 'Norris', '2014-10-20 06:20:03', '10.10.0.13', '3', 'active', '1', '2014-10-20 06:30:03', '2014-10-20 06:31:03'),
                 ('4', 'optimus', '{$password['optimus']}', 'optimus@localhost.org', 'Optimus', 'Prime', '2014-10-20 06:20:04', '10.10.0.13', '3', 'blocked', '1', '2014-10-20 06:30:04', '2014-10-20 06:31:04'),
-                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05')"
+                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05'),
+                ('6', 'droopy', '{$password['droopy']}', 'droopy@localhost.org', 'Droopy', 'Dog', '2014-10-20 06:20:06', '10.10.0.14', '3', 'pending', '1', '2014-10-20 06:30:06', '2014-10-20 06:31:06')"
+        );
+
+        // Insert dummy data on user_details
+        DB::statement("INSERT INTO `{$user_detail_table}`
+                    (user_detail_id, user_id, merchant_id, merchant_acquired_date, address_line1, address_line2, address_line3, postal_code, city_id, city, province_id, province, country_id, country, currency, currency_symbol, birthdate, gender, relationship_status, phone, photo, number_visit_all_shop, amount_spent_all_shop, average_spent_per_month_all_shop, last_visit_any_shop, last_visit_shop_id, last_purchase_any_shop, last_purchase_shop_id, last_spent_any_shop, last_spent_shop_id, modified_by, created_at, updated_at)
+                    VALUES
+                    ('1', '1', '1', '2014-10-21 06:20:01', 'Jl. Raya Semer', 'Kerobokan', 'Near Airplane Statue', '60219', '1', 'Denpasar', '1', 'Bali', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-02', 'm', 'single',       '081234567891', 'images/customer/01.png', '10', '8100000.00', '1100000.00', '2014-05-21 12:12:11', '1', '2014-10-16 12:12:12', '1', '1100000.00', '1', '1', '2014-10-11 06:20:01', '2014-10-11 06:20:01'),
+                    ('2', '2', '2', '2014-10-21 06:20:02', 'Jl. Raya Semer2', 'Kerobokan2', 'Near Airplane Statue2', '60229', '2', 'Denpasar2', '2', 'Bali2', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-02', 'm', 'single',  '081234567892', 'images/customer/02.png', '11', '9000000.00', '9200000.00', '2014-02-21 12:12:12', '2', '2014-10-17 12:12:12', '2', '1500000.00', '2', '1', '2014-10-12 06:20:01', '2014-10-12 06:20:02'),
+                    ('3', '3', '5', '2014-10-21 06:20:03', 'Jl. Raya Semer3', 'Kerobokan3', 'Near Airplane Statue3', '60239', '3', 'Denpasar3', '3', 'Bali3', '62', 'Indonesia', 'EUR', '€', '1980-04-03', 'm', 'married',   '081234567893', 'images/customer/03.png', '12', '8300000.00', '5300000.00', '2014-01-21 12:12:13', '3', '2014-10-18 12:12:12', '3', '1400000.00', '3', '1', '2014-10-13 06:20:01', '2014-10-13 06:20:03'),
+                    ('4', '4', '4', '2014-10-21 06:20:04', 'Jl. Raya Semer4', 'Kerobokan4', 'Near Airplane Statue4', '60249', '4', 'Denpasar4', '4', 'Bali4', '62', 'Indonesia', 'IDR', 'Rp', '1987-04-04', 'm', 'married',  '081234567894', 'images/customer/04.png', '13', '8400000.00', '1400000.00', '2014-10-21 12:12:14', '4', '2014-10-19 12:12:12', '4', '1300000.00', '4', '1', '2014-10-14 06:20:04', '2014-10-14 06:20:04'),
+                    ('5', '5', '5', '2014-10-21 06:20:05', 'Jl. Raya Semer5', 'Kerobokan5', 'Near Airplane Statue5', '60259', '5', 'Denpasar5', '5', 'Bali5', '62', 'Indonesia', 'IDR', 'Rp', '1975-02-05', 'm', 'single',  '081234567895', 'images/customer/05.png', '14', '8500000.00', '1500000.00', '2014-10-29 12:12:15', '5', '2014-10-20 12:12:12', '5', '1200000.00', '5', '1', '2014-10-15 06:20:05', '2014-10-15 06:20:05'),
+                    ('6', '6', '5', '2014-10-21 06:20:06', 'Orchard Road', 'Orchard6', 'Near Airplane Statue6', '60259', '6', 'Singapore6', '20', 'Singapore6', '61', 'Singapore', 'SGD', 'SG', '1987-02-05', 'm', 'single',  '081234567896', 'images/customer/06.png', '15', '8600000.00', '1500000.00', '2014-11-21 12:12:15', '5', '2014-10-20 12:12:12', '5', '1200000.00', '5', '1', '2014-10-15 06:20:05', '2014-10-15 06:20:05')"
         );
 
         // Insert dummy data on roles
@@ -68,7 +82,9 @@ class postNewMerchantTest extends OrbitTestCase
                 VALUES
                 ('1', 'Super Admin', '1', NOW(), NOW()),
                 ('2', 'Guest', '1', NOW(), NOW()),
-                ('3', 'Customer', '1', NOW(), NOW())"
+                ('3', 'Customer', '1', NOW(), NOW()),
+                ('4', 'Merchant', '1', NOW(), NOW()),
+                ('5', 'Retailer', '1', NOW(), NOW())"
         );
 
         // Insert dummy data on permissions
@@ -79,7 +95,7 @@ class postNewMerchantTest extends OrbitTestCase
                 ('2', 'view_user', 'View User', 'user', 'User', '1', '1', '1', NOW(), NOW()),
                 ('3', 'create_user', 'Create User', 'user', 'User', '0', '1', '1', NOW(), NOW()),
                 ('4', 'view_product', 'View Product', 'product', 'Product', '1', '2', '1', NOW(), NOW()),
-                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), NOW())"
+                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), nOW())"
         );
 
         // Insert dummy data on permission_role
@@ -163,20 +179,20 @@ class postNewMerchantTest extends OrbitTestCase
         // Clear every event dispatcher so we get no queue event on each
         // test
         $events = array(
-            'orbit.merchant.postnewmerchant.before.auth',
-            'orbit.merchant.postnewmerchant.after.auth',
-            'orbit.merchant.postnewmerchant.before.authz',
-            'orbit.merchant.postnewmerchant.authz.notallowed',
-            'orbit.merchant.postnewmerchant.after.authz',
-            'orbit.merchant.postnewmerchant.before.validation',
-            'orbit.merchant.postnewmerchant.after.validation',
-            'orbit.merchant.postnewmerchant.before.save',
-            'orbit.merchant.postnewmerchant.after.save',
-            'orbit.merchant.postnewmerchant.after.commit',
-            'orbit.merchant.postnewmerchant.access.forbidden',
-            'orbit.merchant.postnewmerchant.invalid.arguments',
-            'orbit.merchant.postnewmerchant.general.exception',
-            'orbit.merchant.postnewmerchant.before.render'
+            'orbit.merchant.postupdatemerchant.before.auth',
+            'orbit.merchant.postupdatemerchant.after.auth',
+            'orbit.merchant.postupdatemerchant.before.authz',
+            'orbit.merchant.postupdatemerchant.authz.notallowed',
+            'orbit.merchant.postupdatemerchant.after.authz',
+            'orbit.merchant.postupdatemerchant.before.validation',
+            'orbit.merchant.postupdatemerchant.after.validation',
+            'orbit.merchant.postupdatemerchant.before.save',
+            'orbit.merchant.postupdatemerchant.after.save',
+            'orbit.merchant.postupdatemerchant.after.commit',
+            'orbit.merchant.postupdatemerchant.access.forbidden',
+            'orbit.merchant.postupdatemerchant.invalid.arguments',
+            'orbit.merchant.postupdatemerchant.general.exception',
+            'orbit.merchant.postupdatemerchant.before.render'
         );
         foreach ($events as $event) {
             Event::forget($event);
@@ -189,9 +205,9 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertInstanceOf('MerchantAPIController', $ctl);
     }
 
-    public function testNoAuthData_POST_api_v1_merchant_new()
+    public function testNoAuthData_POST_api_v1_merchant_update()
     {
-        $url = '/api/v1/merchant/new';
+        $url = '/api/v1/merchant/update';
 
         $data = new stdclass();
         $data->code = Status::CLIENT_ID_NOT_FOUND;
@@ -204,13 +220,13 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testInvalidSignature_POST_api_v1_merchant_new()
+    public function testInvalidSignature_POST_api_v1_merchant_update()
     {
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -228,13 +244,13 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testSignatureExpire_POST_api_v1_merchant_new()
+    public function testSignatureExpire_POST_api_v1_merchant_update()
     {
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time() - 3600;  // an hour ago
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -252,13 +268,13 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testAccessForbidden_POST_api_v1_merchant_new()
+    public function testAccessForbidden_POST_api_v1_merchant_update()
     {
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -266,9 +282,9 @@ class postNewMerchantTest extends OrbitTestCase
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
         // Error message when access is forbidden
-        $newMerchantLang = Lang::get('validation.orbit.actionlist.new_merchant');
+        $updateMerchantLang = Lang::get('validation.orbit.actionlist.update_merchant');
         $message = Lang::get('validation.orbit.access.forbidden',
-                             array('action' => $newMerchantLang));
+                             array('action' => $updateMerchantLang));
 
         $data = new stdclass();
         $data->code = Status::ACCESS_DENIED;
@@ -281,29 +297,114 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingUserId_POST_api_v1_merchant_new()
+    public function testMissingMerchantId_POST_api_v1_merchant_update()
     {
-        // Data to be post
-        $_POST['email'] = 'george@localhost.org';
-
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-        // Add new permission name 'create_merchant'
+        // Add new permission name 'update_merchant'
         $chuck = User::find(3);
         $permission = new Permission();
-        $permission->permission_name = 'create_merchant';
+        $permission->permission_name = 'update_merchant';
         $permission->save();
 
         $chuck->permissions()->attach($permission->permission_id, array('allowed' => 'yes'));
+
+        $message = Lang::get('validation.required', array('attribute' => 'merchant id'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testMerchantIdNotNumeric_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 'foo';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.numeric', array('attribute' => 'merchant id'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testMerchantIdNotExists_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 99;
+        $_POST['user_id'] = 3;
+        $_POST['email'] = 'george@localhost.org';
+        $_POST['name'] = 'update merchant name';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.orbit.empty.merchant');
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testMissingUserId_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 7;
+        $_POST['email'] = 'george@localhost.org';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
         $message = Lang::get('validation.required', array('attribute' => 'user id'));
         $data = new stdclass();
@@ -317,9 +418,10 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testUserIdNotNumeric_POST_api_v1_merchant_new()
+    public function testUserIdNotNumeric_POST_api_v1_merchant_update()
     {
         // Data to be post
+        $_POST['merchant_id'] = 7;
         $_POST['user_id'] = 'foo';
         $_POST['email'] = 'george@localhost.org';
 
@@ -327,7 +429,7 @@ class postNewMerchantTest extends OrbitTestCase
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -346,9 +448,10 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testUserIdNotExists_POST_api_v1_merchant_new()
+    public function testUserIdNotExists_POST_api_v1_merchant_update()
     {
         // Data to be post
+        $_POST['merchant_id'] = 7;
         $_POST['user_id'] = 99;
         $_POST['email'] = 'george@localhost.org';
 
@@ -356,7 +459,7 @@ class postNewMerchantTest extends OrbitTestCase
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -375,16 +478,17 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingEmail_POST_api_v1_merchant_new()
+    public function testMissingEmail_POST_api_v1_merchant_update()
     {
         // Data to be post
-        $_POST['user_id'] = '3';
+        $_POST['merchant_id'] = '7';
+        $_POST['user_id'] = 3;
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -402,17 +506,18 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testInvalidEmailFormat_POST_api_v1_merchant_new()
+    public function testInvalidEmailFormat_POST_api_v1_merchant_update()
     {
         // Data to be post
-        $_POST['user_id'] = '3';
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = 3;
         $_POST['email'] = 'wrong-format@localhost';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -430,17 +535,19 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingMerchantName_POST_api_v1_merchant_new()
+    public function testMissingMerchantName_POST_api_v1_merchant_update()
     {
         // Data to be post
+        $_POST['merchant_id'] = 7;
         $_POST['user_id'] = '3';
         $_POST['email'] = 'george@localhost.org';
+        $_POST['status'] = 'active';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -459,9 +566,10 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingStatus_POST_api_v1_merchant_new()
+    public function testMissingStatus_POST_api_v1_merchant_update()
     {
         // Data to be post
+        $_POST['merchant_id'] = 7;
         $_POST['user_id'] = '3';
         $_POST['email'] = 'george@localhost.org';
         $_POST['name'] = 'test missing status';
@@ -470,7 +578,7 @@ class postNewMerchantTest extends OrbitTestCase
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -489,9 +597,10 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testStatusNotExists_POST_api_v1_merchant_new()
+    public function testStatusNotExists_POST_api_v1_merchant_update()
     {
         // Data to be post
+        $_POST['merchant_id'] = 7;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george@localhost.org';
         $_POST['name'] = 'test status not exists';
@@ -501,7 +610,7 @@ class postNewMerchantTest extends OrbitTestCase
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -520,22 +629,23 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testReqOK_POST_api_v1_merchant_new()
+    public function testReqOK_POST_api_v1_merchant_update()
     {
         // Number of merchant account before this operation
         $numBefore = Merchant::count();
 
         // Data to be post
-        $_POST['user_id'] = 3;
-        $_POST['email'] = 'george@localhost.org';
-        $_POST['name'] = 'test request ok';
-        $_POST['status'] = 'active';
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = 2;
+        $_POST['email'] = 'test@merchant.update';
+        $_POST['name'] = 'test request ok: merchant update';
+        $_POST['status'] = 'pending';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -548,23 +658,24 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame(0, (int)$response->code);
         $this->assertSame('success', $response->status);
         $this->assertSame('Request OK', $response->message);
-        $this->assertSame('3', (string)$response->data->user_id);
-        $this->assertSame('george@localhost.org', $response->data->email);
-        $this->assertSame('test request ok', $response->data->name);
-        $this->assertSame('active', $response->data->status);
+        $this->assertSame('2', (string)$response->data->user_id);
+        $this->assertSame('test@merchant.update', $response->data->email);
+        $this->assertSame('test request ok: merchant update', $response->data->name);
+        $this->assertSame('pending', $response->data->status);
         $this->assertSame('3', (string)$response->data->modified_by);
         $this->assertSame('merchant', (string)$response->data->object_type);
 
         $numAfter = Merchant::count();
-        $this->assertSame($numBefore + 1, $numAfter);
+        $this->assertSame($numBefore, $numAfter);
     }
 
-    public function testSavedThenRollback_POST_api_v1_merchant_new()
+
+    public function testSavedThenRollback_POST_api_v1_merchant_update()
     {
-        // Register an event on 'orbit.merchant.postnewmerchant.after.save'
+        // Register an event on 'orbit.merchant.postupdatemerchant.after.save'
         // and throw some exception so the data that has been saved
         // does not commited
-        Event::listen('orbit.merchant.postnewmerchant.after.save', function($controller, $merchant)
+        Event::listen('orbit.merchant.postupdatemerchant.after.save', function($controller, $merchant)
         {
             throw new Exception('This is bad bro!', 99);
         });
@@ -573,16 +684,17 @@ class postNewMerchantTest extends OrbitTestCase
         $numBefore = Merchant::count();
 
         // Data to be post
+        $_POST['merchant_id'] = 1;
         $_POST['user_id'] = 3;
-        $_POST['email'] = 'george2@localhost.org';
+        $_POST['email'] = 'test@merchant.update';
         $_POST['name'] = 'test saved then rollback';
-        $_POST['status'] = 'active';
+        $_POST['status'] = 'pending';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
         $_GET['apitimestamp'] = time();
 
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
         $secretKey = 'cde34567890100';
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -598,6 +710,16 @@ class postNewMerchantTest extends OrbitTestCase
         $expect = json_encode($data);
         $return = $this->call('POST', $url)->getContent();
         $this->assertSame($expect, $return);
+
+        // The data should remain the same as the old one
+        $merchant = Merchant::find(1);
+        $this->assertSame('2', (string)$merchant->user_id);
+        $this->assertSame('alfamer@localhost.org', $merchant->email);
+        $this->assertSame('Alfa Mer', $merchant->name);
+        $this->assertSame('Super market Alfa', $merchant->description);
+        $this->assertSame('active', (string)$merchant->status);
+        $this->assertSame('merchant', (string)$merchant->object_type);
+        $this->assertSame('1', (string)$merchant->modified_by);
 
         $numAfter = Merchant::count();
         $this->assertSame($numBefore, $numAfter);
