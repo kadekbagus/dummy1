@@ -7,6 +7,7 @@
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Config;
 use PDO;
 
 abstract class ControllerAPI extends Controller
@@ -88,6 +89,12 @@ abstract class ControllerAPI extends Controller
 
         // Assign the PDO object
         $this->pdo = DB::connection()->getPdo();
+
+        $expires = Config::get('orbit.api.signature.expiration');
+        if ((int)$expires > 0)
+        {
+            $this->expiresTime = $expires;
+        }
     }
 
     /**
