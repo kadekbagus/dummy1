@@ -17,6 +17,7 @@ class LoginAPIController extends ControllerAPI
      * POST - Login user
      *
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -30,27 +31,38 @@ class LoginAPIController extends ControllerAPI
             $email = trim(OrbitInput::post('email'));
             $password = trim(OrbitInput::post('password'));
 
-            if ($email == '') {
-                $this->response->code = Status::INVALID_ARGUMENT;
-                $this->response->status = 'error';
-                $this->response->message = Lang::get('validation.required', array('attribute' => 'email'));
-                $this->response->data = NULL;
-            } elseif ($password == '') {
-                $this->response->code = Status::INVALID_ARGUMENT;
-                $this->response->status = 'error';
-                $this->response->message = Lang::get('validation.required', array('attribute' => 'password'));
-                $this->response->data = NULL;
-            } else {
-                if (Auth::attempt(array('user_email' => $email, 'password' => $password, 'status' => 'active'))) {
-                    $user = User::with('apikey', 'userdetail')->find(Auth::user()->user_id);
-                    $user->setHidden(array('user_password'));
-                    $this->response->data = $user->toArray();
-                } else {
-                    $message = Lang::get('validation.orbit.access.loginfailed');
-                    ACL::throwAccessForbidden($message);
-                }
+            if (trim($email) === '') {
+                $errorMessage = Lang::get('validation.required', array('attribute' => 'email'));
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            if (trim($password) === '') {
+                $errorMessage = Lang::get('validation.required', array('attribute' => 'password'));
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $user = User::with('apikey', 'userdetail')
+                        ->active()
+                        ->where('user_email', $email)
+                        ->first();
+
+            if (! is_object($user)) {
+                $message = Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+
+            if (! Hash::check($password, $user->user_password)) {
+                $message = Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+
+            $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+        } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
@@ -69,38 +81,13 @@ class LoginAPIController extends ControllerAPI
      * POST - Logout user
      *
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * @return Illuminate\Support\Facades\Response
      */
     public function postLogout()
     {
-        try {
-            // if user is login, then logout the user, otherwise throw access forbidden.
-            if (Auth::check()) {
-                Auth::logout();
-
-                // if the user is still in login, then throw unknown error.
-                if (Auth::check()) {
-                    $this->response->code = Status::UNKNOWN_ERROR;
-                    $this->response->status = 'error';
-                    $this->response->message = Status::UNKNOWN_ERROR_MSG;
-                    $this->response->data = NULL;
-                }
-            } else {
-                ACL::throwAccessForbidden();
-            }
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
-        } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        }
-
+        // There is no exactly logout proses on the backend API
         return $this->render();
     }
 }
