@@ -3,6 +3,7 @@
  * Unit testing for LoginAPIController::postLogin() method.
  *
  * @author Tian <tian@dominopos.com>
+ * @author Rio Astamal <me@rioastamal.net>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
@@ -61,14 +62,15 @@ class postLoginTest extends OrbitTestCase
                 ('6', '3', '5', 'no', NOW(), NOW())"
         );
 
-        
+
         // create dummy hash password.
         $password = array(
             'john'      => Hash::make('john'),
             'smith'     => Hash::make('smith'),
             'chuck'     => Hash::make('chuck'),
             'optimus'   => Hash::make('optimus'),
-            'panther'   => Hash::make('panther')
+            'panther'   => Hash::make('panther'),
+            'ironman'   => Hash::make('ironman')
         );
 
         // Insert dummy data on users table.
@@ -79,7 +81,8 @@ class postLoginTest extends OrbitTestCase
                 ('2', 'smith', '{$password['smith']}', 'smith@localhost.org', 'John', 'Smith', '2014-10-20 06:20:02', '10.10.0.12', '3', 'active', '1', '2014-10-20 06:30:02', '2014-10-20 06:31:02'),
                 ('3', 'chuck', '{$password['chuck']}', 'chuck@localhost.org', 'Chuck', 'Norris', '2014-10-20 06:20:03', '10.10.0.13', '3', 'active', '1', '2014-10-20 06:30:03', '2014-10-20 06:31:03'),
                 ('4', 'optimus', '{$password['optimus']}', 'optimus@localhost.org', 'Optimus', 'Prime', '2014-10-20 06:20:04', '10.10.0.13', '3', 'blocked', '1', '2014-10-20 06:30:04', '2014-10-20 06:31:04'),
-                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05')"
+                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05'),
+                ('6', 'ironman', '{$password['ironman']}', 'ironman@localhost.org', 'Iron', 'Man', '2014-11-20 06:20:05', '10.10.0.17', '3', 'pending', '1', '2014-11-20 06:30:05', '2014-10-20 06:31:05')"
         );
 
         // Insert dummy data on apikeys table.
@@ -175,7 +178,7 @@ class postLoginTest extends OrbitTestCase
     }
 
     // testcase: right email and password.
-    public function testRightEmailAndPassword_POST_api_v1_login_login()
+    public function testRightEmailAndPassword_POST_api_v1_login()
     {
         // mocking data.
         $url = '/api/v1/login';
@@ -214,7 +217,7 @@ class postLoginTest extends OrbitTestCase
     }
 
     // testcase: wrong email and password.
-    public function testWrongEmailAndPassword_POST_api_v1_login_login()
+    public function testWrongEmailAndPassword_POST_api_v1_login()
     {
         // mocking data.
         $url = '/api/v1/login';
@@ -232,7 +235,7 @@ class postLoginTest extends OrbitTestCase
     }
 
     // testcase: empty email.
-    public function testEmptyEmail_POST_api_v1_login_login()
+    public function testEmptyEmail_POST_api_v1_login()
     {
         // mocking data.
         $url = '/api/v1/login';
@@ -255,7 +258,7 @@ class postLoginTest extends OrbitTestCase
     }
 
     // testcase: empty password.
-    public function testEmptyPassword_POST_api_v1_login_login()
+    public function testEmptyPassword_POST_api_v1_login()
     {
         // mocking data.
         $url = '/api/v1/login';
@@ -275,5 +278,59 @@ class postLoginTest extends OrbitTestCase
 
         // test data.
         $this->assertSame($expect, $return);
+    }
+
+    // testcase: user status is blocked
+    public function testUserStatusIsBlocked_POST_api_v1_login()
+    {
+        // mocking data.
+        $url = '/api/v1/login';
+        $_POST['email'] = 'optimus@localhost.org';
+        $_POST['password'] = 'optimus';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $return = $this->call('POST', $url)->getContent();
+        $response = json_decode($return);
+
+        // test data.
+        $this->assertSame(Status::ACCESS_DENIED, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame(Lang::get('validation.orbit.access.loginfailed'), $response->message);
+    }
+
+    // testcase: user status is pending
+    public function testUserStatusIsDeleted_POST_api_v1_login()
+    {
+        // mocking data.
+        $url = '/api/v1/login';
+        $_POST['email'] = 'panther@localhost.org';
+        $_POST['password'] = 'panther';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $return = $this->call('POST', $url)->getContent();
+        $response = json_decode($return);
+
+        // test data.
+        $this->assertSame(Status::ACCESS_DENIED, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame(Lang::get('validation.orbit.access.loginfailed'), $response->message);
+    }
+
+    // testcase: user status is pending
+    public function testUserStatusIsPending_POST_api_v1_login()
+    {
+        // mocking data.
+        $url = '/api/v1/login';
+        $_POST['email'] = 'ironman@localhost.org';
+        $_POST['password'] = 'ironman';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $return = $this->call('POST', $url)->getContent();
+        $response = json_decode($return);
+
+        // test data.
+        $this->assertSame(Status::ACCESS_DENIED, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame(Lang::get('validation.orbit.access.loginfailed'), $response->message);
     }
 }
