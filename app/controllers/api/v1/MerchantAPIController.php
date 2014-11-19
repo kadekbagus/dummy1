@@ -167,6 +167,7 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `phone`                   (optional) - Phone of the merchant
      * @param string     `fax`                     (optional) - Fax of the merchant
      * @param string     `start_date_activity`     (optional) - Start date activity of the merchant
+     * @param string     `end_date_activity`       (optional) - End date activity of the merchant
      * @param string     `status`                  (optional) - Status of the merchant
      * @param string     `logo`                    (optional) - Logo of the merchant
      * @param string     `currency`                (optional) - Currency used by the merchant
@@ -183,7 +184,10 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `vat_included`            (optional) - Vat included
      * @param string     `vat_included`            (optional) - Vat included
      * @param string     `object_type`             (optional) - Object type
-     * @param string     `parent_id`               (optional) - The merchant id
+     * @param integer    `parent_id`               (optional) - The merchant id
+     * @param string     `url`                     (optional) - Url
+     * @param string     `masterbox_number`        (optional) - Masterbox number
+     * @param string     `slavebox_number`         (optional) - Slavebox number
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewMerchant()
@@ -228,6 +232,7 @@ class MerchantAPIController extends ControllerAPI
             $phone = OrbitInput::post('phone');
             $fax = OrbitInput::post('fax');
             $start_date_activity = OrbitInput::post('start_date_activity');
+            $end_date_activity = OrbitInput::post('end_date_activity');
             $status = OrbitInput::post('status');
             $logo = OrbitInput::post('logo');
             $currency = OrbitInput::post('currency');
@@ -243,6 +248,9 @@ class MerchantAPIController extends ControllerAPI
             $sector_of_activity = OrbitInput::post('sector_of_activity');
             $object_type = OrbitInput::post('object_type');
             $parent_id = OrbitInput::post('parent_id');
+            $url = OrbitInput::post('url');
+            $masterbox_number = OrbitInput::post('masterbox_number');
+            $slavebox_number = OrbitInput::post('slavebox_number');
 
             $validator = Validator::make(
                 array(
@@ -287,6 +295,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->phone = $phone;
             $newmerchant->fax = $fax;
             $newmerchant->start_date_activity = $start_date_activity;
+            $newmerchant->end_date_activity = $end_date_activity;
             $newmerchant->status = $status;
             $newmerchant->logo = $logo;
             $newmerchant->currency = $currency;
@@ -302,6 +311,9 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->sector_of_activity = $sector_of_activity;
             $newmerchant->object_type = $object_type;
             $newmerchant->parent_id = $parent_id;
+            $newmerchant->url = $url;
+            $newmerchant->masterbox_number = $masterbox_number;
+            $newmerchant->slavebox_number = $slavebox_number;
             $newmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
@@ -410,6 +422,9 @@ class MerchantAPIController extends ControllerAPI
      * @param string   `contact_person_position`      (optional) - Contact person position
      * @param string   `contact_person_position_like` (optional) - Contact person position like
      * @param string   `contact_person_phone`         (optional) - Contact person phone
+     * @param string   `url`                          (optional) - Url
+     * @param string   `masterbox_number`             (optional) - Masterbox number
+     * @param string   `slavebox_number`              (optional) - Slavebox number
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -464,7 +479,7 @@ class MerchantAPIController extends ControllerAPI
             Event::fire('orbit.merchant.getsearchmerchant.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
             if ($maxRecord <= 0) {
                 $maxRecord = 20;
             }
@@ -472,197 +487,180 @@ class MerchantAPIController extends ControllerAPI
             $merchants = Merchant::excludeDeleted();
 
             // Filter merchant by Ids
-            OrbitInput::get('merchant_id', function($merchantIds) use ($merchants)
-            {
+            OrbitInput::get('merchant_id', function ($merchantIds) use ($merchants) {
                 $merchants->whereIn('merchants.merchant_id', $merchantIds);
             });
 
             // Filter merchant by Ids
-            OrbitInput::get('user_id', function($userIds) use ($merchants)
-            {
+            OrbitInput::get('user_id', function ($userIds) use ($merchants) {
                 $merchants->whereIn('merchants.user_id', $userIds);
             });
 
             // Filter merchant by name
-            OrbitInput::get('name', function($name) use ($merchants)
-            {
+            OrbitInput::get('name', function ($name) use ($merchants) {
                 $merchants->whereIn('merchants.name', $name);
             });
 
             // Filter merchant by name pattern
-            OrbitInput::get('name_like', function($name) use ($merchants)
-            {
+            OrbitInput::get('name_like', function ($name) use ($merchants) {
                 $merchants->where('merchants.name', 'like', "%$name%");
             });
 
             // Filter merchant by description
-            OrbitInput::get('description', function($description) use ($merchants)
-            {
+            OrbitInput::get('description', function ($description) use ($merchants) {
                 $merchants->whereIn('merchants.description', $description);
             });
 
             // Filter merchant by description pattern
-            OrbitInput::get('description_like', function($description) use ($merchants)
-            {
+            OrbitInput::get('description_like', function ($description) use ($merchants) {
                 $merchants->where('merchants.description', 'like', "%$description%");
             });
 
             // Filter merchant by email
-            OrbitInput::get('email', function($email) use ($merchants)
-            {
+            OrbitInput::get('email', function ($email) use ($merchants) {
                 $merchants->whereIn('merchants.email', $email);
             });
 
             // Filter merchant by email pattern
-            OrbitInput::get('email_like', function($email) use ($merchants)
-            {
+            OrbitInput::get('email_like', function ($email) use ($merchants) {
                 $merchants->where('merchants.email', 'like', "%$email%");
             });
 
             // Filter merchant by address1
-            OrbitInput::get('address1', function($address1) use ($merchants)
-            {
+            OrbitInput::get('address1', function ($address1) use ($merchants) {
                 $merchants->whereIn('merchants.address_line1', $address1);
             });
 
             // Filter merchant by address1 pattern
-            OrbitInput::get('address1_like', function($address1) use ($merchants)
-            {
+            OrbitInput::get('address1_like', function ($address1) use ($merchants) {
                 $merchants->where('merchants.address_line1', 'like', "%$address1%");
             });
 
             // Filter merchant by address2
-            OrbitInput::get('address2', function($address2) use ($merchants)
-            {
+            OrbitInput::get('address2', function ($address2) use ($merchants) {
                 $merchants->whereIn('merchants.address_line2', $address2);
             });
 
             // Filter merchant by address2 pattern
-            OrbitInput::get('address2_like', function($address2) use ($merchants)
-            {
+            OrbitInput::get('address2_like', function ($address2) use ($merchants) {
                 $merchants->where('merchants.address_line2', 'like', "%$address2%");
             });
 
             // Filter merchant by address3
-            OrbitInput::get('address3', function($address3) use ($merchants)
-            {
+            OrbitInput::get('address3', function ($address3) use ($merchants) {
                 $merchants->whereIn('merchants.address_line3', $address3);
             });
 
             // Filter merchant by address3 pattern
-            OrbitInput::get('address3_like', function($address3) use ($merchants)
-            {
+            OrbitInput::get('address3_like', function ($address3) use ($merchants) {
                 $merchants->where('merchants.address_line3', 'like', "%$address3%");
             });
 
             // Filter merchant by postal code
-            OrbitInput::get('postal_code', function($postalcode) use ($merchants)
-            {
+            OrbitInput::get('postal_code', function ($postalcode) use ($merchants) {
                 $merchants->whereIn('merchants.postal_code', $postalcode);
             });
 
             // Filter merchant by cityID
-            OrbitInput::get('city_id', function($cityIds) use ($merchants)
-            {
+            OrbitInput::get('city_id', function ($cityIds) use ($merchants) {
                 $merchants->whereIn('merchants.city_id', $cityIds);
             });
 
             // Filter merchant by city
-            OrbitInput::get('city', function($city) use ($merchants)
-            {
+            OrbitInput::get('city', function ($city) use ($merchants) {
                 $merchants->whereIn('merchants.city', $city);
             });
 
             // Filter merchant by city pattern
-            OrbitInput::get('city_like', function($city) use ($merchants)
-            {
+            OrbitInput::get('city_like', function ($city) use ($merchants) {
                 $merchants->where('merchants.city', 'like', "%$city%");
             });
 
             // Filter merchant by countryID
-            OrbitInput::get('country_id', function($countryId) use ($merchants)
-            {
+            OrbitInput::get('country_id', function ($countryId) use ($merchants) {
                 $merchants->whereIn('merchants.country_id', $countryId);
             });
 
             // Filter merchant by country
-            OrbitInput::get('country', function($country) use ($merchants)
-            {
+            OrbitInput::get('country', function ($country) use ($merchants) {
                 $merchants->whereIn('merchants.country', $country);
             });
 
             // Filter merchant by country pattern
-            OrbitInput::get('country_like', function($country) use ($merchants)
-            {
+            OrbitInput::get('country_like', function ($country) use ($merchants) {
                 $merchants->where('merchants.country', 'like', "%$country%");
             });
 
             // Filter merchant by phone
-            OrbitInput::get('phone', function($phone) use ($merchants)
-            {
+            OrbitInput::get('phone', function ($phone) use ($merchants) {
                 $merchants->whereIn('merchants.phone', $phone);
             });
 
             // Filter merchant by fax
-            OrbitInput::get('fax', function($fax) use ($merchants)
-            {
+            OrbitInput::get('fax', function ($fax) use ($merchants) {
                 $merchants->whereIn('merchants.fax', $fax);
             });
 
             // Filter merchant by status
-            OrbitInput::get('status', function($status) use ($merchants)
-            {
+            OrbitInput::get('status', function ($status) use ($merchants) {
                 $merchants->whereIn('merchants.status', $status);
             });
 
             // Filter merchant by currency
-            OrbitInput::get('currency', function($currency) use ($merchants)
-            {
+            OrbitInput::get('currency', function ($currency) use ($merchants) {
                 $merchants->whereIn('merchants.currency', $currency);
             });
 
             // Filter merchant by contact person name
-            OrbitInput::get('contact_person_name', function($contact_person_name) use ($merchants)
-            {
+            OrbitInput::get('contact_person_name', function ($contact_person_name) use ($merchants) {
                 $merchants->whereIn('merchants.contact_person_name', $contact_person_name);
             });
 
             // Filter merchant by contact person name like
-            OrbitInput::get('contact_person_name_like', function($contact_person_name) use ($merchants)
-            {
+            OrbitInput::get('contact_person_name_like', function ($contact_person_name) use ($merchants) {
                 $merchants->where('merchants.contact_person_name', 'like', "%$contact_person_name%");
             });
 
             // Filter merchant by contact person position
-            OrbitInput::get('contact_person_position', function($contact_person_position) use ($merchants)
-            {
+            OrbitInput::get('contact_person_position', function ($contact_person_position) use ($merchants) {
                 $merchants->whereIn('merchants.contact_person_position', $contact_person_position);
             });
 
             // Filter merchant by contact person position like
-            OrbitInput::get('contact_person_position_like', function($contact_person_position) use ($merchants)
-            {
+            OrbitInput::get('contact_person_position_like', function ($contact_person_position) use ($merchants) {
                 $merchants->where('merchants.contact_person_position', 'like', "%$contact_person_position%");
             });
 
             // Filter merchant by contact person phone
-            OrbitInput::get('contact_person_phone', function($contact_person_phone) use ($merchants)
-            {
+            OrbitInput::get('contact_person_phone', function ($contact_person_phone) use ($merchants) {
                 $merchants->whereIn('merchants.contact_person_phone', $contact_person_phone);
             });
 
             // Filter merchant by sector of activity
-            OrbitInput::get('sector_of_activity', function($sector_of_activity) use ($merchants)
-            {
+            OrbitInput::get('sector_of_activity', function ($sector_of_activity) use ($merchants) {
                 $merchants->whereIn('merchants.sector_of_activity', $sector_of_activity);
+            });
+
+            // Filter merchant by url
+            OrbitInput::get('url', function ($url) use ($merchants) {
+                $merchants->whereIn('merchants.url', $url);
+            });
+
+            // Filter merchant by masterbox_number
+            OrbitInput::get('masterbox_number', function ($masterbox_number) use ($merchants) {
+                $merchants->whereIn('merchants.masterbox_number', $masterbox_number);
+            });
+
+            // Filter merchant by slavebox_number
+            OrbitInput::get('slavebox_number', function ($slavebox_number) use ($merchants) {
+                $merchants->whereIn('merchants.slavebox_number', $slavebox_number);
             });
 
             $_merchants = clone $merchants;
 
             // Get the take args
             $take = $maxRecord;
-            OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-            {
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
@@ -671,8 +669,7 @@ class MerchantAPIController extends ControllerAPI
             $merchants->take($take);
 
             $skip = 0;
-            OrbitInput::get('skip', function($_skip) use (&$skip, $merchants)
-            {
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $merchants) {
                 if ($_skip < 0) {
                     $_skip = 0;
                 }
@@ -686,8 +683,7 @@ class MerchantAPIController extends ControllerAPI
             // Default sort mode
             $sortMode = 'desc';
 
-            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
-            {
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'registered_date'      => 'merchants.created_at',
@@ -712,8 +708,7 @@ class MerchantAPIController extends ControllerAPI
                 $sortBy = $sortByMapping[$_sortBy];
             });
 
-            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
-            {
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
                 if (strtolower($_sortMode) !== 'desc') {
                     $sortMode = 'asc';
                 }
@@ -729,7 +724,7 @@ class MerchantAPIController extends ControllerAPI
             $data->records = $listOfRec;
 
             if ($totalRec === 0) {
-                $data->records = NULL;
+                $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.merchant');
             }
 
@@ -866,6 +861,7 @@ class MerchantAPIController extends ControllerAPI
             $phone = OrbitInput::post('phone');
             $fax = OrbitInput::post('fax');
             $start_date_activity = OrbitInput::post('start_date_activity');
+            $end_date_activity = OrbitInput::post('end_date_activity');
             $status = OrbitInput::post('status');
             $logo = OrbitInput::post('logo');
             $currency = OrbitInput::post('currency');
@@ -881,6 +877,9 @@ class MerchantAPIController extends ControllerAPI
             $sector_of_activity = OrbitInput::post('sector_of_activity');
             $object_type = OrbitInput::post('object_type');
             $parent_id = OrbitInput::post('parent_id');
+            $url = OrbitInput::post('url');
+            $masterbox_number = OrbitInput::post('masterbox_number');
+            $slavebox_number = OrbitInput::post('slavebox_number');
 
             $validator = Validator::make(
                 array(
@@ -942,6 +941,9 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant->sector_of_activity = $sector_of_activity;
             $updatedmerchant->object_type = $object_type;
             $updatedmerchant->parent_id = $parent_id;
+            $updatedmerchant->url = $url;
+            $updatedmerchant->masterbox_number = $masterbox_number;
+            $updatedmerchant->slavebox_number = $slavebox_number;
             $updatedmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postupdatemerchant.before.save', array($this, $updatedmerchant));
@@ -1038,7 +1040,7 @@ class MerchantAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.merchant', $merchant);
- 
+
             return TRUE;
         });
 
