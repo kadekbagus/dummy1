@@ -46,7 +46,7 @@ class MerchantTest extends OrbitTestCase
                     `phone`, `fax`, `start_date_activity`, `status`, `logo`,
                     `currency`, `currency_symbol`, `tax_code1`, `tax_code2`, `tax_code3`, `slogan`, `vat_included`, `object_type`, `parent_id`,
                     `created_at`, `updated_at`, `modified_by`, `postal_code`, `contact_person_name`, `contact_person_position`, `contact_person_phone`, `sector_of_activity`,
-                    `url`, `end_date_date_activity`, `masterbox_number`, `slavebox_number`)
+                    `url`, `end_date_activity`, `masterbox_number`, `slavebox_number`)
                     VALUES
                     ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 621234, 'Cak Lontong 1', 'Jual Lontong 1', '0123-3456789', 'Retail', 'http://localhost.one/', '2015-02-01 00:00:00', 'M111', 'S111'),
                     ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 622234, 'Cak Lontong 2', 'Jual Lontong 2', '0123-3456789', 'Retail Lontong 2', 'http://localhost.two/', '2015-02-02 00:00:00', 'M222', 'S222'),
@@ -175,7 +175,7 @@ class MerchantTest extends OrbitTestCase
         $this->assertSame('0123-3456789', (string)$merchant->contact_person_phone);
         $this->assertSame('Retail Lontong 2', (string)$merchant->sector_of_activity);
         $this->assertSame('http://localhost.two/', $merchant->url);
-        $this->assertSame('2015-02-02 00:00:00', $merchant->end_date);
+        $this->assertSame('2015-02-02 00:00:00', $merchant->end_date_activity);
         $this->assertSame('M222', $merchant->masterbox_number);
         $this->assertSame('S222', $merchant->slavebox_number);
 
@@ -241,7 +241,7 @@ class MerchantTest extends OrbitTestCase
         $merchant->modified_by = 1;
         $merchant->sector_of_activity = 'Sports';
         $merchant->phone = '031|#|74123456';
-        $this->assertSame('http://localhost.10/', $merchant->url);
+        $merchant->url = 'http://localhost.10/';
         $merchant->save();
 
         $merchant2 = Merchant::active()
@@ -269,11 +269,12 @@ class MerchantTest extends OrbitTestCase
         $this->assertSame($area, $merchant->getPhoneCodeArea());
 
         $phone = '74123456';
-        $this->assertSame($area, $merchant->getPhoneNumber());
+        $this->assertSame($phone, $merchant->getPhoneNumber());
 
         $expect = '031 74123456';
-        $separator = ' ';
-        $this->assertSame($area, $merchant->getFullPhoneNumber($separator));
+        $separator = '|#|';
+        $concat = ' ';
+        $this->assertSame($expect, $merchant->getFullPhoneNumber($separator, $concat));
     }
 
     public function testSoftDeleteRecord()
