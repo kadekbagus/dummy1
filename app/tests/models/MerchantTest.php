@@ -240,6 +240,7 @@ class MerchantTest extends OrbitTestCase
         $merchant->description = 'Mantab';
         $merchant->modified_by = 1;
         $merchant->sector_of_activity = 'Sports';
+        $merchant->phone = '031|#|74123456';
         $this->assertSame('http://localhost.10/', $merchant->url);
         $merchant->save();
 
@@ -253,8 +254,26 @@ class MerchantTest extends OrbitTestCase
         $this->assertSame($merchant->description, $merchant2->description);
         $this->assertSame('merchant', $merchant2->object_type);
         $this->assertSame('Sports', $merchant2->sector_of_activity);
+        $this->assertSame('031|#|74123456', $merchant2->phone);
         $this->assertSame('http://localhost.10/', $merchant2->url);
         $this->assertSame('1', (string)$merchant->modified_by);
+    }
+
+    public function testDisplayPhoneNumber()
+    {
+        $merchant = Merchant::active()
+                            ->where('email', 'texaschicken@localhost.org')
+                            ->first();
+
+        $area = '031';
+        $this->assertSame($area, $merchant->getPhoneCodeArea());
+
+        $phone = '74123456';
+        $this->assertSame($area, $merchant->getPhoneNumber());
+
+        $expect = '031 74123456';
+        $separator = ' ';
+        $this->assertSame($area, $merchant->getFullPhoneNumber($separator));
     }
 
     public function testSoftDeleteRecord()
