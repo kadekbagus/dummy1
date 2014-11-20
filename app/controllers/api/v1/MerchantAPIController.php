@@ -242,9 +242,12 @@ class MerchantAPIController extends ControllerAPI
             $tax_code3 = OrbitInput::post('tax_code3');
             $slogan = OrbitInput::post('slogan');
             $vat_included = OrbitInput::post('vat_included');
-            $contact_person_name = OrbitInput::post('contact_person_name');
+            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
+            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
             $contact_person_position = OrbitInput::post('contact_person_position');
             $contact_person_phone = OrbitInput::post('contact_person_phone');
+            $contact_person_phone2 = OrbitInput::post('contact_person_phone2');
+            $contact_person_email = OrbitInput::post('contact_person_email');
             $sector_of_activity = OrbitInput::post('sector_of_activity');
             $object_type = OrbitInput::post('object_type');
             $parent_id = OrbitInput::post('parent_id');
@@ -305,9 +308,12 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->tax_code3 = $tax_code3;
             $newmerchant->slogan = $slogan;
             $newmerchant->vat_included = $vat_included;
-            $newmerchant->contact_person_name = $contact_person_name;
+            $newmerchant->contact_person_firstname = $contact_person_firstname;
+            $newmerchant->contact_person_lastname = $contact_person_lastname;
             $newmerchant->contact_person_position = $contact_person_position;
             $newmerchant->contact_person_phone = $contact_person_phone;
+            $newmerchant->contact_person_phone2 = $contact_person_phone2;
+            $newmerchant->contact_person_email = $contact_person_email;
             $newmerchant->sector_of_activity = $sector_of_activity;
             $newmerchant->object_type = $object_type;
             $newmerchant->parent_id = $parent_id;
@@ -388,43 +394,47 @@ class MerchantAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sort_by`                      (optional) - column order by
-     * @param string   `sort_mode`                    (optional) - asc or desc
-     * @param integer  `take`                         (optional) - limit
-     * @param integer  `skip`                         (optional) - limit offset
-     * @param integer  `merchant_id`                  (optional)
-     * @param integer  `user_id`                      (optional)
-     * @param string   `email`                        (optional)
-     * @param string   `name`                         (optional)
-     * @param string   `description`                  (optional)
-     * @param string   `address1`                     (optional)
-     * @param string   `address2`                     (optional)
-     * @param string   `address3`                     (optional)
-     * @param integer  `postal_code`                  (optional) - Postal code
-     * @param string   `city_id`                      (optional)
-     * @param string   `city`                         (optional)
-     * @param string   `country_id`                   (optional)
-     * @param string   `country`                      (optional)
-     * @param string   `phone`                        (optional)
-     * @param string   `fax`                          (optional)
-     * @param string   `status`                       (optional)
-     * @param string   `currency`                     (optional)
-     * @param string   `name_like`                    (optional)
-     * @param string   `email_like`                   (optional)
-     * @param string   `description_like`             (optional)
-     * @param string   `address1_like`                (optional)
-     * @param string   `address2_like`                (optional)
-     * @param string   `address3_like`                (optional)
-     * @param string   `city_like`                    (optional)
-     * @param string   `country_like`                 (optional)
-     * @param string   `contact_person_name`          (optional) - Contact person name
-     * @param string   `contact_person_name_like`     (optional) - Contact person name like
-     * @param string   `contact_person_position`      (optional) - Contact person position
-     * @param string   `contact_person_position_like` (optional) - Contact person position like
-     * @param string   `contact_person_phone`         (optional) - Contact person phone
-     * @param string   `url`                          (optional) - Url
-     * @param string   `masterbox_number`             (optional) - Masterbox number
-     * @param string   `slavebox_number`              (optional) - Slavebox number
+     * @param string   `sort_by`                       (optional) - column order by
+     * @param string   `sort_mode`                     (optional) - asc or desc
+     * @param integer  `take`                          (optional) - limit
+     * @param integer  `skip`                          (optional) - limit offset
+     * @param integer  `merchant_id`                   (optional)
+     * @param integer  `user_id`                       (optional)
+     * @param string   `email`                         (optional)
+     * @param string   `name`                          (optional)
+     * @param string   `description`                   (optional)
+     * @param string   `address1`                      (optional)
+     * @param string   `address2`                      (optional)
+     * @param string   `address3`                      (optional)
+     * @param integer  `postal_code`                   (optional) - Postal code
+     * @param string   `city_id`                       (optional)
+     * @param string   `city`                          (optional)
+     * @param string   `country_id`                    (optional)
+     * @param string   `country`                       (optional)
+     * @param string   `phone`                         (optional)
+     * @param string   `fax`                           (optional)
+     * @param string   `status`                        (optional)
+     * @param string   `currency`                      (optional)
+     * @param string   `name_like`                     (optional)
+     * @param string   `email_like`                    (optional)
+     * @param string   `description_like`              (optional)
+     * @param string   `address1_like`                 (optional)
+     * @param string   `address2_like`                 (optional)
+     * @param string   `address3_like`                 (optional)
+     * @param string   `city_like`                     (optional)
+     * @param string   `country_like`                  (optional)
+     * @param string   `contact_person_firstname`      (optional) - Contact person firstname
+     * @param string   `contact_person_firstname_like` (optional) - Contact person firstname like
+     * @param string   `contact_person_lastname`       (optional) - Contact person lastname
+     * @param string   `contact_person_lastname_like`  (optional) - Contact person lastname like
+     * @param string   `contact_person_position`       (optional) - Contact person position
+     * @param string   `contact_person_position_like`  (optional) - Contact person position like
+     * @param string   `contact_person_phone`          (optional) - Contact person phone
+     * @param string   `contact_person_phone2`         (optional) - Contact person phone2
+     * @param string   `contact_person_email`          (optional) - Contact person email
+     * @param string   `url`                           (optional) - Url
+     * @param string   `masterbox_number`              (optional) - Masterbox number
+     * @param string   `slavebox_number`               (optional) - Slavebox number
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -611,14 +621,24 @@ class MerchantAPIController extends ControllerAPI
                 $merchants->whereIn('merchants.currency', $currency);
             });
 
-            // Filter merchant by contact person name
-            OrbitInput::get('contact_person_name', function ($contact_person_name) use ($merchants) {
-                $merchants->whereIn('merchants.contact_person_name', $contact_person_name);
+            // Filter merchant by contact person firstname
+            OrbitInput::get('contact_person_firstname', function ($contact_person_firstname) use ($merchants) {
+                $merchants->whereIn('merchants.contact_person_firstname', $contact_person_firstname);
             });
 
-            // Filter merchant by contact person name like
-            OrbitInput::get('contact_person_name_like', function ($contact_person_name) use ($merchants) {
-                $merchants->where('merchants.contact_person_name', 'like', "%$contact_person_name%");
+            // Filter merchant by contact person firstname like
+            OrbitInput::get('contact_person_firstname_like', function ($contact_person_firstname) use ($merchants) {
+                $merchants->where('merchants.contact_person_firstname', 'like', "%$contact_person_firstname%");
+            });
+
+            // Filter merchant by contact person lastname
+            OrbitInput::get('contact_person_lastname', function ($contact_person_lastname) use ($merchants) {
+                $merchants->whereIn('merchants.contact_person_lastname', $contact_person_lastname);
+            });
+
+            // Filter merchant by contact person lastname like
+            OrbitInput::get('contact_person_lastname_like', function ($contact_person_lastname) use ($merchants) {
+                $merchants->where('merchants.contact_person_lastname', 'like', "%$contact_person_lastname%");
             });
 
             // Filter merchant by contact person position
@@ -634,6 +654,16 @@ class MerchantAPIController extends ControllerAPI
             // Filter merchant by contact person phone
             OrbitInput::get('contact_person_phone', function ($contact_person_phone) use ($merchants) {
                 $merchants->whereIn('merchants.contact_person_phone', $contact_person_phone);
+            });
+
+            // Filter merchant by contact person phone2
+            OrbitInput::get('contact_person_phone2', function ($contact_person_phone2) use ($merchants) {
+                $merchants->whereIn('merchants.contact_person_phone2', $contact_person_phone2);
+            });
+
+            // Filter merchant by contact person email
+            OrbitInput::get('contact_person_email', function ($contact_person_email) use ($merchants) {
+                $merchants->whereIn('merchants.contact_person_email', $contact_person_email);
             });
 
             // Filter merchant by sector of activity
@@ -785,37 +815,40 @@ class MerchantAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`             (required) - ID of the merchant
-     * @param integer    `user_id`                 (required) - User id for the merchant
-     * @param string     `email`                   (required) - Email address of the merchant
-     * @param string     `name`                    (optional) - Name of the merchant
-     * @param string     `description`             (optional) - Merchant description
-     * @param string     `address_line1`           (optional) - Address 1
-     * @param string     `address_line2`           (optional) - Address 2
-     * @param string     `address_line3`           (optional) - Address 3
-     * @param integer    `postal_code`             (optional) - Postal code
-     * @param integer    `city_id`                 (optional) - City id
-     * @param string     `city`                    (optional) - Name of the city
-     * @param integer    `country_id`              (optional) - Country id
-     * @param string     `country`                 (optional) - Name of the country
-     * @param string     `phone`                   (optional) - Phone of the merchant
-     * @param string     `fax`                     (optional) - Fax of the merchant
-     * @param string     `start_date_activity`     (optional) - Start date activity of the merchant
-     * @param string     `status`                  (optional) - Status of the merchant
-     * @param string     `logo`                    (optional) - Logo of the merchant
-     * @param string     `currency`                (optional) - Currency used by the merchant
-     * @param string     `currency_symbol`         (optional) - Currency symbol
-     * @param string     `tax_code1`               (optional) - Tax code 1
-     * @param string     `tax_code2`               (optional) - Tax code 2
-     * @param string     `tax_code3`               (optional) - Tax code 3
-     * @param string     `slogan`                  (optional) - Slogan for the merchant
-     * @param string     `vat_included`            (optional) - Vat included
-     * @param string     `contact_person_name`     (optional) - Contact person name
-     * @param string     `contact_person_position` (optional) - Contact person position
-     * @param string     `contact_person_phone`    (optional) - Contact person phone
-     * @param string     `sector_of_activity`      (optional) - Sector of activity
-     * @param string     `object_type`             (optional) - Object type
-     * @param string     `parent_id`               (optional) - The merchant id
+     * @param integer    `merchant_id`              (required) - ID of the merchant
+     * @param integer    `user_id`                  (required) - User id for the merchant
+     * @param string     `email`                    (required) - Email address of the merchant
+     * @param string     `name`                     (optional) - Name of the merchant
+     * @param string     `description`              (optional) - Merchant description
+     * @param string     `address_line1`            (optional) - Address 1
+     * @param string     `address_line2`            (optional) - Address 2
+     * @param string     `address_line3`            (optional) - Address 3
+     * @param integer    `postal_code`              (optional) - Postal code
+     * @param integer    `city_id`                  (optional) - City id
+     * @param string     `city`                     (optional) - Name of the city
+     * @param integer    `country_id`               (optional) - Country id
+     * @param string     `country`                  (optional) - Name of the country
+     * @param string     `phone`                    (optional) - Phone of the merchant
+     * @param string     `fax`                      (optional) - Fax of the merchant
+     * @param string     `start_date_activity`      (optional) - Start date activity of the merchant
+     * @param string     `status`                   (optional) - Status of the merchant
+     * @param string     `logo`                     (optional) - Logo of the merchant
+     * @param string     `currency`                 (optional) - Currency used by the merchant
+     * @param string     `currency_symbol`          (optional) - Currency symbol
+     * @param string     `tax_code1`                (optional) - Tax code 1
+     * @param string     `tax_code2`                (optional) - Tax code 2
+     * @param string     `tax_code3`                (optional) - Tax code 3
+     * @param string     `slogan`                   (optional) - Slogan for the merchant
+     * @param string     `vat_included`             (optional) - Vat included
+     * @param string     `contact_person_firstname` (optional) - Contact person firstname
+     * @param string     `contact_person_lastname`  (optional) - Contact person lastname
+     * @param string     `contact_person_position`  (optional) - Contact person position
+     * @param string     `contact_person_phone`     (optional) - Contact person phone
+     * @param string     `contact_person_phone2`    (optional) - Contact person phone2
+     * @param string     `contact_person_email`     (optional) - Contact person email
+     * @param string     `sector_of_activity`       (optional) - Sector of activity
+     * @param string     `object_type`              (optional) - Object type
+     * @param string     `parent_id`                (optional) - The merchant id
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateMerchant()
@@ -871,9 +904,12 @@ class MerchantAPIController extends ControllerAPI
             $tax_code3 = OrbitInput::post('tax_code3');
             $slogan = OrbitInput::post('slogan');
             $vat_included = OrbitInput::post('vat_included');
-            $contact_person_name = OrbitInput::post('contact_person_name');
+            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
+            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
             $contact_person_position = OrbitInput::post('contact_person_position');
             $contact_person_phone = OrbitInput::post('contact_person_phone');
+            $contact_person_phone2 = OrbitInput::post('contact_person_phone2');
+            $contact_person_email = OrbitInput::post('contact_person_email');
             $sector_of_activity = OrbitInput::post('sector_of_activity');
             $object_type = OrbitInput::post('object_type');
             $parent_id = OrbitInput::post('parent_id');
@@ -935,9 +971,12 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant->tax_code3 = $tax_code3;
             $updatedmerchant->slogan = $slogan;
             $updatedmerchant->vat_included = $vat_included;
-            $updatedmerchant->contact_person_name = $contact_person_name;
+            $updatedmerchant->contact_person_firstname = $contact_person_firstname;
+            $updatedmerchant->contact_person_lastname = $contact_person_lastname;
             $updatedmerchant->contact_person_position = $contact_person_position;
             $updatedmerchant->contact_person_phone = $contact_person_phone;
+            $updatedmerchant->contact_person_phone2 = $contact_person_phone2;
+            $updatedmerchant->contact_person_email = $contact_person_email;
             $updatedmerchant->sector_of_activity = $sector_of_activity;
             $updatedmerchant->object_type = $object_type;
             $updatedmerchant->parent_id = $parent_id;
