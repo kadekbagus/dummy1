@@ -97,12 +97,13 @@ return array(
             'loginfailed' => 'Email or password was wrong.'
         ),
         'empty' => array(
-            'role'          => 'The Role ID you specify is not found.',
-            'user'          => 'The User ID you specify is not found.',
-            'merchant'      => 'The Merchant ID you specify is not found.',
-            'user_status'   => 'The user status you specify is not found.',
-            'user_sortby'   => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
+            'role'              => 'The Role ID you specify is not found.',
+            'user'              => 'The User ID you specify is not found.',
+            'merchant'          => 'The Merchant ID you specify is not found.',
+            'user_status'       => 'The user status you specify is not found.',
+            'user_sortby'       => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'   => 'The merchant status you specify is not found.',
+            'merchant_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, merchant_name, merchant_email, merchant_userid, merchant_description, merchantid, merchant_address1, merchant_address2, merchant_address3, merchant_cityid, merchant_city, merchant_countryid, merchant_country, merchant_phone, merchant_fax, merchant_status, merchant_currency.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
