@@ -93,8 +93,10 @@ return array(
             'username' => 'The username has already taken by someone else.',
         ),
         'access' => array(
-            'forbidden'   => "You do not have permission to :action.",
-            'loginfailed' => 'Email or password was wrong.'
+            'forbidden'         => 'You do not have permission to :action.',
+            'needtologin'       => 'You need to login to view this page.',
+            'loginfailed'       => 'Email or password was wrong.',
+            'tokenmissmatch'    => 'CSRF protection token missmatch.'
         ),
         'empty' => array(
             'role'          => 'The Role ID you specify is not found.',
