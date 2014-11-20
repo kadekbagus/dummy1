@@ -99,12 +99,13 @@ return array(
             'tokenmissmatch'    => 'CSRF protection token missmatch.'
         ),
         'empty' => array(
-            'role'          => 'The Role ID you specify is not found.',
-            'user'          => 'The User ID you specify is not found.',
-            'merchant'      => 'The Merchant ID you specify is not found.',
-            'user_status'   => 'The user status you specify is not found.',
-            'user_sortby'   => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
+            'role'              => 'The Role ID you specify is not found.',
+            'user'              => 'The User ID you specify is not found.',
+            'merchant'          => 'The Merchant ID you specify is not found.',
+            'user_status'       => 'The user status you specify is not found.',
+            'user_sortby'       => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'   => 'The merchant status you specify is not found.',
+            'merchant_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, merchant_name, merchant_email, merchant_userid, merchant_description, merchantid, merchant_address1, merchant_address2, merchant_address3, merchant_cityid, merchant_city, merchant_countryid, merchant_country, merchant_phone, merchant_fax, merchant_status, merchant_currency.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
@@ -112,9 +113,11 @@ return array(
             'delete_user'           => 'delete user',
             'delete_your_self'      => 'delete your self',
             'update_user'           => 'update user',
+            'view_user'             => 'view user',
             'new_merchant'          => 'add new merchant',
             'update_merchant'       => 'update merchant',
             'delete_merchant'       => 'delete merchant',
+            'view_merchant'         => 'view merchant',
         ),
     ),
 
