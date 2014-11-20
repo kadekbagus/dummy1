@@ -44,4 +44,37 @@ class Merchant extends Eloquent
     {
         return $this->retailer();
     }
+
+    public function getPhoneCodeArea($separator='|#|')
+    {
+        $phone = explode($separator, $this->phone);
+
+        if (isset($phone[0])) {
+            return $phone[0];
+        }
+
+        return NULL;
+    }
+
+    public function getPhoneNumber($separator='|#|')
+    {
+        $phone = explode($separator, $this->phone);
+
+        if (isset($phone[1])) {
+            return $phone[1];
+        }
+
+        return NULL;
+    }
+
+    public function getFullPhoneNumber($separator='|#|', $concat=' ')
+    {
+        $phone = explode($separator, $this->phone);
+
+        if (isset($phone[1])) {
+            return $phone[0] . $concat . $phone[1];
+        }
+
+        return $phone[0];
+    }
 }
