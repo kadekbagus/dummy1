@@ -20,7 +20,8 @@ return array(
             'user'      => 'User has been successfully updated.',
         ),
         'nodata'    => array(
-            'user'  => 'There is no user found that matched your criteria.',
+            'user'      => 'There is no user found that matched your criteria.',
+            'merchant'  => 'There is no merchant found that matched your criteria.',
         ),
     )
 );
