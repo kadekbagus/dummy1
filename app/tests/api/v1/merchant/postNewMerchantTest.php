@@ -526,10 +526,47 @@ class postNewMerchantTest extends OrbitTestCase
         $numBefore = Merchant::count();
 
         // Data to be post
-        $_POST['user_id'] = 3;
-        $_POST['email'] = 'george@localhost.org';
-        $_POST['name'] = 'test request ok';
-        $_POST['status'] = 'active';
+        $posted = array(
+            'user_id' => 3,
+            'email' => 'alfabeta@localhost.org',
+            'name' => 'Alfa Beta Market',
+            'status' => 'active',
+            'description' => 'Merchant Description...',
+            'address_line1' => 'Line-1',
+            'address_line2' => 'Line-2',
+            'address_line3' => 'Line-3',
+            'postal_code' => '88888',
+            'city_id' => 1,
+            'city' => 'Surabaya',
+            'country_id' => 62,
+            'country' => 'Indonesia',
+            'phone' => '031|#|222222',
+            'fax'   => '031|#|111111',
+            'start_date_activity' => '2014-10-10 01:01:01',
+            'end_date_activity' => '2014-12-12 01:01:01',
+            'currency' => 'IDR',
+            'currency_symbol' => 'Rp',
+            'tax_code1' => 'tax1',
+            'tax_code2' => 'tax3',
+            'tax_code3' => 'tax3',
+            'slogan' => 'Maju Tak Gentar',
+            'vat_included' => 'yes',
+            'logo'      => '/images/logo/alfa-beta.jpg',
+            'contact_person_firstname' => 'Brudin',
+            'contact_person_lastname'  => 'Cool',
+            'contact_person_position'  => 'Manager',
+            'contact_person_phone'     => '031|#|12345678',
+            'contact_person_phone2'    => '031|#|22345678',
+            'contact_person_email'     => 'brudincool@localhost.org',
+            'sector_of_activity'      => 'Retail',
+            'url'      => 'http://brudin-cool-store.org',
+            'masterbox_number'      => 'MB001',
+            'slavebox_number'       => 'SB001',
+        );
+
+        foreach ($posted as $field=>$value) {
+            $_POST[$field] = $value;
+        }
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -548,12 +585,17 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame(0, (int)$response->code);
         $this->assertSame('success', $response->status);
         $this->assertSame('Request OK', $response->message);
-        $this->assertSame('3', (string)$response->data->user_id);
-        $this->assertSame('george@localhost.org', $response->data->email);
-        $this->assertSame('test request ok', $response->data->name);
-        $this->assertSame('active', $response->data->status);
-        $this->assertSame('3', (string)$response->data->modified_by);
-        $this->assertSame('merchant', (string)$response->data->object_type);
+
+        // Check the inserted data
+        $merchant = Merchant::active()->where('email', 'alfabeta@localhost.org')->first();
+
+        // Check the attribute one by one
+        foreach ($posted as $key=>$value) {
+            $expect = (string)$value;
+            $return = (string)$merchant->$key;
+
+            $this->assertSame($expect, $return);
+        }
 
         $numAfter = Merchant::count();
         $this->assertSame($numBefore + 1, $numAfter);
