@@ -6,6 +6,7 @@ class Merchant extends Eloquent
      * Merchant Model
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      */
 
@@ -76,5 +77,77 @@ class Merchant extends Eloquent
         }
 
         return $phone[0];
+    }
+
+    /**
+     * Contact person phone.
+     */
+    public function getContactPhoneCodeArea($separator='|#|')
+    {
+        $contact_person_phone = explode($separator, $this->contact_person_phone);
+
+        if (isset($contact_person_phone[0])) {
+            return $contact_person_phone[0];
+        }
+
+        return NULL;
+    }
+
+    public function getContactPhoneNumber($separator='|#|')
+    {
+        $contact_person_phone = explode($separator, $this->contact_person_phone);
+
+        if (isset($contact_person_phone[1])) {
+            return $contact_person_phone[1];
+        }
+
+        return NULL;
+    }
+
+    public function getContactFullPhoneNumber($separator='|#|', $concat=' ')
+    {
+        $contact_person_phone = explode($separator, $this->contact_person_phone);
+
+        if (isset($contact_person_phone[1])) {
+            return $contact_person_phone[0] . $concat . $contact_person_phone[1];
+        }
+
+        return $contact_person_phone[0];
+    }
+
+    /**
+     * Contact person phone2.
+     */
+    public function getContact2PhoneCodeArea($separator='|#|')
+    {
+        $contact_person_phone2 = explode($separator, $this->contact_person_phone2);
+
+        if (isset($contact_person_phone2[0])) {
+            return $contact_person_phone2[0];
+        }
+
+        return NULL;
+    }
+
+    public function getContact2PhoneNumber($separator='|#|')
+    {
+        $contact_person_phone2 = explode($separator, $this->contact_person_phone2);
+
+        if (isset($contact_person_phone2[1])) {
+            return $contact_person_phone2[1];
+        }
+
+        return NULL;
+    }
+
+    public function getContact2FullPhoneNumber($separator='|#|', $concat=' ')
+    {
+        $contact_person_phone2 = explode($separator, $this->contact_person_phone2);
+
+        if (isset($contact_person_phone2[1])) {
+            return $contact_person_phone2[0] . $concat . $contact_person_phone2[1];
+        }
+
+        return $contact_person_phone2[0];
     }
 }
