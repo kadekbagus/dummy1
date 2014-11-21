@@ -379,7 +379,7 @@ class getSearchMerchantTest extends OrbitTestCase
                 'tax_code3'                 => 'tx3',
                 'slogan'                    => 'Big Sale Everyday',
                 'vat_included'              => 'yes',
-                'contact_person_name'       => NULL,
+                'contact_person_firstname'  => NULL,
                 'contact_person_position'   => NULL,
                 'contact_person_phone'      => NULL,
                 'sector_of_activity'        => NULL,
@@ -414,7 +414,7 @@ class getSearchMerchantTest extends OrbitTestCase
                 'tax_code3'                 => 'tx3',
                 'slogan'                    => 'I\'m not lovit',
                 'vat_included'              => 'yes',
-                'contact_person_name'       => NULL,
+                'contact_person_firstname'  => NULL,
                 'contact_person_position'   => NULL,
                 'contact_person_phone'      => NULL,
                 'sector_of_activity'        => NULL,
@@ -453,7 +453,7 @@ class getSearchMerchantTest extends OrbitTestCase
             $this->assertSame($expect[$index]['tax_code3'], $return->tax_code3);
             $this->assertSame($expect[$index]['slogan'], $return->slogan);
             $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['contact_person_name'], $return->contact_person_name);
+            $this->assertSame($expect[$index]['contact_person_firstname'], $return->contact_person_firstname);
             $this->assertSame($expect[$index]['contact_person_position'], $return->contact_person_position);
             $this->assertSame($expect[$index]['contact_person_phone'], $return->contact_person_phone);
             $this->assertSame($expect[$index]['contact_person_position'], $return->contact_person_position);
