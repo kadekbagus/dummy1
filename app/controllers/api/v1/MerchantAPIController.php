@@ -148,7 +148,7 @@ class MerchantAPIController extends ControllerAPI
      /**
      * POST - Add new merchant
      *
-     * @author <kadek> <kadek@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -177,14 +177,14 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `tax_code3`               (optional) - Tax code 3
      * @param string     `slogan`                  (optional) - Slogan for the merchant
      * @param string     `vat_included`            (optional) - Vat included
-     * @param string     `contact_person_name`     (optional) - Contact person name
+     * @param string     `contact_person_firstname`(optional) - Contact person first name
+     * @param string     `contact_person_lastname` (optional) - Contact person last name
      * @param string     `contact_person_position` (optional) - Contact person position
      * @param string     `contact_person_phone`    (optional) - Contact person phone
+     * @param string     `contact_person_phone2`   (optional) - Contact person second phone
+     * @param string     `contact_person_email`    (optional) - Contact person email
      * @param string     `sector_of_activity`      (optional) - Sector of activity
      * @param string     `vat_included`            (optional) - Vat included
-     * @param string     `vat_included`            (optional) - Vat included
-     * @param string     `object_type`             (optional) - Object type
-     * @param integer    `parent_id`               (optional) - The merchant id
      * @param string     `url`                     (optional) - Url
      * @param string     `masterbox_number`        (optional) - Masterbox number
      * @param string     `slavebox_number`         (optional) - Slavebox number
