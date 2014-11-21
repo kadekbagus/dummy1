@@ -474,7 +474,7 @@ class MerchantAPIController extends ControllerAPI
                     'sort_by' => 'in:registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency',
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                    'in' => Lang::get('validation.orbit.empty.merchant_sortby'),
                 )
             );
 
