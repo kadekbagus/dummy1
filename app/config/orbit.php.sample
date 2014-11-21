@@ -8,5 +8,29 @@ return array(
                 // How long signature should expires in seconds
                 'expiration' => 60
         )
-    )
+    ),
+
+    'security' => array(
+        'csrf' => array(
+            // Use CSRF protection?
+            'protect'   => TRUE,
+
+            // Name of the form input field to store the token
+            // available mode: `normal` and `angularjs`
+            'mode'      => 'angularjs',
+
+            // CSRF normal mode configuration
+            'normal'    => array(
+                'name'  => 'orbit_token'
+            ),
+
+            // CSRF AngularJS mode configuration
+            // https://docs.angularjs.org/api/ng/service/$http
+            'angularjs' => array(
+                'name'              => 'orbit_token',
+                'header_name'       => 'X-Orbit-Token',
+                'header_name_php'   => 'HTTP_X_ORBIT_TOKEN',
+            ),
+        )
+    ),
 );

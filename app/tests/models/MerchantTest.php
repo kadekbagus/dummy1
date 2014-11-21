@@ -45,18 +45,21 @@ class MerchantTest extends OrbitTestCase
                     (`merchant_id`, `user_id`, `email`, `name`, `description`, `address_line1`, `address_line2`, `address_line3`, `city_id`, `city`, `country_id`, `country`,
                     `phone`, `fax`, `start_date_activity`, `status`, `logo`,
                     `currency`, `currency_symbol`, `tax_code1`, `tax_code2`, `tax_code3`, `slogan`, `vat_included`, `object_type`, `parent_id`,
-                    `created_at`, `updated_at`, `modified_by`, `postal_code`, `contact_person_name`, `contact_person_position`, `contact_person_phone`, `sector_of_activity`,
-                    `url`, `end_date_activity`, `masterbox_number`, `slavebox_number`)
+                    `created_at`, `updated_at`, `modified_by`, `postal_code`, `contact_person_firstname`,
+                    `contact_person_position`, `contact_person_phone`, `sector_of_activity`,
+                    `url`, `end_date_activity`, `masterbox_number`, `slavebox_number`,
+                    `contact_person_lastname`, `contact_person_phone2`, `contact_person_email`
+                    )
                     VALUES
-                    ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 621234, 'Cak Lontong 1', 'Jual Lontong 1', '0123-3456789', 'Retail', 'http://localhost.one/', '2015-02-01 00:00:00', 'M111', 'S111'),
-                    ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 622234, 'Cak Lontong 2', 'Jual Lontong 2', '0123-3456789', 'Retail Lontong 2', 'http://localhost.two/', '2015-02-02 00:00:00', 'M222', 'S222'),
-                    ('3', '2', 'mitra9@localhost.org', 'Mitra 9', 'Super market Bangunan', 'Jl. Tunjungan 03', 'Komplek B3', 'Lantai 03', '10', 'Surabaya', '62', 'Indonesia', '031-6123456', '031-612344', '2012-03-02 01:01:03', 'pending', 'merchants/logo/mitra9.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Belanja Bangunan Nyaman', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 623234, 'Cak Lontong 3', 'Jual Lontong 3', '0123-3456789', 'Retail', 'http://localhost.three/', '2015-02-03 00:00:00', 'M333', 'S333'),
-                    ('4', '1', 'keefce@localhost.org', 'Ke Ef Ce', 'Chicket Fast Food', 'Jl. Tunjungan 04', 'Komplek B4', 'Lantai 04', '10', 'Surabaya', '62', 'Indonesia', '031-5123456', '031-512344', '2012-04-02 01:01:04', 'blocked', 'merchants/logo/keefce1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Bukan Jagonya Ayam!', 'yes', 'merchant', NOW(), NULL, NOW(), 1, 624234, 'Cak Lontong 4', 'Jual Lontong 4', '0123-3456789', 'Retail', 'http://localhost.four/', '2015-02-04 00:00:00', 'M444', 'S444'),
-                    ('5', '1', 'mekdi@localhost.org', 'Mek Di', 'Burger Fast Food', 'Jl. Tunjungan 05', 'Komplek B5', 'Lantai 05', '10', 'Surabaya', '62', 'Indonesia', '031-4123456', '031-412344', '2012-05-02 01:01:05', 'inactive', 'merchants/logo/mekdi1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'I\'m not lovit', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 625234, 'Cak Lontong 5', 'Jual Lontong 5', '0123-3456789', 'Retail', 'http://localhost.five/', '2015-02-05 00:00:00', 'M555', 'S555'),
-                    ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 626234, 'Cak Lontong 6', 'Jual Lontong 6', '0123-3456789', 'Retail', 'http://localhost.six/', '2015-02-07 00:00:00', 'M666', 'S666'),
-                    ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 627234, 'Cak Lontong 7', 'Jual Lontong 7', '0123-3456789', 'Retail', 'http://localhost.seven/', '2015-02-07 00:00:00', 'M777', 'S777'),
-                    ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, NOW(), NOW(), 1, 628234, 'Cak Lontong 8', 'Jual Lontong 8', '0123-3456789', 'Retail', 'http://localhost.eight/', '2015-02-08 00:00:00', 'M888', 'S888'),
-                    ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1, 629234, 'Cak Lontong 9', 'Jual Lontong 9', '0123-3456789', 'Retail', 'http://localhost.nine/', '2015-02-09 00:00:00', 'M999', 'S999')"
+                    ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 621234, 'Cak Lontong 1', 'Jual Lontong 1', '0123-3456789', 'Retail', 'http://localhost.one/', '2015-02-01 00:00:00', 'M111', 'S111', 'Satu', '2123-3456789', 'lontong1@localhost.org'),
+                    ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 622234, 'Cak Lontong 2', 'Jual Lontong 2', '0123-3456789', 'Retail Lontong 2', 'http://localhost.two/', '2015-02-02 00:00:00', 'M222', 'S222', 'Dua', '2223-3456789', 'lontong2@localhost.org'),
+                    ('3', '2', 'mitra9@localhost.org', 'Mitra 9', 'Super market Bangunan', 'Jl. Tunjungan 03', 'Komplek B3', 'Lantai 03', '10', 'Surabaya', '62', 'Indonesia', '031-6123456', '031-612344', '2012-03-02 01:01:03', 'pending', 'merchants/logo/mitra9.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Belanja Bangunan Nyaman', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 623234, 'Cak Lontong 3', 'Jual Lontong 3', '0123-3456789', 'Retail', 'http://localhost.three/', '2015-02-03 00:00:00', 'M333', 'S333', 'Tiga', '2323-3456789', 'lontong3@localhost.org'),
+                    ('4', '1', 'keefce@localhost.org', 'Ke Ef Ce', 'Chicket Fast Food', 'Jl. Tunjungan 04', 'Komplek B4', 'Lantai 04', '10', 'Surabaya', '62', 'Indonesia', '031-5123456', '031-512344', '2012-04-02 01:01:04', 'blocked', 'merchants/logo/keefce1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Bukan Jagonya Ayam!', 'yes', 'merchant', NOW(), NULL, NOW(), 1, 624234, 'Cak Lontong 4', 'Jual Lontong 4', '0123-3456789', 'Retail', 'http://localhost.four/', '2015-02-04 00:00:00', 'M444', 'S444', 'Satu', '2423-3456789', 'lontong4@localhost.org'),
+                    ('5', '1', 'mekdi@localhost.org', 'Mek Di', 'Burger Fast Food', 'Jl. Tunjungan 05', 'Komplek B5', 'Lantai 05', '10', 'Surabaya', '62', 'Indonesia', '031-4123456', '031-412344', '2012-05-02 01:01:05', 'inactive', 'merchants/logo/mekdi1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'I\'m not lovit', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 625234, 'Cak Lontong 5', 'Jual Lontong 5', '0123-3456789', 'Retail', 'http://localhost.five/', '2015-02-05 00:00:00', 'M555', 'S555', 'Lima', '2523-3456789', 'lontong5@localhost.org'),
+                    ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 626234, 'Cak Lontong 6', 'Jual Lontong 6', '0123-3456789', 'Retail', 'http://localhost.six/', '2015-02-07 00:00:00', 'M666', 'S666', 'Enam', '2623-3456789', 'lontong6@localhost.org'),
+                    ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 627234, 'Cak Lontong 7', 'Jual Lontong 7', '0123-3456789', 'Retail', 'http://localhost.seven/', '2015-02-07 00:00:00', 'M777', 'S777', 'Tujuh', '2723-3456789', 'lontong7@localhost.org'),
+                    ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, NOW(), NOW(), 1, 628234, 'Cak Lontong 8', 'Jual Lontong 8', '0123-3456789', 'Retail', 'http://localhost.eight/', '2015-02-08 00:00:00', 'M888', 'S888', 'Delapan', '2823-3456789', 'lontong8@localhost.org'),
+                    ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1, 629234, 'Cak Lontong 9', 'Jual Lontong 9', '0123-3456789', 'Retail', 'http://localhost.nine/', '2015-02-09 00:00:00', 'M999', 'S999', 'Sembilan', '2923-3456789', 'lontong9@localhost.org')"
         );
     }
 
@@ -170,9 +173,12 @@ class MerchantTest extends OrbitTestCase
         $this->assertSame('merchant', $merchant->object_type);
         $this->assertSame('1', (string)$merchant->modified_by);
         $this->assertSame('622234', (string)$merchant->postal_code);
-        $this->assertSame('Cak Lontong 2', (string)$merchant->contact_person_name);
+        $this->assertSame('Cak Lontong 2', (string)$merchant->contact_person_firstname);
+        $this->assertSame('Dua', (string)$merchant->contact_person_lastname);
         $this->assertSame('Jual Lontong 2', (string)$merchant->contact_person_position);
         $this->assertSame('0123-3456789', (string)$merchant->contact_person_phone);
+        $this->assertSame('2223-3456789', (string)$merchant->contact_person_phone2);
+        $this->assertSame('lontong2@localhost.org', (string)$merchant->contact_person_email);
         $this->assertSame('Retail Lontong 2', (string)$merchant->sector_of_activity);
         $this->assertSame('http://localhost.two/', $merchant->url);
         $this->assertSame('2015-02-02 00:00:00', $merchant->end_date_activity);
@@ -197,9 +203,12 @@ class MerchantTest extends OrbitTestCase
         $merchant->name = 'Texas Chicken';
         $merchant->description = 'Mantab';
         $merchant->modified_by = 1;
-        $merchant->contact_person_name = 'Brudin';
+        $merchant->contact_person_firstname = 'Brudin';
+        $merchant->contact_person_lastname = 'Cool';
         $merchant->contact_person_position = 'Joker';
-        $merchant->contact_person_phone = '777-7777';
+        $merchant->contact_person_phone = '777|#|71717171';
+        $merchant->contact_person_phone2 = '999|#|9191919';
+        $merchant->contact_person_email = 'brudin@localhost.org';
         $merchant->sector_of_activity = 'Entertainment';
         $merchant->url = 'http://localhost.ten/';
         $merchant->end_date_activity = '2015-02-10 00:00:00';
@@ -217,9 +226,12 @@ class MerchantTest extends OrbitTestCase
         $this->assertSame($merchant->description, $merchant2->description);
         $this->assertSame('merchant', $merchant2->object_type);
         $this->assertSame('1', (string)$merchant->modified_by);
-        $this->assertSame('Brudin', $merchant->contact_person_name);
+        $this->assertSame('Brudin', $merchant->contact_person_firstname);
+        $this->assertSame('Cool', $merchant->contact_person_lastname);
         $this->assertSame('Joker', $merchant->contact_person_position);
-        $this->assertSame('777-7777', $merchant->contact_person_phone);
+        $this->assertSame('777|#|71717171', $merchant->contact_person_phone);
+        $this->assertSame('999|#|9191919', $merchant->contact_person_phone2);
+        $this->assertSame('brudin@localhost.org', $merchant->contact_person_email);
         $this->assertSame('Entertainment', $merchant->sector_of_activity);
         $this->assertSame('http://localhost.ten/', $merchant->url);
         $this->assertSame('2015-02-10 00:00:00', $merchant->end_date_activity);

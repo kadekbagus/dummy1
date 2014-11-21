@@ -14,7 +14,8 @@ if (! defined('DS')) {
 |
 */
 $orbit_additional_classmap = array(
-    __DIR__ . DS . 'controllers' . DS . 'api' . DS . 'v1'
+    __DIR__ . DS . 'controllers' . DS . 'api' . DS . 'v1',
+    __DIR__ . DS . 'controllers' . DS . 'intermediate' . DS . 'v1'
 );
 ClassLoader::addDirectories($orbit_additional_classmap);
 ClassLoader::register();

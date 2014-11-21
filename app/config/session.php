@@ -29,7 +29,7 @@ return array(
 	|
 	*/
 
-	'lifetime' => 120,
+	'lifetime' => 60 * 24 * 720,    // two years
 
 	'expire_on_close' => false,
 
@@ -96,7 +96,7 @@ return array(
 	|
 	*/
 
-	'cookie' => 'laravel_session',
+	'cookie' => 'orbit_session',
 
 	/*
 	|--------------------------------------------------------------------------
