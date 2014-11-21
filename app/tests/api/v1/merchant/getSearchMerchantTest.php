@@ -354,8 +354,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'               => 7,
-                'user_id'                   => 3,
+                'merchant_id'               => '7',
+                'user_id'                   => '3',
                 'email'                     => 'matabulan@localhost.org',
                 'name'                      => 'Mata Bulan',
                 'description'               => 'Tempat Beli Baju',
@@ -363,9 +363,9 @@ class getSearchMerchantTest extends OrbitTestCase
                 'address_line2'             => 'Komplek B7',
                 'address_line3'             => 'Lantai 07',
                 'postal_code'               => NULL,
-                'city_id'                   => 10,
+                'city_id'                   => '10',
                 'city'                      => 'Surabaya',
-                'country_id'                => 62,
+                'country_id'                => '62',
                 'country'                   => 'Indonesia',
                 'phone'                     => '031-2123456',
                 'fax'                       => '031-212344',
@@ -385,12 +385,12 @@ class getSearchMerchantTest extends OrbitTestCase
                 'sector_of_activity'        => NULL,
                 'object_type'               => 'merchant',
                 'parent_id'                 => NULL,
-                'modified_by'               => 1,
+                'modified_by'               => '1',
                 'created_at'                => '2014-11-20 06:30:07'
             ),
             array(
-                'merchant_id'               => 5,
-                'user_id'                   => 1,
+                'merchant_id'               => '5',
+                'user_id'                   => '1',
                 'email'                     => 'mekdi@localhost.org',
                 'name'                      => 'Mek Di',
                 'description'               => 'Burger Fast Food',
@@ -398,9 +398,9 @@ class getSearchMerchantTest extends OrbitTestCase
                 'address_line2'             => 'Komplek B5',
                 'address_line3'             => 'Lantai 05',
                 'postal_code'               => NULL,
-                'city_id'                   => 10,
+                'city_id'                   => '10',
                 'city'                      => 'Surabaya',
-                'country_id'                => 62,
+                'country_id'                => '62',
                 'country'                   => 'Indonesia',
                 'phone'                     => '031-4123456',
                 'fax'                       => '031-412344',
@@ -420,7 +420,7 @@ class getSearchMerchantTest extends OrbitTestCase
                 'sector_of_activity'        => NULL,
                 'object_type'               => 'merchant',
                 'parent_id'                 => NULL,
-                'modified_by'               => 1,
+                'modified_by'               => '1',
                 'created_at'                => '2014-11-20 06:30:05'
             )
         );
@@ -428,40 +428,40 @@ class getSearchMerchantTest extends OrbitTestCase
         // It is ordered by registered date by default so 1) Mata Bulan 2) Mek Di
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['description'], $return->description);
-            $this->assertSame($expect[$index]['address_line1'], $return->address_line1);
-            $this->assertSame($expect[$index]['address_line2'], $return->address_line2);
-            $this->assertSame($expect[$index]['address_line3'], $return->address_line3);
-            $this->assertSame($expect[$index]['postal_code'], $return->postal_code);
-            $this->assertSame($expect[$index]['city_id'], $return->city_id);
-            $this->assertSame($expect[$index]['city'], $return->city);
-            $this->assertSame($expect[$index]['country_id'], $return->country_id);
-            $this->assertSame($expect[$index]['country'], $return->country);
-            $this->assertSame($expect[$index]['phone'], $return->phone);
-            $this->assertSame($expect[$index]['fax'], $return->fax);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['status'], $return->status);
-            $this->assertSame($expect[$index]['logo'], $return->logo);
-            $this->assertSame($expect[$index]['currency'], $return->currency);
-            $this->assertSame($expect[$index]['currency_symbol'], $return->currency_symbol);
-            $this->assertSame($expect[$index]['tax_code1'], $return->tax_code1);
-            $this->assertSame($expect[$index]['tax_code2'], $return->tax_code2);
-            $this->assertSame($expect[$index]['tax_code3'], $return->tax_code3);
-            $this->assertSame($expect[$index]['slogan'], $return->slogan);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['contact_person_firstname'], $return->contact_person_firstname);
-            $this->assertSame($expect[$index]['contact_person_position'], $return->contact_person_position);
-            $this->assertSame($expect[$index]['contact_person_phone'], $return->contact_person_phone);
-            $this->assertSame($expect[$index]['contact_person_position'], $return->contact_person_position);
-            $this->assertSame($expect[$index]['sector_of_activity'], $return->sector_of_activity);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
-            $this->assertSame($expect[$index]['modified_by'], $return->modified_by);
-            $this->assertSame($expect[$index]['created_at'], $return->created_at);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['description'], (string)$return->description);
+            $this->assertSame((string)$expect[$index]['address_line1'], (string)$return->address_line1);
+            $this->assertSame((string)$expect[$index]['address_line2'], (string)$return->address_line2);
+            $this->assertSame((string)$expect[$index]['address_line3'], (string)$return->address_line3);
+            $this->assertSame((string)$expect[$index]['postal_code'], (string)$return->postal_code);
+            $this->assertSame((string)$expect[$index]['city_id'], (string)$return->city_id);
+            $this->assertSame((string)$expect[$index]['city'], (string)$return->city);
+            $this->assertSame((string)$expect[$index]['country_id'], (string)$return->country_id);
+            $this->assertSame((string)$expect[$index]['country'], (string)$return->country);
+            $this->assertSame((string)$expect[$index]['phone'], (string)$return->phone);
+            $this->assertSame((string)$expect[$index]['fax'], (string)$return->fax);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['status'], (string)$return->status);
+            $this->assertSame((string)$expect[$index]['logo'], (string)$return->logo);
+            $this->assertSame((string)$expect[$index]['currency'], (string)$return->currency);
+            $this->assertSame((string)$expect[$index]['currency_symbol'], (string)$return->currency_symbol);
+            $this->assertSame((string)$expect[$index]['tax_code1'], (string)$return->tax_code1);
+            $this->assertSame((string)$expect[$index]['tax_code2'], (string)$return->tax_code2);
+            $this->assertSame((string)$expect[$index]['tax_code3'], (string)$return->tax_code3);
+            $this->assertSame((string)$expect[$index]['slogan'], (string)$return->slogan);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['contact_person_firstname'], (string)$return->contact_person_firstname);
+            $this->assertSame((string)$expect[$index]['contact_person_position'], (string)$return->contact_person_position);
+            $this->assertSame((string)$expect[$index]['contact_person_phone'], (string)$return->contact_person_phone);
+            $this->assertSame((string)$expect[$index]['contact_person_position'], (string)$return->contact_person_position);
+            $this->assertSame((string)$expect[$index]['sector_of_activity'], (string)$return->sector_of_activity);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
+            $this->assertSame((string)$expect[$index]['modified_by'], (string)$return->modified_by);
+            $this->assertSame((string)$expect[$index]['created_at'], (string)$return->created_at);
         }
     }
 
@@ -501,8 +501,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'         => 7,
-                'user_id'             => 3,
+                'merchant_id'         => '7',
+                'user_id'             => '3',
                 'email'               => 'matabulan@localhost.org',
                 'name'                => 'Mata Bulan',
                 'start_date_activity' => '2012-07-02 01:01:06',
@@ -511,8 +511,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 5,
-                'user_id'             => 1,
+                'merchant_id'         => '5',
+                'user_id'             => '1',
                 'email'               => 'mekdi@localhost.org',
                 'name'                => 'Mek Di',
                 'start_date_activity' => '2012-05-02 01:01:05',
@@ -521,8 +521,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 4,
-                'user_id'             => 1,
+                'merchant_id'         => '4',
+                'user_id'             => '1',
                 'email'               => 'keefce@localhost.org',
                 'name'                => 'Ke Ef Ce',
                 'start_date_activity' => '2012-04-02 01:01:04',
@@ -531,8 +531,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 3,
-                'user_id'             => 2,
+                'merchant_id'         => '3',
+                'user_id'             => '2',
                 'email'               => 'mitra9@localhost.org',
                 'name'                => 'Mitra 9',
                 'start_date_activity' => '2012-03-02 01:01:03',
@@ -541,8 +541,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 2,
-                'user_id'             => 3,
+                'merchant_id'         => '2',
+                'user_id'             => '3',
                 'email'               => 'indomer@localhost.org',
                 'name'                => 'Indo Mer',
                 'start_date_activity' => '2012-02-02 01:01:02',
@@ -551,8 +551,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 1,
-                'user_id'             => 2,
+                'merchant_id'         => '1',
+                'user_id'             => '2',
                 'email'               => 'alfamer@localhost.org',
                 'name'                => 'Alfa Mer',
                 'start_date_activity' => '2012-01-02 01:01:01',
@@ -566,14 +566,14 @@ class getSearchMerchantTest extends OrbitTestCase
         // 7-Mata Bulan, 5-Mek Di, 4-Ke Ef Ce, 3-Mitra 9, 2-Indo Mer, 1-Alfa Mer
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
         }
     }
 
@@ -647,8 +647,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'         => 7,
-                'user_id'             => 3,
+                'merchant_id'         => '7',
+                'user_id'             => '3',
                 'email'               => 'matabulan@localhost.org',
                 'name'                => 'Mata Bulan',
                 'start_date_activity' => '2012-07-02 01:01:06',
@@ -657,8 +657,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 5,
-                'user_id'             => 1,
+                'merchant_id'         => '5',
+                'user_id'             => '1',
                 'email'               => 'mekdi@localhost.org',
                 'name'                => 'Mek Di',
                 'start_date_activity' => '2012-05-02 01:01:05',
@@ -667,8 +667,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 4,
-                'user_id'             => 1,
+                'merchant_id'         => '4',
+                'user_id'             => '1',
                 'email'               => 'keefce@localhost.org',
                 'name'                => 'Ke Ef Ce',
                 'start_date_activity' => '2012-04-02 01:01:04',
@@ -677,8 +677,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 3,
-                'user_id'             => 2,
+                'merchant_id'         => '3',
+                'user_id'             => '2',
                 'email'               => 'mitra9@localhost.org',
                 'name'                => 'Mitra 9',
                 'start_date_activity' => '2012-03-02 01:01:03',
@@ -687,8 +687,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 2,
-                'user_id'             => 3,
+                'merchant_id'         => '2',
+                'user_id'             => '3',
                 'email'               => 'indomer@localhost.org',
                 'name'                => 'Indo Mer',
                 'start_date_activity' => '2012-02-02 01:01:02',
@@ -697,8 +697,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 1,
-                'user_id'             => 2,
+                'merchant_id'         => '1',
+                'user_id'             => '2',
                 'email'               => 'alfamer@localhost.org',
                 'name'                => 'Alfa Mer',
                 'start_date_activity' => '2012-01-02 01:01:01',
@@ -712,14 +712,14 @@ class getSearchMerchantTest extends OrbitTestCase
         // 7-Mata Bulan, 5-Mek Di, 4-Ke Ef Ce, 3-Mitra 9, 2-Indo Mer, 1-Alfa Mer
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
         }
     }
 
@@ -761,8 +761,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'         => 1,
-                'user_id'             => 2,
+                'merchant_id'         => '1',
+                'user_id'             => '2',
                 'email'               => 'alfamer@localhost.org',
                 'name'                => 'Alfa Mer',
                 'start_date_activity' => '2012-01-02 01:01:01',
@@ -771,8 +771,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 2,
-                'user_id'             => 3,
+                'merchant_id'         => '2',
+                'user_id'             => '3',
                 'email'               => 'indomer@localhost.org',
                 'name'                => 'Indo Mer',
                 'start_date_activity' => '2012-02-02 01:01:02',
@@ -781,8 +781,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 3,
-                'user_id'             => 2,
+                'merchant_id'         => '3',
+                'user_id'             => '2',
                 'email'               => 'mitra9@localhost.org',
                 'name'                => 'Mitra 9',
                 'start_date_activity' => '2012-03-02 01:01:03',
@@ -791,8 +791,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 4,
-                'user_id'             => 1,
+                'merchant_id'         => '4',
+                'user_id'             => '1',
                 'email'               => 'keefce@localhost.org',
                 'name'                => 'Ke Ef Ce',
                 'start_date_activity' => '2012-04-02 01:01:04',
@@ -801,8 +801,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 5,
-                'user_id'             => 1,
+                'merchant_id'         => '5',
+                'user_id'             => '1',
                 'email'               => 'mekdi@localhost.org',
                 'name'                => 'Mek Di',
                 'start_date_activity' => '2012-05-02 01:01:05',
@@ -811,8 +811,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 7,
-                'user_id'             => 3,
+                'merchant_id'         => '7',
+                'user_id'             => '3',
                 'email'               => 'matabulan@localhost.org',
                 'name'                => 'Mata Bulan',
                 'start_date_activity' => '2012-07-02 01:01:06',
@@ -826,14 +826,14 @@ class getSearchMerchantTest extends OrbitTestCase
         // 1-Alfa Mer, 2-Indo Mer, 3-Mitra 9, 4-Ke Ef Ce, 5-Mek Di, 7-Mata Bulan
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
         }
     }
 
@@ -876,8 +876,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'         => 5,
-                'user_id'             => 1,
+                'merchant_id'         => '5',
+                'user_id'             => '1',
                 'email'               => 'mekdi@localhost.org',
                 'name'                => 'Mek Di',
                 'start_date_activity' => '2012-05-02 01:01:05',
@@ -886,8 +886,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 2,
-                'user_id'             => 3,
+                'merchant_id'         => '2',
+                'user_id'             => '3',
                 'email'               => 'indomer@localhost.org',
                 'name'                => 'Indo Mer',
                 'start_date_activity' => '2012-02-02 01:01:02',
@@ -899,14 +899,14 @@ class getSearchMerchantTest extends OrbitTestCase
 
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
         }
     }
 
@@ -949,8 +949,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'         => 2,
-                'user_id'             => 3,
+                'merchant_id'         => '2',
+                'user_id'             => '3',
                 'email'               => 'indomer@localhost.org',
                 'name'                => 'Indo Mer',
                 'start_date_activity' => '2012-02-02 01:01:02',
@@ -959,8 +959,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'parent_id'           => NULL
             ),
             array(
-                'merchant_id'         => 5,
-                'user_id'             => 1,
+                'merchant_id'         => '5',
+                'user_id'             => '1',
                 'email'               => 'mekdi@localhost.org',
                 'name'                => 'Mek Di',
                 'start_date_activity' => '2012-05-02 01:01:05',
@@ -973,14 +973,14 @@ class getSearchMerchantTest extends OrbitTestCase
         // checking data.
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
         }
     }
 
@@ -1024,8 +1024,8 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
-                'merchant_id'         => 3,
-                'user_id'             => 2,
+                'merchant_id'         => '3',
+                'user_id'             => '2',
                 'email'               => 'mitra9@localhost.org',
                 'name'                => 'Mitra 9',
                 'start_date_activity' => '2012-03-02 01:01:03',
@@ -1038,14 +1038,14 @@ class getSearchMerchantTest extends OrbitTestCase
         // checking data.
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['merchant_id'], $return->merchant_id);
-            $this->assertSame($expect[$index]['user_id'], $return->user_id);
-            $this->assertSame($expect[$index]['email'], $return->email);
-            $this->assertSame($expect[$index]['name'], $return->name);
-            $this->assertSame($expect[$index]['start_date_activity'], $return->start_date_activity);
-            $this->assertSame($expect[$index]['vat_included'], $return->vat_included);
-            $this->assertSame($expect[$index]['object_type'], $return->object_type);
-            $this->assertSame($expect[$index]['parent_id'], $return->parent_id);
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
         }
     }
 
