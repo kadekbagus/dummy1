@@ -33,4 +33,94 @@ return array(
             ),
         )
     ),
+
+    'upload'    => array(
+        'merchant'  => array(
+                // Allowed Extension
+                'file_type'     => array('jpg', 'png'),
+
+                // Allowed Mimetype
+                'mime_type'     => array('image/jpeg', 'image/png'),
+
+                // Maximum file size allowed in kilo bytes
+                'file_size'     => 50,
+
+                // The target path which file to be stored, relative to /public
+                'path'          => 'uploads',
+
+                // Keeping the aspect ratio
+                'keep_aspect_ratio' => TRUE,
+
+                // Resize the image
+                'resize_image'      => TRUE,
+
+                // Crop the image
+                'crop_image'        => TRUE,
+
+                // Scale the image
+                'scale_image'       => FALSE,
+
+                // Name suffix of the generated image
+                'suffix'            => '',
+
+                // Resize the image
+                'resize'        => array(
+                    'width'     => 200,
+                    'height'    => 200
+                ),
+
+                // Crop the image
+                'crop'          => array(
+                    'width'     => 64,
+                    'height'    => 64,
+                ),
+
+                // Scale the image in percent
+                'scale'         => 50,
+        ),
+        'retailer'  => array(
+            'logo'  => array(
+                // Allowed Extension
+                'file_type'     => array('jpg', 'png'),
+
+                // Allowed Mimetype
+                'mime_type'     => array('image/jpeg', 'image/png'),
+
+                // Maximum file size allowed in kilo bytes
+                'file_size'     => 50,
+
+                // The target path which file to be stored, relative to /public
+                'path'          => 'uploads',
+
+                // Keeping the aspect ratio
+                'keep_aspect_ratio' => TRUE,
+
+                // Resize the image
+                'resize_image'      => TRUE,
+
+                // Crop the image
+                'crop_image'        => TRUE,
+
+                // Scale the image
+                'scale_image'       => FALSE,
+
+                // Name suffix of the generated image
+                'suffix'            => '',
+
+                // Resize the image
+                'resize'        => array(
+                    'width'     => 200,
+                    'height'    => 200
+                ),
+
+                // Crop the image
+                'crop'          => array(
+                    'width'     => 64,
+                    'height'    => 64,
+                ),
+
+                // Scale the image in percent
+                'scale'         => 50,
+        ),
+    ),
 );
