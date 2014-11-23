@@ -42,8 +42,8 @@ return array(
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
 
-                // Maximum file size allowed in kilo bytes
-                'file_size'     => 50,
+                // Maximum file size allowed in bytes
+                'file_size'     => 100000,
 
                 // The target path which file to be stored, relative to /public
                 'path'          => 'uploads',
@@ -86,8 +86,8 @@ return array(
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
 
-                // Maximum file size allowed in kilo bytes
-                'file_size'     => 50,
+                // Maximum file size allowed in bytes
+                'file_size'     => 100000,
 
                 // The target path which file to be stored, relative to /public
                 'path'          => 'uploads',
