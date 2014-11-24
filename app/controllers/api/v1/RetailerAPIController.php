@@ -938,5 +938,20 @@ class RetailerAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // Check user email address, it should not exists
+        Validator::extend('orbit.exists.email', function ($attribute, $value, $parameters) {
+            $retailer = Retailer::excludeDeleted()
+                        ->where('email', $value)
+                        ->first();
+
+            if (! empty($retailer)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.retailer', $retailer);
+
+            return TRUE;
+        });
     }
 }
