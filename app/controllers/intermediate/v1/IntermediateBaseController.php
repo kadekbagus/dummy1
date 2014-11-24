@@ -121,6 +121,7 @@ class IntermediateBaseController extends Controller
                 // http://enable-cors.org/index.html
                 $this->customHeaders['Access-Control-Allow-Origin'] = '*';
                 $this->customHeaders['Access-Control-Allow-Methods'] = 'GET, POST';
+                $this->customHeaders['Access-Control-Allow-Credentials'] = 'true';
 
                 $angularTokenName = Config::get('orbit.security.csrf.angularjs.header_name');
                 $allowHeaders = array(
@@ -130,9 +131,12 @@ class IntermediateBaseController extends Controller
                     'Authorization',
                     'X-Request-With',
                     'X-Orbit-Signature',
-                    $angularTokenName
-
+                    'Cookie'
                 );
+                if (! empty($angularTokenName)) {
+                    $allowHeaders[] = $angularTokenName;
+                }
+
                 $this->customHeaders['Access-Control-Allow-Headers'] = implode(',', $allowHeaders);
         }
 
