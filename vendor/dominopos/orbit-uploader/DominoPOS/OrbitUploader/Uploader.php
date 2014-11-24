@@ -147,7 +147,7 @@ class Uploader
                     $this->message->getMessage('no_write_access'),
                     static::NO_WRITE_ACCESS
                 );
-            }
+                }
 
             // Call the before saving callback
             $before_saving = $this->config->getConfig('before_saving');
