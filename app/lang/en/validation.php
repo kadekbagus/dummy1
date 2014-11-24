@@ -90,7 +90,10 @@ return array(
             'exists' => 'The email address has already taken by someone else.',
         ),
         'exists' => array(
-            'username' => 'The username has already taken by someone else.',
+            'username'  => 'The username has already taken by someone else.',
+            'email'     => 'Email address has been taken.',
+            'omid'      => 'OMID has already taken by another Merchant.',
+            'orid'      => 'ORID has already taken by another Retailer.'
         ),
         'access' => array(
             'forbidden'         => 'You do not have permission to :action.',
