@@ -4,8 +4,8 @@
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
-use UploaderConfig;
-use UploaderMessage;
+use \DominoPOS\OrbitUploader\UploaderConfig;
+use \DominoPOS\OrbitUploader\UploaderMessage;
 use \Exception;
 
 class Uploader
@@ -34,13 +34,13 @@ class Uploader
     /**
      * List of static error codes
      */
-    public static const ERR_UNKNOWN = 31
-    public static const ERR_NO_FILE = 32;
-    public static const ERR_SIZE_LIMIT = 33;
-    public static const ERR_FILE_EXTENSION = 34;
-    public static const ERR_FILE_MIME = 35;
-    public static const ERR_NOWRITE_ACCESS = 36;
-    public static const ERR_MOVING_UPLOAD_FILE = 37;
+    const ERR_UNKNOWN = 31;
+    const ERR_NO_FILE = 32;
+    const ERR_SIZE_LIMIT = 33;
+    const ERR_FILE_EXTENSION = 34;
+    const ERR_FILE_MIME = 35;
+    const ERR_NOWRITE_ACCESS = 36;
+    const ERR_MOVING_UPLOAD_FILE = 37;
 
     /**
      * Class constructor for passing the Uploader config and UploaderMessage
@@ -85,7 +85,10 @@ class Uploader
                     break;
 
                 case UPLOAD_ERROR_NO_FILE:
-                    throw new Exception($this->message->getConfig('no_file_uploaded']), static:ERR_NO_FILE);
+                    throw new Exception(
+                        $this->message->getConfig('no_file_uploaded'),
+                        static::ERR_NO_FILE
+                    );
                     break;
 
                 case UPLOAD_ERR_INI_SIZE:
@@ -98,7 +101,10 @@ class Uploader
                     throw new Exception($message, static::ERR_SIZE_LIMIT);
 
                 default:
-                    throw new Exception($this->message->getMessage('unknown_error', static::ERR_UNKNOWN);
+                    throw new Exception(
+                        $this->message->getMessage('unknown_error'),
+                        static::ERR_UNKNOWN
+                    );
             }
 
             $result[$i] = array();
@@ -152,7 +158,7 @@ class Uploader
             // Call the before saving callback
             $before_saving = $this->config->getConfig('before_saving');
             if (is_callable($before_saving)) {
-                $before_saving($this, &$file, &$targetDir);
+                $before_saving($this, $file, $targetDir);
             }
 
             // Apply suffix to the file name
@@ -161,7 +167,7 @@ class Uploader
 
             // If suffix is a callback then run it
             if (is_callable($suffix)) {
-                $suffix($this, &$file, &$newFileName);
+                $suffix($this, $file, $newFileName);
             } else {
                 $fileNameOnly = pathinfo($origFileName, PATHINFO_FILENAME);
                 $newFileName = $fileNameOnly . $suffix . '.' . $ext;
