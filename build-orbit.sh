@@ -29,11 +29,10 @@ echo "Running artisan migrate for testing..."
 php artisan --env=testing migrate
 echo ""
 
-phpunit -c phpunit-nocolor.xml && {
-  echo "-------------------------------------------------------"
-  echo " Deploying Orbit API Application"
-  echo "-------------------------------------------------------"
-  [ ! -z "$ORBIT_DEPLOY_DIR" ] && {
+echo "-------------------------------------------------------"
+echo " Deploying Orbit API Application"
+echo "-------------------------------------------------------"
+[ ! -z "$ORBIT_DEPLOY_DIR" ] && {
     echo "Running deployment as " $( whoami )
     echo "Deploying application to ${ORBIT_DEPLOY_DIR}..."
 
@@ -46,5 +45,6 @@ phpunit -c phpunit-nocolor.xml && {
 
     # Change the ownership back to orbitshop:git
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR orbitshop )
-  }
 }
+
+phpunit -c phpunit-nocolor.xml
