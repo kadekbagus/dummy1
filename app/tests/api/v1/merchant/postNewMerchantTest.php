@@ -680,6 +680,7 @@ class postNewMerchantTest extends OrbitTestCase
 
         // Data to be post
         $_POST['user_id'] = 3;
+        $_POST['omid'] = 'M09';
         $_POST['email'] = 'george2@localhost.org';
         $_POST['name'] = 'test saved then rollback';
         $_POST['status'] = 'active';

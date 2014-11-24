@@ -43,7 +43,7 @@ class Merchant extends Eloquent
 
     public function children()
     {
-        return $this->retailer();
+        return $this->retailers();
     }
 
     public function getPhoneCodeArea($separator='|#|')
