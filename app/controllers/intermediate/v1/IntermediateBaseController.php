@@ -119,7 +119,7 @@ class IntermediateBaseController extends Controller
 
                 // Allow Cross-Domain Request
                 // http://enable-cors.org/index.html
-                $this->customHeaders['Access-Control-Allow-Origin'] = '*';
+                $this->customHeaders['Access-Control-Allow-Origin'] = 'http://frontend.dominopos.dev/';
                 $this->customHeaders['Access-Control-Allow-Methods'] = 'GET, POST';
                 $this->customHeaders['Access-Control-Allow-Credentials'] = 'true';
 
