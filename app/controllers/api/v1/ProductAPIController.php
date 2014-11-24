@@ -209,7 +209,7 @@ class ProductAPIController extends ControllerAPI
      * @return Illuminate\Support\Facades\Response
      */
 
-    public function getSearchMerchant()
+    public function getSearchProduct()
     {
         try {
             $httpCode = 200;
@@ -265,7 +265,7 @@ class ProductAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Merchant::excludeDeleted();
+            $products = Product::excludeDeleted();
 
             // Filter product by Ids
             OrbitInput::get('product_id', function($productIds) use ($products)
