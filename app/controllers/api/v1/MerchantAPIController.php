@@ -396,50 +396,53 @@ class MerchantAPIController extends ControllerAPI
      * GET - Search merchant
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sort_by`                       (optional) - column order by
-     * @param string   `sort_mode`                     (optional) - asc or desc
-     * @param integer  `take`                          (optional) - limit
-     * @param integer  `skip`                          (optional) - limit offset
-     * @param integer  `merchant_id`                   (optional)
-     * @param integer  `user_id`                       (optional)
-     * @param string   `email`                         (optional)
-     * @param string   `name`                          (optional)
-     * @param string   `description`                   (optional)
-     * @param string   `address1`                      (optional)
-     * @param string   `address2`                      (optional)
-     * @param string   `address3`                      (optional)
-     * @param integer  `postal_code`                   (optional) - Postal code
-     * @param string   `city_id`                       (optional)
-     * @param string   `city`                          (optional)
-     * @param string   `country_id`                    (optional)
-     * @param string   `country`                       (optional)
-     * @param string   `phone`                         (optional)
-     * @param string   `fax`                           (optional)
-     * @param string   `status`                        (optional)
-     * @param string   `currency`                      (optional)
-     * @param string   `name_like`                     (optional)
-     * @param string   `email_like`                    (optional)
-     * @param string   `description_like`              (optional)
-     * @param string   `address1_like`                 (optional)
-     * @param string   `address2_like`                 (optional)
-     * @param string   `address3_like`                 (optional)
-     * @param string   `city_like`                     (optional)
-     * @param string   `country_like`                  (optional)
-     * @param string   `contact_person_firstname`      (optional) - Contact person firstname
-     * @param string   `contact_person_firstname_like` (optional) - Contact person firstname like
-     * @param string   `contact_person_lastname`       (optional) - Contact person lastname
-     * @param string   `contact_person_lastname_like`  (optional) - Contact person lastname like
-     * @param string   `contact_person_position`       (optional) - Contact person position
-     * @param string   `contact_person_position_like`  (optional) - Contact person position like
-     * @param string   `contact_person_phone`          (optional) - Contact person phone
-     * @param string   `contact_person_phone2`         (optional) - Contact person phone2
-     * @param string   `contact_person_email`          (optional) - Contact person email
-     * @param string   `url`                           (optional) - Url
-     * @param string   `masterbox_number`              (optional) - Masterbox number
-     * @param string   `slavebox_number`               (optional) - Slavebox number
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `user_id`                       (optional)
+     * @param string            `email`                         (optional)
+     * @param string            `name`                          (optional)
+     * @param string            `description`                   (optional)
+     * @param string            `address1`                      (optional)
+     * @param string            `address2`                      (optional)
+     * @param string            `address3`                      (optional)
+     * @param integer           `postal_code`                   (optional) - Postal code
+     * @param string            `city_id`                       (optional)
+     * @param string            `city`                          (optional)
+     * @param string            `country_id`                    (optional)
+     * @param string            `country`                       (optional)
+     * @param string            `phone`                         (optional)
+     * @param string            `fax`                           (optional)
+     * @param string            `status`                        (optional)
+     * @param string            `currency`                      (optional)
+     * @param string            `name_like`                     (optional)
+     * @param string            `email_like`                    (optional)
+     * @param string            `description_like`              (optional)
+     * @param string            `address1_like`                 (optional)
+     * @param string            `address2_like`                 (optional)
+     * @param string            `address3_like`                 (optional)
+     * @param string            `city_like`                     (optional)
+     * @param string            `country_like`                  (optional)
+     * @param string            `contact_person_firstname`      (optional) - Contact person firstname
+     * @param string            `contact_person_firstname_like` (optional) - Contact person firstname like
+     * @param string            `contact_person_lastname`       (optional) - Contact person lastname
+     * @param string            `contact_person_lastname_like`  (optional) - Contact person lastname like
+     * @param string            `contact_person_position`       (optional) - Contact person position
+     * @param string            `contact_person_position_like`  (optional) - Contact person position like
+     * @param string            `contact_person_phone`          (optional) - Contact person phone
+     * @param string            `contact_person_phone2`         (optional) - Contact person phone2
+     * @param string            `contact_person_email`          (optional) - Contact person email
+     * @param string            `url`                           (optional) - Url
+     * @param string            `masterbox_number`              (optional) - Masterbox number
+     * @param string            `slavebox_number`               (optional) - Slavebox number
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -691,6 +694,27 @@ class MerchantAPIController extends ControllerAPI
                 $merchants->whereIn('merchants.slavebox_number', $slavebox_number);
             });
 
+            // Add new relation based on request
+            OrbitInput::get('with', function($with) use ($merchants) {
+                $with = (array)$with;
+
+                // Make sure the with_count also in array format
+                $withCount = array();
+                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
+                    $withCount = (array)$_wcount;
+                });
+
+                foreach ($with as $relation) {
+                    $merchants->with($relation);
+
+                    // Also include number of count if consumer ask it
+                    if (in_array($relation, $withCount)) {
+                        $countRelation = $relation . 'Number';
+                        $merchants->with($countRelation);
+                    }
+                }
+            });
+
             $_merchants = clone $merchants;
 
             // Get the take args
@@ -738,6 +762,7 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_fax'         => 'merchants.fax',
                     'merchant_status'      => 'merchants.status',
                     'merchant_currency'    => 'merchants.currency',
+                    'omid'                 => 'merchants.omid',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];

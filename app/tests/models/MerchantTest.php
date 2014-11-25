@@ -59,7 +59,8 @@ class MerchantTest extends OrbitTestCase
                     ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 626234, 'Cak Lontong 6', 'Jual Lontong 6', '0123-3456789', 'Retail', 'http://localhost.six/', '2015-02-07 00:00:00', 'M666', 'S666', 'Enam', '2623-3456789', 'lontong6@localhost.org'),
                     ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 627234, 'Cak Lontong 7', 'Jual Lontong 7', '0123-3456789', 'Retail', 'http://localhost.seven/', '2015-02-07 00:00:00', 'M777', 'S777', 'Tujuh', '2723-3456789', 'lontong7@localhost.org'),
                     ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, NOW(), NOW(), 1, 628234, 'Cak Lontong 8', 'Jual Lontong 8', '0123-3456789', 'Retail', 'http://localhost.eight/', '2015-02-08 00:00:00', 'M888', 'S888', 'Delapan', '2823-3456789', 'lontong8@localhost.org'),
-                    ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1, 629234, 'Cak Lontong 9', 'Jual Lontong 9', '0123-3456789', 'Retail', 'http://localhost.nine/', '2015-02-09 00:00:00', 'M999', 'S999', 'Sembilan', '2923-3456789', 'lontong9@localhost.org')"
+                    ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1, 629234, 'Cak Lontong 9', 'Jual Lontong 9', '0123-3456789', 'Retail', 'http://localhost.nine/', '2015-02-09 00:00:00', 'M999', 'S999', 'Sembilan', '2923-3456789', 'lontong9@localhost.org'),
+                    ('10', '4', 'alfagubengX@localhost.org', 'Alfa Mer Gubeng PojokX', 'Alfa Mer which near Gubeng Station SurabayaX', 'Jl. Gubeng 09X', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'deleted', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1, 629234, 'Cak Lontong 9X', 'Jual Lontong 9X', '0123-3456789', 'Retail', 'http://localhost.nine/', '2015-02-09 00:00:00', 'M999X', 'S999X', 'SembilanX', '2923-3456789X', 'lontong9@localhost.orgx')"
         );
     }
 
@@ -98,7 +99,7 @@ class MerchantTest extends OrbitTestCase
 
     public function testNumberOfRecordsPlusUnknown()
     {
-        $expect = 9;
+        $expect = 10;
         $return = Merchant::withUnknown()->count();
         $this->assertSame($expect, $return);
     }
@@ -147,7 +148,7 @@ class MerchantTest extends OrbitTestCase
 
     public function testRecordNumber2()
     {
-        $merchant = Merchant::with(array('user', 'retailers', 'retailers.user'))->active()->find(2);
+        $merchant = Merchant::with('user', 'retailers', 'retailers.user', 'retailersNumber')->active()->find(2);
         $this->assertSame('indomer@localhost.org', $merchant->email);
         $this->assertSame('Indo Mer', $merchant->name);
         $this->assertSame('Super market Indo', $merchant->description);
@@ -192,6 +193,9 @@ class MerchantTest extends OrbitTestCase
         $this->assertSame('alfagubeng@localhost.org', $alfagubeng->email);
         $this->assertSame('Alfa Mer Gubeng Pojok', $alfagubeng->name);
         $this->assertSame('optimus@localhost.org', $alfagubeng->user->user_email);
+
+        // Check number of retailers associated with this merchant
+        $this->assertSame('1', (string)$merchant->retailersCount);
     }
 
     public function testInsertRecord()
