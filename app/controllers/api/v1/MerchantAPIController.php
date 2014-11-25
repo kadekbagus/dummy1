@@ -738,6 +738,7 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_fax'         => 'merchants.fax',
                     'merchant_status'      => 'merchants.status',
                     'merchant_currency'    => 'merchants.currency',
+                    'omid'                 => 'merchants.omid',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];

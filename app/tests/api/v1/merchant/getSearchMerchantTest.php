@@ -16,6 +16,38 @@
  *          "records": []
  *      }
  * }
+ *
+ * If the consumer request using some `with[]=retailers`, then we should return
+ * it like this one:
+ * {
+ *      "code": CODE,
+ *      "status": STATUS,
+ *      "message": MESSAGE,
+ *      "data":
+ *      {
+ *          "total_records": NUMBER_OF_TOTAL_RECORDS,
+ *          "returned_records": NUMBER_OF_RETURNED_RECORDS,
+ *          "records": [
+ *              {
+ *                  "merchant_id": 1,
+ *                  ....some_attr.....
+ *                  "retailers": [
+ *                          {
+ *                              "merchant_id": 10,
+ *                              "parent_id": 1,
+ *                              ....some_attr.....
+ *                          },
+ *                          {
+ *                              "merchant_id": 11,
+ *                              "parent_id": 1,
+ *                              ....some_attr.....
+ *                          }
+ *                  ]
+ *                  "retailers_count": 2
+ *              }
+ *          ]
+ *      }
+ * }
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
@@ -128,17 +160,21 @@ class getSearchMerchantTest extends OrbitTestCase
 
         // Insert dummy merchants
         DB::statement("INSERT INTO `{$merchant_table}`
-                (`merchant_id`, `user_id`, `email`, `name`, `description`, `address_line1`, `address_line2`, `address_line3`, `city_id`, `city`, `country_id`, `country`, `phone`, `fax`, `start_date_activity`, `status`, `logo`, `currency`, `currency_symbol`, `tax_code1`, `tax_code2`, `tax_code3`, `slogan`, `vat_included`, `object_type`, `parent_id`, `created_at`, `updated_at`, `modified_by`)
+                (`merchant_id`, `user_id`, `email`, `name`, `description`, `address_line1`, `address_line2`, `address_line3`, `city_id`, `city`, `country_id`, `country`, `phone`, `fax`, `start_date_activity`, `status`, `logo`, `currency`, `currency_symbol`, `tax_code1`, `tax_code2`, `tax_code3`, `slogan`, `vat_included`, `object_type`, `parent_id`, `created_at`, `updated_at`, `modified_by`, `omid`, `orid`)
                 VALUES
-                ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, '2014-11-20 06:30:01', NOW(), 1),
-                ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, '2014-11-20 06:30:02', NOW(), 1),
-                ('3', '2', 'mitra9@localhost.org', 'Mitra 9', 'Super market Bangunan', 'Jl. Tunjungan 03', 'Komplek B3', 'Lantai 03', '10', 'Surabaya', '62', 'Indonesia', '031-6123456', '031-612344', '2012-03-02 01:01:03', 'pending', 'merchants/logo/mitra9.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Belanja Bangunan Nyaman', 'yes', 'merchant', NULL, '2014-11-20 06:30:03', NOW(), 1),
-                ('4', '1', 'keefce@localhost.org', 'Ke Ef Ce', 'Chicket Fast Food', 'Jl. Tunjungan 04', 'Komplek B4', 'Lantai 04', '10', 'Surabaya', '62', 'Indonesia', '031-5123456', '031-512344', '2012-04-02 01:01:04', 'blocked', 'merchants/logo/keefce1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Bukan Jagonya Ayam!', 'yes', 'merchant', NULL, '2014-11-20 06:30:04', NOW(), 1),
-                ('5', '1', 'mekdi@localhost.org', 'Mek Di', 'Burger Fast Food', 'Jl. Tunjungan 05', 'Komplek B5', 'Lantai 05', '10', 'Surabaya', '62', 'Indonesia', '031-4123456', '031-412344', '2012-05-02 01:01:05', 'inactive', 'merchants/logo/mekdi1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'I\'m not lovit', 'yes', 'merchant', NULL, '2014-11-20 06:30:05', NOW(), 1),
-                ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, '2014-11-20 06:30:06', NOW(), 1),
-                ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, '2014-11-20 06:30:07', NOW(), 1),
-                ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, '2014-11-20 06:30:08', NOW(), 1),
-                ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, '2014-11-20 06:30:09', NOW(), 1)"
+                ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, '2014-11-20 06:30:01', NOW(), 1, 'M01', ''),
+                ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, '2014-11-20 06:30:02', NOW(), 1, 'M02', ''),
+                ('3', '2', 'mitra9@localhost.org', 'Mitra 9', 'Super market Bangunan', 'Jl. Tunjungan 03', 'Komplek B3', 'Lantai 03', '10', 'Surabaya', '62', 'Indonesia', '031-6123456', '031-612344', '2012-03-02 01:01:03', 'pending', 'merchants/logo/mitra9.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Belanja Bangunan Nyaman', 'yes', 'merchant', NULL, '2014-11-20 06:30:03', NOW(), 1, 'M03', ''),
+                ('4', '1', 'keefce@localhost.org', 'Ke Ef Ce', 'Chicket Fast Food', 'Jl. Tunjungan 04', 'Komplek B4', 'Lantai 04', '10', 'Surabaya', '62', 'Indonesia', '031-5123456', '031-512344', '2012-04-02 01:01:04', 'blocked', 'merchants/logo/keefce1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Bukan Jagonya Ayam!', 'yes', 'merchant', NULL, '2014-11-20 06:30:04', NOW(), 1, 'M04', ''),
+                ('5', '1', 'mekdi@localhost.org', 'Mek Di', 'Burger Fast Food', 'Jl. Tunjungan 05', 'Komplek B5', 'Lantai 05', '10', 'Surabaya', '62', 'Indonesia', '031-4123456', '031-412344', '2012-05-02 01:01:05', 'inactive', 'merchants/logo/mekdi1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'I\'m not lovit', 'yes', 'merchant', NULL, '2014-11-20 06:30:05', NOW(), 1, 'M05', ''),
+                ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, '2014-11-20 06:30:06', NOW(), 1, 'M06', ''),
+                ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, '2014-11-20 06:30:07', NOW(), 1, 'M07', ''),
+                ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, '2014-11-20 06:30:08', NOW(), 1, 'M08', ''),
+
+                ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, '2014-11-20 06:30:09', NOW(), 1, '', 'R09'),
+                ('21', '7', 'alfagwalk@localhost.org', 'Alfa Mer Gwalk', 'Alfa Mer near GWalk Food Court', 'Jl. Citraland', 'Komplek G', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-21-02 01:01:09', 'active', 'merchants/logo/alfamer-gwalk.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1, '', 'R21'),
+                ('22', '7', 'alfatp@localhost.org', 'Alfa Mer Tunjungan', 'Alfa Mer near Tunjungan Plaza', 'Jl. Tunjungan', 'Komplek TP', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'active', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1, '', 'R22'),
+                ('23', '7', 'alfapangsud@localhost.org', 'Alfa Mer Pangsud', 'Alfa Mer near Panglima Sudirman', 'Jl. Palinglima Sudirman', 'Komplek PS', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'deleted', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1, '', 'R23')"
         );
     }
 
@@ -984,10 +1020,84 @@ class getSearchMerchantTest extends OrbitTestCase
         }
     }
 
+    public function testOK_SearchById_WithRetailersRelationship_OrderByOmidASC_GET_api_v1_merchant_search()
+    {
+        // set merchant name, sortby, and sort mode.
+        $_GET['merchant_id'] = array(1, 2);
+        $_GET['with'] = array('retailers');
+        $_GET['sortmode'] = 'omid';
+
+        // It should read from config named 'orbit.pagination.max_record'
+        // It should fallback to whathever you like when the config is not exists
+        $max_record = 10;
+        Config::set('orbit.pagination.max_record', $max_record);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/search?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $response = $this->call('GET', $url)->getContent();
+        $response = json_decode($response);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', (string)$response->status);
+        $this->assertSame(Status::OK_MSG, (string)$response->message);
+
+        // Number of total records should be 2 and returned records 2
+        $this->assertSame(2, (int)$response->data->total_records);
+        $this->assertSame(2, (int)$response->data->returned_records);
+
+        // The records attribute should be array
+        $this->assertTrue(is_array($response->data->records));
+        $this->assertSame(2, count($response->data->records));
+
+        $expect = array(
+            array(
+                'merchant_id'         => '2',
+                'user_id'             => '3',
+                'email'               => 'indomer@localhost.org',
+                'name'                => 'Indo Mer',
+                'start_date_activity' => '2012-02-02 01:01:02',
+                'vat_included'        => 'yes',
+                'object_type'         => 'merchant',
+                'parent_id'           => NULL
+            ),
+            array(
+                'merchant_id'         => '5',
+                'user_id'             => '1',
+                'email'               => 'mekdi@localhost.org',
+                'name'                => 'Mek Di',
+                'start_date_activity' => '2012-05-02 01:01:05',
+                'vat_included'        => 'yes',
+                'object_type'         => 'merchant',
+                'parent_id'           => NULL
+            )
+        );
+
+        // checking data.
+        foreach ($response->data->records as $index=>$return)
+        {
+            $this->assertSame((string)$expect[$index]['merchant_id'], (string)$return->merchant_id);
+            $this->assertSame((string)$expect[$index]['user_id'], (string)$return->user_id);
+            $this->assertSame((string)$expect[$index]['email'], (string)$return->email);
+            $this->assertSame((string)$expect[$index]['name'], (string)$return->name);
+            $this->assertSame((string)$expect[$index]['start_date_activity'], (string)$return->start_date_activity);
+            $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
+            $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
+            $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
+        }
+    }
+
     public function testOK_SearchNameLike_OrderByNameASC_GET_api_v1_merchant_search()
     {
         // Data
-        $_GET['name_like'] = 'tra'; // from merchant name 'Mitra 9'.
+        $_GET['merchant_id'] = 'tra'; // from merchant name 'Mitra 9'.
         $_GET['sortby'] = 'merchant_name';
         $_GET['sortmode'] = 'asc';
 

@@ -46,6 +46,33 @@ class Merchant extends Eloquent
         return $this->retailers();
     }
 
+    /**
+     * Eagler load the count query. It is not very optimized but it works for now
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @credit http://laravel.io/forum/05-03-2014-eloquent-get-count-relation
+     * @return int
+     */
+    public function retailersCountRelation()
+    {
+        // Basically we query Retailer which the parent_id are the same as the
+        // current one
+        return $this->retailers()
+                    ->selectRaw('parent_id, count(*) as count')
+                    ->groupBy('parent_id');
+    }
+
+    /**
+     * Shortcut to access the retailers count relation
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return int
+     */
+    public function getRetailersCountAttribute()
+    {
+        return $this->retailersCountRelation->first() ? $this->retailersCountRelation->first()->count : 0;
+    }
+
     public function getPhoneCodeArea($separator='|#|')
     {
         $phone = explode($separator, $this->phone);
