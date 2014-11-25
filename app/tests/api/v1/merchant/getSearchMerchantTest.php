@@ -1025,6 +1025,7 @@ class getSearchMerchantTest extends OrbitTestCase
         // set merchant name, sortby, and sort mode.
         $_GET['merchant_id'] = array(1, 2);
         $_GET['with'] = array('retailers');
+        $_GET['with_count'] = array('retailers');
         $_GET['sortmode'] = 'omid';
 
         // It should read from config named 'orbit.pagination.max_record'
@@ -1059,6 +1060,17 @@ class getSearchMerchantTest extends OrbitTestCase
 
         $expect = array(
             array(
+                'merchant_id'         => '1',
+                'user_id'             => '2',
+                'email'               => 'alfamer@localhost.org',
+                'name'                => 'Alfa Mer',
+                'start_date_activity' => '2012-01-02 01:01:01',
+                'vat_included'        => 'yes',
+                'object_type'         => 'merchant',
+                'parent_id'           => NULL,
+                'retailers_number'    => 2,
+            ),
+            array(
                 'merchant_id'         => '2',
                 'user_id'             => '3',
                 'email'               => 'indomer@localhost.org',
@@ -1066,17 +1078,8 @@ class getSearchMerchantTest extends OrbitTestCase
                 'start_date_activity' => '2012-02-02 01:01:02',
                 'vat_included'        => 'yes',
                 'object_type'         => 'merchant',
-                'parent_id'           => NULL
-            ),
-            array(
-                'merchant_id'         => '5',
-                'user_id'             => '1',
-                'email'               => 'mekdi@localhost.org',
-                'name'                => 'Mek Di',
-                'start_date_activity' => '2012-05-02 01:01:05',
-                'vat_included'        => 'yes',
-                'object_type'         => 'merchant',
-                'parent_id'           => NULL
+                'parent_id'           => NULL,
+                'retailers_number'    => 1,
             )
         );
 
@@ -1091,13 +1094,15 @@ class getSearchMerchantTest extends OrbitTestCase
             $this->assertSame((string)$expect[$index]['vat_included'], (string)$return->vat_included);
             $this->assertSame((string)$expect[$index]['object_type'], (string)$return->object_type);
             $this->assertSame((string)$expect[$index]['parent_id'], (string)$return->parent_id);
+            $this->assertSame((string)$expect[$index]['retailers_number'], (string)$return->retailers_number->count);
+            $this->assertTrue( is_array($return->retailers) && (count($return->retailers) == $expect[$index]['retailers_number']));
         }
     }
 
     public function testOK_SearchNameLike_OrderByNameASC_GET_api_v1_merchant_search()
     {
         // Data
-        $_GET['merchant_id'] = 'tra'; // from merchant name 'Mitra 9'.
+        $_GET['name_like'] = 'tra'; // from merchant name 'Mitra 9'.
         $_GET['sortby'] = 'merchant_name';
         $_GET['sortmode'] = 'asc';
 
