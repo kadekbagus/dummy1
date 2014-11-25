@@ -53,11 +53,12 @@ class Merchant extends Eloquent
      * @credit http://laravel.io/forum/05-03-2014-eloquent-get-count-relation
      * @return int
      */
-    public function retailersCountRelation()
+    public function retailersNumber()
     {
         // Basically we query Retailer which the parent_id are the same as the
-        // current one
-        return $this->retailers()
+        // current one.
+        return $this->hasOne('Retailer', 'parent_id', 'merchant_id')
+                    ->excludeDeleted()
                     ->selectRaw('parent_id, count(*) as count')
                     ->groupBy('parent_id');
     }
@@ -70,7 +71,7 @@ class Merchant extends Eloquent
      */
     public function getRetailersCountAttribute()
     {
-        return $this->retailersCountRelation->first() ? $this->retailersCountRelation->first()->count : 0;
+        return $this->retailersNumber ? $this->retailersNumber->count : 0;
     }
 
     public function getPhoneCodeArea($separator='|#|')
