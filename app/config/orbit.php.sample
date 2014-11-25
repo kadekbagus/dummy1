@@ -31,7 +31,7 @@ return array(
                 'header_name'       => 'X-Orbit-Token',
                 'header_name_php'   => 'HTTP_X_ORBIT_TOKEN',
             ),
-        )
+        ),
     ),
 
     'upload'    => array(
