@@ -99,7 +99,7 @@ class MerchantTest extends OrbitTestCase
 
     public function testNumberOfRecordsPlusUnknown()
     {
-        $expect = 9;
+        $expect = 10;
         $return = Merchant::withUnknown()->count();
         $this->assertSame($expect, $return);
     }
@@ -148,7 +148,7 @@ class MerchantTest extends OrbitTestCase
 
     public function testRecordNumber2()
     {
-        $merchant = Merchant::with('user', 'retailers', 'retailers.user', 'retailersCountRelation')->active()->find(2);
+        $merchant = Merchant::with('user', 'retailers', 'retailers.user', 'retailersNumber')->active()->find(2);
         $this->assertSame('indomer@localhost.org', $merchant->email);
         $this->assertSame('Indo Mer', $merchant->name);
         $this->assertSame('Super market Indo', $merchant->description);
