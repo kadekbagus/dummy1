@@ -121,6 +121,10 @@ return array(
             'update_merchant'       => 'update merchant',
             'delete_merchant'       => 'delete merchant',
             'view_merchant'         => 'view merchant',
+            'new_retailer'          => 'add new retailer',
+            'update_retailer'       => 'update retailer',
+            'delete_retailer'       => 'delete retailer',
+            'view_retailer'         => 'view retailer',
         ),
     ),
 
