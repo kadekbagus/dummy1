@@ -38,7 +38,7 @@ class Merchant extends Eloquent
 
     public function retailers()
     {
-        return $this->hasMany('Retailer', 'parent_id', 'merchant_id');
+        return $this->hasMany('Retailer', 'parent_id', 'merchant_id')->excludeDeleted();
     }
 
     public function children()
