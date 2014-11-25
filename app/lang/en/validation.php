@@ -109,6 +109,7 @@ return array(
             'user_sortby'       => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'   => 'The merchant status you specify is not found.',
             'merchant_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, merchant_name, merchant_email, merchant_userid, merchant_description, merchantid, merchant_address1, merchant_address2, merchant_address3, merchant_cityid, merchant_city, merchant_countryid, merchant_country, merchant_phone, merchant_fax, merchant_status, merchant_currency.',
+            'retailer_status'   => 'The retailer status you specify is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
