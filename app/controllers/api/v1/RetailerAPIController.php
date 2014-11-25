@@ -512,7 +512,7 @@ class RetailerAPIController extends ControllerAPI
                 array(
                     'merchant_id'       => 'required|numeric',
                     'user_id'           => 'required|numeric|orbit.empty.user',
-                    'email'             => 'required|email|orbit.exists.email',
+                    'email'             => 'required|email|email_exists_but_me',
                     'status'            => 'required|orbit.empty.merchant_status',
                     'name'              => 'required',
                 )
@@ -1182,5 +1182,23 @@ class RetailerAPIController extends ControllerAPI
 
             return $valid;
         });
+
+        // Check user email address, it should not exists
+        Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
+            $merchant_id = OrbitInput::post('merchant_id');
+            $retailer = Merchant::excludeDeleted()
+                        ->where('email', $value)
+                        ->where('merchant_id', '!=', $merchant_id)
+                        ->first();
+
+            if (! empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.user', $retailer);
+
+            return TRUE;
+        });
+
     }
 }
