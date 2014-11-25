@@ -149,34 +149,47 @@ class RetailerAPIController extends ControllerAPI
      * POST - Add new retailer
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `user_id`               (required) - User id for the retailer
-     * @param string     `email`                 (required) - Email address of the retailer
-     * @param string     `name`                  (optional) - Name of the retailer
-     * @param string     `description`           (optional) - Retailer description
-     * @param string     `address_line1`         (optional) - Address 1
-     * @param string     `address_line2`         (optional) - Address 2
-     * @param string     `address_line3`         (optional) - Address 3
-     * @param integer    `city_id`               (optional) - City id
-     * @param string     `city`                  (optional) - Name of the city
-     * @param integer    `country_id`            (optional) - Country id
-     * @param string     `country`               (optional) - Name of the country
-     * @param string     `phone`                 (optional) - Phone of the retailer
-     * @param string     `fax`                   (optional) - Fax of the retailer
-     * @param string     `start_date_activity`   (optional) - Start date activity of the retailer
-     * @param string     `status`                (optional) - Status of the retailer
-     * @param string     `logo`                  (optional) - Logo of the retailer
-     * @param string     `currency`              (optional) - Currency used by the retailer
-     * @param string     `currency_symbol`       (optional) - Currency symbol
-     * @param string     `tax_code1`             (optional) - Tax code 1
-     * @param string     `tax_code2`             (optional) - Tax code 2
-     * @param string     `tax_code3`             (optional) - Tax code 3
-     * @param string     `slogan`                (optional) - Slogan for the retailer
-     * @param string     `vat_included`          (optional) - Vat included
-     * @param string     `object_type`           (optional) - Object type
-     * @param string     `parent_id`             (optional) - The retailer id
+     * @param integer    `user_id`                 (required) - User id for the retailer
+     * @param string     `orid`                    (required) - ORID of the retailer
+     * @param string     `email`                   (required) - Email address of the retailer
+     * @param string     `name`                    (required) - Name of the retailer
+     * @param string     `description`             (optional) - Merchant description
+     * @param string     `address_line1`           (optional) - Address 1
+     * @param string     `address_line2`           (optional) - Address 2
+     * @param string     `address_line3`           (optional) - Address 3
+     * @param integer    `postal_code`             (optional) - Postal code
+     * @param integer    `city_id`                 (optional) - City id
+     * @param string     `city`                    (optional) - Name of the city
+     * @param integer    `country_id`              (optional) - Country id
+     * @param string     `country`                 (optional) - Name of the country
+     * @param string     `phone`                   (optional) - Phone of the retailer
+     * @param string     `fax`                     (optional) - Fax of the retailer
+     * @param string     `start_date_activity`     (optional) - Start date activity of the retailer
+     * @param string     `end_date_activity`       (optional) - End date activity of the retailer
+     * @param string     `status`                  (optional) - Status of the retailer
+     * @param string     `logo`                    (optional) - Logo of the retailer
+     * @param string     `currency`                (optional) - Currency used by the retailer
+     * @param string     `currency_symbol`         (optional) - Currency symbol
+     * @param string     `tax_code1`               (optional) - Tax code 1
+     * @param string     `tax_code2`               (optional) - Tax code 2
+     * @param string     `tax_code3`               (optional) - Tax code 3
+     * @param string     `slogan`                  (optional) - Slogan for the retailer
+     * @param string     `vat_included`            (optional) - Vat included
+     * @param string     `contact_person_firstname`(optional) - Contact person first name
+     * @param string     `contact_person_lastname` (optional) - Contact person last name
+     * @param string     `contact_person_position` (optional) - Contact person position
+     * @param string     `contact_person_phone`    (optional) - Contact person phone
+     * @param string     `contact_person_phone2`   (optional) - Contact person second phone
+     * @param string     `contact_person_email`    (optional) - Contact person email
+     * @param string     `sector_of_activity`      (optional) - Sector of activity
+     * @param string     `vat_included`            (optional) - Vat included
+     * @param string     `url`                     (optional) - Url
+     * @param string     `masterbox_number`        (optional) - Masterbox number
+     * @param string     `slavebox_number`         (optional) - Slavebox number
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewRetailer()
@@ -207,12 +220,14 @@ class RetailerAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $user_id = OrbitInput::post('user_id');
+            $orid = OrbitInput::post('orid');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
             $description = OrbitInput::post('description');
             $address_line1 = OrbitInput::post('address_line1');
             $address_line2 = OrbitInput::post('address_line2');
             $address_line3 = OrbitInput::post('address_line3');
+            $postal_code = OrbitInput::post('postal_code');
             $city_id = OrbitInput::post('city_id');
             $city = OrbitInput::post('city');
             $country_id = OrbitInput::post('country_id');
@@ -220,6 +235,7 @@ class RetailerAPIController extends ControllerAPI
             $phone = OrbitInput::post('phone');
             $fax = OrbitInput::post('fax');
             $start_date_activity = OrbitInput::post('start_date_activity');
+            $end_date_activity = OrbitInput::post('end_date_activity');
             $status = OrbitInput::post('status');
             $logo = OrbitInput::post('logo');
             $currency = OrbitInput::post('currency');
@@ -229,17 +245,31 @@ class RetailerAPIController extends ControllerAPI
             $tax_code3 = OrbitInput::post('tax_code3');
             $slogan = OrbitInput::post('slogan');
             $vat_included = OrbitInput::post('vat_included');
+            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
+            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
+            $contact_person_position = OrbitInput::post('contact_person_position');
+            $contact_person_phone = OrbitInput::post('contact_person_phone');
+            $contact_person_phone2 = OrbitInput::post('contact_person_phone2');
+            $contact_person_email = OrbitInput::post('contact_person_email');
+            $sector_of_activity = OrbitInput::post('sector_of_activity');
             $object_type = OrbitInput::post('object_type');
             $parent_id = OrbitInput::post('parent_id');
+            $url = OrbitInput::post('url');
+            $masterbox_number = OrbitInput::post('masterbox_number');
+            $slavebox_number = OrbitInput::post('slavebox_number');
 
             $validator = Validator::make(
                 array(
                     'user_id'   => $user_id,
                     'email'     => $email,
+                    'name'      => $name,
+                    'orid'      => $orid,
                 ),
                 array(
-                    'user_id'   => 'required|numeric',
+                    'user_id'   => 'required|numeric|orbit.empty.user',
                     'email'     => 'required|email|orbit.exists.email',
+                    'name'      => 'required',
+                    'orid'      => 'required|orbit.exists.orid',
                 )
             );
 
@@ -257,12 +287,15 @@ class RetailerAPIController extends ControllerAPI
 
             $newretailer = new Retailer();
             $newretailer->user_id = $user_id;
+            $newretailer->omid = '';
+            $newretailer->orid = $orid;
             $newretailer->email = $email;
             $newretailer->name = $name;
             $newretailer->description = $description;
             $newretailer->address_line1 = $address_line1;
             $newretailer->address_line2 = $address_line2;
             $newretailer->address_line3 = $address_line3;
+            $newretailer->postal_code = $postal_code;
             $newretailer->city_id = $city_id;
             $newretailer->city = $city;
             $newretailer->country_id = $country_id;
@@ -270,6 +303,7 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->phone = $phone;
             $newretailer->fax = $fax;
             $newretailer->start_date_activity = $start_date_activity;
+            $newretailer->end_date_activity = $end_date_activity;
             $newretailer->status = $status;
             $newretailer->logo = $logo;
             $newretailer->currency = $currency;
@@ -279,8 +313,18 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->tax_code3 = $tax_code3;
             $newretailer->slogan = $slogan;
             $newretailer->vat_included = $vat_included;
+            $newretailer->contact_person_firstname = $contact_person_firstname;
+            $newretailer->contact_person_lastname = $contact_person_lastname;
+            $newretailer->contact_person_position = $contact_person_position;
+            $newretailer->contact_person_phone = $contact_person_phone;
+            $newretailer->contact_person_phone2 = $contact_person_phone2;
+            $newretailer->contact_person_email = $contact_person_email;
+            $newretailer->sector_of_activity = $sector_of_activity;
             $newretailer->object_type = $object_type;
             $newretailer->parent_id = $parent_id;
+            $newretailer->url = $url;
+            $newretailer->masterbox_number = $masterbox_number;
+            $newretailer->slavebox_number = $slavebox_number;
             $newretailer->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.retailer.postnewretailer.before.save', array($this, $newretailer));
@@ -356,31 +400,40 @@ class RetailerAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`           (required) - ID of the merchant
-     * @param integer    `user_id`               (required) - User id for the merchant
-     * @param string     `email`                 (required) - Email address of the merchant
-     * @param string     `name`                  (optional) - Name of the merchant
-     * @param string     `description`           (optional) - Merchant description
-     * @param string     `address_line1`         (optional) - Address 1
-     * @param string     `address_line2`         (optional) - Address 2
-     * @param string     `address_line3`         (optional) - Address 3
-     * @param integer    `city_id`               (optional) - City id
-     * @param string     `city`                  (optional) - Name of the city
-     * @param integer    `country_id`            (optional) - Country id
-     * @param string     `country`               (optional) - Name of the country
-     * @param string     `phone`                 (optional) - Phone of the merchant
-     * @param string     `fax`                   (optional) - Fax of the merchant
-     * @param string     `start_date_activity`   (optional) - Start date activity of the merchant
-     * @param string     `status`                (optional) - Status of the merchant
-     * @param string     `logo`                  (optional) - Logo of the merchant
-     * @param string     `currency`              (optional) - Currency used by the merchant
-     * @param string     `currency_symbol`       (optional) - Currency symbol
-     * @param string     `tax_code1`             (optional) - Tax code 1
-     * @param string     `tax_code2`             (optional) - Tax code 2
-     * @param string     `tax_code3`             (optional) - Tax code 3
-     * @param string     `slogan`                (optional) - Slogan for the merchant
-     * @param string     `vat_included`          (optional) - Vat included
-     * @param string     `parent_id`             (optional) - The merchant id
+     * @param integer    `merchant_id`              (required) - ID of the retailer
+     * @param integer    `user_id`                  (required) - User id for the retailer
+     * @param string     `email`                    (required) - Email address of the retailer
+     * @param string     `name`                     (optional) - Name of the retailer
+     * @param string     `description`              (optional) - Merchant description
+     * @param string     `address_line1`            (optional) - Address 1
+     * @param string     `address_line2`            (optional) - Address 2
+     * @param string     `address_line3`            (optional) - Address 3
+     * @param integer    `postal_code`              (optional) - Postal code
+     * @param integer    `city_id`                  (optional) - City id
+     * @param string     `city`                     (optional) - Name of the city
+     * @param integer    `country_id`               (optional) - Country id
+     * @param string     `country`                  (optional) - Name of the country
+     * @param string     `phone`                    (optional) - Phone of the retailer
+     * @param string     `fax`                      (optional) - Fax of the retailer
+     * @param string     `start_date_activity`      (optional) - Start date activity of the retailer
+     * @param string     `status`                   (optional) - Status of the retailer
+     * @param string     `logo`                     (optional) - Logo of the retailer
+     * @param string     `currency`                 (optional) - Currency used by the retailer
+     * @param string     `currency_symbol`          (optional) - Currency symbol
+     * @param string     `tax_code1`                (optional) - Tax code 1
+     * @param string     `tax_code2`                (optional) - Tax code 2
+     * @param string     `tax_code3`                (optional) - Tax code 3
+     * @param string     `slogan`                   (optional) - Slogan for the retailer
+     * @param string     `vat_included`             (optional) - Vat included
+     * @param string     `contact_person_firstname` (optional) - Contact person firstname
+     * @param string     `contact_person_lastname`  (optional) - Contact person lastname
+     * @param string     `contact_person_position`  (optional) - Contact person position
+     * @param string     `contact_person_phone`     (optional) - Contact person phone
+     * @param string     `contact_person_phone2`    (optional) - Contact person phone2
+     * @param string     `contact_person_email`     (optional) - Contact person email
+     * @param string     `sector_of_activity`       (optional) - Sector of activity
+     * @param string     `object_type`              (optional) - Object type
+     * @param string     `parent_id`                (optional) - The merchant id
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateRetailer()
@@ -418,6 +471,7 @@ class RetailerAPIController extends ControllerAPI
             $address_line1 = OrbitInput::post('address_line1');
             $address_line2 = OrbitInput::post('address_line2');
             $address_line3 = OrbitInput::post('address_line3');
+            $postal_code = OrbitInput::post('postal_code');
             $city_id = OrbitInput::post('city_id');
             $city = OrbitInput::post('city');
             $country_id = OrbitInput::post('country_id');
@@ -425,6 +479,7 @@ class RetailerAPIController extends ControllerAPI
             $phone = OrbitInput::post('phone');
             $fax = OrbitInput::post('fax');
             $start_date_activity = OrbitInput::post('start_date_activity');
+            $end_date_activity = OrbitInput::post('end_date_activity');
             $status = OrbitInput::post('status');
             $logo = OrbitInput::post('logo');
             $currency = OrbitInput::post('currency');
@@ -434,18 +489,32 @@ class RetailerAPIController extends ControllerAPI
             $tax_code3 = OrbitInput::post('tax_code3');
             $slogan = OrbitInput::post('slogan');
             $vat_included = OrbitInput::post('vat_included');
+            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
+            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
+            $contact_person_position = OrbitInput::post('contact_person_position');
+            $contact_person_phone = OrbitInput::post('contact_person_phone');
+            $contact_person_phone2 = OrbitInput::post('contact_person_phone2');
+            $contact_person_email = OrbitInput::post('contact_person_email');
+            $sector_of_activity = OrbitInput::post('sector_of_activity');
             $parent_id = OrbitInput::post('parent_id');
+            $url = OrbitInput::post('url');
+            $masterbox_number = OrbitInput::post('masterbox_number');
+            $slavebox_number = OrbitInput::post('slavebox_number');
 
             $validator = Validator::make(
                 array(
                     'merchant_id'       => $merchant_id,
                     'user_id'           => $user_id,
                     'email'             => $email,
+                    'status'            => $status,
+                    'name'              => $name,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric',
-                    'user_id'           => 'required|numeric',
-                    'email'             => 'required|email|orbit.exists.email',
+                    'user_id'           => 'required|numeric|orbit.empty.user',
+                    'email'             => 'required|email|email_exists_but_me',
+                    'status'            => 'required|orbit.empty.merchant_status',
+                    'name'              => 'required',
                 )
             );
 
@@ -469,6 +538,7 @@ class RetailerAPIController extends ControllerAPI
             $updatedretailer->address_line1 = $address_line1;
             $updatedretailer->address_line2 = $address_line2;
             $updatedretailer->address_line3 = $address_line3;
+            $updatedretailer->postal_code = $postal_code;
             $updatedretailer->city_id = $city_id;
             $updatedretailer->city = $city;
             $updatedretailer->country_id = $country_id;
@@ -476,6 +546,7 @@ class RetailerAPIController extends ControllerAPI
             $updatedretailer->phone = $phone;
             $updatedretailer->fax = $fax;
             $updatedretailer->start_date_activity = $start_date_activity;
+            $updatedretailer->end_date_activity = $end_date_activity;
             $updatedretailer->status = $status;
             $updatedretailer->logo = $logo;
             $updatedretailer->currency = $currency;
@@ -485,7 +556,17 @@ class RetailerAPIController extends ControllerAPI
             $updatedretailer->tax_code3 = $tax_code3;
             $updatedretailer->slogan = $slogan;
             $updatedretailer->vat_included = $vat_included;
+            $updatedretailer->contact_person_firstname = $contact_person_firstname;
+            $updatedretailer->contact_person_lastname = $contact_person_lastname;
+            $updatedretailer->contact_person_position = $contact_person_position;
+            $updatedretailer->contact_person_phone = $contact_person_phone;
+            $updatedretailer->contact_person_phone2 = $contact_person_phone2;
+            $updatedretailer->contact_person_email = $contact_person_email;
+            $updatedretailer->sector_of_activity = $sector_of_activity;
             $updatedretailer->parent_id = $parent_id;
+            $updatedretailer->url = $url;
+            $updatedretailer->masterbox_number = $masterbox_number;
+            $updatedretailer->slavebox_number = $slavebox_number;
             $updatedretailer->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.retailer.postupdateretailer.before.save', array($this, $updatedretailer));
@@ -561,34 +642,49 @@ class RetailerAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string `sort_by` (optional) - column order by
-     * @param string `sort_mode` (optional) - asc or desc
-     * @param integer `take` (optional) - limit
-     * @param integer `skip` (optional) - limit offset
-     * @param integer `merchant_id` (optional)
-     * @param integer `user_id` (optional)
-     * @param string `email` (optional)
-     * @param string `name` (optional)
-     * @param string `description` (optional)
-     * @param string `address1` (optional)
-     * @param string `address2` (optional)
-     * @param string `address3` (optional)
-     * @param string `city_id` (optional)
-     * @param string `city` (optional)
-     * @param string `country_id` (optional)
-     * @param string `country` (optional)
-     * @param string `phone` (optional)
-     * @param string `fax` (optional)
-     * @param string `status` (optional)
-     * @param string `currency` (optional)
-     * @param string `name_like` (optional)
-     * @param string `email_like` (optional)
-     * @param string `description_like` (optional)
-     * @param string `address1_like` (optional)
-     * @param string `address2_like` (optional)
-     * @param string `address3_like` (optional)
-     * @param string `city_like` (optional)
-     * @param string `country_like` (optional)
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `user_id`                       (optional)
+     * @param string            `email`                         (optional)
+     * @param string            `name`                          (optional)
+     * @param string            `description`                   (optional)
+     * @param string            `address1`                      (optional)
+     * @param string            `address2`                      (optional)
+     * @param string            `address3`                      (optional)
+     * @param integer           `postal_code`                   (optional) - Postal code
+     * @param string            `city_id`                       (optional)
+     * @param string            `city`                          (optional)
+     * @param string            `country_id`                    (optional)
+     * @param string            `country`                       (optional)
+     * @param string            `phone`                         (optional)
+     * @param string            `fax`                           (optional)
+     * @param string            `status`                        (optional)
+     * @param string            `currency`                      (optional)
+     * @param string            `name_like`                     (optional)
+     * @param string            `email_like`                    (optional)
+     * @param string            `description_like`              (optional)
+     * @param string            `address1_like`                 (optional)
+     * @param string            `address2_like`                 (optional)
+     * @param string            `address3_like`                 (optional)
+     * @param string            `city_like`                     (optional)
+     * @param string            `country_like`                  (optional)
+     * @param string            `contact_person_firstname`      (optional) - Contact person firstname
+     * @param string            `contact_person_firstname_like` (optional) - Contact person firstname like
+     * @param string            `contact_person_lastname`       (optional) - Contact person lastname
+     * @param string            `contact_person_lastname_like`  (optional) - Contact person lastname like
+     * @param string            `contact_person_position`       (optional) - Contact person position
+     * @param string            `contact_person_position_like`  (optional) - Contact person position like
+     * @param string            `contact_person_phone`          (optional) - Contact person phone
+     * @param string            `contact_person_phone2`         (optional) - Contact person phone2
+     * @param string            `contact_person_email`          (optional) - Contact person email
+     * @param string            `url`                           (optional) - Url
+     * @param string            `masterbox_number`              (optional) - Masterbox number
+     * @param string            `slavebox_number`               (optional) - Slavebox number
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -728,6 +824,11 @@ class RetailerAPIController extends ControllerAPI
                 $retailers->where('merchants.address_line3', 'like', "%$address3%");
             });
 
+            // Filter retailer by postal code
+            OrbitInput::get('postal_code', function ($postalcode) use ($retailers) {
+                $retailers->whereIn('merchants.postal_code', $postalcode);
+            });
+
              // Filter retailer by cityID
             OrbitInput::get('city_id', function($cityIds) use ($retailers)
             {
@@ -793,6 +894,93 @@ class RetailerAPIController extends ControllerAPI
             {
                 $retailers->whereIn('merchants.currency', $currency);
             });
+
+            // Filter retailer by contact person firstname
+            OrbitInput::get('contact_person_firstname', function ($contact_person_firstname) use ($retailers) {
+                $retailers->whereIn('merchants.contact_person_firstname', $contact_person_firstname);
+            });
+
+            // Filter retailer by contact person firstname like
+            OrbitInput::get('contact_person_firstname_like', function ($contact_person_firstname) use ($retailers) {
+                $retailers->where('merchants.contact_person_firstname', 'like', "%$contact_person_firstname%");
+            });
+
+            // Filter retailer by contact person lastname
+            OrbitInput::get('contact_person_lastname', function ($contact_person_lastname) use ($retailers) {
+                $retailers->whereIn('merchants.contact_person_lastname', $contact_person_lastname);
+            });
+
+            // Filter retailer by contact person lastname like
+            OrbitInput::get('contact_person_lastname_like', function ($contact_person_lastname) use ($retailers) {
+                $retailers->where('merchants.contact_person_lastname', 'like', "%$contact_person_lastname%");
+            });
+
+            // Filter retailer by contact person position
+            OrbitInput::get('contact_person_position', function ($contact_person_position) use ($retailers) {
+                $retailers->whereIn('merchants.contact_person_position', $contact_person_position);
+            });
+
+            // Filter retailer by contact person position like
+            OrbitInput::get('contact_person_position_like', function ($contact_person_position) use ($retailers) {
+                $retailers->where('merchants.contact_person_position', 'like', "%$contact_person_position%");
+            });
+
+            // Filter retailer by contact person phone
+            OrbitInput::get('contact_person_phone', function ($contact_person_phone) use ($retailers) {
+                $retailers->whereIn('merchants.contact_person_phone', $contact_person_phone);
+            });
+
+            // Filter retailer by contact person phone2
+            OrbitInput::get('contact_person_phone2', function ($contact_person_phone2) use ($retailers) {
+                $retailers->whereIn('merchants.contact_person_phone2', $contact_person_phone2);
+            });
+
+            // Filter retailer by contact person email
+            OrbitInput::get('contact_person_email', function ($contact_person_email) use ($retailers) {
+                $retailers->whereIn('merchants.contact_person_email', $contact_person_email);
+            });
+
+            // Filter retailer by sector of activity
+            OrbitInput::get('sector_of_activity', function ($sector_of_activity) use ($retailers) {
+                $retailers->whereIn('merchants.sector_of_activity', $sector_of_activity);
+            });
+
+            // Filter retailer by url
+            OrbitInput::get('url', function ($url) use ($retailers) {
+                $retailers->whereIn('merchants.url', $url);
+            });
+
+            // Filter retailer by masterbox_number
+            OrbitInput::get('masterbox_number', function ($masterbox_number) use ($retailers) {
+                $retailers->whereIn('merchants.masterbox_number', $masterbox_number);
+            });
+
+            // Filter retailer by slavebox_number
+            OrbitInput::get('slavebox_number', function ($slavebox_number) use ($retailers) {
+                $retailers->whereIn('merchants.slavebox_number', $slavebox_number);
+            });
+
+            // Add new relation based on request
+            OrbitInput::get('with', function($with) use ($retailers) {
+                $with = (array)$with;
+
+                // Make sure the with_count also in array format
+                $withCount = array();
+                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
+                    $withCount = (array)$_wcount;
+                });
+
+                foreach ($with as $relation) {
+                    $retailers->with($relation);
+
+                    // Also include number of count if consumer ask it
+                    if (in_array($relation, $withCount)) {
+                        $countRelation = $relation . 'Number';
+                        $retailers->with($countRelation);
+                    }
+                }
+            });
+
             // Clone the query builder which still does not include the take,
             // skip, and order by
             $_retailers = clone $retailers;
@@ -953,5 +1141,64 @@ class RetailerAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // Check the existance of user id
+        Validator::extend('orbit.empty.user', function ($attribute, $value, $parameters) {
+            $user = User::excludeDeleted()
+                        ->where('user_id', $value)
+                        ->first();
+
+            if (empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.user', $user);
+
+            return TRUE;
+        });
+
+        // Check orid, it should not exists
+        Validator::extend('orbit.exists.orid', function ($attribute, $value, $parameters) {
+            $retailer = Retailer::excludeDeleted()
+                        ->where('orid', $value)
+                        ->first();
+
+            if (! empty($retailer)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.merchant', $retailer);
+
+            return TRUE;
+        });
+
+        // Check the existance of the merchant status
+        Validator::extend('orbit.empty.merchant_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
+        });
+
+        // Check user email address, it should not exists
+        Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
+            $merchant_id = OrbitInput::post('merchant_id');
+            $retailer = Merchant::excludeDeleted()
+                        ->where('email', $value)
+                        ->where('merchant_id', '!=', $merchant_id)
+                        ->first();
+
+            if (! empty($user)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.user', $retailer);
+
+            return TRUE;
+        });
+
     }
 }
