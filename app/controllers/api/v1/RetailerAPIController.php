@@ -263,12 +263,14 @@ class RetailerAPIController extends ControllerAPI
                     'user_id'   => $user_id,
                     'email'     => $email,
                     'name'      => $name,
+                    'status'    => $status,
                     'orid'      => $orid,
                 ),
                 array(
                     'user_id'   => 'required|numeric|orbit.empty.user',
                     'email'     => 'required|email|orbit.exists.email',
                     'name'      => 'required',
+                    'status'    => 'required|orbit.empty.retailer_status',
                     'orid'      => 'required|orbit.exists.orid',
                 )
             );
@@ -1198,6 +1200,18 @@ class RetailerAPIController extends ControllerAPI
             App::instance('orbit.validation.user', $retailer);
 
             return TRUE;
+        });
+
+
+        // Check the existance of the retailer status
+        Validator::extend('orbit.empty.retailer_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
         });
 
     }
