@@ -445,7 +445,7 @@ class RetailerAPIController extends ControllerAPI
                 array(
                     'merchant_id'       => 'required|numeric',
                     'user_id'           => 'required|numeric',
-                    'email'             => 'required|email|orbit.email.exists',
+                    'email'             => 'required|email|orbit.exists.email',
                 )
             );
 
