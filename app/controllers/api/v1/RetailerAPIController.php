@@ -239,7 +239,7 @@ class RetailerAPIController extends ControllerAPI
                 ),
                 array(
                     'user_id'   => 'required|numeric',
-                    'email'     => 'required|email|orbit.email.exists',
+                    'email'     => 'required|email|orbit.exists.email',
                 )
             );
 
@@ -461,7 +461,7 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedretailer = Merchant::find($merchant_id);
+            $updatedretailer = Retailer::find($merchant_id);
             $updatedretailer->user_id = $user_id;
             $updatedretailer->email = $email;
             $updatedretailer->name = $name;
