@@ -150,6 +150,7 @@ class RetailerAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @author Kadek <kadek@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -186,7 +187,7 @@ class RetailerAPIController extends ControllerAPI
      * @param string     `contact_person_phone2`   (optional) - Contact person second phone
      * @param string     `contact_person_email`    (optional) - Contact person email
      * @param string     `sector_of_activity`      (optional) - Sector of activity
-     * @param string     `vat_included`            (optional) - Vat included
+     * @param integer    `parent_id`               (optional) - Merchant id for the retailer
      * @param string     `url`                     (optional) - Url
      * @param string     `masterbox_number`        (optional) - Masterbox number
      * @param string     `slavebox_number`         (optional) - Slavebox number
@@ -265,6 +266,7 @@ class RetailerAPIController extends ControllerAPI
                     'name'      => $name,
                     'status'    => $status,
                     'orid'      => $orid,
+                    'parent_id' => $parent_id,
                 ),
                 array(
                     'user_id'   => 'required|numeric|orbit.empty.user',
@@ -272,6 +274,7 @@ class RetailerAPIController extends ControllerAPI
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.retailer_status',
                     'orid'      => 'required|orbit.exists.orid',
+                    'parent_id' => 'required|numeric|orbit.empty.merchant',
                 )
             );
 
@@ -1202,7 +1205,6 @@ class RetailerAPIController extends ControllerAPI
             return TRUE;
         });
 
-
         // Check the existance of the retailer status
         Validator::extend('orbit.empty.retailer_status', function ($attribute, $value, $parameters) {
             $valid = false;
@@ -1212,6 +1214,21 @@ class RetailerAPIController extends ControllerAPI
             }
 
             return $valid;
+        });
+
+        // Check the existance of merchant id
+        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
+            $merchant = Merchant::excludeDeleted()
+                        ->where('merchant_id', $value)
+                        ->first();
+
+            if (empty($merchant)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
         });
 
     }
