@@ -1008,6 +1008,7 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant->phone = $phone;
             $updatedmerchant->fax = $fax;
             $updatedmerchant->start_date_activity = $start_date_activity;
+            $updatedmerchant->end_date_activity = $end_date_activity;
             $updatedmerchant->status = $status;
             $updatedmerchant->logo = $logo;
             $updatedmerchant->currency = $currency;
