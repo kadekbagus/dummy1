@@ -397,6 +397,64 @@ class postDeleteMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testMissingPassword_POST_api_v1_merchant_delete()
+    {
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        // Data to be post
+        $_POST['merchant_id'] = 3;  // Mitra 9
+
+        $url = '/api/v1/merchant/delete?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.required', array('attribute' => 'password'));
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testWrongPasswordGiven_POST_api_v1_merchant_delete()
+    {
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        // Data to be post
+        $_POST['merchant_id'] = 3;  // Mitra 9
+        // Chuck'password
+        $_POST['password'] = uniqid() . mt_rand() . 'wrong'; // Give the wrong one
+
+        $url = '/api/v1/merchant/delete?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.orbit.access.wrongpassword');
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
     public function testReqOK_POST_api_v1_merchant_delete()
     {
         // Number of merchant not deleted before this operation
@@ -404,6 +462,7 @@ class postDeleteMerchantTest extends OrbitTestCase
 
         // Data to be post
         $_POST['merchant_id'] = 3;  // Mitra 9
+        $_POST['password'] = 'chuck';   // Chuck's password see setUpBeforeClass() for details
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
