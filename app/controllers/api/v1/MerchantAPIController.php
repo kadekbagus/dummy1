@@ -410,6 +410,7 @@ class MerchantAPIController extends ControllerAPI
      * @param integer           `take`                          (optional) - limit
      * @param integer           `skip`                          (optional) - limit offset
      * @param integer           `merchant_id`                   (optional)
+     * @param string            `omid`                          (optional)
      * @param integer           `user_id`                       (optional)
      * @param string            `email`                         (optional)
      * @param string            `name`                          (optional)
@@ -484,7 +485,7 @@ class MerchantAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency',
+                    'sort_by' => 'in:merchant_omid,registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.merchant_sortby'),
@@ -514,7 +515,12 @@ class MerchantAPIController extends ControllerAPI
                 $merchants->whereIn('merchants.merchant_id', $merchantIds);
             });
 
-            // Filter merchant by Ids
+            // Filter merchant by omid
+            OrbitInput::get('omid', function ($omid) use ($merchants) {
+                $merchants->whereIn('merchants.omid', $omid);
+            });
+
+            // Filter merchant by user Ids
             OrbitInput::get('user_id', function ($userIds) use ($merchants) {
                 $merchants->whereIn('merchants.user_id', $userIds);
             });
@@ -750,6 +756,7 @@ class MerchantAPIController extends ControllerAPI
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
+                    'merchant_omid'      => 'merchants.omid',
                     'registered_date'      => 'merchants.created_at',
                     'merchant_name'        => 'merchants.name',
                     'merchant_email'       => 'merchants.email',
