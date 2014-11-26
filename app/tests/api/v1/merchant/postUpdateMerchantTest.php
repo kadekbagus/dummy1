@@ -112,17 +112,17 @@ class postUpdateMerchantTest extends OrbitTestCase
 
         // Insert dummy merchants
         DB::statement("INSERT INTO `{$merchant_table}`
-                (`merchant_id`, `user_id`, `email`, `name`, `description`, `address_line1`, `address_line2`, `address_line3`, `city_id`, `city`, `country_id`, `country`, `phone`, `fax`, `start_date_activity`, `status`, `logo`, `currency`, `currency_symbol`, `tax_code1`, `tax_code2`, `tax_code3`, `slogan`, `vat_included`, `object_type`, `parent_id`, `created_at`, `updated_at`, `modified_by`)
+                (`merchant_id`, `user_id`, `email`, `name`, `description`, `address_line1`, `address_line2`, `address_line3`, `city_id`, `city`, `country_id`, `country`, `phone`, `fax`, `start_date_activity`, `status`, `logo`, `currency`, `currency_symbol`, `tax_code1`, `tax_code2`, `tax_code3`, `slogan`, `vat_included`, `object_type`, `parent_id`, `created_at`, `updated_at`, `modified_by`, `omid`, `orid`)
                 VALUES
-                ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, NOW(), NOW(), 1),
-                ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, NOW(), NOW(), 1),
-                ('3', '2', 'mitra9@localhost.org', 'Mitra 9', 'Super market Bangunan', 'Jl. Tunjungan 03', 'Komplek B3', 'Lantai 03', '10', 'Surabaya', '62', 'Indonesia', '031-6123456', '031-612344', '2012-03-02 01:01:03', 'pending', 'merchants/logo/mitra9.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Belanja Bangunan Nyaman', 'yes', 'merchant', NULL, NOW(), NOW(), 1),
-                ('4', '1', 'keefce@localhost.org', 'Ke Ef Ce', 'Chicket Fast Food', 'Jl. Tunjungan 04', 'Komplek B4', 'Lantai 04', '10', 'Surabaya', '62', 'Indonesia', '031-5123456', '031-512344', '2012-04-02 01:01:04', 'blocked', 'merchants/logo/keefce1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Bukan Jagonya Ayam!', 'yes', 'merchant', NOW(), NULL, NOW(), 1),
-                ('5', '1', 'mekdi@localhost.org', 'Mek Di', 'Burger Fast Food', 'Jl. Tunjungan 05', 'Komplek B5', 'Lantai 05', '10', 'Surabaya', '62', 'Indonesia', '031-4123456', '031-412344', '2012-05-02 01:01:05', 'inactive', 'merchants/logo/mekdi1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'I\'m not lovit', 'yes', 'merchant', NULL, NOW(), NOW(), 1),
-                ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, NOW(), NOW(), 1),
-                ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, NOW(), NOW(), 1),
-                ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, NOW(), NOW(), 1),
-                ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1)"
+                ('1', '2', 'alfamer@localhost.org', 'Alfa Mer', 'Super market Alfa', 'Jl. Tunjungan 01', 'Komplek B1', 'Lantai 01', '10', 'Surabaya', '62', 'Indonesia', '031-7123456', '031-712344', '2012-01-02 01:01:01', 'active', 'merchants/logo/alfamer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Murah dan Tidak Hemat', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M01', ''),
+                ('2', '3', 'indomer@localhost.org', 'Indo Mer', 'Super market Indo', 'Jl. Tunjungan 02', 'Komplek B2', 'Lantai 02', '10', 'Surabaya', '62', 'Indonesia', '031-8123456', '031-812344', '2012-02-02 01:01:02', 'active', 'merchants/logo/indomer1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Harga Kurang Pas', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M02', ''),
+                ('3', '2', 'mitra9@localhost.org', 'Mitra 9', 'Super market Bangunan', 'Jl. Tunjungan 03', 'Komplek B3', 'Lantai 03', '10', 'Surabaya', '62', 'Indonesia', '031-6123456', '031-612344', '2012-03-02 01:01:03', 'pending', 'merchants/logo/mitra9.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Belanja Bangunan Nyaman', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M03', ''),
+                ('4', '1', 'keefce@localhost.org', 'Ke Ef Ce', 'Chicket Fast Food', 'Jl. Tunjungan 04', 'Komplek B4', 'Lantai 04', '10', 'Surabaya', '62', 'Indonesia', '031-5123456', '031-512344', '2012-04-02 01:01:04', 'blocked', 'merchants/logo/keefce1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Bukan Jagonya Ayam!', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M04', ''),
+                ('5', '1', 'mekdi@localhost.org', 'Mek Di', 'Burger Fast Food', 'Jl. Tunjungan 05', 'Komplek B5', 'Lantai 05', '10', 'Surabaya', '62', 'Indonesia', '031-4123456', '031-412344', '2012-05-02 01:01:05', 'inactive', 'merchants/logo/mekdi1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'I\'m not lovit', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M05', ''),
+                ('6', '1', 'setarbak@localhost.org', 'Setar Bak', 'Tempat Minum Kopi', 'Jl. Tunjungan 06', 'Komplek B6', 'Lantai 06', '10', 'Surabaya', '62', 'Indonesia', '031-3123456', '031-312344', '2012-06-02 01:01:06', 'deleted', 'merchants/logo/setarbak1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Coffee and TV', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M06', ''),
+                ('7', '3', 'matabulan@localhost.org', 'Mata Bulan', 'Tempat Beli Baju', 'Jl. Tunjungan 07', 'Komplek B7', 'Lantai 07', '10', 'Surabaya', '62', 'Indonesia', '031-2123456', '031-212344', '2012-07-02 01:01:06', 'inactive', 'merchants/logo/matabulan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Sale Everyday', 'yes', 'merchant', NULL, NOW(), NOW(), 1, 'M07', ''),
+                ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, NOW(), NOW(), 1, 'M08', ''),
+                ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1, 'M09', '')"
         );
     }
 
@@ -389,35 +389,6 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingUserId_POST_api_v1_merchant_update()
-    {
-        // Data to be post
-        $_POST['merchant_id'] = 7;
-        $_POST['email'] = 'george@localhost.org';
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.required', array('attribute' => 'user id'));
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
     public function testUserIdNotNumeric_POST_api_v1_merchant_update()
     {
         // Data to be post
@@ -478,34 +449,6 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingEmail_POST_api_v1_merchant_update()
-    {
-        // Data to be post
-        $_POST['merchant_id'] = '7';
-        $_POST['user_id'] = 3;
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = Lang::get('validation.required', array('attribute' => 'email'));
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
     public function testInvalidEmailFormat_POST_api_v1_merchant_update()
     {
         // Data to be post
@@ -528,68 +471,6 @@ class postUpdateMerchantTest extends OrbitTestCase
         $data->code = Status::INVALID_ARGUMENT;
         $data->status = 'error';
         $data->message = Lang::get('validation.email', array('attribute' => 'email'));
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
-    public function testMissingMerchantName_POST_api_v1_merchant_update()
-    {
-        // Data to be post
-        $_POST['merchant_id'] = 7;
-        $_POST['user_id'] = '3';
-        $_POST['email'] = 'george@localhost.org';
-        $_POST['status'] = 'active';
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.required', array('attribute' => 'name'));
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
-    public function testMissingStatus_POST_api_v1_merchant_update()
-    {
-        // Data to be post
-        $_POST['merchant_id'] = 7;
-        $_POST['user_id'] = '3';
-        $_POST['email'] = 'george@localhost.org';
-        $_POST['name'] = 'test missing status';
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.required', array('attribute' => 'status'));
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
         $data->data = NULL;
 
         $expect = json_encode($data);
@@ -629,6 +510,71 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testEmailAlreadyExists_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = 3;
+        $_POST['email'] = 'alfamer@localhost.org';
+        $_POST['name'] = 'Alfa Beta';
+        $_POST['status'] = 'active';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.orbit.exists.email');
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testOMIDAlreadyExists_POST_api_v1_merchant_update()
+    {
+        // Data to be post
+        $_POST['merchant_id'] = 7;
+        $_POST['user_id'] = 3;
+        $_POST['email'] = 'alfabeta@localhost.org';
+        $_POST['name'] = 'test omid already exists';
+        $_POST['omid'] = 'M01';
+        $_POST['status'] = 'active';
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'cde345';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/merchant/update?' . http_build_query($_GET);
+
+        $secretKey = 'cde34567890100';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $message = Lang::get('validation.orbit.exists.omid');
+        $data = new stdclass();
+        $data->code = Status::INVALID_ARGUMENT;
+        $data->status = 'error';
+        $data->message = $message;
+        $data->data = NULL;
+
+        $expect = json_encode($data);
+        $return = $this->call('POST', $url)->getContent();
+        $this->assertSame($expect, $return);
+    }
+
     public function testReqOK_POST_api_v1_merchant_update()
     {
         // Number of merchant account before this operation
@@ -639,6 +585,7 @@ class postUpdateMerchantTest extends OrbitTestCase
         $_POST['user_id'] = 2;
         $_POST['email'] = 'test@merchant.update';
         $_POST['name'] = 'test request ok: merchant update';
+        $_POST['omid'] = 'M0111';
         $_POST['status'] = 'pending';
 
         // Set the client API Keys
@@ -669,7 +616,6 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame($numBefore, $numAfter);
     }
 
-
     public function testSavedThenRollback_POST_api_v1_merchant_update()
     {
         // Register an event on 'orbit.merchant.postupdatemerchant.after.save'
@@ -686,8 +632,9 @@ class postUpdateMerchantTest extends OrbitTestCase
         // Data to be post
         $_POST['merchant_id'] = 1;
         $_POST['user_id'] = 3;
-        $_POST['email'] = 'test@merchant.update';
+        $_POST['email'] = 'test-rollback@merchant.update';
         $_POST['name'] = 'test saved then rollback';
+        $_POST['omid'] = 'M012';
         $_POST['status'] = 'pending';
 
         // Set the client API Keys
