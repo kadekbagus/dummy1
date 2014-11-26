@@ -756,7 +756,7 @@ class MerchantAPIController extends ControllerAPI
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'merchant_omid'      => 'merchants.omid',
+                    'merchant_omid'        => 'merchants.omid',
                     'registered_date'      => 'merchants.created_at',
                     'merchant_name'        => 'merchants.name',
                     'merchant_email'       => 'merchants.email',
@@ -774,7 +774,6 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_fax'         => 'merchants.fax',
                     'merchant_status'      => 'merchants.status',
                     'merchant_currency'    => 'merchants.currency',
-                    'omid'                 => 'merchants.omid',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
