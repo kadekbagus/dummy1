@@ -921,6 +921,7 @@ class MerchantAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $merchant_id = OrbitInput::post('merchant_id');
+            $omid = OrbitInput::post('omid');
             $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
@@ -966,13 +967,15 @@ class MerchantAPIController extends ControllerAPI
                     'email'             => $email,
                     'status'            => $status,
                     'name'              => $name,
+                    'omid'              => $omid,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'required|numeric|orbit.empty.user',
-                    'email'             => 'required|email',
+                    'email'             => 'required|email|email_exists_but_me',
                     'status'            => 'required|orbit.empty.merchant_status',
                     'name'              => 'required',
+                    'omid'              => 'required|omid_exists_but_me',
                 )
             );
 
@@ -989,6 +992,7 @@ class MerchantAPIController extends ControllerAPI
             $this->beginTransaction();
 
             $updatedmerchant = Merchant::find($merchant_id);
+            $updatedmerchant->omid = $omid;
             $updatedmerchant->user_id = $user_id;
             $updatedmerchant->email = $email;
             $updatedmerchant->name = $name;
@@ -1129,6 +1133,40 @@ class MerchantAPIController extends ControllerAPI
         Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
             $merchant = Merchant::excludeDeleted()
                         ->where('email', $value)
+                        ->first();
+
+            if (! empty($merchant)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check user email address, it should not exists (for update)
+        Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
+            $merchant_id = OrbitInput::post('merchant_id');
+            $merchant = Merchant::excludeDeleted()
+                        ->where('email', $value)
+                        ->where('merchant_id', '!=', $merchant_id)
+                        ->first();
+
+            if (! empty($merchant)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check OMID, it should not exists (for update)
+        Validator::extend('omid_exists_but_me', function ($attribute, $value, $parameters) {
+            $merchant_id = OrbitInput::post('merchant_id');
+            $merchant = Merchant::excludeDeleted()
+                        ->where('omid', $value)
+                        ->where('merchant_id', '!=', $merchant_id)
                         ->first();
 
             if (! empty($merchant)) {
