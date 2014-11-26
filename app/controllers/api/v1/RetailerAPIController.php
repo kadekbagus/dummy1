@@ -50,13 +50,16 @@ class RetailerAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $retailer_id = OrbitInput::post('merchant_id');
+            $password = OrbitInput::post('password');
 
             $validator = Validator::make(
                 array(
                     'retailer_id' => $retailer_id,
+                    'password'    => $password,
                 ),
                 array(
                     'retailer_id' => 'required|numeric|orbit.empty.retailer',
+                    'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
 
@@ -1252,5 +1255,15 @@ class RetailerAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check if the password correct
+        Validator::extend('orbit.access.wrongpassword', function ($attribute, $value, $parameters) {
+            if (Hash::check($value, $this->api->user->user_password)) {
+                return TRUE;
+            }
+
+            App::instance('orbit.validation.retailer', $value);
+
+            return FALSE;
+        });
     }
 }
