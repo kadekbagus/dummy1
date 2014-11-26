@@ -514,6 +514,7 @@ class postDeleteMerchantTest extends OrbitTestCase
 
         // Data to be post
         $_POST['merchant_id'] = 4;  // Ke Ef Ce
+        $_POST['password'] = 'chuck';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';

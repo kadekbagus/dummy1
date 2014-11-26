@@ -16,10 +16,12 @@ class MerchantAPIController extends ControllerAPI
      * POST - Delete Merchant
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
      * @param integer    `merchant_id`                 (required) - ID of the merchant
+     * @param string     `password`                    (required) - Password of the user for confirmation
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteMerchant()
@@ -50,13 +52,16 @@ class MerchantAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $merchant_id = OrbitInput::post('merchant_id');
+            $password = OrbitInput::post('password');
 
             $validator = Validator::make(
                 array(
                     'merchant_id' => $merchant_id,
+                    'password'    => $password,
                 ),
                 array(
                     'merchant_id' => 'required|numeric|orbit.empty.merchant',
+                    'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
 
@@ -695,13 +700,13 @@ class MerchantAPIController extends ControllerAPI
             });
 
             // Add new relation based on request
-            OrbitInput::get('with', function($with) use ($merchants) {
-                $with = (array)$with;
+            OrbitInput::get('with', function ($with) use ($merchants) {
+                $with = (array) $with;
 
                 // Make sure the with_count also in array format
                 $withCount = array();
-                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
-                    $withCount = (array)$_wcount;
+                OrbitInput::get('with_count', function ($_wcount) use (&$withCount) {
+                    $withCount = (array) $_wcount;
                 });
 
                 foreach ($with as $relation) {
@@ -1167,6 +1172,17 @@ class MerchantAPIController extends ControllerAPI
             }
 
             return $valid;
+        });
+
+        // Check if the password correct
+        Validator::extend('orbit.access.wrongpassword', function ($attribute, $value, $parameters) {
+            if (Hash::check($value, $this->api->user->user_password)) {
+                return TRUE;
+            }
+
+            App::instance('orbit.validation.merchant', $value);
+
+            return FALSE;
         });
     }
 }
