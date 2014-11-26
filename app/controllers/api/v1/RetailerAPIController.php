@@ -469,6 +469,7 @@ class RetailerAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $merchant_id = OrbitInput::post('merchant_id');
+            $orid = OrbitInput::post('orid');
             $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
@@ -513,6 +514,7 @@ class RetailerAPIController extends ControllerAPI
                     'email'             => $email,
                     'status'            => $status,
                     'name'              => $name,
+                    'orid'              => $orid,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric',
@@ -520,6 +522,7 @@ class RetailerAPIController extends ControllerAPI
                     'email'             => 'required|email|email_exists_but_me',
                     'status'            => 'required|orbit.empty.merchant_status',
                     'name'              => 'required',
+                    'orid'              => 'required|orid_exists_but_me',
                 )
             );
 
@@ -537,6 +540,7 @@ class RetailerAPIController extends ControllerAPI
 
             $updatedretailer = Retailer::find($merchant_id);
             $updatedretailer->user_id = $user_id;
+            $updatedretailer->orid = $orid;
             $updatedretailer->email = $email;
             $updatedretailer->name = $name;
             $updatedretailer->description = $description;
@@ -1172,7 +1176,7 @@ class RetailerAPIController extends ControllerAPI
                 return FALSE;
             }
 
-            App::instance('orbit.validation.merchant', $retailer);
+            App::instance('orbit.validation.retailer', $retailer);
 
             return TRUE;
         });
@@ -1191,16 +1195,33 @@ class RetailerAPIController extends ControllerAPI
         // Check user email address, it should not exists
         Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
             $merchant_id = OrbitInput::post('merchant_id');
-            $retailer = Merchant::excludeDeleted()
+            $retailer = Retailer::excludeDeleted()
                         ->where('email', $value)
                         ->where('merchant_id', '!=', $merchant_id)
                         ->first();
 
-            if (! empty($user)) {
+            if (! empty($retailer)) {
                 return FALSE;
             }
 
-            App::instance('orbit.validation.user', $retailer);
+            App::instance('orbit.validation.retailer', $retailer);
+
+            return TRUE;
+        });
+
+        // Check ORID, it should not exists
+        Validator::extend('orid_exists_but_me', function ($attribute, $value, $parameters) {
+            $merchant_id = OrbitInput::post('merchant_id');
+            $retailer = Retailer::excludeDeleted()
+                        ->where('orid', $value)
+                        ->where('merchant_id', '!=', $merchant_id)
+                        ->first();
+
+            if (! empty($retailer)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.retailer', $retailer);
 
             return TRUE;
         });
