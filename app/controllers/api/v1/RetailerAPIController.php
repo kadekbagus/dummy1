@@ -409,8 +409,9 @@ class RetailerAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `merchant_id`              (required) - ID of the retailer
-     * @param integer    `user_id`                  (required) - User id for the retailer
-     * @param string     `email`                    (required) - Email address of the retailer
+     * @param string     `orid`                     (optional) - ORID of the retailer
+     * @param integer    `user_id`                  (optional) - User id for the retailer
+     * @param string     `email`                    (optional) - Email address of the retailer
      * @param string     `name`                     (optional) - Name of the retailer
      * @param string     `description`              (optional) - Merchant description
      * @param string     `address_line1`            (optional) - Address 1
@@ -472,43 +473,10 @@ class RetailerAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $merchant_id = OrbitInput::post('merchant_id');
-            $orid = OrbitInput::post('orid');
             $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
-            $name = OrbitInput::post('name');
-            $description = OrbitInput::post('description');
-            $address_line1 = OrbitInput::post('address_line1');
-            $address_line2 = OrbitInput::post('address_line2');
-            $address_line3 = OrbitInput::post('address_line3');
-            $postal_code = OrbitInput::post('postal_code');
-            $city_id = OrbitInput::post('city_id');
-            $city = OrbitInput::post('city');
-            $country_id = OrbitInput::post('country_id');
-            $country = OrbitInput::post('country');
-            $phone = OrbitInput::post('phone');
-            $fax = OrbitInput::post('fax');
-            $start_date_activity = OrbitInput::post('start_date_activity');
-            $end_date_activity = OrbitInput::post('end_date_activity');
             $status = OrbitInput::post('status');
-            $logo = OrbitInput::post('logo');
-            $currency = OrbitInput::post('currency');
-            $currency_symbol = OrbitInput::post('currency_symbol');
-            $tax_code1 = OrbitInput::post('tax_code1');
-            $tax_code2 = OrbitInput::post('tax_code2');
-            $tax_code3 = OrbitInput::post('tax_code3');
-            $slogan = OrbitInput::post('slogan');
-            $vat_included = OrbitInput::post('vat_included');
-            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
-            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
-            $contact_person_position = OrbitInput::post('contact_person_position');
-            $contact_person_phone = OrbitInput::post('contact_person_phone');
-            $contact_person_phone2 = OrbitInput::post('contact_person_phone2');
-            $contact_person_email = OrbitInput::post('contact_person_email');
-            $sector_of_activity = OrbitInput::post('sector_of_activity');
-            $parent_id = OrbitInput::post('parent_id');
-            $url = OrbitInput::post('url');
-            $masterbox_number = OrbitInput::post('masterbox_number');
-            $slavebox_number = OrbitInput::post('slavebox_number');
+            $orid = OrbitInput::post('orid');
 
             $validator = Validator::make(
                 array(
@@ -516,17 +484,19 @@ class RetailerAPIController extends ControllerAPI
                     'user_id'           => $user_id,
                     'email'             => $email,
                     'status'            => $status,
-                    'name'              => $name,
                     'orid'              => $orid,
                 ),
                 array(
-                    'merchant_id'       => 'required|numeric',
-                    'user_id'           => 'required|numeric|orbit.empty.user',
-                    'email'             => 'required|email|email_exists_but_me',
-                    'status'            => 'required|orbit.empty.merchant_status',
-                    'name'              => 'required',
-                    'orid'              => 'required|orid_exists_but_me',
-                )
+                    'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'user_id'           => 'numeric|orbit.empty.user',
+                    'email'             => 'email|email_exists_but_me',
+                    'status'            => 'orbit.empty.merchant_status',
+                    'orid'              => 'orid_exists_but_me',
+                ),
+                array(
+                   'email_exists_but_me' => Lang::get('validation.orbit.exists.email'),
+                   'orid_exists_but_me'  => Lang::get('validation.orbit.exists.orid'),
+               )
             );
 
             Event::fire('orbit.retailer.postupdateretailer.before.validation', array($this, $validator));
@@ -542,43 +512,155 @@ class RetailerAPIController extends ControllerAPI
             $this->beginTransaction();
 
             $updatedretailer = Retailer::find($merchant_id);
-            $updatedretailer->user_id = $user_id;
-            $updatedretailer->orid = $orid;
-            $updatedretailer->email = $email;
-            $updatedretailer->name = $name;
-            $updatedretailer->description = $description;
-            $updatedretailer->address_line1 = $address_line1;
-            $updatedretailer->address_line2 = $address_line2;
-            $updatedretailer->address_line3 = $address_line3;
-            $updatedretailer->postal_code = $postal_code;
-            $updatedretailer->city_id = $city_id;
-            $updatedretailer->city = $city;
-            $updatedretailer->country_id = $country_id;
-            $updatedretailer->country = $country;
-            $updatedretailer->phone = $phone;
-            $updatedretailer->fax = $fax;
-            $updatedretailer->start_date_activity = $start_date_activity;
-            $updatedretailer->end_date_activity = $end_date_activity;
-            $updatedretailer->status = $status;
-            $updatedretailer->logo = $logo;
-            $updatedretailer->currency = $currency;
-            $updatedretailer->currency_symbol = $currency_symbol;
-            $updatedretailer->tax_code1 = $tax_code1;
-            $updatedretailer->tax_code2 = $tax_code2;
-            $updatedretailer->tax_code3 = $tax_code3;
-            $updatedretailer->slogan = $slogan;
-            $updatedretailer->vat_included = $vat_included;
-            $updatedretailer->contact_person_firstname = $contact_person_firstname;
-            $updatedretailer->contact_person_lastname = $contact_person_lastname;
-            $updatedretailer->contact_person_position = $contact_person_position;
-            $updatedretailer->contact_person_phone = $contact_person_phone;
-            $updatedretailer->contact_person_phone2 = $contact_person_phone2;
-            $updatedretailer->contact_person_email = $contact_person_email;
-            $updatedretailer->sector_of_activity = $sector_of_activity;
-            $updatedretailer->parent_id = $parent_id;
-            $updatedretailer->url = $url;
-            $updatedretailer->masterbox_number = $masterbox_number;
-            $updatedretailer->slavebox_number = $slavebox_number;
+
+            OrbitInput::post('omid', function($omid) use ($updatedretailer) {
+                $updatedretailer->omid = $omid;
+            });
+
+            OrbitInput::post('user_id', function($user_id) use ($updatedretailer) {
+                $updatedretailer->user_id = $user_id;
+            });
+
+            OrbitInput::post('email', function($email) use ($updatedretailer) {
+                $updatedretailer->email = $email;
+            });
+
+            OrbitInput::post('name', function($name) use ($updatedretailer) {
+                $updatedretailer->name = $name;
+            });
+
+            OrbitInput::post('description', function($description) use ($updatedretailer) {
+                $updatedretailer->description = $description;
+            });
+
+            OrbitInput::post('address_line1', function($address_line1) use ($updatedretailer) {
+                $updatedretailer->address_line1 = $address_line1;
+            });
+
+            OrbitInput::post('address_line2', function($address_line2) use ($updatedretailer) {
+                $updatedretailer->address_line2 = $address_line2;
+            });
+
+            OrbitInput::post('address_line3', function($address_line3) use ($updatedretailer) {
+                $updatedretailer->address_line3 = $address_line3;
+            });
+
+            OrbitInput::post('postal_code', function($postal_code) use ($updatedretailer) {
+                $updatedretailer->postal_code = $postal_code;
+            });
+
+            OrbitInput::post('city_id', function($city_id) use ($updatedretailer) {
+                $updatedretailer->city_id = $city_id;
+            });
+
+            OrbitInput::post('city', function($city) use ($updatedretailer) {
+                $updatedretailer->city = $city;
+            });
+
+            OrbitInput::post('country_id', function($country_id) use ($updatedretailer) {
+                $updatedretailer->country_id = $country_id;
+            });
+
+            OrbitInput::post('country', function($country) use ($updatedretailer) {
+                $updatedretailer->country = $country;
+            });
+
+            OrbitInput::post('phone', function($phone) use ($updatedretailer) {
+                $updatedretailer->phone = $phone;
+            });
+
+            OrbitInput::post('fax', function($fax) use ($updatedretailer) {
+                $updatedretailer->fax = $fax;
+            });
+
+            OrbitInput::post('start_date_activity', function($start_date_activity) use ($updatedretailer) {
+                $updatedretailer->start_date_activity = $start_date_activity;
+            });
+
+            OrbitInput::post('end_date_activity', function($end_date_activity) use ($updatedretailer) {
+                $updatedretailer->end_date_activity = $end_date_activity;
+            });
+
+            OrbitInput::post('status', function($status) use ($updatedretailer) {
+                $updatedretailer->status = $status;
+            });
+
+            OrbitInput::post('logo', function($logo) use ($updatedretailer) {
+                $updatedretailer->logo = $logo;
+            });
+
+            OrbitInput::post('currency', function($currency) use ($updatedretailer) {
+                $updatedretailer->currency = $currency;
+            });
+
+            OrbitInput::post('currency_symbol', function($currency_symbol) use ($updatedretailer) {
+                $updatedretailer->currency_symbol = $currency_symbol;
+            });
+
+            OrbitInput::post('tax_code1', function($tax_code1) use ($updatedretailer) {
+                $updatedretailer->tax_code1 = $tax_code1;
+            });
+
+            OrbitInput::post('tax_code2', function($tax_code2) use ($updatedretailer) {
+                $updatedretailer->tax_code2 = $tax_code2;
+            });
+
+            OrbitInput::post('tax_code3', function($tax_code3) use ($updatedretailer) {
+                $updatedretailer->tax_code3 = $tax_code3;
+            });
+
+            OrbitInput::post('slogan', function($slogan) use ($updatedretailer) {
+                $updatedretailer->slogan = $slogan;
+            });
+
+            OrbitInput::post('vat_included', function($vat_included) use ($updatedretailer) {
+                $updatedretailer->vat_included = $vat_included;
+            });
+
+            OrbitInput::post('contact_person_firstname', function($contact_person_firstname) use ($updatedretailer) {
+                $updatedretailer->contact_person_firstname = $contact_person_firstname;
+            });
+            
+            OrbitInput::post('contact_person_lastname', function($contact_person_lastname) use ($updatedretailer) {
+                $updatedretailer->contact_person_lastname = $contact_person_lastname;
+            });
+
+            OrbitInput::post('contact_person_position', function($contact_person_position) use ($updatedretailer) {
+                $updatedretailer->contact_person_position = $contact_person_position;
+            });
+
+            OrbitInput::post('contact_person_phone', function($contact_person_phone) use ($updatedretailer) {
+                $updatedretailer->contact_person_phone = $contact_person_phone;
+            });
+            
+            OrbitInput::post('contact_person_phone2', function($contact_person_phone2) use ($updatedretailer) {
+                $updatedretailer->contact_person_phone2 = $contact_person_phone2;
+            });
+
+            OrbitInput::post('contact_person_email', function($contact_person_email) use ($updatedretailer) {
+                $updatedretailer->contact_person_email = $contact_person_email;
+            });
+
+            OrbitInput::post('sector_of_activity', function($sector_of_activity) use ($updatedretailer) {
+                $updatedretailer->sector_of_activity = $sector_of_activity;
+            });
+            
+            OrbitInput::post('parent_id', function($parent_id) use ($updatedretailer) {
+                $updatedretailer->parent_id = $parent_id;
+            });
+
+            OrbitInput::post('url', function($url) use ($updatedretailer) {
+                $updatedretailer->url = $url;
+            });
+
+            OrbitInput::post('masterbox_number', function($masterbox_number) use ($updatedretailer) {
+                $updatedretailer->masterbox_number = $masterbox_number;
+            });
+            
+            OrbitInput::post('slavebox_number', function($slavebox_number) use ($updatedretailer) {
+                $updatedretailer->slavebox_number = $slavebox_number;
+            });
+
             $updatedretailer->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.retailer.postupdateretailer.before.save', array($this, $updatedretailer));
@@ -1240,17 +1322,17 @@ class RetailerAPIController extends ControllerAPI
             return $valid;
         });
 
-        // Check the existance of merchant id
+        // Check the existance of merchant id (retailer)
         Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
-            $merchant = Merchant::excludeDeleted()
+            $retailer = Retailer::excludeDeleted()
                         ->where('merchant_id', $value)
                         ->first();
 
-            if (empty($merchant)) {
+            if (empty($retailer)) {
                 return FALSE;
             }
 
-            App::instance('orbit.empty.merchant', $merchant);
+            App::instance('orbit.empty.retailer', $retailer);
 
             return TRUE;
         });
