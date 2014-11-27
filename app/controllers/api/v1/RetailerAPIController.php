@@ -472,7 +472,7 @@ class RetailerAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-            $merchant_id = OrbitInput::post('merchant_id');
+            $retailer_id = OrbitInput::post('retailer_id');
             $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $status = OrbitInput::post('status');
@@ -480,14 +480,14 @@ class RetailerAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'merchant_id'       => $merchant_id,
+                    'retailer_id'       => $retailer_id,
                     'user_id'           => $user_id,
                     'email'             => $email,
                     'status'            => $status,
                     'orid'              => $orid,
                 ),
                 array(
-                    'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
                     'status'            => 'orbit.empty.merchant_status',
@@ -511,7 +511,7 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedretailer = Retailer::find($merchant_id);
+            $updatedretailer = Retailer::find($retailer_id);
 
             OrbitInput::post('omid', function($omid) use ($updatedretailer) {
                 $updatedretailer->omid = $omid;
@@ -1320,21 +1320,6 @@ class RetailerAPIController extends ControllerAPI
             }
 
             return $valid;
-        });
-
-        // Check the existance of merchant id (retailer)
-        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
-            $retailer = Retailer::excludeDeleted()
-                        ->where('merchant_id', $value)
-                        ->first();
-
-            if (empty($retailer)) {
-                return FALSE;
-            }
-
-            App::instance('orbit.empty.retailer', $retailer);
-
-            return TRUE;
         });
 
         // Check if the password correct
