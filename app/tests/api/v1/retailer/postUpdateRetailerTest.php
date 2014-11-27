@@ -408,7 +408,7 @@ class postUpdateRetailerTest extends OrbitTestCase
     public function testUserIdNotNumeric_POST_api_v1_retailer_update()
     {
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 'foo';
         $_POST['email'] = 'george@localhost.org';
 
@@ -438,7 +438,7 @@ class postUpdateRetailerTest extends OrbitTestCase
     public function testUserIdNotExists_POST_api_v1_retailer_update()
     {
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 99;
         $_POST['email'] = 'george@localhost.org';
 
@@ -468,7 +468,7 @@ class postUpdateRetailerTest extends OrbitTestCase
     public function testInvalidEmailFormat_POST_api_v1_retailer_update()
     {
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'wrong-format@localhost';
 
@@ -497,7 +497,7 @@ class postUpdateRetailerTest extends OrbitTestCase
     public function testStatusNotExists_POST_api_v1_retailer_update()
     {
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george@localhost.org';
         $_POST['name'] = 'test status not exists';
@@ -529,9 +529,9 @@ class postUpdateRetailerTest extends OrbitTestCase
     public function testEmailAlreadyExists_POST_api_v1_retailer_update()
     {
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 3;
-        $_POST['email'] = 'alfamer@localhost.org';
+        $_POST['email'] = 'indomer@localhost.org';
         $_POST['name'] = 'Alfa Beta';
         $_POST['status'] = 'active';
 
@@ -561,11 +561,11 @@ class postUpdateRetailerTest extends OrbitTestCase
     public function testORIDAlreadyExists_POST_api_v1_retailer_update()
     {
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'alfabeta@localhost.org';
         $_POST['name'] = 'test omid already exists';
-        $_POST['orid'] = 'R01';
+        $_POST['orid'] = 'R02';
         $_POST['status'] = 'active';
 
         // Set the client API Keys
@@ -597,7 +597,7 @@ class postUpdateRetailerTest extends OrbitTestCase
         $numBefore = Retailer::count();
 
         // Data to be post
-        $_POST['retailer_id'] = 7;
+        $_POST['retailer_id'] = 16;
         $_POST['user_id'] = 2;
         $_POST['email'] = 'test@retailer.update';
         $_POST['name'] = 'test request ok: retailer update';
@@ -646,7 +646,7 @@ class postUpdateRetailerTest extends OrbitTestCase
         $numBefore = Retailer::count();
 
         // Data to be post
-        $_POST['retailer_id'] = 1;
+        $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'test-rollback@retailer.update';
         $_POST['name'] = 'test saved then rollback';
@@ -675,10 +675,10 @@ class postUpdateRetailerTest extends OrbitTestCase
         $this->assertSame($expect, $return);
 
         // The data should remain the same as the old one
-        $retailer = Retailer::find(1);
+        $retailer = Retailer::find(10);
         $this->assertSame('2', (string)$retailer->user_id);
         $this->assertSame('alfamer@localhost.org', $retailer->email);
-        $this->assertSame('Alfa Mer', $retailer->name);
+        $this->assertSame('Alfa Mer AAA', $retailer->name);
         $this->assertSame('Super market Alfa', $retailer->description);
         $this->assertSame('active', (string)$retailer->status);
         $this->assertSame('retailer', (string)$retailer->object_type);

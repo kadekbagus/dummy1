@@ -490,7 +490,7 @@ class RetailerAPIController extends ControllerAPI
                     'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.merchant_status',
+                    'status'            => 'orbit.empty.retailer_status',
                     'orid'              => 'orid_exists_but_me',
                 ),
                 array(
@@ -1279,10 +1279,10 @@ class RetailerAPIController extends ControllerAPI
 
         // Check user email address, it should not exists
         Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
-            $merchant_id = OrbitInput::post('merchant_id');
+            $retailer_id = OrbitInput::post('retailer_id');
             $retailer = Retailer::excludeDeleted()
                         ->where('email', $value)
-                        ->where('merchant_id', '!=', $merchant_id)
+                        ->where('merchant_id', '!=', $retailer_id)
                         ->first();
 
             if (! empty($retailer)) {
@@ -1296,10 +1296,10 @@ class RetailerAPIController extends ControllerAPI
 
         // Check ORID, it should not exists
         Validator::extend('orid_exists_but_me', function ($attribute, $value, $parameters) {
-            $merchant_id = OrbitInput::post('merchant_id');
+            $retailer_id = OrbitInput::post('retailer_id');
             $retailer = Retailer::excludeDeleted()
                         ->where('orid', $value)
-                        ->where('merchant_id', '!=', $merchant_id)
+                        ->where('merchant_id', '!=', $retailer_id)
                         ->first();
 
             if (! empty($retailer)) {
