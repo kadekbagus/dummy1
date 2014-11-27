@@ -19,7 +19,7 @@ class RetailerAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`                 (required) - ID of the retailer
+     * @param integer    `retailer_id`                 (required) - ID of the retailer
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteRetailer()
@@ -49,7 +49,7 @@ class RetailerAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-            $retailer_id = OrbitInput::post('merchant_id');
+            $retailer_id = OrbitInput::post('retailer_id');
             $password = OrbitInput::post('password');
 
             $validator = Validator::make(
@@ -823,7 +823,7 @@ class RetailerAPIController extends ControllerAPI
             {
                 $retailers->where('merchants.address_line2', 'like', "%$address2%");
             });
-            
+
              // Filter retailer by address3
             OrbitInput::get('address3', function($address3) use ($retailers)
             {
