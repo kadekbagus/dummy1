@@ -513,8 +513,8 @@ class RetailerAPIController extends ControllerAPI
 
             $updatedretailer = Retailer::find($retailer_id);
 
-            OrbitInput::post('omid', function($omid) use ($updatedretailer) {
-                $updatedretailer->omid = $omid;
+            OrbitInput::post('orid', function($orid) use ($updatedretailer) {
+                $updatedretailer->orid = $orid;
             });
 
             OrbitInput::post('user_id', function($user_id) use ($updatedretailer) {
@@ -1331,6 +1331,21 @@ class RetailerAPIController extends ControllerAPI
             App::instance('orbit.validation.retailer', $value);
 
             return FALSE;
+        });
+
+        // Check the existance of merchant id
+        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
+            $merchant = Merchant::excludeDeleted()
+                        ->where('merchant_id', $value)
+                        ->first();
+
+            if (empty($merchant)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
         });
     }
 }
