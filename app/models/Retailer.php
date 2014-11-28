@@ -44,4 +44,39 @@ class Retailer extends Eloquent
     {
         return $this->merchant();
     }
+
+    /**
+     * Eagler load the count query. It is not very optimized but it works for now
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @credit http://laravel.io/forum/05-03-2014-eloquent-get-count-relation
+     * @return int
+     */
+    public function merchantNumber()
+    {
+        // Basically we query Merchant which the its id are on the parent_id
+        // of retailers
+        return $this->belongsTo('Merchant', 'parent_id', 'merchant_id')
+                    ->excludeDeleted()
+                    ->selectRaw('merchant_id, count(*) as count')
+                    ->groupBy('merchant_id');
+    }
+
+    public function getMerchantCountAttribute()
+    {
+        return $this->merchantNumber ? $this->merchantNumber->count : 0;
+    }
+
+    public function userNumber()
+    {
+        return $this->belongsTo('User', 'user_id', 'user_id')
+                    ->excludeDeleted()
+                    ->selectRaw('user_id, count(*) as count')
+                    ->groupBy('user_id');
+    }
+
+    public function getUserCountAttribute()
+    {
+        return $this->userNumber ? $this->userNumber->count : 0;
+    }
 }
