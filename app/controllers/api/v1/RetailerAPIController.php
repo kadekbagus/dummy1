@@ -620,7 +620,7 @@ class RetailerAPIController extends ControllerAPI
             OrbitInput::post('contact_person_firstname', function($contact_person_firstname) use ($updatedretailer) {
                 $updatedretailer->contact_person_firstname = $contact_person_firstname;
             });
-            
+
             OrbitInput::post('contact_person_lastname', function($contact_person_lastname) use ($updatedretailer) {
                 $updatedretailer->contact_person_lastname = $contact_person_lastname;
             });
@@ -632,7 +632,7 @@ class RetailerAPIController extends ControllerAPI
             OrbitInput::post('contact_person_phone', function($contact_person_phone) use ($updatedretailer) {
                 $updatedretailer->contact_person_phone = $contact_person_phone;
             });
-            
+
             OrbitInput::post('contact_person_phone2', function($contact_person_phone2) use ($updatedretailer) {
                 $updatedretailer->contact_person_phone2 = $contact_person_phone2;
             });
@@ -644,7 +644,7 @@ class RetailerAPIController extends ControllerAPI
             OrbitInput::post('sector_of_activity', function($sector_of_activity) use ($updatedretailer) {
                 $updatedretailer->sector_of_activity = $sector_of_activity;
             });
-            
+
             OrbitInput::post('parent_id', function($parent_id) use ($updatedretailer) {
                 $updatedretailer->parent_id = $parent_id;
             });
@@ -656,7 +656,7 @@ class RetailerAPIController extends ControllerAPI
             OrbitInput::post('masterbox_number', function($masterbox_number) use ($updatedretailer) {
                 $updatedretailer->masterbox_number = $masterbox_number;
             });
-            
+
             OrbitInput::post('slavebox_number', function($slavebox_number) use ($updatedretailer) {
                 $updatedretailer->slavebox_number = $slavebox_number;
             });
@@ -799,7 +799,7 @@ class RetailerAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.retailer.getsearchretailer.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_user')) {
+            if (! ACL::create($user)->isAllowed('view_retailer')) {
                 Event::fire('orbit.retailer.getsearchretailer.authz.notallowed', array($this, $user));
                 $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
@@ -812,13 +812,13 @@ class RetailerAPIController extends ControllerAPI
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
                 array(
-                    'sort_by' => $sort_by,
+                    'sortby' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency',
+                    'sortby' => 'in:registered_date,retailer_name,retailer_email,orid',
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                    'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
                 )
             );
 
@@ -1110,6 +1110,7 @@ class RetailerAPIController extends ControllerAPI
             {
                    // Map the sortby request to the real column name
                   $sortByMapping = array(
+                  'orid' => 'merchants.orid',
                   'registered_date' => 'merchants.created_at',
                   'retailer_name' => 'merchants.name',
                   'retailer_email' => 'merchants.email',
