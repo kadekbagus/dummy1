@@ -15,7 +15,7 @@ trait UserRoleTrait
     public function scopeConsumers($query)
     {
         return $query->whereHas('role', function($q){
-            $q->where('role_name', '=', 'consumer'));
+            $q->where('role_name', '=', 'consumer');
         });
     }
 
@@ -25,10 +25,10 @@ trait UserRoleTrait
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopeMerchants($query)
+    public function scopeMerchantOwners($query)
     {
         return $query->whereHas('role', function($q){
-            $q->where('role_name', '=', 'merchant-owner'));
+            $q->where('role_name', '=', 'merchant-owner');
         });
     }   
 }
