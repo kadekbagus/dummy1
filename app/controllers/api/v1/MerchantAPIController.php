@@ -77,7 +77,7 @@ class MerchantAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deletemerchant = Merchant::find($merchant_id);
+            $deletemerchant = Merchant::excludeDeleted()->allowedForUser($user)->where('merchant_id', $merchant_id)->first();
             $deletemerchant->status = 'deleted';
             $deletemerchant->modified_by = $this->api->user->user_id;
 
@@ -958,7 +958,7 @@ class MerchantAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedmerchant = Merchant::find($merchant_id);
+            $updatedmerchant = Merchant::excludeDeleted()->allowedForUser($user)->where('merchant_id', $merchant_id)->first();
 
             OrbitInput::post('omid', function($omid) use ($updatedmerchant) {
                 $updatedmerchant->omid = $omid;
