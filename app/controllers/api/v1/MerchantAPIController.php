@@ -508,7 +508,7 @@ class MerchantAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $merchants = Merchant::excludeDeleted();
+            $merchants = Merchant::excludeDeleted()->allowedForUser($user);
 
             // Filter merchant by Ids
             OrbitInput::get('merchant_id', function ($merchantIds) use ($merchants) {
@@ -1067,7 +1067,7 @@ class MerchantAPIController extends ControllerAPI
             OrbitInput::post('contact_person_firstname', function($contact_person_firstname) use ($updatedmerchant) {
                 $updatedmerchant->contact_person_firstname = $contact_person_firstname;
             });
-            
+
             OrbitInput::post('contact_person_lastname', function($contact_person_lastname) use ($updatedmerchant) {
                 $updatedmerchant->contact_person_lastname = $contact_person_lastname;
             });
@@ -1079,7 +1079,7 @@ class MerchantAPIController extends ControllerAPI
             OrbitInput::post('contact_person_phone', function($contact_person_phone) use ($updatedmerchant) {
                 $updatedmerchant->contact_person_phone = $contact_person_phone;
             });
-            
+
             OrbitInput::post('contact_person_phone2', function($contact_person_phone2) use ($updatedmerchant) {
                 $updatedmerchant->contact_person_phone2 = $contact_person_phone2;
             });
@@ -1091,7 +1091,7 @@ class MerchantAPIController extends ControllerAPI
             OrbitInput::post('sector_of_activity', function($sector_of_activity) use ($updatedmerchant) {
                 $updatedmerchant->sector_of_activity = $sector_of_activity;
             });
-            
+
             OrbitInput::post('parent_id', function($parent_id) use ($updatedmerchant) {
                 $updatedmerchant->parent_id = $parent_id;
             });
@@ -1103,12 +1103,12 @@ class MerchantAPIController extends ControllerAPI
             OrbitInput::post('masterbox_number', function($masterbox_number) use ($updatedmerchant) {
                 $updatedmerchant->masterbox_number = $masterbox_number;
             });
-            
+
             OrbitInput::post('slavebox_number', function($slavebox_number) use ($updatedmerchant) {
                 $updatedmerchant->slavebox_number = $slavebox_number;
             });
 
-            $updatedmerchant->modified_by = $this->api->user->user_id; 
+            $updatedmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postupdatemerchant.before.save', array($this, $updatedmerchant));
 
