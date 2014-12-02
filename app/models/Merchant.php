@@ -186,7 +186,7 @@ class Merchant extends Eloquent
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
      */
-    public function scopeAllowedForUser(Builder $builder, $user)
+    public function scopeAllowedForUser($builder, $user)
     {
         // Super admin allowed to see all entries
         $superAdmin = Config::get('orbit.security.superadmin');
