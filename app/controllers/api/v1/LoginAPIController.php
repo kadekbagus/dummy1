@@ -41,7 +41,7 @@ class LoginAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail')
+            $user = User::with('apikey', 'userdetail', 'role')
                         ->active()
                         ->where('user_email', $email)
                         ->first();
