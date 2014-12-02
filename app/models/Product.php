@@ -33,19 +33,23 @@ class Product extends Eloquent
         return $this->belongsTo('Merchant', 'merchant_id', 'merchant_id');
     }
 
-    public function retailer()
+    public function tax1()
     {
-        return $this->belongsTo('Retailer', 'retailer_id', 'merchant_id');
+        return $this->belongsTo('MerchantTax', 'merchant_tax_id1', 'merchant_tax_id');
     }
 
-    public function scopeNew($query)
+    public function tax2()
     {
-        return $query->where('products.is_new', '=', 'yes');
+        return $this->belongsTo('MerchantTax', 'merchant_tax_id2', 'merchant_tax_id');
     }
 
-    public function scopeDependOnStock($query)
+    public function retailers()
     {
-        return $query->where('products.depend_on_stock', '=', 'yes');
+        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'product_id');
     }
 
+    public function suggestedproducts()
+    {
+        return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
+    }
 }
