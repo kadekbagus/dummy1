@@ -11,6 +11,11 @@ return array(
     ),
 
     'security' => array(
+        // Super Admin Roles
+        'superadmin' => array(
+            'super admin',
+        ),
+
         'csrf' => array(
             // Use CSRF protection?
             'protect'   => TRUE,
