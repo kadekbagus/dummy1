@@ -178,4 +178,35 @@ class Merchant extends Eloquent
 
         return $contact_person_phone2[0];
     }
+
+    /**
+     * Add Filter merchant based on user who request it.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  User $user Instance of object user
+     */
+    public function scopeAllowedForUser(Builder $builder, $user)
+    {
+        // Super admin allowed to see all entries
+        $superAdmin = Config::get('orbit.security.superadmin');
+        if (empty($superAdmin))
+        {
+            $superAdmin = array('super admin');
+        }
+
+        // Transform all array into lowercase
+        $superAdmin = array_map('strtolower', $superAdmin);
+        $userRole = trim(strtolower($user->role->role_name));
+        if (in_array($userRole, $superAdmin))
+        {
+            // do nothing return as is
+            return $builder;
+        }
+
+        // This will filter only user which belongs to merchant
+        $builder->where('merchants.user_id', $user->user_id);
+
+        return $builder;
+    }
 }

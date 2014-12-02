@@ -79,4 +79,45 @@ class Retailer extends Eloquent
     {
         return $this->userNumber ? $this->userNumber->count : 0;
     }
+
+    /**
+     * Add Filter retailers based on user who request it.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  User $user Instance of object user
+     */
+    public function scopeAllowedForUser(Builder $builder, $user)
+    {
+        // Super admin allowed to see all entries
+        $superAdmin = Config::get('orbit.security.superadmin');
+        if (empty($superAdmin))
+        {
+            $superAdmin = array('super admin');
+        }
+
+        // Transform all array into lowercase
+        $superAdmin = array_map('strtolower', $superAdmin);
+        $userRole = trim(strtolower($user->role->role_name));
+        if (in_array($userRole, $superAdmin))
+        {
+            // do nothing return as is
+            return $builder;
+        }
+
+        // This will filter only user which belongs to retailer or
+        // merchant owner (the parent). The merchant owner has an ability
+        // to view all retailers
+        $builder->where(function($query) use ($user)
+        {
+            $prefix = DB::getTablePrefix();
+            $query->where('merchants.user_id', $user->user_id)
+                  ->orWhereRaw("{$prefix}merchants.parent_id=(select m2.merchant_id from {$prefix}merchants m2
+                                where m2.object_type='merchant' and
+                                m2.status != 'deleted' and
+                                m2.user_id=?)", array($user->user_id));
+        });
+
+        return $builder;
+    }
 }
