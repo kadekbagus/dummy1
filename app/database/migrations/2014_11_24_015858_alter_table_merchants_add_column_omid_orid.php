@@ -29,11 +29,11 @@ class AlterTableMerchantsAddColumnOmidOrid extends Migration
     public function down()
     {
         Schema::table('merchants', function (Blueprint $table) {
-            $table->dropColumn('omid');
-            $table->dropColumn('orid');
-
             $table->dropIndex('omid_idx');
             $table->dropIndex('orid_idx');
+
+            $table->dropColumn('omid');
+            $table->dropColumn('orid');
         });
     }
 

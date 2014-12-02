@@ -75,7 +75,8 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deleteretailer = Retailer::find($retailer_id);
+            $deleteretailer = Retailer::excludeDeleted()->allowedForUser($user)->where('merchant_id', $retailer_id)->first();
+
             $deleteretailer->status = 'deleted';
             $deleteretailer->modified_by = $this->api->user->user_id;
 
@@ -477,6 +478,7 @@ class RetailerAPIController extends ControllerAPI
             $email = OrbitInput::post('email');
             $status = OrbitInput::post('status');
             $orid = OrbitInput::post('orid');
+            $parent_id = OrbitInput::post('parent_id');
 
             $validator = Validator::make(
                 array(
@@ -513,7 +515,8 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedretailer = Retailer::find($retailer_id);
+            // $updatedretailer = Retailer::find($retailer_id);
+            $updatedretailer = Retailer::excludeDeleted()->allowedForUser($user)->where('merchant_id', $retailer_id)->first();
 
             OrbitInput::post('orid', function($orid) use ($updatedretailer) {
                 $updatedretailer->orid = $orid;
@@ -840,7 +843,8 @@ class RetailerAPIController extends ControllerAPI
             }
 
             // Builder object
-            $retailers = Retailer::excludeDeleted();
+            // $retailers = Retailer::excludeDeleted();
+            $retailers = Retailer::excludeDeleted()->allowedForUser($user);
 
             // Filter retailer by Ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($retailers)
