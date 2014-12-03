@@ -23,6 +23,8 @@ return array(
         'nodata'    => array(
             'user'      => 'There is no user found that matched your criteria.',
             'merchant'  => 'There is no merchant found that matched your criteria.',
+            'retailer'  => 'There is no retailer found that matched your criteria.',
+            'product'   => 'There is no product found that matched your criteria.',
         ),
     )
 );
