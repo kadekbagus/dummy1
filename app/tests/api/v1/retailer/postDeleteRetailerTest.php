@@ -108,8 +108,8 @@ class postDeleteRetailerTest extends OrbitTestCase
                 ('8', '8', 'dummy@localhost.org', 'Dummy Object', 'Doom', 'Jl. Tunjungan 08', 'Komplek B8', 'Lantai 08', '10', 'Surabaya', '62', 'Indonesia', '031-1123456', '031-112344', '2012-08-02 01:01:08', 'active', 'merchants/logo/dummy1.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'dummy', NULL, NOW(), NOW(), 1),
                 ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1),
 
-                ('21', '7', 'alfagwalk@localhost.org', 'Alfa Mer Gwalk', 'Alfa Mer near GWalk Food Court', 'Jl. Citraland', 'Komplek G', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-21-02 01:01:09', 'active', 'merchants/logo/alfamer-gwalk.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
-                ('22', '7', 'alfatp@localhost.org', 'Alfa Mer Tunjungan', 'Alfa Mer near Tunjungan Plaza', 'Jl. Tunjungan', 'Komplek TP', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'active', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
+                ('21', '3', 'alfagwalk@localhost.org', 'Alfa Mer Gwalk', 'Alfa Mer near GWalk Food Court', 'Jl. Citraland', 'Komplek G', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-21-02 01:01:09', 'active', 'merchants/logo/alfamer-gwalk.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
+                ('22', '3', 'alfatp@localhost.org', 'Alfa Mer Tunjungan', 'Alfa Mer near Tunjungan Plaza', 'Jl. Tunjungan', 'Komplek TP', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'active', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
                 ('23', '7', 'alfapangsud@localhost.org', 'Alfa Mer Pangsud', 'Alfa Mer near Panglima Sudirman', 'Jl. Palinglima Sudirman', 'Komplek PS', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'deleted', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1)"
         );
     }
@@ -465,7 +465,7 @@ class postDeleteRetailerTest extends OrbitTestCase
         $numBefore = Retailer::excludeDeleted()->count();
 
         // Data to be post
-        $_POST['retailer_id'] = 21;  // Alfa Gwalk
+        $_POST['retailer_id'] = 21;     // Alfa Gwalk
         $_POST['password'] = 'chuck';   // Chuck's password see setUpBeforeClass() for details
 
         // Set the client API Keys
