@@ -1,16 +1,14 @@
 <?php
-
 class Product extends Eloquent
 {
     /**
-     * Product Model
-     *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
-     */
-    use ModelStatusTrait;
-
+    * Product Model
+    *
+    * @author Ahmad Anshori <ahmad@dominopos.com>
+    * @author Tian <tian@dominopos.com>
+    */
     protected $table = 'products';
-
+    
     protected $primaryKey = 'product_id';
 
     public function categories()
@@ -43,12 +41,17 @@ class Product extends Eloquent
         return $this->belongsTo('MerchantTax', 'merchant_tax_id2', 'merchant_tax_id');
     }
 
-    public function retailers()
+    public function scopeFeatured($query)
     {
-        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'product_id');
+        return $query->where('products.is_featured', '=', 'Y');
     }
 
-    public function suggestedproducts()
+    public function retailers()
+    {
+        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'retailer_id');
+    }
+
+    public function suggestions()
     {
         return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
     }
