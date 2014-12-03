@@ -107,6 +107,7 @@ return array(
             'user'              => 'The User ID you specify is not found.',
             'merchant'          => 'The Merchant ID you specify is not found.',
             'retailer'          => 'The Retailer ID you specify is not found.',
+            'product'           => 'The Product ID you specify is not found.',
             'user_status'       => 'The user status you specify is not found.',
             'user_sortby'       => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'   => 'The merchant status you specify is not found.',
