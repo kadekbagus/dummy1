@@ -1157,7 +1157,7 @@ class RetailerAPIController extends ControllerAPI
 
             if ($totalRetailers === 0) {
                 $data->records = NULL;
-                $this->response->message = Lang::get('statuses.orbit.nodata.user');
+                $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
             }
 
             $this->response->data = $data;
