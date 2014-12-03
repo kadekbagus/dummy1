@@ -1,17 +1,14 @@
 <?php
-
 class Product extends Eloquent
 {
     /**
-     * Product Model
-     *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
-     * @author Tian <tian@dominopos.com>
-     */
-    use ModelStatusTrait;
-
+    * Product Model
+    *
+    * @author Ahmad Anshori <ahmad@dominopos.com>
+    * @author Tian <tian@dominopos.com>
+    */
     protected $table = 'products';
-
+    
     protected $primaryKey = 'product_id';
 
     public function categories()
