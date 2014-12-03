@@ -18,24 +18,28 @@ class ProductAPIController extends ControllerAPI
      * POST - Update Product
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `product_id`               (required) - ID of the product
-     * @param string     `product_code`             (required)
-     * @param string     `product_name`             (required)
-     * @param decimal    `price`                    (optional)
-     * @param string     `tax_code`                 (optional)
-     * @param string     `short_description`        (optional)
-     * @param string     `long_description`         (optional)
-     * @param string     `image`                    (optional)
-     * @param string     `is_new`                   (optional)
-     * @param string     `new_until`                (optional)
-     * @param integer    `stock`                    (optional)
-     * @param string     `depend_on_stock`          (optional)
-     * @param integer    `retailer_id`              (optional)
-     * @param integer    `merchant_id`              (optional)
-     * @param integer    `modified_by`              (optional)
+     * @param integer    `merchant_id`             (required) - ID of the merchant
+     * @param string     `product_code`            (optional) - Product code
+     * @param string     `upc_code`                (optional) - Product UPC code
+     * @param string     `product_name`            (optional) - Product name
+     * @param string     `image`                   (optional) - Product image
+     * @param string     `short_description`       (optional) - Product short description
+     * @param string     `long_description`        (optional) - Product long description
+     * @param string     `is_featured`             (optional) - is featured
+     * @param string     `new_from`                (optional) - new from
+     * @param string     `new_until`               (optional) - new until
+     * @param string     `in_store_localization`   (optional) - in store localization
+     * @param string     `post_sales_url`          (optional) - post sales url
+     * @param decimal    `price`                   (optional) - Price of the product
+     * @param string     `merchant_tax_id1`        (optional) - Tax 1
+     * @param string     `merchant_tax_id2`        (optional) - Tax 2
+     * @param string     `status`                  (optional) - Status
+     * @param integer    `created_by`              (optional) - ID of the creator
+     * @param integer    `modified_by`             (optional) - Modify by
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateProduct()
@@ -67,30 +71,15 @@ class ProductAPIController extends ControllerAPI
 
             $product_id = OrbitInput::post('product_id');
             $merchant_id = OrbitInput::post('merchant_id');
-            $retailer_id = OrbitInput::post('retailer_id');
-            $product_code = OrbitInput::post('product_code');
-            $product_name = OrbitInput::post('product_name');
-            $price = OrbitInput::post('price');
-            $tax_code = OrbitInput::post('tax_code');
-            $short_description = OrbitInput::post('short_description');
-            $long_description = OrbitInput::post('long_description');
-            $image = OrbitInput::post('image');
-            $is_new = OrbitInput::post('is_new');
-            $new_until = date('Y-m-d', strtotime(OrbitInput::post('new_until')));
-            $stock = OrbitInput::post('stock');
-            $depend_on_stock = OrbitInput::post('depend_on_stock');
 
             $validator = Validator::make(
                 array(
                     'product_id'        => $product_id,
                     'merchant_id'       => $merchant_id,
-                    'retailer_id'       => $retailer_id,
-                    'retailer_id'       => $retailer_id,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'merchant_id'       => 'numeric|orbit.empty.merchant',
-                    'retailer_id'       => 'numeric|orbit.empty.retailer',
                 )
             );
 
@@ -106,20 +95,72 @@ class ProductAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedproduct = Product::find($product_id);
-            $updatedproduct->product_code = $product_code;
-            $updatedproduct->product_name = $product_name;
-            $updatedproduct->price = $price;
-            $updatedproduct->tax_code = $tax_code;
-            $updatedproduct->short_description = $short_description;
-            $updatedproduct->long_description = $long_description;
-            $updatedproduct->image = $image;
-            $updatedproduct->is_new = $is_new;
-            $updatedproduct->new_until = $new_until;
-            $updatedproduct->stock = $stock;
-            $updatedproduct->depend_on_stock = $depend_on_stock;
-            $updatedproduct->retailer_id = $retailer_id;
-            $updatedproduct->merchant_id = $merchant_id;
+            $updatedproduct = Product::excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
+
+            OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
+                $updatedproduct->product_code = $product_code;
+            });
+
+            OrbitInput::post('upc_code', function($upc_code) use ($updatedproduct) {
+                $updatedproduct->upc_code = $upc_code;
+            });
+
+            OrbitInput::post('product_name', function($product_name) use ($updatedproduct) {
+                $updatedproduct->product_name = $product_name;
+            });
+
+            OrbitInput::post('image', function($image) use ($updatedproduct) {
+                $updatedproduct->image = $image;
+            });
+
+            OrbitInput::post('short_description', function($short_description) use ($updatedproduct) {
+                $updatedproduct->short_description = $short_description;
+            });
+
+            OrbitInput::post('long_description', function($long_description) use ($updatedproduct) {
+                $updatedproduct->long_description = $long_description;
+            });
+
+            OrbitInput::post('is_featured', function($is_featured) use ($updatedproduct) {
+                $updatedproduct->is_featured = $is_featured;
+            });
+
+            OrbitInput::post('new_from', function($new_from) use ($updatedproduct) {
+                $updatedproduct->new_from = $new_from;
+            });
+
+            OrbitInput::post('new_until', function($new_until) use ($updatedproduct) {
+                $updatedproduct->new_until = $new_until;
+            });
+
+            OrbitInput::post('in_store_localization', function($in_store_localization) use ($updatedproduct) {
+                $updatedproduct->in_store_localization = $in_store_localization;
+            });
+
+            OrbitInput::post('post_sales_url', function($post_sales_url) use ($updatedproduct) {
+                $updatedproduct->post_sales_url = $post_sales_url;
+            });
+
+            OrbitInput::post('price', function($price) use ($updatedproduct) {
+                $updatedproduct->price = $price;
+            });
+
+            OrbitInput::post('merchant_tax_id1', function($merchant_tax_id1) use ($updatedproduct) {
+                $updatedproduct->merchant_tax_id1 = $merchant_tax_id1;
+            });
+
+            OrbitInput::post('merchant_tax_id2', function($merchant_tax_id2) use ($updatedproduct) {
+                $updatedproduct->merchant_tax_id2 = $merchant_tax_id2;
+            });
+
+            OrbitInput::post('status', function($status) use ($updatedproduct) {
+                $updatedproduct->status = $status;
+            });
+
+            OrbitInput::post('created_by', function($created_by) use ($updatedproduct) {
+                $updatedproduct->created_by = $created_by;
+            });
+
             $updatedproduct->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.product.postupdateproduct.before.save', array($this, $updatedproduct));
@@ -260,7 +301,7 @@ class ProductAPIController extends ControllerAPI
             Event::fire('orbit.product.getsearchproduct.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
             if ($maxRecord <= 0) {
                 $maxRecord = 20;
             }
@@ -268,68 +309,57 @@ class ProductAPIController extends ControllerAPI
             $products = Product::excludeDeleted();
 
             // Filter product by Ids
-            OrbitInput::get('product_id', function($productIds) use ($products)
-            {
+            OrbitInput::get('product_id', function ($productIds) use ($products) {
                 $products->whereIn('products.product_id', $productIds);
             });
 
             // Filter product by merchant Ids
-            OrbitInput::get('merchant_id', function($merchantIds) use ($products)
-            {
+            OrbitInput::get('merchant_id', function ($merchantIds) use ($products) {
                 $products->whereIn('products.merchant', $merchantIds);
             });
 
             // Filter product by retailer Ids
-            OrbitInput::get('retailer_id', function($retailerIds) use ($products)
-            {
+            OrbitInput::get('retailer_id', function ($retailerIds) use ($products) {
                 $products->whereIn('products.retailer_id', $retailerIds);
             });
 
             // Filter product by product code
-            OrbitInput::get('product_code', function($product_code) use ($products)
-            {
+            OrbitInput::get('product_code', function ($product_code) use ($products) {
                 $products->whereIn('products.product_code', $product_code);
             });
 
             // Filter product by name
-            OrbitInput::get('product_name', function($name) use ($products)
-            {
+            OrbitInput::get('product_name', function ($name) use ($products) {
                 $products->whereIn('products.product_name', $name);
             });
 
             // Filter product by name pattern
-            OrbitInput::get('product_name_like_like', function($name) use ($products)
-            {
+            OrbitInput::get('product_name_like_like', function ($name) use ($products) {
                 $products->where('products.product_name', 'like', "%$name%");
             });
 
             // Filter product by short description
-            OrbitInput::get('short_description', function($short_description) use ($products)
-            {
+            OrbitInput::get('short_description', function ($short_description) use ($products) {
                 $products->whereIn('products.short_description', $short_description);
             });
 
             // Filter product by short description pattern
-            OrbitInput::get('short_description_like', function($short_description) use ($products)
-            {
+            OrbitInput::get('short_description_like', function ($short_description) use ($products) {
                 $products->where('products.short_description', 'like', "%$short_description%");
             });
 
             // Filter product by long description
-            OrbitInput::get('long_description', function($long_description) use ($products)
-            {
+            OrbitInput::get('long_description', function ($long_description) use ($products) {
                 $products->whereIn('products.long_description', $long_description);
             });
 
             // Filter product by long description pattern
-            OrbitInput::get('long_description_like', function($long_description) use ($products)
-            {
+            OrbitInput::get('long_description_like', function ($long_description) use ($products) {
                 $products->where('products.long_description', 'like', "%$long_description%");
             });
 
             // Filter product by status
-            OrbitInput::get('status', function($status) use ($products)
-            {
+            OrbitInput::get('status', function ($status) use ($products) {
                 $products->whereIn('products.status', $status);
             });
 
@@ -337,8 +367,7 @@ class ProductAPIController extends ControllerAPI
 
             // Get the take args
             $take = $maxRecord;
-            OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-            {
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
@@ -347,8 +376,7 @@ class ProductAPIController extends ControllerAPI
             $products->take($take);
 
             $skip = 0;
-            OrbitInput::get('skip', function($_skip) use (&$skip, $products)
-            {
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
                 if ($_skip < 0) {
                     $_skip = 0;
                 }
@@ -362,8 +390,7 @@ class ProductAPIController extends ControllerAPI
             // Default sort mode
             $sortMode = 'desc';
 
-            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
-            {
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'registered_date'           => 'products.created_at',
@@ -384,8 +411,7 @@ class ProductAPIController extends ControllerAPI
                 $sortBy = $sortByMapping[$_sortBy];
             });
 
-            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
-            {
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
                 if (strtolower($_sortMode) !== 'desc') {
                     $sortMode = 'asc';
                 }
@@ -401,7 +427,7 @@ class ProductAPIController extends ControllerAPI
             $data->records = $listOfRec;
 
             if ($totalRec === 0) {
-                $data->records = NULL;
+                $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.product');
             }
 
