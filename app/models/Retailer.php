@@ -112,7 +112,7 @@ class Retailer extends Eloquent
         {
             $prefix = DB::getTablePrefix();
             $query->where('merchants.user_id', $user->user_id)
-                  ->orWhereRaw("{$prefix}merchants.parent_id=(select m2.merchant_id from {$prefix}merchants m2
+                  ->orWhereRaw("{$prefix}merchants.parent_id in (select m2.merchant_id from {$prefix}merchants m2
                                 where m2.object_type='merchant' and
                                 m2.status != 'deleted' and
                                 m2.user_id=?)", array($user->user_id));
