@@ -6,6 +6,7 @@ class Product extends Eloquent
      * Product Model
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      */
     use ModelStatusTrait;
 
@@ -33,19 +34,28 @@ class Product extends Eloquent
         return $this->belongsTo('Merchant', 'merchant_id', 'merchant_id');
     }
 
-    public function retailer()
+    public function tax1()
     {
-        return $this->belongsTo('Retailer', 'retailer_id', 'merchant_id');
+        return $this->belongsTo('MerchantTax', 'merchant_tax_id1', 'merchant_tax_id');
     }
 
-    public function scopeNew($query)
+    public function tax2()
     {
-        return $query->where('products.is_new', '=', 'yes');
+        return $this->belongsTo('MerchantTax', 'merchant_tax_id2', 'merchant_tax_id');
     }
 
-    public function scopeDependOnStock($query)
+    public function scopeFeatured($query)
     {
-        return $query->where('products.depend_on_stock', '=', 'yes');
+        return $query->where('products.is_featured', '=', 'Y');
     }
 
+    public function retailers()
+    {
+        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'retailer_id');
+    }
+
+    public function suggestions()
+    {
+        return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
+    }
 }
