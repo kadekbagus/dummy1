@@ -12,12 +12,12 @@ class MerchantTax extends Eloquent
 
     protected $primaryKey = 'merchant_tax_id';
 
-    public function tax1products()
+    public function productstax1()
     {
         $this->hasMany('Product', 'merchant_tax_id', 'merchant_tax_id1');
     }
 
-    public function tax2products()
+    public function productstax2()
     {
         $this->hasMany('Product', 'merchant_tax_id', 'merchant_tax_id2');
     }
