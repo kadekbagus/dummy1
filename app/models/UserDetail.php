@@ -21,6 +21,11 @@ class UserDetail extends Eloquent
         return $this->belongsTo('User', 'modified_by', 'user_id');
     }
 
+    public function lastVisitedShop()
+    {
+        return $this->belongsTo('Retailer', 'last_visit_shop_id', 'merchant_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->join('users', 'user_details.user_id', '=', 'users.user_id')->where('users.status', '=', 'active');

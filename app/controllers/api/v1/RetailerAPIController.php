@@ -495,7 +495,7 @@ class RetailerAPIController extends ControllerAPI
                     'email'             => 'email|email_exists_but_me',
                     'status'            => 'orbit.empty.retailer_status',
                     'orid'              => 'orid_exists_but_me',
-                    'parent_id'         => 'required|numeric|orbit.empty.merchant',
+                    'parent_id'         => 'numeric|orbit.empty.merchant',
                 ),
                 array(
                    'email_exists_but_me' => Lang::get('validation.orbit.exists.email'),

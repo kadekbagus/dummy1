@@ -646,7 +646,7 @@ class postUpdateRetailerTest extends OrbitTestCase
         $numBefore = Retailer::count();
 
         // Data to be post
-        $_POST['retailer_id'] = 10;
+        $_POST['retailer_id'] = 11;
         $_POST['user_id'] = 3;
         $_POST['email'] = 'test-rollback@retailer.update';
         $_POST['name'] = 'test saved then rollback';

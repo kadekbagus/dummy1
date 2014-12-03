@@ -90,6 +90,7 @@ return array(
     'CreateTableApikeys' => $baseDir . '/app/database/migrations/2014_10_14_083536_create_table_apikeys.php',
     'CreateTableCategories' => $baseDir . '/app/database/migrations/2014_11_13_094502_create_table_categories.php',
     'CreateTableCustomPermission' => $baseDir . '/app/database/migrations/2014_10_14_083119_create_table_custom_permission.php',
+    'CreateTableMerchantTaxes' => $baseDir . '/app/database/migrations/2014_12_03_032435_create_table_merchant_taxes.php',
     'CreateTableMerchants' => $baseDir . '/app/database/migrations/2014_11_07_020430_create_table_merchants.php',
     'CreateTablePermissionRole' => $baseDir . '/app/database/migrations/2014_10_14_063413_create_table_permission_role.php',
     'CreateTablePermissions' => $baseDir . '/app/database/migrations/2014_10_14_064030_create_table_permissions.php',

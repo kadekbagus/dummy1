@@ -28,6 +28,10 @@
             <directory>./app/tests/api/v1/merchant/</directory>
         </testsuite>
 
+        <testsuite name="Retailer APIv1 Test Suite">
+            <directory>./app/tests/api/v1/retailer/</directory>
+        </testsuite>
+
         <testsuite name="Orbit ACL Test Suite">
             <directory>./app/tests/acl</directory>
         </testsuite>
