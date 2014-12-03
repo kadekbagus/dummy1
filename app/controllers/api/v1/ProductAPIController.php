@@ -455,6 +455,187 @@ class ProductAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * POST - Add new product
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `merchant_id`             (required) - ID of the merchant
+     * @param string     `product_code`            (optional) - Product code
+     * @param string     `upc_code`                (optional) - Merchant description
+     * @param string     `product_name`            (optional) - Product name
+     * @param string     `image`                   (optional) - Product image
+     * @param string     `short_description`       (optional) - Product short description
+     * @param string     `long_description`        (optional) - Product long description
+     * @param string     `is_featured`             (optional) - is featured
+     * @param string     `new_from`                (optional) - new from
+     * @param string     `new_until`               (optional) - new until
+     * @param string     `in_store_localization`   (optional) - in store localization
+     * @param string     `post_sales_url`          (optional) - post sales url
+     * @param decimal    `price`                   (optional) - Price of the product
+     * @param string     `merchant_tax_id1`        (optional) - Tax 1
+     * @param string     `merchant_tax_id2`        (optional) - Tax 2
+     * @param string     `status`                  (optional) - Status
+     * @param integer    `created_by`              (optional) - ID of the creator
+     * @param integer    `modified_by`             (optional) - Modify by
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postNewProduct()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.product.postnewproduct.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.product.postnewproduct.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.product.postnewproduct.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('create_product')) {
+                Event::fire('orbit.merchant.postnewproduct.authz.notallowed', array($this, $user));
+                $createProductLang = Lang::get('validation.orbit.actionlist.new_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createProductLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.product.postnewproduct.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $merchant_id = OrbitInput::post('merchant_id');
+            $product_code = OrbitInput::post('product_code');
+            $upc_code = OrbitInput::post('upc_code');
+            $product_name = OrbitInput::post('product_name');
+            $image = OrbitInput::post('image');
+            $short_description = OrbitInput::post('short_description');
+            $long_description = OrbitInput::post('long_description');
+            $is_featured = OrbitInput::post('is_featured');
+            $new_from = OrbitInput::post('new_from');
+            $new_until = OrbitInput::post('new_until');
+            $in_store_localization = OrbitInput::post('in_store_localization');
+            $post_sales_url = OrbitInput::post('post_sales_url');
+            $price = OrbitInput::post('price');
+            $merchant_tax_id1 = OrbitInput::post('merchant_tax_id1');
+            $merchant_tax_id2 = OrbitInput::post('merchant_tax_id2');
+            $status = OrbitInput::post('status');
+
+            $validator = Validator::make(
+                array(
+                    'merchant_id'   => $merchant_id,
+                    'product_name'  => $product_name,
+                    'status'        => $status,
+                ),
+                array(
+                    'merchant_id'   => 'required|numeric',
+                    'product_name'  => 'required',
+                    'status'        => 'required',
+                )
+            );
+
+            Event::fire('orbit.product.postnewproduct.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.product.postnewproduct.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $newproduct = new Product();
+            $newproduct->merchant_id = $merchant_id;
+            $newproduct->product_code = $product_code;
+            $newproduct->upc_code = $upc_code;
+            $newproduct->product_name = $product_name;
+            $newproduct->image = $image;
+            $newproduct->short_description = $short_description;
+            $newproduct->long_description = $long_description;
+            $newproduct->is_featured = $is_featured;
+            $newproduct->new_from = $new_from;
+            $newproduct->new_until = $new_until;
+            $newproduct->in_store_localization = $in_store_localization;
+            $newproduct->post_sales_url = $post_sales_url;
+            $newproduct->price = $price;
+            $newproduct->merchant_tax_id1 = $merchant_tax_id1;
+            $newproduct->merchant_tax_id2 = $merchant_tax_id2;
+            $newproduct->status = $status;
+            $newproduct->created_by = $this->api->user->user_id;
+            $newproduct->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.product.postnewproduct.before.save', array($this, $newproduct));
+
+            $newproduct->save();
+
+            Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
+            $this->response->data = $newproduct->toArray();
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.product.postnewproduct.after.commit', array($this, $newproduct));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.product.postnewproduct.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.product.postnewproduct.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.product.postnewproduct.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.product.postnewproduct.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
     protected function registerCustomValidation()
     {
         // Check the existance of product id
