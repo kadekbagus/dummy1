@@ -820,7 +820,7 @@ class UserAPIController extends ControllerAPI
             }
 
             // Builder object
-            $users = User::Consumers()->with(array('userdetail'))->excludeDeleted();
+            $users = User::Consumers()->with(array('userdetail', 'lastVisitedShop'))->excludeDeleted();
 
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {
