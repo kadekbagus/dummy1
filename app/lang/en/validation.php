@@ -129,6 +129,10 @@ return array(
             'update_retailer'       => 'update retailer',
             'delete_retailer'       => 'delete retailer',
             'view_retailer'         => 'view retailer',
+            'new_product'           => 'add new product',
+            'update_product'        => 'update product',
+            'delete_product'        => 'delete product',
+            'view_product'          => 'view product',
         ),
     ),
 
