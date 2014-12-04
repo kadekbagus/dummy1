@@ -134,6 +134,10 @@ return array(
             'update_product'        => 'update product',
             'delete_product'        => 'delete product',
             'view_product'          => 'view product',
+            'new_tax'               => 'add new tax',
+            'update_tax'            => 'update tax',
+            'delete_tax'            => 'delete tax',
+            'view_tax'              => 'view tax',
         ),
     ),
 
