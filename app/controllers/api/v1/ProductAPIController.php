@@ -95,7 +95,7 @@ class ProductAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedproduct = Product::excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
+            $updatedproduct = Product::excludeDeleted()->where('product_id', $product_id)->first();
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
                 $updatedproduct->product_code = $product_code;
@@ -241,10 +241,9 @@ class ProductAPIController extends ControllerAPI
      * @param string     `product_name`             (optional)
      * @param string     `short_description`        (optional)
      * @param string     `long_description`         (optional)
-     * @param string     `product_name_like`             (optional)
-     * @param string     `short_description_like`        (optional)
-     * @param string     `long_description_like`         (optional)
-     * @param integer    `retailer_id`              (optional)
+     * @param string     `product_name_like`        (optional)
+     * @param string     `short_description_like`   (optional)
+     * @param string     `long_description_like`    (optional)
      * @param integer    `merchant_id`              (optional)
      * @param integer    `status`                   (optional)
      * @return Illuminate\Support\Facades\Response
@@ -316,11 +315,6 @@ class ProductAPIController extends ControllerAPI
             // Filter product by merchant Ids
             OrbitInput::get('merchant_id', function ($merchantIds) use ($products) {
                 $products->whereIn('products.merchant', $merchantIds);
-            });
-
-            // Filter product by retailer Ids
-            OrbitInput::get('retailer_id', function ($retailerIds) use ($products) {
-                $products->whereIn('products.retailer_id', $retailerIds);
             });
 
             // Filter product by product code
@@ -403,7 +397,6 @@ class ProductAPIController extends ControllerAPI
                     'product_long_description'  => 'products.long_description',
                     'product_is_new'            => 'products.is_new',
                     'product_new_until'         => 'products.new_until',
-                    'product_retailer_id'       => 'products.retailer_id',
                     'product_merchant_id'       => 'products.merchant_id',
                     'product_status'            => 'products.status',
                 );
@@ -660,6 +653,139 @@ class ProductAPIController extends ControllerAPI
         }
 
         return $this->render($httpCode);
+    }
+
+    /**
+     * POST - Delete Product
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `product_id`                  (required) - ID of the product
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteProduct()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.product.postdeleteproduct.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.product.postdeleteproduct.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.product.postdeleteproduct.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('delete_product')) {
+                Event::fire('orbit.product.postdeleteproduct.authz.notallowed', array($this, $user));
+                $deleteProductLang = Lang::get('validation.orbit.actionlist.delete_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteProductLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.product.postdeleteproduct.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $product_id = OrbitInput::post('product_id');
+
+            $validator = Validator::make(
+                array(
+                    'product_id' => $product_id,
+                ),
+                array(
+                    'product_id' => 'required|numeric|orbit.empty.product',
+                )
+            );
+
+            Event::fire('orbit.product.postdeleteproduct.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.product.postdeleteproduct.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $deleteproduct = Product::excludeDeleted()->where('product_id', $product_id)->first();
+            $deleteproduct->status = 'deleted';
+            $deleteproduct->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.product.postdeleteproduct.before.save', array($this, $deleteproduct));
+
+            $deleteproduct->save();
+
+            Event::fire('orbit.product.postdeleteproduct.after.save', array($this, $deleteproduct));
+            $this->response->data = null;
+            $this->response->message = Lang::get('statuses.orbit.deleted.product');
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.product.postdeleteproduct.after.commit', array($this, $deleteproduct));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.product.postdeleteproduct.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.product.postdeleteproduct.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.product.postdeleteproduct.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.product.postdeleteproduct.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.product.postdeleteproduct.before.render', array($this, $output));
+
+        return $output;
     }
 
     protected function registerCustomValidation()
