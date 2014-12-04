@@ -65,7 +65,7 @@ class MerchantTaxAPIController extends ControllerAPI
                     'sort_by' => 'in:registered_date,merchant_tax_id,tax_name,tax_value',
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                    'in' => Lang::get('validation.orbit.empty.tax_sortby'),
                 )
             );
 
