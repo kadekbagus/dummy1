@@ -50,11 +50,11 @@ class MerchantTaxAPIController extends ControllerAPI
                 Event::fire('orbit.merchanttax.getsearchmerchanttax.authz.notallowed', array($this, $user));
                 $viewUserLang = Lang::get('validation.orbit.actionlist.view_tax');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message.'aaa');
+                ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.merchanttax.getsearchmerchanttax.after.authz', array($this, $user));
 
-            $this->registerCustomValidation();
+            // $this->registerCustomValidation();
 
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
@@ -74,7 +74,7 @@ class MerchantTaxAPIController extends ControllerAPI
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage.'aaa');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             Event::fire('orbit.merchanttax.getsearchmerchanttax.after.validation', array($this, $validator));
@@ -179,16 +179,16 @@ class MerchantTaxAPIController extends ControllerAPI
             Event::fire('orbit.merchanttax.getsearchmerchanttax.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
-            $this->response->status = 'error'.'aaa';
-            $this->response->message = $e->getMessage().'aaa';
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.merchanttax.getsearchmerchanttax.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
-            $this->response->status = 'error'.'bbb';
-            $this->response->message = $e->getMessage().'bbb';
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
             $result['total_records'] = 0;
             $result['returned_records'] = 0;
             $result['records'] = null;
@@ -199,11 +199,11 @@ class MerchantTaxAPIController extends ControllerAPI
             Event::fire('orbit.merchanttax.getsearchmerchanttax.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
-            $this->response->status = 'error'.'ccc';
+            $this->response->status = 'error';
 
             // Only shows full query error when we are in debug mode
             if (Config::get('app.debug')) {
-                $this->response->message = $e->getMessage().'ccc';
+                $this->response->message = $e->getMessage();
             } else {
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
@@ -213,8 +213,8 @@ class MerchantTaxAPIController extends ControllerAPI
             Event::fire('orbit.merchanttax.getsearchmerchanttax.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
-            $this->response->status = 'error'.'ddd';
-            $this->response->message = $e->getMessage().'ddd';
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
         $output = $this->render($httpCode);
