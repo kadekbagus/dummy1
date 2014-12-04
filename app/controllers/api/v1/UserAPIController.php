@@ -979,8 +979,169 @@ class UserAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * POST - Change password user
+     *
+     * @author Ahmad <ahmad@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `user_id`                 (required) - ID of the user
+     * @param string     `old_password`            (required) - user's old password
+     * @param string     `new_password`            (required) - user's new password
+     * @param string     `confirm_password`            (required) - confirmation user's new password
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postChangePassword()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.user.postchangepassword.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.user.postchangepassword.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('change_password')) {
+                Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
+                $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.user.postchangepassword.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            // $user_id = OrbitInput::post('user_id');
+            $old_password = OrbitInput::post('old_password');
+            $new_password = OrbitInput::post('new_password');
+            $new_password_confirmation = OrbitInput::post('confirm_password');
+
+            // Error message when access is forbidden
+            $changePass = Lang::get('validation.orbit.actionlist.change_password');
+            $message = Lang::get('validation.orbit.access.forbidden',
+                                 array('action' => $changePass));
+
+            $validator = Validator::make(
+                array(
+                    // 'user_id' => $user_id,
+                    'old_password' => $old_password,
+                    'new_password' => $new_password,
+                    'new_password_confirmation' => $new_password_confirmation,
+                ),
+                array(
+                    // 'user_id' => 'required|numeric|orbit.empty.user',
+                    'old_password' => 'required|min:5|valid_user_password',
+                    'new_password' => 'required|min:5|confirmed',
+                ),
+                array(
+                    'valid_user_password' => $message,
+                )
+            );
+
+            Event::fire('orbit.user.postchangepassword.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.user.postchangepassword.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $passupdateduser = User::excludeDeleted()->find($this->api->user->user_id);
+            $passupdateduser->user_password = Hash::make($new_password);
+            $passupdateduser->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.user.postchangepassword.before.save', array($this, $passupdateduser));
+
+            $passupdateduser->save();
+
+            Event::fire('orbit.user.postchangepassword.after.save', array($this, $passupdateduser));
+            $this->response->data = null;
+            $this->response->message = Lang::get('statuses.orbit.updated.user');
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.user.postchangepassword.after.commit', array($this, $passupdateduser));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.user.postchangepassword.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.user.postchangepassword.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.user.postchangepassword.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.user.postchangepassword.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.user.postchangepassword.before.render', array($this, $output));
+
+        return $output;
+    }
+
     protected function registerCustomValidation()
     {
+        // Check user old password
+        Validator::extend('valid_user_password', function ($attribute, $value, $parameters) {
+            if (Hash::check($value, $this->api->user->user_password)) {
+                return TRUE;
+            }
+
+            return FALSE;
+        });
+
         // Check user email address, it should not exists
         Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
             $user = User::excludeDeleted()
