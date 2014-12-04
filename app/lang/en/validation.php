@@ -120,6 +120,7 @@ return array(
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
+            'change_password'       => 'change password',
             'add_new_user'          => 'add new user',
             'delete_user'           => 'delete user',
             'delete_your_self'      => 'delete your self',
