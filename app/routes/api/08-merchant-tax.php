@@ -6,7 +6,7 @@
 /**
  * Create new tax
  */
-Route::post('/api/v1/tax/new', function()
+Route::post('/api/v1/merchant/tax/new', function()
 {
     return MerchantTaxAPIController::create()->postNewMerchantTax();
 });
@@ -14,7 +14,7 @@ Route::post('/api/v1/tax/new', function()
 /**
  * Delete tax
  */
-Route::post('/api/v1/tax/delete', function()
+Route::post('/api/v1/merchant/tax/delete', function()
 {
     return MerchantTaxAPIController::create()->postDeleteMerchantTax();
 });
@@ -22,7 +22,7 @@ Route::post('/api/v1/tax/delete', function()
 /**
  * Update tax
  */
-Route::post('/api/v1/tax/update', function()
+Route::post('/api/v1/merchant/tax/update', function()
 {
     return MerchantTaxAPIController::create()->postUpdateMerchantTax();
 });
@@ -30,7 +30,7 @@ Route::post('/api/v1/tax/update', function()
 /**
  * List/Search prtaxoduct
  */
-Route::get('/api/v1/tax/search', function()
+Route::get('/api/v1/merchant/tax/search', function()
 {
     return MerchantTaxAPIController::create()->getSearchMerchantTax();
 });

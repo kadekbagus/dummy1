@@ -6,19 +6,19 @@
 /**
  * Create new tax
  */
-Route::post('/app/v1/tax/new', 'IntermediateAuthController@MerchantTax_postNewMerchantTax');
+Route::post('/app/v1/merchant/tax/new', 'IntermediateAuthController@MerchantTax_postNewMerchantTax');
 
 /**
  * Delete tax
  */
-Route::post('/app/v1/tax/delete', 'IntermediateAuthController@MerchantTax_postDeleteMerchantTax');
+Route::post('/app/v1/merchant/tax/delete', 'IntermediateAuthController@MerchantTax_postDeleteMerchantTax');
 
 /**
  * Update tax
  */
-Route::post('/app/v1/tax/update', 'IntermediateAuthController@MerchantTax_postUpdateMerchantTax');
+Route::post('/app/v1/merchant/tax/update', 'IntermediateAuthController@MerchantTax_postUpdateMerchantTax');
 
 /**
  * List and/or Search tax
  */
-Route::get('/app/v1/tax/search', 'IntermediateAuthController@MerchantTax_getSearchMerchantTax');
+Route::get('/app/v1/merchant/tax/search', 'IntermediateAuthController@MerchantTax_getSearchMerchantTax');
