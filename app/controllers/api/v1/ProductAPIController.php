@@ -314,7 +314,7 @@ class ProductAPIController extends ControllerAPI
 
             // Filter product by merchant Ids
             OrbitInput::get('merchant_id', function ($merchantIds) use ($products) {
-                $products->whereIn('products.merchant', $merchantIds);
+                $products->whereIn('products.merchant_id', $merchantIds);
             });
 
             // Filter product by product code
