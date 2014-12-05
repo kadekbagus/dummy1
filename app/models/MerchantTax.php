@@ -55,8 +55,13 @@ class MerchantTax extends Eloquent
             return $builder;
         }
 
-        // This will filter only user which belongs to merchant
-        $builder->where('merchants.user_id', $user->user_id);
+        // This will filter only taxes which belongs to merchant
+        $builder->where(function($query) use ($user)
+        {
+            $prefix = DB::getTablePrefix();
+            $query->whereRaw("{$prefix}merchant_taxes.merchant_id in (select m2.merchant_id from {$prefix}merchants m2
+                                where m2.user_id=?)", array($user->user_id));
+        });
 
         return $builder;
     }

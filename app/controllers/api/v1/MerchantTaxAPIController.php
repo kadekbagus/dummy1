@@ -85,7 +85,7 @@ class MerchantTaxAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $taxes = MerchantTax::AllowedForUser($user);
+            $taxes = MerchantTax::allowedForUser($user);
 
             // Filter Merchant Tax by Ids
             OrbitInput::get('merchant_tax_id', function($merchantTaxId) use ($taxes)
