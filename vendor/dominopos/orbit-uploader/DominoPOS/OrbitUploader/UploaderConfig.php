@@ -139,7 +139,12 @@ class UploaderConfig
     {
         $resizeConfig = $this->config['resize'];
 
-        return sprintf('resized%sx%s', $resizeConfig['width'], $resizeConfig['height']);
+        if ($this->config['keep_aspect_ratio'] !== TRUE)
+        {
+            return sprintf('resized%sx%s', $resizeConfig['width'], $resizeConfig['height']);
+        }
+
+        return 'resized-auto';
     }
 
     /**

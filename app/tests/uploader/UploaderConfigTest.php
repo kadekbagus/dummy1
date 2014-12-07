@@ -135,16 +135,32 @@ class UploaderConfigTest extends OrbitTestCase
         $this->assertSame(888, $configArr['resize']['height']);
     }
 
-    public function testConfigResizedImageSuffix()
+    public function testConfigResizedImageSuffix_aspectRatioNo()
     {
         $config = new UploaderConfig(array(
                 'resize'    => array(
                     'width'     => 600,
                     'height'    => 450
                 ),
+                'keep_aspect_ratio' => FALSE
         ));
 
         $expect = 'resized600x450';
+        $return = $config->getResizedImageSuffix();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testConfigResizedImageSuffix_aspectRatioYes()
+    {
+        $config = new UploaderConfig(array(
+                'resize'    => array(
+                    'width'     => 600,
+                    'height'    => 450
+                ),
+                'keep_aspect_ratio' => TRUE
+        ));
+
+        $expect = 'resized-auto';
         $return = $config->getResizedImageSuffix();
         $this->assertSame($expect, $return);
     }
