@@ -48,6 +48,12 @@ class UploaderConfig
                 // The target path which file to be stored
                 'path'          => 'uploads',
 
+                // Default HTML element name
+                'name'          => 'images',
+
+                // Force create directory when not exists
+                'create_directory'  => TRUE,
+
                 // Keeping the aspect ratio
                 'keep_aspect_ratio' => TRUE,
 
