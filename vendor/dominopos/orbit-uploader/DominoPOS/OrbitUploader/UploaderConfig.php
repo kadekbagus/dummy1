@@ -54,6 +54,9 @@ class UploaderConfig
                 // Force create directory when not exists
                 'create_directory'  => TRUE,
 
+                // Append year and month to the path
+                'append_year_month' => TRUE,
+
                 // Keeping the aspect ratio
                 'keep_aspect_ratio' => TRUE,
 
