@@ -853,13 +853,18 @@ class UserAPIController extends ControllerAPI
             });
 
             // Filter user by their lastname pattern
-            OrbitInput::get('lastname_like', function ($firstname) use ($users) {
-                $users->where('users.user_lastname', 'like', "%$firstname%");
+            OrbitInput::get('lastname_like', function ($lastname) use ($users) {
+                $users->where('users.user_lastname', 'like', "%$lastname%");
             });
 
             // Filter user by their email
             OrbitInput::get('email', function ($email) use ($users) {
                 $users->whereIn('users.user_email', $email);
+            });
+
+            // Filter user by their email pattern
+            OrbitInput::get('email_like', function ($email) use ($users) {
+                $users->where('users.user_email', 'like', "%$email%");
             });
 
             // Filter user by their status
