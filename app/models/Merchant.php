@@ -180,6 +180,29 @@ class Merchant extends Eloquent
     }
 
     /**
+     * Merchant has many uploaded media.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function media()
+    {
+        return $this->hasMany('Media', 'object_id', 'merchant_id')
+                    ->where('object_name', 'merchant');
+    }
+
+    /**
+     * Merchant has many uploaded logo.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function mediaLogo()
+    {
+        return $this->media()->where('media_name_id', 'merchant_logo');
+    }
+
+    /**
      * Add Filter merchant based on user who request it.
      *
      * @author Rio Astamal <me@rioastamal.net>

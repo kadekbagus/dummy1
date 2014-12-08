@@ -28,5 +28,13 @@ return array(
             'product'   => 'There is no product found that matched your criteria.',
             'tax'       => 'There is no tax found that matched your criteria.',
         ),
+        'uploaded'  => array(
+            'merchant' => array(
+                'logo'  => 'Merchant logo has been successfully uploaded.',
+            ),
+            'retailer' => array(
+                'logo'  => 'Retailer logo has been successfully uploaded.',
+            ),
+        )
     )
 );

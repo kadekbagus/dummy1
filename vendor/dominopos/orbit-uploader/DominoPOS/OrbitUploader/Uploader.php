@@ -7,6 +7,8 @@
 use \DominoPOS\OrbitUploader\UploaderConfig;
 use \DominoPOS\OrbitUploader\UploaderMessage;
 use \Exception;
+use \finfo;
+use \Eventviva\ImageResize;
 
 class Uploader
 {
@@ -70,23 +72,32 @@ class Uploader
      * Main logic to upload the file to the server.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param array $files The actual $_FILES
+     * @param string $name The upload file name
      * @return array
      * @throws Exception
      */
     public function upload($files)
     {
+        if (! isset($files)) {
+            throw new Exception(
+                $this->message->getMessage('errors.no_file_uploaded'),
+                static::ERR_NO_FILE
+            );
+        }
+
         $files = static::simplifyFilesVar($files);
         $result = array();
 
         foreach ($files as $i=>$file) {
             // Check for basic PHP upload error
             switch ($file->error) {
-                case UPLOAD_ERROR_OK;
+                case UPLOAD_ERR_OK;
                     break;
 
-                case UPLOAD_ERROR_NO_FILE:
+                case UPLOAD_ERR_NO_FILE:
                     throw new Exception(
-                        $this->message->getConfig('no_file_uploaded'),
+                        $this->message->getMessage('errors.no_file_uploaded'),
                         static::ERR_NO_FILE
                     );
                     break;
@@ -94,7 +105,7 @@ class Uploader
                 case UPLOAD_ERR_INI_SIZE:
                 case UPLOAD_ERR_FORM_SIZE:
                     $units = static::bytesToUnits($this->config->getConfig('file_size'));
-                    $message = $this->message('file_too_big', array(
+                    $message = $this->message('errors.file_too_big', array(
                         'size' => $units['newsize'],
                         'unit' => $units['unit']
                     ));
@@ -102,18 +113,20 @@ class Uploader
 
                 default:
                     throw new Exception(
-                        $this->message->getMessage('unknown_error'),
+                        $this->message->getMessage('errors.unknown_error'),
                         static::ERR_UNKNOWN
                     );
             }
 
             $result[$i] = array();
+            $result[$i]['orig'] = $file;
+            $result[$i]['new'] = $file;
 
             // Check the actual size of the file
             $maxAllowedSize = $this->config->getConfig('file_size');
             if ($file->size > $maxAllowedSize) {
                 $units = static::bytesToUnits($maxAllowedSize);
-                $message = $this->message('file_too_big', array(
+                $message = $this->message->getMessage('errors.file_too_big', array(
                     'size' => $units['newsize'],
                     'unit' => $units['unit']
                 ));
@@ -127,7 +140,9 @@ class Uploader
             $ext = substr(strrchr($file->name, '.'), 1);
             if (! in_array($ext, $allowedExtensions)) {
                 throw new Exception(
-                    $this->message->getMessage('file_type_not_allowed'),
+                    $this->message->getMessage('errors.file_type_not_allowed', array(
+                        'extension' => '.' . $ext
+                    )),
                     static::ERR_FILE_EXTENSION
                 );
             }
@@ -140,7 +155,7 @@ class Uploader
             $mime = $finfo->file($file->tmp_name);
             if (! in_array($mime, $allowedMime)) {
                 throw new Exception(
-                    $this->message->getMessage('mime_type_not_allowed'),
+                    $this->message->getMessage('errors.mime_type_not_allowed'),
                     static::ERR_FILE_MIME
                 );
             }
@@ -148,30 +163,61 @@ class Uploader
 
             // Check if the target directory is writeable
             $targetDir = $this->config->getConfig('path');
-            if (! is_writable($targetDir)) {
-                throw new Exception(
-                    $this->message->getMessage('no_write_access'),
-                    static::NO_WRITE_ACCESS
-                );
-                }
 
-            // Call the before saving callback
+            // Are we need to create the directory?
+            if ($this->config->getConfig('create_directory') === TRUE) {
+                if (! file_exists($targetDir)) {
+                    // Try to create the directory
+                    if (! @mkdir($targetDir, 0777, TRUE)) {
+                        throw new Exception(
+                            $this->message->getMessage('errors.no_write_access'),
+                            static::ERR_NOWRITE_ACCESS
+                        );
+                    }
+                } else {
+                    // Only check the original upload path value
+                    if (! is_writable($targetDir)) {
+                        throw new Exception(
+                            $this->message->getMessage('errors.no_write_access'),
+                            static::ERR_NOWRITE_ACCESS
+                        );
+                    }
+                }
+            }
+
+            // Append with year and month when necesscary
+            if ($this->config->getConfig('append_year_month') === TRUE) {
+                $yearMonth = date('Y/m');
+                $targetDir = $targetDir . '/' . $yearMonth;
+
+                if (! file_exists($targetDir))
+                {
+                    if (! @mkdir($targetDir, 0777, TRUE)) {
+                        throw new Exception(
+                            $this->message->getMessage('errors.no_write_access'),
+                            static::ERR_NOWRITE_ACCESS
+                        );
+                    }
+                }
+            }
+
+            // Call the 'before_saving' callback
             $before_saving = $this->config->getConfig('before_saving');
             if (is_callable($before_saving)) {
-                $before_saving($this, $file, $targetDir);
+                $before_saving($this, $result[$i], $targetDir);
             }
+            $newFileName = $result[$i]['new']->name;
 
             // Apply suffix to the file name
             $suffix = $this->config->getConfig('suffix');
-            $newFileName = $file->name;
 
             // If suffix is a callback then run it
+            $fileNameOnly = pathinfo($newFileName, PATHINFO_FILENAME);
             if (is_callable($suffix)) {
-                $suffix($this, $file, $newFileName);
-            } else {
-                $fileNameOnly = pathinfo($origFileName, PATHINFO_FILENAME);
-                $newFileName = $fileNameOnly . $suffix . '.' . $ext;
+                $suffix = $suffix($this, $file, $newFileName);
             }
+            $newFileName = $fileNameOnly . $suffix . '.' . $ext;
+            $result[$i]['file_name'] = $newFileName;
 
             $targetFileName = $targetDir . DS . $newFileName;
 
@@ -185,9 +231,102 @@ class Uploader
                 }
             }
 
-            $result[$i]['orig_name'] = $file->name;
-            $result[$i]['new_name'] = $newFileName;
             $result[$i]['path'] = $targetFileName;
+            $result[$i]['realpath' ] = realpath($targetFileName);
+            $result[$i]['resized'] = array();
+            $result[$i]['cropped'] = array();
+            $result[$i]['scaled'] = array();
+
+            // Do some post processing to the uploaded file if the type are image
+            if (strpos($mime, 'image') !== FALSE) {
+                $resizer = new ImageResize($result[$i]['realpath']);
+
+                // Image need to be resized?
+                if ($this->config->getConfig('resize_image') === TRUE) {
+                    // Loop through each profiles
+                    foreach ($this->config->getConfig('resize') as $profile=>$config) {
+                        $width = $config['width'];
+                        $height = $config['height'];
+
+                        // Keep the aspect ratio?
+                        if ($this->config->getConfig('keep_aspect_ratio') === TRUE) {
+                            // Just resize based on width and let resizer determine
+                            // the height automatically
+                            $resizer->resizeToWidth($width);
+                        } else {
+                            // Resize the image as we want it
+                            $resizer->resize($width, $height);
+                        }
+
+                        $resizedSuffix = $this->config->getResizedImageSuffix($profile);
+                        $resizedName = $fileNameOnly . $suffix . '-' . $resizedSuffix . '.' . $ext;
+                        $targetResizedName = $targetDir . DS . $resizedName;
+
+                        $resizer->save($targetResizedName);
+
+                        $result[$i]['resized'][$profile] = array(
+                            'file_name' => $resizedName,
+                            'file_size' => filesize($targetResizedName),
+                            'path'      => $targetResizedName,
+                            'realpath'  => realpath($targetResizedName)
+                        );
+                    }
+                }
+
+                // Image need to be cropped?
+                if ($this->config->getConfig('crop_image') === TRUE) {
+                    // Loop through each profiles
+                    foreach ($this->config->getConfig('crop') as $profile=>$config) {
+                        $width = $config['width'];
+                        $height = $config['height'];
+
+                        // Crop the image
+                        $resizer->resize($width, $height);
+
+                        $croppedSuffix = $this->config->getCroppedImageSuffix($profile);
+                        $croppedName = $fileNameOnly . $suffix . '-' . $croppedSuffix . '.' . $ext;
+                        $targetCroppedName = $targetDir . DS . $croppedName;
+
+                        $resizer->save($targetCroppedName);
+
+                        $result[$i]['cropped'][$profile] = array(
+                            'file_name' => $croppedName,
+                            'file_size' => filesize($targetCroppedName),
+                            'path'      => $targetCroppedName,
+                            'realpath'  => realpath($targetCroppedName)
+                        );
+                    }
+                }
+
+                // Image need to be scacled?
+                if ($this->config->getConfig('scale_image') === TRUE) {
+                    // Loop through each profiles
+                    foreach ($this->config->getConfig('scale') as $profile=>$scale) {
+                        // Crop the image
+                        $resizer->scale($scale);
+
+                        $scaledSuffix = $this->config->getScaledImageSuffix($profile);
+                        $scaledName = $fileNameOnly . $suffix . '-' . $scaledSuffix . '.' . $ext;
+                        $targetScaledName = $targetDir . DS . $scaledName;
+
+                        $resizer->save($targetScaledName);
+
+                        $result[$i]['scaled'][$profile] = array(
+                            'file_name' => $scaledName,
+                            'file_size' => filesize($targetScaledName),
+                            'path'      => $targetScaledName,
+                            'realpath'  => realpath($targetScaledName)
+                        );
+                    }
+                }
+            }
+
+            // Call the callback 'after_saving'
+            $after_saving = $this->config->getConfig('after_saving');
+            if (is_callable($after_saving))
+            {
+                $after_saving($this, $result);
+            }
         }
 
         return $result;
@@ -245,6 +384,7 @@ class Uploader
      * @author Rio Astamal <me@rioastamal.net>
      * @credit http://php.net/manual/en/features.file-upload.multiple.php#53240
      * @param array $files Should be $_FILES
+     * @param string $name Name of the element
      * @return array
      */
     public static function simplifyFilesVar($files)
@@ -252,7 +392,7 @@ class Uploader
         $newVar = array();
 
         // Get all the keys, like 'name', 'tmp_name', 'error', 'size'
-        $keys = array_keys($var);
+        $keys = array_keys($files);
 
         // Turn it into array if it was single file upload
         if (! is_array($files['name'])) {
@@ -265,10 +405,10 @@ class Uploader
         $count = count($files['name']);
 
         for ($i=0; $i<$count; $i++) {
-            $object = new stdClass();
+            $object = new \stdClass();
 
             foreach ($keys as $key) {
-                $object->$key = $files[$i][$key];
+                $object->$key = $files[$key][$i];
             }
 
             $newVar[$i] = $object;

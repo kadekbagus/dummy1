@@ -27,6 +27,9 @@ class UploaderConfigTest extends OrbitTestCase
             'mime_type',
             'file_size',
             'path',
+            'name',
+            'create_directory',
+            'append_year_month',
             'keep_aspect_ratio',
             'resize_image',
             'crop_image',
@@ -52,6 +55,9 @@ class UploaderConfigTest extends OrbitTestCase
             'mime_type' => 'array',
             'file_size' => 'integer',
             'path' => 'string',
+            'name' => 'string',
+            'create_directory' => 'boolean',
+            'append_year_month' => 'boolean',
             'keep_aspect_ratio' => 'boolean',
             'resize_image' => 'boolean',
             'crop_image' => 'boolean',
@@ -59,7 +65,7 @@ class UploaderConfigTest extends OrbitTestCase
             'suffix' => 'string',
             'resize' => 'array',
             'crop' => 'array',
-            'scale' => 'integer'
+            'scale' => 'array'
         );
 
         $config = new UploaderConfig(array());
@@ -129,16 +135,36 @@ class UploaderConfigTest extends OrbitTestCase
         $this->assertSame(888, $configArr['resize']['height']);
     }
 
-    public function testConfigResizedImageSuffix()
+    public function testConfigResizedImageSuffix_aspectRatioNo()
     {
         $config = new UploaderConfig(array(
                 'resize'    => array(
-                    'width'     => 600,
-                    'height'    => 450
+                    'default'   => array(
+                        'width'     => 600,
+                        'height'    => 450
+                    )
                 ),
+                'keep_aspect_ratio' => FALSE
         ));
 
-        $expect = 'resized600x450';
+        $expect = 'resized-default-600x450';
+        $return = $config->getResizedImageSuffix();
+        $this->assertSame($expect, $return);
+    }
+
+    public function testConfigResizedImageSuffix_aspectRatioYes()
+    {
+        $config = new UploaderConfig(array(
+                'resize'    => array(
+                    'default' => array(
+                        'width'     => 600,
+                        'height'    => 450
+                    )
+                ),
+                'keep_aspect_ratio' => TRUE
+        ));
+
+        $expect = 'resized-default-auto';
         $return = $config->getResizedImageSuffix();
         $this->assertSame($expect, $return);
     }
@@ -147,24 +173,43 @@ class UploaderConfigTest extends OrbitTestCase
     {
         $config = new UploaderConfig(array(
                 'crop'    => array(
-                    'width'     => 320,
-                    'height'    => 300
+                    'default'   => array(
+                        'width'     => 320,
+                        'height'    => 300
+                    ),
+                    'thumbnail' => array(
+                        'width'     => 64,
+                        'height'    => 64
+                    )
                 ),
         ));
 
-        $expect = 'cropped320x300';
+        // 'default' profile
+        $expect = 'cropped-default-320x300';
         $return = $config->getCroppedImageSuffix();
+        $this->assertSame($expect, $return);
+
+        // 'thumbnail' profile
+        $expect = 'cropped-thumbnail-64x64';
+        $return = $config->getCroppedImageSuffix('thumbnail');
         $this->assertSame($expect, $return);
     }
 
     public function testConfigScaledImageSuffix()
     {
         $config = new UploaderConfig(array(
-                'scale' => 75,
+                'scale' => array(
+                    'default' => 75,
+                    'small'   => 10
+                )
         ));
 
-        $expect = 'scaled75';
+        $expect = 'scaled-default-75';
         $return = $config->getScaledImageSuffix();
+        $this->assertSame($expect, $return);
+
+        $expect = 'scaled-small-10';
+        $return = $config->getScaledImageSuffix('small');
         $this->assertSame($expect, $return);
     }
 }

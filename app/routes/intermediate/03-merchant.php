@@ -22,3 +22,8 @@ Route::post('/app/v1/merchant/update', 'IntermediateAuthController@Merchant_post
  * List and/or Search merchant
  */
 Route::get('/app/v1/merchant/search', 'IntermediateAuthController@Merchant_getSearchMerchant');
+
+/**
+ * Upload Merchant Logo
+ */
+Route::post('/app/v1/merchant/upload/logo', 'IntermediateAuthController@Upload_postUploadMerchantLogo');

@@ -48,6 +48,15 @@ class UploaderConfig
                 // The target path which file to be stored
                 'path'          => 'uploads',
 
+                // Default HTML element name
+                'name'          => 'images',
+
+                // Force create directory when not exists
+                'create_directory'  => TRUE,
+
+                // Append year and month to the path
+                'append_year_month' => TRUE,
+
                 // Keeping the aspect ratio
                 'keep_aspect_ratio' => TRUE,
 
@@ -65,18 +74,27 @@ class UploaderConfig
 
                 // Resize the image
                 'resize'        => array(
-                    'width'     => 200,
-                    'height'    => 200
+                    // Profile name
+                    'default'   => array(
+                        'width'     => 200,
+                        'height'    => 200
+                    )
                 ),
 
                 // Crop the image
                 'crop'          => array(
-                    'width'     => 64,
-                    'height'    => 64,
+                    // Profile name
+                    'default' => array(
+                        'width'     => 100,
+                        'height'    => 100,
+                    )
                 ),
 
                 // Scale the image in percent
-                'scale'         => 50,
+                'scale'         => array(
+                    // Profile name
+                    'default'   => 50
+                ),
 
                 // Callback before saving the file
                 'before_saving' => NULL,
@@ -102,49 +120,71 @@ class UploaderConfig
 
     /**
      * Method to get suffix for cropped image. If the current size of crop
-     * config are 'width' => 64, 'height' => 64 then the output would like this:
+     * config are 'width' => 64, 'height' => 64 and the key was 'default'
+     * then the output would like this:
      *
-     *   'cropped64x64'
+     *   'cropped-default-64x64'
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @return string
      */
-    public function getCroppedImageSuffix()
+    public function getCroppedImageSuffix($profile='default')
     {
-        $cropConfig = $this->config['crop'];
+        if (! isset($this->config['crop'][$profile])) {
+            $profile = 'default';
+        }
+        $cropConfig = $this->config['crop'][$profile];
 
-        return sprintf('cropped%sx%s', $cropConfig['width'], $cropConfig['height']);
+        return sprintf('cropped-%s-%sx%s', $profile, $cropConfig['width'], $cropConfig['height']);
     }
 
     /**
      * Method to get suffix for resized image. If the current size of resize
-     * config are 'width' => 200, 'height' => 200 then the output would like
+     * config are 'width' => 200, 'height' => 200 and the key was 'default'
+     * then the output would like
      * this:
      *
-     *   'resized200x200'
+     *   'resized-default-200x200'
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @return string
      */
-    public function getResizedImageSuffix()
+    public function getResizedImageSuffix($profile='default')
     {
-        $resizeConfig = $this->config['resize'];
+        if (! isset($this->config['resize'][$profile])) {
+            $profile = 'default';
+        }
+        $resizeConfig = $this->config['resize'][$profile];
 
-        return sprintf('resized%sx%s', $resizeConfig['width'], $resizeConfig['height']);
+        if ($this->config['keep_aspect_ratio'] !== TRUE)
+        {
+            return sprintf('resized-%s-%sx%s',
+                            $profile,
+                            $resizeConfig['width'],
+                            $resizeConfig['height']
+            );
+        }
+
+        return sprintf('resized-%s-auto', $profile);
     }
 
     /**
      * Method to get suffix for scaled image. If the current size of scaled
      * config are 'scaled' => 50 then the output would like this:
      *
-     *   'scaled50'
+     *   'scaled-default-50'
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @return string
      */
-    public function getScaledImageSuffix()
+    public function getScaledImageSuffix($profile='default')
     {
-        return sprintf('scaled%s', $this->config['scale']);
+        if (! isset($this->config['scale'][$profile])) {
+            $profile = 'default';
+        }
+        $scaledConfig = $this->config['scale'][$profile];
+
+        return sprintf('scaled-%s-%s', $profile, $scaledConfig);
     }
 
     /**
