@@ -115,6 +115,11 @@ class UploadAPIController extends ControllerAPI
             // Application input
             $merchant_id = OrbitInput::post('merchant_id');
             $images = OrbitInput::files('images');
+            $messages = array(
+                'nomore.than.one' => Lang::get('validation.max.array', array(
+                    'max' => 1
+                ))
+            );
 
             $validator = Validator::make(
                 array(
@@ -123,8 +128,9 @@ class UploadAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'   => 'required|numeric|orbit.empty.merchant',
-                    'images'        => 'required',
-                )
+                    'images'        => 'required|nomore.than.one',
+                ),
+                $messages
             );
 
             Event::fire('orbit.upload.postuploadmerchantlogo.before.validation', array($this, $validator));
@@ -143,7 +149,7 @@ class UploadAPIController extends ControllerAPI
             // get it from there no need to re-query the database
             $merchant = App::make('orbit.empty.merchant');
 
-            // Delete old media
+            // Delete old merchant logo
             $pastMedia = Media::where('object_id', $merchant->merchant_id)
                               ->where('object_name', 'merchant')
                               ->where('media_name_id', 'merchant_logo');
@@ -274,6 +280,15 @@ class UploadAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check the images, we are allowed array of images but not more that one
+        Validator::extend('nomore.than.one', function ($attribute, $value, $parameters) {
+            if (is_array($value) and count($value) > 1) {
+                return FALSE;
+            }
 
             return TRUE;
         });
