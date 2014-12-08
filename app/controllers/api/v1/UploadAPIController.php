@@ -286,7 +286,7 @@ class UploadAPIController extends ControllerAPI
 
         // Check the images, we are allowed array of images but not more that one
         Validator::extend('nomore.than.one', function ($attribute, $value, $parameters) {
-            if (is_array($value) and count($value) > 1) {
+            if (is_array($value['name']) && count($value['name']) > 1) {
                 return FALSE;
             }
 
