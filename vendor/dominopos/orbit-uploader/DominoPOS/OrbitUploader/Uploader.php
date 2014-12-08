@@ -27,6 +27,15 @@ class Uploader
     protected $message = NULL;
 
     /**
+     * Increment start number, used to increment the name of file so it does not
+     * override the old files. This should be used when the file name is
+     * not unique.
+     *
+     * @var int
+     */
+    public $incrementNumberStart = 1;
+
+    /**
      * Flag to determine running in dry run mode.
      *
      * @var boolean
@@ -208,6 +217,10 @@ class Uploader
             }
             $newFileName = $result[$i]['new']->name;
 
+            // Suffix increment to prevent writing the same name for multiple
+            // file uploades
+            $suffixIncrement = '_' . ($i + $this->incrementNumberStart);
+
             // Apply suffix to the file name
             $suffix = $this->config->getConfig('suffix');
 
@@ -216,7 +229,7 @@ class Uploader
             if (is_callable($suffix)) {
                 $suffix = $suffix($this, $file, $newFileName);
             }
-            $newFileName = $fileNameOnly . $suffix . '.' . $ext;
+            $newFileName = $fileNameOnly . $suffix . $suffixIncrement . '.' . $ext;
             $result[$i]['file_name'] = $newFileName;
 
             $targetFileName = $targetDir . DS . $newFileName;
@@ -259,7 +272,7 @@ class Uploader
                         }
 
                         $resizedSuffix = $this->config->getResizedImageSuffix($profile);
-                        $resizedName = $fileNameOnly . $suffix . '-' . $resizedSuffix . '.' . $ext;
+                        $resizedName = $fileNameOnly . $suffix . '-' . $resizedSuffix . $suffixIncrement . '.' . $ext;
                         $targetResizedName = $targetDir . DS . $resizedName;
 
                         $resizer->save($targetResizedName);
@@ -284,7 +297,7 @@ class Uploader
                         $resizer->resize($width, $height);
 
                         $croppedSuffix = $this->config->getCroppedImageSuffix($profile);
-                        $croppedName = $fileNameOnly . $suffix . '-' . $croppedSuffix . '.' . $ext;
+                        $croppedName = $fileNameOnly . $suffix . '-' . $croppedSuffix . $suffixIncrement . '.' . $ext;
                         $targetCroppedName = $targetDir . DS . $croppedName;
 
                         $resizer->save($targetCroppedName);
@@ -306,7 +319,7 @@ class Uploader
                         $resizer->scale($scale);
 
                         $scaledSuffix = $this->config->getScaledImageSuffix($profile);
-                        $scaledName = $fileNameOnly . $suffix . '-' . $scaledSuffix . '.' . $ext;
+                        $scaledName = $fileNameOnly . $suffix . '-' . $scaledSuffix . $suffixIncrement . '.' . $ext;
                         $targetScaledName = $targetDir . DS . $scaledName;
 
                         $resizer->save($targetScaledName);
