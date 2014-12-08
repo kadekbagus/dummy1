@@ -96,11 +96,12 @@ return array(
             'orid'      => 'ORID has already taken by another Retailer.'
         ),
         'access' => array(
-            'forbidden'         => 'You do not have permission to :action.',
-            'needtologin'       => 'You need to login to view this page.',
-            'loginfailed'       => 'Email or password was wrong.',
-            'tokenmissmatch'    => 'CSRF protection token missmatch.',
-            'wrongpassword'     => 'Password was wrong.'
+            'forbidden'              => 'You do not have permission to :action.',
+            'needtologin'            => 'You need to login to view this page.',
+            'loginfailed'            => 'Email or password was wrong.',
+            'tokenmissmatch'         => 'CSRF protection token missmatch.',
+            'wrongpassword'          => 'Password was wrong.',
+            'old_password_not_match' => 'Old password was wrong'
         ),
         'empty' => array(
             'role'              => 'The Role ID you specify is not found.',
