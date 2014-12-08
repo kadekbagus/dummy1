@@ -36,6 +36,10 @@
             <directory>./app/tests/acl</directory>
         </testsuite>
 
+        <testsuite name="Orbit Uploader Test Suite">
+            <directory>./app/tests/uploader</directory>
+        </testsuite>
+
         <testsuite name="Application Test Suite">
             <directory>./app/tests/</directory>
         </testsuite>
