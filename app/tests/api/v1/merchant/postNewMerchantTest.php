@@ -551,38 +551,6 @@ class postNewMerchantTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testOMIDAlreadyExists_POST_api_v1_merchant_new()
-    {
-        // Data to be post
-        $_POST['user_id'] = 3;
-        $_POST['email'] = 'alfabeta@localhost.org';
-        $_POST['name'] = 'test status not exists';
-        $_POST['omid'] = 'M01';
-        $_POST['status'] = 'active';
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/merchant/new?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.orbit.exists.omid');
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
     public function testReqOK_POST_api_v1_merchant_new()
     {
         // Number of merchant account before this operation
@@ -592,7 +560,6 @@ class postNewMerchantTest extends OrbitTestCase
         $posted = array(
             'user_id' => 3,
             'email' => 'alfabeta@localhost.org',
-            'omid'  => 'ALFA-BETA01',
             'name' => 'Alfa Beta Market',
             'status' => 'active',
             'description' => 'Merchant Description...',
