@@ -1024,10 +1024,8 @@ class UserAPIController extends ControllerAPI
             $new_password = OrbitInput::post('new_password');
             $new_password_confirmation = OrbitInput::post('confirm_password');
 
-            // Error message when access is forbidden
-            $changePass = Lang::get('validation.orbit.actionlist.change_password');
-            $message = Lang::get('validation.orbit.access.forbidden',
-                                 array('action' => $changePass));
+            // Error message when old password is not correct
+            $message = Lang::get('validation.orbit.access.old_password_not_match');
 
             $validator = Validator::make(
                 array(
