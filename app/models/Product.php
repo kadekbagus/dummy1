@@ -62,4 +62,41 @@ class Product extends Eloquent
     {
         return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
     }
+
+    /**
+     * Add Filter retailers based on user who request it.
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  User $user Instance of object user
+     */
+    public function scopeAllowedForUser($builder, $user)
+    {
+        // Super admin allowed to see all entries
+        $superAdmin = Config::get('orbit.security.superadmin');
+        if (empty($superAdmin))
+        {
+            $superAdmin = array('super admin');
+        }
+
+        // Transform all array into lowercase
+        $superAdmin = array_map('strtolower', $superAdmin);
+        $userRole = trim(strtolower($user->role->role_name));
+        if (in_array($userRole, $superAdmin))
+        {
+            // do nothing return as is
+            return $builder;
+        }
+
+        // This will filter only products which belongs to merchant
+        // The merchant owner has an ability to view all products
+        $builder->where(function($query) use ($user)
+        {
+            $prefix = DB::getTablePrefix();
+            $query->whereRaw("{$prefix}products.merchant_id in (select m2.merchant_id from {$prefix}merchants m2
+                                where m2.user_id=?)", array($user->user_id));
+        });
+
+        return $builder;
+    }
 }
