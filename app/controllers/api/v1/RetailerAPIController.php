@@ -225,7 +225,6 @@ class RetailerAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $user_id = OrbitInput::post('user_id');
-            $orid = OrbitInput::post('orid');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
             $description = OrbitInput::post('description');
@@ -269,7 +268,6 @@ class RetailerAPIController extends ControllerAPI
                     'email'     => $email,
                     'name'      => $name,
                     'status'    => $status,
-                    'orid'      => $orid,
                     'parent_id' => $parent_id,
                 ),
                 array(
@@ -277,7 +275,6 @@ class RetailerAPIController extends ControllerAPI
                     'email'     => 'required|email|orbit.exists.email',
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.retailer_status',
-                    'orid'      => 'required|orbit.exists.orid',
                     'parent_id' => 'required|numeric|orbit.empty.merchant',
                 )
             );
@@ -297,7 +294,6 @@ class RetailerAPIController extends ControllerAPI
             $newretailer = new Retailer();
             $newretailer->user_id = $user_id;
             $newretailer->omid = '';
-            $newretailer->orid = $orid;
             $newretailer->email = $email;
             $newretailer->name = $name;
             $newretailer->description = $description;
@@ -338,6 +334,10 @@ class RetailerAPIController extends ControllerAPI
 
             Event::fire('orbit.retailer.postnewretailer.before.save', array($this, $newretailer));
 
+            $newretailer->save();
+
+            // add orid to newly created retailer
+            $newretailer->orid = Retailer::ORID_INCREMENT + $newretailer->merchant_id;
             $newretailer->save();
 
             Event::fire('orbit.retailer.postnewretailer.after.save', array($this, $newretailer));

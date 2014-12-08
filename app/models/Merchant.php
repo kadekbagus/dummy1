@@ -27,6 +27,8 @@ class Merchant extends Eloquent
      */
     const OBJECT_TYPE = 'object_type';
 
+    const OMID_INCREMENT = 111111;
+
     protected $primaryKey = 'merchant_id';
 
     protected $table = 'merchants';

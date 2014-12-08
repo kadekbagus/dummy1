@@ -223,7 +223,6 @@ class MerchantAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $user_id = OrbitInput::post('user_id');
-            $omid = OrbitInput::post('omid');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
             $description = OrbitInput::post('description');
@@ -267,14 +266,12 @@ class MerchantAPIController extends ControllerAPI
                     'email'     => $email,
                     'name'      => $name,
                     'status'    => $status,
-                    'omid'      => $omid,
                 ),
                 array(
                     'user_id'   => 'required|numeric|orbit.empty.user',
                     'email'     => 'required|email|orbit.exists.email',
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.merchant_status',
-                    'omid'      => 'required|orbit.exists.omid',
                 )
             );
 
@@ -292,7 +289,6 @@ class MerchantAPIController extends ControllerAPI
 
             $newmerchant = new Merchant();
             $newmerchant->user_id = $user_id;
-            $newmerchant->omid = $omid;
             $newmerchant->orid = '';
             $newmerchant->email = $email;
             $newmerchant->name = $name;
@@ -334,6 +330,10 @@ class MerchantAPIController extends ControllerAPI
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
 
+            $newmerchant->save();
+
+            // add omid to newly created merchant
+            $newmerchant->omid = Merchant::OMID_INCREMENT + $newmerchant->merchant_id;
             $newmerchant->save();
 
             Event::fire('orbit.merchant.postnewmerchant.after.save', array($this, $newmerchant));
