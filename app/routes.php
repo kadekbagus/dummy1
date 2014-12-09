@@ -26,7 +26,7 @@ ClassLoader::register();
 | Orbit API Event lists
 |--------------------------------------------------------------------------
 |
-| Search all php files inside the 'routes' the directory.
+| Search all php files inside the 'events' directory.
 |
 */
 $event_dir = __DIR__ . DS . 'events' . DS . 'enabled';
