@@ -759,6 +759,13 @@ class ProductAPIController extends ControllerAPI
 
             Event::fire('orbit.product.postdeleteproduct.before.save', array($this, $deleteproduct));
 
+            // get product-retailer for the product
+            $deleteproductretailers = ProductRetailer::where('product_id', $deleteproduct->product_id)->get();
+            
+            foreach ($deleteproductretailers as $deleteproductretailer) {
+                $deleteproductretailer->delete();
+            }
+
             $deleteproduct->save();
 
             Event::fire('orbit.product.postdeleteproduct.after.save', array($this, $deleteproduct));
