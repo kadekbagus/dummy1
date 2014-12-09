@@ -134,7 +134,7 @@ class LoginAPIController extends ControllerAPI
             $newuser->user_password = str_random(8);
             $newuser->user_email = $email;
             $newuser->status = 'pending';
-            $newuser->user_role_id = Role::where('role_name','Consumer')->first();
+            $newuser->user_role_id = Role::where('role_name','Consumer')->first()->role_id;
             $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
 
             $newuser->save();
@@ -145,7 +145,7 @@ class LoginAPIController extends ControllerAPI
             $newuser->setRelation('userdetail', $userdetail);
             $newuser->userdetail = $userdetail;
 
-            $this->response->data = $newuser->toArray();
+            $this->response->data = $newuser;
 
             // Commit the changes
             $this->commit();
