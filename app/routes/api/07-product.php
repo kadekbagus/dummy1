@@ -34,3 +34,11 @@ Route::get('/api/v1/product/search', function()
 {
     return ProductAPIController::create()->getSearchProduct();
 });
+
+/**
+ * Upload Merchant logo
+ */
+Route::post('/api/v1/product/upload/image', function()
+{
+    return UploadAPIController::create()->postUploadProductImage();
+});

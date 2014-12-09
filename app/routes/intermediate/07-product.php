@@ -22,3 +22,8 @@ Route::post('/app/v1/product/update', 'IntermediateAuthController@Product_postUp
  * List and/or Search product
  */
 Route::get('/app/v1/product/search', 'IntermediateAuthController@Product_getSearchProduct');
+
+/**
+ * Upload Product Image
+ */
+Route::post('/app/v1/product/upload/image', 'IntermediateAuthController@Upload_postUploadProductImage');
