@@ -35,6 +35,9 @@ return array(
             'retailer' => array(
                 'logo'  => 'Retailer logo has been successfully uploaded.',
             ),
+            'product' => array(
+                'main'  => 'Prodcut image has been successfully uploaded.',
+            ),
         )
     )
 );
