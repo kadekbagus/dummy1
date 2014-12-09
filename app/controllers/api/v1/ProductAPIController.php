@@ -305,7 +305,7 @@ class ProductAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::excludeDeleted();
+            $products = Product::excludeDeleted()->allowedForUser($user);
 
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
