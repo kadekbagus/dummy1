@@ -544,6 +544,8 @@ class ProductAPIController extends ControllerAPI
             $merchant_tax_id1 = OrbitInput::post('merchant_tax_id1');
             $merchant_tax_id2 = OrbitInput::post('merchant_tax_id2');
             $status = OrbitInput::post('status');
+            $retailer_ids = OrbitInput::post('retailer_ids');
+            $retailer_ids = (array) $retailer_ids;
 
             $validator = Validator::make(
                 array(
@@ -565,6 +567,29 @@ class ProductAPIController extends ControllerAPI
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            foreach ($retailer_ids as $retailer_id_check) {
+                $validator = Validator::make(
+                    array(
+                        'retailer_id'   => $retailer_id_check,
+                        
+                    ),
+                    array(
+                        'retailer_id'   => 'orbit.empty.retailer',
+                    )
+                );
+                
+                Event::fire('orbit.product.postnewproduct.before.retailervalidation', array($this, $validator));
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                Event::fire('orbit.product.postnewproduct.after.retailervalidation', array($this, $validator));
+            }
+
             Event::fire('orbit.product.postnewproduct.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -593,6 +618,19 @@ class ProductAPIController extends ControllerAPI
             Event::fire('orbit.product.postnewproduct.before.save', array($this, $newproduct));
 
             $newproduct->save();
+
+            $productretailers = array();
+            
+            foreach ($retailer_ids as $retailer_id) {
+                $productretailer = new ProductRetailer();
+                $productretailer->retailer_id = $retailer_id;
+                $productretailer->product_id = $newproduct->product_id;
+                $productretailer->save();
+                $productretailers[] = $productretailer;
+            }
+
+            $newproduct->setRelation('retailers', $productretailers);
+            $newproduct->retailers = $productretailers;
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
             $this->response->data = $newproduct->toArray();
