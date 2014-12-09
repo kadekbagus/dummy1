@@ -7,7 +7,8 @@ class MerchantTax extends Eloquent
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
-
+    use ModelStatusTrait;
+    
     protected $table = 'merchant_taxes';
 
     protected $primaryKey = 'merchant_tax_id';
