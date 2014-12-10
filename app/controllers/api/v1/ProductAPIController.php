@@ -40,6 +40,7 @@ class ProductAPIController extends ControllerAPI
      * @param string     `status`                  (optional) - Status
      * @param integer    `created_by`              (optional) - ID of the creator
      * @param integer    `modified_by`             (optional) - Modify by
+     * @param array      `retailer_ids`            (optional) - ORID links
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateProduct()
@@ -71,6 +72,7 @@ class ProductAPIController extends ControllerAPI
 
             $product_id = OrbitInput::post('product_id');
             $merchant_id = OrbitInput::post('merchant_id');
+            $productretailers = array();
 
             $validator = Validator::make(
                 array(
@@ -95,7 +97,7 @@ class ProductAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedproduct = Product::excludeDeleted()->where('product_id', $product_id)->first();
+            $updatedproduct = Product::with('retailers')->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
                 $updatedproduct->product_code = $product_code;
@@ -161,6 +163,36 @@ class ProductAPIController extends ControllerAPI
                 $updatedproduct->created_by = $created_by;
             });
 
+            OrbitInput::post('retailer_ids', function($retailer_ids) use ($updatedproduct) {
+                // validate retailer_ids
+                foreach ($retailer_ids as $retailer_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'retailer_id'   => $retailer_id_check,
+                            
+                        ),
+                        array(
+                            'retailer_id'   => 'orbit.empty.retailer',
+                        )
+                    );
+                    
+                    Event::fire('orbit.product.postnewproduct.before.retailervalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.product.postnewproduct.after.retailervalidation', array($this, $validator));
+                }
+                // sync new set of retailer ids
+                $updatedproduct->retailers()->sync($retailer_ids);
+                
+                // reload retailers relation
+                $updatedproduct->load('retailers');
+            });
+            
             $updatedproduct->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.product.postupdateproduct.before.save', array($this, $updatedproduct));
@@ -168,7 +200,7 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct->save();
 
             Event::fire('orbit.product.postupdateproduct.after.save', array($this, $updatedproduct));
-            $this->response->data = $updatedproduct->toArray();
+            $this->response->data = $updatedproduct;
 
             // Commit the changes
             $this->commit();
@@ -305,7 +337,7 @@ class ProductAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::excludeDeleted()->allowedForUser($user);
+            $products = Product::with('retailers')->excludeDeleted()->allowedForUser($user);
 
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
@@ -499,6 +531,7 @@ class ProductAPIController extends ControllerAPI
      * @param string     `status`                  (optional) - Status
      * @param integer    `created_by`              (optional) - ID of the creator
      * @param integer    `modified_by`             (optional) - Modify by
+     * @param array      `retailer_ids`            (optional) - ORID links
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewProduct()
@@ -633,7 +666,7 @@ class ProductAPIController extends ControllerAPI
             $newproduct->retailers = $productretailers;
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
-            $this->response->data = $newproduct->toArray();
+            $this->response->data = $newproduct;
 
             // Commit the changes
             $this->commit();
@@ -753,7 +786,7 @@ class ProductAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deleteproduct = Product::excludeDeleted()->where('product_id', $product_id)->first();
+            $deleteproduct = Product::excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
             $deleteproduct->status = 'deleted';
             $deleteproduct->modified_by = $this->api->user->user_id;
 
@@ -867,7 +900,7 @@ class ProductAPIController extends ControllerAPI
 
         // Check the existance of retailer id
         Validator::extend('orbit.empty.retailer', function ($attribute, $value, $parameters) {
-            $retailer = Retailer::excludeDeleted()
+            $retailer = Retailer::excludeDeleted()->allowedForUser($this->api->user)
                         ->where('merchant_id', $value)
                         ->first();
 
