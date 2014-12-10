@@ -193,6 +193,7 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `url`                     (optional) - Url
      * @param string     `masterbox_number`        (optional) - Masterbox number
      * @param string     `slavebox_number`         (optional) - Slavebox number
+     * @param file       `images`                   (optional) - Merchant logo
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewMerchant()
@@ -337,7 +338,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->save();
 
             Event::fire('orbit.merchant.postnewmerchant.after.save', array($this, $newmerchant));
-            $this->response->data = $newmerchant->toArray();
+            $this->response->data = $newmerchant;
 
             // Commit the changes
             $this->commit();
@@ -890,6 +891,7 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `sector_of_activity`       (optional) - Sector of activity
      * @param string     `object_type`              (optional) - Object type
      * @param string     `parent_id`                (optional) - The merchant id
+     * @param file       `images`                   (optional) - Merchant logo
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateMerchant()
@@ -1115,7 +1117,7 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant->save();
 
             Event::fire('orbit.merchant.postupdatemerchant.after.save', array($this, $updatedmerchant));
-            $this->response->data = $updatedmerchant->toArray();
+            $this->response->data = $updatedmerchant;
 
             // Commit the changes
             $this->commit();
@@ -1179,8 +1181,10 @@ class MerchantAPIController extends ControllerAPI
     protected function registerCustomValidation()
     {
         // Check the existance of merchant id
-        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
+        $user = $this->api->user;
+        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) use ($user){
             $merchant = Merchant::excludeDeleted()
+                        ->allowedForUser($user)
                         ->where('merchant_id', $value)
                         ->first();
 

@@ -499,6 +499,7 @@ class ProductAPIController extends ControllerAPI
      * @param string     `status`                  (optional) - Status
      * @param integer    `created_by`              (optional) - ID of the creator
      * @param integer    `modified_by`             (optional) - Modify by
+     * @param file       `images`                  (optional) - Product Image
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewProduct()
@@ -572,13 +573,13 @@ class ProductAPIController extends ControllerAPI
                 $validator = Validator::make(
                     array(
                         'retailer_id'   => $retailer_id_check,
-                        
+
                     ),
                     array(
                         'retailer_id'   => 'orbit.empty.retailer',
                     )
                 );
-                
+
                 Event::fire('orbit.product.postnewproduct.before.retailervalidation', array($this, $validator));
 
                 // Run the validation
@@ -620,7 +621,7 @@ class ProductAPIController extends ControllerAPI
             $newproduct->save();
 
             $productretailers = array();
-            
+
             foreach ($retailer_ids as $retailer_id) {
                 $productretailer = new ProductRetailer();
                 $productretailer->retailer_id = $retailer_id;
@@ -633,7 +634,7 @@ class ProductAPIController extends ControllerAPI
             $newproduct->retailers = $productretailers;
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
-            $this->response->data = $newproduct->toArray();
+            $this->response->data = $newproduct;
 
             // Commit the changes
             $this->commit();
@@ -761,7 +762,7 @@ class ProductAPIController extends ControllerAPI
 
             // get product-retailer for the product
             $deleteproductretailers = ProductRetailer::where('product_id', $deleteproduct->product_id)->get();
-            
+
             foreach ($deleteproductretailers as $deleteproductretailer) {
                 $deleteproductretailer->delete();
             }
