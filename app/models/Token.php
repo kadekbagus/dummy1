@@ -22,4 +22,12 @@ class Token extends Eloquent
         return $this->belongsTo('User', 'user_id', 'user_id');
     }
 
+    // generate token
+    public function generateToken($input)
+    {
+         $string = $input . str_random(32) . microtime(TRUE);
+
+         return sha1($string);
+    }
+
 }

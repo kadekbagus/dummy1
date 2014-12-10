@@ -105,6 +105,7 @@ return array(
         ),
         'empty' => array(
             'role'              => 'The Role ID you specify is not found.',
+            'token'             => 'The Token you specify is not found.',
             'user'              => 'The User ID you specify is not found.',
             'merchant'          => 'The Merchant ID you specify is not found.',
             'retailer'          => 'The Retailer ID you specify is not found.',

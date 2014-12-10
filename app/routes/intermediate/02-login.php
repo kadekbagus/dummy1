@@ -14,3 +14,8 @@ Route::get('/app/v1/logout', 'IntermediateLoginController@getLogout');
  * Customer registration
  */
 Route::post('/app/v1/user/register/mobile', 'IntermediateLoginController@Login_postRegisterUserInShop');
+
+/**
+ * Check the token
+ */
+Route::get('/app/v1/user/token/check', 'IntermediateLoginController@Login_getRegisterTokenCheck');
