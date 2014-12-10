@@ -32,6 +32,8 @@ Event::listen('orbit.merchant.postnewmerchant.after.save', function($controller,
     }
     unset($_POST['merchant_id']);
 
+    $merchant->setRelation('media', $response->data);
+    $merchant->media = $response->data;
     $merchant->logo = $response->data[0]->path;
 });
 
@@ -60,6 +62,6 @@ Event::listen('orbit.merchant.postupdatemerchant.after.save', function($controll
     }
 
     $merchant->setRelation('media', $response->data);
-    $merchant->media = $response->data);
+    $merchant->media = $response->data;
     $merchant->logo = $response->data[0]->path;
 });
