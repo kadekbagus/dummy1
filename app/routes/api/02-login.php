@@ -23,3 +23,11 @@ Route::post('/api/v1/user/register/mobile', function()
 {
     return LoginAPIController::create()->postRegisterUserInShop();
 });
+
+/**
+ * URL to check the token
+ */
+Route::get('/api/v1/user/token/check', function()
+{
+    return LoginAPIController::create()->getRegisterTokenCheck();
+});

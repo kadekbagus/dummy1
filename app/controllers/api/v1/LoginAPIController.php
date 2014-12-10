@@ -61,12 +61,12 @@ class LoginAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            $this->response->data = null;
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -90,7 +90,6 @@ class LoginAPIController extends ControllerAPI
         // There is no exactly logout proses on the backend API
         return $this->render();
     }
-
 
     /**
      * POST - Register new customer
@@ -145,6 +144,25 @@ class LoginAPIController extends ControllerAPI
             $newuser->setRelation('userdetail', $userdetail);
             $newuser->userdetail = $userdetail;
 
+            // token
+            $token = new Token();
+            $token->token_name = 'user_registration_mobile';
+            $token->token_value = $token->generateToken($email);
+            $token->status = 'active';
+            $token->email = $email;
+            $token->expire = date('Y-m-d H:i:s', strtotime('+14 days'));
+            $token->ip_address = $_SERVER['REMOTE_ADDR'];
+            $token->user_id = $newuser->user_id;
+            $token->save();
+
+            // send the email
+            Mail::send('emails.registration.activation-html', array('token' => $token->token_value, 'email' => $email), function($message)
+            {
+                $email = OrbitInput::post('email');
+                $message->from('kadek@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
+                $message->to($email);
+            });
+
             $this->response->data = $newuser;
 
             // Commit the changes
@@ -196,6 +214,62 @@ class LoginAPIController extends ControllerAPI
         return $this->render($httpCode);
     }
 
+    /**
+     * GET - Register Token Check
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string    `token`                 (required) - Token to be check
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getRegisterTokenCheck()
+    {
+        try {
+            $this->registerCustomValidation();
+            
+            $token_value = trim(OrbitInput::get('token'));
+
+            $validator = Validator::make(
+                array(
+                    'token_value' => $token_value,
+                ),
+                array(
+                    'token_value' => 'required|orbit.empty.token',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $token = Token::where('token_value', $token_value)->first();
+            $user = User::where('user_id', $token->user_id)->first();
+
+            $this->response->data = $user;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
@@ -209,6 +283,20 @@ class LoginAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.user', $user);
+
+            return TRUE;
+        });
+
+        // Check the existance of token
+        Validator::extend('orbit.empty.token', function ($attribute, $value, $parameters) {
+            $token = Token::where('token_value', $value)
+                        ->first();
+
+            if (empty($token)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.token', $token);
 
             return TRUE;
         });
