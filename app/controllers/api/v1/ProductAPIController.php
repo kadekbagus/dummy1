@@ -168,7 +168,7 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct->save();
 
             Event::fire('orbit.product.postupdateproduct.after.save', array($this, $updatedproduct));
-            $this->response->data = $updatedproduct->toArray();
+            $this->response->data = $updatedproduct;
 
             // Commit the changes
             $this->commit();
