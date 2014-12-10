@@ -36,9 +36,17 @@ Route::get('/api/v1/product/search', function()
 });
 
 /**
- * Upload Merchant logo
+ * Upload Product image
  */
 Route::post('/api/v1/product/upload/image', function()
 {
     return UploadAPIController::create()->postUploadProductImage();
+});
+
+/**
+ * Delete Product image
+ */
+Route::post('/api/v1/product/delete/image', function()
+{
+    return UploadAPIController::create()->postDeleteProductImage();
 });

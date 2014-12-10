@@ -27,3 +27,8 @@ Route::get('/app/v1/product/search', 'IntermediateAuthController@Product_getSear
  * Upload Product Image
  */
 Route::post('/app/v1/product/upload/image', 'IntermediateAuthController@Upload_postUploadProductImage');
+
+/**
+ * Delete Product Image
+ */
+Route::post('/app/v1/product/delete/image', 'IntermediateAuthController@Upload_postDeleteProductImage');
