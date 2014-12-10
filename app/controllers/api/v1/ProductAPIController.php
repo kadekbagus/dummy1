@@ -41,6 +41,7 @@ class ProductAPIController extends ControllerAPI
      * @param integer    `created_by`              (optional) - ID of the creator
      * @param integer    `modified_by`             (optional) - Modify by
      * @param array      `retailer_ids`            (optional) - ORID links
+     * @param images     `images`            	   (optional) - Product image
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateProduct()
