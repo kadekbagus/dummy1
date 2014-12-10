@@ -14,10 +14,18 @@ use Illuminate\Database\QueryException;
 use DominoPOS\OrbitUploader\UploaderConfig;
 use DominoPOS\OrbitUploader\UploaderMessage;
 use DominoPOS\OrbitUploader\Uploader;
+use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use \Exception;
 
 class UploadAPIController extends ControllerAPI
 {
+    /**
+     * From what part of the code this API are called from.
+     *
+     * @var string
+     */
+    protected $calledFrom = ['default'];
+
     /**
      * Generic method for saving the uploaded metadata to the Media table on
      * the database.
@@ -92,22 +100,24 @@ class UploadAPIController extends ControllerAPI
             Event::fire('orbit.upload.postuploadmerchantlogo.before.auth', array($this));
 
             // Require authentication
-            $this->checkAuth();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->checkAuth();
 
-            Event::fire('orbit.upload.postuploadmerchantlogo.after.auth', array($this));
+                Event::fire('orbit.upload.postuploadmerchantlogo.after.auth', array($this));
 
-            // Try to check access control list, does this merchant allowed to
-            // perform this action
-            $user = $this->api->user;
-            Event::fire('orbit.upload.postuploadmerchantlogo.before.authz', array($this, $user));
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postuploadmerchantlogo.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('edit_merchant')) {
-                Event::fire('orbit.upload.postuploadmerchantlogo.authz.notallowed', array($this, $user));
-                $editMerchantLang = Lang::get('validation.orbit.actionlist.update_merchant');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editMerchantLang));
-                ACL::throwAccessForbidden($message);
+                if (! ACL::create($user)->isAllowed('edit_merchant')) {
+                    Event::fire('orbit.upload.postuploadmerchantlogo.authz.notallowed', array($this, $user));
+                    $editMerchantLang = Lang::get('validation.orbit.actionlist.update_merchant');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editMerchantLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postuploadmerchantlogo.after.authz', array($this, $user));
             }
-            Event::fire('orbit.upload.postuploadmerchantlogo.after.authz', array($this, $user));
 
             // Register custom validation
             $this->registerCustomValidation();
@@ -143,7 +153,9 @@ class UploadAPIController extends ControllerAPI
             Event::fire('orbit.upload.postuploadmerchantlogo.after.validation', array($this, $validator));
 
             // Begin database transaction
-            $this->beginTransaction();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->beginTransaction();
+            }
 
             // We already had Merchant instance on the RegisterCustomValidation
             // get it from there no need to re-query the database
@@ -213,7 +225,9 @@ class UploadAPIController extends ControllerAPI
             $this->response->message = Lang::get('statuses.orbit.uploaded.merchant.logo');
 
             // Commit the changes
-            $this->commit();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->commit();
+            }
 
             Event::fire('orbit.upload.postuploadmerchantlogo.after.commit', array($this, $merchant, $uploader));
         } catch (ACLForbiddenException $e) {
@@ -226,7 +240,9 @@ class UploadAPIController extends ControllerAPI
             $httpCode = 403;
 
             // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->rollBack();
+            }
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.upload.postuploadmerchantlogo.invalid.arguments', array($this, $e));
 
@@ -237,7 +253,9 @@ class UploadAPIController extends ControllerAPI
             $httpCode = 403;
 
             // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->rollBack();
+            }
         } catch (QueryException $e) {
             Event::fire('orbit.upload.postuploadmerchantlogo.query.error', array($this, $e));
 
@@ -254,17 +272,21 @@ class UploadAPIController extends ControllerAPI
             $httpCode = 500;
 
             // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->rollBack();
+            }
         } catch (Exception $e) {
             Event::fire('orbit.upload.postuploadmerchantlogo.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
 
             // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                $this->rollBack();
+            }
         }
 
         $output = $this->render($httpCode);
@@ -291,23 +313,26 @@ class UploadAPIController extends ControllerAPI
 
             Event::fire('orbit.upload.postuploadproductimage.before.auth', array($this));
 
-            // Require authentication
-            $this->checkAuth();
+            if (! $this->calledFrom('product.new, product.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
 
-            Event::fire('orbit.upload.postuploadproductimage.after.auth', array($this));
+                Event::fire('orbit.upload.postuploadproductimage.after.auth', array($this));
 
-            // Try to check access control list, does this merchant allowed to
-            // perform this action
-            $user = $this->api->user;
-            Event::fire('orbit.upload.postuploadproductimage.before.authz', array($this, $user));
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postuploadproductimage.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('edit_product')) {
-                Event::fire('orbit.upload.postuploadproductimage.authz.notallowed', array($this, $user));
-                $editProductLang = Lang::get('validation.orbit.actionlist.update_product');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editProductLang));
-                ACL::throwAccessForbidden($message);
+                if (! ACL::create($user)->isAllowed('edit_product')) {
+                    Event::fire('orbit.upload.postuploadproductimage.authz.notallowed', array($this, $user));
+                    $editProductLang = Lang::get('validation.orbit.actionlist.update_product');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editProductLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postuploadproductimage.after.authz', array($this, $user));
             }
-            Event::fire('orbit.upload.postuploadproductimage.after.authz', array($this, $user));
 
             // Register custom validation
             $this->registerCustomValidation();
@@ -342,8 +367,10 @@ class UploadAPIController extends ControllerAPI
             }
             Event::fire('orbit.upload.postuploadproductimage.after.validation', array($this, $validator));
 
-            // Begin database transaction
-            $this->beginTransaction();
+            if (! $this->calledFrom('product.new,product.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
 
             // We already had Product instance on the RegisterCustomValidation
             // get it from there no need to re-query the database
@@ -412,8 +439,10 @@ class UploadAPIController extends ControllerAPI
             $this->response->data = $mediaList;
             $this->response->message = Lang::get('statuses.orbit.uploaded.product.main');
 
-            // Commit the changes
-            $this->commit();
+            if (! $this->calledFrom('product.new,product.update')) {
+                // Commit the changes
+                $this->commit();
+            }
 
             Event::fire('orbit.upload.postuploadproductimage.after.commit', array($this, $product, $uploader));
         } catch (ACLForbiddenException $e) {
@@ -425,8 +454,10 @@ class UploadAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
 
-            // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('product.new,product.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.upload.postuploadproductimage.invalid.arguments', array($this, $e));
 
@@ -436,8 +467,10 @@ class UploadAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
 
-            // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('product.new,product.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
         } catch (QueryException $e) {
             Event::fire('orbit.upload.postuploadproductimage.query.error', array($this, $e));
 
@@ -453,18 +486,22 @@ class UploadAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
 
-            // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('product.new,product.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
         } catch (Exception $e) {
             Event::fire('orbit.upload.postuploadproductimage.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            $this->response->data = NULL;
 
-            // Rollback the changes
-            $this->rollBack();
+            if (! $this->calledFrom('product.new, product.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
         }
 
         $output = $this->render($httpCode);
@@ -475,37 +512,41 @@ class UploadAPIController extends ControllerAPI
 
     protected function registerCustomValidation()
     {
-        // Check the existance of merchant id
-        $user = $this->api->user;
-        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) use ($user) {
-            $merchant = Merchant::excludeDeleted()
-                        ->allowedForUser($user)
-                        ->where('merchant_id', $value)
-                        ->first();
+        if ($this->calledFrom('default')) {
+            // Check the existance of merchant id
+            $user = $this->api->user;
+            Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) use ($user) {
+                $merchant = Merchant::excludeDeleted()
+                            ->allowedForUser($user)
+                            ->where('merchant_id', $value)
+                            ->first();
 
-            if (empty($merchant)) {
-                return FALSE;
-            }
+                if (empty($merchant)) {
+                    return FALSE;
+                }
 
-            App::instance('orbit.empty.merchant', $merchant);
+                App::instance('orbit.empty.merchant', $merchant);
 
-            return TRUE;
-        });
+                return TRUE;
+            });
+        }
 
-        // Check the existance of product id
-        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
-            $product = Product::excludeDeleted()
-                        ->where('product_id', $value)
-                        ->first();
+        if ($this->calledFrom('default')) {
+            // Check the existance of product id
+            Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+                $product = Product::excludeDeleted()
+                            ->where('product_id', $value)
+                            ->first();
 
-            if (empty($product)) {
-                return FALSE;
-            }
+                if (empty($product)) {
+                    return FALSE;
+                }
 
-            App::instance('orbit.empty.product', $product);
+                App::instance('orbit.empty.product', $product);
 
-            return TRUE;
-        });
+                return TRUE;
+            });
+        }
 
         // Check the images, we are allowed array of images but not more that one
         Validator::extend('nomore.than.one', function ($attribute, $value, $parameters) {
@@ -515,5 +556,30 @@ class UploadAPIController extends ControllerAPI
 
             return TRUE;
         });
+    }
+
+    public function calledFrom($list)
+    {
+        if (! is_array($list))
+        {
+            $list = explode(',', (string)$list);
+            $list = array_map('trim', $list);
+        }
+
+        return in_array($this->calledFrom, $list);
+    }
+
+    /**
+     * Set the called from value.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $from The source of the caller
+     * @return UploadAPIController
+     */
+    public function setCalledFrom($from)
+    {
+        $this->calledFrom = $from;
+
+        return $this;
     }
 }
