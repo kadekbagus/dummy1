@@ -116,7 +116,7 @@ class UserAPIController extends ControllerAPI
             $newuser->setHidden(array('user_password'));
 
             Event::fire('orbit.user.postnewuser.after.save', array($this, $newuser));
-            $this->response->data = $newuser->toArray();
+            $this->response->data = $newuser;
 
             // Commit the changes
             $this->commit();
@@ -432,7 +432,7 @@ class UserAPIController extends ControllerAPI
             $updateduser->apikey = $apikey;
 
             Event::fire('orbit.user.postupdateuser.after.save', array($this, $updateduser));
-            $this->response->data = $updateduser->toArray();
+            $this->response->data = $updateduser;
 
             // Commit the changes
             $this->commit();

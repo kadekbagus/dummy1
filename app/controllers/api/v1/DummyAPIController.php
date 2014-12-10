@@ -217,7 +217,7 @@ class DummyAPIController extends ControllerAPI
             $newuser->setVisible(array('username', 'user_email', 'status'));
 
             Event::fire('orbit.dummy.postreguser.after.save', array($this, $newuser));
-            $this->response->data = $newuser->toArray();
+            $this->response->data = $newuser;
 
             // Commit the changes
             $this->commit();

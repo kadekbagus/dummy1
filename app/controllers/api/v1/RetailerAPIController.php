@@ -341,7 +341,7 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->save();
 
             Event::fire('orbit.retailer.postnewretailer.after.save', array($this, $newretailer));
-            $this->response->data = $newretailer->toArray();
+            $this->response->data = $newretailer;
 
             // Commit the changes
             $this->commit();
@@ -673,7 +673,7 @@ class RetailerAPIController extends ControllerAPI
             $updatedretailer->save();
 
             Event::fire('orbit.retailer.postupdateretailer.after.save', array($this, $updatedretailer));
-            $this->response->data = $updatedretailer->toArray();
+            $this->response->data = $updatedretailer;
 
             // Commit the changes
             $this->commit();

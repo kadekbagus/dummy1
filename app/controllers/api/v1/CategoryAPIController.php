@@ -101,7 +101,7 @@ class CategoryAPIController extends ControllerAPI
             $updatedcategory->save();
 
             Event::fire('orbit.category.postupdatecategory.after.save', array($this, $updatedcategory));
-            $this->response->data = $updatedcategory->toArray();
+            $this->response->data = $updatedcategory;
 
             // Commit the changes
             $this->commit();

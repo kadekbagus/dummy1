@@ -337,7 +337,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->save();
 
             Event::fire('orbit.merchant.postnewmerchant.after.save', array($this, $newmerchant));
-            $this->response->data = $newmerchant->toArray();
+            $this->response->data = $newmerchant;
 
             // Commit the changes
             $this->commit();
@@ -1115,7 +1115,7 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant->save();
 
             Event::fire('orbit.merchant.postupdatemerchant.after.save', array($this, $updatedmerchant));
-            $this->response->data = $updatedmerchant->toArray();
+            $this->response->data = $updatedmerchant;
 
             // Commit the changes
             $this->commit();

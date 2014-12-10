@@ -168,7 +168,7 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct->save();
 
             Event::fire('orbit.product.postupdateproduct.after.save', array($this, $updatedproduct));
-            $this->response->data = $updatedproduct->toArray();
+            $this->response->data = $updatedproduct;
 
             // Commit the changes
             $this->commit();
@@ -633,7 +633,7 @@ class ProductAPIController extends ControllerAPI
             $newproduct->retailers = $productretailers;
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
-            $this->response->data = $newproduct->toArray();
+            $this->response->data = $newproduct;
 
             // Commit the changes
             $this->commit();
