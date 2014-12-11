@@ -187,7 +187,7 @@ class ProductAPIController extends ControllerAPI
                         )
                     );
 
-                    Event::fire('orbit.product.postnewproduct.before.retailervalidation', array($this, $validator));
+                    Event::fire('orbit.product.postupdateproduct.before.retailervalidation', array($this, $validator));
 
                     // Run the validation
                     if ($validator->fails()) {
@@ -195,7 +195,7 @@ class ProductAPIController extends ControllerAPI
                         OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
 
-                    Event::fire('orbit.product.postnewproduct.after.retailervalidation', array($this, $validator));
+                    Event::fire('orbit.product.postupdateproduct.after.retailervalidation', array($this, $validator));
                 }
                 // sync new set of retailer ids
                 $updatedproduct->retailers()->sync($retailer_ids);
