@@ -166,6 +166,7 @@ class ProductAPIController extends ControllerAPI
 
             OrbitInput::post('retailer_ids', function($retailer_ids) use ($updatedproduct) {
                 // validate retailer_ids
+                $retailer_ids = (array) $retailer_ids;
                 foreach ($retailer_ids as $retailer_id_check) {
                     $validator = Validator::make(
                         array(
