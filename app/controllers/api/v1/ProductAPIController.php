@@ -41,6 +41,7 @@ class ProductAPIController extends ControllerAPI
      * @param integer    `created_by`              (optional) - ID of the creator
      * @param integer    `modified_by`             (optional) - Modify by
      * @param array      `retailer_ids`            (optional) - ORID links
+     * @param array      `no_retailer`             (optional) - Flag to delete all ORID links
      * @param images     `images`            	   (optional) - Product image
      * @return Illuminate\Support\Facades\Response
      */
@@ -162,6 +163,14 @@ class ProductAPIController extends ControllerAPI
 
             OrbitInput::post('created_by', function($created_by) use ($updatedproduct) {
                 $updatedproduct->created_by = $created_by;
+            });
+            
+            OrbitInput::post('no_retailer', function($no_retailer) use ($updatedproduct) {
+                if ($no_retailer == 'y') {
+                    $deleted_retailer_ids = ProductRetailer::where('product_id', $updatedproduct->product_id)->get(array('retailer_id'))->toArray();
+                    $updatedproduct->retailers()->detach($deleted_retailer_ids);
+                    $updatedproduct->load('retailers');
+                }
             });
 
             OrbitInput::post('retailer_ids', function($retailer_ids) use ($updatedproduct) {
