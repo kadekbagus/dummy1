@@ -257,9 +257,8 @@ class LoginAPIController extends ControllerAPI
             Auth::Login($user);
 
             // update the token status so it cannot be use again
-            $updatetoken = Token::where('token_value',$token_value)->first();
-            $updatetoken->status = 'deleted';
-            $updatetoken->save();
+            $token->status = 'deleted';
+            $token->save();
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
