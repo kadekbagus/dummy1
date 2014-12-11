@@ -159,7 +159,7 @@ class LoginAPIController extends ControllerAPI
             Mail::send('emails.registration.activation-html', array('token' => $token->token_value, 'email' => $email), function($message)
             {
                 $email = OrbitInput::post('email');
-                $message->from('kadek@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
+                $message->from('registration@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
                 $message->to($email);
             });
 
@@ -246,8 +246,20 @@ class LoginAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $token = Token::where('token_value', $token_value)->first();
+            $token = App::make('orbit.empty.token');
             $user = User::where('user_id', $token->user_id)->first();
+
+            if (! is_object($token) || ! is_object($user)) {
+                $message = Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+
+            Auth::Login($user);
+
+            // update the token status so it cannot be use again
+            $updatetoken = Token::where('token_value',$token_value)->first();
+            $updatetoken->status = 'deleted';
+            $updatetoken->save();
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
@@ -289,8 +301,7 @@ class LoginAPIController extends ControllerAPI
 
         // Check the existance of token
         Validator::extend('orbit.empty.token', function ($attribute, $value, $parameters) {
-            $token = Token::where('token_value', $value)
-                        ->first();
+            $token = Token::active()->NotExpire()->where('token_value', $value)->first();
 
             if (empty($token)) {
                 return FALSE;

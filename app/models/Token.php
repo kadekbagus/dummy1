@@ -5,6 +5,7 @@ class Token extends Eloquent
     * Token Model
     *
     * @author Tian <tian@dominopos.com>
+    * @author Kadek <kadek@dominopos.com>
     */
 
     /**
@@ -30,4 +31,9 @@ class Token extends Eloquent
          return sha1($string);
     }
 
+    // check token expiration
+    public function scopeNotExpire($query)
+    {
+        return $query->where('expire', '>=', DB::raw('NOW()'));
+    }
 }
