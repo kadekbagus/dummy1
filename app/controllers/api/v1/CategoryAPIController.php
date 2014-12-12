@@ -19,7 +19,6 @@ class CategoryAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `category_id`           (required) - Category ID
      * @param integer    `merchant_id`           (required) - Merchant ID
      * @param string     `category_name`         (required) - Category name
      * @param integer    `category_level`        (required) - Category Level
@@ -62,7 +61,7 @@ class CategoryAPIController extends ControllerAPI
             $category_level = OrbitInput::post('category_level');
             $category_order = OrbitInput::post('category_order');
             $description = OrbitInput::post('description');
-            $status = OrbitInput::post('status');
+            // $status = OrbitInput::post('status');
             $created_by = OrbitInput::post('created_by');
             $modified_by = OrbitInput::post('modified_by');
             
@@ -73,7 +72,7 @@ class CategoryAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'   => 'required|numeric|orbit.empty.merchant',
-                    'product_name'  => 'required',
+                    'category_name'  => 'required',
                 )
             );
 
@@ -94,9 +93,9 @@ class CategoryAPIController extends ControllerAPI
             $newcategory->category_level = $category_level;
             $newcategory->category_order = $category_order;
             $newcategory->description = $description;
-            $newcategory->status = $status;
-            $newcategory->created_by = $created_by;
-            $newcategory->modified_by = $modified_by;
+            // $newcategory->status = $status;
+            $newcategory->created_by = $this->api->user->user_id;
+            $newcategory->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.category.postnewcategory.before.save', array($this, $newcategory));
 
@@ -550,6 +549,21 @@ class CategoryAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.category', $category);
+
+            return TRUE;
+        });
+
+        // Check the existance of merchant id
+        Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
+            $merchant = Merchant::excludeDeleted()
+                        ->where('merchant_id', $value)
+                        ->first();
+
+            if (empty($merchant)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant', $merchant);
 
             return TRUE;
         });

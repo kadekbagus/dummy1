@@ -102,10 +102,48 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct = Product::with('retailers')->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
+                $validator = Validator::make(
+                    array(
+                        'product_code'      => $product_code,
+                    ),
+                    array(
+                        'product_code'      => 'product_code_exists_but_me',
+                    ),
+                    array('product_code_exists_but_me' => Lang::get('validation.orbit.productcode.exists'))
+                );
+
+                Event::fire('orbit.product.postupdateproduct.before.productcodevalidation', array($this, $validator));
+
+                // Run the productcodevalidation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+                Event::fire('orbit.product.postupdateproduct.after.productcodevalidation', array($this, $validator));
+
                 $updatedproduct->product_code = $product_code;
             });
 
             OrbitInput::post('upc_code', function($upc_code) use ($updatedproduct) {
+                $validator = Validator::make(
+                    array(
+                        'upc_code'      => $upc_code,
+                    ),
+                    array(
+                        'upc_code'      => 'upc_code_exists_but_me',
+                    ),
+                    array('upc_code_exists_but_me' => Lang::get('validation.orbit.upccode.exists'))
+                );
+
+                Event::fire('orbit.product.postupdateproduct.before.upccodevalidation', array($this, $validator));
+
+                // Run the productcodevalidation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+                Event::fire('orbit.product.postupdateproduct.after.upccodevalidation', array($this, $validator));
+
                 $updatedproduct->upc_code = $upc_code;
             });
 
@@ -596,11 +634,13 @@ class ProductAPIController extends ControllerAPI
                 array(
                     'merchant_id'   => $merchant_id,
                     'product_name'  => $product_name,
+                    'product_code'  => $product_code,
                     'status'        => $status,
                 ),
                 array(
                     'merchant_id'   => 'required|numeric',
                     'product_name'  => 'required',
+
                     'status'        => 'required',
                 )
             );
@@ -921,6 +961,70 @@ class ProductAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.retailer', $retailer);
+
+            return TRUE;
+        });
+
+        // Check product_code, it should not exists
+        Validator::extend('orbit.exists.product_code', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()
+                        ->where('product_code', $value)
+                        ->first();
+
+            if (! empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.product_code', $product);
+
+            return TRUE;
+        });
+
+        // Check changed product_code
+        Validator::extend('product_code_exists_but_me', function ($attribute, $value, $parameters) {
+            $product_id = OrbitInput::post('product_id');
+            $product = Product::excludeDeleted()
+                        ->where('product_code', $value)
+                        ->where('product_id', '!=', $product_id)
+                        ->first();
+
+            if (! empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.product', $product);
+
+            return TRUE;
+        });
+
+        // Check upc_code, it should not exists
+        Validator::extend('orbit.exists.upc_code', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()
+                        ->where('upc_code', $value)
+                        ->first();
+
+            if (! empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.upc_code', $product);
+
+            return TRUE;
+        });
+
+        // Check changed upc_code
+        Validator::extend('upc_code_exists_but_me', function ($attribute, $value, $parameters) {
+            $product_id = OrbitInput::post('product_id');
+            $product = Product::excludeDeleted()
+                        ->where('upc_code', $value)
+                        ->where('product_id', '!=', $product_id)
+                        ->first();
+
+            if (! empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.product', $product);
 
             return TRUE;
         });
