@@ -13,6 +13,157 @@ use Illuminate\Database\QueryException;
 class CategoryAPIController extends ControllerAPI
 {
     /**
+     * POST - Create New Category
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `category_id`           (required) - Category ID
+     * @param integer    `merchant_id`           (required) - Merchant ID
+     * @param string     `category_name`         (required) - Category name
+     * @param integer    `category_level`        (required) - Category Level
+     * @param integer    `category_order`        (optional) - Category order
+     * @param string     `description`           (optional) - Description
+     * @param string     `status`                (optional) - Status
+     * @param integer    `created_by`            (optional) - Created By
+     * @param integer    `modified_by`           (optional) - Modified By
+     * @return Illuminate\Support\Facades\Response
+     */
+    
+    public function postNewCategory()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.category.postnewcategory.before.auth', array($this));
+
+            $this->checkAuth();
+            
+            Event::fire('orbit.category.postnewcategory.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.category.postnewcategory.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('create_category')) {
+                Event::fire('orbit.category.postnewcategory.authz.notallowed', array($this, $user));
+                $createCategoryLang = Lang::get('validation.orbit.actionlist.new_category');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createCategoryLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.category.postnewcategory.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $merchant_id = OrbitInput::post('merchant_id');
+            $category_name = OrbitInput::post('category_name');
+            $category_level = OrbitInput::post('category_level');
+            $category_order = OrbitInput::post('category_order');
+            $description = OrbitInput::post('description');
+            $status = OrbitInput::post('status');
+            $created_by = OrbitInput::post('created_by');
+            $modified_by = OrbitInput::post('modified_by');
+            
+            $validator = Validator::make(
+                array(
+                    'merchant_id'   => $merchant_id,
+                    'category_name' => $category_name,
+                ),
+                array(
+                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'product_name'  => 'required',
+                )
+            );
+
+            Event::fire('orbit.category.postnewcategory.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $newcategory = new Category();
+            $newcategory->merchant_id = $merchant_id;
+            $newcategory->category_name = $category_name;
+            $newcategory->category_level = $category_level;
+            $newcategory->category_order = $category_order;
+            $newcategory->description = $description;
+            $newcategory->status = $status;
+            $newcategory->created_by = $created_by;
+            $newcategory->modified_by = $modified_by;
+
+            Event::fire('orbit.category.postnewcategory.before.save', array($this, $newcategory));
+
+            $newcategory->save();
+
+            Event::fire('orbit.category.postnewcategory.after.save', array($this, $newcategory));
+            $this->response->data = $newcategory;
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.category.postnewcategory.after.commit', array($this, $newcategory));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.category.postnewcategory.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.category.postnewcategory.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.category.postnewcategory.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.category.postnewcategory.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
+    /**
      * POST - Update Category
      *
      * @author <Kadek> <kadek@dominopos.com>
@@ -25,7 +176,7 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
      * @param string     `status`                (optional) - Status
-     * @param integer    `modified_by`	         (optional) - Modified By
+     * @param integer    `modified_by`           (optional) - Modified By
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateCategory()
@@ -55,7 +206,7 @@ class CategoryAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-			$category_id = OrbitInput::post('category_id');
+            $category_id = OrbitInput::post('category_id');
             $category_name = OrbitInput::post('category_name');
             $parent_id = OrbitInput::post('parent_id');
             $category_order = OrbitInput::post('category_order');
@@ -65,12 +216,12 @@ class CategoryAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                	'category_id'       => $category_id,
-                	'category_name'     => $category_name,
+                    'category_id'       => $category_id,
+                    'category_name'     => $category_name,
                     'parent_id'         => $parent_id,
                 ),
                 array(
-                	'category_id'       => 'required|numeric|orbit.empty.category',
+                    'category_id'       => 'required|numeric|orbit.empty.category',
                     'category_name'     => 'required',
                     'parent_id'         => 'required|numeric|orbit.empty.category',
                 )
@@ -306,7 +457,7 @@ class CategoryAPIController extends ControllerAPI
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'registered_date'   => 'categories.created_at',
-                    'category_name'	    => 'categories.category_name',
+                    'category_name'     => 'categories.category_name',
                     'parent_id'         => 'categories.parent_id',
                     'category_order'    => 'categories.category_order'
                 );
@@ -386,7 +537,7 @@ class CategoryAPIController extends ControllerAPI
     }
 
 
-   	protected function registerCustomValidation()
+    protected function registerCustomValidation()
     {
         // Check the existance of category id
         Validator::extend('orbit.empty.category', function ($attribute, $value, $parameters) {
