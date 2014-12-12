@@ -102,49 +102,57 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct = Product::with('retailers')->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
-                $validator = Validator::make(
-                    array(
-                        'product_code'      => $product_code,
-                    ),
-                    array(
-                        'product_code'      => 'product_code_exists_but_me',
-                    ),
-                    array('product_code_exists_but_me' => Lang::get('validation.orbit.productcode.exists'))
-                );
+                if (!empty($product_code)) {
+                    $validator = Validator::make(
+                        array(
+                            'product_code'      => $product_code,
+                        ),
+                        array(
+                            'product_code'      => 'product_code_exists_but_me',
+                        ),
+                        array('product_code_exists_but_me' => Lang::get('validation.orbit.productcode.exists'))
+                    );
 
-                Event::fire('orbit.product.postupdateproduct.before.productcodevalidation', array($this, $validator));
+                    Event::fire('orbit.product.postupdateproduct.before.productcodevalidation', array($this, $validator));
 
-                // Run the productcodevalidation
-                if ($validator->fails()) {
-                    $errorMessage = $validator->messages()->first();
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    // Run the productcodevalidation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+                    Event::fire('orbit.product.postupdateproduct.after.productcodevalidation', array($this, $validator));
+
+                    $updatedproduct->product_code = $product_code;
+                } else {
+                    $updatedproduct->product_code = NULL;
                 }
-                Event::fire('orbit.product.postupdateproduct.after.productcodevalidation', array($this, $validator));
-
-                $updatedproduct->product_code = $product_code;
             });
 
             OrbitInput::post('upc_code', function($upc_code) use ($updatedproduct) {
-                $validator = Validator::make(
-                    array(
-                        'upc_code'      => $upc_code,
-                    ),
-                    array(
-                        'upc_code'      => 'upc_code_exists_but_me',
-                    ),
-                    array('upc_code_exists_but_me' => Lang::get('validation.orbit.upccode.exists'))
-                );
+                if (!empty($upc_code)) {
+                    $validator = Validator::make(
+                        array(
+                            'upc_code'      => $upc_code,
+                        ),
+                        array(
+                            'upc_code'      => 'upc_code_exists_but_me',
+                        ),
+                        array('upc_code_exists_but_me' => Lang::get('validation.orbit.upccode.exists'))
+                    );
 
-                Event::fire('orbit.product.postupdateproduct.before.upccodevalidation', array($this, $validator));
+                    Event::fire('orbit.product.postupdateproduct.before.upccodevalidation', array($this, $validator));
 
-                // Run the productcodevalidation
-                if ($validator->fails()) {
-                    $errorMessage = $validator->messages()->first();
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    // Run the productcodevalidation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+                    Event::fire('orbit.product.postupdateproduct.after.upccodevalidation', array($this, $validator));
+
+                    $updatedproduct->upc_code = $upc_code;
+                } else {
+                    $updatedproduct->upc_code = NULL;
                 }
-                Event::fire('orbit.product.postupdateproduct.after.upccodevalidation', array($this, $validator));
-
-                $updatedproduct->upc_code = $upc_code;
             });
 
             OrbitInput::post('product_name', function($product_name) use ($updatedproduct) {
