@@ -144,6 +144,10 @@ return array(
             'update_tax'            => 'update tax',
             'delete_tax'            => 'delete tax',
             'view_tax'              => 'view tax',
+            'new_category'          => 'add new family',
+            'update_category'       => 'update family',
+            'delete_category'       => 'delete family',
+            'view_category'         => 'view family',
         ),
     ),
 
