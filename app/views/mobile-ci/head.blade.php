@@ -4,3 +4,5 @@
 
 {{ HTML::style('mobile-ci/stylesheet/main.css') }}
 {{ HTML::script('mobile-ci/scripts/jquery-2.1.1.min.js') }}
+
+<!-- <title>Orbit</title> -->
