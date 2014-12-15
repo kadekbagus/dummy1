@@ -1,9 +1,0 @@
-<!doctype html>
-<html>
-	<head>
-		@include('mobile-ci.head')
-	</head>
-	<body>
-		<h1>tes</h1>
-	</body>
-</html>
