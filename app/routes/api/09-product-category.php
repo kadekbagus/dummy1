@@ -8,7 +8,7 @@
  */
 Route::post('/api/v1/family/new', function()
 {
-    return MerchantTaxAPIController::create()->postNewMerchantTax();
+    return CategoryAPIController::create()->postNewCategory();
 });
 
 /**
@@ -16,7 +16,7 @@ Route::post('/api/v1/family/new', function()
  */
 Route::post('/api/v1/family/delete', function()
 {
-    return MerchantTaxAPIController::create()->postDeleteMerchantTax();
+    return CategoryAPIController::create()->postDeleteCategory();
 });
 
 /**
@@ -24,7 +24,7 @@ Route::post('/api/v1/family/delete', function()
  */
 Route::post('/api/v1/family/update', function()
 {
-    return MerchantTaxAPIController::create()->postUpdateMerchantTax();
+    return CategoryAPIController::create()->postUpdateCategory();
 });
 
 /**
@@ -32,5 +32,5 @@ Route::post('/api/v1/family/update', function()
  */
 Route::get('/api/v1/family/search', function()
 {
-    return MerchantTaxAPIController::create()->getSearchMerchantTax();
+    return CategoryAPIController::create()->getSearchCategory();
 });
