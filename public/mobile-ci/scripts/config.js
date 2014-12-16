@@ -1,0 +1,1 @@
+var apiPath = 'http://shop.earth.dominopos.dev/api/v1/';
