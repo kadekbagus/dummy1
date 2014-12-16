@@ -1,7 +1,0 @@
-<meta charset="utf-8" />
-<meta name="description" content="Orbit app mobile customer interface" />
-<meta name="authoer" content="DominoPOS" />
-
-<title>Orbit</title>
-
-<link rel="stylesheet" href={{ HTML::script('mobile-ci/css/main.css') }} />

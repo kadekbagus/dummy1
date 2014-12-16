@@ -37,34 +37,6 @@
   right: percentage((@columns / @grid-columns));
 }
 
-// Generate the xsmall columns
-.make-xsm-column(@columns; @gutter: @grid-gutter-width) {
-  position: relative;
-  min-height: 1px;
-  padding-left:  (@gutter / 2);
-  padding-right: (@gutter / 2);
-
-  @media (min-width: @screen-xs-min) {
-    float: left;
-    width: percentage((@columns / @grid-columns));
-  }
-}
-.make-xsm-column-offset(@columns) {
-  @media (min-width: @screen-xs-min) {
-    margin-left: percentage((@columns / @grid-columns));
-  }
-}
-.make-xsm-column-push(@columns) {
-  @media (min-width: @screen-xs-min) {
-    left: percentage((@columns / @grid-columns));
-  }
-}
-.make-xsm-column-pull(@columns) {
-  @media (min-width: @screen-xs-min) {
-    right: percentage((@columns / @grid-columns));
-  }
-}
-
 // Generate the small columns
 .make-sm-column(@columns; @gutter: @grid-gutter-width) {
   position: relative;
