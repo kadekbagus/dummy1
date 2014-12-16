@@ -5,12 +5,12 @@
 
 .make-grid-columns() {
   // Common styles for all sizes of grid columns, widths 1-12
-  .col(@index) when (@index = 1) { // initial
-    @item: ~".col-xs-@{index}, .col-xsm-@{index}, .col-sm-@{index}, .col-md-@{index}, .col-lg-@{index}";
+  .col(@index) { // initial
+    @item: ~".col-xs-@{index}, .col-sm-@{index}, .col-md-@{index}, .col-lg-@{index}";
     .col((@index + 1), @item);
   }
   .col(@index, @list) when (@index =< @grid-columns) { // general; "=<" isn't a typo
-    @item: ~".col-xs-@{index}, .col-xsm-@{index}, .col-sm-@{index}, .col-md-@{index}, .col-lg-@{index}";
+    @item: ~".col-xs-@{index}, .col-sm-@{index}, .col-md-@{index}, .col-lg-@{index}";
     .col((@index + 1), ~"@{list}, @{item}");
   }
   .col(@index, @list) when (@index > @grid-columns) { // terminal
@@ -27,7 +27,7 @@
 }
 
 .float-grid-columns(@class) {
-  .col(@index) when (@index = 1) { // initial
+  .col(@index) { // initial
     @item: ~".col-@{class}-@{index}";
     .col((@index + 1), @item);
   }
