@@ -10829,7 +10829,6 @@ button.toast-close-button {
 .page-signin .signup-body,
 .page-signup .signup-body,
 .page-forgot .signup-body {
-  border-top: 1px solid #f8f8f8;
   padding: 20px 10px;
 }
 .page-signin .form-container,
