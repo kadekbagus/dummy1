@@ -1,0 +1,35 @@
+.mobile-ci.ci-header.header-container {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 5.5em;
+  z-index: 1000;
+  .header-buttons-container {
+    background-color: @theme-main;
+  }
+  .header-location-banner {
+    background-color: @theme-main-complimentary;
+    color: @theme-main-complimentary-2;
+    font-size: 1.2em;
+    padding-left: .5em;
+  }
+  .buttons-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    li {
+      display: inline-block;
+      color: @theme-main-complimentary-2;
+      font-size: 1.6em;
+      padding: .3em;
+      cursor: pointer;
+      &:hover {
+        background-color: @theme-main-complimentary;
+      }
+    }
+  }
+  .buttons-list.right {
+    float: right;
+  }
+}

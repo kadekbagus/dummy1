@@ -5,6 +5,9 @@
     .modal-backdrop{
       z-index:0;
     }
+    #signup{
+      display: none;
+    }
   </style>
 @stop
 
@@ -48,6 +51,10 @@
           <p id="errorModalText"></p>
         </div>
         <div class="modal-footer">
+          <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
+            <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
+            <button type="submit" class="btn btn-success" id="signup">Sign Up</button>
+          </form>
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>
@@ -59,23 +66,37 @@
   <script type="text/javascript">
     $(document).ready(function(){
       $('#loginForm').submit(function(event){
+        
+        $('#signup').css('display','none');
         $('#errorModalText').text('');
+        $('#emailSignUp').val('');
+
         if(!$('#email').val()) {
-          $('#errorModalText').text('Harap isi email terlebih dahulu');
+          $('#errorModalText').text('Harap isi email terlebih dahulu.');
           $('#errorModal').modal();
         }else{
-          $.ajax({
-            method:'POST',
-            url:apiPath+'customer/login',
-            data:{
-              email: $('#email').val()
-            }
-          }).done(function(data){
-
-          }).fail(function(data){
-            $('#errorModalText').text('Terjadi kesalahan koneksi. Mohon coba lagi.');
+          if(isValidEmailAddress($('#email').val())){
+            $.ajax({
+              method:'POST',
+              url:apiPath+'customer/login',
+              data:{
+                email: $('#email').val()
+              }
+            }).done(function(data){
+              if(data.status==='error'){
+                $('#errorModalText').html('Email belum terdaftar.<br> Silahkan mendaftar sekarang.');
+                $('#emailSignUp').val($('#email').val());
+                $('#signup').css('display','inline-block');
+                $('#errorModal').modal();  
+              }
+            }).fail(function(data){
+              $('#errorModalText').text('Terjadi kesalahan koneksi. Mohon coba lagi.');
+              $('#errorModal').modal();
+            });
+          } else {
+            $('#errorModalText').text('Email tidak valid.');
             $('#errorModal').modal();
-          });
+          }
         }
         event.preventDefault();
       });

@@ -78,58 +78,6 @@ class LoginAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Login customer in shop
-     *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
-     *
-     * List of API Parameters
-     * ----------------------
-     * @param string    `email`          (required) - Email address of the user
-     * @return Illuminate\Support\Facades\Response
-     */
-    public function postLoginInShop()
-    {
-        try {
-            $email = trim(OrbitInput::post('email'));
-
-            if (trim($email) === '') {
-                $errorMessage = Lang::get('validation.required', array('attribute' => 'email'));
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-
-            $user = User::with('apikey', 'userdetail', 'role')
-                        ->active()
-                        ->where('user_email', $email)
-                        ->where('user_role_id', 3)
-                        ->first();
-
-            if (! is_object($user)) {
-                $message = Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
-            }
-
-            $this->response->data = $user;
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        }
-
-        return $this->render();
-    }
-
-    /**
      * POST - Login cashier in shop
      *
      * @author Kadek <kadek@dominopos.com>
