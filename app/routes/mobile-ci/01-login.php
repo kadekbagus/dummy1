@@ -32,18 +32,18 @@ Route::post('/api/v1/customer/login', function()
     return MobileCI\MobileCIAPIController::create()->postLoginInShop();
 });
 
-Route::post('/app/v1/customer/login', 'IntermediateAuthController@MobileCI_postLoginInShop');
+Route::post('/app/v1/customer/login', 'IntermediateAuthController@MobileCI\MobileCI_postLoginInShop');
 
 Route::get('/api/v1/customer/logout', function() 
 {
     return MobileCI\MobileCIAPIController::create()->getLogoutInShop();
 });
 
-Route::get('/app/v1/customer/logout', 'IntermediateAuthController@MobileCI_getLogoutInShop');
+Route::get('/app/v1/customer/logout', 'IntermediateAuthController@MobileCI\MobileCI_getLogoutInShop');
 
 Route::post('/api/v1/customer/signup', function() 
 {
     return MobileCI\MobileCIAPIController::create()->postRegisterUserInShop();
 });
 
-Route::post('/app/v1/customer/signup', 'IntermediateAuthController@MobileCI_postRegisterUserInShop');
+Route::post('/app/v1/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postRegisterUserInShop');
