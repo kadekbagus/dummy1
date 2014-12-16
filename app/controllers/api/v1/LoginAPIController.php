@@ -108,6 +108,10 @@ class LoginAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
+            if (! is_null($user)) {
+                return Redirect::action('DummyAPIController@IamOK');
+            }
+
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();

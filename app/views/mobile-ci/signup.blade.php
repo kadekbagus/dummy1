@@ -5,8 +5,14 @@
     .modal-backdrop{
       z-index:0;
     }
-    #signup{
-      display: none;
+    .btn-success{
+      color: #fff;
+      background-color: #33cc99;
+      border-color: #33cc99;
+    }
+    .btn-success:hover{
+      background-color: #29a47b;
+      border-color: #29a47b;
     }
   </style>
 @stop
@@ -31,7 +37,7 @@
           <input type="text" class="form-control" name="email" id="email" />
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">Login</button>
+          <button type="submit" class="btn btn-success btn-block">Daftar</button>
         </div>
       </form>
     </div>
@@ -51,10 +57,6 @@
           <p id="errorModalText"></p>
         </div>
         <div class="modal-footer">
-          <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-            <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
-            <button type="submit" class="btn btn-success" id="signup">Sign Up</button>
-          </form>
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>
@@ -66,11 +68,7 @@
   <script type="text/javascript">
     $(document).ready(function(){
       $('#loginForm').submit(function(event){
-        
-        $('#signup').css('display','none');
         $('#errorModalText').text('');
-        $('#emailSignUp').val('');
-
         if(!$('#email').val()) {
           $('#errorModalText').text('Harap isi email terlebih dahulu.');
           $('#errorModal').modal();
@@ -84,9 +82,7 @@
               }
             }).done(function(data){
               if(data.status==='error'){
-                $('#errorModalText').html('Email belum terdaftar.<br> Silahkan mendaftar sekarang.');
-                $('#emailSignUp').val($('#email').val());
-                $('#signup').css('display','inline-block');
+                $('#errorModalText').html("Email belum terdaftar.<br> Silahkan mendaftar sekarang.");
                 $('#errorModal').modal();  
               }
             }).fail(function(data){
