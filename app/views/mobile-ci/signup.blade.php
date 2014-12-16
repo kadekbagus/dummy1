@@ -5,15 +5,6 @@
     .modal-backdrop{
       z-index:0;
     }
-    .btn-success{
-      color: #fff;
-      background-color: #33cc99;
-      border-color: #33cc99;
-    }
-    .btn-success:hover{
-      background-color: #29a47b;
-      border-color: #29a47b;
-    }
   </style>
 @stop
 
@@ -34,7 +25,7 @@
       </header>
       <form name="loginForm" id="loginForm">
         <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" />
+          <input type="text" class="form-control" name="email" id="email" value="" />
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-success btn-block">Daftar</button>

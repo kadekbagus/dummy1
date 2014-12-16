@@ -10,15 +10,21 @@ Route::get('/customer/signup', function()
     return View::make('mobile-ci.signup');
 });
 
-Route::post('/customer/signup', array('uses'=>'MobileCI\\MobileCIController@postSignUpView'));
+Route::post('/customer/signup', array('uses'=>'MobileCI\\MobileCIAPIController@postSignUpView'));
 
-Route::get('/customer/home', array('uses'=>'DummyAPIController@IamOK'));
+Route::group(array('before'=>'authCustomer'), function()
+{
+    Route::get('/', function() 
+    {
+        return View::make('mobile-ci.home');
+    });
+});
 // -------------------- views ------------------------------
 
 
 Route::post('/api/v1/customer/login', function() 
 {
-    return LoginAPIController::create()->postLoginInShop();
+    return MobileCI\MobileCIAPIController::create()->postLoginInShop();
 });
 
-Route::post('/app/v1/customer/login', 'IntermediateAuthController@Login_postLoginInShop');
+Route::post('/app/v1/customer/login', 'IntermediateAuthController@MobileCI_postLoginInShop');
