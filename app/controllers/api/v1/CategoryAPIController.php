@@ -16,6 +16,7 @@ class CategoryAPIController extends ControllerAPI
      * POST - Create New Category
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -67,12 +68,14 @@ class CategoryAPIController extends ControllerAPI
             
             $validator = Validator::make(
                 array(
-                    'merchant_id'   => $merchant_id,
-                    'category_name' => $category_name,
+                    'merchant_id'    => $merchant_id,
+                    'category_name'  => $category_name,
+                    'category_level' => $category_level,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'    => 'required|numeric|orbit.empty.merchant',
                     'category_name'  => 'required',
+                    'category_level' => 'required',
                 )
             );
 
