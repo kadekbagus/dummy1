@@ -1212,21 +1212,6 @@ class MerchantAPIController extends ControllerAPI
             return TRUE;
         });
 
-        // Check user email address, it should not exists
-        Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
-            $merchant = Merchant::excludeDeleted()
-                        ->where('email', $value)
-                        ->first();
-
-            if (! empty($merchant)) {
-                return FALSE;
-            }
-
-            App::instance('orbit.validation.merchant', $merchant);
-
-            return TRUE;
-        });
-
         // Check user email address, it should not exists (for update)
         Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
             $merchant_id = OrbitInput::post('merchant_id');
