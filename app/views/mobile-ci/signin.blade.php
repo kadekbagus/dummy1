@@ -26,7 +26,7 @@
           </div>
         </div>
       </header>
-      <form name="loginForm" id="loginForm">
+      <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
         <div class="form-group">
           <input type="text" class="form-control" name="email" id="email" />
         </div>
@@ -54,8 +54,8 @@
           <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
             <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
             <button type="submit" class="btn btn-success" id="signup">Sign Up</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </form>
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
@@ -89,8 +89,12 @@
                 $('#signup').css('display','inline-block');
                 $('#errorModal').modal();  
               }
+              if(data.data){
+                // console.log(data.data);
+                window.location.replace(homePath);
+              }
             }).fail(function(data){
-              $('#errorModalText').text('Terjadi kesalahan koneksi. Mohon coba lagi.');
+              $('#errorModalText').text(data.responseJSON.message);
               $('#errorModal').modal();
             });
           } else {

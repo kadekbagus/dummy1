@@ -25,7 +25,7 @@
       </header>
       <form name="loginForm" id="loginForm">
         <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" value="" />
+          <input type="text" class="form-control" name="email" id="email" value="{{ $email }}"/>
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-success btn-block">Daftar</button>
@@ -67,17 +67,22 @@
           if(isValidEmailAddress($('#email').val())){
             $.ajax({
               method:'POST',
-              url:apiPath+'customer/login',
+              url:apiPath+'customer/signup',
               data:{
                 email: $('#email').val()
               }
             }).done(function(data){
               if(data.status==='error'){
-                $('#errorModalText').html("Email belum terdaftar.<br> Silahkan mendaftar sekarang.");
+                $('#errorModalText').html(data.message);
                 $('#errorModal').modal();  
               }
+              if(data.data){
+                // console.log(data.data);
+                window.location.replace(homePath);
+              }
             }).fail(function(data){
-              $('#errorModalText').text('Terjadi kesalahan koneksi. Mohon coba lagi.');
+              console.log(data.responseJSON);
+              $('#errorModalText').text(data.responseJSON.message);
               $('#errorModal').modal();
             });
           } else {
