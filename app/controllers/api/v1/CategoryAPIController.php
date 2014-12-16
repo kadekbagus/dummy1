@@ -26,8 +26,6 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
      * @param string     `status`                (optional) - Status
-     * @param integer    `created_by`            (optional) - Created By
-     * @param integer    `modified_by`           (optional) - Modified By
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -63,8 +61,6 @@ class CategoryAPIController extends ControllerAPI
             $category_order = OrbitInput::post('category_order');
             $description = OrbitInput::post('description');
             // $status = OrbitInput::post('status');
-            $created_by = OrbitInput::post('created_by');
-            $modified_by = OrbitInput::post('modified_by');
             
             $validator = Validator::make(
                 array(
@@ -75,7 +71,7 @@ class CategoryAPIController extends ControllerAPI
                 array(
                     'merchant_id'    => 'required|numeric|orbit.empty.merchant',
                     'category_name'  => 'required|orbit.exists.category_name',
-                    'category_level' => 'required|numeric',
+                    'category_level' => 'required|numeric|between:1,5',
                 )
             );
 
@@ -169,6 +165,7 @@ class CategoryAPIController extends ControllerAPI
      * POST - Update Category
      *
      * @author <Kadek> <kadek@dominopos.com>
+     * @author <Tian> <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -209,23 +206,28 @@ class CategoryAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $category_id = OrbitInput::post('category_id');
+            $merchant_id = OrbitInput::post('merchant_id');
             $category_name = OrbitInput::post('category_name');
-            $parent_id = OrbitInput::post('parent_id');
+            $category_level = OrbitInput::post('category_level');
             $category_order = OrbitInput::post('category_order');
             $description = OrbitInput::post('description');
-            $status = OrbitInput::post('status');
-            $modified_by = OrbitInput::post('modified_by');
+            // $status = OrbitInput::post('status');
 
             $validator = Validator::make(
                 array(
                     'category_id'       => $category_id,
+                    'merchant_id'       => $merchant_id,
                     'category_name'     => $category_name,
-                    'parent_id'         => $parent_id,
+                    'category_level'    => $category_level,
                 ),
                 array(
                     'category_id'       => 'required|numeric|orbit.empty.category',
-                    'category_name'     => 'required',
-                    'parent_id'         => 'required|numeric|orbit.empty.category',
+                    'merchant_id'       => 'numeric|orbit.empty.merchant',
+                    'category_name'     => 'category_name_exists_but_me',
+                    'category_level'    => 'numeric|between:1,5',
+                ),
+                array(
+                   'category_name_exists_but_me' => Lang::get('validation.orbit.exists.category_name'),
                 )
             );
 
@@ -241,12 +243,28 @@ class CategoryAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedcategory = Category::find($category_id);
-            $updatedcategory->category_name = $category_name;
-            $updatedcategory->parent_id = $parent_id;
-            $updatedcategory->category_order = $category_order;
-            $updatedcategory->description = $description;
-            $updatedcategory->status = $status;;
+            $updatedcategory = Category::excludeDeleted()->allowedForUser($user)->where('category_id', $category_id)->first();
+
+            OrbitInput::post('merchant_id', function($merchant_id) use ($updatedcategory) {
+                $updatedcategory->merchant_id = $merchant_id;
+            });
+
+            OrbitInput::post('category_name', function($category_name) use ($updatedcategory) {
+                $updatedcategory->category_name = $category_name;
+            });
+
+            OrbitInput::post('category_level', function($category_level) use ($updatedcategory) {
+                $updatedcategory->category_level = $category_level;
+            });
+
+            OrbitInput::post('category_order', function($category_order) use ($updatedcategory) {
+                $updatedcategory->category_order = $category_order;
+            });
+            
+            OrbitInput::post('description', function($description) use ($updatedcategory) {
+                $updatedcategory->description = $description;
+            });
+
             $updatedcategory->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.category.postupdatecategory.before.save', array($this, $updatedcategory));
@@ -582,6 +600,23 @@ class CategoryAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.category_name', $categoryName);
+
+            return TRUE;
+        });
+
+        // Check category name, it should not exists (for update)
+        Validator::extend('category_name_exists_but_me', function ($attribute, $value, $parameters) {
+            $category_id = trim(OrbitInput::post('category_id'));
+            $category = Category::excludeDeleted()
+                        ->where('category_name', $value)
+                        ->where('category_id', '!=', $category_id)
+                        ->first();
+
+            if (! empty($category)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.category', $category);
 
             return TRUE;
         });
