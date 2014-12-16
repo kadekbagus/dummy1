@@ -45,6 +45,6 @@ Route::get('/', function() {
   return View::make('mobile-ci.home');
 });
 
-// Route::get('/toolbar', function() {
-  // return View::make('mobile-ci.toolbar');
-// });
+Route::get('/cart', function() {
+  return View::make('mobile-ci.cart');
+});
