@@ -7,7 +7,7 @@ Route::post('/api/v1/pos/login', function () {
     return LoginAPIController::create()->postLoginCashier();
 });
 
-Route::post('/app/v1/pos/login', 'IntermediateAuthController@Login_postLoginCashier');
+Route::post('/app/v1/pos/login', 'IntermediateLoginController@Login_postLoginCashier');
 
 Route::get('/pos', function () {
     if (Auth::check()) {
