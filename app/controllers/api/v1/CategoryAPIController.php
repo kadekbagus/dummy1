@@ -16,6 +16,7 @@ class CategoryAPIController extends ControllerAPI
      * POST - Create New Category
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -29,7 +30,7 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `modified_by`           (optional) - Modified By
      * @return Illuminate\Support\Facades\Response
      */
-    
+
     public function postNewCategory()
     {
         try {
@@ -67,12 +68,14 @@ class CategoryAPIController extends ControllerAPI
             
             $validator = Validator::make(
                 array(
-                    'merchant_id'   => $merchant_id,
-                    'category_name' => $category_name,
+                    'merchant_id'    => $merchant_id,
+                    'category_name'  => $category_name,
+                    'category_level' => $category_level,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
-                    'category_name'  => 'required',
+                    'merchant_id'    => 'required|numeric|orbit.empty.merchant',
+                    'category_name'  => 'required|orbit.exists.category_name',
+                    'category_level' => 'required|numeric',
                 )
             );
 
@@ -564,6 +567,21 @@ class CategoryAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check category name, it should not exists
+        Validator::extend('orbit.exists.category_name', function ($attribute, $value, $parameters) {
+            $categoryName = Category::excludeDeleted()
+                        ->where('category_name', $value)
+                        ->first();
+
+            if (! empty($categoryName)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.category_name', $categoryName);
 
             return TRUE;
         });

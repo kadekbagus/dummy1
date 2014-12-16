@@ -6,6 +6,7 @@ composer.phar
 .env.php
 .DS_Store
 Thumbs.db
+/.idea
 
 # Config
 app/config/app.php

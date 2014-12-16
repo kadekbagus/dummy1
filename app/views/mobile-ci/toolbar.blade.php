@@ -5,7 +5,7 @@
       <li><span><i class="glyphicon glyphicon-search"></i></span></li>
       <li><span class="glyphicon glyphicon-book"></span></li>
       <li><span><i class="glyphicon glyphicon-shopping-cart"></i></span></li>
-      <li><span><i class="glyphicon glyphicon-cog"></i></span></li>
+      <li><a href="{{ url('/api/v1/customer/logout') }}"><span><i class="glyphicon glyphicon-cog"></i></span></a></li>
     </ul>
     <ul class="buttons-list">
       <li><span><i class="glyphicon glyphicon-home"></i></span></li>

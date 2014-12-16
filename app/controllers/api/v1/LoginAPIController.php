@@ -78,35 +78,43 @@ class LoginAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Login customer in shop
+     * POST - Login cashier in shop
      *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
      * @param string    `email`          (required) - Email address of the user
      * @return Illuminate\Support\Facades\Response
      */
-    public function postLoginInShop()
+    public function postLoginCashier()
     {
         try {
-            $email = trim(OrbitInput::post('email'));
+            $username = trim(OrbitInput::post('username'));
+            $password = trim(OrbitInput::post('password'));
 
-            if (trim($email) === '') {
-                $errorMessage = Lang::get('validation.required', array('attribute' => 'email'));
+            if (trim($username) === '') {
+                $errorMessage = Lang::get('validation.required', array('attribute' => 'username'));
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             $user = User::with('apikey', 'userdetail', 'role')
                         ->active()
-                        ->where('user_email', $email)
-                        ->where('user_role_id', 3)
+                        ->where('username', $username)
+                        ->where('user_role_id', 6)
                         ->first();
 
             if (! is_object($user)) {
                 $message = Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
             }
+
+            if (! Hash::check($password, $user->user_password)) {
+                $message = Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+
+            Auth::Login($user);
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {

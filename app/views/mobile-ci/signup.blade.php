@@ -5,9 +5,6 @@
     .modal-backdrop{
       z-index:0;
     }
-    #signup{
-      display: none;
-    }
   </style>
 @stop
 
@@ -26,12 +23,12 @@
           </div>
         </div>
       </header>
-      <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
+      <form name="loginForm" id="loginForm">
         <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" />
+          <input type="text" class="form-control" name="email" id="email" value="{{ $email }}"/>
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">Login</button>
+          <button type="submit" class="btn btn-success btn-block">Daftar</button>
         </div>
       </form>
     </div>
@@ -51,11 +48,7 @@
           <p id="errorModalText"></p>
         </div>
         <div class="modal-footer">
-          <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-            <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
-            <button type="submit" class="btn btn-success" id="signup">Sign Up</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          </form>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
@@ -66,11 +59,7 @@
   <script type="text/javascript">
     $(document).ready(function(){
       $('#loginForm').submit(function(event){
-        
-        $('#signup').css('display','none');
         $('#errorModalText').text('');
-        $('#emailSignUp').val('');
-
         if(!$('#email').val()) {
           $('#errorModalText').text('Harap isi email terlebih dahulu.');
           $('#errorModal').modal();
@@ -78,15 +67,13 @@
           if(isValidEmailAddress($('#email').val())){
             $.ajax({
               method:'POST',
-              url:apiPath+'customer/login',
+              url:apiPath+'customer/signup',
               data:{
                 email: $('#email').val()
               }
             }).done(function(data){
               if(data.status==='error'){
-                $('#errorModalText').html('Email belum terdaftar.<br> Silahkan mendaftar sekarang.');
-                $('#emailSignUp').val($('#email').val());
-                $('#signup').css('display','inline-block');
+                $('#errorModalText').html(data.message);
                 $('#errorModal').modal();  
               }
               if(data.data){
@@ -94,6 +81,7 @@
                 window.location.replace(homePath);
               }
             }).fail(function(data){
+              console.log(data.responseJSON);
               $('#errorModalText').text(data.responseJSON.message);
               $('#errorModal').modal();
             });
