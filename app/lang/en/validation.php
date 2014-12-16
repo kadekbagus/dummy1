@@ -94,7 +94,7 @@ return array(
             'email'         => 'Email address has been taken.',
             'omid'          => 'OMID has already taken by another Merchant.',
             'orid'          => 'ORID has already taken by another Retailer.',
-            'category_name' => 'The family name has already been used.'
+            'category_name' => 'The category name has already been used.'
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -145,10 +145,10 @@ return array(
             'update_tax'            => 'update tax',
             'delete_tax'            => 'delete tax',
             'view_tax'              => 'view tax',
-            'new_category'          => 'add new family',
-            'update_category'       => 'update family',
-            'delete_category'       => 'delete family',
-            'view_category'         => 'view family',
+            'new_category'          => 'add new category',
+            'update_category'       => 'update category',
+            'delete_category'       => 'delete category',
+            'view_category'         => 'view category',
         ),
     ),
 
