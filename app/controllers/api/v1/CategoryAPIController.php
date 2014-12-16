@@ -333,6 +333,148 @@ class CategoryAPIController extends ControllerAPI
 
     }
 
+    /**
+     * POST - Delete Category
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `category_id`                  (required) - ID of the category
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteCategory()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.category.postdeletecategory.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.category.postdeletecategory.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.category.postdeletecategory.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('delete_category')) {
+                Event::fire('orbit.category.postdeletecategory.authz.notallowed', array($this, $user));
+                $deleteCategoryLang = Lang::get('validation.orbit.actionlist.delete_category');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteCategoryLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.category.postdeletecategory.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $category_id = OrbitInput::post('category_id');
+
+            $validator = Validator::make(
+                array(
+                    'category_id' => $category_id,
+                ),
+                array(
+                    'category_id' => 'required|numeric|orbit.empty.category',
+                )
+            );
+
+            Event::fire('orbit.category.postdeletecategory.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.category.postdeletecategory.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $deletecategory = Category::excludeDeleted()->allowedForUser($user)->where('category_id', $category_id)->first();
+            $deletecategory->status = 'deleted';
+            $deletecategory->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.category.postdeletecategory.before.save', array($this, $deletecategory));
+
+            // get product-category for the category
+            $deleteproductcategories = ProductCategory::where('category_id', $deletecategory->category_id)->get();
+
+            foreach ($deleteproductcategories as $deleteproductcategory) {
+                $deleteproductcategory->delete();
+            }
+
+            $deletecategory->save();
+
+            Event::fire('orbit.category.postdeletecategory.after.save', array($this, $deletecategory));
+            $this->response->data = null;
+            $this->response->message = Lang::get('statuses.orbit.deleted.category');
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.category.postdeletecategory.after.commit', array($this, $deletecategory));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.category.postdeletecategory.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.category.postdeletecategory.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.category.postdeletecategory.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.category.postdeletecategory.general.exception', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.category.postdeletecategory.before.render', array($this, $output));
+
+        return $output;
+    }
+
+
 
     /**
      * GET - Search Category

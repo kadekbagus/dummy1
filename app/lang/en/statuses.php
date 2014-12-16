@@ -17,6 +17,7 @@ return array(
             'merchant'  => 'Merchant has been successfully deleted.',
             'retailer'  => 'Retailer has been successfully deleted.',
             'product'   => 'Product has been successfully deleted.',
+            'category'  => 'Category has been successfully deleted.',
         ),
         'updated'   => array(
             'user'      => 'User has been successfully updated.',
