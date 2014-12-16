@@ -30,7 +30,7 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `modified_by`           (optional) - Modified By
      * @return Illuminate\Support\Facades\Response
      */
-    
+
     public function postNewCategory()
     {
         try {
@@ -74,8 +74,8 @@ class CategoryAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'    => 'required|numeric|orbit.empty.merchant',
-                    'category_name'  => 'required',
-                    'category_level' => 'required',
+                    'category_name'  => 'required|orbit.exists.category_name',
+                    'category_level' => 'required|numeric',
                 )
             );
 
@@ -567,6 +567,21 @@ class CategoryAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check category name, it should not exists
+        Validator::extend('orbit.exists.category_name', function ($attribute, $value, $parameters) {
+            $categoryName = Category::excludeDeleted()
+                        ->where('category_name', $value)
+                        ->first();
+
+            if (! empty($categoryName)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.category_name', $categoryName);
 
             return TRUE;
         });
