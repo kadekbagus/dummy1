@@ -378,7 +378,7 @@ class CategoryAPIController extends ControllerAPI
                     'category_id' => $category_id,
                 ),
                 array(
-                    'category_id' => 'required|numeric|orbit.empty.category',
+                    'category_id' => 'required|numeric|orbit.empty.category|orbit.exists.have_product_category',
                 )
             );
 
@@ -401,11 +401,11 @@ class CategoryAPIController extends ControllerAPI
             Event::fire('orbit.category.postdeletecategory.before.save', array($this, $deletecategory));
 
             // get product-category for the category
-            $deleteproductcategories = ProductCategory::where('category_id', $deletecategory->category_id)->get();
+            /*$deleteproductcategories = ProductCategory::where('category_id', $deletecategory->category_id)->get();
 
             foreach ($deleteproductcategories as $deleteproductcategory) {
                 $deleteproductcategory->delete();
-            }
+            }*/
 
             $deletecategory->save();
 
@@ -762,5 +762,20 @@ class CategoryAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // Check if category have product
+        Validator::extend('orbit.exists.have_product_category', function ($attribute, $value, $parameters) {
+            $productcategory = ProductCategory::where('category_id', $value)
+                        ->first();
+
+            if (! empty($productcategory)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.have_product_category', $productcategory);
+
+            return TRUE;
+        });
+
     }
 }

@@ -14,7 +14,7 @@
       <header>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <span>Welcome!</span>
+            <span class="greetings">Welcome!</span>
           </div>
         </div>
         <div class="row vertically-spaced">
