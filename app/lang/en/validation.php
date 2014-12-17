@@ -95,7 +95,7 @@ return array(
             'omid'                  => 'OMID has already taken by another Merchant.',
             'orid'                  => 'ORID has already taken by another Retailer.',
             'category_name'         => 'The category name has already been used.',
-            'have_product_category' => 'The category can not be deleted because it has link to product(s).'
+            'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.'
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -123,7 +123,7 @@ return array(
             'tax_status'        => 'The tax status you specify is not found.',
             'tax_sortby'        => 'The sort by argument for tax you specify is not valid, the valid value are: registered_date, merchant_tax_id, tax_name, tax_value.',
             'category_status'   => 'The category status you specify is not found.',
-            'category_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description.',
+            'category_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description, status.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(

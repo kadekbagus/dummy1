@@ -26,9 +26,9 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
      * @param string     `status`                (optional) - Status
+     *
      * @return Illuminate\Support\Facades\Response
      */
-
     public function postNewCategory()
     {
         try {
@@ -172,12 +172,13 @@ class CategoryAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `category_id`           (required) - Category ID
-     * @param string     `category_name`         (required) - Category name
-     * @param integer    `parent_id`             (required) - Parent ID
+     * @param integer    `merchant_id`           (optional) - Merchant ID
+     * @param string     `category_name`         (optional) - Category name
+     * @param integer    `category_level`        (optional) - Category level
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
      * @param string     `status`                (optional) - Status
-     * @param integer    `modified_by`           (optional) - Modified By
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateCategory()
@@ -475,8 +476,6 @@ class CategoryAPIController extends ControllerAPI
         return $output;
     }
 
-
-
     /**
      * GET - Search Category
      *
@@ -494,6 +493,8 @@ class CategoryAPIController extends ControllerAPI
      * @param integer  `category_level`        (optional) - Category level
      * @param integer  `category_order`        (optional) - Category order
      * @param string   `description`           (optional) - Description
+     * @param string   `description_like`      (optional) - Description like
+     * @param string   `status`                (optional) - Status
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
      *
@@ -532,10 +533,10 @@ class CategoryAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:category_name,parent_id,category_order,registered_date',
+                    'sort_by' => 'in:registered_date,category_name,category_level,category_order,description,status',
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                    'in' => Lang::get('validation.orbit.empty.category_sortby'),
                 )
             );
 
@@ -555,12 +556,17 @@ class CategoryAPIController extends ControllerAPI
             }
 
             // Builder object
-            $categories = Category::excludeDeleted();
+            $categories = Category::excludeDeleted()->allowedForUser($user);
 
             // Filter category by Ids
             OrbitInput::get('category_id', function($categoryIds) use ($categories)
             {
                 $categories->whereIn('categories.category_id', $categoryIds);
+            });
+
+            // Filter category by merchant Ids
+            OrbitInput::get('merchant_id', function ($merchantIds) use ($categories) {
+                $categories->whereIn('categories.merchant_id', $merchantIds);
             });
 
             // Filter category by category name
@@ -570,21 +576,38 @@ class CategoryAPIController extends ControllerAPI
             });
 
             // Filter category by matching category name pattern
-            OrbitInput::get('category_name_like', function($categoryname_like) use ($categories)
+            OrbitInput::get('category_name_like', function($categoryname) use ($categories)
             {
-                $categories->where('categories.category_name', 'like', "%$category_name%");
+                $categories->where('categories.category_name', 'like', "%$categoryname%");
             });
 
-            // Filter category by parent Ids
-            OrbitInput::get('parent_id', function($parentIds) use ($categories)
+            // Filter category by category level
+            OrbitInput::get('category_level', function($categoryLevels) use ($categories)
             {
-                $categories->whereIn('categories.parent_id', $parentIds);
+                $categories->whereIn('categories.category_level', $categoryLevels);
             });
 
             // Filter category by category order
-            OrbitInput::get('category_order', function($categoryorder) use ($categories)
+            OrbitInput::get('category_order', function($categoryOrders) use ($categories)
             {
-                $categories->whereIn('categories.category_order', $categoryorder);
+                $categories->whereIn('categories.category_order', $categoryOrders);
+            });
+
+            // Filter category by description
+            OrbitInput::get('description', function($description) use ($categories)
+            {
+                $categories->whereIn('categories.description', $description);
+            });
+
+            // Filter category by matching description pattern
+            OrbitInput::get('description_like', function($description) use ($categories)
+            {
+                $categories->where('categories.description', 'like', "%$description%");
+            });
+
+            // Filter category by status
+            OrbitInput::get('status', function ($status) use ($categories) {
+                $categories->whereIn('categories.status', $status);
             });
 
             // Clone the query builder which still does not include the take,
@@ -624,8 +647,10 @@ class CategoryAPIController extends ControllerAPI
                 $sortByMapping = array(
                     'registered_date'   => 'categories.created_at',
                     'category_name'     => 'categories.category_name',
-                    'parent_id'         => 'categories.parent_id',
-                    'category_order'    => 'categories.category_order'
+                    'category_level'    => 'categories.category_level',
+                    'category_order'    => 'categories.category_order',
+                    'description'       => 'categories.description',
+                    'status'            => 'categories.status'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -701,7 +726,6 @@ class CategoryAPIController extends ControllerAPI
 
         return $output;
     }
-
 
     protected function registerCustomValidation()
     {

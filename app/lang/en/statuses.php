@@ -23,11 +23,12 @@ return array(
             'user'      => 'User has been successfully updated.',
         ),
         'nodata'    => array(
-            'user'      => 'There is no user found that matched your criteria.',
-            'merchant'  => 'There is no merchant found that matched your criteria.',
-            'retailer'  => 'There is no retailer found that matched your criteria.',
-            'product'   => 'There is no product found that matched your criteria.',
-            'tax'       => 'There is no tax found that matched your criteria.',
+            'user'         => 'There is no user found that matched your criteria.',
+            'merchant'     => 'There is no merchant found that matched your criteria.',
+            'retailer'     => 'There is no retailer found that matched your criteria.',
+            'product'      => 'There is no product found that matched your criteria.',
+            'tax'          => 'There is no tax found that matched your criteria.',
+            'categories'   => 'There is no category found that matched your criteria.',
         ),
         'uploaded'  => array(
             'merchant' => array(
