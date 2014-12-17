@@ -10,15 +10,10 @@ Route::get('/customer/signup', function()
     return View::make('mobile-ci.signup', array('email' => ''));
 });
 
+// transfer email value from login page to signup page
 Route::post('/customer/signup', array('uses'=>'MobileCI\\MobileCIAPIController@postSignUpView'));
 
-Route::group(array('before'=>'authCustomer'), function()
-{
-    Route::get('/customer/home', function() 
-    {
-        return View::make('mobile-ci.home');
-    });
-});
+Route::get('/customer/home', 'IntermediateAuthController@MobileCI\MobileCI_getHomeView');
 // -------------------- views ------------------------------
 
 
