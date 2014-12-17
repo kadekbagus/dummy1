@@ -15,6 +15,7 @@ use \User;
 use \UserDetail;
 use \Token;
 use \Role;
+use \Lang;
 use \Apikey;
 use \Validator;
 
@@ -80,7 +81,7 @@ class MobileCIAPIController extends ControllerAPI
     public function getLogoutInShop()
     {
         \Auth::logout();
-        return \Redirect::to('signin');
+        return \Redirect::route('signin');
     }
 
 
@@ -297,6 +298,38 @@ class MobileCIAPIController extends ControllerAPI
         }
 
         return $this->render($httpCode);
+    }
+
+    public function getHomeView()
+    {
+        try {
+            $this->checkAuth();
+            $user = $this->api->user;
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                // $errorlang = Lang::get('validation.orbit.actionlist.view_product');
+                // $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
+                // ACL::throwAccessForbidden($message);
+                return \Redirect::route('signin');
+            }
+            // return $this->render();
+            return View::make('mobile-ci.home');
+            // var_dump($user);
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
     }
 
     protected function registerCustomValidation()
