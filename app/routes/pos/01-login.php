@@ -11,7 +11,7 @@ Route::post('/app/v1/pos/login', 'IntermediateAuthController@Login_postLoginCash
 
 Route::get('/pos', function () {
     if (Auth::check()) {
-
+        return View::make('pos.login');
     } else {
         return View::make('pos.login');
     }
@@ -26,6 +26,13 @@ Route::get('/pos/home', function () {
         echo "user id ".$user_id."<br/>";
         echo "username ".$username."<br/>";
         echo "email ".$email."<br/>";
+    } else {
+        echo "anda tidak login";
+    }
+});
+Route::get('/pos/dashboard', function () {
+    if (Auth::check()) {
+        return View::make('pos.dashboard');
     } else {
         echo "anda tidak login";
     }
