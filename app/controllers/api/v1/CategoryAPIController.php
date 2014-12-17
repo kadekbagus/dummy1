@@ -60,18 +60,20 @@ class CategoryAPIController extends ControllerAPI
             $category_level = OrbitInput::post('category_level');
             $category_order = OrbitInput::post('category_order');
             $description = OrbitInput::post('description');
-            // $status = OrbitInput::post('status');
+            $status = OrbitInput::post('status');
             
             $validator = Validator::make(
                 array(
                     'merchant_id'    => $merchant_id,
                     'category_name'  => $category_name,
                     'category_level' => $category_level,
+                    'status'         => $status,
                 ),
                 array(
                     'merchant_id'    => 'required|numeric|orbit.empty.merchant',
                     'category_name'  => 'required|orbit.exists.category_name',
                     'category_level' => 'required|numeric|between:1,5',
+                    'status'         => 'required|orbit.empty.category_status',
                 )
             );
 
@@ -92,7 +94,7 @@ class CategoryAPIController extends ControllerAPI
             $newcategory->category_level = $category_level;
             $newcategory->category_order = $category_order;
             $newcategory->description = $description;
-            // $newcategory->status = $status;
+            $newcategory->status = $status;
             $newcategory->created_by = $this->api->user->user_id;
             $newcategory->modified_by = $this->api->user->user_id;
 
@@ -211,7 +213,7 @@ class CategoryAPIController extends ControllerAPI
             $category_level = OrbitInput::post('category_level');
             $category_order = OrbitInput::post('category_order');
             $description = OrbitInput::post('description');
-            // $status = OrbitInput::post('status');
+            $status = OrbitInput::post('status');
 
             $validator = Validator::make(
                 array(
@@ -219,12 +221,14 @@ class CategoryAPIController extends ControllerAPI
                     'merchant_id'       => $merchant_id,
                     'category_name'     => $category_name,
                     'category_level'    => $category_level,
+                    'status'            => $status,
                 ),
                 array(
                     'category_id'       => 'required|numeric|orbit.empty.category',
                     'merchant_id'       => 'numeric|orbit.empty.merchant',
                     'category_name'     => 'category_name_exists_but_me',
                     'category_level'    => 'numeric|between:1,5',
+                    'status'            => 'orbit.empty.category_status',
                 ),
                 array(
                    'category_name_exists_but_me' => Lang::get('validation.orbit.exists.category_name'),
@@ -263,6 +267,10 @@ class CategoryAPIController extends ControllerAPI
             
             OrbitInput::post('description', function($description) use ($updatedcategory) {
                 $updatedcategory->description = $description;
+            });
+
+            OrbitInput::post('status', function($status) use ($updatedcategory) {
+                $updatedcategory->status = $status;
             });
 
             $updatedcategory->modified_by = $this->api->user->user_id;
@@ -400,13 +408,6 @@ class CategoryAPIController extends ControllerAPI
 
             Event::fire('orbit.category.postdeletecategory.before.save', array($this, $deletecategory));
 
-            // get product-category for the category
-            /*$deleteproductcategories = ProductCategory::where('category_id', $deletecategory->category_id)->get();
-
-            foreach ($deleteproductcategories as $deleteproductcategory) {
-                $deleteproductcategory->delete();
-            }*/
-
             $deletecategory->save();
 
             Event::fire('orbit.category.postdeletecategory.after.save', array($this, $deletecategory));
@@ -480,19 +481,22 @@ class CategoryAPIController extends ControllerAPI
      * GET - Search Category
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
      * @param string   `sort_by`               (optional) - column order by
      * @param string   `sort_mode`             (optional) - asc or desc
      * @param integer  `category_id`           (optional) - Category ID
+     * @param integer  `merchant_id`           (optional) - Merchant ID
      * @param string   `category_name`         (optional) - Category name
      * @param string   `category_name_like`    (optional) - Category name like
-     * @param integer  `parent_id`             (optional) - Parent ID
+     * @param integer  `category_level`        (optional) - Category level
      * @param integer  `category_order`        (optional) - Category order
      * @param string   `description`           (optional) - Description
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function getSearchCategory()
@@ -763,7 +767,7 @@ class CategoryAPIController extends ControllerAPI
             return TRUE;
         });
 
-        // Check if category have product
+        // Check if category have linked to product
         Validator::extend('orbit.exists.have_product_category', function ($attribute, $value, $parameters) {
             $productcategory = ProductCategory::where('category_id', $value)
                         ->first();
@@ -775,6 +779,17 @@ class CategoryAPIController extends ControllerAPI
             App::instance('orbit.exists.have_product_category', $productcategory);
 
             return TRUE;
+        });
+
+        // Check the existence of the category status
+        Validator::extend('orbit.empty.category_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'inactive', 'pending', 'blocked', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
         });
 
     }
