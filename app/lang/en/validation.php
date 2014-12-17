@@ -94,7 +94,7 @@ return array(
             'email'         => 'Email address has been taken.',
             'omid'          => 'OMID has already taken by another Merchant.',
             'orid'          => 'ORID has already taken by another Retailer.',
-            'category_name' => 'The family name has already been used.'
+            'category_name' => 'The category name has already been used.'
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -111,6 +111,7 @@ return array(
             'merchant'          => 'The Merchant ID you specify is not found.',
             'retailer'          => 'The Retailer ID you specify is not found.',
             'product'           => 'The Product ID you specify is not found.',
+            'category'          => 'The Category ID you specify is not found.',
             'tax'               => 'The Tax ID you specify is not found.',
             'user_status'       => 'The user status you specify is not found.',
             'user_sortby'       => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
@@ -145,10 +146,10 @@ return array(
             'update_tax'            => 'update tax',
             'delete_tax'            => 'delete tax',
             'view_tax'              => 'view tax',
-            'new_category'          => 'add new family',
-            'update_category'       => 'update family',
-            'delete_category'       => 'delete family',
-            'view_category'         => 'view family',
+            'new_category'          => 'add new category',
+            'update_category'       => 'update category',
+            'delete_category'       => 'delete category',
+            'view_category'         => 'view category',
         ),
     ),
 
