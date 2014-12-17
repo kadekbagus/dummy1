@@ -94,7 +94,8 @@ return array(
             'email'         => 'Email address has been taken.',
             'omid'          => 'OMID has already taken by another Merchant.',
             'orid'          => 'ORID has already taken by another Retailer.',
-            'category_name' => 'The category name has already been used.'
+            'category_name' => 'The category name has already been used.',
+            'have_product_category' => 'The category have product(s).'
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
