@@ -4,10 +4,18 @@
  */
 
 Route::post('/api/v1/pos/login', function () {
-    return LoginAPIController::create()->postLoginCashier();
+    return POS\CashierAPIController::create()->postLoginCashier();
 });
 
-Route::post('/app/v1/pos/login', 'IntermediateLoginController@Login_postLoginCashier');
+Route::post('/app/v1/pos/login', 'IntermediateLoginController@POS\Cashier_postLoginCashier');
+
+
+
+Route::post('/api/v1/pos/logout', function () {
+    return POS\CashierAPIController::create()->postLogoutCashier();
+});
+
+Route::post('/app/v1/pos/logout', 'IntermediateLoginController@POS\Cashier_postLogoutCashier');
 
 Route::get('/pos', function () {
     if (Auth::check()) {
