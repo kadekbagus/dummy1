@@ -13,9 +13,9 @@
         <div class="signin-body">
                <div class="container">
                    <div class="form-container">
-                       <div class="orbit-component alert ng-isolate-scope alert-danger alert-dismissable" ng-repeat="alert in signIn.alerts" ng-class="{active: alert.active}">
-                           <span class="close-button" ng-click="signIn.alertDismisser($index)"><i class="fa fa-times"></i></span>
-                           <span></span>
+                       <div class="orbit-component alert ng-isolate-scope alert-danger alert-dismissable" ng-repeat="alert in signin.alerts" ng-class="{active: alert.active}">
+                           <span class="close-button" ng-click="signin.alertDismisser($index)"><i class="fa fa-times"></i></span>
+                           <span> <%alert.texts %></span>
                        </div>
                        <form name="signform" class="form-horizontal">
                            <fieldset>
