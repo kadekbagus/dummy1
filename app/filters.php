@@ -48,6 +48,10 @@ Route::filter('auth', function()
 	}
 });
 
+Route::filter('authCustomer', function()
+{
+	
+});
 
 Route::filter('auth.basic', function()
 {
