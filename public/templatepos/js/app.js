@@ -116,13 +116,13 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         };
         //logout
         $scope.logoutfn =  function(){
-            serviceAjax.getDataFromServer('logout').then(function(data){
+            serviceAjax.posDataToServer('logout').then(function(data){
                 console.log(data);
                 if(data.code == 0){
                     localStorageService.remove('user');
-                    window.location.assign("pos");
+                    window.location.assign("/pos");
                 }else{
-                    $scope.signin.alerts[0].active = true;
+                    alert('gagal logout');
                 }
             });
             //localStorageService.remove('user');
