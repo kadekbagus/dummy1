@@ -36,15 +36,3 @@ Route::post('/api/v1/dummy/user/new', function()
 {
     return DummyAPIController::create()->postRegisterUserAuthz();
 });
-
-Route::get('/signin', function() {
-  return View::make('mobile-ci.signin');
-});
-
-Route::get('/', function() {
-  return View::make('mobile-ci.home');
-});
-
-Route::get('/cart', function() {
-  return View::make('mobile-ci.cart');
-});

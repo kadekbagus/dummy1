@@ -312,7 +312,7 @@ class MobileCIAPIController extends ControllerAPI
                 return \Redirect::route('signin');
             }
             // return $this->render();
-            return View::make('mobile-ci.home');
+            return View::make('mobile-ci.home', array('page_title'=>'HOME'));
             // var_dump($user);
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
