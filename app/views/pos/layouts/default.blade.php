@@ -6,6 +6,7 @@
    {{--css--}}
     <link rel="stylesheet" href=" {{ URL::asset('templatepos/css/main.css') }} ">
     <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/font-awesome-4.2.0/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/progressjs/progressjs.css') }}">
    {{--js--}}
 
     <script src="{{ URL::asset('templatepos/vendor/jquery/dist/jquery.min.js') }}"></script>
@@ -15,6 +16,7 @@
     <script src="{{ URL::asset('templatepos/vendor/angular-ui-bootstrap/ui-bootstrap-tpls-0.12.0.min.js') }}"></script>
     <script src="{{ URL::asset('templatepos/vendor/accounting/accounting.min.js') }}"></script>
     <script src="{{ URL::asset('templatepos/vendor/moment/moment.js') }}"></script>
+    <script src="{{ URL::asset('templatepos/vendor/progressjs/progress.js') }}"></script>
 
 
     <script  data-main="{{ URL::asset('templatepos/js/main.js') }}" src="{{ URL::asset('templatepos/vendor/require/require.js') }}"></script>

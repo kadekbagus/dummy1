@@ -42,15 +42,19 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         $scope.signin.alertDismisser = function(index) {
             $scope.signin.alerts[index].active = false;
         };
-        $scope.loginFn = function(){
+        $scope.loginFn = function(){/*
+            if(progressJs) progressJs().start();*/
+            if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
             serviceAjax.posDataToServer('login',$scope.login).then(function(data){
               if(data.code == 0){
                   localStorageService.add('user',data.data);
+
                   window.location.assign("pos/dashboard");
 
               }else{
                   $scope.signin.alerts[0].active = true;
               }
+                if(progressJs) progressJs().end();
             });
         };
     }]);
@@ -97,10 +101,8 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
             }), function() {});
         };
 
-        //function add to cart list
-        $scope.addtolist = function(data){
-            $scope.cart.push(data);
-        };
+
+
 
         //function jumlah
         $scope.qaFn = function(id,action){
@@ -116,6 +118,7 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         };
         //logout
         $scope.logoutfn =  function(){
+            if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
             serviceAjax.posDataToServer('logout').then(function(data){
                 console.log(data);
                 if(data.code == 0){
@@ -124,6 +127,7 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
                 }else{
                     alert('gagal logout');
                 }
+                if(progressJs) progressJs().end();
             });
             //localStorageService.remove('user');
         };
@@ -131,9 +135,23 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
 
         $scope.datauser = localStorageService.get('user');
 
-        //time
+        //timeout scan barcode & date time
         var updatetime = function() {
+
+            //time
             $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
+            //scan barcode
+            /*
+            serviceAjax.posDataToServer('logout').then(function(data){
+                console.log(data);
+                if(data.code == 0){
+                    localStorageService.remove('user');
+                    window.location.assign("/pos");
+                }else{
+                    alert('gagal logout');
+                }
+            });*/
+
             $timeout(updatetime, 1000);
         };
 
