@@ -15,11 +15,11 @@
                                                         <span class="caret"></span>
                                                         <span class="sr-only">Split button!</span>
                                                       </button>
-                                                      <ul class="dropdown-menu" role="menu">
+                                                      <ul class="dropdown-menu" style="min-width: 113px" role="menu">
                                                         <li><a href="#" data-ng-click="logoutfn()">Keluar</a></li>
                                                       </ul>
                                                 </div>
-             <p  style="float: right; padding-top: 40px;" >Tamu 0076 | <% datetime %></p>
+             <p  style="float: right; padding-top: 40px;" >Guest 18-12-2014 18:25:13 | <% datetime %></p>
 
 
 
@@ -81,6 +81,10 @@
                 <div class="table-responsive">
                     <table class="table orbit-component table-noborder">
 
+                        <tr>
+                            <td colspan="3"><b>TOTAL ITEM</b></td>
+                            <td class="text-right">1</td>
+                        </tr>
                         <tr>
                             <td colspan="3"><b>HARGA TOTAL TANPA PAJAK</b></td>
                             <td class="text-right">1</td>

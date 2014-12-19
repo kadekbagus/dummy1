@@ -18,42 +18,41 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
 
 });
     //config base url
-    app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
+   // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
+    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/pos/';
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
-        //cek seesion
+      /*  //cek seesion
         (this.cekLocalStorage = function(){
             if(localStorageService.get('user'))  window.location.assign("pos/dashboard");
-        })();
+        })();*/
 
         $scope.login  = {};
         $scope.signin = {};
 
         $scope.signin.alerts = [
             {
-                text: "Your username / password is incorrect",
-                active: false
-            }, {
-                text: "Your username is not recognized",
+                text: "Your id / password is incorrect",
                 active: false
             }
         ];
         $scope.signin.alertDismisser = function(index) {
             $scope.signin.alerts[index].active = false;
         };
-        $scope.loginFn = function(){/*
-            if(progressJs) progressJs().start();*/
-            if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
+
+        $scope.loginFn = function(){
+            $scope.showloader = true;
+            if(progressJs) progressJs().start().autoIncrease(4, 500);
             serviceAjax.posDataToServer('login',$scope.login).then(function(data){
               if(data.code == 0){
+                  $scope.shownall = false;
                   localStorageService.add('user',data.data);
-
                   window.location.assign("pos/dashboard");
-
               }else{
                   $scope.signin.alerts[0].active = true;
               }
+                $scope.showloader = false;
                 if(progressJs) progressJs().end();
             });
         };
@@ -118,7 +117,8 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         };
         //logout
         $scope.logoutfn =  function(){
-            if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
+            if(progressJs) progressJs().start().autoIncrease(4, 500);
+           // if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
             serviceAjax.posDataToServer('logout').then(function(data){
                 console.log(data);
                 if(data.code == 0){

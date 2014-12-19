@@ -1,12 +1,13 @@
 
 @extends('pos.layouts.default')
 @section('content')
-<div class="main-container">
-  <div class="page-signin" ng-controller="loginCtrl">
+<div class="main-container ng-cloak"   ng-controller="loginCtrl" data-ng-init="shownall = true" data-ng-show="shownall">
+  <div class="page-signin"  >
     <div class="signin-header">
       <section class="logo text-center">
         <h4>ORBIT KASIR</h4>
-        <img src="{{ URL::asset('templatepos/images/orbit-logo.png') }}" alt="Orbit Logo" />
+       <img src="{{ URL::asset('templatepos/images/orbit-logo.png') }}"   data-ng-init="showloader = false" data-ng-if="!showloader" alt="Orbit Logo" />
+       <img src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   data-ng-if="showloader" style="height: 50px; width: 50px; " alt="Orbit Logo" />
       </section>
     </div>
 
@@ -36,6 +37,10 @@
                </div>
         </div>
   </div>
+  <div class="text-center">
+     <img src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   style="height: 50px; width: 50px; padding-top: 50px" alt="Orbit Logo" />
+  </div>
+
 </div>
 @stop
 
