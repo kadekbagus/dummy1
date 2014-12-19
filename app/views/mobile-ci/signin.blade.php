@@ -8,6 +8,9 @@
     #signup{
       display: none;
     }
+    .img-responsive{
+      margin:0 auto;
+    }
   </style>
 @stop
 
@@ -17,12 +20,12 @@
       <header>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <span class="greetings">Welcome!</span>
+            <span class="greetings">Selamat Datang!</span>
           </div>
         </div>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <img src="{{ asset('mobile-ci/images/logo-default.png') }}" />
+            <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
           </div>
         </div>
       </header>
@@ -41,9 +44,9 @@
 @section('modals')
   <!-- Modal -->
   <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog orbit-modal">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header orbit-modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
           <h4 class="modal-title" id="myModalLabel">Error</h4>
         </div>

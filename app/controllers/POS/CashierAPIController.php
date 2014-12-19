@@ -1,7 +1,7 @@
 <?php namespace POS;
 
 /**
- * An API controller for managing Cashier
+ * An API controller for managing Cashier QUICK AND DIRTY
  */
 use OrbitShop\API\v1\ControllerAPI;
 use OrbitShop\API\v1\OrbitShopAPI;
@@ -18,12 +18,13 @@ use \Role;
 use \Lang;
 use \Apikey;
 use \Validator;
+use \Product;
 
 class CashierAPIController extends ControllerAPI
 {  
 
     /**
-     * POST - Login cashier in shop QUICK AND DIRTY
+     * POST - Login cashier in shop
      *
      * @author Kadek <kadek@dominopos.com>
      *
@@ -102,6 +103,54 @@ class CashierAPIController extends ControllerAPI
         $this->response->code = 0;
         $this->response->message = 'success';
         $this->response->data = 'sukses atuh kang';
+        return $this->render();
+    }
+
+
+    /**
+     * POST - Scan Barcode
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postScanBarcode()
+    {
+        // $barcode = exec('sudo /home/dominopos1/drivers/64bits/barcode /dev/domino/scanner');
+        // $product = Product::where('upc_code', $barcode)
+        //             ->active()
+        //             ->first();
+        // return $product;
+        try {
+            $barcode = exec('sudo /home/dominopos1/drivers/64bits/barcode /dev/domino/scanner');
+            //var_dump($barcode);
+            $product = Product::where('upc_code', $barcode)
+                        ->active()
+                        ->first();           
+
+            if (! is_object($product)) {
+                $message = \Lang::get('validation.orbit.empty.product');
+                ACL::throwAccessForbidden($message);
+            }
+
+            $this->response->data = $product;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
         return $this->render();
     }
 }

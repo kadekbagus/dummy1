@@ -1,19 +1,20 @@
 <?php
 
 // -------------------- views ------------------------------
-Route::get('/customer', array('as' => 'signin', function() 
-{
-    return View::make('mobile-ci.signin');
-}));
-Route::get('/customer/signup', function() 
-{
-    return View::make('mobile-ci.signup', array('email' => ''));
-});
+Route::get('/customer', 'IntermediateAuthController@MobileCI\MobileCI_getSignInView');
+
+Route::get('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_getSignUpView');
 
 // transfer email value from login page to signup page
-Route::post('/customer/signup', array('uses'=>'MobileCI\\MobileCIAPIController@postSignUpView'));
+Route::post('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postSignUpView');
 
 Route::get('/customer/home', 'IntermediateAuthController@MobileCI\MobileCI_getHomeView');
+
+Route::get('/customer/cart', 'IntermediateAuthController@MobileCI\MobileCI_getCartView');
+
+Route::get('/customer/catalogue', 'IntermediateAuthController@MobileCI\MobileCI_getCatalogueView');
+
+Route::get('/customer/product/{id}', 'IntermediateAuthController@MobileCI\MobileCI_getProductView');
 // -------------------- views ------------------------------
 
 
@@ -27,14 +28,14 @@ Route::post('/api/v1/customer/login', function()
     return MobileCI\MobileCIAPIController::create()->postLoginInShop();
 });
 
-Route::post('/app/v1/customer/login', 'IntermediateAuthController@MobileCI\MobileCI_postLoginInShop');
+Route::post('/app/v1/customer/login', 'IntermediateLoginController@MobileCI\MobileCI_postLoginInShop');
 
 Route::get('/api/v1/customer/logout', function() 
 {
     return MobileCI\MobileCIAPIController::create()->getLogoutInShop();
 });
 
-Route::get('/app/v1/customer/logout', 'IntermediateAuthController@MobileCI\MobileCI_getLogoutInShop');
+Route::get('/app/v1/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
 
 Route::post('/api/v1/customer/signup', function() 
 {
