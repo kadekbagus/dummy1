@@ -417,7 +417,7 @@ class ProductAPIController extends ControllerAPI
             });
 
             // Filter product by name pattern
-            OrbitInput::get('product_name_like_like', function ($name) use ($products) {
+            OrbitInput::get('product_name_like', function ($name) use ($products) {
                 $products->where('products.product_name', 'like', "%$name%");
             });
 
