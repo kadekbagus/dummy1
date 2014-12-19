@@ -36,3 +36,7 @@ Route::post('/api/v1/dummy/user/new', function()
 {
     return DummyAPIController::create()->postRegisterUserAuthz();
 });
+
+Route::get('/customer/account', function() {
+  return View::make('mobile-ci.account', array('page_title' => 'Akun'));
+});
