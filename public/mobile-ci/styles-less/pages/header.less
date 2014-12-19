@@ -45,7 +45,16 @@
   border-radius:0px;
   padding:0;
   top:85%;
-  li{
+  &>li{
     padding:10px;
+    &>a{
+      padding:0;
+      &:hover{
+        background-color:transparent;
+      }
+      &:focus{
+        background-color:transparent;
+      }
+    }
   }
 }

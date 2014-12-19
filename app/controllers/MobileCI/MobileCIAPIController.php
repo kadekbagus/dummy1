@@ -19,6 +19,7 @@ use \Lang;
 use \Apikey;
 use \Validator;
 use \Config;
+use \Retailer;
 
 class MobileCIAPIController extends ControllerAPI
 {   
@@ -82,7 +83,7 @@ class MobileCIAPIController extends ControllerAPI
     public function getLogoutInShop()
     {
         \Auth::logout();
-        return \Redirect::route('signin');
+        return \Redirect::to('/customer');
     }
 
 
@@ -164,8 +165,8 @@ class MobileCIAPIController extends ControllerAPI
             $errorMessage = $validator->messages()->first();
             OrbitShopAPI::throwInvalidArgument($errorMessage);
         }
-
-        return View::make('mobile-ci.signup', array('email' => $email));
+        $retailer = $this->getRetailerInfo();
+        return View::make('mobile-ci.signup', array('email'=>$email, 'retailer'=>$retailer));
     }
 
     /**
@@ -313,8 +314,123 @@ class MobileCIAPIController extends ControllerAPI
                 return \Redirect::route('signin');
             }
             $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.home', array('page_title'=>'HOME', 'retailer'=>$retailer));
+            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer'=>$retailer));
             
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getSignInView()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.signin', array('retailer'=>$retailer));
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getSignUpView()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.signup', array('email'=>'', 'retailer'=>$retailer));
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getCatalogueView()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer'=>$retailer));
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getProductView()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.product', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer'=>$retailer));
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getCartView()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -345,7 +461,7 @@ class MobileCIAPIController extends ControllerAPI
             }
             
             $retailer_id = Config::get('orbit.shop.id');
-            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+            $retailer = Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
             return $retailer;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();

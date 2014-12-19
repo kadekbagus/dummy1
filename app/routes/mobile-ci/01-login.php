@@ -1,32 +1,20 @@
 <?php
 
 // -------------------- views ------------------------------
-Route::get('/customer', array('as' => 'signin', function() 
-{
-    return View::make('mobile-ci.signin');
-}));
-Route::get('/customer/signup', function() 
-{
-    return View::make('mobile-ci.signup', array('email' => ''));
-});
+Route::get('/customer', 'IntermediateAuthController@MobileCI\MobileCI_getSignInView');
+
+Route::get('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_getSignUpView');
 
 // transfer email value from login page to signup page
-Route::post('/customer/signup', array('uses'=>'MobileCI\\MobileCIAPIController@postSignUpView'));
+Route::post('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postSignUpView');
 
 Route::get('/customer/home', 'IntermediateAuthController@MobileCI\MobileCI_getHomeView');
 
-Route::get('/customer/cart', function() {
-  return View::make('mobile-ci.cart', array('page_title'=>'MY SHOPPING CART'));
-});
+Route::get('/customer/cart', 'IntermediateAuthController@MobileCI\MobileCI_getCartView');
 
-Route::get('/customer/catalogue', function() {
-  return View::make('mobile-ci.catalogue', array('page_title'=>'CATALOGUE'));
-});
+Route::get('/customer/catalogue', 'IntermediateAuthController@MobileCI\MobileCI_getCatalogueView');
 
-Route::get('/customer/product/{id}', function() {
-  return View::make('mobile-ci.product', array('page_title'=>'CATALOGUE'));
-});
-
+Route::get('/customer/product/{id}', 'IntermediateAuthController@MobileCI\MobileCI_getProductView');
 // -------------------- views ------------------------------
 
 

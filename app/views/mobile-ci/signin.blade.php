@@ -8,6 +8,9 @@
     #signup{
       display: none;
     }
+    .img-responsive{
+      margin:0 auto;
+    }
   </style>
 @stop
 
@@ -17,12 +20,12 @@
       <header>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <span class="greetings">Welcome!</span>
+            <span class="greetings">Selamat Datang!</span>
           </div>
         </div>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <img src="{{ asset('mobile-ci/images/logo-default.png') }}" />
+            <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
           </div>
         </div>
       </header>
