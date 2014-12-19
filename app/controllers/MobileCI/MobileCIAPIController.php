@@ -18,6 +18,7 @@ use \Role;
 use \Lang;
 use \Apikey;
 use \Validator;
+use \Config;
 
 class MobileCIAPIController extends ControllerAPI
 {   
@@ -311,9 +312,41 @@ class MobileCIAPIController extends ControllerAPI
                 // ACL::throwAccessForbidden($message);
                 return \Redirect::route('signin');
             }
-            // return $this->render();
-            return View::make('mobile-ci.home', array('page_title'=>'HOME'));
-            // var_dump($user);
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.home', array('page_title'=>'HOME', 'retailer'=>$retailer));
+            
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getRetailerInfo()
+    {
+        try {
+            $this->checkAuth();
+            $user = $this->api->user;
+            if (! ACL::create($user)->isAllowed('view_retailer')) {
+                $errorlang = Lang::get('validation.orbit.actionlist.view_retailer');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
+                ACL::throwAccessForbidden($message);
+            }
+            
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+            return $retailer;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
