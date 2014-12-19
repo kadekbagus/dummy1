@@ -17,4 +17,11 @@ return array(
         "logout"		=> "LOGOUT",
         "payment"		=> "PEMBAYARAN",
     ),
+
+    "widgets"		=> array(
+        "catalogue"		=> "KATALOG",
+        "new_product" 	=> "PRODUK TERBARU",
+        "promotion"  	=> "PROMOSI",
+        "coupon"		=> "KUPON",
+    ),
 );
