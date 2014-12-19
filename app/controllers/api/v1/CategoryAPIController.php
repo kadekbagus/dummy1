@@ -618,7 +618,9 @@ class CategoryAPIController extends ControllerAPI
             $take = $maxRecord;
             OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
             {
-                if ($_take > $maxRecord) {
+                if ($_take == 0) {
+                    $_take = Category::count();
+                } elseif ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;

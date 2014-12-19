@@ -10,7 +10,7 @@
           <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> Akun Saya</span></li>
           <li class="complimentary-bg"><span><span class="glyphicon glyphicon-shopping-cart"></span> Transfer Keranjang Belanja</span></li>
           <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> Customer ID</span></li>
-          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-off"></span> Log out</span></li>
+          <li class="complimentary-bg"><a href="{{ url('/customer/logout') }}"><span><span class="glyphicon glyphicon-off"></span> Log out</span></a></li>
         </ul>
       </li>
     </ul>

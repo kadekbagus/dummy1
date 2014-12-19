@@ -2,7 +2,7 @@
 
 @section('ext_style')
   <style type="text/css">
-    .widget-single .img-responsive{
+    .img-responsive{
       margin:0 auto;
     }
   </style>
@@ -12,7 +12,7 @@
   <div class="container">
       <div class="row">
         <div class="col-xs-12 text-center">
-          <img src="{{ asset('mobile-ci/images/logo-default.png') }}" />
+          <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
         </div>
       </div>
       <div class="mobile-ci home-widget widget-container">
