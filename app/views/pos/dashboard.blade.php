@@ -5,32 +5,25 @@
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-              <img src=" {{ URL::asset('templatepos/images/logo_matahari.png') }}"  class="img" style="width: 64px">
-              <h1>MATAHARI DEPARTMENT STORE</h1>
+                <img src=" {{ URL::asset('templatepos/images/logo_matahari.png') }}"  class="img" style="width: 64px">
+                <h1>MATAHARI DEPARTMENT STORE</h1>
+                <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px" dropdown>
 
-                                               <div class="btn-group "   style="float: right; padding-top: 30px; padding-left: 10px;padding-right: 20px" dropdown>
-
-                                                      <button type="button" class="btn btn-primary" style="background-color: #2c71a3;"><% datauser.username %> </button>
-                                                      <button type="button" class="btn btn-primary dropdown-toggle"style="background-color: #2c71a3;" dropdown-toggle>
-                                                        <span class="caret"></span>
-                                                        <span class="sr-only">Split button!</span>
-                                                      </button>
-                                                      <ul class="dropdown-menu" style="min-width: 113px" role="menu">
-                                                        <li><a href="#" data-ng-click="logoutfn()">Keluar</a></li>
-                                                      </ul>
-                                                </div>
-             <p  style="float: right; padding-top: 40px;" >Guest 18-12-2014 18:25:13 | <% datetime %></p>
-
-
-
-
-
+                     <% datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
+                      {{--<button type="button" class="btn btn-primary dropdown-toggle"style="background-color: #2c71a3;" dropdown-toggle>
+                        <span class="caret"></span>
+                        <span class="sr-only">Split button!</span>
+                      </button>--}}
+                       {{-- <i class="fa fa-sign-out"></i>--}}
+                      <ul class="dropdown-menu" style="min-width: 60px" role="menu">
+                        <li> <a href="#" data-ng-click="logoutfn()">Keluar</a></li>
+                      </ul>
+                </div>
+                <p  style="float: right; padding-top: 40px;" >Guest  <% guests %> | <% datetime %></p>
             </div>
-
     </div>
 
-    <div class="container" >
-
+    <div class="container">
     <div class="row">
         <div class="col-md-12">
             <div class="col-md-8">
@@ -41,97 +34,96 @@
                     </div>
 
                 </div>
-                <div class="table-responsive" style="overflow: auto;height: 465px">
-                    <table class="table table-bordered">
-                {{--<img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img-thumbnail">--}}
+                <div class="table-responsive"  style="overflow: auto;height: 465px" >
+                    <table class="table">
                         <tr>
-                            <th class="text-center">UPC</th>
-                            <th class="text-center">NAMA</th>
+                            <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
                             <th class="text-center">HARGA TOTAL</th>
                         </tr>
-                        <tr data-ng-repeat="(k,v) in cart">
-                            <td><% v.upc %></td>
-                            <td><a href=""  data-ng-click="showdetailFn()"> <% v.name %></a></td>
-                            <td style="width: 200px">
-                                 <div class="input-group ui-spinner" data-ui-spinner="">
-                                      <span class="input-group-btn">
-                                          <button type="button" class="btn btn-primary"  data-ng-click="qaFn(k,'m')" data-spin="up">
-                                              <i class="fa fa-minus"></i>
-                                          </button>
-                                      </span>
-                                      <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['quantity']" numbers-only="numbers-only" style="margin-top: 5px !important;">
-                                      <span class="input-group-btn">
-                                          <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn(k,'p')">
-                                              <i class="fa fa-plus"></i>
-                                          </button>
-                                      </span>&nbsp;&nbsp;
-                                      <span class="input-group-btn">
-                                          <button type="button" class="btn btn-danger" data-ng-click="qaFn(k,'d')" style="background-color: #D60000 ;" >
-                                                  <i class="fa fa-trash"></i>
-                                          </button>
-                                      </span>
-                                 </div>
-                            </td>
-                            <td class="text-right">1</td>
-                        </tr>
-
+                        <tbody>
+                           <tr data-ng-repeat="(k,v) in cart">
+                                <td><a href=""  data-ng-click="showdetailFn()"><b> <% v.name %></b></a> <br><% v.upc %></td>
+                                <td style="width: 200px">
+                                    <div class="input-group ui-spinner" data-ui-spinner="">
+                                          <span class="input-group-btn">
+                                                                  <button type="button" class="btn btn-primary"  data-ng-click="qaFn(k,'m')" data-spin="up">
+                                                                      <i class="fa fa-minus"></i>
+                                                                  </button>
+                                                              </span>
+                                          <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['quantity']" numbers-only="numbers-only" style="margin-top: 5px !important;">
+                                          <span class="input-group-btn">
+                                              <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn(k,'p')">
+                                                  <i class="fa fa-plus"></i>
+                                              </button>
+                                          </span>&nbsp;&nbsp;
+                                          <span class="input-group-btn">
+                                                <button type="button" class="btn btn-danger" data-ng-click="qaFn(k,'d')" >
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                          </span>
+                                    </div>
+                                </td>
+                                <td class="text-right">1</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                 <div class="table-responsive">
-                    <table class="table orbit-component table-noborder">
-
+                    <table class="table">
                         <tr>
-                            <td colspan="3"><b>TOTAL ITEM</b></td>
-                            <td class="text-right">1</td>
+                            <td class="text-center"><b><h4>TOTAL ITEM</h4></b><br> 7</td>
+                            <td class="text-center"><b><h4>SUBTOTAL</h4></b><br> 7</td>
+                            <td class="text-center"><b><h4>VAT</h4></b><br> 7</td>
+                            <td class="text-center"><b><h4>TOTAL TO PAY</h4></b><br> 7</td>
                         </tr>
+                    </table>
+                </div>
+                <div class="table-responsive">
+                    <table class="table  orbit-component table-noborder">
                         <tr>
-                            <td colspan="3"><b>HARGA TOTAL TANPA PAJAK</b></td>
-                            <td class="text-right">1</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="3"><b>HARGA BELANJA TOTAL</b></td>
-                            <td class="text-right"> 1</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="3"><b>HARGA TOTAL DENGAN PAJAK</b></td>
-                            <td class="text-right">1</td>
-                        </tr>
-                        <tr>
-                            <td colspan="3"> <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">CART BARU</button> &nbsp; <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">HAPUS CART</button></td>
-
-                            <td class="text-right"> <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">BAYAR</button></td>
-                        </tr>
+                            <td colspan="3"> <button class="btn btn-danger" data-ng-click="loginFn()" type="submit">CART BARU</button> &nbsp; <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">HAPUS CART</button></td>
+                            <td class="text-right"> <button class="btn btn-primary" style="background-color: #009933;" data-ng-click="loginFn()" type="submit">BAYAR</button></td>
+                       </tr>
                     </table>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="orbit-component table-attribute-top">
+                <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
-                            <div class="input-group">
+                            <div class="input-group" id="loadingsearch">
                                      <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
-                                     <input type="text" class="form-control"   id="exampleInputEmail2" placeholder="Cari Produk">
+                                     <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
                             </div>
                           </div>
                       </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">1</div>
-                    <div class="col-md-6">2</div>
+                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3" id="loading" >
+                      <div class="row">
+                          <div class="col-md-6" data-ng-repeat="(k,v) in product">
+                                <div ng-class="k % 2 == 0 ? 'mini-box' : 'mini-boxright'">
+                                     <table>
+                                           <tr>
+                                                <td rowspan="4"> <img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></td>
+                                           </tr>
+                                           <tr>
+                                                <td><h5>&nbsp;<% v.product_name.substr(0,10) %></h5></td>
+                                           </tr>
+                                         {{--  <tr>
+                                                <td><h6>99992827</h6></td>
+                                           </tr>--}}
+                                           <tr>
+                                                <td class="text-right" style="width: 80px;"><% v.price %></td>
+                                           </tr>
+                                     </table>
+                                </div>
+                          </div>
+                         {{-- <div class="col-md-6">
+                                <div class="mini-boxright">33</div>
+                          </div>--}}
+                      </div>
                 </div>
-                {{--<div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tr data-ng-repeat="(k,v) in product">
-                            <td data-ng-if=" k <= 7"><% k %></td>
-                            <td data-ng-if=" k <= 7"><% k %></td>
-                            <td data-ng-if="k > 7"><% k %></td>
-                            <td data-ng-if="k > 7"><% k %></td>
-                        </tr>
-                    </table>
-                </div>--}}
 
             </div>
         </div>

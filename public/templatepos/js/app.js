@@ -19,24 +19,19 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
 });
     //config base url
    // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
-    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/pos/';
+    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
-      /*  //cek seesion
+        //cek seesion
         (this.cekLocalStorage = function(){
             if(localStorageService.get('user'))  window.location.assign("pos/dashboard");
-        })();*/
-
+        })();
+        //init object
         $scope.login  = {};
         $scope.signin = {};
 
-        $scope.signin.alerts = [
-            {
-                text: "Your id / password is incorrect",
-                active: false
-            }
-        ];
+        $scope.signin.alerts = [{ text: "Maaf, nomor ID atau password yang Anda masukkan tidak cocok",active: false} ];
         $scope.signin.alertDismisser = function(index) {
             $scope.signin.alerts[index].active = false;
         };
@@ -44,7 +39,7 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         $scope.loginFn = function(){
             $scope.showloader = true;
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('login',$scope.login).then(function(data){
+            serviceAjax.posDataToServer('pos/login',$scope.login).then(function(data){
               if(data.code == 0){
                   $scope.shownall = false;
                   localStorageService.add('user',data.data);
@@ -60,9 +55,10 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
 
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal', function($scope,localStorageService, $timeout, serviceAjax, $modal) {
-
+        //init object
         $scope.cart      = [];
         $scope.product   = [];
+        $scope.datauser  = localStorageService.get('user');
 
         //dummy for cart list
         for(var i = 0; i <= 7; i ++){
@@ -74,21 +70,13 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
                 'pricetotal' : ''
             }
         };
-        //dummy for product
-        for(var i = 0; i < 14; i ++){
-            $scope.product[i] = {
-                'productid'  : '',
-                'image'      : '',
-                'upc'        : '',
-                'price'      : ''
-            }
-        };
-        //show detail when click name
+
+        //show modal product detail when click name
         $scope.showdetailFn = function(){
             var modalInstance;
             modalInstance = $modal.open({
                 templateUrl: "productdetail.html",
-                controller: 'ModalInstanceCtrl',
+                controller: 'ProductDetailCtrl',
                 resolve: {
                     dataProduct : function(){
                         return $scope.product;
@@ -100,27 +88,66 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
             }), function() {});
         };
 
+        //get unix guestid
+        (this.getguest = function(){
+                $scope.guests = moment().unix();
+        })();
 
-
-
-        //function jumlah
+        //function -+ wish list
         $scope.qaFn = function(id,action){
             if(action == 'p'){
                 $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? $scope.cart[id]['quantity'] + 1 : 1;
             }else if(action == 'm'){
-                $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? $scope.cart[id]['quantity'] - 1 : 0;
+                $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? ($scope.cart[id]['quantity'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['quantity'] - 1)  :  $scope.cart.splice(id ,1);
             }else if(action == 'd'){
                 $scope.cart.splice(id ,1);
             }else{
                 //do something when error
             }
         };
+
+        //get product
+        $scope.getproduct = function(){
+            if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
+            serviceAjax.getDataFromServer('product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=16').then(function(response){
+                if(response.code == 0){
+                    for(var i =0; i <response.data.records.length; i++){
+                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                    }
+                    $scope.product = response.data.records;
+                }else{
+                    //do something when error
+                }
+
+                if(progressJs) progressJs("#loading").end();
+            });
+        };
+        $scope.getproduct();
+        //watch search
+        $scope.$watch("searchproduct", function(newvalue){
+            if(newvalue && newvalue.length > 2) {
+                if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
+                serviceAjax.getDataFromServer('product/search?product_name_like=' + newvalue).then(function (response) {
+                    if (response.code == 0) {
+                        for (var i = 0; i < response.data.records.length; i++) {
+                            response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                        }
+                        $scope.product = response.data.records;
+                    } else {
+                        //do something when error
+                    }
+                    if(progressJs) progressJs("#loadingsearch").end();
+                })
+            }else if(newvalue.length == 0){
+                console.log('getttt');
+                $scope.getproduct();
+            }
+        });
+
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-           // if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('logout').then(function(data){
-                console.log(data);
+            serviceAjax.posDataToServer('pos/logout').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("/pos");
@@ -129,11 +156,10 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
                 }
                 if(progressJs) progressJs().end();
             });
-            //localStorageService.remove('user');
         };
 
 
-        $scope.datauser = localStorageService.get('user');
+
 
         //timeout scan barcode & date time
         var updatetime = function() {
@@ -159,8 +185,7 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
 
     }]);
 
-    app.controller('ModalInstanceCtrl', ['$scope','$modalInstance','dataProduct', function($scope,$modalInstance,dataProduct) {
-        console.log(dataProduct);
+    app.controller('ProductDetailCtrl', ['$scope','$modalInstance','dataProduct', function($scope,$modalInstance,dataProduct) {
          $scope.cancel = function () {
              $modalInstance.dismiss('cancel');
          };
