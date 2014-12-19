@@ -3,6 +3,7 @@
  * Routes file for POS quick & dirty
  */
 
+// cashier login
 Route::post('/api/v1/pos/login', function () {
     return POS\CashierAPIController::create()->postLoginCashier();
 });
@@ -10,12 +11,21 @@ Route::post('/api/v1/pos/login', function () {
 Route::post('/app/v1/pos/login', 'IntermediateLoginController@POS\Cashier_postLoginCashier');
 
 
-
+// cashier logout
 Route::post('/api/v1/pos/logout', function () {
     return POS\CashierAPIController::create()->postLogoutCashier();
 });
 
 Route::post('/app/v1/pos/logout', 'IntermediateLoginController@POS\Cashier_postLogoutCashier');
+
+
+// scan barcode
+Route::post('/api/v1/pos/scanbarcode', function () {
+    return POS\CashierAPIController::create()->postScanBarcode();
+});
+
+Route::post('/app/v1/pos/scanbarcode', 'IntermediateLoginController@POS\Cashier_postScanBarcode');
+
 
 Route::get('/pos', function () {
     if (Auth::check()) {
