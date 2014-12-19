@@ -90,11 +90,12 @@ return array(
             'exists' => 'The email address has already taken by someone else.',
         ),
         'exists' => array(
-            'username'      => 'The username has already taken by someone else.',
-            'email'         => 'Email address has been taken.',
-            'omid'          => 'OMID has already taken by another Merchant.',
-            'orid'          => 'ORID has already taken by another Retailer.',
-            'category_name' => 'The category name has already been used.'
+            'username'              => 'The username has already taken by someone else.',
+            'email'                 => 'Email address has been taken.',
+            'omid'                  => 'OMID has already taken by another Merchant.',
+            'orid'                  => 'ORID has already taken by another Retailer.',
+            'category_name'         => 'The category name has already been used.',
+            'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.'
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -117,10 +118,12 @@ return array(
             'user_sortby'       => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'   => 'The merchant status you specify is not found.',
             'merchant_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, merchant_name, merchant_email, merchant_userid, merchant_description, merchantid, merchant_address1, merchant_address2, merchant_address3, merchant_cityid, merchant_city, merchant_countryid, merchant_country, merchant_phone, merchant_fax, merchant_status, merchant_currency.',
-            'retailer_sortby'   => 'The sort by argument for retailer you specify is not valid, the valid value are: registered_date, retailer_name, retailer_email, and orid.',
             'retailer_status'   => 'The retailer status you specify is not found.',
-            'tax_sortby'        => 'The sort by argument for tax you specify is not valid, the valid value are: registered_date, merchant_tax_id, tax_name, tax_value.',
+            'retailer_sortby'   => 'The sort by argument for retailer you specify is not valid, the valid value are: registered_date, retailer_name, retailer_email, and orid.',
             'tax_status'        => 'The tax status you specify is not found.',
+            'tax_sortby'        => 'The sort by argument for tax you specify is not valid, the valid value are: registered_date, merchant_tax_id, tax_name, tax_value.',
+            'category_status'   => 'The category status you specify is not found.',
+            'category_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description, status.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(

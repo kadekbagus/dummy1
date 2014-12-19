@@ -10,6 +10,11 @@ return array(
         )
     ),
 
+    'shop' => array(
+        // Id of the retailer
+        'id'    => 1
+    ),
+
     'security' => array(
         // Super Admin Roles
         'superadmin' => array(
