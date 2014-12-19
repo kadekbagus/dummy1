@@ -22,7 +22,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <!-- <div class="row">
       <div class="col-xs-12">
         <div class="input-group mobile-ci account-page account-elements-button">
           <span class="input-group-addon account-page-button-accompaniment">
@@ -31,7 +31,7 @@
           <button type="button" class="btn btn-default btn-lg btn-block account-button">My Wishlist</button>
         </div>
       </div>
-    </div>
+    </div> -->
     <div class="row">
       <div class="col-xs-12">
         <div class="input-group mobile-ci account-page account-elements-button">

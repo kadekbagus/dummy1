@@ -15,6 +15,15 @@ Route::get('/customer/cart', 'IntermediateAuthController@MobileCI\MobileCI_getCa
 Route::get('/customer/catalogue', 'IntermediateAuthController@MobileCI\MobileCI_getCatalogueView');
 
 Route::get('/customer/product/{id}', 'IntermediateAuthController@MobileCI\MobileCI_getProductView');
+
+Route::get('/customer/transfer', 'IntermediateAuthController@MobileCI\MobileCI_getTransferCartView');
+
+Route::get('/customer/payment', 'IntermediateAuthController@MobileCI\MobileCI_getPaymentView');
+
+Route::get('/customer/thankyou', 'IntermediateAuthController@MobileCI\MobileCI_getThankYouView');
+
+Route::get('/customer/welcome', 'IntermediateAuthController@MobileCI\MobileCI_getWelcomeView');
+
 // -------------------- views ------------------------------
 
 

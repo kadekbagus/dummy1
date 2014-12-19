@@ -7,10 +7,14 @@ return array(
     |--------------------------------------------------------------------------
     */
 
-    "page_title"	=> array(
-        "home" 		=> "HOME",
-        "catalogue" => "KATALOG",
-        "cart"  	=> "KERANJANG BELANJA",
-        "my_account"=> "AKUN SAYA",
+    "page_title"		=> array(
+        "home" 			=> "HOME",
+        "catalogue" 	=> "KATALOG",
+        "cart"  		=> "CART",
+        "my_account"	=> "AKUN SAYA",
+        "transfercart"	=> "TRANSFER CART",
+        "customer_id"	=> "CUSTOMER ID",
+        "logout"		=> "LOGOUT",
+        "payment"		=> "PEMBAYARAN",
     ),
 );
