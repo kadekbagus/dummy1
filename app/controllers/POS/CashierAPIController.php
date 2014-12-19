@@ -116,12 +116,14 @@ class CashierAPIController extends ControllerAPI
      */
     public function postScanBarcode()
     {
+        // $barcode = exec('sudo /home/dominopos1/drivers/64bits/barcode /dev/domino/scanner');
+        // $product = Product::where('upc_code', $barcode)
+        //             ->active()
+        //             ->first();
+        // return $product;
         try {
-            
-            $cmd = "sudo ./barcode /dev/domino/scanner";
-            //$barcode = shell_exec($cmd);
-            $barcode = trim(OrbitInput::post('barcode'));
-
+            $barcode = exec('sudo /home/dominopos1/drivers/64bits/barcode /dev/domino/scanner');
+            //var_dump($barcode);
             $product = Product::where('upc_code', $barcode)
                         ->active()
                         ->first();           
