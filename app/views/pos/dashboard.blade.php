@@ -99,29 +99,29 @@
                           </div>
                       </div>
                 </div>
-                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3" id="loading" >
+                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 610px;overflow-x: hidden;" id="loading" >
                       <div class="row">
-                          <div class="col-md-6" data-ng-repeat="(k,v) in product">
-                                <div ng-class="k % 2 == 0 ? 'mini-box' : 'mini-boxright'">
+                      <div data-ng-if="productnotfound">
+                           <p class="text-center"> Produk yang dicari tidak ditemukan </p>
+                      </div>
+                          <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
+                                <div ng-class="k % 2 == 0 ? 'mini-box' : 'mini-boxright'" data-ng-click="showdetailFn(k)">
                                      <table>
                                            <tr>
                                                 <td rowspan="4"> <img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></td>
                                            </tr>
                                            <tr>
-                                                <td><h5>&nbsp;<% v.product_name.substr(0,10) %></h5></td>
+                                                <td><h5>&nbsp;<b><% v.product_name.substr(0,9) %></b></h5></td>
                                            </tr>
                                          {{--  <tr>
                                                 <td><h6>99992827</h6></td>
                                            </tr>--}}
                                            <tr>
-                                                <td class="text-right" style="width: 80px;"><% v.price %></td>
+                                                <td class="text-right" style="width: 80px;"><h6><% v.price %></h6></td>
                                            </tr>
                                      </table>
                                 </div>
                           </div>
-                         {{-- <div class="col-md-6">
-                                <div class="mini-boxright">33</div>
-                          </div>--}}
                       </div>
                 </div>
 
@@ -133,11 +133,7 @@
                      <h3 class="modal-title">I'm a modal!</h3>
                  </div>
                  <div class="modal-body">
-                     <ul>
-                         <li ng-repeat="item in items">
-                             <a ng-click="selected.item = item"></a>
-                         </li>
-                     </ul>
+                      <% productmodal.product_name %>
 
                  </div>
                  <div class="modal-footer">

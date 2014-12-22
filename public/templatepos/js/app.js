@@ -11,7 +11,7 @@ define([
 
 ], function () {
 
-var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
@@ -53,7 +53,6 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         };
     }]);
 
-
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal', function($scope,localStorageService, $timeout, serviceAjax, $modal) {
         //init object
         $scope.cart      = [];
@@ -71,15 +70,15 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
             }
         };
 
-        //show modal product detail when click name
-        $scope.showdetailFn = function(){
+        //show modal product detail
+        $scope.showdetailFn = function(id){
             var modalInstance;
             modalInstance = $modal.open({
                 templateUrl: "productdetail.html",
                 controller: 'ProductDetailCtrl',
                 resolve: {
                     dataProduct : function(){
-                        return $scope.product;
+                        return $scope.product[id];
                     }
                 }
             });
@@ -110,7 +109,7 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
             serviceAjax.getDataFromServer('product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=16').then(function(response){
-                if(response.code == 0){
+                if(response.code == 0 ){
                     for(var i =0; i <response.data.records.length; i++){
                         response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                     }
@@ -125,21 +124,24 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         $scope.getproduct();
         //watch search
         $scope.$watch("searchproduct", function(newvalue){
+            $scope.productnotfound = false;
             if(newvalue && newvalue.length > 2) {
                 if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
                 serviceAjax.getDataFromServer('product/search?product_name_like=' + newvalue).then(function (response) {
-                    if (response.code == 0) {
+                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.') {
                         for (var i = 0; i < response.data.records.length; i++) {
                             response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                         }
                         $scope.product = response.data.records;
                     } else {
                         //do something when error
+                        $scope.productnotfound = true;
+                        $scope.product = [];
                     }
                     if(progressJs) progressJs("#loadingsearch").end();
                 })
             }else if(newvalue.length == 0){
-                console.log('getttt');
+                $scope.productnotfound = false;
                 $scope.getproduct();
             }
         });
@@ -186,6 +188,8 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
     }]);
 
     app.controller('ProductDetailCtrl', ['$scope','$modalInstance','dataProduct', function($scope,$modalInstance,dataProduct) {
+        console.log(dataProduct);
+        $scope.productmodal = dataProduct;
          $scope.cancel = function () {
              $modalInstance.dismiss('cancel');
          };
