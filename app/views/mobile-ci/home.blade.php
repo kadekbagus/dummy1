@@ -19,7 +19,7 @@
         <div class="row">
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>CATALOGUE</span>
+              <span>{{ Lang::get('mobileci.widgets.catalogue') }}</span>
             </header>
             <section class="widget-single">
               <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />   
@@ -27,7 +27,7 @@
           </div>
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>NEW PRODUCT</span>
+              <span>{{ Lang::get('mobileci.widgets.new_product') }}</span>
             </header>
             <section class="widget-single">
               <div id="slider1_container" style="display: none; position: relative; margin: 0 auto; width: 980px; height: 380px; overflow: hidden;">
@@ -155,7 +155,7 @@
         <div class="row">
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>PROMOTION</span>
+              <span>{{ Lang::get('mobileci.widgets.promotion') }}</span>
             </header>
             <section class="widget-single">
               <div id="slider2_container" style="display: none; position: relative; margin: 0 auto; width: 980px; height: 380px; overflow: hidden;">
@@ -281,7 +281,7 @@
           </div>
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>COUPON</span>
+              <span>{{ Lang::get('mobileci.widgets.coupon') }}</span>
             </header>
             <section class="widget-single">
               <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />   
