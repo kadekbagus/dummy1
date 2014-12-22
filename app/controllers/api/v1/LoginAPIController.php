@@ -68,7 +68,7 @@ class LoginAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -128,7 +128,7 @@ class LoginAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -188,12 +188,18 @@ class LoginAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
+            $customerRole = Role::where('role_name', 'Consumer')->first();
+            if (empty($customerRole)) {
+                $errorMessage = Lang::get('validation.orbit.empty.customer_role');
+                throw new Exception($errorMessage);
+            }
+
             $newuser = new User();
             $newuser->username = $email;
             $newuser->user_password = str_random(8);
             $newuser->user_email = $email;
             $newuser->status = 'pending';
-            $newuser->user_role_id = Role::where('role_name','Consumer')->first()->role_id;
+            $newuser->user_role_id = $customerRole->role_id;
             $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
 
             $newuser->save();
@@ -262,10 +268,10 @@ class LoginAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            $this->response->data = NULL;
 
             // Rollback the changes
             $this->rollBack();
@@ -288,7 +294,7 @@ class LoginAPIController extends ControllerAPI
     {
         try {
             $this->registerCustomValidation();
-            
+
             $token_value = trim(OrbitInput::get('token'));
 
             $validator = Validator::make(
@@ -332,7 +338,7 @@ class LoginAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
