@@ -15,7 +15,7 @@ class Product extends Eloquent
     use ModelStatusTrait;
 
     protected $table = 'products';
-    
+
     protected $primaryKey = 'product_id';
 
     public function categories()
@@ -62,7 +62,7 @@ class Product extends Eloquent
     {
         return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
     }
-    
+
     /**
      * Add Filter retailers based on user who request it.
      *
@@ -98,5 +98,17 @@ class Product extends Eloquent
         });
 
         return $builder;
+    }
+
+    /**
+     * Product has many uploaded media.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function media()
+    {
+        return $this->hasMany('Media', 'object_id', 'product_id')
+                    ->where('object_name', 'product');
     }
 }
