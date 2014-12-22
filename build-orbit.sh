@@ -43,6 +43,10 @@ echo "-------------------------------------------------------"
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR jenkins )
     rsync -lrvq --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
 
+    # Writing configuration file
+    echo "Writing configuration file to ${ORBIT_DEPLOY_DIR}/app/config/orbit.php"
+    echo "$ORBIT_CONFIG_FILE" > ${ORBIT_DEPLOY_DIR}/app/config/orbit.php
+
     # Change the ownership back to orbitshop:git
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR orbitshop )
 }
