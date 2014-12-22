@@ -7,10 +7,10 @@
       <li><a href="{{ url('/customer/cart') }}"><span><i class="glyphicon glyphicon-shopping-cart"></i></span></a></li>
       <li><a data-toggle="dropdown" aria-expanded="true"><span><i class="glyphicon glyphicon-cog"></i></span></a>
         <ul class="dropdown-menu" role="menu">
-          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> Akun Saya</span></li>
-          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-shopping-cart"></span> Transfer Keranjang Belanja</span></li>
-          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> Customer ID</span></li>
-          <li class="complimentary-bg"><a href="{{ url('/customer/logout') }}"><span><span class="glyphicon glyphicon-off"></span> Log out</span></a></li>
+          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> {{ Lang::get('mobileci.page_title.my_account') }}</span></li>
+          <li class="complimentary-bg"><a href="{{ url('/customer/transfer') }}"><span><span class="glyphicon glyphicon-shopping-cart"></span> {{ Lang::get('mobileci.page_title.transfercart') }}</span></a></li>
+          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> {{ Lang::get('mobileci.page_title.customer_id') }}</span></li>
+          <li class="complimentary-bg"><a href="{{ url('/customer/logout') }}"><span><span class="glyphicon glyphicon-off"></span> {{ Lang::get('mobileci.page_title.logout') }}</span></a></li>
         </ul>
       </li>
     </ul>
