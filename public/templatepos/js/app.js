@@ -67,7 +67,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
 
         //get unix guestid
-        (this.getguest = function(){
+        ($scope.getguest = function(){
                 $scope.guests = moment().unix();
         })();
         //function -+ wish list
@@ -116,7 +116,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                         $scope.product = response.data.records;
                     } else {
-                        //do something when error
                         $scope.productnotfound = true;
                         $scope.product = [];
                     }
@@ -143,11 +142,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
                     }
                 }
+                //todo:agung change hardcore for VAT
+                var vat  = 10;
+                var hvat = parseInt(accounting.unformat($scope.subtotal) * vat / 100);
+                $scope.vat        =  accounting.formatMoney(hvat, "", 0, ",", ".");
+                $scope.totalpay   =  accounting.formatMoney((hvat + accounting.unformat($scope.subtotal)), "", 0, ",", ".");
             }
         };
         //insert to cart
         $scope.inserttocartFn = function(){
-
              if($scope.productmodal){
                  $scope.cart.push({
                      product_name : $scope.productmodal['product_name'],
@@ -158,11 +161,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                  });
                  $scope.countcart();
              }
-
         };
 
+        //new cart
+        $scope.newcartFn = function(act){
+            $scope.getguest();
+            $scope.cart      = [];
+        };
+        //delete cart
+        $scope.deletecartFn = function(act){
+            $scope.cart      = [];
+        };
+        //checkout
+        $scope.checkoutFn = function(act){
 
-
+        };
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
