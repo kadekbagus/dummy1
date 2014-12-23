@@ -43,7 +43,7 @@
                         </tr>
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
-                                <td><a href=""  data-ng-click="showdetailFn()"><b> <% v.name %></b></a> <br><% v.upc %></td>
+                                <td><a href=""  data-ng-click="showdetailFn()"><b> <% v.product_name %></b></a> <br><% v.upc %></td>
                                 <td style="width: 200px">
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
@@ -51,7 +51,7 @@
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
-                                          <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['quantity']" numbers-only="numbers-only" style="margin-top: 5px !important;">
+                                          <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
                                           <span class="input-group-btn">
                                               <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn(k,'p')">
                                                   <i class="fa fa-plus"></i>
@@ -64,7 +64,7 @@
                                           </span>
                                     </div>
                                 </td>
-                                <td class="text-right">1</td>
+                                <td class="text-right"><% v.hargatotal %></td>
                             </tr>
                         </tbody>
                     </table>
@@ -72,10 +72,10 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h4>TOTAL ITEM</h4></b><br> 7</td>
-                            <td class="text-center"><b><h4>SUBTOTAL</h4></b><br> 7</td>
-                            <td class="text-center"><b><h4>VAT</h4></b><br> 7</td>
-                            <td class="text-center"><b><h4>TOTAL TO PAY</h4></b><br> 7</td>
+                            <td class="text-center"><b><h4>TOTAL ITEM<br><% totalitem %></b></h4></td>
+                            <td class="text-center"><b><h4>SUBTOTAL<br><% subtotal %></b></h4></td>
+                            <td class="text-center"><b><h4>VAT<br>7</b></h4> </td>
+                            <td class="text-center"><b><h4>TOTAL TO PAY<br>7</b></h4></td>
                         </tr>
                     </table>
                 </div>
@@ -99,21 +99,21 @@
                           </div>
                       </div>
                 </div>
-                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 610px;overflow-x: hidden;" id="loading" >
+                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 595px;overflow-x: hidden;" id="loading" >
                       <div class="row">
                       <div data-ng-if="productnotfound">
                            <p class="text-center"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <div ng-class="k % 2 == 0 ? 'mini-box' : 'mini-boxright'" data-ng-click="showdetailFn(k)">
+                                <div ng-class="k % 2 == 0 ? 'mini-box <% v.disabled %>' : 'mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                      <table>
                                            <tr>
                                                 <td rowspan="4"> <img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></td>
                                            </tr>
                                            <tr>
-                                                <td><h5>&nbsp;<b><% v.product_name.substr(0,9) %></b></h5></td>
+                                                <td><h5>&nbsp;<b><% v.product_name.substr(0,9) %></b><br>&nbsp;<b style="font-size: 10px"><% v.upc_code %></b></h5></td>
                                            </tr>
-                                         {{--  <tr>
+                                           {{--<tr>
                                                 <td><h6>99992827</h6></td>
                                            </tr>--}}
                                            <tr>
@@ -128,19 +128,25 @@
             </div>
         </div>
     </div>
-             <script type="text/ng-template" id="productdetail.html">
-                 <div class="modal-header">
-                     <h3 class="modal-title">I'm a modal!</h3>
-                 </div>
-                 <div class="modal-body">
-                      <% productmodal.product_name %>
 
-                 </div>
-                 <div class="modal-footer">
-                     <button class="btn btn-primary" ng-click="ok()">OK</button>
-                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
-                 </div>
-             </script>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+          </div>
+          <div class="modal-body">
+            <% productmodal.product_name %>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="inserttocartFn()">Tambahkan ke keranjang belanja</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </div>
 </div>
 
