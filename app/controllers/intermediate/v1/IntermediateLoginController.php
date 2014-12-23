@@ -44,9 +44,9 @@ class IntermediateLoginController extends IntermediateBaseController
      * @param @see LoginAPIController::getRegisterTokenCheck
      * @return response
      */
-    public function getRegisterTokenCheck()
+    public function postRegisterTokenCheck()
     {
-        $response = LoginAPIController::create('raw')->getRegisterTokenCheck();
+        $response = LoginAPIController::create('raw')->postRegisterTokenCheck();
         if ($response->code === 0)
         {
             $user = $response->data;

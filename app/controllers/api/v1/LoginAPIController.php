@@ -159,7 +159,7 @@ class LoginAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `email`          (required) - Email address of the user
+     * @param string    `email`                     (required) - Email address of the user
      * @return Illuminate\Support\Facades\Response
      */
     public function postRegisterUserInShop()
@@ -317,25 +317,33 @@ class LoginAPIController extends ControllerAPI
      * GET - Register Token Check
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `token`                 (required) - Token to be check
+     * @param string    `token`                     (required) - Token to be check
+     * @param string    `password`                  (required) - Password for the account
+     * @param string    `password_confirmation`     (required) - Confirmation
      * @return Illuminate\Support\Facades\Response
      */
-    public function getRegisterTokenCheck()
+    public function postRegisterTokenCheck()
     {
         try {
             $this->registerCustomValidation();
 
-            $token_value = trim(OrbitInput::get('token'));
+            $tokenValue = trim(OrbitInput::post('token'));
+            $password = OrbitInput::post('password');
+            $password2 = OrbitInput::post('password_confirmation');
 
             $validator = Validator::make(
                 array(
-                    'token_value' => $token_value,
+                    'token_value'   => $tokenValue,
+                    'password'      => $password,
+                    'password_confirmation' => $password2
                 ),
                 array(
-                    'token_value' => 'required|orbit.empty.token',
+                    'token_value'   => 'required|orbit.empty.token',
+                    'password'      => 'required|min:5|confirmed',
                 )
             );
 
@@ -363,9 +371,9 @@ class LoginAPIController extends ControllerAPI
             $token->status = 'deleted';
             $token->save();
 
-            // Update user password
-            $password = str_random(8);
+            // Update user password and activate them
             $user->user_password = Hash::make($password);
+            $user->status = 'active';
             $user->save();
 
             $this->response->data = $user;

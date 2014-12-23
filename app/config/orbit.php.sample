@@ -15,6 +15,29 @@ return array(
         'id'    => 93
     ),
 
+    'registration' => array(
+        'mobile'    => array(
+            // New role assigned to the user
+            'role' => 'Consumer',
+
+            // Status of the user
+            'status' => 'pending',
+
+            // Sender
+            'sender' => array(
+                'email' => 'no-reply@localhost.org',
+                'name'  => 'DominoPOS'
+            ),
+
+            // Activation URL
+            // This should be frontend URL not backend
+            'activation_base_url' => 'http://orbit-shop.here/app/v1/user/activate/?token=%s',
+
+            // Sign in URL
+            'signin_url' => 'http://orbit-shop.here/signin'
+        ),
+    ),
+
     'security' => array(
         // Super Admin Roles
         'superadmin' => array(
