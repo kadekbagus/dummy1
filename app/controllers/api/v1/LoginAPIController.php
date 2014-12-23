@@ -363,9 +363,10 @@ class LoginAPIController extends ControllerAPI
             $token->status = 'deleted';
             $token->save();
 
-            // Update user password
+            // Update user password and activate them
             $password = str_random(8);
             $user->user_password = Hash::make($password);
+            $user->status = 'active';
             $user->save();
 
             $this->response->data = $user;

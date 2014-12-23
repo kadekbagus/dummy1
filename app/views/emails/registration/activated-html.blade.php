@@ -4,7 +4,7 @@ Orbit Customer Portal using following credentials:</p>
 
 <p>
 <strong>Email</strong>: {{ $email }}<br>
-<strong>Password: </strong>: {{ $password }}
+<strong>Password</strong>: {{ $password }}
 </p>
 
 <p>Go to the following address for sign in:<br>
