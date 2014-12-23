@@ -36,4 +36,23 @@ class IntermediateLoginController extends IntermediateBaseController
 
         return $this->render();
     }
+
+    /**
+     * Check and activate token.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param @see LoginAPIController::getRegisterTokenCheck
+     * @return response
+     */
+    public function getRegisterTokenCheck()
+    {
+        $response = LoginAPIController::create('raw')->getRegisterTokenCheck();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            Auth::login($user);
+        }
+
+        return $this->render($response);
+    }
 }

@@ -18,4 +18,9 @@ Route::post('/app/v1/user/register/mobile', 'IntermediateLoginController@Login_p
 /**
  * Check the token
  */
-Route::get('/app/v1/user/token/check', 'IntermediateLoginController@Login_getRegisterTokenCheck');
+Route::get('/app/v1/user/token/check', 'IntermediateLoginController@getRegisterTokenCheck');
+
+/**
+ * Alias for check token
+ */
+Route::get('/app/v1/user/activate', 'IntermediateLoginController@getRegisterTokenCheck');
