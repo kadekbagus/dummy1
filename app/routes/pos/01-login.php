@@ -24,7 +24,15 @@ Route::post('/api/v1/pos/scanbarcode', function () {
     return POS\CashierAPIController::create()->postScanBarcode();
 });
 
-Route::post('/app/v1/pos/scanbarcode', 'IntermediateLoginController@POS\Cashier_postScanBarcode');
+Route::post('/app/v1/pos/scanbarcode', 'IntermediateBaseController@POS\Cashier_postScanBarcode');
+
+
+// product search
+Route::get('/api/v1/pos/productsearch', function () {
+    return POS\CashierAPIController::create()->getSearchProductPOS();
+});
+
+Route::get('/app/v1/pos/productsearch', 'IntermediateAuthController@POS\Cashier_getSearchProductPOS');
 
 
 Route::get('/pos', function () {
@@ -56,6 +64,4 @@ Route::get('/pos/dashboard', function () {
     }
 });
 
-Route::get('/pos/logout', function () {
-    Auth::logout();
-});
+
