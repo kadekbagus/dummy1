@@ -88,12 +88,13 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4"
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
                             <div class="input-group" id="loadingsearch">
                                      <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
+
                                      <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
                             </div>
                           </div>

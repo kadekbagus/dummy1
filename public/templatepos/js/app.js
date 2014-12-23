@@ -53,7 +53,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
     }]);
 
-    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal', function($scope,localStorageService, $timeout, serviceAjax, $modal) {
+    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http) {
         //init
         $scope.cart      = [];
         $scope.product   = [];
@@ -108,6 +108,29 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.$watch("searchproduct", function(newvalue){
             $scope.productnotfound = false;
             if(newvalue && newvalue.length > 2) {
+                if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
+                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
+                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
+                        for (var i = 0; i < response.data.records.length; i++) {
+                            response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                        }
+                        $scope.product = response.data.records;
+                    } else {
+                        $scope.productnotfound = true;
+                        $scope.product = [];
+                    }
+                    if(progressJs) progressJs("#loadingsearch").end();
+                })
+            }else if(newvalue.length == 0){
+                $scope.productnotfound = false;
+                $scope.getproduct();
+            }
+        });
+        //watch search
+        $scope.$watch("scanproduct", function(newvalue){
+
+            if(newvalue) {
+
                 if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
                 serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
                     if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
@@ -195,32 +218,25 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             //time
             $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
             //scan barcode
-            /*
-            serviceAjax.posDataToServer('logout').then(function(data){
-                console.log(data);
-                if(data.code == 0){
-                    localStorageService.remove('user');
-                    window.location.assign("/pos");
-                }else{
-                    alert('gagal logout');
-                }
-            });*/
-
+            $http.post('http://192.168.0.111/app/v1/pos/scanbarcode ')
+                .then(function(response){
+                    console.log(response);
+                    if (response.data) {
+                        return response.data;
+                    } else {
+                        // invalid response
+                        return $q.reject(response.data);
+                    }
+                },function(response){
+                    // invalid response
+                    return $q.reject(response.data);
+                });
             $timeout(updatetime, 1000);
         };
         $timeout(updatetime, 1000);
 
     }]);
-/*
-    app.controller('ProductDetailCtrl', ['$scope','$modalInstance','dataProduct', function($scope,$modalInstance,dataProduct) {
 
-        $scope.productmodal = dataProduct;
-
-
-         $scope.cancel = function () {
-             $modalInstance.dismiss('cancel');
-         };
-     }]);*/
 
     app.directive('numbersOnly', function(){
         return {
