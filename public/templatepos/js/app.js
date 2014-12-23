@@ -126,11 +126,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.getproduct();
             }
         });
-        //watch search
+        //watch scan
         $scope.$watch("scanproduct", function(newvalue){
-
             if(newvalue) {
-
                 if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
                 serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
                     if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
@@ -153,23 +151,23 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //function count cart
         $scope.countcart = function(){
             if($scope.cart.length > 0){
-                $scope.totalitem = 0;
-                $scope.subtotal  = 0;
+                $scope.cart.totalitem = 0;
+                $scope.cart.subtotal  = 0;
                 var tmphargatotal = 0;
                 for(var i = 0; i < $scope.cart.length ; i++){
                     if($scope.cart[i]['qty'] > 0){
                         $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] *  accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
 
-                        $scope.totalitem += parseInt($scope.cart[i]['qty']);
+                        $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
                         tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']);
-                        $scope.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+                        $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
                     }
                 }
                 //todo:agung change hardcore for VAT
                 var vat  = 10;
-                var hvat = parseInt(accounting.unformat($scope.subtotal) * vat / 100);
-                $scope.vat        =  accounting.formatMoney(hvat, "", 0, ",", ".");
-                $scope.totalpay   =  accounting.formatMoney((hvat + accounting.unformat($scope.subtotal)), "", 0, ",", ".");
+                var hvat = parseInt(accounting.unformat($scope.cart.subtotal) * vat / 100);
+                $scope.cart.vat        =  accounting.formatMoney(hvat, "", 0, ",", ".");
+                $scope.cart.totalpay   =  accounting.formatMoney((hvat + accounting.unformat($scope.cart.subtotal)), "", 0, ",", ".");
             }
         };
         //insert to cart
@@ -218,7 +216,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             //time
             $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
             //scan barcode
-            $http.post('http://192.168.0.111/app/v1/pos/scanbarcode ')
+            /*$http.post('http://192.168.0.111/app/v1/pos/scanbarcode ')
                 .then(function(response){
                     console.log(response);
                     if (response.data) {
@@ -230,7 +228,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 },function(response){
                     // invalid response
                     return $q.reject(response.data);
-                });
+                });*/
             $timeout(updatetime, 1000);
         };
         $timeout(updatetime, 1000);
