@@ -11,14 +11,15 @@ define([
 
 ], function () {
 
-var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
 
 });
     //config base url
-    app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
+   // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
+    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
@@ -26,101 +27,182 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
         (this.cekLocalStorage = function(){
             if(localStorageService.get('user'))  window.location.assign("pos/dashboard");
         })();
-
+        //init object
         $scope.login  = {};
         $scope.signin = {};
 
-        $scope.signin.alerts = [
-            {
-                text: "Your username / password is incorrect",
-                active: false
-            }, {
-                text: "Your username is not recognized",
-                active: false
-            }
-        ];
+        $scope.signin.alerts = [{ text: "Maaf, ID atau password yang Anda masukkan salah",active: false} ];
         $scope.signin.alertDismisser = function(index) {
             $scope.signin.alerts[index].active = false;
         };
-        $scope.loginFn = function(){/*
-            if(progressJs) progressJs().start();*/
-            if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('login',$scope.login).then(function(data){
+
+        $scope.loginFn = function(){
+            $scope.showloader = true;
+            if(progressJs) progressJs().start().autoIncrease(4, 500);
+            serviceAjax.posDataToServer('pos/login',$scope.login).then(function(data){
               if(data.code == 0){
+                  $scope.shownall = false;
                   localStorageService.add('user',data.data);
-
                   window.location.assign("pos/dashboard");
-
               }else{
                   $scope.signin.alerts[0].active = true;
               }
+                $scope.showloader = false;
                 if(progressJs) progressJs().end();
             });
         };
     }]);
 
-
-    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal', function($scope,localStorageService, $timeout, serviceAjax, $modal) {
-
+    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http) {
+        //init
         $scope.cart      = [];
         $scope.product   = [];
+        $scope.datauser  = localStorageService.get('user');
 
-        //dummy for cart list
-        for(var i = 0; i <= 7; i ++){
-            $scope.cart[i] = {
-                'upc'        : '99992827',
-                'name'       : 'Tomkins',
-                'quantity'     : '',
-                'price'      : '',
-                'pricetotal' : ''
-            }
-        };
-        //dummy for product
-        for(var i = 0; i < 14; i ++){
-            $scope.product[i] = {
-                'productid'  : '',
-                'image'      : '',
-                'upc'        : '',
-                'price'      : ''
-            }
-        };
-        //show detail when click name
-        $scope.showdetailFn = function(){
-            var modalInstance;
-            modalInstance = $modal.open({
-                templateUrl: "productdetail.html",
-                controller: 'ModalInstanceCtrl',
-                resolve: {
-                    dataProduct : function(){
-                        return $scope.product;
-                    }
-                }
-            });
-            modalInstance.result.then((function(data) {
 
-            }), function() {});
+        //show modal product detail
+        $scope.showdetailFn = function(id){
+            $scope.productmodal = $scope.product[id];
+            $scope.product[id]['disabled'] = 'disabled';
         };
 
-
-
-
-        //function jumlah
+        //get unix guestid
+        ($scope.getguest = function(){
+                $scope.guests = moment().unix();
+        })();
+        //function -+ wish list
         $scope.qaFn = function(id,action){
+
             if(action == 'p'){
-                $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? $scope.cart[id]['quantity'] + 1 : 1;
+                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? $scope.cart[id]['qty'] + 1 : 1;
             }else if(action == 'm'){
-                $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? $scope.cart[id]['quantity'] - 1 : 0;
+                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? ($scope.cart[id]['qty'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['qty'] - 1)  :  $scope.cart.splice(id ,1);
             }else if(action == 'd'){
                 $scope.cart.splice(id ,1);
             }else{
                 //do something when error
             }
+            $scope.countcart();
+        };
+        // qty change manual
+        $scope.qtychangemanualFn = function(){
+            $scope.countcart();
+        };
+        //get product
+        $scope.getproduct = function(){
+            if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
+            serviceAjax.getDataFromServer('product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
+                if(response.code == 0 ){
+                    for(var i =0; i <response.data.records.length; i++){
+                       response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                    }
+                    $scope.product = response.data.records;
+                }else{
+                    //do something when error
+                }
+                if(progressJs) progressJs("#loading").end();
+            });
+        };
+        $scope.getproduct();
+        //watch search
+        $scope.$watch("searchproduct", function(newvalue){
+            $scope.productnotfound = false;
+            if(newvalue && newvalue.length > 2) {
+                if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
+                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
+                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
+                        for (var i = 0; i < response.data.records.length; i++) {
+                            response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                        }
+                        $scope.product = response.data.records;
+                    } else {
+                        $scope.productnotfound = true;
+                        $scope.product = [];
+                    }
+                    if(progressJs) progressJs("#loadingsearch").end();
+                })
+            }else if(newvalue.length == 0){
+                $scope.productnotfound = false;
+                $scope.getproduct();
+            }
+        });
+        //watch search
+        $scope.$watch("scanproduct", function(newvalue){
+
+            if(newvalue) {
+
+                if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
+                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
+                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
+                        for (var i = 0; i < response.data.records.length; i++) {
+                            response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                        }
+                        $scope.product = response.data.records;
+                    } else {
+                        $scope.productnotfound = true;
+                        $scope.product = [];
+                    }
+                    if(progressJs) progressJs("#loadingsearch").end();
+                })
+            }else if(newvalue.length == 0){
+                $scope.productnotfound = false;
+                $scope.getproduct();
+            }
+        });
+
+        //function count cart
+        $scope.countcart = function(){
+            if($scope.cart.length > 0){
+                $scope.totalitem = 0;
+                $scope.subtotal  = 0;
+                var tmphargatotal = 0;
+                for(var i = 0; i < $scope.cart.length ; i++){
+                    if($scope.cart[i]['qty'] > 0){
+                        $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] *  accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
+
+                        $scope.totalitem += parseInt($scope.cart[i]['qty']);
+                        tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']);
+                        $scope.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+                    }
+                }
+                //todo:agung change hardcore for VAT
+                var vat  = 10;
+                var hvat = parseInt(accounting.unformat($scope.subtotal) * vat / 100);
+                $scope.vat        =  accounting.formatMoney(hvat, "", 0, ",", ".");
+                $scope.totalpay   =  accounting.formatMoney((hvat + accounting.unformat($scope.subtotal)), "", 0, ",", ".");
+            }
+        };
+        //insert to cart
+        $scope.inserttocartFn = function(){
+             if($scope.productmodal){
+                 $scope.cart.push({
+                     product_name : $scope.productmodal['product_name'],
+                     qty          : 1,
+                     price        : $scope.productmodal['price'],
+                     hargatotal   : 0
+
+                 });
+                 $scope.countcart();
+             }
+        };
+
+        //new cart
+        $scope.newcartFn = function(act){
+            $scope.getguest();
+            $scope.cart      = [];
+        };
+        //delete cart
+        $scope.deletecartFn = function(act){
+            $scope.cart      = [];
+        };
+        //checkout
+        $scope.checkoutFn = function(act){
+
         };
         //logout
         $scope.logoutfn =  function(){
-            if(progressJs)  progressJs().setOptions({overlayMode: true, theme: 'blueOverlay'}).start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('logout').then(function(data){
-                console.log(data);
+            if(progressJs) progressJs().start().autoIncrease(4, 500);
+            serviceAjax.posDataToServer('pos/logout').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("/pos");
@@ -129,42 +211,32 @@ var app = angular.module('app', ['ui.bootstrap','LocalStorageModule'], function(
                 }
                 if(progressJs) progressJs().end();
             });
-            //localStorageService.remove('user');
         };
-
-
-        $scope.datauser = localStorageService.get('user');
-
         //timeout scan barcode & date time
         var updatetime = function() {
 
             //time
             $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
             //scan barcode
-            /*
-            serviceAjax.posDataToServer('logout').then(function(data){
-                console.log(data);
-                if(data.code == 0){
-                    localStorageService.remove('user');
-                    window.location.assign("/pos");
-                }else{
-                    alert('gagal logout');
-                }
-            });*/
-
+            $http.post('http://192.168.0.111/app/v1/pos/scanbarcode ')
+                .then(function(response){
+                    console.log(response);
+                    if (response.data) {
+                        return response.data;
+                    } else {
+                        // invalid response
+                        return $q.reject(response.data);
+                    }
+                },function(response){
+                    // invalid response
+                    return $q.reject(response.data);
+                });
             $timeout(updatetime, 1000);
         };
-
         $timeout(updatetime, 1000);
 
     }]);
 
-    app.controller('ModalInstanceCtrl', ['$scope','$modalInstance','dataProduct', function($scope,$modalInstance,dataProduct) {
-        console.log(dataProduct);
-         $scope.cancel = function () {
-             $modalInstance.dismiss('cancel');
-         };
-     }]);
 
     app.directive('numbersOnly', function(){
         return {

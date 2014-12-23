@@ -16,7 +16,7 @@ define([
             getDataFromServer : function(){
                 var params = '';
                 for(var i = 0 ; i < arguments.length; i++){
-                    params += arguments[i]+'/';
+                    params += arguments[i];
                 }
                 return $http.get(app['baseUrlServer'] + params)
                     .then(function(response){

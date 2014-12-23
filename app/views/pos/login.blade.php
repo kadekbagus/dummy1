@@ -1,12 +1,13 @@
 
 @extends('pos.layouts.default')
 @section('content')
-<div class="main-container">
-  <div class="page-signin" ng-controller="loginCtrl">
+<div class="main-container ng-cloak"   ng-controller="loginCtrl" data-ng-init="shownall = true" data-ng-show="shownall">
+  <div class="page-signin"  >
     <div class="signin-header">
       <section class="logo text-center">
         <h4>ORBIT KASIR</h4>
-        <img src="{{ URL::asset('templatepos/images/orbit-logo.png') }}" alt="Orbit Logo" />
+       <img src="{{ URL::asset('templatepos/images/orbit-logo.png') }}"   data-ng-init="showloader = false" data-ng-if="!showloader" alt="Orbit Logo" />
+       <img src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   data-ng-if="showloader" style="height: 60px; width: 60px; " alt="Orbit Logo" />
       </section>
     </div>
 
@@ -25,7 +26,7 @@
                                </div>
                                <div class="form-group">
                                    <span class="glyphicon glyphicon-lock"></span>
-                                   <input ng-disabled="signform.username.$invalid" type="password" name="password" class="orbit-component form-control input-lg input-round text-center" placeholder="Password" ng-model="login.password" required />
+                                   <input type="password" name="password" class="orbit-component form-control input-lg input-round text-center" placeholder="Password" ng-model="login.password" required />
                                </div>
                                <div class="form-group">
                                    <button ng-disabled="signform.$invalid" class="btn btn-primary btn-lg btn-round btn-block text-center" data-ng-click="loginFn()" type="submit">Masuk</button>
@@ -36,6 +37,10 @@
                </div>
         </div>
   </div>
+  <div class="text-center">
+     <img src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   style="height: 50px; width: 50px; padding-top: 50px" alt="Orbit Logo" />
+  </div>
+
 </div>
 @stop
 
