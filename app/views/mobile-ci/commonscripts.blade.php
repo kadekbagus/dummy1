@@ -7,16 +7,15 @@
         <h4 class="modal-title" id="SearchProduct">Cari Produk</h4>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-        	<label for="keyword">Cari berdasarkan : Nama Produk, Kode dan Deskripsi</label>
-    		  <input type="text" class="form-control" id="keyword" placeholder="Input keywords">
-        </div>
+        <form method="GET" name="searchForm" id="searchForm" action="{{ url('/customer/search') }}">
+          <div class="form-group">
+          	<label for="keyword">Cari berdasarkan : Nama Produk, Kode dan Deskripsi</label>
+      		  <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Input keywords">
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
-        <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-          <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
-          <button type="submit" class="btn btn-info" id="signup">Cari</button>
-        </form>
+          <button type="button" class="btn btn-info" id="searchProductBtn">Cari</button>
       </div>
     </div>
   </div>
@@ -24,7 +23,13 @@
 <script type="text/javascript">
 	$('#searchBtn').click(function(){
 		$('#SearchProducts').modal();
+    setTimeout(function(){
+      $('#keyword').focus();
+    }, 500);
 	});
+  $('#searchProductBtn').click(function(){
+    $('#searchForm').submit();
+  });
   $('#backBtn').click(function(){
     window.history.back()
   });

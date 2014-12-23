@@ -68,4 +68,18 @@ class Media extends Eloquent
     {
         $query->where(DB::Raw("SUBSTRING('mime_type', 1, 5)"), '=', 'image');
     }
+
+    /**
+     * Accessor for default product picture
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     *
+     */
+    public function getPathAttribute($value)
+    {
+        if(is_null($value)){
+            return '/mobile-ci/images/default-product.png';
+        } else {
+            return $value;
+        }
+    }
 }

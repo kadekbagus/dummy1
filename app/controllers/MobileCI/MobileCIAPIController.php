@@ -20,6 +20,8 @@ use \Apikey;
 use \Validator;
 use \Config;
 use \Retailer;
+use \Product;
+use Carbon\Carbon as Carbon;
 
 class MobileCIAPIController extends ControllerAPI
 {   
@@ -314,7 +316,8 @@ class MobileCIAPIController extends ControllerAPI
                 return \Redirect::route('signin');
             }
             $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer'=>$retailer));
+            $new_products = Product::with('media')->where('new_from','<=', Carbon::now())->where('new_until', '>=', Carbon::now())->get();
+            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer'=>$retailer, 'new_products'=>$new_products));
             
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -385,6 +388,34 @@ class MobileCIAPIController extends ControllerAPI
         try {
             $retailer = $this->getRetailerInfo();
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer'=>$retailer));
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+    public function getSearchProduct()
+    {
+        try {
+            $sort_by = OrbitInput::get('sort_by');
+            $sort_mode = OrbitInput::get('sort_mode');
+            $keyword = OrbitInput::get('keyword');
+
+            $products = Product::excludeDeleted()->where('product_name', 'LIKE', "%$keyword%")->orWhere('product_code', 'LIKE', "%$keyword%")->orWhere('short_description', 'LIKE', "%$keyword%")->orWhere('long_description', 'LIKE', "%$keyword%")->get();
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'products' => $products));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
