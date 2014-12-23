@@ -74,32 +74,33 @@
                         <tr>
                             <td class="text-center"><b><h4>TOTAL ITEM<br><% totalitem %></b></h4></td>
                             <td class="text-center"><b><h4>SUBTOTAL<br><% subtotal %></b></h4></td>
-                            <td class="text-center"><b><h4>VAT<br>7</b></h4> </td>
-                            <td class="text-center"><b><h4>TOTAL TO PAY<br>7</b></h4></td>
+                            <td class="text-center"><b><h4>VAT<br><% vat %></b></h4> </td>
+                            <td class="text-center"><b><h4>TOTAL TO PAY<br><% totalpay %></b></h4></td>
                         </tr>
                     </table>
                 </div>
                 <div class="table-responsive">
                     <table class="table  orbit-component table-noborder">
                         <tr>
-                            <td colspan="3"> <button class="btn btn-danger" data-ng-click="loginFn()" type="submit">CART BARU</button> &nbsp; <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">HAPUS CART</button></td>
-                            <td class="text-right"> <button class="btn btn-primary" style="background-color: #009933;" data-ng-click="loginFn()" type="submit">BAYAR</button></td>
+                            <td colspan="3"> <button class="btn btn-danger"  data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit">CART BARU</button> &nbsp; <button class="btn btn-primary" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit">HAPUS CART</button></td>
+                            <td class="text-right"> <button class="btn btn-success" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" data-ng-click="checkoutFn('b')" type="submit">BAYAR</button></td>
                        </tr>
                     </table>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4"
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
                             <div class="input-group" id="loadingsearch">
                                      <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
+
                                      <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
                             </div>
                           </div>
                       </div>
                 </div>
-                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 595px;overflow-x: hidden;" id="loading" >
+                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 595px;overflow-x: hidden; padding-top: 1px" id="loading" >
                       <div class="row">
                       <div data-ng-if="productnotfound">
                            <p class="text-center"> Produk yang dicari tidak ditemukan </p>
@@ -113,9 +114,6 @@
                                            <tr>
                                                 <td><h5>&nbsp;<b><% v.product_name.substr(0,9) %></b><br>&nbsp;<b style="font-size: 10px"><% v.upc_code %></b></h5></td>
                                            </tr>
-                                           {{--<tr>
-                                                <td><h6>99992827</h6></td>
-                                           </tr>--}}
                                            <tr>
                                                 <td class="text-right" style="width: 80px;"><h6><% v.price %></h6></td>
                                            </tr>
@@ -129,13 +127,13 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal Product Detail-->
     <div class="modal fade" id="myModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            <h4 class="modal-title" id="myModalLabel">Cart Baru</h4>
           </div>
           <div class="modal-body">
             <% productmodal.product_name %>
@@ -147,6 +145,64 @@
         </div>
       </div>
     </div>
+    <!-- Modal Cart Baru-->
+    <div class="modal fade" id="myModalNewCart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel"><b>Cart Baru</b></h4>
+          </div>
+          <div class="modal-body">
+                  <p><b>Anda yakin akan ingin membuat cart baru ?</b></p>
+                  <p>Setelah anda memilih "Ya", maka cart baru akan </p>
+                  <p>menggantikan cart sebelumnya</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newcartFn()">Ya</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" >Tidak</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Hapus Cart-->
+    <div class="modal fade" id="myModalDeleteCart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel"><b>Hapus Cart</b></h4>
+          </div>
+          <div class="modal-body">
+                  <p><b>Anda yakin akan ingin mengahpus cart ?</b></p>
+                  <p>Setelah anda memilih "Ya", maka semua </p>
+                  <p>produk dalam cart ini akan dihapus</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="deletecartFn()">Ya</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Tidak</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal Checkout-->
+    <div class="modal fade" id="myModalcheckout" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title text-center" id="myModalLabel"><b>PILIH CARA PEMBAYARAN</b></h4>
+          </div>
+          <div class="modal-body text-center">
+                  <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal" style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
+                  <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal" style="background-color: #009933; " data-ng-click="checkoutFn('k')">KARTU DEBIT/KREDIT</button> </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
 </div>
 </div>
 
