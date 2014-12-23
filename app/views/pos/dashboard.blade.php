@@ -72,10 +72,10 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h4>TOTAL ITEM<br><% totalitem %></b></h4></td>
-                            <td class="text-center"><b><h4>SUBTOTAL<br><% subtotal %></b></h4></td>
-                            <td class="text-center"><b><h4>VAT<br><% vat %></b></h4> </td>
-                            <td class="text-center"><b><h4>TOTAL TO PAY<br><% totalpay %></b></h4></td>
+                            <td class="text-center"><b><h4>TOTAL ITEM<br><% cart.totalitem %></b></h4></td>
+                            <td class="text-center"><b><h4>SUBTOTAL<br><% cart.subtotal %></b></h4></td>
+                            <td class="text-center"><b><h4>VAT<br><% cart.vat %></b></h4> </td>
+                            <td class="text-center"><b><h4>TOTAL TO PAY<br><% cart.totalpay %></b></h4></td>
                         </tr>
                     </table>
                 </div>
@@ -88,7 +88,7 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-4"
+            <div class="col-md-4">
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
@@ -130,20 +130,97 @@
     <!-- Modal Product Detail-->
     <div class="modal fade" id="myModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel">Cart Baru</h4>
-          </div>
+        <div class="modal-content" style="width: 400px;  margin: 30px auto;" >
+
           <div class="modal-body">
-            <% productmodal.product_name %>
+            <div class="row">
+                <div class="col-md-12">
+                <div class="ribbon-wrapper-red ribbon2nd">
+                				<div class="ribbon-red">30%</div>
+                			</div>
+                    <p class="text-center"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img product"></p>
+                </div>
+                <div class="col-md-12 main-theme" >
+                    <div class="row">
+                    	<div class="col-xs-12">
+                    				<h4><% productmodal.product_name %></h4>
+                    			</div>
+                    	<div class="col-xs-12">
+                    				<p><% productmodal.short_description %></p>
+                    			</div>
+                    </div>
+                     <div class="additional-detail">
+                     	<div class="row">
+                     				<div class="col-xs-12">
+                     					<h4>Discount Coupon Promo</h4>
+                     				</div>
+                     				<div class="col-xs-3 ">
+                     					<h5>30%</h5>
+                     				</div>
+                     				<div class="col-xs-9">
+                     					<h5>Happy Halloween</h5>
+                     				</div>
+                     			</div>
+                     	<div class="row">
+                     				<div class="col-xs-5 col-xs-height">
+                     					<p>19 Sep 2014</p>
+                     				</div>
+                     				<div class="col-xs-2 col-xs-height">
+                     					<p>s/d</p>
+                     				</div>
+                     				<div class="col-xs-5 col-xs-height">
+                     					<p>31 Oct 2014</p>
+                     				</div>
+                     			</div>
+                     </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-xs-12 product-attributes">
+                    		<div class="row">
+                    			<div class="col-xs-4 main-theme-text">
+                    				<div class="radio-container">
+                    					<h5>Size</h5>
+                    				        <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option1" ><span>Option</span></label>
+                    				        <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option2" checked><span>Option</span></label>
+
+                    				</div>
+                    			</div>
+                    			<div class="col-xs-4 main-theme-text">
+                    				<div class="radio-container">
+                    					<h5>Colors</h5>
+                    				      <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option1" ><span>Option</span></label>
+                                          <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option2" checked=""><span>Option</span></label>
+
+                    				</div>
+                    			</div>
+                    			<div class="col-xs-4 main-theme-text">
+                    				<div class="radio-container">
+                    					<h5>Sleeve</h5>
+                    				      <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option1" ><span>Option</span></label>
+                                          <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option2" checked=""><span>Option</span></label>
+                    				</div>
+                    			</div>
+                    		</div>
+                    	</div>
+                </div>
+                <div class="col-md-12  main-theme">
+                    <div class="col-md-6">
+                         <p>UPC :<% productmodal.upc_code %> </p>
+                         <p><h5><del>300.000</del></h5></p>
+                         <p><h4>IDR : <% productmodal.price %></h3></p>
+                    </div>
+                    <div class="col-md-6">
+                         <p>&nbsp;</p>
+                         <p class="text-center"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                    </div>
+                 </div>
+            </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="inserttocartFn()">Tambahkan ke keranjang belanja</button>
-          </div>
+
         </div>
       </div>
+
+
     </div>
     <!-- Modal Cart Baru-->
     <div class="modal fade" id="myModalNewCart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
