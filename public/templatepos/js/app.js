@@ -31,7 +31,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.login  = {};
         $scope.signin = {};
 
-        $scope.signin.alerts = [{ text: "Maaf, nomor ID atau password yang Anda masukkan tidak cocok",active: false} ];
+        $scope.signin.alerts = [{ text: "Maaf, ID atau password yang Anda masukkan salah",active: false} ];
         $scope.signin.alertDismisser = function(index) {
             $scope.signin.alerts[index].active = false;
         };
@@ -54,70 +54,52 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     }]);
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal', function($scope,localStorageService, $timeout, serviceAjax, $modal) {
-        //init object
+        //init
         $scope.cart      = [];
         $scope.product   = [];
         $scope.datauser  = localStorageService.get('user');
 
-        //dummy for cart list
-        for(var i = 0; i <= 7; i ++){
-            $scope.cart[i] = {
-                'upc'        : '99992827',
-                'name'       : 'Tomkins',
-                'quantity'     : '',
-                'price'      : '',
-                'pricetotal' : ''
-            }
-        };
 
         //show modal product detail
         $scope.showdetailFn = function(id){
-            var modalInstance;
-            modalInstance = $modal.open({
-                templateUrl: "productdetail.html",
-                controller: 'ProductDetailCtrl',
-                resolve: {
-                    dataProduct : function(){
-                        return $scope.product[id];
-                    }
-                }
-            });
-            modalInstance.result.then((function(data) {
-
-            }), function() {});
+            $scope.productmodal = $scope.product[id];
+            $scope.product[id]['disabled'] = 'disabled';
         };
 
         //get unix guestid
         (this.getguest = function(){
                 $scope.guests = moment().unix();
         })();
-
         //function -+ wish list
         $scope.qaFn = function(id,action){
+
             if(action == 'p'){
-                $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? $scope.cart[id]['quantity'] + 1 : 1;
+                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? $scope.cart[id]['qty'] + 1 : 1;
             }else if(action == 'm'){
-                $scope.cart[id]['quantity'] = $scope.cart[id]['quantity'] ? ($scope.cart[id]['quantity'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['quantity'] - 1)  :  $scope.cart.splice(id ,1);
+                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? ($scope.cart[id]['qty'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['qty'] - 1)  :  $scope.cart.splice(id ,1);
             }else if(action == 'd'){
                 $scope.cart.splice(id ,1);
             }else{
                 //do something when error
             }
+            $scope.countcart();
         };
-
+        // qty change manual
+        $scope.qtychangemanualFn = function(){
+            $scope.countcart();
+        };
         //get product
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
-            serviceAjax.getDataFromServer('product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=16').then(function(response){
+            serviceAjax.getDataFromServer('product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
                 if(response.code == 0 ){
                     for(var i =0; i <response.data.records.length; i++){
-                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                       response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                     }
                     $scope.product = response.data.records;
                 }else{
                     //do something when error
                 }
-
                 if(progressJs) progressJs("#loading").end();
             });
         };
@@ -127,8 +109,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.productnotfound = false;
             if(newvalue && newvalue.length > 2) {
                 if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
-                serviceAjax.getDataFromServer('product/search?product_name_like=' + newvalue).then(function (response) {
-                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.') {
+                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
+                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
                         for (var i = 0; i < response.data.records.length; i++) {
                             response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                         }
@@ -146,6 +128,41 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
         });
 
+        //function count cart
+        $scope.countcart = function(){
+            if($scope.cart.length > 0){
+                $scope.totalitem = 0;
+                $scope.subtotal  = 0;
+                var tmphargatotal = 0;
+                for(var i = 0; i < $scope.cart.length ; i++){
+                    if($scope.cart[i]['qty'] > 0){
+                        $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] *  accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
+
+                        $scope.totalitem += parseInt($scope.cart[i]['qty']);
+                        tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']);
+                        $scope.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+                    }
+                }
+            }
+        };
+        //insert to cart
+        $scope.inserttocartFn = function(){
+
+             if($scope.productmodal){
+                 $scope.cart.push({
+                     product_name : $scope.productmodal['product_name'],
+                     qty          : 1,
+                     price        : $scope.productmodal['price'],
+                     hargatotal   : 0
+
+                 });
+                 $scope.countcart();
+             }
+
+        };
+
+
+
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
@@ -159,10 +176,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 if(progressJs) progressJs().end();
             });
         };
-
-
-
-
         //timeout scan barcode & date time
         var updatetime = function() {
 
@@ -182,18 +195,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
             $timeout(updatetime, 1000);
         };
-
         $timeout(updatetime, 1000);
 
     }]);
-
+/*
     app.controller('ProductDetailCtrl', ['$scope','$modalInstance','dataProduct', function($scope,$modalInstance,dataProduct) {
-        console.log(dataProduct);
+
         $scope.productmodal = dataProduct;
+
+
          $scope.cancel = function () {
              $modalInstance.dismiss('cancel');
          };
-     }]);
+     }]);*/
 
     app.directive('numbersOnly', function(){
         return {

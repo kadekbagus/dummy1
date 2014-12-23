@@ -17,6 +17,7 @@
     <script src="{{ URL::asset('templatepos/vendor/accounting/accounting.min.js') }}"></script>
     <script src="{{ URL::asset('templatepos/vendor/moment/moment.js') }}"></script>
     <script src="{{ URL::asset('templatepos/vendor/progressjs/progress.js') }}"></script>
+    <script src="{{ URL::asset('templatepos/vendor/bootstrap/bootstrap.min.js') }}"></script>
 
 
     <script  data-main="{{ URL::asset('templatepos/js/main.js') }}" src="{{ URL::asset('templatepos/vendor/require/require.js') }}"></script>
