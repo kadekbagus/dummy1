@@ -2,10 +2,10 @@
 class Promotion extends Eloquent
 {
     /**
-    * Promotion Model
-    *
-    * @author Tian <tian@dominopos.com>
-    */
+     * Promotion Model
+     *
+     * @author Tian <tian@dominopos.com>
+     */
 
     /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
@@ -13,9 +13,22 @@ class Promotion extends Eloquent
      */
     use ModelStatusTrait;
 
+    /**
+     * Use Trait PromotionTypeTrait so we only displaying records with value
+     * `is_coupon` = 'N'
+     */
+    use PromotionCouponTrait;
+
+    /**
+     * Column name which determine the type of Merchant or Retailer.
+     */
+    const OBJECT_TYPE = 'is_coupon';
+
     protected $table = 'promotions';
 
     protected $primaryKey = 'promotion_id';
+
+    protected $hidden = array('is_coupon', 'maximum_issued_coupon', 'coupon_validity_in_days', 'coupon_notification');
 
     public function promotionrule()
     {
@@ -37,20 +50,29 @@ class Promotion extends Eloquent
         return $this->belongsTo('User', 'modified_by', 'user_id');
     }
 
-    public function scopePermanent($query)
-    {
-        return $query->where('promotions.is_permanent', '=', 'Y');
-    }
-
     public function retailers()
     {
         return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
     }
 
+    public function scopeProductPromotionType($query)
+    {
+        return $query->where('promotions.promotion_type', '=', 'product');
+    }
+
+    public function scopeCartPromotionType($query)
+    {
+        return $query->where('promotions.promotion_type', '=', 'cart');
+    }
+
+    public function scopePermanent($query)
+    {
+        return $query->where('promotions.is_permanent', '=', 'Y');
+    }
+
     /**
      * Add Filter promotions based on user who request it.
      *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
      */
@@ -87,7 +109,6 @@ class Promotion extends Eloquent
     /**
      * Promotion has many uploaded media.
      *
-     * @author Rio Astamal <me@rioastamal.net>
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function media()
