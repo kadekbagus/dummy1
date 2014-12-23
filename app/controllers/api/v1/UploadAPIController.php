@@ -539,7 +539,7 @@ class UploadAPIController extends ControllerAPI
                 $user = $this->api->user;
                 Event::fire('orbit.upload.postdeleteproductimage.before.authz', array($this, $user));
 
-                if (! ACL::create($user)->isAllowed('edit_product')) {
+                if (! ACL::create($user)->isAllowed('update_product')) {
                     Event::fire('orbit.upload.postdeleteproductimage.authz.notallowed', array($this, $user));
                     $editProductLang = Lang::get('validation.orbit.actionlist.update_product');
                     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editProductLang));

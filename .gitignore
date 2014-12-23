@@ -16,3 +16,6 @@ app/config/orbit.php
 
 # Uploads directory
 public/uploads/**
+
+# Environment
+app/config/rio/**
