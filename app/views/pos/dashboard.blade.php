@@ -43,7 +43,7 @@
                         </tr>
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
-                                <td><a href=""  data-ng-click="showdetailFn()"><b> <% v.product_name %></b></a> <br><% v.upc %></td>
+                                <td style="width: 300px" ><a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %></td>
                                 <td style="width: 200px">
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
@@ -82,8 +82,8 @@
                 <div class="table-responsive">
                     <table class="table  orbit-component table-noborder">
                         <tr>
-                            <td colspan="3"> <button class="btn btn-danger"  data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit">CART BARU</button> &nbsp; <button class="btn btn-primary" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit">HAPUS CART</button></td>
-                            <td class="text-right"> <button class="btn btn-success" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" data-ng-click="checkoutFn('b')" type="submit">BAYAR</button></td>
+                            <td colspan="3"> <button class="btn btn-danger" data-ng-disabled="cart.length == 0" data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit">KERANJANG BELANJA BARU</button> &nbsp; <button class="btn btn-primary" data-ng-disabled="cart.length == 0" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit">HAPUS KERANJANG BELANJA</button></td>
+                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" data-ng-click="checkoutFn('b')" type="submit">BAYAR</button></td>
                        </tr>
                     </table>
                 </div>
@@ -211,7 +211,7 @@
                     </div>
                     <div class="col-md-6">
                          <p>&nbsp;</p>
-                         <p class="text-center"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                         <p class="text-center"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
                     </div>
                  </div>
             </div>
@@ -228,12 +228,12 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel"><b>Cart Baru</b></h4>
+            <h4 class="modal-title" id="myModalLabel"><b>Keranjang Belanja Baru</b></h4>
           </div>
           <div class="modal-body">
-                  <p><b>Anda yakin akan ingin membuat cart baru ?</b></p>
-                  <p>Setelah anda memilih "Ya", maka cart baru akan </p>
-                  <p>menggantikan cart sebelumnya</p>
+                  <p><b>Anda yakin akan ingin membuat keranjang belanja baru ?</b></p>
+                  <p>Setelah anda memilih "Ya", maka keranjang belanja baru akan menggantikan keranjang belanja sebelumnya </p>
+
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newcartFn()">Ya</button>
@@ -249,12 +249,12 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel"><b>Hapus Cart</b></h4>
+            <h4 class="modal-title" id="myModalLabel"><b>Hapus Keranjang Belanja</b></h4>
           </div>
           <div class="modal-body">
-                  <p><b>Anda yakin akan ingin mengahpus cart ?</b></p>
-                  <p>Setelah anda memilih "Ya", maka semua </p>
-                  <p>produk dalam cart ini akan dihapus</p>
+                  <p><b>Anda yakin akan ingin menghapus keranjang belanja ?</b></p>
+                  <p>Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus</p>
+
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="deletecartFn()">Ya</button>

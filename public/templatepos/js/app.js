@@ -61,9 +61,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
 
         //show modal product detail
-        $scope.showdetailFn = function(id){
-            $scope.productmodal = $scope.product[id];
+        $scope.showdetailFn = function(id,act){
+            $scope.productmodal        = $scope.product[id];
+            $scope.productmodal['idx'] = id;
             $scope.product[id]['disabled'] = 'disabled';
+            $scope.hiddenbtn = false;
+            if(act) $scope.hiddenbtn = true;
         };
 
         //get unix guestid
@@ -109,7 +112,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.productnotfound = false;
             if(newvalue && newvalue.length > 2) {
                 if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
-                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
+                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue +'merchant_id[]=' + $scope.datauser['userdetail']['merchant_id']).then(function (response) {
                     if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
                         for (var i = 0; i < response.data.records.length; i++) {
                             response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -177,6 +180,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                      product_name : $scope.productmodal['product_name'],
                      qty          : 1,
                      price        : $scope.productmodal['price'],
+                     upc_code     : $scope.productmodal['upc_code'],
+                     idx          : $scope.productmodal['idx'],
                      hargatotal   : 0
 
                  });
