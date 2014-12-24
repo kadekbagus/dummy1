@@ -43,7 +43,9 @@
                         </tr>
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
-                                <td style="width: 300px" ><a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %></td>
+                                <td style="max-width: 300px;word-wrap: break-word;" >
+                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %>
+                                </td>
                                 <td style="width: 200px">
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
@@ -106,7 +108,7 @@
                            <p class="text-center"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter">
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>

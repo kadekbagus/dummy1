@@ -19,8 +19,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 });
     //config base url
    // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
-   // app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
-    app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1/';
+    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
+  //  app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1/';
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
@@ -65,7 +65,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
             $scope.productmodal['idx'] = id;
-            $scope.product[id]['disabled'] = 'disabled';
             $scope.hiddenbtn = false;
             if(act) $scope.hiddenbtn = true;
         };
@@ -80,7 +79,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             if(action == 'p'){
                 $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? parseInt($scope.cart[id]['qty']) + 1 : 1;
             }else if(action == 'm'){
-                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? ($scope.cart[id]['qty'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['qty'] - 1)  :  $scope.cart.splice(id ,1);
+                if($scope.cart[id]['qty'] == 1){
+                    $scope.cart.splice(id ,1);
+                    $scope.product[id]['disabled'] = false;
+                }else{
+                    $scope.cart[id]['qty'] = $scope.cart[id]['qty'] - 1;
+                }
+                //$scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? ($scope.cart[id]['qty'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['qty'] - 1)  :  $scope.cart.splice(id ,1);
             }else if(action == 'd'){
                 $scope.cart.splice(id ,1);
             }else{
@@ -177,12 +182,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 $scope.product[$scope.productmodal['idx']]['disabled'] = true;
                  $scope.cart.push({
                      product_name : $scope.productmodal['product_name'],
                      qty          : 1,
                      price        : $scope.productmodal['price'],
                      upc_code     : $scope.productmodal['upc_code'],
-                     idx          : $scope.productmodal['idx'],
                      hargatotal   : 0
 
                  });
@@ -193,10 +198,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //new cart
         $scope.newcartFn = function(act){
             $scope.getguest();
+            $scope.getproduct();
             $scope.cart      = [];
         };
         //delete cart
         $scope.deletecartFn = function(act){
+            $scope.getproduct();
             $scope.cart      = [];
         };
         //checkout
