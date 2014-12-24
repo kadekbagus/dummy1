@@ -24,11 +24,27 @@ $app = new Illuminate\Foundation\Application;
 |
 */
 
-$env = $app->detectEnvironment(array(
+$env = $app->detectEnvironment(function() {
+	/**
+	 * Change the environment detection for Orbit App
+	 * @author Rio Astamal <me@rioastamal.net>
+	 */
 
-	'local' => array('homestead'),
+	// Check for environment variable named 'ORBIT_APP_ENV'
+	if (isset($_SERVER['ORBIT_APP_ENV']) && ! empty($_SERVER['ORBIT_APP_ENV'])) {
+		return $_SERVER['ORBIT_APP_ENV'];
+	}
 
-));
+	// Check for a file name orbit.env.php on the root of this app
+	// if it exists use it.
+	$orbitEnvApp = __DIR__ . '..' . DIRECTORY_SEPARATOR . 'orbit.env.php';
+	if (file_exists($orbitEnvApp)) {
+		return require $orbitEnvApp;
+	}
+
+	// Default return production
+	return 'production';
+});
 
 /*
 |--------------------------------------------------------------------------

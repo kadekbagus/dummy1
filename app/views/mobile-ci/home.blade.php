@@ -19,7 +19,7 @@
         <div class="row">
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>CATALOGUE</span>
+              <span>{{ Lang::get('mobileci.widgets.catalogue') }}</span>
             </header>
             <section class="widget-single">
               <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />   
@@ -27,7 +27,7 @@
           </div>
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>NEW PRODUCT</span>
+              <span>{{ Lang::get('mobileci.widgets.new_product') }}</span>
             </header>
             <section class="widget-single">
               <div id="slider1_container" style="display: none; position: relative; margin: 0 auto; width: 980px; height: 380px; overflow: hidden;">
@@ -46,57 +46,19 @@
                   <!-- Slides Container -->
                   <div u="slides" style="cursor: move; position: absolute; left: 0px; top: 10px; width: 960px; height: 360px;
                   overflow: hidden;">
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product1.png') }}" />
-                      </div>
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product2.png') }}" />
-                      </div>
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product3.png') }}" />
-                      </div>
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product5.jpg') }}" />
-                      </div>
+                      @foreach($new_products as $new_product)
+                        <div>
+                          <a href="{{ url('customer/product/'.$new_product->product_id) }}">
+                          @if(sizeof($new_product->media) > 0)
+                            <img u="image" class="img-responsive" src2="{{ asset($new_product->media[0]->path) }}" style="width: 350px;"/>
+                          @else
+                            <img u="image" class="img-responsive" src2="{{ asset('mobile-ci/images/default-product.png') }}" style="width: 350px;"/>
+                          @endif
+                          </a>
+                        </div>
+                      @endforeach
                   </div>
-                  <!-- Bullet Navigator Skin Begin -->
-                  <style>
-                      /* jssor slider bullet navigator skin 05 css */
-                      /*
-                      .jssorb05 div           (normal)
-                      .jssorb05 div:hover     (normal mouseover)
-                      .jssorb05 .av           (active)
-                      .jssorb05 .av:hover     (active mouseover)
-                      .jssorb05 .dn           (mousedown)
-                      */
-                      .jssorb05 div, .jssorb05 div:hover, .jssorb05 .av {
-                          background: url({{ asset('mobile-ci/images/b05.png') }}) no-repeat;
-                          overflow: hidden;
-                          cursor: pointer;
-                      }
-
-                      .jssorb05 div {
-                          background-position: -7px -7px;
-                      }
-
-                          .jssorb05 div:hover, .jssorb05 .av:hover {
-                              background-position: -37px -7px;
-                          }
-
-                      .jssorb05 .av {
-                          background-position: -67px -7px;
-                      }
-
-                      .jssorb05 .dn, .jssorb05 .dn:hover {
-                          background-position: -97px -7px;
-                      }
-                  </style>
-                  <!-- bullet navigator container -->
-                  <div u="navigator" class="jssorb05" style="position: absolute; bottom: 16px; right: 6px;">
-                      <!-- bullet navigator item prototype -->
-                      <div u="prototype" style="POSITION: absolute; WIDTH: 16px; HEIGHT: 16px;"></div>
-                  </div>
-                  <!-- Bullet Navigator Skin End -->
+                 
                   <!-- Arrow Navigator Skin Begin -->
                   <style>
                       /* jssor slider arrow navigator skin 11 css */
@@ -155,7 +117,7 @@
         <div class="row">
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>PROMOTION</span>
+              <span>{{ Lang::get('mobileci.widgets.promotion') }}</span>
             </header>
             <section class="widget-single">
               <div id="slider2_container" style="display: none; position: relative; margin: 0 auto; width: 980px; height: 380px; overflow: hidden;">
@@ -187,44 +149,6 @@
                           <img u="image" src2="{{ asset('mobile-ci/images/products/product5.jpg') }}" />
                       </div>
                   </div>
-                  <!-- Bullet Navigator Skin Begin -->
-                  <style>
-                      /* jssor slider bullet navigator skin 05 css */
-                      /*
-                      .jssorb05 div           (normal)
-                      .jssorb05 div:hover     (normal mouseover)
-                      .jssorb05 .av           (active)
-                      .jssorb05 .av:hover     (active mouseover)
-                      .jssorb05 .dn           (mousedown)
-                      */
-                      .jssorb05 div, .jssorb05 div:hover, .jssorb05 .av {
-                          background: url({{ asset('mobile-ci/images/b05.png') }}) no-repeat;
-                          overflow: hidden;
-                          cursor: pointer;
-                      }
-
-                      .jssorb05 div {
-                          background-position: -7px -7px;
-                      }
-
-                          .jssorb05 div:hover, .jssorb05 .av:hover {
-                              background-position: -37px -7px;
-                          }
-
-                      .jssorb05 .av {
-                          background-position: -67px -7px;
-                      }
-
-                      .jssorb05 .dn, .jssorb05 .dn:hover {
-                          background-position: -97px -7px;
-                      }
-                  </style>
-                  <!-- bullet navigator container -->
-                  <div u="navigator" class="jssorb05" style="position: absolute; bottom: 16px; right: 6px;">
-                      <!-- bullet navigator item prototype -->
-                      <div u="prototype" style="POSITION: absolute; WIDTH: 16px; HEIGHT: 16px;"></div>
-                  </div>
-                  <!-- Bullet Navigator Skin End -->
                   <!-- Arrow Navigator Skin Begin -->
                   <style>
                       /* jssor slider arrow navigator skin 11 css */
@@ -281,7 +205,7 @@
           </div>
           <div class="single-widget-container col-xs-12 col-sm-6">
             <header class="widget-title">
-              <span>COUPON</span>
+              <span>{{ Lang::get('mobileci.widgets.coupon') }}</span>
             </header>
             <section class="widget-single">
               <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />   
@@ -299,7 +223,7 @@
 
         jQuery(document).ready(function ($) {
             var options = {
-                $AutoPlay: true,                                    //[Optional] Whether to auto play, to enable slideshow, this option must be set to true, default value is false
+                $AutoPlay: false,                                    //[Optional] Whether to auto play, to enable slideshow, this option must be set to true, default value is false
                 $AutoPlaySteps: 1,                                  //[Optional] Steps to go for each navigation request (this options applys only when slideshow disabled), the default value is 1
                 $AutoPlayInterval: 3000,                            //[Optional] Interval (in milliseconds) to go for next slide since the previous stopped if the slider is auto playing, default value is 3000
                 $PauseOnHover: 1,                                   //[Optional] Whether to pause when mouse over if a slider is auto playing, 0 no pause, 1 pause for desktop, 2 pause for touch device, 3 pause for desktop and touch device, 4 freeze for desktop, 8 freeze for touch device, 12 freeze for desktop and touch device, default value is 1

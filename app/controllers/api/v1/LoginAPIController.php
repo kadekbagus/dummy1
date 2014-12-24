@@ -68,7 +68,7 @@ class LoginAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -128,7 +128,7 @@ class LoginAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -155,10 +155,11 @@ class LoginAPIController extends ControllerAPI
      * POST - Register new customer
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `email`          (required) - Email address of the user
+     * @param string    `email`                     (required) - Email address of the user
      * @return Illuminate\Support\Facades\Response
      */
     public function postRegisterUserInShop()
@@ -188,21 +189,53 @@ class LoginAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
+            $customerRole = Role::where('role_name', 'Consumer')->first();
+            if (empty($customerRole)) {
+                $errorMessage = Lang::get('validation.orbit.empty.customer_role');
+                throw new Exception($errorMessage);
+            }
+
+            // The retailer (shop) which this registration taken
+            $retailerId = Config::get('orbit.shop.id');
+            $retailer = Retailer::excludeDeleted()
+                                ->where('merchant_id', $retailerId)
+                                ->first();
+            if (empty($retailer)) {
+                $errorMessage = Lang::get('validation.orbit.empty.retailer');
+                throw new Exception($errorMessage);
+            }
+
             $newuser = new User();
             $newuser->username = $email;
-            $newuser->user_password = str_random(8);
             $newuser->user_email = $email;
             $newuser->status = 'pending';
-            $newuser->user_role_id = Role::where('role_name','Consumer')->first()->role_id;
+            $newuser->user_role_id = $customerRole->role_id;
             $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
 
             $newuser->save();
 
             $userdetail = new UserDetail();
+
+            // Fill the information about retailer (shop)
+            $userdetail->merchant_id = $retailer->merchant_id;
+            $userdetail->merchant_acquired_date = date('Y-m-d H:i:s');
+
+            // Save the user details
             $userdetail = $newuser->userdetail()->save($userdetail);
 
-            $newuser->setRelation('userdetail', $userdetail);
-            $newuser->userdetail = $userdetail;
+            // Generate API key for this user
+            $apikey = new Apikey();
+            $apikey->api_key = Apikey::genApiKey($newuser);
+            $apikey->api_secret_key = Apikey::genSecretKey($newuser);
+            $apikey->status = 'active';
+            $apikey->user_id = $newuser->user_id;
+            $apikey = $newuser->apikey()->save($apikey);
+
+            $newuser->setRelation('userDetail', $userdetail);
+            $newuser->user_detail = $userdetail;
+
+            $newuser->setRelation('apikey', $apikey);
+            $newuser->apikey = $apikey;
 
             // token
             $token = new Token();
@@ -215,11 +248,28 @@ class LoginAPIController extends ControllerAPI
             $token->user_id = $newuser->user_id;
             $token->save();
 
-            // send the email
-            Mail::send('emails.registration.activation-html', array('token' => $token->token_value, 'email' => $email), function($message)
+            // URL Activation link
+            $baseUrl = Config::get('orbit.registration.mobile.activation_base_url');
+            $tokenUrl = sprintf($baseUrl, $token->token_value);
+
+            $data = array(
+                'token'     => $token->token_value,
+                'email'     => $email,
+                'token_url' => $tokenUrl,
+                'shop_name' => $retailer->name
+            );
+            $mailviews = array(
+                'html' => 'emails.registration.activation-html',
+                'text' => 'emails.registration.activation-text'
+            );
+            Mail::send($mailviews, $data, function($message)
             {
+                $emailconf = Config::get('orbit.registration.mobile.sender');
+                $from = $emailconf['email'];
+                $name = $emailconf['name'];
+
                 $email = OrbitInput::post('email');
-                $message->from('registration@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
+                $message->from($from, $name)->subject('You are almost in Orbit!');
                 $message->to($email);
             });
 
@@ -262,10 +312,10 @@ class LoginAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            $this->response->data = NULL;
 
             // Rollback the changes
             $this->rollBack();
@@ -278,25 +328,33 @@ class LoginAPIController extends ControllerAPI
      * GET - Register Token Check
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `token`                 (required) - Token to be check
+     * @param string    `token`                     (required) - Token to be check
+     * @param string    `password`                  (required) - Password for the account
+     * @param string    `password_confirmation`     (required) - Confirmation
      * @return Illuminate\Support\Facades\Response
      */
-    public function getRegisterTokenCheck()
+    public function postRegisterTokenCheck()
     {
         try {
             $this->registerCustomValidation();
-            
-            $token_value = trim(OrbitInput::get('token'));
+
+            $tokenValue = trim(OrbitInput::post('token'));
+            $password = OrbitInput::post('password');
+            $password2 = OrbitInput::post('password_confirmation');
 
             $validator = Validator::make(
                 array(
-                    'token_value' => $token_value,
+                    'token_value'   => $tokenValue,
+                    'password'      => $password,
+                    'password_confirmation' => $password2
                 ),
                 array(
-                    'token_value' => 'required|orbit.empty.token',
+                    'token_value'   => 'required|orbit.empty.token',
+                    'password'      => 'required|min:5|confirmed',
                 )
             );
 
@@ -307,35 +365,78 @@ class LoginAPIController extends ControllerAPI
             }
 
             $token = App::make('orbit.empty.token');
-            $user = User::where('user_id', $token->user_id)->first();
+            $user = User::with('userDetail')
+                        ->excludeDeleted()
+                        ->where('user_id', $token->user_id)
+                        ->first();
 
             if (! is_object($token) || ! is_object($user)) {
                 $message = Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
             }
 
-            Auth::Login($user);
+            // Begin database transaction
+            $this->beginTransaction();
 
             // update the token status so it cannot be use again
             $token->status = 'deleted';
             $token->save();
 
+            // Update user password and activate them
+            $user->user_password = Hash::make($password);
+            $user->status = 'active';
+            $user->save();
+
             $this->response->data = $user;
+
+            // Sign page link
+            $signinUrl = Config::get('orbit.registration.mobile.signin_url');
+
+            $data = array(
+                'email'         => $user->user_email,
+                'password'      => $password,
+                'signin_url'    => $signinUrl
+            );
+            $mailviews = array(
+                'html' => 'emails.registration.activated-html',
+                'text' => 'emails.registration.activated-text'
+            );
+            Mail::send($mailviews, $data, function($message) use ($user)
+            {
+                $emailconf = Config::get('orbit.registration.mobile.sender');
+                $from = $emailconf['email'];
+                $name = $emailconf['name'];
+
+                $message->from($from, $name)->subject('Your Account on Orbit has been Activated!');
+                $message->to($user->user_email);
+            });
+
+            // Commit the changes
+            $this->commit();
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
         }
 
         return $this->render();

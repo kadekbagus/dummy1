@@ -234,4 +234,18 @@ class Merchant extends Eloquent
 
         return $builder;
     }
+
+    /**
+     * Accessor for default logo
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     *
+     */
+    public function getLogoAttribute($value)
+    {
+        if(is_null($value)){
+            return '/mobile-ci/images/default-logo.png';
+        } else {
+            return $value;
+        }
+    }
 }
