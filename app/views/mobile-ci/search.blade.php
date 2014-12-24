@@ -18,9 +18,9 @@
 						</div>
 					</div>
 					<div class="zoom-wrapper">
-						<div class="zoom"><a href="{{ asset('mobile-ci/images/products/product1.png') }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
+						<div class="zoom"><a href="{{ asset($product->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
 					</div>
-					<a href="{{ asset('mobile-ci/images/products/product1.png') }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset('mobile-ci/images/products/product1.png') }}"></a>
+					<a href="{{ asset($product->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product->image) }}"></a>
 				</div>
 				<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
 					<div class="row">
@@ -49,7 +49,7 @@
 				</div>
 				<div class="col-xs-3 catalogue-control ">
 					<div class="circlet btn-blue pull-right">
-						<a href="{{ url('customer/product/1') }}"><img src="{{ asset('mobile-ci/images/detail-clear.png') }}" ></a>
+						<a href="{{ url('customer/product/'.$product->product_id) }}"><img src="{{ asset('mobile-ci/images/detail-clear.png') }}" ></a>
 					</div>
 				</div>
 			</div>

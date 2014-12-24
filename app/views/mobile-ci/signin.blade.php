@@ -20,7 +20,7 @@
       <header>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <span class="greetings">Selamat Datang!</span>
+            <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
           </div>
         </div>
         <div class="row vertically-spaced">
@@ -31,10 +31,10 @@
       </header>
       <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
         <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" />
+          <input type="text" class="form-control" name="email" id="email" placeholder="Email" />
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">Login</button>
+          <button type="submit" class="btn btn-info btn-block">Enter</button>
         </div>
       </form>
     </div>
@@ -47,7 +47,7 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Tutup</span></button>
           <h4 class="modal-title" id="myModalLabel">Error</h4>
         </div>
         <div class="modal-body">
@@ -56,8 +56,8 @@
         <div class="modal-footer">
           <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
             <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
-            <button type="submit" class="btn btn-success" id="signup">Sign Up</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success" id="signup">Daftar</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
           </form>
         </div>
       </div>

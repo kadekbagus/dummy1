@@ -17,7 +17,7 @@
       <header>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <span class="greetings">Selamat Datang!</span>
+            <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
           </div>
         </div>
         <div class="row vertically-spaced">
