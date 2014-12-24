@@ -60,7 +60,7 @@ Route::get('/pos/dashboard', function () {
     if (Auth::check()) {
         return View::make('pos.dashboard');
     } else {
-        echo "anda tidak login";
+        return Redirect::to('pos');
     }
 });
 

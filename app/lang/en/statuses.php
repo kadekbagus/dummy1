@@ -29,6 +29,7 @@ return array(
             'product'      => 'There is no product found that matched your criteria.',
             'tax'          => 'There is no tax found that matched your criteria.',
             'categories'   => 'There is no category found that matched your criteria.',
+            'promotion'    => 'There is no promotion found that matched your criteria.',
         ),
         'uploaded'  => array(
             'merchant' => array(
