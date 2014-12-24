@@ -100,25 +100,25 @@
                           </div>
                       </div>
                 </div>
-                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 595px;overflow-x: hidden; padding-top: 1px" id="loading" >
+                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 585px;overflow-x: hidden; padding-top: 1px" id="loading" >
                       <div class="row">
                       <div data-ng-if="productnotfound">
                            <p class="text-center"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <div ng-class="k % 2 == 0 ? 'mini-box <% v.disabled %>' : 'mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
-                                     <table>
-                                           <tr>
-                                                <td rowspan="4"> <img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></td>
-                                           </tr>
-                                           <tr>
-                                                <td><h5>&nbsp;<b><% v.product_name.substr(0,9) %></b><br>&nbsp;<b style="font-size: 10px"><% v.upc_code %></b></h5></td>
-                                           </tr>
-                                           <tr>
-                                                <td class="text-right" style="width: 80px;"><h6><% v.price %></h6></td>
-                                           </tr>
-                                     </table>
-                                </div>
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                                       <div class="row no-gutter">
+                                          <div class="col-xs-4 col-xs-offset-1">
+                                             	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
+                                           </div>
+                                           <div class="col-xs-6" >
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;">
+                                           	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
+                                           	   </div>
+                                           	   <div class="col-xs-12 text-right" style=""><h6 style="margin-top:1px"><% v.price %></h6></div>
+                                           </div>
+                                       </div>
+                                </button>
                           </div>
                       </div>
                 </div>
@@ -143,7 +143,7 @@
                 <div class="col-md-12 main-theme" >
                     <div class="row">
                     	<div class="col-xs-12">
-                    				<h4><% productmodal.product_name %></h4>
+                    				<h4> <span class="orbit-component word-wrap"><% productmodal.product_name %></span></h4>
                     			</div>
                     	<div class="col-xs-12">
                     				<p><% productmodal.short_description %></p>

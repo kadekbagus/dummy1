@@ -77,7 +77,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.qaFn = function(id,action){
 
             if(action == 'p'){
-                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? $scope.cart[id]['qty'] + 1 : 1;
+                $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? parseInt($scope.cart[id]['qty']) + 1 : 1;
             }else if(action == 'm'){
                 $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? ($scope.cart[id]['qty'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['qty'] - 1)  :  $scope.cart.splice(id ,1);
             }else if(action == 'd'){
