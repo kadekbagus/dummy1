@@ -49,13 +49,13 @@
                                 <td style="width: 200px">
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
-                                                                  <button type="button" class="btn btn-primary"  data-ng-click="qaFn(k,'m')" data-spin="up">
+                                                                  <button type="button" class="btn btn-primary"  data-ng-click="qaFn($index,'m')" data-spin="up">
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
                                           <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
                                           <span class="input-group-btn">
-                                              <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn(k,'p')">
+                                              <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn($index,'p')">
                                                   <i class="fa fa-plus"></i>
                                               </button>
                                           </span>&nbsp;&nbsp;
@@ -74,7 +74,7 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h4>TOTAL ITEM<br><% cart.totalitem %></b></h4></td>
+                            <td class="text-center"><b><h4>TOTAL ITEMS<br><% cart.totalitem %></b></h4></td>
                             <td class="text-center"><b><h4>SUBTOTAL<br><% cart.subtotal %></b></h4></td>
                             <td class="text-center"><b><h4>VAT<br><% cart.vat %></b></h4> </td>
                             <td class="text-center"><b><h4>TOTAL TO PAY<br><% cart.totalpay %></b></h4></td>

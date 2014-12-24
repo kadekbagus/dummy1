@@ -80,14 +80,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? parseInt($scope.cart[id]['qty']) + 1 : 1;
             }else if(action == 'm'){
                 if($scope.cart[id]['qty'] == 1){
+                    $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
                     $scope.cart.splice(id ,1);
-                    $scope.product[id]['disabled'] = false;
+                    if($scope.cart.length == 0) $scope.cart = [];
                 }else{
                     $scope.cart[id]['qty'] = $scope.cart[id]['qty'] - 1;
                 }
-                //$scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? ($scope.cart[id]['qty'] == 1 ? $scope.cart.splice(id ,1) : $scope.cart[id]['qty'] - 1)  :  $scope.cart.splice(id ,1);
             }else if(action == 'd'){
+                $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
                 $scope.cart.splice(id ,1);
+                if($scope.cart.length == 0) $scope.cart = [];
             }else{
                 //do something when error
             }
@@ -135,27 +137,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.getproduct();
             }
         });
-        //watch scan
-        $scope.$watch("scanproduct", function(newvalue){
-            if(newvalue) {
-                if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
-                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
-                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
-                        for (var i = 0; i < response.data.records.length; i++) {
-                            response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
-                        }
-                        $scope.product = response.data.records;
-                    } else {
-                        $scope.productnotfound = true;
-                        $scope.product = [];
-                    }
-                    if(progressJs) progressJs("#loadingsearch").end();
-                })
-            }else if(newvalue.length == 0){
-                $scope.productnotfound = false;
-                $scope.getproduct();
-            }
-        });
+
 
         //function count cart
         $scope.countcart = function(){
@@ -187,6 +169,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                      product_name : $scope.productmodal['product_name'],
                      qty          : 1,
                      price        : $scope.productmodal['price'],
+                     idx          : $scope.productmodal['idx'],
                      upc_code     : $scope.productmodal['upc_code'],
                      hargatotal   : 0
 
