@@ -19,7 +19,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 });
     //config base url
    // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
-    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
+   // app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
+    app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1/';
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
