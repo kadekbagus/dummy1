@@ -100,7 +100,7 @@ class Promotion extends Eloquent
         {
             $prefix = DB::getTablePrefix();
             $query->whereRaw("{$prefix}promotions.merchant_id in (select m2.merchant_id from {$prefix}merchants m2
-                                where m2.user_id=?)", array($user->user_id));
+                                where m2.user_id=? and m2.object_type='merchant')", array($user->user_id));
         });
 
         return $builder;

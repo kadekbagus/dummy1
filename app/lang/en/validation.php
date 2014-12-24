@@ -125,6 +125,8 @@ return array(
             'tax_sortby'        => 'The sort by argument for tax you specify is not valid, the valid value are: registered_date, merchant_tax_id, tax_name, tax_value.',
             'category_status'   => 'The category status you specify is not found.',
             'category_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description, status.',
+            'promotion_status'  => 'The promotion status you specify is not found.',
+            'promotion_sortby'  => 'The sort by argument you specify is not valid, the valid value are: registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
@@ -154,6 +156,10 @@ return array(
             'update_category'       => 'update category',
             'delete_category'       => 'delete category',
             'view_category'         => 'view category',
+            'new_promotion'          => 'add new promotion',
+            'update_promotion'       => 'update promotion',
+            'delete_promotion'       => 'delete promotion',
+            'view_promotion'         => 'view promotion',
         ),
     ),
 
