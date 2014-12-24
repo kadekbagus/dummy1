@@ -199,7 +199,7 @@ class Merchant extends Eloquent
      * @author Rio Astamal <me@rioastamal.net>
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function consumer()
+    public function consumers()
     {
         return $this->hasManyThrough('User', 'UserDetail', 'merchant_id', 'user_id', 'user_id');
     }
