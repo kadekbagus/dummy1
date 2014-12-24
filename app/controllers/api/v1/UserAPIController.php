@@ -759,6 +759,8 @@ class UserAPIController extends ControllerAPI
      * @param string   `email_like`            (optional)
      * @param string   `firstname_like`        (optional)
      * @param string   `lastname_like`         (optional)
+     * @param string   `merchant_id`           (optional) - Id of the merchant, could be array or string with comma separated value
+     * @param string   `retailer_id`           (optional) - Id of the retailer (Shop), could be array or string with comma separated value
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
@@ -769,25 +771,25 @@ class UserAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.user.getsearchuser.before.auth', array($this));
+            Event::fire('orbit.user.getconsumer.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.getsearchuser.after.auth', array($this));
+            Event::fire('orbit.user.getconsumer.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.getsearchuser.before.authz', array($this, $user));
+            Event::fire('orbit.user.getconsumer.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_user')) {
-                Event::fire('orbit.user.getsearchuser.authz.notallowed', array($this, $user));
+                Event::fire('orbit.user.getconsumer.authz.notallowed', array($this, $user));
                 $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.getsearchuser.after.authz', array($this, $user));
+            Event::fire('orbit.user.getconsumer.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -804,14 +806,14 @@ class UserAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.user.getsearchuser.before.validation', array($this, $validator));
+            Event::fire('orbit.user.getconsumer.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.getsearchuser.after.validation', array($this, $validator));
+            Event::fire('orbit.user.getconsumer.after.validation', array($this, $validator));
 
             // Get the maximum record
             $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -820,7 +822,19 @@ class UserAPIController extends ControllerAPI
             }
 
             // Builder object
-            $users = User::Consumers()->with(array('userdetail', 'lastVisitedShop'))->excludeDeleted();
+            $users = User::Consumers()
+                         ->with(array('userdetail', 'lastVisitedShop'))
+                         ->excludeDeleted();
+
+            // Filter by merchant ids
+            OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
+                $users->merchantIds($merchantIds);
+            });
+
+            // Filter by retailer (shop) ids
+            OrbitInput::get('retailer_id', function($retailerIds) use ($users) {
+                $users->retailerIds($retailerIds);
+            });
 
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {
@@ -936,7 +950,7 @@ class UserAPIController extends ControllerAPI
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.getsearchuser.access.forbidden', array($this, $e));
+            Event::fire('orbit.user.getconsumer.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -944,7 +958,7 @@ class UserAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.getsearchuser.invalid.arguments', array($this, $e));
+            Event::fire('orbit.user.getconsumer.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -956,7 +970,7 @@ class UserAPIController extends ControllerAPI
             $this->response->data = $result;
             $httpCode = 403;
         } catch (QueryException $e) {
-            Event::fire('orbit.user.getsearchuser.query.error', array($this, $e));
+            Event::fire('orbit.user.getconsumer.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -970,7 +984,7 @@ class UserAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
         } catch (Exception $e) {
-            Event::fire('orbit.user.getsearchuser.general.exception', array($this, $e));
+            Event::fire('orbit.user.getconsumer.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -979,7 +993,7 @@ class UserAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.user.getsearchuser.before.render', array($this, &$output));
+        Event::fire('orbit.user.getconsumer.before.render', array($this, &$output));
 
         return $output;
     }
