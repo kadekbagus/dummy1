@@ -13,6 +13,7 @@ app/config/app.php
 app/config/database.php
 app/config/testing/database.php
 app/config/orbit.php
+public/mobile-ci/scripts/config.js
 
 # Uploads directory
 public/uploads/**
