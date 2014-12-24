@@ -1,4 +1,5 @@
 <?php
+use OrbitRelation\HasManyThrough;
 
 class Merchant extends Eloquent
 {
@@ -182,6 +183,28 @@ class Merchant extends Eloquent
     }
 
     /**
+     * Merchant has many user details
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function userDetails()
+    {
+        return $this->hasMany('UserDetail', 'merchant_id', 'merchant_id');
+    }
+
+    /**
+     * Merchant has many users
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function consumer()
+    {
+        return $this->hasManyThrough('User', 'UserDetail', 'merchant_id', 'user_id', 'user_id');
+    }
+
+    /**
      * Merchant has many uploaded media.
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -247,5 +270,26 @@ class Merchant extends Eloquent
         } else {
             return $value;
         }
+    }
+
+    /**
+     * Define a has-many-through relationship.
+     *
+     * @param  string  $related
+     * @param  string  $through
+     * @param  string|null  $firstKey
+     * @param  string|null  $secondKey
+     * @param  string|null  $parentKey
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function hasManyThrough($related, $through, $firstKey = null, $secondKey = null, $parentKey = null)
+    {
+        $through = new $through;
+
+        $firstKey = $firstKey ?: $this->getForeignKey();
+
+        $secondKey = $secondKey ?: $through->getForeignKey();
+
+        return new HasManyThrough((new $related)->newQuery(), $this, $through, $firstKey, $secondKey, $parentKey);
     }
 }
