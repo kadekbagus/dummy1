@@ -18,17 +18,17 @@
 			</div>
 		</div>
 		<div class="zoom-wrapper">
-			<div class="zoom"><a href="{{ asset('mobile-ci/images/products/product1.png') }}" data-featherlight="image"><img alt="" src="{{ asset('mobile-ci/images/product-zoom.png') }}" ></a></div>
+			<div class="zoom"><a href="{{ asset($product->image) }}" data-featherlight="image"><img alt="" src="{{ asset('mobile-ci/images/product-zoom.png') }}" ></a></div>
 		</div>
-		<a href="{{ asset('mobile-ci/images/products/product1.png') }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset('mobile-ci/images/products/product1.png') }}"></a>
+		<a href="{{ asset($product->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product->image) }}"></a>
 	</div>
 	<div class="col-xs-12 main-theme product-detail">
 		<div class="row">
 			<div class="col-xs-12">
-				<h3>Awesome Polo Shirt</h3>
+				<h3>{{ $product->product_name }}</h3>
 			</div>
 			<div class="col-xs-12">
-				<p>A furred, magic resistant shirt that is feared by wizards.</p>
+				<p>{{ $product->long_description }}</p>
 			</div>
 		</div>
 		<div class="additional-detail">
@@ -92,15 +92,15 @@
 	<div class="col-xs-12 product-bottom main-theme ">
 		<div class="row">
 			<div class="col-xs-6">
-				<h4>Code : ID000001</h4>
+				<h4>Code : {{ $product->upc_code }}</h4>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-6 strike">
-				<h3>USD 60</h3>
+				<h3>IDR {{ $product->price }}</h3>
 			</div>
 			<div class="col-xs-6">
-				<h3>USD 50</h3>
+				<h3>IDR {{ $product->price }}</h3>
 			</div>	
 		</div>
 		<div class="row text-center product-control">
