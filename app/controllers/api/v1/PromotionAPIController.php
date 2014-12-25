@@ -554,13 +554,12 @@ class PromotionAPIController extends ControllerAPI
             // Get the maximum record
             $maxRecord = (int)Config::get('orbit.pagination.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 1;
+                $maxRecord = 20;
             }
 
             // Builder object
             $promotions = Promotion::with('promotionrule', 'retailers', 'promotionrule.discountproduct', 'promotionrule.discountfamily1', 'promotionrule.discountfamily2', 'promotionrule.discountfamily3', 'promotionrule.discountfamily4', 'promotionrule.discountfamily5')
-                ->excludeDeleted()
-                ->allowedForUser($user);
+                ->excludeDeleted();
 
             // Filter promotion by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)
