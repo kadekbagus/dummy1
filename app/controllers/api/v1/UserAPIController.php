@@ -165,7 +165,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postnewuser.general.exception', array($this, $e));
 
-            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -307,7 +307,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postdeleteuser.general.exception', array($this, $e));
 
-            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -481,7 +481,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postupdateuser.general.exception', array($this, $e));
 
-            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -729,7 +729,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.getsearchuser.general.exception', array($this, $e));
 
-            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -749,22 +749,22 @@ class UserAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sort_by`               (optional) - column order by
-     * @param string   `sort_mode`             (optional) - asc or desc
-     * @param integer  `user_id`               (optional)
-     * @param string   `username`              (optional)
-     * @param string   `email`                 (optional)
-     * @param string   `firstname`             (optional)
-     * @param string   `lastname`              (optional)
-     * @param string   `status`                (optional)
-     * @param string   `username_like`         (optional)
-     * @param string   `email_like`            (optional)
-     * @param string   `firstname_like`        (optional)
-     * @param string   `lastname_like`         (optional)
-     * @param string   `merchant_id`           (optional) - Id of the merchant, could be array or string with comma separated value
-     * @param string   `retailer_id`           (optional) - Id of the retailer (Shop), could be array or string with comma separated value
-     * @param integer  `take`                  (optional) - limit
-     * @param integer  `skip`                  (optional) - limit offset
+     * @param string        `sort_by`           (optional) - column order by
+     * @param string        `sort_mode`         (optional) - asc or desc
+     * @param integer       `user_id`           (optional)
+     * @param string        `username`          (optional)
+     * @param string        `email`             (optional)
+     * @param string        `firstname`         (optional)
+     * @param string        `lastname`          (optional)
+     * @param string        `status`            (optional)
+     * @param string        `username_like`     (optional)
+     * @param string        `email_like`        (optional)
+     * @param string        `firstname_like`    (optional)
+     * @param string        `lastname_like`     (optional)
+     * @param array|string  `merchant_id`       (optional) - Id of the merchant, could be array or string with comma separated value
+     * @param array|string  `retailer_id`       (optional) - Id of the retailer (Shop), could be array or string with comma separated value
+     * @param integer       `take`              (optional) - limit
+     * @param integer       `skip`              (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
      */
     public function getConsumerListing()
@@ -987,7 +987,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.getconsumer.general.exception', array($this, $e));
 
-            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1134,7 +1134,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postchangepassword.general.exception', array($this, $e));
 
-            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
