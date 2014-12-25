@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 
 class UserAPIController extends ControllerAPI
 {
@@ -164,7 +165,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postnewuser.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -306,7 +307,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postdeleteuser.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -480,7 +481,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postupdateuser.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -728,7 +729,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.getsearchuser.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -744,6 +745,7 @@ class UserAPIController extends ControllerAPI
      * GET - Search Consumer (currently only basic info)
      *
      * @author Kadek Bagus <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -765,7 +767,6 @@ class UserAPIController extends ControllerAPI
      * @param integer  `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
      */
-
     public function getConsumerListing()
     {
         try {
@@ -986,7 +987,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.getconsumer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1133,7 +1134,7 @@ class UserAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.user.postchangepassword.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
