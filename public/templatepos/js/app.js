@@ -72,7 +72,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.hiddenbtn = false;
             if(act) $scope.hiddenbtn = true;
         };
-
         //get unix guestid
         ($scope.getguest = function(){
                 $scope.guests = moment().unix();
@@ -105,7 +104,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.countcart();
         };
         //get product
-        ($scope.getproduct = function(){
+        $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
             serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
                 if(response.code == 0 ){
@@ -119,26 +118,31 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
                 if(progressJs) progressJs("#loading").end();
             });
-        })();
+        };
         //watch search
         $scope.$watch("searchproduct", function(newvalue){
             $scope.productnotfound = false;
-            if(newvalue && newvalue.length > 2) {
-                if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
-                serviceAjax.getDataFromServer('/pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue +'merchant_id[]=' + $scope.datauser['userdetail']['merchant_id']).then(function (response) {
-                    if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
-                        for (var i = 0; i < response.data.records.length; i++) {
-                            response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+            if(newvalue){
+                if(newvalue && newvalue.length > 2) {
+                    if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
+                    serviceAjax.getDataFromServer('/pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue +'merchant_id[]=' + $scope.datauser['userdetail']['merchant_id']).then(function (response) {
+                        if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
+                            for (var i = 0; i < response.data.records.length; i++) {
+                                response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                            }
+                            $scope.product = response.data.records;
+                            $scope.enadis();
+                        } else {
+                            $scope.productnotfound = true;
+                            $scope.product = [];
                         }
-                        $scope.product = response.data.records;
-                        $scope.enadis();
-                    } else {
-                        $scope.productnotfound = true;
-                        $scope.product = [];
-                    }
-                    if(progressJs) progressJs("#loadingsearch").end();
-                })
-            }else if(newvalue.length == 0){
+                        if(progressJs) progressJs("#loadingsearch").end();
+                    })
+                }else if(newvalue.length == 0){
+                    $scope.productnotfound = false;
+                    $scope.getproduct();
+                }
+            }else{
                 $scope.productnotfound = false;
                 $scope.getproduct();
             }
@@ -178,7 +182,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                          upc_code     : $scope.productmodal['upc_code'],
                          product_id   : $scope.productmodal['product_id'],
                          hargatotal   : 0
-
                      });
                  }
                  $scope.countcart();
@@ -208,6 +211,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.enadis();
             }
         };
+        //checkcart
         $scope.checkcart = function(id){
             var check = true;
             for(var i = 0; i < $scope.cart.length; i++){
@@ -232,8 +236,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //checkout
         $scope.checkoutFn = function(act){
             if(act == 't') {
+                localStorageService.add('cart',$scope.cart);
                 window.location.assign("cash");
             }else if(act == 'k'){
+                localStorageService.add('cart',$scope.cart);
                 window.location.assign("card");
             }
         };
@@ -246,11 +252,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.scanproduct();
                     }else if(response.code == 13){
                         // do something when not found and then call back scanproduct();
-
+                        // waiting design lanang
                     }
             });
         })();
-
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);

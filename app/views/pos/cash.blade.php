@@ -24,12 +24,32 @@
     </div>
 
     <div class="container">
-    <div class="row">
-        <div class="col-md-12">
-           Cash
-        </div>
+           <div class="row" style="padding-left: 20px">
+                <div class="col-md-12" >
+                    <div class="col-md-3"><b><h4>TOTAL ITEMS<br><% cart.totalitem %></b></h4></div>
+                    <div class="col-md-3"><b><h4>SUBTOTAL<br><% cart.subtotal %></b></h4></div>
+                    <div class="col-md-3"><b><h4>VAT<br><% cart.vat %></b></h4></div>
+                    <div class="col-md-3"><b><h4>TOTAL TO PAY<br><% cart.totalpay %></b></h4></div>
+                </div>
+           </div>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Total bayar</label>
+                <input type="text" class="form-control text-right" id="exampleInputEmail1" placeholder="Total bayar">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Nominal Tunai</label>
+                <input type="text" class="form-control text-right" id="exampleInputEmail1" placeholder="Nominal Tunai">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Kembalian</label>
+                <input type="text" class="form-control text-right" id="exampleInputEmail1" placeholder="Kembalian">
+              </div>
+
+             <p class="text-center"><button type="submit" class="btn btn-lg btn-danger" style="padding-left: 89px; padding-right: 89px">Cancel</button></p>
+             <p class="text-center"> <button type="submit" class="btn btn-lg btn-primary" style="background-color: #2c71a3; padding-left: 83px; padding-right: 83px">Continue</button></p>
+            </form>
     </div>
-</div>
 </div>
 
 @stop
