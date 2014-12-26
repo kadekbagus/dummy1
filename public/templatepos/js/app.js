@@ -202,7 +202,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             var check = false;
             for(var a = 0; a < $scope.productidenabled.length; a++){
                 if(id == $scope.productidenabled[a] ){
-                    if(act == 'del') $scope.productidenabled.splice(a ,1);
+                    if(act == 'del') {
+                        $scope.productidenabled.splice(a ,1);
+                        $scope.getproduct();
+                    }
                     if(act == 'add') check = true;
                 }
             }
