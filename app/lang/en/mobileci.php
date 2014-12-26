@@ -16,6 +16,7 @@ return array(
         "customer_id"	=> "CUSTOMER ID",
         "logout"		=> "LOGOUT",
         "payment"		=> "PEMBAYARAN",
+        "searching"       => "PENCARIAN",
     ),
 
     "widgets"		=> array(

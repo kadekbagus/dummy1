@@ -24,6 +24,13 @@ Route::get('/customer/thankyou', 'IntermediateAuthController@MobileCI\MobileCI_g
 
 Route::get('/customer/welcome', 'IntermediateAuthController@MobileCI\MobileCI_getWelcomeView');
 
+Route::get('/customer/search', function()
+{
+	return MobileCI\MobileCIAPIController::create()->getSearchProduct();
+});
+
+Route::get('/customer/search', 'IntermediateAuthController@MobileCI\MobileCI_getSearchProduct');
+
 // -------------------- views ------------------------------
 
 

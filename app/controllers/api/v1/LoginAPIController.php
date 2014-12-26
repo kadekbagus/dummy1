@@ -223,8 +223,19 @@ class LoginAPIController extends ControllerAPI
             // Save the user details
             $userdetail = $newuser->userdetail()->save($userdetail);
 
+            // Generate API key for this user
+            $apikey = new Apikey();
+            $apikey->api_key = Apikey::genApiKey($newuser);
+            $apikey->api_secret_key = Apikey::genSecretKey($newuser);
+            $apikey->status = 'active';
+            $apikey->user_id = $newuser->user_id;
+            $apikey = $newuser->apikey()->save($apikey);
+
             $newuser->setRelation('userDetail', $userdetail);
             $newuser->user_detail = $userdetail;
+
+            $newuser->setRelation('apikey', $apikey);
+            $newuser->apikey = $apikey;
 
             // token
             $token = new Token();
