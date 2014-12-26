@@ -14,7 +14,7 @@ Route::get('/customer/cart', 'IntermediateAuthController@MobileCI\MobileCI_getCa
 
 Route::get('/customer/catalogue', 'IntermediateAuthController@MobileCI\MobileCI_getCatalogueView');
 
-Route::get('/customer/product/{id}', 'IntermediateAuthController@MobileCI\MobileCI_getProductView');
+Route::get('/customer/product', 'IntermediateAuthController@MobileCI\MobileCI_getProductView');
 
 Route::get('/customer/transfer', 'IntermediateAuthController@MobileCI\MobileCI_getTransferCartView');
 
@@ -53,9 +53,9 @@ Route::get('/api/v1/customer/logout', function()
 
 Route::get('/app/v1/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
 
-Route::post('/api/v1/customer/signup', function() 
-{
-    return MobileCI\MobileCIAPIController::create()->postRegisterUserInShop();
-});
+// Route::post('/api/v1/customer/signup', function() 
+// {
+//     return MobileCI\MobileCIAPIController::create()->postRegisterUserInShop();
+// });
 
-Route::post('/app/v1/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postRegisterUserInShop');
+// Route::post('/app/v1/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postRegisterUserInShop');

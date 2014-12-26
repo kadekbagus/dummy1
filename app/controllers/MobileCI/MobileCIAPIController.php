@@ -22,6 +22,7 @@ use \Config;
 use \Retailer;
 use \Product;
 use Carbon\Carbon as Carbon;
+use \stdclass;
 
 class MobileCIAPIController extends ControllerAPI
 {   
@@ -409,13 +410,104 @@ class MobileCIAPIController extends ControllerAPI
     public function getSearchProduct()
     {
         try {
-            $sort_by = OrbitInput::get('sort_by');
-            $sort_mode = OrbitInput::get('sort_mode');
-            $keyword = OrbitInput::get('keyword');
+            // Require authentication
+            $this->checkAuth();
 
-            $products = Product::excludeDeleted()->where('product_name', 'LIKE', "%$keyword%")->orWhere('product_code', 'LIKE', "%$keyword%")->orWhere('short_description', 'LIKE', "%$keyword%")->orWhere('long_description', 'LIKE', "%$keyword%")->get();
+            $user = $this->api->user;
+        
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
+                $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+           
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                ),
+                array(
+                    'sort_by' => 'in:product_name,product_price',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                )
+            );
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            $products = Product::excludeDeleted()->allowedForUser($user);
+
+            // Filter product by name pattern
+            OrbitInput::get('keyword', function ($name) use ($products) {
+                $products->where('products.product_name', 'like', "%$name%");
+            });
+
+            $_products = clone $products;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+            });
+            $products->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $products->skip($skip);
+
+            // Default sort by
+            $sortBy = 'products.product_name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'product_name'              => 'products.product_name',
+                    'product_price'             => 'products.price',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $products->orderBy($sortBy, $sortMode);
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRec;
+            $data->returned_records = count($listOfRec);
+            $data->records = $listOfRec;
+
+            // $products = Product::excludeDeleted()->where('product_name', 'LIKE', "%$keyword%")->orWhere('product_code', 'LIKE', "%$keyword%")->orWhere('short_description', 'LIKE', "%$keyword%")->orWhere('long_description', 'LIKE', "%$keyword%")->get();
             $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'products' => $products));
+            return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -437,8 +529,10 @@ class MobileCIAPIController extends ControllerAPI
     public function getProductView()
     {
         try {
+            $product_id = trim(OrbitInput::get('id'));
+            $product = Product::excludeDeleted()->where('product_id', $product_id)->first();
             $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.product', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer'=>$retailer));
+            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';

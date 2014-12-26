@@ -217,8 +217,9 @@ class LoginAPIController extends ControllerAPI
             $userdetail = new UserDetail();
 
             // Fill the information about retailer (shop)
-            $userdetail->merchant_id = $retailer->merchant_id;
+            $userdetail->merchant_id = $retailer->parent_id;
             $userdetail->merchant_acquired_date = date('Y-m-d H:i:s');
+            $userdetail->retailer_id = $retailer->merchant_id;
 
             // Save the user details
             $userdetail = $newuser->userdetail()->save($userdetail);

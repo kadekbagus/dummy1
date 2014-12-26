@@ -5,6 +5,9 @@
     .modal-backdrop{
       z-index:0;
     }
+    #loader .modal-backdrop{
+      z-index:-1;
+    }
     .img-responsive{
       margin:0 auto;
     }
@@ -17,7 +20,7 @@
       <header>
         <div class="row vertically-spaced">
           <div class="col-xs-12 text-center">
-            <span class="greetings">Selamat Datang!</span>
+            <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
           </div>
         </div>
         <div class="row vertically-spaced">
@@ -41,9 +44,9 @@
 @section('modals')
   <!-- Modal -->
   <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog orbit-modal">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header orbit-modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
           <h4 class="modal-title" id="myModalLabel">Error</h4>
         </div>
@@ -56,6 +59,11 @@
       </div>
     </div>
   </div>
+  <div class="loader">
+    <div class="loader-wrapper">
+      <img class="img-responsive" src="{{ asset('mobile-ci/images/loading.gif') }}">
+    </div>
+  </div>
 @stop
 
 @section('ext_script_bot')
@@ -66,34 +74,44 @@
         return pattern.test(emailAddress);
       };
       $('#loginForm').submit(function(event){
+        $('#myModalLabel').text('Error');
         $('#errorModalText').text('');
+        $('.loader').css('display', 'block');
         if(!$('#email').val()) {
           $('#errorModalText').text('Harap isi email terlebih dahulu.');
+          $('.loader').css('display', 'none');
           $('#errorModal').modal();
         }else{
           if(isValidEmailAddress($('#email').val())){
             $.ajax({
               method:'POST',
-              url:apiPath+'customer/signup',
+              url:apiPath+'user/register/mobile',
               data:{
                 email: $('#email').val()
               }
             }).done(function(data){
               if(data.status==='error'){
                 $('#errorModalText').html(data.message);
+                $('.loader').css('display', 'none');
                 $('#errorModal').modal();  
               }
               if(data.data){
                 // console.log(data.data);
-                window.location.replace(homePath);
+                // window.location.replace(homePath);
+                $('#errorModalText').text('Email untuk aktivasi akun Anda telah dikirim. Silahkan cek email Anda.');
+                $('#myModalLabel').text('Success');
+                $('.loader').css('display', 'none');
+                $('#errorModal').modal();
               }
             }).fail(function(data){
               console.log(data.responseJSON);
               $('#errorModalText').text(data.responseJSON.message);
+              $('.loader').css('display', 'none');
               $('#errorModal').modal();
             });
           } else {
             $('#errorModalText').text('Email tidak valid.');
+            $('.loader').css('display', 'none');
             $('#errorModal').modal();
           }
         }
