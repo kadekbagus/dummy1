@@ -84,7 +84,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }else if(action == 'm'){
                 if($scope.cart[id]['qty'] == 1){
                     $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
-                    $scope.delenadis($scope.product[$scope.cart[id]['idx']]['product_id']);
+                    $scope.adddelenadis($scope.cart[id]['product_id'],'del');
                     $scope.cart.splice(id ,1);
                     if($scope.cart.length == 0) $scope.cart = [];
                 }else{
@@ -92,7 +92,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             }else if(action == 'd'){
                 $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
-                $scope.delenadis($scope.product[$scope.cart[id]['idx']]['product_id']);
+                $scope.adddelenadis($scope.cart[id]['product_id'],'del');
                 $scope.cart.splice(id ,1);
                 if($scope.cart.length == 0) $scope.cart = [];
             }else{
@@ -120,7 +120,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 if(progressJs) progressJs("#loading").end();
             });
         })();
-
         //watch search
         $scope.$watch("searchproduct", function(newvalue){
             $scope.productnotfound = false;
@@ -169,7 +168,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
-                 $scope.productidenabled.push($scope.productmodal['product_id']);
+                 //$scope.productidenabled.push($scope.productmodal['product_id']);
+                 $scope.adddelenadis($scope.productmodal['product_id'],'add');
                  $scope.product[$scope.productmodal['idx']]['disabled'] = true;
                  $scope.cart.push({
                      product_name : $scope.productmodal['product_name'],
@@ -177,6 +177,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                      price        : $scope.productmodal['price'],
                      idx          : $scope.productmodal['idx'],
                      upc_code     : $scope.productmodal['upc_code'],
+                     product_id   : $scope.productmodal['product_id'],
                      hargatotal   : 0
 
                  });
@@ -194,12 +195,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
         };
         //delete array product id enable
-        $scope.delenadis = function(id){
+        $scope.adddelenadis = function(id,act){
+            var check = false;
             for(var a = 0; a < $scope.productidenabled.length; a++){
                 if(id == $scope.productidenabled[a] ){
-                    $scope.productidenabled.splice(a ,1);
+                    if(act == 'del') {
+                        $scope.productidenabled.splice(a ,1);
+
+                    }
+                    if(act == 'add') check = true;
                 }
             }
+            if(act == 'add' && !check) $scope.productidenabled.push(id);
         };
         //new cart
         $scope.newcartFn = function(act){
@@ -223,15 +230,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //scan product
         ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
-                if(response){
                     if(response.code == 0){
                         $scope.productmodal        = response['data'];
                         $scope.inserttocartFn();
+                        $scope.scanproduct();
                     }else if(response.code == 13){
-                        // do something when not found
+                        // do something when not found and then call back scanproduct();
+
                     }
-                    $scope.scanproduct();
-                }
             });
         })();
 
