@@ -105,7 +105,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.countcart();
         };
         //get product
-        $scope.getproduct = function(){
+        ($scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
             serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
                 if(response.code == 0 ){
@@ -119,8 +119,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
                 if(progressJs) progressJs("#loading").end();
             });
-        };
-        $scope.getproduct();
+        })();
+
         //watch search
         $scope.$watch("searchproduct", function(newvalue){
             $scope.productnotfound = false;
@@ -193,6 +193,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             }
         };
+        //delete array product id enable
         $scope.delenadis = function(id){
             for(var a = 0; a < $scope.productidenabled.length; a++){
                 if(id == $scope.productidenabled[a] ){
