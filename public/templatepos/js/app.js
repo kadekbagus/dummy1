@@ -64,7 +64,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //init
         $scope.cart      = [];
         $scope.product   = [];
-
+        $scope.productidenabled = [];
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
@@ -84,6 +84,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }else if(action == 'm'){
                 if($scope.cart[id]['qty'] == 1){
                     $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
+                    $scope.delenadis($scope.product[$scope.cart[id]['idx']]['product_id']);
                     $scope.cart.splice(id ,1);
                     if($scope.cart.length == 0) $scope.cart = [];
                 }else{
@@ -91,6 +92,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             }else if(action == 'd'){
                 $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
+                $scope.delenadis($scope.product[$scope.cart[id]['idx']]['product_id']);
                 $scope.cart.splice(id ,1);
                 if($scope.cart.length == 0) $scope.cart = [];
             }else{
@@ -111,6 +113,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                     }
                     $scope.product = response.data.records;
+                    $scope.enadis();
                 }else{
                     //do something when error
                 }
@@ -129,6 +132,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                         }
                         $scope.product = response.data.records;
+                        $scope.enadis();
                     } else {
                         $scope.productnotfound = true;
                         $scope.product = [];
@@ -140,7 +144,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.getproduct();
             }
         });
-
         //function count cart
         $scope.countcart = function(){
             if($scope.cart.length > 0){
@@ -166,6 +169,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 $scope.productidenabled.push($scope.productmodal['product_id']);
                  $scope.product[$scope.productmodal['idx']]['disabled'] = true;
                  $scope.cart.push({
                      product_name : $scope.productmodal['product_name'],
@@ -178,6 +182,23 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                  });
                  $scope.countcart();
              }
+        };
+        //enabled disabled
+        $scope.enadis = function(){
+            for(var i = 0; i < $scope.product.length;i++){
+                for(var a = 0; a < $scope.productidenabled.length; a++){
+                    if($scope.product[i]['product_id'] == $scope.productidenabled[a] ){
+                        $scope.product[i]['disabled'] = true;
+                    }
+                }
+            }
+        };
+        $scope.delenadis = function(id){
+            for(var a = 0; a < $scope.productidenabled.length; a++){
+                if(id == $scope.productidenabled[a] ){
+                    $scope.productidenabled.splice(a ,1);
+                }
+            }
         };
         //new cart
         $scope.newcartFn = function(act){
@@ -199,17 +220,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
         };
         //scan product
-        var scanproduct = function() {
+        ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
-                if(response.code == 0){
-                    $scope.productmodal        = response['data'];
-                    $scope.inserttocartFn();
+                if(response){
+                    if(response.code == 0){
+                        $scope.productmodal        = response['data'];
+                        $scope.inserttocartFn();
+                    }else if(response.code == 13){
+                        // do something when not found
+                    }
+                    $scope.scanproduct();
                 }
             });
+        })();
 
-            $timeout(scanproduct, 1000);
-        };
-        $timeout(scanproduct, 1000);
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
