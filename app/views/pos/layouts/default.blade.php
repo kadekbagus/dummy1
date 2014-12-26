@@ -43,7 +43,7 @@
     </style>
 	<title></title>
 </head>
-<body>
+<body data-ng-controller="layoutCtrl">
 
     @yield('content')
 

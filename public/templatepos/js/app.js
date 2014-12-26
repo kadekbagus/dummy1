@@ -22,12 +22,22 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
   //  app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1/';
 
+    /*
+    * Crtl Layout
+    * */
+    app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
+        $scope.datauser  = localStorageService.get('user');
+        var updatetime = function() {
+            $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
+            $timeout(updatetime, 1000);
+        };
+        $timeout(updatetime, 1000);
+    }]);
+    /*
+    * Crtl Login
+    * */
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
-        //cek seesion
-        (this.cekLocalStorage = function(){
-            if(localStorageService.get('user'))  window.location.assign("pos/dashboard");
-        })();
         //init object
         $scope.login  = {};
         $scope.signin = {};
@@ -53,13 +63,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             });
         };
     }]);
-
+    /*
+     * Dashboard Login
+     * */
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http) {
         //init
         $scope.cart      = [];
         $scope.product   = [];
-        $scope.datauser  = localStorageService.get('user');
-
 
         //show modal product detail
         $scope.showdetailFn = function(id,act){
@@ -75,7 +85,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         })();
         //function -+ wish list
         $scope.qaFn = function(id,action){
-
             if(action == 'p'){
                 $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? parseInt($scope.cart[id]['qty']) + 1 : 1;
             }else if(action == 'm'){
@@ -138,7 +147,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
         });
 
-
         //function count cart
         $scope.countcart = function(){
             if($scope.cart.length > 0){
@@ -177,7 +185,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                  $scope.countcart();
              }
         };
-
         //new cart
         $scope.newcartFn = function(act){
             $scope.getguest();
@@ -191,7 +198,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //checkout
         $scope.checkoutFn = function(act){
-
+            if(act == 't') {
+                window.location.assign("cash");
+            }else if(act == 'k'){
+                window.location.assign("card");
+            }
         };
         //logout
         $scope.logoutfn =  function(){
@@ -206,31 +217,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 if(progressJs) progressJs().end();
             });
         };
-        //timeout scan barcode & date time
-        var updatetime = function() {
+    }]);
+    /*
+     * Crtl Cash
+     * */
+    app.controller('cashCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
-            //time
-            $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
-            //scan barcode
-            /*$http.post('http://192.168.0.111/app/v1/pos/scanbarcode ')
-                .then(function(response){
-                    console.log(response);
-                    if (response.data) {
-                        return response.data;
-                    } else {
-                        // invalid response
-                        return $q.reject(response.data);
-                    }
-                },function(response){
-                    // invalid response
-                    return $q.reject(response.data);
-                });*/
-            $timeout(updatetime, 1000);
-        };
-        $timeout(updatetime, 1000);
 
     }]);
-
+    /*
+     * Card Card
+     * */
+    app.controller('cardCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
+        $scope.datauser  = localStorageService.get('user');
+    }]);
 
     app.directive('numbersOnly', function(){
         return {
