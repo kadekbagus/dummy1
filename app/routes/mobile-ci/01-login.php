@@ -42,4 +42,4 @@ Route::get('/api/v1/customer/logout', function()
     return MobileCI\MobileCIAPIController::create()->getLogoutInShop();
 });
 
-Route::get('/app/v1/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
+Route::get('/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
