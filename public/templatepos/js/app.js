@@ -19,12 +19,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 });
     //config base url
    // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
-    app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
-  //  app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1/';
+   // app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
+      app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1';
 
-    /*
-    * Crtl Layout
-    * */
+    var url = "http://localhost/orbit-shop/public/app/v1";
     app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
         $scope.datauser  = localStorageService.get('user');
         var updatetime = function() {
@@ -33,9 +31,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         $timeout(updatetime, 1000);
     }]);
-    /*
-    * Crtl Login
-    * */
+
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
         //init object
@@ -50,7 +46,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.loginFn = function(){
             $scope.showloader = true;
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('pos/login',$scope.login).then(function(data){
+            serviceAjax.posDataToServer('/pos/login',$scope.login).then(function(data){
               if(data.code == 0){
                   $scope.shownall = false;
                   localStorageService.add('user',data.data);
@@ -63,9 +59,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             });
         };
     }]);
-    /*
-     * Dashboard Login
-     * */
+
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http) {
         //init
         $scope.cart      = [];
@@ -111,7 +105,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //get product
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
-            serviceAjax.getDataFromServer('product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
+            serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
                 if(response.code == 0 ){
                     for(var i =0; i <response.data.records.length; i++){
                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -129,7 +123,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.productnotfound = false;
             if(newvalue && newvalue.length > 2) {
                 if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
-                serviceAjax.getDataFromServer('pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue +'merchant_id[]=' + $scope.datauser['userdetail']['merchant_id']).then(function (response) {
+                serviceAjax.getDataFromServer('/pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue +'merchant_id[]=' + $scope.datauser['userdetail']['merchant_id']).then(function (response) {
                     if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
                         for (var i = 0; i < response.data.records.length; i++) {
                             response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -207,7 +201,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('pos/logout').then(function(data){
+            serviceAjax.posDataToServer('/pos/logout').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("/pos");
@@ -218,16 +212,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             });
         };
     }]);
-    /*
-     * Crtl Cash
-     * */
+
     app.controller('cashCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
 
 
     }]);
-    /*
-     * Card Card
-     * */
+
     app.controller('cardCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
         $scope.datauser  = localStorageService.get('user');
     }]);

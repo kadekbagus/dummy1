@@ -40,7 +40,7 @@ define([
                     if(typeof arguments[i] === 'object'){
                         data = arguments[i];
                     }else{
-                        params += arguments[i]+'/';
+                        params += arguments[i];
                     }
                 }
                 return  $http.post(app['baseUrlServer'] + params, $.param(data))
