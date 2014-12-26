@@ -169,16 +169,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
-                 $scope.cart.push({
-                     product_name : $scope.productmodal['product_name'],
-                     qty          : 1,
-                     price        : $scope.productmodal['price'],
-                     idx          : $scope.productmodal['idx'],
-                     upc_code     : $scope.productmodal['upc_code'],
-                     product_id   : $scope.productmodal['product_id'],
-                     hargatotal   : 0
+                 if($scope.checkcart($scope.productmodal['product_id'])){
+                     $scope.cart.push({
+                         product_name : $scope.productmodal['product_name'],
+                         qty          : 1,
+                         price        : $scope.productmodal['price'],
+                         idx          : $scope.productmodal['idx'],
+                         upc_code     : $scope.productmodal['upc_code'],
+                         product_id   : $scope.productmodal['product_id'],
+                         hargatotal   : 0
 
-                 });
+                     });
+                 }
                  $scope.countcart();
              }
         };
@@ -197,9 +199,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             var check = false;
             for(var a = 0; a < $scope.productidenabled.length; a++){
                 if(id == $scope.productidenabled[a] ){
-                    if(act == 'del') {
-                        $scope.productidenabled.splice(a ,1);
-                    }
+                    if(act == 'del') $scope.productidenabled.splice(a ,1);
                     if(act == 'add') check = true;
                 }
             }
@@ -207,6 +207,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.productidenabled.push(id);
                 $scope.enadis();
             }
+        };
+        $scope.checkcart = function(id){
+            var check = true;
+            for(var i = 0; i < $scope.cart.length; i++){
+                if($scope.cart[i]['product_id'] == id){
+                    $scope.cart[i]['qty']++;
+                    check = false;
+                }
+            }
+            return check;
         };
         //new cart
         $scope.newcartFn = function(act){
