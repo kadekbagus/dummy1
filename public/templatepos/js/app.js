@@ -79,21 +79,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         })();
         //function -+ wish list
         $scope.qaFn = function(id,action){
+            var fndelete = function(){
+                if($scope.product[$scope.cart[id]['idx']]) $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
+                $scope.adddelenadis($scope.cart[id]['product_id'],'del');
+                $scope.cart.splice(id ,1);
+            };
             if(action == 'p'){
                 $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? parseInt($scope.cart[id]['qty']) + 1 : 1;
             }else if(action == 'm'){
                 if($scope.cart[id]['qty'] == 1){
-                    $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
-                    $scope.adddelenadis($scope.cart[id]['product_id'],'del');
-                    $scope.cart.splice(id ,1);
-                    if($scope.cart.length == 0) $scope.cart = [];
+                    fndelete();
                 }else{
                     $scope.cart[id]['qty'] = $scope.cart[id]['qty'] - 1;
                 }
             }else if(action == 'd'){
-                $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
-                $scope.adddelenadis($scope.cart[id]['product_id'],'del');
-                $scope.cart.splice(id ,1);
+                fndelete();
                 if($scope.cart.length == 0) $scope.cart = [];
             }else{
                 //do something when error
@@ -168,9 +168,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
-                 //$scope.productidenabled.push($scope.productmodal['product_id']);
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
-                 $scope.product[$scope.productmodal['idx']]['disabled'] = true;
                  $scope.cart.push({
                      product_name : $scope.productmodal['product_name'],
                      qty          : 1,
@@ -201,12 +199,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 if(id == $scope.productidenabled[a] ){
                     if(act == 'del') {
                         $scope.productidenabled.splice(a ,1);
-
                     }
                     if(act == 'add') check = true;
                 }
             }
-            if(act == 'add' && !check) $scope.productidenabled.push(id);
+            if(act == 'add' && !check) {
+                $scope.productidenabled.push(id);
+                $scope.enadis();
+            }
         };
         //new cart
         $scope.newcartFn = function(act){
