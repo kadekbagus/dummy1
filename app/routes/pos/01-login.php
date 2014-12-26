@@ -37,7 +37,7 @@ Route::get('/app/v1/pos/productsearch', 'IntermediateAuthController@POS\Cashier_
 
 Route::get('/pos', function () {
     if (Auth::check()) {
-        return View::make('pos.login');
+        return Redirect::to('pos/dashboard');
     } else {
         return View::make('pos.login');
     }
