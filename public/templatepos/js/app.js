@@ -198,6 +198,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 window.location.assign("card");
             }
         };
+        //scan product
+        var scanproduct = function() {
+            serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
+                if(response.code == 0){
+                    $scope.productmodal        = response['data'];
+                    $scope.inserttocartFn();
+                }
+            });
+
+            $timeout(scanproduct, 1000);
+        };
+        $timeout(scanproduct, 1000);
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
