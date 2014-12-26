@@ -48,9 +48,9 @@
                   overflow: hidden;">
                       @foreach($new_products as $new_product)
                         <div>
-                          <a href="{{ url('customer/product/'.$new_product->product_id) }}">
-                          @if(sizeof($new_product->media) > 0)
-                            <img u="image" class="img-responsive" src2="{{ asset($new_product->media[0]->path) }}" style="width: 350px;"/>
+                          <a href="{{ url('customer/product?id='.$new_product->product_id) }}">
+                          @if(!is_null($new_product->image))
+                            <img u="image" class="img-responsive" src2="{{ asset($new_product->image) }}" style="width: 350px;"/>
                           @else
                             <img u="image" class="img-responsive" src2="{{ asset('mobile-ci/images/default-product.png') }}" style="width: 350px;"/>
                           @endif
