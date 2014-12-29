@@ -227,14 +227,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //new cart
         $scope.newcartFn = function(act){
+            $scope.productidenabled = [];
+            $scope.cart             = [];
             $scope.getguest();
             $scope.getproduct();
-            $scope.cart      = [];
         };
         //delete cart
         $scope.deletecartFn = function(act){
+            $scope.productidenabled = [];
+            $scope.cart             = [];
             $scope.getproduct();
-            $scope.cart      = [];
         };
         //checkout
         $scope.checkoutFn = function(act){
