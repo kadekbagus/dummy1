@@ -97,10 +97,10 @@
 		</div>
 		<div class="row">
 			<div class="col-xs-6 strike">
-				<h3>IDR {{ $product->price }}</h3>
+				<h3>IDR {{ $product->price + 0 }}</h3>
 			</div>
 			<div class="col-xs-6">
-				<h3>IDR {{ $product->price }}</h3>
+				<h3>IDR {{ $product->price + 0 }}</h3>
 			</div>	
 		</div>
 		<div class="row text-center product-control">
