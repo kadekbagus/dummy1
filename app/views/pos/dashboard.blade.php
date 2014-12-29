@@ -107,11 +107,11 @@
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>
-                                           <div class="col-xs-6" >
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;">
+                                           <div class="col-xs-6" style="">
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px">
                                            	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
                                            	   </div>
-                                           	   <div class="col-xs-12 text-right" style=""><h6 style="margin-top:1px"><% v.price %></h6></div>
+                                           	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
                                            </div>
                                        </div>
                                 </button>
