@@ -47,7 +47,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $user = User::with('apikey', 'userdetail', 'role')
-                        ->active()
+                        ->excludeDeleted()
                         ->where('user_email', $email)
                         ->whereHas('role', function($query)
                             {
@@ -89,64 +89,38 @@ class MobileCIAPIController extends ControllerAPI
         return \Redirect::to('/customer');
     }
 
+    public function getActivationView()
+    {
+        // $_POST['token'] = OrbitInput::get('token');
+        // $response = \LoginAPIController::create('raw')->postRegisterTokenCheck();
+        // if ($response->code === 0)
+        // {
+        //     $user = $response->data;
+        //     $user->setHidden(array('user_password', 'apikey'));
+        //     Auth::login($user);
+        // }
 
-    // public function postCheckEmail()
-    // {
-    //     try {
-    //         $email = trim(OrbitInput::post('email'));
-
-    //         if (trim($email) === '') {
-    //             $errorMessage = \Lang::get('validation.required', array('attribute' => 'email'));
-    //             OrbitShopAPI::throwInvalidArgument($errorMessage);
-    //         }
-
-    //         $validator = Validator::make(
-    //             array(
-    //                 'email' => $email,
-    //             ),
-    //             array(
-    //                 'email' => 'email',
-    //             )
-    //         );
-            
-    //         if ($validator->fails()) {
-    //             $errorMessage = $validator->messages()->first();
-    //             OrbitShopAPI::throwInvalidArgument($errorMessage);
-    //         }
-
-    //         $user = User::active()
-    //                     ->where('user_email', $email)
-    //                     ->whereHas('role', function($query)
-    //                         {
-    //                             $query->where('role_name','Consumer');
-    //                         })
-    //                     ->first();
-
-    //         if (! is_object($user)) {
-    //             $message = \Lang::get('validation.orbit.access.loginfailed');
-    //             ACL::throwAccessForbidden($message);
-    //         }
-
-    //         $this->response->data = $user;
-    //     } catch (ACLForbiddenException $e) {
-    //         $this->response->code = $e->getCode();
-    //         $this->response->status = 'error';
-    //         $this->response->message = $e->getMessage();
-    //         $this->response->data = null;
-    //     } catch (InvalidArgsException $e) {
-    //         $this->response->code = $e->getCode();
-    //         $this->response->status = 'error';
-    //         $this->response->message = $e->getMessage();
-    //         $this->response->data = null;
-    //     } catch (Exception $e) {
-    //         $this->response->code = $e->getCode();
-    //         $this->response->status = 'error';
-    //         $this->response->message = $e->getMessage();
-    //         $this->response->data = null;
-    //     }
-
-    //     return $this->render();
-    // }
+        // return $this->render($response);
+        try {
+            $retailer = $this->getRetailerInfo();
+            return View::make('mobile-ci.activation', array('retailer'=>$retailer));
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
 
     public function postSignUpView()
     {
@@ -422,13 +396,13 @@ class MobileCIAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
            
-            $sort_by = OrbitInput::get('sortby');
+            $sort_by = OrbitInput::get('sort_by');
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:product_name,product_price',
+                    'sort_by' => 'in:product_name,price',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -480,19 +454,21 @@ class MobileCIAPIController extends ControllerAPI
             // Default sort mode
             $sortMode = 'asc';
 
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+            OrbitInput::get('sort_by', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'product_name'              => 'products.product_name',
-                    'product_price'             => 'products.price',
+                    'product_name'      => 'products.product_name',
+                    'price'             => 'products.price',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
             });
 
-            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+            OrbitInput::get('sort_mode', function ($_sortMode) use (&$sortMode) {
                 if (strtolower($_sortMode) !== 'desc') {
                     $sortMode = 'asc';
+                }else{
+                    $sortMode = 'desc';
                 }
             });
             $products->orderBy($sortBy, $sortMode);
@@ -500,11 +476,18 @@ class MobileCIAPIController extends ControllerAPI
             $totalRec = $_products->count();
             $listOfRec = $products->get();
 
-            $data = new stdclass();
-            $data->total_records = $totalRec;
-            $data->returned_records = count($listOfRec);
-            $data->records = $listOfRec;
-
+            $search_limit = Config::get('orbit.shop.search_limit');
+            if($totalRec>$search_limit){
+                $data = new stdclass();
+                $data->status = 0;
+            }else{
+                $data = new stdclass();
+                $data->status = 1;
+                $data->total_records = $totalRec;
+                $data->returned_records = count($listOfRec);
+                $data->records = $listOfRec;
+            }
+            
             // $products = Product::excludeDeleted()->where('product_name', 'LIKE', "%$keyword%")->orWhere('product_code', 'LIKE', "%$keyword%")->orWhere('short_description', 'LIKE', "%$keyword%")->orWhere('long_description', 'LIKE', "%$keyword%")->get();
             $retailer = $this->getRetailerInfo();
             return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data));
