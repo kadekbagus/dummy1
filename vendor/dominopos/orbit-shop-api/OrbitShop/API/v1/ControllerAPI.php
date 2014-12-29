@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use PDO;
+use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 
 abstract class ControllerAPI extends Controller
 {
@@ -224,5 +225,22 @@ abstract class ControllerAPI extends Controller
     public function commit()
     {
         $this->pdo->commit();
+    }
+
+    /**
+     * Make sure if we expect error the error code is not zero and set fallback
+     * to StatusInterface::UNKNOWN_ERROR
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param int $code - The error code
+     * @return int
+     */
+    public function getNonZeroCode($code)
+    {
+        if ((int)$code === 0) {
+            return Status::UNKNOWN_ERROR;
+        }
+
+        return $code;
     }
 }

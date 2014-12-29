@@ -37,7 +37,7 @@ Route::get('/app/v1/pos/productsearch', 'IntermediateAuthController@POS\Cashier_
 
 Route::get('/pos', function () {
     if (Auth::check()) {
-        return View::make('pos.login');
+        return Redirect::to('pos/dashboard');
     } else {
         return View::make('pos.login');
     }
@@ -56,11 +56,27 @@ Route::get('/pos/home', function () {
         echo "anda tidak login";
     }
 });
+
 Route::get('/pos/dashboard', function () {
     if (Auth::check()) {
         return View::make('pos.dashboard');
     } else {
         return Redirect::to('pos');
+    }
+});
+
+Route::get('/pos/cash', function () {
+    if (Auth::check()) {
+        return View::make('pos.cash');
+    } else {
+        echo "anda tidak login";
+    }
+});
+Route::get('/pos/card', function () {
+    if (Auth::check()) {
+        return View::make('pos.card');
+    } else {
+        echo "anda tidak login";
     }
 });
 

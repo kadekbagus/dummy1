@@ -8,18 +8,12 @@
                 <img src=" {{ URL::asset('templatepos/images/logo_matahari.png') }}"  class="img" style="width: 64px">
                 <h1>MATAHARI DEPARTMENT STORE</h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px" dropdown>
-
-                     <% datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
-                      {{--<button type="button" class="btn btn-primary dropdown-toggle"style="background-color: #2c71a3;" dropdown-toggle>
-                        <span class="caret"></span>
-                        <span class="sr-only">Split button!</span>
-                      </button>--}}
-                       {{-- <i class="fa fa-sign-out"></i>--}}
+                     <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
                         <li> <a href="#" data-ng-click="logoutfn()">Keluar</a></li>
                       </ul>
                 </div>
-                <p  style="float: right; padding-top: 40px;" >Guest  <% guests %> | <% datetime %></p>
+                <p  style="float: right; padding-top: 40px;" >Guest  <% guests %> | <% $parent.datetime %></p>
             </div>
     </div>
 
@@ -43,17 +37,19 @@
                         </tr>
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
-                                <td style="width: 300px" ><a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %></td>
+                                <td style="max-width: 300px;word-wrap: break-word;" >
+                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %>
+                                </td>
                                 <td style="width: 200px">
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
-                                                                  <button type="button" class="btn btn-primary"  data-ng-click="qaFn(k,'m')" data-spin="up">
+                                                                  <button type="button" class="btn btn-primary"  data-ng-click="qaFn($index,'m')" data-spin="up">
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
                                           <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
                                           <span class="input-group-btn">
-                                              <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn(k,'p')">
+                                              <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn($index,'p')">
                                                   <i class="fa fa-plus"></i>
                                               </button>
                                           </span>&nbsp;&nbsp;
@@ -72,7 +68,7 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h4>TOTAL ITEM<br><% cart.totalitem %></b></h4></td>
+                            <td class="text-center"><b><h4>TOTAL ITEMS<br><% cart.totalitem %></b></h4></td>
                             <td class="text-center"><b><h4>SUBTOTAL<br><% cart.subtotal %></b></h4></td>
                             <td class="text-center"><b><h4>VAT<br><% cart.vat %></b></h4> </td>
                             <td class="text-center"><b><h4>TOTAL TO PAY<br><% cart.totalpay %></b></h4></td>
@@ -106,16 +102,16 @@
                            <p class="text-center"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter">
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>
-                                           <div class="col-xs-6" >
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;">
+                                           <div class="col-xs-6" style="">
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px">
                                            	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
                                            	   </div>
-                                           	   <div class="col-xs-12 text-right" style=""><h6 style="margin-top:1px"><% v.price %></h6></div>
+                                           	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
                                            </div>
                                        </div>
                                 </button>
@@ -221,6 +217,24 @@
       </div>
 
 
+    </div>
+
+    <!-- Modal Product Not found-->
+    <div class="modal fade" id="ProductNotFound" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">&nbsp;</h4>
+          </div>
+          <div class="modal-body">
+                  <p class="text-center"><b>Produk tidak ditemukan</b></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal" >Close</button>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- Modal Cart Baru-->
     <div class="modal fade" id="myModalNewCart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

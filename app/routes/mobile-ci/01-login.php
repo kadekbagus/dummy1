@@ -24,20 +24,11 @@ Route::get('/customer/thankyou', 'IntermediateAuthController@MobileCI\MobileCI_g
 
 Route::get('/customer/welcome', 'IntermediateAuthController@MobileCI\MobileCI_getWelcomeView');
 
-Route::get('/customer/search', function()
-{
-	return MobileCI\MobileCIAPIController::create()->getSearchProduct();
-});
-
 Route::get('/customer/search', 'IntermediateAuthController@MobileCI\MobileCI_getSearchProduct');
 
-// -------------------- views ------------------------------
+// -------------------- end views ------------------------------
 
-
-// Route::post('/api/v1/customer/check', function() 
-// {
-//     return MobileCI\MobileCIAPIController::create()->postCheckEmail();
-// });
+Route::get('/customer/activation', 'IntermediateAuthController@MobileCI\MobileCI_getActivationView');
 
 Route::post('/api/v1/customer/login', function() 
 {
@@ -51,11 +42,4 @@ Route::get('/api/v1/customer/logout', function()
     return MobileCI\MobileCIAPIController::create()->getLogoutInShop();
 });
 
-Route::get('/app/v1/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
-
-// Route::post('/api/v1/customer/signup', function() 
-// {
-//     return MobileCI\MobileCIAPIController::create()->postRegisterUserInShop();
-// });
-
-// Route::post('/app/v1/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postRegisterUserInShop');
+Route::get('/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');

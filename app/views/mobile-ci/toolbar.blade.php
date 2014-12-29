@@ -28,32 +28,5 @@
       @endif
     </span>
   </div>
-  <div id="search-tool" style="display:none; background-color:#097494;">
-    <div class="row" style="padding:15px;">
-      <div class="col-xs-5">
-        <label for="sort_by">Urutkan berdasarkan :</label>
-        <select class="form-control" name="sort_by" id="sort_by">
-          <option value="product_name">Nama</option>
-          <option value="price">Harga</option>
-        </select>
-      </div>
-      <div class="col-xs-5">
-        <label for="sort_mode">Urutkan secara :</label>
-        <select class="form-control" name="sort_mode" id="sort_mode">
-          <option value="ASC">A-Z</option>
-          <option value="DESC">Z-A</option>
-        </select>
-      </div>
-      <div class="col-xs-2">
-        <button class="form-control btn btn-success" type="button">Go</button>
-      </div>
-    </div>
-  </div>
-  <a href="{{ url('customer/home') }}" id="search-tool-close" style="background-color:#097494; display:block; width:20px; float:right; margin-top:-22px">
-    <i class="glyphicon glyphicon-remove" style="color:#fff; "></i>
-  </a>
-  <div id="search-tool-btn" style="background-color:#097494; display:block; width:20px; float:right; margin-top:-22px; margin-right:24px;">
-    <img class="img-responsive" src="{{ asset('mobile-ci/images/search-opt.png') }}">
-  </div>
 </header>
 

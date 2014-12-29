@@ -51,7 +51,7 @@ class User extends Eloquent implements UserInterface
     }
 
     public function lastVisitedShop(){
-        return $this->belongsToMany('Retailer', 'user_details', 'user_id', 'last_visit_shop_id');
+        return $this->belongsTo('Retailer', 'user_details', 'user_id', 'last_visit_shop_id');
     }
 
     /**
