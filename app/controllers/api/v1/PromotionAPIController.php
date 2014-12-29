@@ -690,7 +690,7 @@ class PromotionAPIController extends ControllerAPI
                     } elseif ($relation === 'product') {
                         $promotions->with('promotionrule.discountproduct');
                     } elseif ($relation === 'family') {
-                        $promotions->with('promotionrule.discountfamily1', 'promotionrule.discountfamily2', 'promotionrule.discountfamily3', 'promotionrule.discountfamily4', 'promotionrule.discountfamily5');
+                        $promotions->with('promotionrule.discountcategory1', 'promotionrule.discountcategory2', 'promotionrule.discountcategory3', 'promotionrule.discountcategory4', 'promotionrule.discountcategory5');
                     }
                 }
             });
