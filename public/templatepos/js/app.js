@@ -257,10 +257,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        // do something when not found and then call back scanproduct();
-                        // waiting design lanang
+                        angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();
                     }
             });
+        })();
+        ($scope.tes = function(){
+            angular.element("#ProductNotFound").modal();
         })();
         //logout
         $scope.logoutfn =  function(){
