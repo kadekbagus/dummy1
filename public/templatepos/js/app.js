@@ -239,6 +239,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //watch amount on page cash
         $scope.$watch("cart.amount", function(newvalue,oldvalue){
+            $scope.changetf = false;
             if(newvalue) {
                 $scope.cart['change'] = 0;
                 $scope.messagepay     = '';
@@ -250,15 +251,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.getChange = function(clickEvent){
             if(clickEvent.keyCode == '13'){
                 $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
-                $scope.messagepay = $scope.change > 0 ? 'Nominal tunai melebihi total bayar, ada kembalian!' : 'Nominal tunai lebih kecil dari total bayar!';
+                $scope.changetf = $scope.change > 0 ? true:false;
+                $scope.messagepay = $scope.changetf ? 'Nominal tunai melebihi total bayar, ada kembalian!' : 'Nominal tunai lebih kecil dari total bayar!';
                $scope.cart['change'] =    accounting.formatMoney($scope.change, "", 0, ",", ".");
             }
         };
-        //go to main dashboard page
+        //go to main
         $scope.gotomain = function(){
+            angular.element("#myModalcheckout").modal('hide');
             $scope.action = 'main';
         };
-
+        //chose terminal payment debit/redit
+        $scope.choseTerminalFn = function(id){
+            $scope.gesekkartu = true;
+        };
 
         //scan product only run on linux
         ($scope.scanproduct = function(){

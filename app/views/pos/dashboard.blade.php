@@ -279,7 +279,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" data-ng-click="gotomain()><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+             <button type="button" class="close" data-dismiss="modal" data-ng-click="gotomain()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             <h4 class="modal-title text-center" id="myModalLabel"><b> <% (action == 'main' ? 'PILIH CARA PEMBAYARAN' : (action == 'cash' ? 'PEMBAYARAN TUNAI' : 'PEMBAYARAN KARTU DEBIT/KREDIT') ) %></b></h4>
           </div>
           <div class="modal-body text-center">
@@ -296,7 +296,7 @@
                                         <div class="col-md-3"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></div>
                                    </div>
                                </div><br>
-                               <div class="form">
+                               <div class="form" style="padding-left: 20px;padding-right: 20px">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
                                              <input type="text" class="form-control text-right " id="exampleInputEmail1" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
@@ -315,11 +315,30 @@
                                <p class="text-center"></p>
                                <p class="text-center"> </p>
                    </div>
-                <div class="row" ng-show="action == 'card'"></div>
+                   <div class="row" ng-show="action == 'card'">
+                    <div class="row">
+                         <div class="col-md-12" >
+                              <div class="col-md-3"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></div>
+                              <div class="col-md-3"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></div>
+                              <div class="col-md-3"><b><h5>VAT<br><% cart.vat %></b></h5></div>
+                              <div class="col-md-3"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></div>
+                          </div>
+                    </div><br>
+                    <div class="row">
+                           <p class="text-center"><b>PILIH TERMINAL</b></p>
+                           <div class="col-md-12">
+                                <div class="col-md-4"><a href="" data-ng-click="choseTerminalFn('1')"><img src=" {{ URL::asset('templatepos/images/debit.jpg') }}"  class="img64_64"></a></div>
+                                <div class="col-md-4"><a href="" data-ng-click="choseTerminalFn('2')"><img src=" {{ URL::asset('templatepos/images/visa.jpg') }}"  class="img64_64"></a></div>
+                                <div class="col-md-4"><a href="" data-ng-click="choseTerminalFn('3')"><img src=" {{ URL::asset('templatepos/images/mastercard.jpg') }}"  class="img64_64"></a></div><br>
+                               <span class="label label-warning" class="text-center" data-ng-show="gesekkartu">Gesek Kartu Sekarang</span>
+                           </div>
+                    </div>
+                </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="submit" class="btn btn-danger" data-dismiss="modal" data-ng-click="gotomain()">Cancel</button>
-                     <button type="submit"  data-ng-if="action =='cash'" data-ng-disabled="!(change > 0)" data-ng-init="change = 0" class="btn btn-primary" style="background-color: #2c71a3;">Continue</button>
+                     <button type="button" class="btn btn-danger" data-dismiss="modal" data-ng-click="gotomain()">Cancel</button>
+                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" class="btn btn-primary" style="background-color: #2c71a3;">Continue</button>
+                     <button type="button"  data-ng-if="action =='card'" data-ng-disabled="!gesekkartu" class="btn btn-primary" style="background-color: #2c71a3;">SWIPE</button>
            </div>
         </div>
       </div>
