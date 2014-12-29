@@ -109,6 +109,7 @@ return array(
     'CreateTableProductAttributes' => $baseDir . '/app/database/migrations/2014_12_29_033808_create_table_product_attributes.php',
     'CreateTableProductCategory' => $baseDir . '/app/database/migrations/2014_11_13_095434_create_table_product_category.php',
     'CreateTableProductRetailer' => $baseDir . '/app/database/migrations/2014_12_05_055529_create_table_product_retailer.php',
+    'CreateTableProductVariants' => $baseDir . '/app/database/migrations/2014_12_29_045536_create_table_product_variants.php',
     'CreateTableProducts' => $baseDir . '/app/database/migrations/2014_11_13_093845_create_table_products.php',
     'CreateTablePromotionRetailer' => $baseDir . '/app/database/migrations/2014_12_22_093250_create_table_promotion_retailer.php',
     'CreateTablePromotionRetailerRedeem' => $baseDir . '/app/database/migrations/2014_12_22_093425_create_table_promotion_retailer_redeem.php',
