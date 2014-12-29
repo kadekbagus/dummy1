@@ -554,13 +554,12 @@ class PromotionAPIController extends ControllerAPI
             // Get the maximum record
             $maxRecord = (int)Config::get('orbit.pagination.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 1;
+                $maxRecord = 20;
             }
 
             // Builder object
-            $promotions = Promotion::with('promotionrule', 'retailers', 'promotionrule.discountproduct', 'promotionrule.discountfamily1', 'promotionrule.discountfamily2', 'promotionrule.discountfamily3', 'promotionrule.discountfamily4', 'promotionrule.discountfamily5')
-                ->excludeDeleted()
-                ->allowedForUser($user);
+            $promotions = Promotion::with('promotionrule')
+                ->excludeDeleted();
 
             // Filter promotion by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)
@@ -606,13 +605,13 @@ class PromotionAPIController extends ControllerAPI
             // Filter promotion by begin date
             OrbitInput::get('begin_date', function($begindate) use ($promotions)
             {
-                $promotions->where('promotions.begin_date', '>=', $begindate);
+                $promotions->where('promotions.begin_date', '<=', $begindate);
             });
 
             // Filter promotion by end date
             OrbitInput::get('end_date', function($enddate) use ($promotions)
             {
-                $promotions->where('promotions.end_date', '<=', $enddate);
+                $promotions->where('promotions.end_date', '>=', $enddate);
             });
 
             // Filter promotion by is permanent
@@ -672,6 +671,28 @@ class PromotionAPIController extends ControllerAPI
                 $promotions->whereHas('promotionrule', function($q) use ($discountObjectId5s) {
                     $q->whereIn('discount_object_id5', $discountObjectId5s);
                 });
+            });
+
+            // Filter promotion retailer by retailer id
+            OrbitInput::get('retailer_id', function ($retailerIds) use ($promotions) {
+                $promotions->whereHas('retailers', function($q) use ($retailerIds) {
+                    $q->whereIn('retailer_id', $retailerIds);
+                });
+            });
+
+            // Add new relation based on request
+            OrbitInput::get('with', function ($with) use ($promotions) {
+                $with = (array) $with;
+
+                foreach ($with as $relation) {
+                    if ($relation === 'retailers') {
+                        $promotions->with('retailers');
+                    } elseif ($relation === 'product') {
+                        $promotions->with('promotionrule.discountproduct');
+                    } elseif ($relation === 'family') {
+                        $promotions->with('promotionrule.discountfamily1', 'promotionrule.discountfamily2', 'promotionrule.discountfamily3', 'promotionrule.discountfamily4', 'promotionrule.discountfamily5');
+                    }
+                }
             });
 
             // Clone the query builder which still does not include the take,
