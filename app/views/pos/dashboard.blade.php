@@ -18,7 +18,7 @@
     </div>
 
     <div class="container">
-    <div class="row">
+     <div class="row">
         <div class="col-md-12">
             <div class="col-md-8">
                 <div class="orbit-component table-attribute-top">
@@ -79,7 +79,7 @@
                     <table class="table  orbit-component table-noborder">
                         <tr>
                             <td colspan="3"> <button class="btn btn-danger" data-ng-disabled="cart.length == 0" data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit">KERANJANG BELANJA BARU</button> &nbsp; <button class="btn btn-primary" data-ng-disabled="cart.length == 0" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit">HAPUS KERANJANG BELANJA</button></td>
-                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" data-ng-click="checkoutFn('b')" type="submit">BAYAR</button></td>
+                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" type="submit">BAYAR</button></td>
                        </tr>
                     </table>
                 </div>
@@ -107,11 +107,11 @@
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>
-                                           <div class="col-xs-6" >
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;">
+                                           <div class="col-xs-6" style="">
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px">
                                            	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
                                            	   </div>
-                                           	   <div class="col-xs-12 text-right" style=""><h6 style="margin-top:1px"><% v.price %></h6></div>
+                                           	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
                                            </div>
                                        </div>
                                 </button>
@@ -218,6 +218,23 @@
 
 
     </div>
+    <!-- Modal Product Not found-->
+    <div class="modal fade" id="ProductNotFound" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">&nbsp;</h4>
+          </div>
+          <div class="modal-body">
+                  <p class="text-center"><b>Produk tidak ditemukan</b></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal" >Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Modal Cart Baru-->
     <div class="modal fade" id="myModalNewCart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -238,7 +255,6 @@
         </div>
       </div>
     </div>
-
     <!-- Modal Hapus Cart-->
     <div class="modal fade" id="myModalDeleteCart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -248,9 +264,8 @@
             <h4 class="modal-title" id="myModalLabel"><b>Hapus Keranjang Belanja</b></h4>
           </div>
           <div class="modal-body">
-                  <p><b>Anda yakin akan ingin menghapus keranjang belanja ?</b></p>
-                  <p>Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus</p>
-
+              <p><b>Anda yakin akan ingin menghapus keranjang belanja ?</b></p>
+              <p>Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus</p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="deletecartFn()">Ya</button>
@@ -264,14 +279,67 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title text-center" id="myModalLabel"><b>PILIH CARA PEMBAYARAN</b></h4>
+             <button type="button" class="close" data-dismiss="modal" data-ng-click="gotomain()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title text-center" id="myModalLabel"><b> <% (action == 'main' ? 'PILIH CARA PEMBAYARAN' : (action == 'cash' ? 'PEMBAYARAN TUNAI' : 'PEMBAYARAN KARTU DEBIT/KREDIT') ) %></b></h4>
           </div>
           <div class="modal-body text-center">
-                  <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal" style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
-                  <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal" style="background-color: #009933; " data-ng-click="checkoutFn('k')">KARTU DEBIT/KREDIT</button> </p>
+                   <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; " data-ng-click="checkoutFn('k')">KARTU DEBIT/KREDIT</button> </p>
+                   </div>
+                   <div class="row" ng-show="action == 'cash'">
+                               <div class="row">
+                                  <div class="col-md-12" >
+                                        <div class="col-md-3"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></div>
+                                        <div class="col-md-3"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></div>
+                                        <div class="col-md-3"><b><h5>VAT<br><% cart.vat %></b></h5></div>
+                                        <div class="col-md-3"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></div>
+                                   </div>
+                               </div><br>
+                               <div class="form" style="padding-left: 20px;padding-right: 20px">
+                                         <div class="form-group text-left" >
+                                             <label for="exampleInputEmail1">Total bayar</label>
+                                             <input type="text" class="form-control text-right " id="exampleInputEmail1" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
+                                         </div>
+                                         <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
+                                             <label for="exampleInputEmail1">Nominal Tunai</label>
+                                             <input type="text" class="form-control text-right" autofocus="autofocus" id="exampleInputEmail1" numbers-only="numbers-only" data-ng-keypress="getChange($event)" data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                         </div>
+                                         <div class="form-group text-left">
+                                             <label for="exampleInputEmail1">Kembalian</label>
+                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" readonly numbers-only="numbers-only" data-ng-model="cart.change" placeholder="Kembalian">
+                                             <span data-ng-class="change < 0 ?  'text-right text-danger col-md-12' : 'text-right text-success col-md-12' "><% messagepay %></span>
+                                          </div>
+                               </div>
 
+                               <p class="text-center"></p>
+                               <p class="text-center"> </p>
+                   </div>
+                   <div class="row" ng-show="action == 'card'">
+                    <div class="row">
+                         <div class="col-md-12" >
+                              <div class="col-md-3"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></div>
+                              <div class="col-md-3"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></div>
+                              <div class="col-md-3"><b><h5>VAT<br><% cart.vat %></b></h5></div>
+                              <div class="col-md-3"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></div>
+                          </div>
+                    </div><br>
+                    <div class="row">
+                           <p class="text-center"><b>PILIH TERMINAL</b></p>
+                           <div class="col-md-12">
+                                <div class="col-md-4"><a href="" data-ng-click="choseTerminalFn('1')"><img src=" {{ URL::asset('templatepos/images/debit.jpg') }}"  class="img64_64"></a></div>
+                                <div class="col-md-4"><a href="" data-ng-click="choseTerminalFn('2')"><img src=" {{ URL::asset('templatepos/images/visa.jpg') }}"  class="img64_64"></a></div>
+                                <div class="col-md-4"><a href="" data-ng-click="choseTerminalFn('3')"><img src=" {{ URL::asset('templatepos/images/mastercard.jpg') }}"  class="img64_64"></a></div><br>
+                               <span class="label label-warning" class="text-center" data-ng-show="gesekkartu">Gesek Kartu Sekarang</span>
+                           </div>
+                    </div>
+                </div>
           </div>
+          <div class="modal-footer" data-ng-if="action !='main'">
+                     <button type="button" class="btn btn-danger" data-dismiss="modal" data-ng-click="gotomain()">Cancel</button>
+                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" class="btn btn-primary" style="background-color: #2c71a3;">Continue</button>
+                     <button type="button"  data-ng-if="action =='card'" data-ng-disabled="!gesekkartu" class="btn btn-primary" style="background-color: #2c71a3;">SWIPE</button>
+           </div>
         </div>
       </div>
     </div>

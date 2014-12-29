@@ -824,7 +824,7 @@ class UserAPIController extends ControllerAPI
 
             // Builder object
             $users = User::Consumers()
-                         ->with(array('userdetail', 'lastVisitedShop'))
+                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
                          ->excludeDeleted();
 
             // Filter by merchant ids
