@@ -23,7 +23,7 @@ class UserDetail extends Eloquent
 
     public function lastVisitedShop()
     {
-        return $this->belongsTo('Retailer', 'last_visit_shop_id', 'retailer_id');
+        return $this->belongsTo('Retailer', 'last_visit_shop_id', 'merchant_id');
     }
 
     public function scopeActive($query)
