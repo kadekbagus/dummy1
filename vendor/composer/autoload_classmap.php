@@ -181,6 +181,7 @@ return array(
     'DominoPOS\\OrbitUploader\\Uploader' => $vendorDir . '/dominopos/orbit-uploader/DominoPOS/OrbitUploader/Uploader.php',
     'DominoPOS\\OrbitUploader\\UploaderConfig' => $vendorDir . '/dominopos/orbit-uploader/DominoPOS/OrbitUploader/UploaderConfig.php',
     'DominoPOS\\OrbitUploader\\UploaderMessage' => $vendorDir . '/dominopos/orbit-uploader/DominoPOS/OrbitUploader/UploaderMessage.php',
+    'DropTableProductCategory' => $baseDir . '/app/database/migrations/2014_12_29_060547_drop_table_product_category.php',
     'DummyAPIController' => $baseDir . '/app/controllers/api/v1/DummyAPIController.php',
     'File_ANSI' => $vendorDir . '/phpseclib/phpseclib/phpseclib/File/ANSI.php',
     'File_ASN1' => $vendorDir . '/phpseclib/phpseclib/phpseclib/File/ASN1.php',
