@@ -795,8 +795,12 @@ class CategoryAPIController extends ControllerAPI
 
         // Check if category have linked to product
         Validator::extend('orbit.exists.have_product_category', function ($attribute, $value, $parameters) {
-            $productcategory = ProductCategory::where('category_id', $value)
-                        ->first();
+            $productcategory = Product::where('category_id1', $value)
+                ->orWhere('category_id2', $value)
+                ->orWhere('category_id3', $value)
+                ->orWhere('category_id4', $value)
+                ->orWhere('category_id5', $value)
+                ->first();
 
             if (! empty($productcategory)) {
                 return FALSE;

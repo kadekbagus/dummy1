@@ -14,11 +14,6 @@ class Category extends Eloquent
 
     protected $primaryKey = 'category_id';
 
-    public function products()
-    {
-        return $this->belongsToMany('Product', 'product_category', 'category_id', 'category_id');
-    }
-
     public function merchant()
     {
         return $this->belongsTo('Merchant', 'merchant_id', 'merchant_id');
@@ -36,8 +31,6 @@ class Category extends Eloquent
 
     /**
      * Add Filter category based on user who request it.
-     *
-     * @author Tian <tian@dominopos.com>
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user

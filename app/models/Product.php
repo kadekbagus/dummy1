@@ -18,11 +18,6 @@ class Product extends Eloquent
 
     protected $primaryKey = 'product_id';
 
-    public function categories()
-    {
-        return $this->belongsToMany('Category', 'product_category', 'product_id', 'product_id');
-    }
-
     public function modifier()
     {
         return $this->belongsTo('User', 'modified_by', 'user_id');
@@ -36,6 +31,31 @@ class Product extends Eloquent
     public function merchant()
     {
         return $this->belongsTo('Merchant', 'merchant_id', 'merchant_id');
+    }
+
+    public function category1()
+    {
+        return $this->belongsTo('Category', 'category_id1', 'category_id');
+    }
+
+    public function category2()
+    {
+        return $this->belongsTo('Category', 'category_id2', 'category_id');
+    }
+
+    public function category3()
+    {
+        return $this->belongsTo('Category', 'category_id3', 'category_id');
+    }
+
+    public function category4()
+    {
+        return $this->belongsTo('Category', 'category_id4', 'category_id');
+    }
+
+    public function category5()
+    {
+        return $this->belongsTo('Category', 'category_id5', 'category_id');
     }
 
     public function tax1()
