@@ -103,6 +103,7 @@ return array(
     'CreateTableMerchants' => $baseDir . '/app/database/migrations/2014_11_07_020430_create_table_merchants.php',
     'CreateTablePermissionRole' => $baseDir . '/app/database/migrations/2014_10_14_063413_create_table_permission_role.php',
     'CreateTablePermissions' => $baseDir . '/app/database/migrations/2014_10_14_064030_create_table_permissions.php',
+    'CreateTableProductAttributeValues' => $baseDir . '/app/database/migrations/2014_12_29_040955_create_table_product_attribute_values.php',
     'CreateTableProductAttributes' => $baseDir . '/app/database/migrations/2014_12_29_033808_create_table_product_attributes.php',
     'CreateTableProductCategory' => $baseDir . '/app/database/migrations/2014_11_13_095434_create_table_product_category.php',
     'CreateTableProductRetailer' => $baseDir . '/app/database/migrations/2014_12_05_055529_create_table_product_retailer.php',
