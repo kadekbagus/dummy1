@@ -262,9 +262,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
             });
         })();
-        ($scope.tes = function(){
-            angular.element("#ProductNotFound").modal();
-        })();
+
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
