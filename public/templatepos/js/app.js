@@ -1,7 +1,7 @@
 /**
  * Created with JetBrains PhpStorm.
  * User: julisman
- * Date: 1/8/14
+ * Date: 1/12/14
  * Time: 3:18 PM
  * http://blog.julisman.com
  */
@@ -17,12 +17,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     $interpolateProvider.endSymbol('%>');
 
 });
-    //config base url
-   // app.baseUrlServer = 'http://localhost:8000/app/v1/pos/';
-   // app.baseUrlServer = 'http://192.168.0.109:8000/app/v1/';
-   // app.baseUrlServer = 'http://localhost/orbit-shop/public/app/v1';
-    app.baseUrlServer = 'http://192.168.0.109/orbit-shop/public/app/v1';
-
 
     app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
         $scope.datauser  = localStorageService.get('user');
@@ -241,15 +235,38 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //checkout
         $scope.checkoutFn = function(act){
-            if(act == 't') {
-                localStorageService.add('cart',$scope.cart);
-                window.location.assign("cash");
-            }else if(act == 'k'){
-                localStorageService.add('cart',$scope.cart);
-                window.location.assign("card");
+            if(act) $scope.action = act == 't' ? 'cash' : 'card';
+        };
+        //watch amount on page cash
+        $scope.$watch("cart.amount", function(newvalue,oldvalue){
+            $scope.changetf = false;
+            if(newvalue) {
+                $scope.cart['change'] = 0;
+                $scope.messagepay     = '';
+                oldvalue = accounting.unformat(oldvalue);
+                newvalue = accounting.unformat(newvalue);
+                if(oldvalue != newvalue) $scope.cart['amount'] = accounting.formatMoney(newvalue, "", 0, ",", ".");
+            }
+        });
+        $scope.getChange = function(clickEvent){
+            if(clickEvent.keyCode == '13'){
+                $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
+                $scope.changetf = $scope.change > 0 ? true:false;
+                $scope.messagepay = $scope.changetf ? 'Nominal tunai melebihi total bayar, ada kembalian!' : 'Nominal tunai lebih kecil dari total bayar!';
+               $scope.cart['change'] =    accounting.formatMoney($scope.change, "", 0, ",", ".");
             }
         };
-        //scan product
+        //go to main
+        $scope.gotomain = function(){
+            angular.element("#myModalcheckout").modal('hide');
+            $scope.action = 'main';
+        };
+        //chose terminal payment debit/redit
+        $scope.choseTerminalFn = function(id){
+            $scope.gesekkartu = true;
+        };
+
+        //scan product only run on linux
         ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                     if(response.code == 0){
@@ -257,8 +274,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();
+                        /*angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();*/
                     }
             });
         })();
