@@ -1,15 +1,17 @@
 /**
- * Created with JetBrains PhpStorm.
- * User: julisman
- * Date: 1/8/14
- * Time: 3:18 PM
- * http://blog.julisman.com
+ * service
+ *  connect to server via http request
+ *
+ * @author agung.julisman@yahoo.com
+ *
  */
-'use strict';
+
+"use strict";
 
 define([
-    'app'
-], function (app) {
+    'app',
+    'config'
+], function (app,config) {
     app.factory('serviceAjax' , ['$http', '$q',function($http,$q){
 
         return{
@@ -18,7 +20,7 @@ define([
                 for(var i = 0 ; i < arguments.length; i++){
                     params += arguments[i];
                 }
-                return $http.get(app['baseUrlServer'] + params)
+                return $http.get(config['baseUrlServer'] + params)
                     .then(function(response){
                         if (response.data) {
                             return response.data;
@@ -43,7 +45,7 @@ define([
                         params += arguments[i];
                     }
                 }
-                return  $http.post(app['baseUrlServer'] + params, $.param(data))
+                return  $http.post(config['baseUrlServer'] + params, $.param(data))
                     .then(function(response){
                         if (response.data) {
                             return response.data;
