@@ -50,7 +50,7 @@ Route::filter('auth', function()
 
 Route::filter('authCustomer', function()
 {
-	
+
 });
 
 Route::filter('auth.basic', function()
@@ -87,7 +87,7 @@ Route::filter('guest', function()
 
 Route::filter('csrf', function()
 {
-	if (Session::token() != Input::get('_token'))
+	if (Session::token() !== Input::get('_token'))
 	{
 		throw new Illuminate\Session\TokenMismatchException;
 	}
