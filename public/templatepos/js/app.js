@@ -235,7 +235,32 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //checkout
         $scope.checkoutFn = function(act){
-            if(act) $scope.action = act == 't' ? 'cash' : 'card';
+
+            switch(act){
+                case 't':
+                    $scope.action  = 'cash';
+                    $scope.cheader = 'PEMBAYARAN TUNAI';
+                    break;
+                case 'k':
+                        //terminal 1
+                    $scope.action = 'card';
+                    $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
+                    break;
+                case 's' :
+                    //cetak struk
+                    break;
+                case 'd' :
+                    //done
+                    $scope.gotomain();
+                    $scope.newcartFn();
+                    break;
+                case 'c' :
+                    //continue
+                    //TODO:agung: insert to table transaction
+                    $scope.action = 'done';
+                    $scope.cheader = 'TRANSAKSI BERHASIL';
+                    break;
+            }
         };
         //watch amount on page cash
         $scope.$watch("cart.amount", function(newvalue,oldvalue){
@@ -258,8 +283,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //go to main
         $scope.gotomain = function(){
-            angular.element("#myModalcheckout").modal('hide');
+            $scope.resetpayment();
+         //   angular.element("#myModalcheckout").modal('hide');
             $scope.action = 'main';
+        };
+        //reset payment
+        $scope.resetpayment  = function(){
+            $scope.change         = 0;
+            $scope.cart['amount'] = '';
+            $scope.cart['change'] = '';
+            $scope.messagepay     = '';
+            $scope.changetf       = false;
         };
         //chose terminal payment debit/redit
         $scope.choseTerminalFn = function(id){
