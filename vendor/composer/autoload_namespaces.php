@@ -37,6 +37,7 @@ return array(
     'Illuminate' => array($vendorDir . '/laravel/framework/src'),
     'File' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'DominoPOS\\OrbitUploader\\' => array($vendorDir . '/dominopos/orbit-uploader'),
+    'DominoPOS\\OrbitSession\\' => array($vendorDir . '/dominopos/orbit-session'),
     'DominoPOS\\OrbitAPI\\' => array($vendorDir . '/dominopos/orbit-api'),
     'DominoPOS\\OrbitACL\\' => array($vendorDir . '/dominopos/orbit-acl'),
     'DebugBar' => array($vendorDir . '/maximebf/debugbar/src'),
