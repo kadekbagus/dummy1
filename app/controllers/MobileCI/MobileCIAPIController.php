@@ -420,11 +420,21 @@ class MobileCIAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::excludeDeleted()->allowedForUser($user);
+            $retailer = $this->getRetailerInfo();
+
+            $products = Product::whereHas('retailers', function($query) use ($retailer) {
+                            $query->where('retailer_id', $retailer->merchant_id);
+                        })->excludeDeleted()->allowedForUser($user);
 
             // Filter product by name pattern
             OrbitInput::get('keyword', function ($name) use ($products) {
-                $products->where('products.product_name', 'like', "%$name%");
+                $products->where(function($q) use ($name) {
+                    $q  ->where('products.product_name', 'like', "%$name%")
+                        ->orWhere('products.upc_code', 'like', "%$name%")
+                        ->orWhere('products.short_description', 'like', "%$name%")
+                        ->orWhere('products.long_description', 'like', "%$name%")
+                        ->orWhere('products.short_description', 'like', "%$name%");
+                });
             });
 
             $_products = clone $products;
@@ -488,8 +498,6 @@ class MobileCIAPIController extends ControllerAPI
                 $data->records = $listOfRec;
             }
             
-            // $products = Product::excludeDeleted()->where('product_name', 'LIKE', "%$keyword%")->orWhere('product_code', 'LIKE', "%$keyword%")->orWhere('short_description', 'LIKE', "%$keyword%")->orWhere('long_description', 'LIKE', "%$keyword%")->get();
-            $retailer = $this->getRetailerInfo();
             return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -512,10 +520,28 @@ class MobileCIAPIController extends ControllerAPI
     public function getProductView()
     {
         try {
-            $product_id = trim(OrbitInput::get('id'));
-            $product = Product::excludeDeleted()->where('product_id', $product_id)->first();
+            // Require authentication
+            $this->checkAuth();
+
+            $user = $this->api->user;
+        
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
+                $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+            
             $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product));
+            $product_id = trim(OrbitInput::get('id'));
+            $product = Product::whereHas('retailers', function($query) use ($retailer) {
+                            $query->where('retailer_id', $retailer->merchant_id);
+                        })->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
+            if(is_null($product)){
+                return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer));
+            } else {
+                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product));
+            }
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';

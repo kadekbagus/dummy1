@@ -9,8 +9,8 @@
       <div class="modal-body">
         <form method="GET" name="searchForm" id="searchForm" action="{{ url('/customer/search') }}">
           <div class="form-group">
-          	<label for="keyword">Cari berdasarkan : Nama Produk, Kode dan Deskripsi</label>
-      		  <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Input keywords">
+          	<label for="keyword">Cari berdasarkan : Nama Produk, Kode atau Deskripsi</label>
+      		  <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Input keyword(s)">
           </div>
         </form>
       </div>
@@ -28,6 +28,7 @@
     }, 500);
 	});
   $('#searchProductBtn').click(function(){
+    $('#SearchProducts').modal('toggle');
     $('#searchForm').submit();
   });
   $('#backBtn').click(function(){
