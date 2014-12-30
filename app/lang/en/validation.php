@@ -95,7 +95,8 @@ return array(
             'omid'                  => 'OMID has already taken by another Merchant.',
             'orid'                  => 'ORID has already taken by another Retailer.',
             'category_name'         => 'The category name has already been used.',
-            'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.'
+            'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.',
+            'promotion_name'        => 'The promotion name has already been used.'
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -127,6 +128,14 @@ return array(
             'category_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description, status.',
             'promotion_status'  => 'The promotion status you specify is not found.',
             'promotion_sortby'  => 'The sort by argument you specify is not valid, the valid value are: registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status.',
+            'promotion_type'    => 'The promotion type you specify is not found.',
+            'rule_type'         => 'The rule type you specify is not found.',
+            'discount_object_type' => 'The discount object type you specify is not found.',
+            'discount_object_id1'  => 'The discount object ID1 you specify is not found.',
+            'discount_object_id2'  => 'The discount object ID2 you specify is not found.',
+            'discount_object_id3'  => 'The discount object ID3 you specify is not found.',
+            'discount_object_id4'  => 'The discount object ID4 you specify is not found.',
+            'discount_object_id5'  => 'The discount object ID5 you specify is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
