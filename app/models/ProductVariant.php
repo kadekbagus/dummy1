@@ -10,6 +10,12 @@ class ProductVariant extends Eloquent
     protected $table = 'product_variants';
 
     /**
+     * Import trait ModelStatusTrait so we can use some common scope dealing
+     * with `status` field.
+     */
+    use ModelStatusTrait;
+
+    /**
      * Product variant belongs to a merchant.
      */
     public function merchant()
