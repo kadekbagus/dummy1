@@ -258,8 +258,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //go to main
         $scope.gotomain = function(){
+            $scope.resetpayment();
             angular.element("#myModalcheckout").modal('hide');
             $scope.action = 'main';
+        };
+        //reset payment
+        $scope.resetpayment  = function(){
+            $scope.change         = 0;
+            $scope.cart['amount'] = '';
+            $scope.cart['change'] = '';
+            $scope.messagepay     = '';
+            $scope.changetf       = false;
         };
         //chose terminal payment debit/redit
         $scope.choseTerminalFn = function(id){
