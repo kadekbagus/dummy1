@@ -1,6 +1,0 @@
-Core file edited
-----------------
-
-CookieJar:
-  - Path: /orbit-shop/vendor/laravel/framework/src/Illuminate/Cookie/CookieJar.php
-  - Reason: Turning off httpOnly

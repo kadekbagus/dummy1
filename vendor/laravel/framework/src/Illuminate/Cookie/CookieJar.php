@@ -37,14 +37,12 @@ class CookieJar {
 	 * @param  bool    $httpOnly
 	 * @return \Symfony\Component\HttpFoundation\Cookie
 	 */
-	public function make($name, $value, $minutes = 0, $path = null, $domain = null, $secure = false, $httpOnly = false)
+	public function make($name, $value, $minutes = 0, $path = null, $domain = null, $secure = false, $httpOnly = true)
 	{
 		list($path, $domain) = $this->getPathAndDomain($path, $domain);
 
 		$time = ($minutes == 0) ? 0 : time() + ($minutes * 60);
 
-		// @Hacks
-		// Makes httpOnly becomes false by default
 		return new Cookie($name, $value, $time, $path, $domain, $secure, $httpOnly);
 	}
 
