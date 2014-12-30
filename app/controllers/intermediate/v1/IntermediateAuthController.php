@@ -23,17 +23,15 @@ class IntermediateAuthController extends IntermediateBaseController
         {
             try
             {
-                $user = User::find(1);
+                // $user = User::find(1);
 
                 // Hard code the login as off 24-11-2014, since the frontend
                 // having difficulty with AngularJS
-                Auth::login( $user );
-                /*
+                // Auth::login( $user );
                 if (! Auth::check()) {
                     $message = Lang::get('validation.orbit.access.needtologin');
                     ACL::throwAccessForbidden($message);
                 }
-                */
             } catch (ACLForbiddenException $e) {
                 $response = new ResponseProvider();
                 $response->code = $e->getCode();

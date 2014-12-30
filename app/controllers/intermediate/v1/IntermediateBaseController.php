@@ -131,7 +131,8 @@ class IntermediateBaseController extends Controller
                     'Authorization',
                     'X-Request-With',
                     'X-Orbit-Signature',
-                    'Cookie'
+                    'Cookie',
+                    'Set-Cookie'
                 );
                 if (! empty($angularTokenName)) {
                     $allowHeaders[] = $angularTokenName;
