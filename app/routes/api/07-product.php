@@ -50,3 +50,11 @@ Route::post('/api/v1/product/delete/image', function()
 {
     return UploadAPIController::create()->postDeleteProductImage();
 });
+
+/**
+ * Create new product attribute
+ */
+Route::post('/api/v1/product-attribute/new', function()
+{
+    return ProductAttributeAPIController::create()->postNewAttribute();
+});

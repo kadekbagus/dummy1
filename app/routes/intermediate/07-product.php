@@ -32,3 +32,8 @@ Route::post('/app/v1/product/upload/image', 'IntermediateAuthController@Upload_p
  * Delete Product Image
  */
 Route::post('/app/v1/product/delete/image', 'IntermediateAuthController@Upload_postDeleteProductImage');
+
+/**
+ * Create new product attribute
+ */
+Route::post('/app/v1/product-attribute/new', 'IntermediateAuthController@ProductAttribute_postNewAttribute');
