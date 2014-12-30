@@ -15,6 +15,13 @@ class ProductAttribute extends Eloquent
      */
     use ModelStatusTrait;
 
+    /**
+     * Product attributes belongs to merchant.
+     */
+    public function merchant()
+    {
+        return $this->belongsTo('Merchant');
+    }
 
     /**
      * Product attributes has many product attribute values.
