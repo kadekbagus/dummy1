@@ -22,20 +22,20 @@ class PromotionAPIController extends ControllerAPI
      * @param integer    `merchant_id`           (required) - Merchant ID
      * @param string     `promotion_name`        (required) - Promotion name
      * @param string     `promotion_type`        (required) - Promotion type. Valid value: product, cart.
-     * @param string     `status`                (required) - Status
+     * @param string     `status`                (required) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param string     `description`           (optional) - Description
-     * @param datetime   `begin_date`            (optional) - Begin date
-     * @param datetime   `end_date`              (optional) - End date
+     * @param datetime   `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
+     * @param datetime   `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
      * @param string     `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string     `image`                 (optional) - Image
      * @param string     `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
      * @param decimal    `rule_value`            (optional) - Rule value
      * @param string     `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
-     * @param integer    `discount_object_id1`   (optional) - Discount object ID1
-     * @param integer    `discount_object_id2`   (optional) - Discount object ID2
-     * @param integer    `discount_object_id3`   (optional) - Discount object ID3
-     * @param integer    `discount_object_id4`   (optional) - Discount object ID4
-     * @param integer    `discount_object_id5`   (optional) - Discount object ID5
+     * @param integer    `discount_object_id1`   (optional) - Discount object ID1 (product_id or category_id1).
+     * @param integer    `discount_object_id2`   (optional) - Discount object ID2 (category_id2).
+     * @param integer    `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
+     * @param integer    `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
+     * @param integer    `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
      * @param decimal    `discount_value`        (optional) - Discount value
      * @param array      `retailer_ids`          (optional) - Retailer IDs
      *
@@ -262,13 +262,27 @@ class PromotionAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `promotion_id`           (required) - Promotion ID
+     * @param integer    `promotion_id`          (required) - Promotion ID
      * @param integer    `merchant_id`           (optional) - Merchant ID
-     * @param string     `promotion_name`         (optional) - Promotion name
-     * @param integer    `promotion_level`        (optional) - Promotion level
-     * @param integer    `promotion_order`        (optional) - Promotion order
+     * @param string     `promotion_name`        (optional) - Promotion name
+     * @param string     `promotion_type`        (optional) - Promotion type. Valid value: product, cart.
+     * @param string     `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param string     `description`           (optional) - Description
-     * @param string     `status`                (optional) - Status
+     * @param datetime   `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
+     * @param datetime   `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param string     `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
+     * @param string     `image`                 (optional) - Image
+     * @param string     `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
+     * @param decimal    `rule_value`            (optional) - Rule value
+     * @param string     `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
+     * @param integer    `discount_object_id1`   (optional) - Discount object ID1 (product_id or category_id1).
+     * @param integer    `discount_object_id2`   (optional) - Discount object ID2 (category_id2).
+     * @param integer    `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
+     * @param integer    `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
+     * @param integer    `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
+     * @param decimal    `discount_value`        (optional) - Discount value
+     * @param string     `no_retailer`           (optional) - Flag to delete all ORID links. Valid value: Y.
+     * @param array      `retailer_ids`          (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -302,25 +316,45 @@ class PromotionAPIController extends ControllerAPI
             $promotion_id = OrbitInput::post('promotion_id');
             $merchant_id = OrbitInput::post('merchant_id');
             $promotion_name = OrbitInput::post('promotion_name');
-            $promotion_level = OrbitInput::post('promotion_level');
-            $promotion_order = OrbitInput::post('promotion_order');
-            $description = OrbitInput::post('description');
+            $promotion_type = OrbitInput::post('promotion_type');
             $status = OrbitInput::post('status');
+            $rule_type = OrbitInput::post('rule_type');
+            $discount_object_type = OrbitInput::post('discount_object_type');
+            $discount_object_id1 = OrbitInput::post('discount_object_id1');
+            $discount_object_id2 = OrbitInput::post('discount_object_id2');
+            $discount_object_id3 = OrbitInput::post('discount_object_id3');
+            $discount_object_id4 = OrbitInput::post('discount_object_id4');
+            $discount_object_id5 = OrbitInput::post('discount_object_id5');
+            $productretailers = array();
 
             $validator = Validator::make(
                 array(
-                    'promotion_id'       => $promotion_id,
-                    'merchant_id'       => $merchant_id,
-                    'promotion_name'     => $promotion_name,
-                    'promotion_level'    => $promotion_level,
-                    'status'            => $status,
+                    'promotion_id'         => $promotion_id,
+                    'merchant_id'          => $merchant_id,
+                    'promotion_name'       => $promotion_name,
+                    'promotion_type'       => $promotion_type,
+                    'status'               => $status,
+                    'rule_type'            => $rule_type,
+                    'discount_object_type' => $discount_object_type,
+                    'discount_object_id1'  => $discount_object_id1,
+                    'discount_object_id2'  => $discount_object_id2,
+                    'discount_object_id3'  => $discount_object_id3,
+                    'discount_object_id4'  => $discount_object_id4,
+                    'discount_object_id5'  => $discount_object_id5,
                 ),
                 array(
-                    'promotion_id'       => 'required|numeric|orbit.empty.promotion',
-                    'merchant_id'       => 'numeric|orbit.empty.merchant',
-                    'promotion_name'     => 'promotion_name_exists_but_me',
-                    'promotion_level'    => 'numeric|between:1,5',
-                    'status'            => 'orbit.empty.promotion_status',
+                    'promotion_id'         => 'required|numeric|orbit.empty.promotion',
+                    'merchant_id'          => 'numeric|orbit.empty.merchant',
+                    'promotion_name'       => 'promotion_name_exists_but_me',
+                    'promotion_type'       => 'orbit.empty.promotion_type',
+                    'status'               => 'orbit.empty.promotion_status',
+                    'rule_type'            => 'orbit.empty.rule_type',
+                    'discount_object_type' => 'orbit.empty.discount_object_type',
+                    'discount_object_id1'  => 'orbit.empty.discount_object_id1',
+                    'discount_object_id2'  => 'orbit.empty.discount_object_id2',
+                    'discount_object_id3'  => 'orbit.empty.discount_object_id3',
+                    'discount_object_id4'  => 'orbit.empty.discount_object_id4',
+                    'discount_object_id5'  => 'orbit.empty.discount_object_id5',
                 ),
                 array(
                    'promotion_name_exists_but_me' => Lang::get('validation.orbit.exists.promotion_name'),
@@ -339,8 +373,9 @@ class PromotionAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedpromotion = Promotion::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $updatedpromotion = Promotion::with('retailers')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
 
+            // save Promotion.
             OrbitInput::post('merchant_id', function($merchant_id) use ($updatedpromotion) {
                 $updatedpromotion->merchant_id = $merchant_id;
             });
@@ -349,20 +384,32 @@ class PromotionAPIController extends ControllerAPI
                 $updatedpromotion->promotion_name = $promotion_name;
             });
 
-            OrbitInput::post('promotion_level', function($promotion_level) use ($updatedpromotion) {
-                $updatedpromotion->promotion_level = $promotion_level;
-            });
-
-            OrbitInput::post('promotion_order', function($promotion_order) use ($updatedpromotion) {
-                $updatedpromotion->promotion_order = $promotion_order;
-            });
-            
-            OrbitInput::post('description', function($description) use ($updatedpromotion) {
-                $updatedpromotion->description = $description;
+            OrbitInput::post('promotion_type', function($promotion_type) use ($updatedpromotion) {
+                $updatedpromotion->promotion_type = $promotion_type;
             });
 
             OrbitInput::post('status', function($status) use ($updatedpromotion) {
                 $updatedpromotion->status = $status;
+            });
+
+            OrbitInput::post('description', function($description) use ($updatedpromotion) {
+                $updatedpromotion->description = $description;
+            });
+
+            OrbitInput::post('begin_date', function($begin_date) use ($updatedpromotion) {
+                $updatedpromotion->begin_date = $begin_date;
+            });
+
+            OrbitInput::post('end_date', function($end_date) use ($updatedpromotion) {
+                $updatedpromotion->end_date = $end_date;
+            });
+
+            OrbitInput::post('is_permanent', function($is_permanent) use ($updatedpromotion) {
+                $updatedpromotion->is_permanent = $is_permanent;
+            });
+
+            OrbitInput::post('image', function($image) use ($updatedpromotion) {
+                $updatedpromotion->image = $image;
             });
 
             $updatedpromotion->modified_by = $this->api->user->user_id;
@@ -370,6 +417,104 @@ class PromotionAPIController extends ControllerAPI
             Event::fire('orbit.promotion.postupdatepromotion.before.save', array($this, $updatedpromotion));
 
             $updatedpromotion->save();
+
+
+            // save PromotionRule.
+            /*
+            $userdetail = UserDetail::where('user_id', '=', $user_id)->first();
+            $updateduser->setRelation('userdetail', $userdetail);
+            $updateduser->userdetail = $userdetail;
+
+            $apikey = Apikey::where('user_id', '=', $updateduser->user_id)->first();
+            if ($status != 'pending') {
+                $apikey->status = $status;
+            } else {
+                $apikey->status = 'blocked';
+            }
+            $apikey->save();
+            $updateduser->setRelation('apikey', $apikey);
+            $updateduser->apikey = $apikey;
+            
+
+            OrbitInput::post('rule_type', function($rule_type) use ($updatedpromotion) {
+                $updatedpromotion->rule_type = $rule_type;
+            });
+
+            OrbitInput::post('rule_value', function($rule_value) use ($updatedpromotion) {
+                $updatedpromotion->rule_value = $rule_value;
+            });
+
+            OrbitInput::post('discount_object_type', function($discount_object_type) use ($updatedpromotion) {
+                $updatedpromotion->discount_object_type = $discount_object_type;
+            });
+
+            OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($updatedpromotion) {
+                $updatedpromotion->discount_object_id1 = $discount_object_id1;
+            });
+
+            OrbitInput::post('discount_object_id2', function($discount_object_id2) use ($updatedpromotion) {
+                $updatedpromotion->discount_object_id2 = $discount_object_id2;
+            });
+
+            OrbitInput::post('discount_object_id3', function($discount_object_id3) use ($updatedpromotion) {
+                $updatedpromotion->discount_object_id3 = $discount_object_id3;
+            });
+
+            OrbitInput::post('discount_object_id4', function($discount_object_id4) use ($updatedpromotion) {
+                $updatedpromotion->discount_object_id4 = $discount_object_id4;
+            });
+
+            OrbitInput::post('discount_object_id5', function($discount_object_id5) use ($updatedpromotion) {
+                $updatedpromotion->discount_object_id5 = $discount_object_id5;
+            });
+
+            OrbitInput::post('discount_value', function($discount_value) use ($updatedpromotion) {
+                $updatedpromotion->discount_value = $discount_value;
+            });
+            */
+
+
+            /*
+            // save PromotionRetailer.
+            OrbitInput::post('no_retailer', function($no_retailer) use ($updatedproduct) {
+                if ($no_retailer == 'Y') {
+                    $deleted_retailer_ids = ProductRetailer::where('product_id', $updatedproduct->product_id)->get(array('retailer_id'))->toArray();
+                    $updatedproduct->retailers()->detach($deleted_retailer_ids);
+                    $updatedproduct->load('retailers');
+                }
+            });
+
+            OrbitInput::post('retailer_ids', function($retailer_ids) use ($updatedproduct) {
+                // validate retailer_ids
+                $retailer_ids = (array) $retailer_ids;
+                foreach ($retailer_ids as $retailer_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'retailer_id'   => $retailer_id_check,
+
+                        ),
+                        array(
+                            'retailer_id'   => 'orbit.empty.retailer',
+                        )
+                    );
+
+                    Event::fire('orbit.product.postupdateproduct.before.retailervalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.product.postupdateproduct.after.retailervalidation', array($this, $validator));
+                }
+                // sync new set of retailer ids
+                $updatedproduct->retailers()->sync($retailer_ids);
+
+                // reload retailers relation
+                $updatedproduct->load('retailers');
+            });
+            */
 
             Event::fire('orbit.promotion.postupdatepromotion.after.save', array($this, $updatedpromotion));
             $this->response->data = $updatedpromotion;
