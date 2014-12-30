@@ -14,6 +14,223 @@ use Illuminate\Database\QueryException;
 
 class ProductAttributeAPIController extends ControllerAPI
 {
+    /**
+     * GET - List of Product Attributes.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string        `sort_by`               (optional) - column order by
+     * @param string        `sort_mode`             (optional) - asc or desc
+     * @param string        `attribute_name`        (optional) - attribute name
+     * @param string        `attribute_name_like`   (optional) - attribute name like
+     * @param array         `with`                  (optional) - relationship included, e.g: 'values', 'merchant'
+     * @param array|string  `merchant_id`           (optional) - Id of the merchant, could be array or string with comma separated value
+     * @param integer       `take`                  (optional) - limit
+     * @param integer       `skip`                  (optional) - limit offset
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getSearchAttribute()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.product.getattribute.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.product.getattribute.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.product.getattribute.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product_attribute')) {
+                Event::fire('orbit.product.getattribute.authz.notallowed', array($this, $user));
+
+                $errorMessage = Lang::get('validation.orbit.actionlist.view_user');
+                $message = Lang::get('validation.orbit.access.view_product_attribute', array('action' => $errorMessage));
+
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.product.getattribute.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                ),
+                array(
+                    'sort_by' => 'in:id,name,created',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.attribute_sortby'),
+                )
+            );
+
+            Event::fire('orbit.product.getattribute.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.product.getattribute.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            // Builder object
+            $attributes = ProductAttribute::excludeDeleted();
+
+            // Include other relationship
+            OrbitInput::get('with', function($with) use ($attributes) {
+                $attributes->with($with);
+            });
+
+            // Filter by ids
+            OrbitInput::get('id', function($productIds) use ($attributes) {
+                $attributes->whereIn('product_attributes.product_attribute_id', $productIds);
+            });
+
+            // Filter by merchant ids
+            OrbitInput::get('merchant_id', function($merchantIds) use ($attributes) {
+                $attributes->whereIn('product_attributes.merchant_id', $merchantIds);
+            });
+
+            // Filter by attribute name
+            OrbitInput::get('attribute_name', function ($attributeName) use ($attributes) {
+                $attributes->whereIn('product_attributes.product_attribute_name', $attributeName);
+            });
+
+            // Filter like attribute name
+            OrbitInput::get('attribute_name_like', function ($attributeName) use ($attributes) {
+                $attributes->whereIn('product_attributes.product_attribute_name', $attributeName);
+            });
+
+            // Filter user by their status
+            OrbitInput::get('status', function ($status) use ($attributes) {
+                $$attributes->whereIn('product_attributes.status', $status);
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_attributes = clone $attributes;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+            });
+            $attributes->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $attributes) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $attributes->skip($skip);
+
+            // Default sort by
+            $sortBy = 'product_attributes.product_attribute_name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'id'            => 'product_attributes.product_attribute_id',
+                    'name'          => 'product_attributes.product_attribute_name',
+                    'created'       => 'product_attributes.created_at',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $attributes->orderBy($sortBy, $sortMode);
+
+            $totalAttributes = $_attributes->count();
+            $listOfAttributes = $attributes->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalAttributes;
+            $data->returned_records = count($listOfAttributes);
+            $data->records = $listOfAttributes;
+
+            if ($listOfAttributes === 0) {
+                $data->records = null;
+                $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.product.getattribute.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.product.getattribute.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.product.getattribute.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.product.getattribute.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.product.getattribute.before.render', array($this, &$output));
+
+        return $output;
+    }
+
      /**
      * POST - Add new product attribute
      *
