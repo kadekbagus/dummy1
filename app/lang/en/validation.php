@@ -132,6 +132,7 @@ return array(
             'category_sortby'   => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description, status.',
             'promotion_status'  => 'The promotion status you specify is not found.',
             'promotion_sortby'  => 'The sort by argument you specify is not valid, the valid value are: registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status.',
+            'attribute_sortby'  => 'The sort by argument you specify is not valid, valid value are: id, name and created.'
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'actionlist' => array(
