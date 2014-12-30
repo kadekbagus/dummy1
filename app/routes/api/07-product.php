@@ -58,3 +58,11 @@ Route::post('/api/v1/product-attribute/new', function()
 {
     return ProductAttributeAPIController::create()->postNewAttribute();
 });
+
+/**
+ * List product attribute
+ */
+Route::get('/api/v1/product-attribute/list', function()
+{
+    return ProductAttributeAPIController::create()->getSearchAttribute();
+});
