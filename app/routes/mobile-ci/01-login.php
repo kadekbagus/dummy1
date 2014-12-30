@@ -43,3 +43,11 @@ Route::get('/api/v1/customer/logout', function()
 });
 
 Route::get('/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
+
+// get product listing for families
+Route::get('/app/v1/customer/products', 'IntermediateAuthController@MobileCI\MobileCI_getProductList');
+
+Route::get('/api/v1/customer/products', function() 
+{
+    return MobileCI\MobileCIAPIController::create()->getProductList();
+});
