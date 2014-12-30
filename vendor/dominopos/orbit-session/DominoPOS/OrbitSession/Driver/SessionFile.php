@@ -22,8 +22,14 @@ class SessionFile implements GenericInterface
     /**
      * Start the session
      */
-    public function start()
+    public function start($sessionData)
     {
+        $path = $this->config->getConfig('path');
+        $fname = $path . DIRECTORY_SEPARATOR . $sessionData->id;
+        $serialized = serialize($sessionData);
 
+        file_put_contents($fname, $serialized);
+
+        return array('session_data' => $sessionData, 'path' => $fname);
     }
 }
