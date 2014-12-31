@@ -389,4 +389,46 @@ class CashierAPIController extends ControllerAPI
         $output = $this->render($httpCode);
         return $output;
     }
+
+    /**
+     * POST - Save The Transaction
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postSaveTransaction()
+    {
+        try {
+            $transaction_code = trim(OrbitInput::post('transaction_code'));
+            $cashier_id = trim(OrbitInput::post('cashier_id'));
+            $customer_id = trim(OrbitInput::post('customer_id'));
+            $merchant_id = trim(OrbitInput::post('merchant_id'));
+            $retailer_id = trim(OrbitInput::post('retailer_id'));
+            $total_item = trim(OrbitInput::post('total_item'));
+            $subtotal = trim(OrbitInput::post('subtotal'));
+            $vat = trim(OrbitInput::post('vat'));
+            $total_to_pay = trim(OrbitInput::post('total_to_pay'));
+            $payment_method = trim(OrbitInput::post('payment_method'));
+            echo "tes";
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
 }

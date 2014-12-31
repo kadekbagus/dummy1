@@ -362,8 +362,9 @@ class MobileCIAPIController extends ControllerAPI
     public function getCatalogueView()
     {
         try {
-            $families = Category::has('product1')->get();
             $retailer = $this->getRetailerInfo();
+            $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->get();
+            
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -426,7 +427,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->excludeDeleted()->allowedForUser($user);
+                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->allowedForUser($user);
 
             // Filter product by name pattern
             OrbitInput::get('keyword', function ($name) use ($products) {
@@ -568,15 +569,19 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
             $nextfamily = $family_level + 1;
-            $subfamilies = Category::whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level) {
-                $nextfamily = $family_level + 1;
-                $q  ->where('products.category_id'.$family_level, $family_id)
-                    ->where('products.category_id'.$nextfamily, '<>', 'NULL');
-            })->get();
+            if($nextfamily < 6) {
+                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level) {
+                    $nextfamily = $family_level + 1;
+                    $q  ->where('products.category_id'.$family_level, $family_id)
+                        ->where('products.category_id'.$nextfamily, '<>', 'NULL');
+                })->get();
+            } else {
+                $subfamilies = NULL;
+            }
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
-            })->excludeDeleted()->allowedForUser($user)->where(function($q) use ($family_level, $family_id) {
+            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->allowedForUser($user)->where(function($q) use ($family_level, $family_id) {
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
                     $q->where('category_id' . $i, NULL);
