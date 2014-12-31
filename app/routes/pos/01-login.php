@@ -35,6 +35,14 @@ Route::get('/api/v1/pos/productsearch', function () {
 Route::get('/app/v1/pos/productsearch', 'IntermediateAuthController@POS\Cashier_getSearchProductPOS');
 
 
+// save transaction
+Route::post('/api/v1/pos/savetransaction', function () {
+    return POS\CashierAPIController::create()->postSaveTransaction();
+});
+
+Route::post('/app/v1/pos/savetransaction', 'IntermediateAuthController@POS\Cashier_postSaveTransaction');
+
+
 Route::get('/pos', function () {
     if (Auth::check()) {
         return Redirect::to('pos/dashboard');
