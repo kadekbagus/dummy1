@@ -325,7 +325,6 @@ class PromotionAPIController extends ControllerAPI
             $discount_object_id3 = OrbitInput::post('discount_object_id3');
             $discount_object_id4 = OrbitInput::post('discount_object_id4');
             $discount_object_id5 = OrbitInput::post('discount_object_id5');
-            $productretailers = array();
 
             $validator = Validator::make(
                 array(
@@ -373,7 +372,7 @@ class PromotionAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedpromotion = Promotion::with('retailers')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $updatedpromotion = Promotion::with('promotionrule', 'retailers')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
 
             // save Promotion.
             OrbitInput::post('merchant_id', function($merchant_id) use ($updatedpromotion) {
@@ -420,85 +419,91 @@ class PromotionAPIController extends ControllerAPI
 
 
             // save PromotionRule.
-            /*
-            $userdetail = UserDetail::where('user_id', '=', $user_id)->first();
-            $updateduser->setRelation('userdetail', $userdetail);
-            $updateduser->userdetail = $userdetail;
-
-            $apikey = Apikey::where('user_id', '=', $updateduser->user_id)->first();
-            if ($status != 'pending') {
-                $apikey->status = $status;
-            } else {
-                $apikey->status = 'blocked';
-            }
-            $apikey->save();
-            $updateduser->setRelation('apikey', $apikey);
-            $updateduser->apikey = $apikey;
-            
-
-            OrbitInput::post('rule_type', function($rule_type) use ($updatedpromotion) {
-                $updatedpromotion->rule_type = $rule_type;
+            $promotionrule = PromotionRule::where('promotion_id', '=', $promotion_id)->first();
+            OrbitInput::post('rule_type', function($rule_type) use ($promotionrule) {
+                if (trim($rule_type) === '') {
+                    $rule_type = NULL;
+                }
+                $promotionrule->rule_type = $rule_type;
             });
 
-            OrbitInput::post('rule_value', function($rule_value) use ($updatedpromotion) {
-                $updatedpromotion->rule_value = $rule_value;
+            OrbitInput::post('rule_value', function($rule_value) use ($promotionrule) {
+                $promotionrule->rule_value = $rule_value;
             });
 
-            OrbitInput::post('discount_object_type', function($discount_object_type) use ($updatedpromotion) {
-                $updatedpromotion->discount_object_type = $discount_object_type;
+            OrbitInput::post('discount_object_type', function($discount_object_type) use ($promotionrule) {
+                if (trim($discount_object_type) === '') {
+                    $discount_object_type = NULL;
+                }
+                $promotionrule->discount_object_type = $discount_object_type;
             });
 
-            OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($updatedpromotion) {
-                $updatedpromotion->discount_object_id1 = $discount_object_id1;
+            OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($promotionrule) {
+                if (trim($discount_object_id1) === '') {
+                    $discount_object_id1 = NULL;
+                }
+                $promotionrule->discount_object_id1 = $discount_object_id1;
             });
 
-            OrbitInput::post('discount_object_id2', function($discount_object_id2) use ($updatedpromotion) {
-                $updatedpromotion->discount_object_id2 = $discount_object_id2;
+            OrbitInput::post('discount_object_id2', function($discount_object_id2) use ($promotionrule) {
+                if (trim($discount_object_id2) === '') {
+                    $discount_object_id2 = NULL;
+                }
+                $promotionrule->discount_object_id2 = $discount_object_id2;
             });
 
-            OrbitInput::post('discount_object_id3', function($discount_object_id3) use ($updatedpromotion) {
-                $updatedpromotion->discount_object_id3 = $discount_object_id3;
+            OrbitInput::post('discount_object_id3', function($discount_object_id3) use ($promotionrule) {
+                if (trim($discount_object_id3) === '') {
+                    $discount_object_id3 = NULL;
+                }
+                $promotionrule->discount_object_id3 = $discount_object_id3;
             });
 
-            OrbitInput::post('discount_object_id4', function($discount_object_id4) use ($updatedpromotion) {
-                $updatedpromotion->discount_object_id4 = $discount_object_id4;
+            OrbitInput::post('discount_object_id4', function($discount_object_id4) use ($promotionrule) {
+                if (trim($discount_object_id4) === '') {
+                    $discount_object_id4 = NULL;
+                }
+                $promotionrule->discount_object_id4 = $discount_object_id4;
             });
 
-            OrbitInput::post('discount_object_id5', function($discount_object_id5) use ($updatedpromotion) {
-                $updatedpromotion->discount_object_id5 = $discount_object_id5;
+            OrbitInput::post('discount_object_id5', function($discount_object_id5) use ($promotionrule) {
+                if (trim($discount_object_id5) === '') {
+                    $discount_object_id5 = NULL;
+                }
+                $promotionrule->discount_object_id5 = $discount_object_id5;
             });
 
-            OrbitInput::post('discount_value', function($discount_value) use ($updatedpromotion) {
-                $updatedpromotion->discount_value = $discount_value;
+            OrbitInput::post('discount_value', function($discount_value) use ($promotionrule) {
+                $promotionrule->discount_value = $discount_value;
             });
-            */
+            $promotionrule->save();
+            $updatedpromotion->setRelation('promotionrule', $promotionrule);
+            $updatedpromotion->promotionrule = $promotionrule;
 
 
-            /*
             // save PromotionRetailer.
-            OrbitInput::post('no_retailer', function($no_retailer) use ($updatedproduct) {
+            OrbitInput::post('no_retailer', function($no_retailer) use ($updatedpromotion) {
                 if ($no_retailer == 'Y') {
-                    $deleted_retailer_ids = ProductRetailer::where('product_id', $updatedproduct->product_id)->get(array('retailer_id'))->toArray();
-                    $updatedproduct->retailers()->detach($deleted_retailer_ids);
-                    $updatedproduct->load('retailers');
+                    $deleted_retailer_ids = PromotionRetailer::where('promotion_id', $updatedpromotion->promotion_id)->get(array('retailer_id'))->toArray();
+                    $updatedpromotion->retailers()->detach($deleted_retailer_ids);
+                    $updatedpromotion->load('retailers');
                 }
             });
 
-            OrbitInput::post('retailer_ids', function($retailer_ids) use ($updatedproduct) {
+            OrbitInput::post('retailer_ids', function($retailer_ids) use ($updatedpromotion) {
                 // validate retailer_ids
                 $retailer_ids = (array) $retailer_ids;
                 foreach ($retailer_ids as $retailer_id_check) {
                     $validator = Validator::make(
                         array(
                             'retailer_id'   => $retailer_id_check,
-
                         ),
                         array(
                             'retailer_id'   => 'orbit.empty.retailer',
                         )
                     );
 
-                    Event::fire('orbit.product.postupdateproduct.before.retailervalidation', array($this, $validator));
+                    Event::fire('orbit.promotion.postupdatepromotion.before.retailervalidation', array($this, $validator));
 
                     // Run the validation
                     if ($validator->fails()) {
@@ -506,15 +511,15 @@ class PromotionAPIController extends ControllerAPI
                         OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
 
-                    Event::fire('orbit.product.postupdateproduct.after.retailervalidation', array($this, $validator));
+                    Event::fire('orbit.promotion.postupdatepromotion.after.retailervalidation', array($this, $validator));
                 }
                 // sync new set of retailer ids
-                $updatedproduct->retailers()->sync($retailer_ids);
+                $updatedpromotion->retailers()->sync($retailer_ids);
 
                 // reload retailers relation
-                $updatedproduct->load('retailers');
+                $updatedpromotion->load('retailers');
             });
-            */
+            
 
             Event::fire('orbit.promotion.postupdatepromotion.after.save', array($this, $updatedpromotion));
             $this->response->data = $updatedpromotion;
