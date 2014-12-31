@@ -259,6 +259,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     //TODO:agung: insert to table transaction
                     $scope.action = 'done';
                     $scope.cheader = 'TRANSAKSI BERHASIL';
+
+                    /*$scope.sendcart = {
+                        cart : $scope.cart
+                    };
+
+                    console.log($scope.tes);
+                    serviceAjax.posDataToServer('/pos/login',$scope.tes).then(function(response){
+                         console.log(response);
+                      });*/
                     break;
             }
         };
@@ -277,7 +286,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             if(clickEvent.keyCode == '13'){
                 $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
                 $scope.changetf = $scope.change > 0 ? true:false;
-                $scope.messagepay = $scope.changetf ? 'Nominal tunai melebihi total bayar, ada kembalian!' : 'Nominal tunai lebih kecil dari total bayar!';
+                $scope.messagepay = $scope.changetf ? '' : 'Nominal tunai lebih kecil dari total bayar!';
                $scope.cart['change'] =    accounting.formatMoney($scope.change, "", 0, ",", ".");
             }
         };
@@ -320,22 +329,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             serviceAjax.posDataToServer('/pos/logout').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
-                    window.location.assign("/pos");
+                    window.location.assign("");
                 }else{
                     alert('gagal logout');
                 }
                 if(progressJs) progressJs().end();
             });
         };
-    }]);
-
-    app.controller('cashCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
-
-
-    }]);
-
-    app.controller('cardCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
-        $scope.datauser  = localStorageService.get('user');
     }]);
 
     app.directive('numbersOnly', function(){
