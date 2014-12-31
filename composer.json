@@ -21,7 +21,8 @@
                     "DominoPOS\\OrbitAPI\\": "vendor/dominopos/orbit-api/",
                     "OrbitShop\\API\\": "vendor/dominopos/orbit-shop-api/",
                     "DominoPOS\\OrbitACL\\": "vendor/dominopos/orbit-acl/",
-                    "DominoPOS\\OrbitUploader\\": "vendor/dominopos/orbit-uploader/"
+                    "DominoPOS\\OrbitUploader\\": "vendor/dominopos/orbit-uploader/",
+                    "DominoPOS\\OrbitSession\\": "vendor/dominopos/orbit-session/"
                 },
         "classmap": [
             "app/commands",
