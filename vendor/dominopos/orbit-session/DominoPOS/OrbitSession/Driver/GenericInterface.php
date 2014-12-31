@@ -26,9 +26,29 @@ interface GenericInterface
     public function destroy($sessionId);
 
     /**
+     * Clear a session
+     */
+    public function clear($sessionId);
+
+    /**
      * Get a session
      */
     public function get($sessionId);
+
+    /**
+     * Write a value to a session.
+     */
+    public function write($sessionId, $key, $value);
+
+    /**
+     * Read a value from a session
+     */
+    public function read($sessionId, $key);
+
+    /**
+     * Remove a value from a session
+     */
+    public function remove($sessionId, $key);
 
     /**
      * Delete expire session
