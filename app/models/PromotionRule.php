@@ -24,27 +24,27 @@ class PromotionRule extends Eloquent
         return $this->belongsTo('Product', 'discount_object_id1', 'product_id');
     }
 
-    public function discountfamily1()
+    public function discountcategory1()
     {
         return $this->belongsTo('Category', 'discount_object_id1', 'category_id');
     }
 
-    public function discountfamily2()
+    public function discountcategory2()
     {
         return $this->belongsTo('Category', 'discount_object_id2', 'category_id');
     }
 
-    public function discountfamily3()
+    public function discountcategory3()
     {
         return $this->belongsTo('Category', 'discount_object_id3', 'category_id');
     }
 
-    public function discountfamily4()
+    public function discountcategory4()
     {
         return $this->belongsTo('Category', 'discount_object_id4', 'category_id');
     }
 
-    public function discountfamily5()
+    public function discountcategory5()
     {
         return $this->belongsTo('Category', 'discount_object_id5', 'category_id');
     }
