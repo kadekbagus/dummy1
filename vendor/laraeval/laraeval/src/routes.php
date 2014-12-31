@@ -18,7 +18,7 @@ Route::filter('ipaddr', function() {
         $proxies = array(Request::getClientIp());
     }
     Request::setTrustedProxies($proxies);
-    
+
     $user_ip = Request::getClientIp();
 
     if (! in_array($user_ip, $allowed_ips)) {
@@ -56,17 +56,17 @@ Route::post('laraeval', array('before' => 'ipaddr', 'as' => 'laraeval-main', fun
             // the error inside the code editor
             $file = '';
         }
-        
+
         $error = array(
             'line' => $e->getLine(),
             'file' => $file,
             'message' => $e->getMessage()
         );
-        
+
         // return it to fatal view
         return Response::make( View::make('laraeval::fatal-output', $error), 500 );
     });
-    
+
     $laraeval = new Laraeval\Laraeval\Laraeval();
     try {
         $output = $laraeval->execute( Input::get('code') );
@@ -85,9 +85,6 @@ Route::post('laraeval', array('before' => 'ipaddr', 'as' => 'laraeval-main', fun
 
         // Fatal Error View
         return Response::make( View::make('laraeval::fatal-output', $error), 500 );
-    } catch (Exception $e) {
-        // just return empty, let the App::error() above handle the error
-        return '';
     }
 
     $data = array(
