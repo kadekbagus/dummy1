@@ -29,6 +29,31 @@ class Category extends Eloquent
         return $this->belongsTo('User', 'modified_by', 'user_id');
     }
 
+    public function product1()
+    {
+        return $this->hasMany('Product', 'category_id1', 'category_id');
+    }
+
+    public function product2()
+    {
+        return $this->hasMany('Product', 'category_id2', 'category_id');
+    }
+
+    public function product3()
+    {
+        return $this->hasMany('Product', 'category_id3', 'category_id');
+    }
+
+    public function product4()
+    {
+        return $this->hasMany('Product', 'category_id4', 'category_id');
+    }
+
+    public function product5()
+    {
+        return $this->hasMany('Product', 'category_id5', 'category_id');
+    }
+
     /**
      * Add Filter category based on user who request it.
      *

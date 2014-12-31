@@ -10,6 +10,12 @@ class ProductAttributeValue extends Eloquent
     protected $table = 'product_attribute_values';
 
     /**
+     * Import trait ModelStatusTrait so we can use some common scope dealing
+     * with `status` field.
+     */
+    use ModelStatusTrait;
+
+    /**
      * Value belong to attribute
      */
     public function attribute()
