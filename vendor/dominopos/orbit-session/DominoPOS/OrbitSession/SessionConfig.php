@@ -33,7 +33,7 @@ class SessionConfig
      * @author Rio Astamal <me@rioastamal.net>
      * @param array $config
      */
-    public function __construct(array $config)
+    public function __construct(array $config=array())
     {
         $this->default = array(
             /**
@@ -44,35 +44,43 @@ class SessionConfig
             /**
              * Path to write the session data
              */
-            'path' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'orbit-session'
+            'path' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'orbit-session',
 
             /**
              * Strict mode, will check the user agent and ip address
              */
-            'strict' => TRUE
+            'strict' => TRUE,
 
             /**
              * Session Driver
              */
-            'driver' => 'file'
+            'driver' => 'file',
 
             /**
-             * Where is data should be coming from
+             * Session data available
              */
-            'data_origin' => array(
+            'availability' => array(
+                'header',
+                'query_string'
+            ),
+
+            /**
+             * Where is session data should be coming from
+             */
+            'session_origin' => array(
                 // From HTTP Headers
                 'header'  => array(
-                    'name' => 'X-Orbit-Session',
+                    'name'      => 'X-Orbit-Session'
                 ),
 
                 // From Query String
                 'query_string' => array(
-                    'name' => 'orbit_session'
+                    'name'      => 'orbit_session'
                 ),
 
                 // From Cookie
                 'cookie'    => array(
-                    'name'  => 'orbit_session'
+                    'name'  => 'orbit_sessionx'
                 ),
             ),
         );
