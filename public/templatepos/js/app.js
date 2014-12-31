@@ -60,6 +60,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.cart      = [];
         $scope.product   = [];
         $scope.productidenabled = [];
+
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
@@ -102,6 +103,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
             serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
+                console.log(response);
                 if(response.code == 0 ){
                     for(var i =0; i <response.data.records.length; i++){
                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -175,6 +177,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                          price        : $scope.productmodal['price'],
                          idx          : $scope.productmodal['idx'],
                          upc_code     : $scope.productmodal['upc_code'],
+                         product_code : $scope.productmodal['product_code'],
                          product_id   : $scope.productmodal['product_id'],
                          hargatotal   : 0
                      });
@@ -256,9 +259,25 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     break;
                 case 'c' :
                     //continue
-                    //TODO:agung: insert to table transaction
-                    $scope.action = 'done';
-                    $scope.cheader = 'TRANSAKSI BERHASIL';
+                    $scope.sendcart = {
+                        total_item     : accounting.unformat($scope.cart.totalitem),
+                        subtotal       : accounting.unformat($scope.cart.subtotal),
+                        vat            : accounting.unformat($scope.cart.vat),
+                        total_to_pay   : accounting.unformat($scope.cart.totalpay),
+                        merchant_id    : $scope.datauser['userdetail']['merchant_id'],
+                        cashier_id     : $scope.datauser['user_id'],
+                        payment_method : $scope.action,
+                        cart           : $scope.cart
+                    };
+                    serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
+                        if(response.code == 0){
+                            $scope.action = 'done';
+                            $scope.cheader = 'TRANSAKSI BERHASIL';
+                        }else{
+                            //do something
+                            $scope.cheader = 'TRANSAKSI GAGAL';
+                        }
+                      });
                     break;
             }
         };
@@ -277,14 +296,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             if(clickEvent.keyCode == '13'){
                 $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
                 $scope.changetf = $scope.change > 0 ? true:false;
-                $scope.messagepay = $scope.changetf ? 'Nominal tunai melebihi total bayar, ada kembalian!' : 'Nominal tunai lebih kecil dari total bayar!';
+                $scope.messagepay = $scope.changetf ? '' : 'Nominal tunai lebih kecil dari total bayar!';
                $scope.cart['change'] =    accounting.formatMoney($scope.change, "", 0, ",", ".");
             }
         };
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
-         //   angular.element("#myModalcheckout").modal('hide');
+            $scope.messagepay = 'PILIH CARA PEMBAYARAN';
             $scope.action = 'main';
         };
         //reset payment
@@ -299,7 +318,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.choseTerminalFn = function(id){
             $scope.gesekkartu = true;
         };
-
         //scan product only run on linux
         ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
@@ -313,29 +331,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
             });
         })();
-
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
             serviceAjax.posDataToServer('/pos/logout').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
-                    window.location.assign("/pos");
+                    window.location.assign("");
                 }else{
                     alert('gagal logout');
                 }
                 if(progressJs) progressJs().end();
             });
         };
-    }]);
-
-    app.controller('cashCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
-
-
-    }]);
-
-    app.controller('cardCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
-        $scope.datauser  = localStorageService.get('user');
     }]);
 
     app.directive('numbersOnly', function(){

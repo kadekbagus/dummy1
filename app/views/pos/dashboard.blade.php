@@ -308,17 +308,17 @@
                    <div class="row" ng-show="action == 'card'">
 
                     <div class="row">
-                         <span class="label label-warning" class="text-center">Gesek Kartu Sekarang</span>
+                         <span  class="text-center">Gesek Kartu Sekarang</span>
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
                          <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('s')">CETAK STRUK</button></p>
-                         <p><button type="button" class="btn btn-primary btn-lg" data-dismiss="modal"  style="background-color: #2c71a3; padding-left: 53px; padding-right: 53px"   data-ng-click="checkoutFn('d')">DONE</button> </p>
+                         <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal"  style="background-color: #009933; padding-left: 53px; padding-right: 53px"   data-ng-click="checkoutFn('d')">DONE</button> </p>
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
                      <button type="button"  data-ng-if="action !='done'" class="btn btn-danger" data-dismiss="modal" data-ng-click="gotomain()">Cancel</button>
-                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-primary" style="background-color: #2c71a3;">Continue</button>
+                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
         </div>
       </div>

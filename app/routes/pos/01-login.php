@@ -73,19 +73,6 @@ Route::get('/pos/dashboard', function () {
     }
 });
 
-Route::get('/pos/cash', function () {
-    if (Auth::check()) {
-        return View::make('pos.cash');
-    } else {
-        echo "anda tidak login";
-    }
-});
-Route::get('/pos/card', function () {
-    if (Auth::check()) {
-        return View::make('pos.card');
-    } else {
-        echo "anda tidak login";
-    }
-});
+
 
 
