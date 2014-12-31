@@ -49,9 +49,11 @@
 	</div>
 @endforeach
 <ul>
-@foreach($subfamilies as $subfamily)
-	<li data-family-container="{{ $subfamily->category_id }}" data-family-isopen-list="0"><a class="family-a" data-family-id="{{ $subfamily->category_id }}" data-family-level="{{ $subfamily->category_level }}" data-family-isopen="0"><div class="family-label">{{ $subfamily->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
-		<div class="product-list"></div>
-	</li>
-@endforeach
+@if(! is_null($subfamilies))
+	@foreach($subfamilies as $subfamily)
+		<li data-family-container="{{ $subfamily->category_id }}" data-family-isopen-list="0"><a class="family-a" data-family-id="{{ $subfamily->category_id }}" data-family-level="{{ $subfamily->category_level }}" data-family-isopen="0"><div class="family-label">{{ $subfamily->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+			<div class="product-list"></div>
+		</li>
+	@endforeach
+@endif
 </ul>
