@@ -293,7 +293,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
-         //   angular.element("#myModalcheckout").modal('hide');
+            $scope.messagepay = 'PILIH CARA PEMBAYARAN';
             $scope.action = 'main';
         };
         //reset payment
