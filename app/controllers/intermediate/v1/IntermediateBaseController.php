@@ -9,6 +9,8 @@ use OrbitShop\API\v1\Helper\Generator;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
 
 class IntermediateBaseController extends Controller
 {
@@ -27,6 +29,13 @@ class IntermediateBaseController extends Controller
     protected $contentType = 'application/json';
 
     /**
+     * Store Orbit Session
+     *
+     * @var OrbitSession
+     */
+    protected $session = NULL;
+
+    /**
      * Class constructor
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -34,6 +43,10 @@ class IntermediateBaseController extends Controller
      */
     public function __construct()
     {
+        // Instantiate the OrbitSession object
+        $sessConfig = new SessionConfig(Config::get('orbit.session'));
+        $this->session = new Session($sessConfig);
+
         // CSRF protection
         $csrfProtection = Config::get('orbit.security.csrf.protect');
 
@@ -158,8 +171,8 @@ class IntermediateBaseController extends Controller
         $theClass = get_class($this);
 
         if ($theClass === 'IntermediateAuthController') {
-            if (Auth::check()) {
-                $user = Auth::user();
+            if ($userId = $this->authCheck()) {
+                $user = User::find($userId);
 
                 // This will query the database if the apikey has not been set up yet
                 $apikey = $user->apikey;
@@ -223,5 +236,21 @@ class IntermediateBaseController extends Controller
         $api = $this->getTargetAPIController($method);
 
         return $this->callApi($api['controller'], $api['method']);
+    }
+
+    /**
+     * Check the authentication status.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return int - User ID
+     */
+    protected function authCheck()
+    {
+        $userId = $this->session->read('user_id');
+        if ($this->session->read('logged_in') !== TRUE || ! $userId) {
+            return FALSE;
+        }
+
+        return $userId;
     }
 }
