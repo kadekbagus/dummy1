@@ -45,7 +45,7 @@ class SessionFile implements GenericInterface
      */
     public function update($sessionData)
     {
-        return $this->start();
+        return $this->start($sessionData);
     }
 
     /**
@@ -197,7 +197,7 @@ class SessionFile implements GenericInterface
 
         if (! file_exists($path))
         {
-            if (! mkdir($path)) {
+            if (! mkdir($path, 0775, TRUE)) {
                 $code = Session::ERR_SAVE_ERROR;
                 throw new Exception(sprintf('Could not write to session directory %s.', $path), $code);
             }
