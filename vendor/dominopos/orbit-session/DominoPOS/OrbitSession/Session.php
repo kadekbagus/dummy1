@@ -64,35 +64,30 @@ class Session
     {
         // Check if we got session id
         $availabilities = $this->config->getConfig('availability');
-        foreach ($availabilities as $availability) {
-            $source = $this->config->getConfig('session_origin.' . $availability . '.name');
 
-            if ($availability === 'header') {
-                // Turn X-Something to 'HTTP_X_SOMETHING'
-                $source = strtoupper($source);
-                $source = 'HTTP_' . str_replace('-', '_', $source);
+        // Check session from header first
+        if (array_key_exists('header', $availabilities) && $availabilities['header'] === TRUE) {
+            // Turn X-Something to 'HTTP_X_SOMETHING'
+            $source = $this->config->getConfig('session_origin.header.name');
+            $source = strtoupper($source);
+            $source = 'HTTP_' . str_replace('-', '_', $source);
 
-                if (isset($_SERVER[$source]) && ! empty($_SERVER[$source])) {
-                    $this->sessionId = $_SERVER[$source];
-
-                    // Found it, no need further check
-                    break;
-                }
+            if (isset($_SERVER[$source]) && ! empty($_SERVER[$source])) {
+                $this->sessionId = $_SERVER[$source];
             }
 
-            if ($availability === 'query_string') {
-                if (isset($_GET[$source]) && ! empty($_GET[$source])) {
-                    $this->sessionId = $_GET[$source];
-
-                    // Found it, no need further check
-                    break;
-                }
+        // Check session from query string
+        } elseif (array_key_exists('query_string', $availabilities) && $availabilities['query_string'] === TRUE) {
+            $source = $this->config->getConfig('session_origin.query_string.name');
+            if (isset($_GET[$source]) && ! empty($_GET[$source])) {
+                $this->sessionId = $_GET[$source];
             }
 
-            if ($availability === 'cookie') {
-                if (isset($_COOKIE[$source])) {
-                    $this->sessionId = $_COOKIE[$source];
-                }
+        // Check session from cookie
+        } elseif (array_key_exists('cookie', $availabilities) && $availabilities['cookie'] === TRUE) {
+            $source = $this->config->getConfig('session_origin.cookie.name');
+            if (isset($_COOKIE[$source]) && ! empty($_COOKIE[$source])) {
+                $this->sessionId = $_COOKIE[$source];
             }
         }
 
@@ -103,6 +98,9 @@ class Session
             $this->driver->start($sessionData);
 
             $this->sessionId = $sessionData->id;
+
+            // Send the session id via cookie to the client
+            $this->sendCookie($sessionData->id);
         } else {
             try {
                 $sessionData = $this->driver->get($this->sessionId);
@@ -134,6 +132,9 @@ class Session
                         $this->driver->start($sessionData);
 
                         $this->sessionId = $sessionData->id;
+
+                        // Send the session id via cookie to the client
+                        $this->sendCookie($sessionData->id);
                 }
             }
         }
@@ -232,5 +233,29 @@ class Session
     public function getSession()
     {
         return $this->driver->get($this->sessionId);
+    }
+
+    /**
+     * Send session id to the client via cookie.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function sendCookie($sessionId)
+    {
+        $availabilities = $this->config->getConfig('availability');
+
+        if (array_key_exists('cookie', $availabilities)) {
+            $cookieConfig = $this->config->getConfig('session_origin.cookie');
+            setcookie(
+                $cookieConfig['name'],
+                $sessionId,
+                $cookieConfig['expire'] + time(),
+                $cookieConfig['path'],
+                $cookieConfig['domain'],
+                $cookieConfig['secure'],
+                $cookieConfig['httponly']
+            );
+        }
     }
 }
