@@ -4,6 +4,8 @@
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
+use OrbitShop\API\v1\ResponseProvider;
+
 class IntermediateLoginController extends IntermediateBaseController
 {
     /**
@@ -43,9 +45,46 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function getLogout()
     {
-        Auth::logout();
+        $response = new ResponseProvider();
 
-        return $this->render();
+        try {
+            $this->session->start(array(), 'no-session-creation');
+            $this->session->clear();
+            $response->data = $this->session->getSession();
+        } catch (Exception $e) {
+            $response->code = $e->getCode();
+            $response->status = 'error';
+            $response->message = $e->getMessage();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
+     * Check the session value.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Response
+     */
+    public function getSession()
+    {
+        $response = new ResponseProvider();
+
+        try {
+            $this->session->start(array(), 'no-session-creation');
+
+            if (Config::get('app.debug')) {
+                $response->data = $this->session->getSession();
+            } else {
+                $response->data = 'Not in debug mode.';
+            }
+        } catch (Exception $e) {
+            $response->code = $e->getCode();
+            $response->status = 'error';
+            $response->message = $e->getMessage();
+        }
+
+        return $this->render($response);
     }
 
     /**
