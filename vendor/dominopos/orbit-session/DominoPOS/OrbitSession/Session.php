@@ -58,9 +58,10 @@ class Session
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param mixed $data - Data which will be stored on session
+     * @param string $mode - mode of start, valid: 'default', 'no-session-creation'
      * @return SessionData
      */
-    public function start(array $data=array())
+    public function start(array $data=array(), $mode='default')
     {
         // Check if we got session id
         $availabilities = $this->config->getConfig('availability');
@@ -92,8 +93,11 @@ class Session
             }
         }
 
-        if (empty($this->sessionId))
-        {
+        if (empty($this->sessionId)) {
+            if ($mode === 'no-session-creation') {
+                throw new Exception ('No session found.', static::ERR_SESS_NOT_FOUND);
+            }
+
             $sessionData = new SessionData($data);
             $sessionData->createdAt = $now;
             $this->driver->start($sessionData);
