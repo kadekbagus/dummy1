@@ -64,6 +64,7 @@ class Session
     {
         // Check if we got session id
         $availabilities = $this->config->getConfig('availability');
+        $now = time();
 
         // Check session from header first
         if (array_key_exists('header', $availabilities) && $availabilities['header'] === TRUE) {
@@ -94,7 +95,7 @@ class Session
         if (empty($this->sessionId))
         {
             $sessionData = new SessionData($data);
-            $sessionData->createdAt = time();
+            $sessionData->createdAt = $now;
             $this->driver->start($sessionData);
 
             $this->sessionId = $sessionData->id;
@@ -116,12 +117,24 @@ class Session
                     }
                 }
 
+                // Does the session already expire?
+                $expireAt = $sessionData->expireAt;
+                if ($expireAt < $now) {
+                    throw new Exception ('Session has ben expires.', static::ERR_SESS_EXPIRE);
+                }
+
                 $this->driver->update($sessionData);
             } catch (Exception $e) {
                 switch ($e->getCode()) {
                     // User agent or IP miss match, sesion hijacking?
                     case static::ERR_IP_MISS_MATCH:
                     case static::ERR_UA_MISS_MATCH:
+                        throw new Exception($e->getMessage(), $e->getCode());
+                        break;
+
+                    // Clear the session value
+                    case static::ERR_SESS_EXPIRE:
+                        $this->driver->clear($this->sessionId);
                         throw new Exception($e->getMessage(), $e->getCode());
                         break;
 
