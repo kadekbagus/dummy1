@@ -60,7 +60,7 @@ class Session
      * @param mixed $data - Data which will be stored on session
      * @return SessionData
      */
-    public function start(array $data)
+    public function start(array $data=array())
     {
         // Check if we got session id
         $availabilities = $this->config->getConfig('availability');
@@ -233,6 +233,28 @@ class Session
     public function getSession()
     {
         return $this->driver->get($this->sessionId);
+    }
+
+    /**
+     * Get the session id
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    public function getSessionId()
+    {
+        return $this->sessionId;
+    }
+
+    /**
+     * Get session config
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return SessionConfig
+     */
+    public function getSessionConfig()
+    {
+        return $this->config;
     }
 
     /**
