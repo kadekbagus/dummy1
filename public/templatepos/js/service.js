@@ -1,9 +1,7 @@
 /**
  * service
- *  connect to server via http request
- *
- * @author agung.julisman@yahoo.com
- *
+ *  connect to server via http request get and post
+ *  @author agung.julisman@yahoo.com
  */
 
 "use strict";

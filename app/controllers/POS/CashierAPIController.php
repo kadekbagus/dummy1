@@ -394,23 +394,52 @@ class CashierAPIController extends ControllerAPI
      * POST - Save The Transaction
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Agung <agung@dominopos.com>
      *
      * @return Illuminate\Support\Facades\Response
      */
     public function postSaveTransaction()
     {
         try {
-            $transaction_code = trim(OrbitInput::post('transaction_code'));
-            $cashier_id = trim(OrbitInput::post('cashier_id'));
-            $customer_id = trim(OrbitInput::post('customer_id'));
-            $merchant_id = trim(OrbitInput::post('merchant_id'));
-            $retailer_id = trim(OrbitInput::post('retailer_id'));
-            $total_item = trim(OrbitInput::post('total_item'));
-            $subtotal = trim(OrbitInput::post('subtotal'));
-            $vat = trim(OrbitInput::post('vat'));
-            $total_to_pay = trim(OrbitInput::post('total_to_pay'));
+            $total_item     = trim(OrbitInput::post('total_item'));
+            $subtotal       = trim(OrbitInput::post('subtotal'));
+            $vat            = trim(OrbitInput::post('vat'));
+            $total_to_pay   = trim(OrbitInput::post('total_to_pay'));
+            $merchant_id    = trim(OrbitInput::post('merchant_id'));
+            $cashier_id     = trim(OrbitInput::post('cashier_id'));
             $payment_method = trim(OrbitInput::post('payment_method'));
-            echo "tes";
+            $cart           = OrbitInput::post('cart'); //data of array
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            //insert to table transcations
+            $transaction = new \Transaction();
+            $transaction->total_item     = $total_item;
+            $transaction->subtotal       = $subtotal;
+            $transaction->vat            = $vat;
+            $transaction->total_to_pay   = $total_to_pay;
+            $transaction->merchant_id    = $merchant_id;
+            $transaction->cashier_id     = $cashier_id;
+            $transaction->payment_method = $payment_method;
+
+            $transaction->save();
+
+            //insert to table transaction_details
+            foreach($cart as $k => $v){
+                $transactionDetails = new \TransactionDetail();
+                $transactionDetails->transaction_id = $transaction->transaction_id;
+                $transactionDetails->product_id     = $v['product_id'];
+                $transactionDetails->product_code   = $v['product_code'];
+                $transactionDetails->quantity       = $v['qty'];
+                $transactionDetails->upc            = $v['upc_code'];
+                $transactionDetails->price          = str_replace( ',', '', $v['price'] );
+
+                $transactionDetails->save();
+            }
+
+            // Commit the changes
+            $this->commit();
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
