@@ -121,6 +121,7 @@ return array(
             'product'              => 'The Product ID you specify is not found.',
             'category'             => 'The Category ID you specify is not found.',
             'tax'                  => 'The Tax ID you specify is not found.',
+            'promotion'            => 'The Promotion ID you specify is not found.',
             'user_status'          => 'The user status you specify is not found.',
             'user_sortby'          => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'      => 'The merchant status you specify is not found.',
