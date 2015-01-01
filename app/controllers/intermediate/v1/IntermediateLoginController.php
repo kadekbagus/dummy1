@@ -31,6 +31,7 @@ class IntermediateLoginController extends IntermediateBaseController
 
             // Send the session id via HTTP header
             $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
             $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
         }
 
