@@ -137,6 +137,7 @@ class IntermediateBaseController extends Controller
                 $this->customHeaders['Access-Control-Allow-Credentials'] = 'true';
 
                 $angularTokenName = Config::get('orbit.security.csrf.angularjs.header_name');
+                $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
                 $allowHeaders = array(
                     'Origin',
                     'Content-Type',
@@ -145,7 +146,9 @@ class IntermediateBaseController extends Controller
                     'X-Request-With',
                     'X-Orbit-Signature',
                     'Cookie',
-                    'Set-Cookie'
+                    'Set-Cookie',
+                    $sessionHeader,
+                    'Set-' . $sessionHeader
                 );
                 if (! empty($angularTokenName)) {
                     $allowHeaders[] = $angularTokenName;
