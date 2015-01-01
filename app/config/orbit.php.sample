@@ -38,6 +38,38 @@ return array(
         ),
     ),
 
+    // Session related configuration
+    'session' => array(
+        /**
+         * How long session will expire in seconds
+         */
+        'expire' => 3600,
+
+        /**
+         * Path to write the session data
+         */
+        'path' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'orbit-session',
+
+        /**
+         * Strict mode, will check the user agent and ip address
+         */
+        'strict' => TRUE,
+
+        /**
+         * Session Driver
+         */
+        'driver' => 'file',
+
+        /**
+         * Session data available
+         */
+        'availability' => array(
+            'header'        => TRUE,
+            'query_string'  => TRUE,
+            'cookie'        => FALSE,
+        ),
+
+    // Security related configuration
     'security' => array(
         // Super Admin Roles
         'superadmin' => array(
