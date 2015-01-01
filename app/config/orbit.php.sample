@@ -68,6 +68,7 @@ return array(
             'query_string'  => TRUE,
             'cookie'        => FALSE,
         ),
+    ),
 
     // Security related configuration
     'security' => array(
