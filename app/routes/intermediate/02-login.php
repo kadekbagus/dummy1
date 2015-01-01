@@ -9,6 +9,7 @@
  */
 Route::post('/app/v1/login', 'IntermediateLoginController@postLogin');
 Route::get('/app/v1/logout', 'IntermediateLoginController@getLogout');
+Route::get('/app/v1/session', 'IntermediateLoginController@getSession');
 
 /**
  * Customer registration
