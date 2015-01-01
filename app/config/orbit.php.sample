@@ -101,7 +101,8 @@ return array(
     ),
 
     'upload'    => array(
-        'merchant'  => array(
+       'merchant'  => array(
+            'logo' => array(
                 // Allowed Extension
                 'file_type'     => array('jpg', 'png'),
 
@@ -109,10 +110,10 @@ return array(
                 'mime_type'     => array('image/jpeg', 'image/png'),
 
                 // Maximum file size allowed in bytes
-                'file_size'     => 50000,
+                'file_size'     => 5000000,
 
                 // The target path which file to be stored
-                'path'          => 'uploads',
+                'path'          => 'uploads/merchants',
 
                 // Default HTML element name
                 'name'          => 'images',
@@ -167,7 +168,9 @@ return array(
 
                 // Callback after saving the file
                 'after_saving'  => NULL,
+            ),
         ),
+
         'retailer'  => array(
             'logo'  => array(
                 // Allowed Extension
@@ -235,6 +238,7 @@ return array(
 
                 // Callback after saving the file
                 'after_saving'  => NULL,
+            ),
         ),
 
         // -------------------------------------------------------------------//
