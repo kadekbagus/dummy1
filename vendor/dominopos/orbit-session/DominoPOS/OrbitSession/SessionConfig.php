@@ -60,8 +60,9 @@ class SessionConfig
              * Session data available
              */
             'availability' => array(
-                'header',
-                'query_string'
+                'header'        => TRUE,
+                'query_string'  => TRUE,
+                'cookie'        => TRUE,
             ),
 
             /**
@@ -80,7 +81,23 @@ class SessionConfig
 
                 // From Cookie
                 'cookie'    => array(
-                    'name'  => 'orbit_sessionx'
+                    'name'      => 'orbit_sessionx',
+
+                    // Expire time, should be set equals or higher than
+                    // SessionConifg.expire
+                    'expire' => 62208000,   // two years
+
+                    // Path of the cookie
+                    'path'      => '/',
+
+                    // domain
+                    'domain'    => NULL,
+
+                    // secure transfer via HTTPS only
+                    'secure'    => FALSE,
+
+                    // Deny access from client side script
+                    'httponly'  => TRUE
                 ),
             ),
         );
