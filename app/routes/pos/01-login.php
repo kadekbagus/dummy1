@@ -42,6 +42,13 @@ Route::post('/api/v1/pos/savetransaction', function () {
 
 Route::post('/app/v1/pos/savetransaction', 'IntermediateAuthController@POS\Cashier_postSaveTransaction');
 
+// print ticket
+Route::post('/api/v1/pos/ticketprint', function () {
+    return POS\CashierAPIController::create()->postPrintTicket();
+});
+
+Route::post('/app/v1/pos/ticketprint', 'IntermediateBaseController@POS\Cashier_postPrintTicket');
+
 
 Route::get('/pos', function () {
     if (Auth::check()) {

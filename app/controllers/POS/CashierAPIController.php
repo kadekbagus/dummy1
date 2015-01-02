@@ -460,4 +460,148 @@ class CashierAPIController extends ControllerAPI
 
         return $this->render();
     }
+
+
+    /**
+     * POST - Print Ticket
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postPrintTicket()
+    {
+        try {
+            $transaction_id = trim(OrbitInput::post('transaction_id'));
+
+            $transaction = \Transaction::with('details')->where('transaction_id',$transaction_id)->first();
+
+            if (! is_object($transaction)) {
+                $message = \Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+            
+            $this->response->data = $transaction;   
+
+            foreach ($transaction['details'] as $key => $value) {
+               if($key==0){
+                $product = $this->producListFormat($value['product_code'], $value['price'], $value['quantity'], $value['sku']);
+               }
+               else {
+                $product .= $this->producListFormat($value['product_code'], $value['price'], $value['quantity'], $value['sku']);
+               }
+            }
+            
+            $payment = trim($transaction['payment_method']);
+
+            $head  = $this->just40CharMid('MATAHARI');
+            $head .= $this->just40CharMid('DEPARTMENT STORE');
+            $head .= '----------------------------------------'." \n";
+
+            $head .= 'Date : '.date('d M Y')." \n";
+            $head .= 'Bill No : '.time()." \n";
+            $head .= " \n";
+            $head .= '----------------------------------------'." \n";
+
+            // $product = $this->producListFormat("Quick choice", 2500, 2, "QK123");
+            // $product .= $this->producListFormat("Joyko White", 10000, 1, "QKda3");
+            // $product .= $this->producListFormat("Tango Wafer", 2500, 5, "ewq3");
+
+            if ($payment=='card') {
+                $footer  = " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= $this->just40CharMid('Thank you for your purchase');
+                $footer .= $this->just40CharMid('Powered by DominoPos');
+                $footer .= $this->just40CharMid('www.dominopos.com');
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+            } else {
+                $footer  = " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= $this->just40CharMid('Thank You');
+                $footer .= $this->just40CharMid('email : info@DominoPos.com');
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+            }
+
+            $file = storage_path()."/views/receipt.txt";
+            $write = $head.$product.$footer;
+
+            $fp = fopen($file, 'w');
+            fwrite($fp, $write);
+            fclose($fp);
+
+            $print = "cat ".storage_path()."/views/receipt.txt > /dev/domino/printer";
+            $cut = "~/drivers/64bits/cut_paper";
+
+            shell_exec($print);
+
+            shell_exec($cut);
+
+            //$this->response->data = "tes";
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+    private function just40CharMid($str)
+    {
+        $nnn = strlen($str);
+        if ($nnn>40) {
+            $all = explode('::break-here::', wordwrap($str,38,'::break-here::'));
+            $tmp = '';
+            foreach ($all as $str) {
+                $space = round( (40-strlen($str))/2 );
+                $spc = '';
+                for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+                $tmp .= $spc.$str." \n";
+            }
+        } else {
+            $space = round( (40-strlen($str))/2 );
+            $spc = '';
+            for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+            $tmp = $spc.$str." \n";
+        }
+
+        return $tmp;
+    }
+
+    private function producListFormat($name, $price, $qty, $sku)
+    {
+        $all  = '';
+        $sbT = number_format($price*$qty,2);
+        $space = 40-strlen($name)-strlen($sbT); $spc = '';
+        for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+        $all .= $name.$spc.$sbT." \n";
+        $all .= '   '.$qty.' x '.number_format($price,2).' ('.$sku.')'." \n";
+
+        return $all;
+    }
+
+    private function leftAndRight($left, $right)
+    {
+        $space = 40-strlen($left)-strlen($right); $spc = '';
+        for($i=0;$i<$space;$i++){ $spc .= ' '; }
+        $all .= $left.$spc.$right." \n";
+        return $all;
+    }
 }
