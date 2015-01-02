@@ -30,6 +30,13 @@ class Session
     protected $sessionId = NULL;
 
     /**
+     * Force creation of new session even session id are supplied.
+     *
+     * @var boolean
+     */
+    protected $forceNew = FALSE;
+
+    /**
      * List of static error codes
      */
     const ERR_UNKNOWN = 51;
@@ -93,7 +100,7 @@ class Session
             }
         }
 
-        if (empty($this->sessionId)) {
+        if ($this->forceNew === TRUE || empty($this->sessionId)) {
             if ($mode === 'no-session-creation') {
                 throw new Exception ('No session found.', static::ERR_SESS_NOT_FOUND);
             }
@@ -272,6 +279,32 @@ class Session
     public function getSessionConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Set the force new flag.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Session
+     */
+    public function enableForceNew()
+    {
+        $this->forceNew = TRUE;
+
+        return $this;
+    }
+
+    /**
+     * disable the force new flag.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Session
+     */
+    public function disableForceNew()
+    {
+        $this->forceNew = FALSE;
+
+        return $this;
     }
 
     /**
