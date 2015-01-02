@@ -730,24 +730,30 @@ class PromotionAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sort_by`               (optional) - column order by
-     * @param string   `sort_mode`             (optional) - asc or desc
+     * @param string   `with`                  (optional) - Valid value: retailers, product, family.
+     * @param string   `sortby`                (optional) - column order by
+     * @param string   `sortmode`              (optional) - asc or desc
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
      * @param integer  `promotion_id`          (optional) - Promotion ID
      * @param integer  `merchant_id`           (optional) - Merchant ID
      * @param string   `promotion_name`        (optional) - Promotion name
      * @param string   `promotion_name_like`   (optional) - Promotion name like
-     * @param string   `promotion_type`        (optional) - Promotion type
+     * @param string   `promotion_type`        (optional) - Promotion type. Valid value: product, cart.
      * @param string   `description`           (optional) - Description
      * @param string   `description_like`      (optional) - Description like
-     * @param datetime `begin_date`            (optional) - Begin date
-     * @param datetime `end_date`              (optional) - End date
-     * @param string   `is_permanent`          (optional) - Is permanent
-     * @param string   `status`                (optional) - Status
-     * @param string   `rule_type`             (optional) - Rule type
-     * @param string   `discount_object_type`  (optional) - Discount object type
-     * @param integer  `discount_object_id1`   (optional) - Discount object ID1
+     * @param datetime `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
+     * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
+     * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
+     * @param string   `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
+     * @param string   `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
+     * @param integer  `discount_object_id1`   (optional) - Discount object ID1 (product_id or category_id1).
+     * @param integer  `discount_object_id2`   (optional) - Discount object ID2 (category_id2).
+     * @param integer  `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
+     * @param integer  `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
+     * @param integer  `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
+     * @param integer  `retailer_id`           (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
      */
