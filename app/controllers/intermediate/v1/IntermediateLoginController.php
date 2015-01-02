@@ -27,7 +27,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 'logged_in' => TRUE,
                 'user_id'   => $user->user_id,
             );
-            $this->session->start($data);
+            $this->session->enableForceNew()->start($data);
 
             // Send the session id via HTTP header
             $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
