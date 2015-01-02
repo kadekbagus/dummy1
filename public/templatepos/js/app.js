@@ -103,9 +103,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
             serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
-                console.log(response);
                 if(response.code == 0 ){
-                    for(var i =0; i <response.data.records.length; i++){
+                    if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                     }
                     $scope.product = response.data.records;
@@ -303,8 +302,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
-            $scope.messagepay = 'PILIH CARA PEMBAYARAN';
-            $scope.action = 'main';
+            $scope.cheader = 'PILIH CARA PEMBAYARAN';
+            $scope.action  = 'main';
         };
         //reset payment
         $scope.resetpayment  = function(){
