@@ -75,28 +75,37 @@ class Session
         $now = time();
 
         // Check session from header first
-        if (array_key_exists('header', $availabilities) && $availabilities['header'] === TRUE) {
-            // Turn X-Something to 'HTTP_X_SOMETHING'
-            $source = $this->config->getConfig('session_origin.header.name');
-            $source = strtoupper($source);
-            $source = 'HTTP_' . str_replace('-', '_', $source);
+        $headerName = $this->config->getConfig('session_origin.header.name');
+        $headerName = strtoupper($headerName);
+        $headerName = 'HTTP_' . str_replace('-', '_', $headerName);
 
-            if (isset($_SERVER[$source]) && ! empty($_SERVER[$source])) {
-                $this->sessionId = $_SERVER[$source];
+        $queryStringName = $this->config->getConfig('session_origin.query_string.name');
+        $cookieName = $this->config->getConfig('session_origin.cookie.name');
+
+        if (array_key_exists('header', $availabilities)
+            && $availabilities['header'] === TRUE
+            && isset($_SERVER[$headerName])) {
+
+            if (! empty($_SERVER[$headerName])) {
+                $this->sessionId = $_SERVER[$headerName];
             }
 
         // Check session from query string
-        } elseif (array_key_exists('query_string', $availabilities) && $availabilities['query_string'] === TRUE) {
-            $source = $this->config->getConfig('session_origin.query_string.name');
-            if (isset($_GET[$source]) && ! empty($_GET[$source])) {
-                $this->sessionId = $_GET[$source];
+        } elseif (array_key_exists('query_string', $availabilities)
+            && $availabilities['query_string'] === TRUE
+            && isset($_GET[$queryStringName])) {
+
+            if (! empty($_GET[$queryStringName])) {
+                $this->sessionId = $_GET[$queryStringName];
             }
 
         // Check session from cookie
-        } elseif (array_key_exists('cookie', $availabilities) && $availabilities['cookie'] === TRUE) {
-            $source = $this->config->getConfig('session_origin.cookie.name');
-            if (isset($_COOKIE[$source]) && ! empty($_COOKIE[$source])) {
-                $this->sessionId = $_COOKIE[$source];
+        } elseif (array_key_exists('cookie', $availabilities)
+            && $availabilities['cookie'] === TRUE
+            && isset($_COOKIE[$cookieName])) {
+
+            if (! empty($_COOKIE[$cookieName])) {
+                $this->sessionId = $_COOKIE[$cookieName];
             }
         }
 
@@ -244,6 +253,9 @@ class Session
      */
     public function destroy()
     {
+        // Destroy the cookie
+        $this->sendCookie($this->sessionId, TRUE);
+
         return $this->driver->destroy($this->sessionId);
     }
 
@@ -311,18 +323,25 @@ class Session
      * Send session id to the client via cookie.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param boolean $makeItExpire
      * @return void
      */
-    protected function sendCookie($sessionId)
+    protected function sendCookie($sessionId, $makeItExpire=FALSE)
     {
         $availabilities = $this->config->getConfig('availability');
 
         if (array_key_exists('cookie', $availabilities)) {
             $cookieConfig = $this->config->getConfig('session_origin.cookie');
+            $expire = $cookieConfig['expire'] + time();
+
+            if ($makeItExpire) {
+                $expire = time() - 3600;
+            }
+
             setcookie(
                 $cookieConfig['name'],
                 $sessionId,
-                $cookieConfig['expire'] + time(),
+                $expire,
                 $cookieConfig['path'],
                 $cookieConfig['domain'],
                 $cookieConfig['secure'],
