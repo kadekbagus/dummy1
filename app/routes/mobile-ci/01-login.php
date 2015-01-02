@@ -1,7 +1,11 @@
 <?php
 
 // -------------------- views ------------------------------
-Route::get('/customer', 'IntermediateAuthController@MobileCI\MobileCI_getSignInView');
+// Route::get('/customer', 'IntermediateAuthController@MobileCI\MobileCI_getSignInView');
+Route::get('/customer', function()
+{
+    return MobileCI\MobileCIAPIController::create()->getSignInView();
+});
 
 Route::get('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_getSignUpView');
 
