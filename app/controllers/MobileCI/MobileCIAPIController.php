@@ -830,13 +830,13 @@ class MobileCIAPIController extends ControllerAPI
     public function getRetailerInfo()
     {
         try {
-            $this->checkAuth();
-            $user = $this->api->user;
-            if (! ACL::create($user)->isAllowed('view_retailer')) {
-                $errorlang = Lang::get('validation.orbit.actionlist.view_retailer');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
-                ACL::throwAccessForbidden($message);
-            }
+            // $this->checkAuth();
+            // $user = $this->api->user;
+            // if (! ACL::create($user)->isAllowed('view_retailer')) {
+            //     $errorlang = Lang::get('validation.orbit.actionlist.view_retailer');
+            //     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
+            //     ACL::throwAccessForbidden($message);
+            // }
             
             $retailer_id = Config::get('orbit.shop.id');
             $retailer = Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
