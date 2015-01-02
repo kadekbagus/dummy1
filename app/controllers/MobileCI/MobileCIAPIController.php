@@ -24,6 +24,8 @@ use \Product;
 use Carbon\Carbon as Carbon;
 use \stdclass;
 use \Category;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
 
 class MobileCIAPIController extends ControllerAPI
 {   
@@ -40,6 +42,7 @@ class MobileCIAPIController extends ControllerAPI
     public function postLoginInShop()
     {
         try {
+            
             $email = trim(OrbitInput::post('email'));
 
             if (trim($email) === '') {
@@ -55,15 +58,26 @@ class MobileCIAPIController extends ControllerAPI
                                 $query->where('role_name','Consumer');
                             })
                         ->first();
-
+            $user->setHidden(array('user_password', 'apikey'));
+            
             if (! is_object($user)) {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
             } else {
+                // Start the orbit session
+                $data = array(
+                    'logged_in' => TRUE,
+                    'user_id'   => $user->user_id,
+                );
+                $config = new SessionConfig(Config::get('orbit.session'));
+                $session = new Session($config);
+                $session->enableForceNew()->start($data);
                 \Auth::login($user);
             }
 
             $this->response->data = $user;
+            
+            // return var_dump($this->response->data);
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -286,9 +300,9 @@ class MobileCIAPIController extends ControllerAPI
             $this->checkAuth();
             $user = $this->api->user;
             if (! ACL::create($user)->isAllowed('view_product')) {
-                // $errorlang = Lang::get('validation.orbit.actionlist.view_product');
-                // $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
-                // ACL::throwAccessForbidden($message);
+                $errorlang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
+                ACL::throwAccessForbidden($message);
                 return \Redirect::route('signin');
             }
             $retailer = $this->getRetailerInfo();
