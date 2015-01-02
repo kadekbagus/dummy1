@@ -7,6 +7,8 @@
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use OrbitShop\API\v1\ResponseProvider;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
 
 class IntermediateAuthController extends IntermediateBaseController
 {
@@ -23,12 +25,9 @@ class IntermediateAuthController extends IntermediateBaseController
         {
             try
             {
-                // $user = User::find(1);
+                $this->session->start();
 
-                // Hard code the login as off 24-11-2014, since the frontend
-                // having difficulty with AngularJS
-                // Auth::login( $user );
-                if (! Auth::check()) {
+                if (! $this->authCheck()) {
                     $message = Lang::get('validation.orbit.access.needtologin');
                     ACL::throwAccessForbidden($message);
                 }
