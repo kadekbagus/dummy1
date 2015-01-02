@@ -628,7 +628,7 @@ class PromotionAPIController extends ControllerAPI
                     'promotion_id' => $promotion_id,
                 ),
                 array(
-                    'promotion_id' => 'required|numeric|orbit.empty.promotion|orbit.exists.have_product_category',
+                    'promotion_id' => 'required|numeric|orbit.empty.promotion',
                 )
             );
 
@@ -649,6 +649,12 @@ class PromotionAPIController extends ControllerAPI
             $deletepromotion->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.promotion.postdeletepromotion.before.save', array($this, $deletepromotion));
+
+            // hard delete promotion-retailer.
+            $deletepromotionretailers = PromotionRetailer::where('promotion_id', $deletepromotion->promotion_id)->get();
+            foreach ($deletepromotionretailers as $deletepromotionretailer) {
+                $deletepromotionretailer->delete();
+            }
 
             $deletepromotion->save();
 
