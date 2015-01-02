@@ -50,8 +50,8 @@ class IntermediateLoginController extends IntermediateBaseController
 
         try {
             $this->session->start(array(), 'no-session-creation');
-            $this->session->clear();
-            $response->data = $this->session->getSession();
+            $this->session->destroy();
+            $response->data = NULL;
         } catch (Exception $e) {
             $response->code = $e->getCode();
             $response->status = 'error';
