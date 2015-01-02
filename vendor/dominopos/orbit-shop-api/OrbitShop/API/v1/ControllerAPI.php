@@ -166,7 +166,7 @@ abstract class ControllerAPI extends Controller
                 $this->customHeaders['Access-Control-Allow-Credentials'] = 'true';
 
                 $angularTokenName = Config::get('orbit.security.csrf.angularjs.header_name');
-                $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+                $sessionHeader = Config::get('orbit.session.session_origin.header.name');
                 $allowHeaders = array(
                     'Origin',
                     'Content-Type',
