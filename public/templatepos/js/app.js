@@ -302,8 +302,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
-            $scope.messagepay = 'PILIH CARA PEMBAYARAN';
-            $scope.action = 'main';
+            $scope.cheader = 'PILIH CARA PEMBAYARAN';
+            $scope.action  = 'main';
         };
         //reset payment
         $scope.resetpayment  = function(){
