@@ -24,9 +24,13 @@ use \Product;
 use Carbon\Carbon as Carbon;
 use \stdclass;
 use \Category;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
 
 class MobileCIAPIController extends ControllerAPI
-{   
+{
+    protected $session = NULL;
+
     /**
      * POST - Login customer in shop
      *
@@ -40,6 +44,7 @@ class MobileCIAPIController extends ControllerAPI
     public function postLoginInShop()
     {
         try {
+
             $email = trim(OrbitInput::post('email'));
 
             if (trim($email) === '') {
@@ -60,10 +65,20 @@ class MobileCIAPIController extends ControllerAPI
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
             } else {
-                \Auth::login($user);
+                // Start the orbit session
+                $data = array(
+                    'logged_in' => TRUE,
+                    'user_id'   => $user->user_id,
+                );
+                $config = new SessionConfig(Config::get('orbit.session'));
+                $session = new Session($config);
+                $session->enableForceNew()->start($data);
             }
 
+            $user->setHidden(array('user_password', 'apikey'));
             $this->response->data = $user;
+
+            // return var_dump($this->response->data);
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -86,7 +101,14 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getLogoutInShop()
     {
-        \Auth::logout();
+        try {
+            $this->prepareSession();
+
+            $this->session->start(array(), 'no-session-creation');
+            $this->session->destroy();
+        } catch (Exception $e) {
+        }
+
         return \Redirect::to('/customer');
     }
 
@@ -138,7 +160,7 @@ class MobileCIAPIController extends ControllerAPI
                 )
             );
         }
-        
+
         if ($validator->fails()) {
             $errorMessage = $validator->messages()->first();
             OrbitShopAPI::throwInvalidArgument($errorMessage);
@@ -283,33 +305,15 @@ class MobileCIAPIController extends ControllerAPI
     public function getHomeView()
     {
         try {
-            $this->checkAuth();
-            $user = $this->api->user;
-            if (! ACL::create($user)->isAllowed('view_product')) {
-                // $errorlang = Lang::get('validation.orbit.actionlist.view_product');
-                // $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
-                // ACL::throwAccessForbidden($message);
-                return \Redirect::route('signin');
-            }
+            $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
+
             $new_products = Product::with('media')->where('new_from','<=', Carbon::now())->where('new_until', '>=', Carbon::now())->get();
+
             return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer'=>$retailer, 'new_products'=>$new_products));
-            
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            // Should be redirected or return some meaningful error to customer
+            return $e->getMessage();
         }
     }
 
@@ -364,7 +368,7 @@ class MobileCIAPIController extends ControllerAPI
         try {
             $retailer = $this->getRetailerInfo();
             $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->get();
-            
+
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -391,14 +395,14 @@ class MobileCIAPIController extends ControllerAPI
             $this->checkAuth();
 
             $user = $this->api->user;
-        
+
             if (! ACL::create($user)->isAllowed('view_product')) {
                 Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
                 $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
                 ACL::throwAccessForbidden($message);
             }
-           
+
             $sort_by = OrbitInput::get('sort_by');
             $validator = Validator::make(
                 array(
@@ -500,7 +504,7 @@ class MobileCIAPIController extends ControllerAPI
                 $data->returned_records = count($listOfRec);
                 $data->records = $listOfRec;
             }
-            
+
             return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -527,7 +531,7 @@ class MobileCIAPIController extends ControllerAPI
             $this->checkAuth();
 
             $user = $this->api->user;
-        
+
             if (! ACL::create($user)->isAllowed('view_product')) {
                 Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
                 $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
@@ -554,7 +558,7 @@ class MobileCIAPIController extends ControllerAPI
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
                 )
             );
-            
+
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
@@ -648,7 +652,7 @@ class MobileCIAPIController extends ControllerAPI
                 $data->returned_records = count($listOfRec);
                 $data->records = $listOfRec;
             }
-            
+
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -675,14 +679,14 @@ class MobileCIAPIController extends ControllerAPI
             $this->checkAuth();
 
             $user = $this->api->user;
-        
+
             if (! ACL::create($user)->isAllowed('view_product')) {
                 Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
                 $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
                 ACL::throwAccessForbidden($message);
             }
-            
+
             $retailer = $this->getRetailerInfo();
             $product_id = trim(OrbitInput::get('id'));
             $product = Product::whereHas('retailers', function($query) use ($retailer) {
@@ -830,14 +834,14 @@ class MobileCIAPIController extends ControllerAPI
     public function getRetailerInfo()
     {
         try {
-            $this->checkAuth();
-            $user = $this->api->user;
-            if (! ACL::create($user)->isAllowed('view_retailer')) {
-                $errorlang = Lang::get('validation.orbit.actionlist.view_retailer');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
-                ACL::throwAccessForbidden($message);
-            }
-            
+            // $this->checkAuth();
+            // $user = $this->api->user;
+            // if (! ACL::create($user)->isAllowed('view_retailer')) {
+            //     $errorlang = Lang::get('validation.orbit.actionlist.view_retailer');
+            //     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
+            //     ACL::throwAccessForbidden($message);
+            // }
+
             $retailer_id = Config::get('orbit.shop.id');
             $retailer = Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
             return $retailer;
@@ -891,4 +895,45 @@ class MobileCIAPIController extends ControllerAPI
             return TRUE;
         });
     }
+
+    /**
+     * Get current logged in user used in view related page.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return User $user
+     */
+    protected function getLoggedInUser()
+    {
+        $this->prepareSession();
+
+        $userId = $this->session->read('user_id');
+        if ($this->session->read('logged_in') !== TRUE || ! $userId) {
+            throw new Exception ('Invalid session data.');
+        }
+
+        $user = User::with('userDetail')->find($userId);
+
+        if (! $user) {
+            throw new Exception ('Session error: user not found.');
+        }
+
+        return $user;
+    }
+
+    /**
+     * Prepare session.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function prepareSession()
+    {
+        if (! is_object($this->session)) {
+            // This user assumed are Consumer, which has been checked at login process
+            $config = new SessionConfig(Config::get('orbit.session'));
+            $this->session = new Session($config);
+            $this->session->start();
+        }
+    }
+
 }

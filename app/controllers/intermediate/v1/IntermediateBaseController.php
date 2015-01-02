@@ -155,6 +155,7 @@ class IntermediateBaseController extends Controller
                 }
 
                 $this->customHeaders['Access-Control-Allow-Headers'] = implode(',', $allowHeaders);
+                $this->customHeaders['Access-Control-Expose-Headers'] = implode(',', $allowHeaders);
         }
 
         $headers = array('Content-Type' => $this->contentType) + $this->customHeaders;

@@ -163,7 +163,28 @@ abstract class ControllerAPI extends Controller
                 // http://enable-cors.org/index.html
                 $this->customHeaders['Access-Control-Allow-Origin'] = '*';
                 $this->customHeaders['Access-Control-Allow-Methods'] = 'GET, POST';
-                $this->customHeaders['Access-Control-Allow-Headers'] = 'Origin, Cookie, Set-Cookie, Content-Type, Accept, Authorization, X-Request-With, X-Orbit-Signature';
+                $this->customHeaders['Access-Control-Allow-Credentials'] = 'true';
+
+                $angularTokenName = Config::get('orbit.security.csrf.angularjs.header_name');
+                $sessionHeader = Config::get('orbit.session.session_origin.header.name');
+                $allowHeaders = array(
+                    'Origin',
+                    'Content-Type',
+                    'Accept',
+                    'Authorization',
+                    'X-Request-With',
+                    'X-Orbit-Signature',
+                    'Cookie',
+                    'Set-Cookie',
+                    $sessionHeader,
+                    'Set-' . $sessionHeader
+                );
+                if (! empty($angularTokenName)) {
+                    $allowHeaders[] = $angularTokenName;
+                }
+
+                $this->customHeaders['Access-Control-Allow-Headers'] = implode(',', $allowHeaders);
+                $this->customHeaders['Access-Control-Expose-Headers'] = implode(',', $allowHeaders);
         }
 
         $headers = array('Content-Type' => $this->contentType) + $this->customHeaders;
