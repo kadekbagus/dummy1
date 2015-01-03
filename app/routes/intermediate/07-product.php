@@ -42,3 +42,8 @@ Route::post('/app/v1/product-attribute/new', 'IntermediateAuthController@Product
  * List product attribute
  */
 Route::get('/app/v1/product-attribute/list', 'IntermediateAuthController@ProductAttribute_getSearchAttribute');
+
+/**
+ * Update product attribute
+ */
+Route::post('/app/v1/product-attribute/update', 'IntermediateAuthController@ProductAttribute_postUpdateAttribute');
