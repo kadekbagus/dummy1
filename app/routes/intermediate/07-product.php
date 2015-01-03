@@ -47,3 +47,8 @@ Route::get('/app/v1/product-attribute/list', 'IntermediateAuthController@Product
  * Update product attribute
  */
 Route::post('/app/v1/product-attribute/update', 'IntermediateAuthController@ProductAttribute_postUpdateAttribute');
+
+/**
+ * Delete product attribute
+ */
+Route::post('/app/v1/product-attribute/delete', 'IntermediateAuthController@ProductAttribute_postDeleteAttribute');
