@@ -459,9 +459,10 @@ class ProductAttributeAPIController extends ControllerAPI
                     'attribute_name'        => $attributeName,
                 ),
                 array(
-                    'product_attribute_id'  => 'required|numeric|orbit.empty.attribute',
-                    'merchant_id'           => 'numeric|orbit.empty.merchant',
-                    'attribute_name'        => 'orbit.attribute.unique.butme',
+                    'product_attribute_id'      => 'required|numeric|orbit.empty.attribute',
+                    'merchant_id'               => 'numeric|orbit.empty.merchant',
+                    'attribute_name'            => 'orbit.attribute.unique.butme',
+                    'attribute_value_deleted'   => 'array',
                 ),
                 array(
                     'orbit.attribute.unique.butme'    => $messageAttributeUnique
@@ -496,7 +497,27 @@ class ProductAttributeAPIController extends ControllerAPI
             $values = array();
             $newValues = array();
             $updatedValues = array();
+            $deletedValues = array();
 
+            // Delete attribute value
+            OrbitInput::post('attribute_value_delete', function($attributeValueDelete) use ($attribute, &$deletedValues, $user)
+            {
+                foreach ($attributeValueDelete as $valueId) {
+                    $attrValue = ProductAttributeValue::excludeDeleted()->find($valueId);
+
+                    if (empty($attrValue)) {
+                        continue;   // Skip deleting
+                    }
+
+                    $attrValue->status = 'deleted';
+                    $attrValue->modified_by = $user->user_id;
+                    $attrValue->save();
+
+                    $deletedValues[] = $attrValue->product_attribute_value_id;
+                }
+            });
+
+            // Update attribute value
             OrbitInput::post('attribute_value_update', function($attributeValueOld) use ($attribute, &$updatedValues, $user)
             {
                 $existence = array();
@@ -546,6 +567,7 @@ class ProductAttributeAPIController extends ControllerAPI
                 }
             });
 
+            // Insert new attribute value
             OrbitInput::post('attribute_value_new', function($attributeValueNew) use ($attribute, &$newValues, $user)
             {
                 $existence = array();
@@ -590,6 +612,16 @@ class ProductAttributeAPIController extends ControllerAPI
             if (! empty($values)) {
                 $attribute->setRelation('values', $values);
                 $attribute->values = $values;
+            }
+
+            // Unset the attribute value which has been deleted
+            foreach ($deletedValues as $valueId) {
+                foreach ($attribute->values as $key=>$origValue) {
+                    $origId = (string)$origValue->product_attribute_value_id;
+                    if ($origId === (string)$valueId) {
+                        $attribute->values->forget($key);
+                    }
+                }
             }
 
             Event::fire('orbit.product.postupdateattribute.after.save', array($this, $attribute));
