@@ -142,9 +142,14 @@ return array(
             'discount_object_id3'  => 'The discount object ID3 you specify is not found.',
             'discount_object_id4'  => 'The discount object ID4 you specify is not found.',
             'discount_object_id5'  => 'The discount object ID5 you specify is not found.',
-            'attribute_sortby'     => 'The sort by argument you specify is not valid, valid value are: id, name and created.'
+            'attribute_sortby'     => 'The sort by argument you specify is not valid, valid value are: id, name and created.',
+            'attribute'            => 'The product attribute ID you specify is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
+        'jsonerror'  => array(
+            'format' => 'The JSON input you specify was not valid.',
+            'array'  => 'The JSON input you specify must to be in array.'
+        ),
         'actionlist' => array(
             'change_password'           => 'change password',
             'add_new_user'              => 'add new user',
