@@ -282,9 +282,9 @@ class ProductAttributeAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'merchant_id'       => $merchantId,
-                    'attribute_name'    => $attributeName,
-                    'attribute_value'   => $attributeValue
+                    'merchant_id'           => $merchantId,
+                    'attribute_name'        => $attributeName,
+                    'attribute_value'       => $attributeValue
                 ),
                 array(
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
@@ -392,6 +392,259 @@ class ProductAttributeAPIController extends ControllerAPI
         return $this->render($httpCode);
     }
 
+     /**
+     * POST - Update product attribute
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer   `product_attribute_id`      (required) - ID of the product attribute
+     * @param integer   `merchant_id`               (required) - ID of the merchant
+     * @param string    `attribute_name             (required) - Name of the attribute
+     * @param array     `attribute_value_new`       (optional) - The value of attribute (new)
+     * @param array     `attribute_value_update`    (optional) - The value of attribute (update)
+     * @param array     `attribute_value_delete`    (optional) - The value of attribute (delete)
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUpdateAttribute()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.product.postupdateattribute.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.product.postupdateattribute.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.product.postupdateattribute.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('update_product_attribute')) {
+                Event::fire('orbit.product.postupdateattribute.authz.notallowed', array($this, $user));
+
+                $errorMessage = Lang::get('validation.orbit.actionlist.new_product_attribute');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
+
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.product.postupdateattribute.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $attributeId = OrbitInput::post('product_attribute_id');
+            $merchantId = OrbitInput::post('merchant_id');
+            $attributeName = OrbitInput::post('attribute_name');
+
+            $messageAttributeUnique = Lang::get('validation.orbit.exists.product.attribute.unique', array(
+                'attrname' => $attributeName
+            ));
+
+            $validator = Validator::make(
+                array(
+                    'product_attribute_id'  => $attributeId,
+                    'merchant_id'           => $merchantId,
+                    'attribute_name'        => $attributeName,
+                ),
+                array(
+                    'product_attribute_id'  => 'required|numeric|orbit.empty.attribute',
+                    'merchant_id'           => 'numeric|orbit.empty.merchant',
+                    'attribute_name'        => 'orbit.attribute.unique.butme',
+                ),
+                array(
+                    'orbit.attribute.unique.butme'    => $messageAttributeUnique
+                )
+            );
+
+            Event::fire('orbit.product.postupdateattribute.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.product.postupdateattribute.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $attribute = App::make('orbit.empty.attribute');
+
+            // Check if product attribute name has been changed
+            OrbitInput::post('attribute_name', function($name) use ($attribute)
+            {
+                $attribute->product_attribute_name = $name;
+            });
+
+            Event::fire('orbit.product.postupdateattribute.before.save', array($this, $attribute));
+
+            $attribute->save();
+
+            // Hold the attribute values both old and new which has been saved
+            $values = array();
+            $newValues = array();
+            $updatedValues = array();
+
+            OrbitInput::post('attribute_value_update', function($attributeValueOld) use ($attribute, &$updatedValues, $user)
+            {
+                $existence = array();
+
+                // Parse JSON
+                $attributeValueOld = $this->JSONValidate($attributeValueOld);
+
+                // List of new value in array format
+                $oldValueArray = array();
+                foreach ($attributeValueOld as $newValue) {
+                    $oldValueArray[$newValue->value_id] = $newValue->attribute_value;
+                }
+
+                // Does the new attribute value already exists
+                foreach ($attribute->values as $attrValue) {
+                    foreach ($oldValueArray as $valueId=>$newValue) {
+                        // Make sure we only save the attribute value id which
+                        // already on database
+                        $attrId = (string)$attrValue->product_attribute_value_id;
+                        if ((string)$valueId !== $attrId) {
+                            continue;
+                        }
+
+                        // Only insert into the existence when the value is not
+                        // same, means there's a changes.
+                        $_newValue = strtolower($newValue);
+                        $oldValue = strtolower($attrValue->value);
+
+                        if ($oldValue !== $_newValue) {
+                            $existence[$attrId] = $newValue;
+                        }
+                    }
+                }
+
+                foreach ($existence as $valueId=>$value) {
+                    $attrValue = ProductAttributeValue::excludeDeleted()->find($valueId);
+
+                    if (empty($attrValue)) {
+                        continue;   // Skip saving
+                    }
+
+                    $attrValue->value = $value;
+                    $attrValue->modified_by = $user->user_id;
+                    $attrValue->save();
+
+                    $updatedValues[] = $attrValue;
+                }
+            });
+
+            OrbitInput::post('attribute_value_new', function($attributeValueNew) use ($attribute, &$newValues, $user)
+            {
+                $existence = array();
+
+                // Parse JSON
+                $attributeValueNew = $this->JSONValidate($attributeValueNew);
+
+                // List of new value in array format
+                $newValueArray = array();
+                foreach ($attributeValueNew as $newValue) {
+                    $newValueArray[] = $newValue->attribute_value;
+                }
+
+                // Does the new attribute value already exists
+                foreach ($attribute->values as $attrValue) {
+                    foreach ($newValueArray as $newValue) {
+                        $_newValue = strtolower($newValue);
+                        $oldValue = strtolower($attrValue->value);
+
+                        if ($oldValue === $_newValue) {
+                            $existence[] = $newValue;
+                        }
+                    }
+                }
+
+                // Calculate the difference of new value from the existings one
+                $attributeDifference = array_diff($newValueArray, $existence);
+
+                foreach ($attributeDifference as $value) {
+                    $attrValue = new ProductAttributeValue();
+                    $attrValue->product_attribute_id = $attribute->product_attribute_id;
+                    $attrValue->value = $value;
+                    $attrValue->status = 'active';
+                    $attrValue->created_by = $user->user_id;
+                    $attrValue->save();
+
+                    $newValues[] = $attrValue;
+                }
+            });
+
+            $values = array_merge($newValues + $updatedValues);
+            if (! empty($values)) {
+                $attribute->setRelation('values', $values);
+                $attribute->values = $values;
+            }
+
+            Event::fire('orbit.product.postupdateattribute.after.save', array($this, $attribute));
+            $this->response->data = $attribute;
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.product.postupdateattribute.after.commit', array($this, $attribute));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.product.postupdateattribute.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.product.postupdateattribute.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.product.postupdateattribute.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.product.postupdateattribute.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
     protected function registerCustomValidation()
     {
         // Check the existance of merchant id
@@ -411,12 +664,37 @@ class ProductAttributeAPIController extends ControllerAPI
             return TRUE;
         });
 
-        // Make sure the name of the attribute is unique on this merchant only
-        Validator::extend('orbit.attribute.unique', function ($attribute, $value, $parameters) {
-            $merchantId = OrbitInput::post('merchant_id');
+        // Make sure product attribute exists
+        Validator::extend('orbit.empty.attribute', function ($attribute, $value, $parameters) {
             $attribute = ProductAttribute::excludeDeleted()
+                                         ->with('values')
+                                         ->find($value);
+
+            if (empty($attribute)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.attribute', $attribute);
+
+            return TRUE;
+        });
+
+        // Make sure the name of the attribute is unique on this merchant only
+        Validator::extend('orbit.attribute.unique.butme', function ($attribute, $value, $parameters) {
+            // Get the instance of ProductAttribute object
+            $attribute = App::make('orbit.empty.attribute');
+
+            // Use the value of attribute if post merchant_id is null
+            $merchantId = OrbitInput::post('merchant_id', NULL);
+            if (empty($merchantId)) {
+                $merchantId = $attribute->merchant_id;
+            }
+
+            $attribute = ProductAttribute::excludeDeleted()
+                                         ->with('values')
                                          ->where('product_attribute_name', $value)
                                          ->where('merchant_id', $merchantId)
+                                         ->where('product_attribute_id', '!=', $attribute->product_attribute_id)
                                          ->first();
 
             if (! empty($attribute)) {
@@ -427,5 +705,32 @@ class ProductAttributeAPIController extends ControllerAPI
 
             return TRUE;
         });
+    }
+
+    /**
+     * Validate a JSON.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $string - JSON string to parse.
+     * @return mixed
+     */
+    protected function JSONValidate($string) {
+        $errorMessage = Lang::get('validation.orbit.jsonerror.format');
+
+        if (! is_string($string)) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        $result = @json_decode($string);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        $errorMessage = Lang::get('validation.orbit.jsonerror.array');
+        if (! is_array($result)) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        return $result;
     }
 }
