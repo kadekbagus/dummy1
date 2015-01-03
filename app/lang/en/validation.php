@@ -148,7 +148,7 @@ return array(
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(
             'format' => 'The JSON input you specify was not valid.',
-            'array'  => 'The JSON input you specify must to be in array.'
+            'array'  => 'The JSON input you specify must be in array.'
         ),
         'actionlist' => array(
             'change_password'           => 'change password',
