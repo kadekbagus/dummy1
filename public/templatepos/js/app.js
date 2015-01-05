@@ -296,7 +296,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
                 $scope.changetf = $scope.change > 0 ? true:false;
                 $scope.messagepay = $scope.changetf ? '' : 'Nominal tunai lebih kecil dari total bayar!';
-               $scope.cart['change'] =    accounting.formatMoney($scope.change, "", 0, ",", ".");
+                $scope.cart['change'] =  $scope.change > 0 ?   accounting.formatMoney($scope.change, "", 0, ",", ".") : 0;
             }
         };
         //go to main

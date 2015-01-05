@@ -291,7 +291,7 @@
                                <div class="form" style="padding-left: 20px;padding-right: 20px">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
-                                             <input type="text" class="form-control text-right " id="exampleInputEmail1" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
+                                             <input type="text" class="form-control text-right " id="exampleInputEmail1" style="cursor: default;" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
@@ -299,7 +299,7 @@
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
-                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" readonly numbers-only="numbers-only" data-ng-model="cart.change" placeholder="Kembalian">
+                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;" readonly numbers-only="numbers-only" data-ng-model="cart.change" placeholder="Kembalian">
                                              <span data-ng-class="change < 0 ?  'text-right text-danger col-md-12' : 'text-right text-success col-md-12' "><% messagepay %></span>
                                           </div>
                                </div>
