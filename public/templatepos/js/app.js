@@ -331,10 +331,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.cart['change'] = '';
             $scope.changetf       = false;
         };
-        //chose terminal payment debit/redit
-        $scope.choseTerminalFn = function(id){
-            $scope.gesekkartu = true;
-        };
         //scan product only run on linux
         ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
