@@ -242,6 +242,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 case 't':
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
+                    $timeout(function(){
+                        angular.element('#tenderedcash').focus();
+                    },100);
+
                     break;
                 case 'k':
                         //terminal 1
@@ -301,23 +305,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //watch amount on page cash
         $scope.$watch("cart.amount", function(newvalue,oldvalue){
-            $scope.changetf = false;
             if(newvalue) {
-                $scope.cart['change'] = 0;
-                $scope.messagepay     = '';
                 oldvalue = accounting.unformat(oldvalue);
                 newvalue = accounting.unformat(newvalue);
-                if(oldvalue != newvalue) $scope.cart['amount'] = accounting.formatMoney(newvalue, "", 0, ",", ".");
+                if(oldvalue != newvalue){
+                    $scope.changetf = false;
+                    $scope.cart['amount'] = accounting.formatMoney(newvalue, "", 0, ",", ".");
+                    $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
+                    $scope.changetf = $scope.change >= 0 ? true:false;
+                    $scope.cart['change'] =  $scope.change > 0 ?   accounting.formatMoney($scope.change, "", 0, ",", ".") : 0;
+                }
             }
         });
-        $scope.getChange = function(clickEvent){
-            if(clickEvent.keyCode == '13'){
-                $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
-                $scope.changetf = $scope.change > 0 ? true:false;
-                $scope.messagepay = $scope.changetf ? '' : 'Nominal tunai lebih kecil dari total bayar!';
-                $scope.cart['change'] =  $scope.change > 0 ?   accounting.formatMoney($scope.change, "", 0, ",", ".") : 0;
-            }
-        };
+
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
@@ -329,7 +329,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.change         = 0;
             $scope.cart['amount'] = '';
             $scope.cart['change'] = '';
-            $scope.messagepay     = '';
             $scope.changetf       = false;
         };
         //chose terminal payment debit/redit

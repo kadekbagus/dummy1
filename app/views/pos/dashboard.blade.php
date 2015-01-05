@@ -295,12 +295,11 @@
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
-                                             <input type="text" class="form-control text-right" autofocus="autofocus" id="exampleInputEmail1" numbers-only="numbers-only" data-ng-keypress="getChange($event)" data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                             <input type="text" class="form-control text-right" id="tenderedcash"     numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
-                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;" readonly numbers-only="numbers-only" data-ng-model="cart.change" placeholder="Kembalian">
-                                             <span data-ng-class="change < 0 ?  'text-right text-danger col-md-12' : 'text-right text-success col-md-12' "><% messagepay %></span>
+                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;" disabled data-ng-model="cart.change" placeholder="Kembalian">
                                           </div>
                                </div>
 
@@ -317,7 +316,7 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="button"  data-ng-if="action !='done'" class="btn btn-danger" data-dismiss="modal" data-ng-click="gotomain()">Cancel</button>
+                     <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
         </div>
