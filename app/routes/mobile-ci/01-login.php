@@ -2,15 +2,26 @@
 
 // -------------------- views ------------------------------
 // Route::get('/customer', 'IntermediateAuthController@MobileCI\MobileCI_getSignInView');
+
 Route::get('/customer', function()
 {
     return MobileCI\MobileCIAPIController::create()->getSignInView();
 });
 
-Route::get('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_getSignUpView');
+// Route::get('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_getSignUpView');
+
+Route::get('/customer/signup', function()
+{
+    return MobileCI\MobileCIAPIController::create()->getSignUpView();
+});
 
 // transfer email value from login page to signup page
-Route::post('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postSignUpView');
+// Route::post('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postSignUpView');
+
+Route::post('/customer/signup', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postSignUpView();
+});
 
 Route::get('/customer/home', 'IntermediateAuthController@MobileCI\MobileCI_getHomeView');
 

@@ -43,6 +43,12 @@
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
 	<script type="text/javascript">
 		$(document).ready(function(){
+			var families = [];
+			families[1] = undefined;
+			families[2] = undefined;
+			families[3] = undefined;
+			families[4] = undefined;
+			families[5] = undefined;
 			$('.family-list').on('click', 'a.family-a', function(event){
 				// $("div.product-list").html('');
 				// $('.family-label > i').attr('class', 'fa fa-chevron-circle-down');
@@ -53,10 +59,16 @@
 					var a = $(this);
 					var family_id = $(this).data('family-id');
 					var family_level = $(this).data('family-level');
+					for(i=family_level;i<=5;i++){
+						families[i] = undefined;
+					}
+					families[family_level] = family_id;
+					console.log(families);
 					$.ajax({
 						url: apiPath+'customer/products',
 						method: 'GET',
 						data: {
+							families: families,
 							family_id: family_id,
 							family_level: family_level
 						}
