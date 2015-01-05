@@ -507,48 +507,45 @@ class CashierAPIController extends ControllerAPI
                }
             }
             
-            $payment = trim($transaction['payment_method']);
+            $payment = $transaction['payment_method'];
+            $date  =  $transaction['created_at']->format('d M Y H:i:s');
+            $customer = "guest";
 
             $head  = $this->just40CharMid('MATAHARI');
             $head .= $this->just40CharMid('DEPARTMENT STORE');
+            $head .= $this->just40CharMid('Jl. Raya Semer 88');
             $head .= '----------------------------------------'." \n";
 
-            $head .= 'Date : '.date('d M Y')." \n";
-            $head .= 'Bill No : '.time()." \n";
+            $head .= 'Date : '.$date." \n";
+            $head .= 'Bill No  : '.time()." \n";
+            $head .= 'Customer : '.$customer." \n";
             $head .= " \n";
             $head .= '----------------------------------------'." \n";
 
             $pay   = '----------------------------------------'." \n";
-            $pay  .= $this->leftAndRight('SUB TOTAL', trim($transaction['subtotal']));
-            $pay  .= $this->leftAndRight('VAT (10%)', trim($transaction['vat']));
-            $pay  .= $this->leftAndRight('TOTAL', trim($transaction['total_to_pay']));
+            $pay  .= $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
+            $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
+            $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
-            $pay  .= $this->leftAndRight('Payment Method', trim($transaction['payment_method']));
-            $pay  .= $this->leftAndRight('Tendered', trim($transaction['tendered']));
-            $pay  .= $this->leftAndRight('Change', trim($transaction['change']));
-            $pay  .= " \n";
+            $pay  .= $this->leftAndRight('Payment Method', $transaction['payment_method']);
+            $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
+            $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
 
-
-            if ($payment=='card') {
-                $footer  = " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= $this->just40CharMid('Thank you for your purchase');
-                $footer .= $this->just40CharMid('Powered by DominoPos');
-                $footer .= $this->just40CharMid('www.dominopos.com');
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-            } else {
-                $footer  = " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= $this->just40CharMid('Thank You');
-                $footer .= $this->just40CharMid('email : info@DominoPos.com');
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-            }
+            $footer  = " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= $this->just40CharMid('Thank you for your purchase');
+            $footer .= $this->just40CharMid('Powered by DominoPos');
+            $footer .= $this->just40CharMid('www.dominopos.com');
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= '----------------------------------------'." \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
 
             $file = storage_path()."/views/receipt.txt";
             $write = $head.$product.$pay.$footer;

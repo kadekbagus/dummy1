@@ -13,8 +13,8 @@ define([
 
     //set your base url
 
-    config.baseUrlServer       = 'http://192.168.0.109/orbit-shop/public/app/v1';
-    config.baseUrlServerPublic = 'http://192.168.0.109/orbit-shop/public';
+    config.baseUrlServer       = 'http://localhost/orbit-shop/public/app/v1';
+    config.baseUrlServerPublic = 'http://localhost/orbit-shop/public';
 
     return config;
 });
