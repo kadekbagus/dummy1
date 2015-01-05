@@ -439,6 +439,7 @@ class CashierAPIController extends ControllerAPI
                 $transactionDetails = new \TransactionDetail();
                 $transactionDetails->transaction_id = $transaction->transaction_id;
                 $transactionDetails->product_id     = $v['product_id'];
+                $transactionDetails->product_name   = $v['product_name'];
                 $transactionDetails->product_code   = $v['product_code'];
                 $transactionDetails->quantity       = $v['qty'];
                 $transactionDetails->upc            = $v['upc_code'];
@@ -494,10 +495,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($transaction['details'] as $key => $value) {
                if($key==0){
-                $product = $this->producListFormat($value['product_code'], $value['price'], $value['quantity'], $value['sku']);
+                $product = $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['sku']);
                }
                else {
-                $product .= $this->producListFormat($value['product_code'], $value['price'], $value['quantity'], $value['sku']);
+                $product .= $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['sku']);
                }
             }
             
@@ -511,10 +512,6 @@ class CashierAPIController extends ControllerAPI
             $head .= 'Bill No : '.time()." \n";
             $head .= " \n";
             $head .= '----------------------------------------'." \n";
-
-            // $product = $this->producListFormat("Quick choice", 2500, 2, "QK123");
-            // $product .= $this->producListFormat("Joyko White", 10000, 1, "QKda3");
-            // $product .= $this->producListFormat("Tango Wafer", 2500, 5, "ewq3");
 
             if ($payment=='card') {
                 $footer  = " \n";
