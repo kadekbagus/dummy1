@@ -66,3 +66,19 @@ Route::get('/api/v1/product-attribute/list', function()
 {
     return ProductAttributeAPIController::create()->getSearchAttribute();
 });
+
+/**
+ * Update product attribute
+ */
+Route::post('/api/v1/product-attribute/update', function()
+{
+    return ProductAttributeAPIController::create()->postUpdateAttribute();
+});
+
+/**
+ * Update product attribute
+ */
+Route::post('/api/v1/product-attribute/delete', function()
+{
+    return ProductAttributeAPIController::create()->postDeleteAttribute();
+});

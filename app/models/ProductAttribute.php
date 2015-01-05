@@ -28,7 +28,8 @@ class ProductAttribute extends Eloquent
      */
     public function values()
     {
-        return $this->hasMany('ProductAttributeValue');
+        return $this->hasMany('ProductAttributeValue')
+                    ->excludeDeleted();
     }
 
     /**
