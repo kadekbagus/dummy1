@@ -270,6 +270,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
                         merchant_id    : $scope.datauser['userdetail']['merchant_id'],
+                        customer_id    : $scope.guests, // check if from mobile ci
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart
