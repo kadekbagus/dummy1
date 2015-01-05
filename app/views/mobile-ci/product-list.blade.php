@@ -29,7 +29,9 @@
 					</div>
 					<div class="col-xs-6 catalogue-control price">
 						<div class="circlet btn-blue pull-right">
-							<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+							<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}">
+								<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+							</a>
 						</div>
 					</div>
 						
@@ -51,7 +53,7 @@
 <ul>
 @if(! is_null($subfamilies))
 	@foreach($subfamilies as $subfamily)
-		<li data-family-container="{{ $subfamily->category_id }}" data-family-isopen-list="0"><a class="family-a" data-family-id="{{ $subfamily->category_id }}" data-family-level="{{ $subfamily->category_level }}" data-family-isopen="0"><div class="family-label">{{ $subfamily->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+		<li data-family-container="{{ $subfamily->category_id }}" data-family-container-level="{{ $subfamily->category_level }}"><a class="family-a" data-family-id="{{ $subfamily->category_id }}" data-family-level="{{ $subfamily->category_level }}" data-family-isopen="0" ><div class="family-label">{{ $subfamily->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
 			<div class="product-list"></div>
 		</li>
 	@endforeach

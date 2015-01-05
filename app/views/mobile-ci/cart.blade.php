@@ -15,6 +15,7 @@
       </div>
     </div>
     <div class="cart-page the-cart">
+      @foreach($cartdetails as $cartdetail)
       <div class="cart-items-list">
         <div class="single-item">
           <div class="single-item-headers">
@@ -33,13 +34,13 @@
           </div>
           <div class="single-item-bodies">
             <div class="single-body">
-              <span>Spear of destiny</span>
-              <img class="product-image" src="{{ asset('mobile-ci/images/products/kusanagi_sword.jpg') }}" />
+              <span>{{ $cartdetail->product->product_name }}</span>
+              <img class="product-image" src="{{ asset($cartdetail->product->image) }}" />
             </div>
             <div class="single-body unique-column">
               <div class="unique-column-properties">
                 <div class="item-qty">
-                  <span>1</span>
+                  <span>{{ $cartdetail->quantity }}</span>
                 </div>
                 <div class="item-remover">
                   <span><i class="fa fa-times"></i></span>
@@ -47,54 +48,15 @@
               </div>
             </div>
             <div class="single-body">
-              <span>125</span>
+              <span>{{ $cartdetail->price + 0 }}</span>
             </div>
             <div class="single-body">
-              <span>125</span>
+              <span>{{ $cartdetail->price * $cartdetail->quantity }}</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="cart-items-list">
-        <div class="single-item">
-          <div class="single-item-headers">
-            <div class="single-header">
-              <span class="header-text">Item</span>
-            </div>
-            <div class="single-header unique-column">
-              <span class="header-text">Qty</span>
-            </div>
-            <div class="single-header box-one">
-              <span class="header-text">Unit Price</span>
-            </div>
-            <div class="single-header">
-              <span class="header-text">Total</span>
-            </div>
-          </div>
-          <div class="single-item-bodies">
-            <div class="single-body">
-              <span>Spear of destiny</span>
-              <img class="product-image" src="{{ asset('mobile-ci/images/products/kusanagi_sword.jpg') }}" />
-            </div>
-            <div class="single-body unique-column">
-              <div class="unique-column-properties">
-                <div class="item-qty">
-                  <span>1</span>
-                </div>
-                <div class="item-remover">
-                  <span><i class="fa fa-times"></i></span>
-                </div>
-              </div>
-            </div>
-            <div class="single-body">
-              <span>125</span>
-            </div>
-            <div class="single-body">
-              <span>125</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      @endforeach
     </div>
     <div class="cart-page cart-sum">
       <span class="cart-sum-title">Total</span>
@@ -114,23 +76,23 @@
       </div>
       <div class="cart-sum-bodies">
         <div class="cart-sum-single-body">
-          <span>2</span>
+          <span>{{ $cart->total_item }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>30</span>
+          <span>{{ $cart->subtotal + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>-</span>
+          <span>{{ $cart->vat + 0}}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>60</span>
+          <span>{{ $cart->total_to_pay + 0 }}</span>
         </div>
       </div>
     </div>
     <div class="cart-page button-group">
       <button class="btn box-one cart-btn" id="checkOutBtn">Check Out</button>
       <button class="btn box-three cart-btn">Continue Shopping</button>
-      <img src="{{ asset('mobile-ci/images/logo-default.png') }}" />
+      <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
     </div>
   </div>
 @stop
