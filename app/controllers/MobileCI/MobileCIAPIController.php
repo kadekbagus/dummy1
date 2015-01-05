@@ -26,6 +26,7 @@ use \stdclass;
 use \Category;
 use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
+use \Cart;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -73,6 +74,17 @@ class MobileCIAPIController extends ControllerAPI
                 $config = new SessionConfig(Config::get('orbit.session'));
                 $session = new Session($config);
                 $session->enableForceNew()->start($data);
+
+                $retailer = $this->getRetailerInfo();
+                $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+                if(is_null($cart)){
+                    $cart = new Cart;
+                    $cart->cart_code = rand(111111, 99999999999);
+                    $cart->customer_id = $user->user_id;
+                    $cart->merchant_id = $retailer->parent_id;
+                    $cart->retailer_id = $retailer->merchant_id;
+                    $cart->status = 'active';
+                }
             }
 
             $user->setHidden(array('user_password', 'apikey'));
@@ -367,7 +379,7 @@ class MobileCIAPIController extends ControllerAPI
     {
         try {
             $retailer = $this->getRetailerInfo();
-            $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->get();
+            $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->excludeDeleted()->get();
 
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families));
         } catch (ACLForbiddenException $e) {
@@ -392,16 +404,7 @@ class MobileCIAPIController extends ControllerAPI
     {
         try {
             // Require authentication
-            $this->checkAuth();
-
-            $user = $this->api->user;
-
-            if (! ACL::create($user)->isAllowed('view_product')) {
-                Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
-                $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message);
-            }
+            $user = $this->getLoggedInUser();
 
             $sort_by = OrbitInput::get('sort_by');
             $validator = Validator::make(
@@ -431,7 +434,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->allowedForUser($user);
+                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted();
 
             // Filter product by name pattern
             OrbitInput::get('keyword', function ($name) use ($products) {
@@ -506,6 +509,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data));
+            
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -577,15 +581,16 @@ class MobileCIAPIController extends ControllerAPI
                 $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level) {
                     $nextfamily = $family_level + 1;
                     $q  ->where('products.category_id'.$family_level, $family_id)
-                        ->where('products.category_id'.$nextfamily, '<>', 'NULL');
-                })->get();
+                        ->where('products.category_id'.$nextfamily, '<>', 'NULL')
+                        ->where('products.status', 'active');
+                })->excludeDeleted()->get();
             } else {
                 $subfamilies = NULL;
             }
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
-            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->allowedForUser($user)->where(function($q) use ($family_level, $family_id) {
+            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id) {
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
                     $q->where('category_id' . $i, NULL);
@@ -691,7 +696,7 @@ class MobileCIAPIController extends ControllerAPI
             $product_id = trim(OrbitInput::get('id'));
             $product = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
+                        })->excludeDeleted()->where('product_id', $product_id)->first();
             if(is_null($product)){
                 return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer));
             } else {
