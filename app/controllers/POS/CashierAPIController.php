@@ -414,6 +414,8 @@ class CashierAPIController extends ControllerAPI
             $subtotal       = trim(OrbitInput::post('subtotal'));
             $vat            = trim(OrbitInput::post('vat'));
             $total_to_pay   = trim(OrbitInput::post('total_to_pay'));
+            $tendered       = trim(OrbitInput::post('tendered'));
+            $change         = trim(OrbitInput::post('change'));
             $merchant_id    = trim(OrbitInput::post('merchant_id'));
             $cashier_id     = trim(OrbitInput::post('cashier_id'));
             $payment_method = trim(OrbitInput::post('payment_method'));
@@ -428,6 +430,8 @@ class CashierAPIController extends ControllerAPI
             $transaction->subtotal       = $subtotal;
             $transaction->vat            = $vat;
             $transaction->total_to_pay   = $total_to_pay;
+            $transaction->tendered       = $tendered;
+            $transaction->change         = $change;
             $transaction->merchant_id    = $merchant_id;
             $transaction->cashier_id     = $cashier_id;
             $transaction->payment_method = $payment_method;
@@ -496,10 +500,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($transaction['details'] as $key => $value) {
                if($key==0){
-                $product = $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['sku']);
+                $product = $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['product_code']);
                }
                else {
-                $product .= $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['sku']);
+                $product .= $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['product_code']);
                }
             }
             
@@ -513,6 +517,17 @@ class CashierAPIController extends ControllerAPI
             $head .= 'Bill No : '.time()." \n";
             $head .= " \n";
             $head .= '----------------------------------------'." \n";
+
+            $pay   = '----------------------------------------'." \n";
+            $pay  .= $this->leftAndRight('SUB TOTAL', trim($transaction['subtotal']));
+            $pay  .= $this->leftAndRight('VAT (10%)', trim($transaction['vat']));
+            $pay  .= $this->leftAndRight('TOTAL', trim($transaction['total_to_pay']));
+            $pay  .= " \n";
+            $pay  .= $this->leftAndRight('Payment Method', trim($transaction['payment_method']));
+            $pay  .= $this->leftAndRight('Tendered', trim($transaction['tendered']));
+            $pay  .= $this->leftAndRight('Change', trim($transaction['change']));
+            $pay  .= " \n";
+
 
             if ($payment=='card') {
                 $footer  = " \n";
@@ -536,7 +551,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             $file = storage_path()."/views/receipt.txt";
-            $write = $head.$product.$footer;
+            $write = $head.$product.$pay.$footer;
 
             $fp = fopen($file, 'w');
             fwrite($fp, $write);
@@ -606,6 +621,7 @@ class CashierAPIController extends ControllerAPI
 
     private function leftAndRight($left, $right)
     {
+        $all  = '';
         $space = 40-strlen($left)-strlen($right); $spc = '';
         for($i=0;$i<$space;$i++){ $spc .= ' '; }
         $all .= $left.$spc.$right." \n";
