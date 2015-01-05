@@ -19,6 +19,9 @@ use \Lang;
 use \Apikey;
 use \Validator;
 use \Product;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
+use \Config;
 
 class CashierAPIController extends ControllerAPI
 {  
@@ -56,17 +59,23 @@ class CashierAPIController extends ControllerAPI
                         ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
                         ->first();           
 
-            if (! is_object($user)) {
+            if (! is_object($user) && ! \Hash::check($password, $user->user_password)) {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
+            }else {
+                // Start the orbit session
+                $data = array(
+                    'logged_in' => TRUE,
+                    'user_id'   => $user->user_id,
+                );
+                $config = new SessionConfig(Config::get('orbit.session'));
+                $session = new Session($config);
+                $session->enableForceNew()->start($data);
             }
 
-            if (! \Hash::check($password, $user->user_password)) {
-                $message = \Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
-            }
+            $user->setHidden(array('user_password', 'apikey'));
 
-            \Auth::login($user);
+            //\Auth::login($user);
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
