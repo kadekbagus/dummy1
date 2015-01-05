@@ -12,6 +12,10 @@ define([
     var config = {};
 
     //set your base url
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/kadek
     config.baseUrlServer       = 'http://localhost/orbit-shop/public/app/v1';
     config.baseUrlServerPublic = 'http://localhost/orbit-shop/public';
 
