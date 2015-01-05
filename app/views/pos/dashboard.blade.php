@@ -312,7 +312,7 @@
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
-                         <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('s')">CETAK STRUK</button></p>
+                         <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" data-ng-click="ticketprint()">CETAK STRUK</button></p>
                          <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal"  style="background-color: #009933; padding-left: 53px; padding-right: 53px"   data-ng-click="checkoutFn('d')">DONE</button> </p>
                    </div>
           </div>

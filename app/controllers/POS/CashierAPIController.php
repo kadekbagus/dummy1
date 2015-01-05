@@ -75,7 +75,7 @@ class CashierAPIController extends ControllerAPI
 
             $user->setHidden(array('user_password', 'apikey'));
 
-            //\Auth::login($user);
+            \Auth::login($user);
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
@@ -448,6 +448,7 @@ class CashierAPIController extends ControllerAPI
                 $transactionDetails->save();
             }
 
+            $this->response->data  = $transaction;
             // Commit the changes
             $this->commit();
 

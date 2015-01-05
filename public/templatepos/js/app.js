@@ -272,6 +272,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if(response.code == 0){
                             $scope.action = 'done';
                             $scope.cheader = 'TRANSAKSI BERHASIL';
+                            $scope.transaction_id = response.data.transaction_id;
+                            $scope.ticketprint();
                         }else{
                             //do something
                             $scope.cheader = 'TRANSAKSI GAGAL';
@@ -279,6 +281,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                       });
                     break;
             }
+        };
+        //Ticket Print
+        $scope.ticketprint = function(){
+            if($scope.transaction_id){
+                serviceAjax.posDataToServer('/pos/ticketprint',{transaction_id : $scope.transaction_id}).then(function(response){
+                    if(response.code == 0){
+
+                    }else{
+                        //do something
+                    }
+                });
+            }else{
+                //do something
+            }
+
         };
         //watch amount on page cash
         $scope.$watch("cart.amount", function(newvalue,oldvalue){
