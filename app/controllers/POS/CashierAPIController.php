@@ -515,6 +515,7 @@ class CashierAPIController extends ControllerAPI
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
             $cashier = $transaction['cashier']->username;
+            $bill_no = $transaction['transaction_id'];
 
             $head  = $this->just40CharMid('MATAHARI');
             $head .= $this->just40CharMid('DEPARTMENT STORE');
@@ -522,7 +523,7 @@ class CashierAPIController extends ControllerAPI
             $head .= '----------------------------------------'." \n";
 
             $head .= 'Date : '.$date." \n";
-            $head .= 'Bill No  : '.time()." \n";
+            $head .= 'Bill No  : '.$bill_no." \n";
             $head .= 'Cashier : '.$cashier." \n";
             $head .= 'Customer : '.$customer." \n";
             $head .= " \n";
