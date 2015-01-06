@@ -549,6 +549,7 @@ class MobileCIAPIController extends ControllerAPI
             $sort_by = OrbitInput::get('sort_by');
             $family_id = OrbitInput::get('family_id');
             $family_level = OrbitInput::get('family_level');
+            $families = OrbitInput::get('families');
 
             $validator = Validator::make(
                 array(
@@ -578,20 +579,29 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
             $nextfamily = $family_level + 1;
+
+            $subfamilies = Category::excludeDeleted();
             if($nextfamily < 6) {
-                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level) {
+                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level, $families) {
                     $nextfamily = $family_level + 1;
+                    for($i = 1; $i < count($families); $i++) {
+                        $q->where('products.category_id'.$i, $families[$i-1]);
+                    }
+
                     $q  ->where('products.category_id'.$family_level, $family_id)
                         ->where('products.category_id'.$nextfamily, '<>', 'NULL')
                         ->where('products.status', 'active');
-                })->excludeDeleted()->get();
+                })->get();
             } else {
                 $subfamilies = NULL;
             }
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
-            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id) {
+            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
+                for($i = 1; $i < count($families); $i++) {
+                    $q->where('category_id'.$i, $families[$i-1]);
+                }
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
                     $q->where('category_id' . $i, NULL);

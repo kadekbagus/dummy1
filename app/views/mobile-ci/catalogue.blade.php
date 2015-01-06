@@ -43,32 +43,43 @@
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
 	<script type="text/javascript">
 		$(document).ready(function(){
-			var families = [];
-			families[1] = undefined;
-			families[2] = undefined;
-			families[3] = undefined;
-			families[4] = undefined;
-			families[5] = undefined;
+			// families[1] = undefined;
+			// families[2] = undefined;
+			// families[3] = undefined;
+			// families[4] = undefined;
+			// families[5] = undefined;
 
 			$('.family-list').on('click', 'a.family-a', function(event){
+				var families = [];
 				var open_level = $(this).data('family-level');
 				$('li[data-family-container-level="'+open_level+'"] .product-list').html('');
 				$('li[data-family-container-level="'+open_level+'"] .family-label i').attr('class', 'fa fa-chevron-circle-down');
 				$('li[data-family-container-level="'+open_level+'"] .family-a').data('family-isopen', 0);
+				$('li[data-family-container-level="'+open_level+'"] .family-a').attr('data-family-isopen', 0);
 				// $("div.product-list").html('');
 				// $('.family-label > i').attr('class', 'fa fa-chevron-circle-down');
 				// $("a").data('family-isopen', 0);
 
 				if($(this).data('family-isopen') == 0){
 					$(this).data('family-isopen', 1);
+					$(this).attr('data-family-isopen', 1);
+
 					var a = $(this);
 					var family_id = $(this).data('family-id');
 					var family_level = $(this).data('family-level');
-					for(i=family_level;i<=5;i++){
-						families[i] = undefined;
-					}
-					families[family_level] = family_id;
-					console.log(families);
+					// for(i=family_level;i<=5;i++){
+					// 	families[i] = undefined;
+					// }
+					// families[family_level] = family_id;
+					// console.log(families);
+
+					var aopen = $('a[data-family-isopen="1"]');
+					
+					$.each(aopen, function(index, value) {
+						// console.log();
+						families.push($(value).attr('data-family-id'));
+					});
+
 					$.ajax({
 						url: apiPath+'customer/products',
 						method: 'GET',
@@ -85,6 +96,7 @@
 					});
 				} else {
 					$(this).data('family-isopen', 0);
+					$(this).attr('data-family-isopen', 0);
 					var family_id = $(this).data('family-id');
 					var family_level = $(this).data('family-level');
 					$('*[data-family-container="'+ family_id +'"]').children("div.product-list").html('');
