@@ -17,7 +17,7 @@
             </div>
     </div>
 
-    <div class="container">
+    <div class="container-fluid">
      <div class="row">
         <div class="col-md-12">
             <div class="col-md-8">
@@ -28,7 +28,7 @@
                     </div>
 
                 </div>
-                <div class="table-responsive"  style="overflow: auto;height: 465px" >
+                <div class="table-responsive"  style="overflow: auto;height: 435px" >
                     <table class="table">
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
