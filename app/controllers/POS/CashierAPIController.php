@@ -414,6 +414,8 @@ class CashierAPIController extends ControllerAPI
             $subtotal       = trim(OrbitInput::post('subtotal'));
             $vat            = trim(OrbitInput::post('vat'));
             $total_to_pay   = trim(OrbitInput::post('total_to_pay'));
+            $tendered       = trim(OrbitInput::post('tendered'));
+            $change         = trim(OrbitInput::post('change'));
             $merchant_id    = trim(OrbitInput::post('merchant_id'));
             $cashier_id     = trim(OrbitInput::post('cashier_id'));
             $customer_id    = trim(OrbitInput::post('customer_id'));
@@ -429,6 +431,8 @@ class CashierAPIController extends ControllerAPI
             $transaction->subtotal       = $subtotal;
             $transaction->vat            = $vat;
             $transaction->total_to_pay   = $total_to_pay;
+            $transaction->tendered       = $tendered;
+            $transaction->change         = $change;
             $transaction->merchant_id    = $merchant_id;
             $transaction->cashier_id     = $cashier_id;
             $transaction->customer_id    = $customer_id;
@@ -498,47 +502,55 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($transaction['details'] as $key => $value) {
                if($key==0){
-                $product = $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['sku']);
+                $product = $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
                }
                else {
-                $product .= $this->producListFormat($value['product_name'], $value['price'], $value['quantity'], $value['sku']);
+                $product .= $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
                }
             }
             
-            $payment = trim($transaction['payment_method']);
+            $payment = $transaction['payment_method'];
+            $date  =  $transaction['created_at']->format('d M Y H:i:s');
+            $customer = "guest";
 
             $head  = $this->just40CharMid('MATAHARI');
             $head .= $this->just40CharMid('DEPARTMENT STORE');
+            $head .= $this->just40CharMid('Jl. Raya Semer 88');
             $head .= '----------------------------------------'." \n";
 
-            $head .= 'Date : '.date('d M Y')." \n";
-            $head .= 'Bill No : '.time()." \n";
+            $head .= 'Date : '.$date." \n";
+            $head .= 'Bill No  : '.time()." \n";
+            $head .= 'Customer : '.$customer." \n";
             $head .= " \n";
             $head .= '----------------------------------------'." \n";
 
-            if ($payment=='card') {
-                $footer  = " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= $this->just40CharMid('Thank you for your purchase');
-                $footer .= $this->just40CharMid('Powered by DominoPos');
-                $footer .= $this->just40CharMid('www.dominopos.com');
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-            } else {
-                $footer  = " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= $this->just40CharMid('Thank You');
-                $footer .= $this->just40CharMid('email : info@DominoPos.com');
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-            }
+            $pay   = '----------------------------------------'." \n";
+            $pay  .= $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
+            $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
+            $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
+            $pay  .= " \n";
+            $pay  .= $this->leftAndRight('Payment Method', $transaction['payment_method']);
+            $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
+            $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+
+            $footer  = " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= $this->just40CharMid('Thank you for your purchase');
+            $footer .= $this->just40CharMid('Powered by DominoPos');
+            $footer .= $this->just40CharMid('www.dominopos.com');
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= '----------------------------------------'." \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
 
             $file = storage_path()."/views/receipt.txt";
-            $write = $head.$product.$footer;
+            $write = $head.$product.$pay.$footer;
 
             $fp = fopen($file, 'w');
             fwrite($fp, $write);
@@ -608,6 +620,7 @@ class CashierAPIController extends ControllerAPI
 
     private function leftAndRight($left, $right)
     {
+        $all  = '';
         $space = 40-strlen($left)-strlen($right); $spc = '';
         for($i=0;$i<$space;$i++){ $spc .= ' '; }
         $all .= $left.$spc.$right." \n";
