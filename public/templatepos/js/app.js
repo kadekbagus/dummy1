@@ -70,7 +70,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //get unix guestid
         ($scope.getguest = function(){
-                $scope.guests = moment().unix();
+                $scope.guests = moment().format('DD-MM-YYYYY hh:mm:ss');
         })();
         //function -+ wish list
         $scope.qaFn = function(id,action){
@@ -102,7 +102,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //get product
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
-            serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
+            serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=12').then(function(response){
                 if(response.code == 0 ){
                     if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -143,6 +143,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.getproduct();
             }
         });
+        //reset search
+        $scope.resetsearch = function(){
+            $scope.searchproduct = '';
+        };
         //function count cart
         $scope.countcart = function(){
             if($scope.cart.length > 0){
@@ -168,6 +172,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 $scope.searchproduct    = '';
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
                  if($scope.checkcart($scope.productmodal['product_id'])){
                      $scope.cart.push({
@@ -222,22 +227,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
             return check;
         };
-        //new cart
-        $scope.newcartFn = function(act){
+        //delete cart && new cart
+        $scope.newdeletecartFn = function(act){
             $scope.productidenabled = [];
             $scope.cart             = [];
-            $scope.getguest();
+            $scope.searchproduct    = '';
             $scope.getproduct();
-        };
-        //delete cart
-        $scope.deletecartFn = function(act){
-            $scope.productidenabled = [];
-            $scope.cart             = [];
-            $scope.getproduct();
+           if(act) $scope.getguest();
         };
         //checkout
         $scope.checkoutFn = function(act){
-
             switch(act){
                 case 't':
                     $scope.action  = 'cash';

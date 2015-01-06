@@ -11769,15 +11769,29 @@ body {
 .product-attributes {
     color: #0aa5d5;
 }
-
+.closemodal {
+    text-shadow:none;
+    -webkit-opacity:0;
+    opacity:1;
+    color:#D60000
+}
 /*landscape*/
 @media(min-width:768px){
     h1 {
-        font-size: 30px ;
+        font-size: 28px ;
     }
     .col-md-4 {
         padding-left: 0px;
         padding-right: 0px
+    }
+    .container {
+        margin-right: auto;
+        margin-left: auto;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-bottom: 0px;
+        padding-top: 10px;
+        margin-bottom: 15px;
     }
 }
 
