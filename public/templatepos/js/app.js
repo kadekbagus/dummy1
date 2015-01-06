@@ -55,7 +55,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
     }]);
 
-    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http) {
+    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
         $scope.cart      = [];
         $scope.product   = [];
@@ -172,6 +172,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 $location.hash('bottom');
+
+                 // call $anchorScroll()
+                 $anchorScroll();
                  $scope.searchproduct    = '';
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
                  if($scope.checkcart($scope.productmodal['product_id'])){
@@ -241,9 +245,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 case 't':
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
+                    event.preventDefault();
                     $timeout(function(){
                         angular.element('#tenderedcash').focus();
-                    },100);
+                    },500);
 
                     break;
                 case 'k':
@@ -257,7 +262,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 case 'd' :
                     //done
                     $scope.gotomain();
-                    $scope.newcartFn();
+                    $scope.newdeletecartFn(true);
                     break;
                 case 'c' :
                     //continue
@@ -269,7 +274,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
                         merchant_id    : $scope.datauser['userdetail']['merchant_id'],
-                        customer_id    : $scope.guests, // check if from mobile ci
+                        customer_id    : '', // check if from mobile ci
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart
@@ -317,7 +322,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             }
         });
-
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
@@ -364,9 +368,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             require: 'ngModel',
             link: function(scope, element, attrs, modelCtrl) {
                 modelCtrl.$parsers.push(function (inputValue) {
-                    // this next if is necessary for when using ng-required on your input.
-                    // In such cases, when a letter is typed first, this parser will be called
-                    // again, and the 2nd time, the value will be undefined
                     if (inputValue == undefined) return ''
                     var transformedInput = inputValue.replace(/[^0-9+.]/g, '');
                     if (transformedInput!=inputValue) {

@@ -28,7 +28,7 @@
                     </div>
 
                 </div>
-                <div class="table-responsive"  style="overflow: auto;height: 380px" >
+                <div class="table-responsive"  id="tablecart" style="overflow: auto;height: 380px" >
                     <table class="table">
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
@@ -47,7 +47,7 @@
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
-                                          <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
+                                          <input type="text" pattern="[0-9]*" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
                                           <span class="input-group-btn">
                                               <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn($index,'p')">
                                                   <i class="fa fa-plus"></i>
@@ -61,6 +61,11 @@
                                     </div>
                                 </td>
                                 <td class="text-right"><% v.hargatotal %></td>
+                            </tr>
+                            <tr id="bottom">
+                                 <td></td>
+                                 <td></td>
+                                 <td></td>
                             </tr>
                         </tbody>
                     </table>
@@ -289,7 +294,7 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-             <button class="btn  close closemodal"  data-dismiss="modal" data-ng-click="gotomain()"type="button">
+             <button class="btn  close closemodal" data-ng-if="action != 'done'" data-dismiss="modal" data-ng-click="gotomain()"type="button">
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
              </button>
             <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
@@ -309,7 +314,7 @@
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
-                                             <input type="text" class="form-control text-right" id="tenderedcash"     numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*"  autofocus="autofocus" numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
