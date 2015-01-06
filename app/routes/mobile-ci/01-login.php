@@ -66,3 +66,6 @@ Route::get('/api/v1/customer/products', function()
 {
     return MobileCI\MobileCIAPIController::create()->getProductList();
 });
+
+// add to cart
+Route::post('/app/v1/customer/addtocart', 'IntermediateAuthController@MobileCI\MobileCI_postAddToCart');

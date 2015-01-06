@@ -27,6 +27,7 @@ use \Category;
 use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Cart;
+use \CartDetail;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -84,13 +85,13 @@ class MobileCIAPIController extends ControllerAPI
                     $cart->merchant_id = $retailer->parent_id;
                     $cart->retailer_id = $retailer->merchant_id;
                     $cart->status = 'active';
+                    $cart->save();
                 }
             }
 
             $user->setHidden(array('user_password', 'apikey'));
             $this->response->data = $user;
 
-            // return var_dump($this->response->data);
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -548,6 +549,7 @@ class MobileCIAPIController extends ControllerAPI
             $sort_by = OrbitInput::get('sort_by');
             $family_id = OrbitInput::get('family_id');
             $family_level = OrbitInput::get('family_level');
+            $families = OrbitInput::get('families');
 
             $validator = Validator::make(
                 array(
@@ -577,20 +579,29 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
             $nextfamily = $family_level + 1;
+
+            $subfamilies = Category::excludeDeleted();
             if($nextfamily < 6) {
-                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level) {
+                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level, $families) {
                     $nextfamily = $family_level + 1;
+                    for($i = 1; $i < count($families); $i++) {
+                        $q->where('products.category_id'.$i, $families[$i-1]);
+                    }
+
                     $q  ->where('products.category_id'.$family_level, $family_id)
                         ->where('products.category_id'.$nextfamily, '<>', 'NULL')
                         ->where('products.status', 'active');
-                })->excludeDeleted()->get();
+                })->get();
             } else {
                 $subfamilies = NULL;
             }
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
-            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id) {
+            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
+                for($i = 1; $i < count($families); $i++) {
+                    $q->where('category_id'.$i, $families[$i-1]);
+                }
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
                     $q->where('category_id' . $i, NULL);
@@ -723,8 +734,24 @@ class MobileCIAPIController extends ControllerAPI
     public function getCartView()
     {
         try {
+            $user = $this->getLoggedInUser();
+
             $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer));
+
+            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            if(is_null($cart)){
+                $cart = new Cart;
+                $cart->cart_code = rand(111111, 99999999999);
+                $cart->customer_id = $user->user_id;
+                $cart->merchant_id = $retailer->parent_id;
+                $cart->retailer_id = $retailer->merchant_id;
+                $cart->status = 'active';
+                $cart->save();
+            }
+
+            $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+
+            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cart'=>$cart, 'cartdetails'=>$cartdetails));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -868,6 +895,114 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function postAddToCart()
+    {
+        try {
+            $this->registerCustomValidation();
+
+            $retailer = $this->getRetailerInfo();
+
+            $user = $this->getLoggedInUser();
+
+            $product_id = OrbitInput::post('productid');
+            $quantity = OrbitInput::post('qty');
+
+            $validator = \Validator::make(
+                array(
+                    'product_id' => $product_id,
+                    'quantity' => $quantity,
+                ),
+                array(
+                    'product_id' => 'required|orbit.exists.product',
+                    'quantity' => 'required|numeric',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            
+            $this->beginTransaction();
+
+            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            if(empty($cart)){
+                $cart = new Cart;
+                $cart->cart_code = rand(111111, 99999999999);
+                $cart->customer_id = $user->user_id;
+                $cart->merchant_id = $retailer->parent_id;
+                $cart->retailer_id = $retailer->merchant_id;
+                $cart->status = 'active';
+                $cart->save();
+            }
+            
+            $product = Product::with('tax1', 'tax2')->where('product_id', $product_id)->first();
+
+            $cart->total_item = $cart->total_item + 1;
+            $cart->subtotal = $cart->subtotal + $product->price;
+            
+            $tax_value1 = $product->tax1->tax_value;
+            if(empty($tax_value1)) {
+                $tax1 = 0;
+            } else {
+                $tax1 = $product->tax1->tax_value * $product->price;
+            }
+
+            $tax_value2 = $product->tax2->tax_value;
+            if(empty($tax_value2)) {
+                $tax2 = 0;
+            } else {
+                $tax2 = $product->tax2->tax_value * $product->price;
+            }
+            
+            $cart->vat = $cart->vat + $tax1 + $tax2;
+            $cart->total_to_pay = $cart->subtotal + $cart->vat;
+            $cart->save();
+
+            $cartdetail = CartDetail::excludeDeleted()->where('product_id', $product_id)->where('cart_id', $cart->cart_id)->first();
+            if(empty($cartdetail)){
+                $cartdetail = new CartDetail;
+                $cartdetail->cart_id = $cart->cart_id;
+                $cartdetail->product_id = $product->product_id;
+                $cartdetail->price = $product->price;
+                $cartdetail->upc = $product->upc_code;
+                $cartdetail->sku = $product->product_code;
+                $cartdetail->quantity = $quantity;
+                $cartdetail->status = 'active';
+                $cartdetail->save();
+            } else {
+                $cartdetail->quantity = $cartdetail->quantity + 1;
+                $cartdetail->save();
+            }
+            
+            $this->response->message = 'success';
+            $this->response->data = $cartdetail;
+
+            $this->commit();
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $this->rollBack();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $this->rollBack();
+        }
+
+        return $this->render();
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
@@ -896,6 +1031,21 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             \App::instance('orbit.validation.category', $category);
+
+            return TRUE;
+        });
+
+        // Check product, it should exists
+        Validator::extend('orbit.exists.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            \App::instance('orbit.validation.product', $product);
 
             return TRUE;
         });
