@@ -18,4 +18,9 @@ class CartDetail extends Eloquent
         return $this->belongsTo('Cart', 'cart_id', 'cart_id');
     }
 
+    public function product()
+    {
+        return $this->hasOne('Product', 'product_id', 'product_id');
+    }
+
 }
