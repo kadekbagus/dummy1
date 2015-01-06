@@ -8384,10 +8384,10 @@ img.img80_80 {
 
 .mini-box {
   height: 71px;
-  width:175px;
+  width:190px;
 
   margin-top : 10px;
-  margin-left : 5px;
+  margin-left : 8px;
     background-color: #ffffff;
     cursor: pointer;
     cursor: hand;
@@ -8398,7 +8398,7 @@ img.img80_80 {
 
 .mini-boxright {
     height: 71px;
-    width:175px;
+    width:190px;
     background-color: #ffffff;
     margin-top : 10px;
     margin-left : -6px;
