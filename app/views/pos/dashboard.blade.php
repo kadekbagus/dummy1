@@ -84,7 +84,7 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" style="padding-left: 0px;padding-right: 0px">
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
@@ -104,7 +104,7 @@
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
-                                       <div class="row no-gutter">
+                                       <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>

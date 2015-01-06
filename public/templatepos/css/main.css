@@ -8384,7 +8384,7 @@ img.img80_80 {
 
 .mini-box {
   height: 71px;
-  width:155px;
+  width:175px;
 
   margin-top : 10px;
   margin-left : 5px;
@@ -8398,7 +8398,7 @@ img.img80_80 {
 
 .mini-boxright {
     height: 71px;
-    width:155px;
+    width:175px;
     background-color: #ffffff;
     margin-top : 10px;
     margin-left : -6px;
@@ -11776,22 +11776,18 @@ body {
     color:#D60000
 }
 /*landscape*/
-@media(min-width:768px){
+@media(min-width:768px) and (max-width: 1100px){
     h1 {
         font-size: 28px ;
     }
-    .col-md-4 {
-        padding-left: 0px;
-        padding-right: 0px
+
+    .mini-box {
+        width:155px;
+        margin-left : 0px;
     }
-    .container {
-        margin-right: auto;
-        margin-left: auto;
-        padding-left: 15px;
-        padding-right: 15px;
-        padding-bottom: 0px;
-        padding-top: 10px;
-        margin-bottom: 15px;
+    .mini-boxright {
+        width:155px;
+        margin-left : -10px;
     }
 }
 
