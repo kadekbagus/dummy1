@@ -491,7 +491,7 @@ class CashierAPIController extends ControllerAPI
         try {
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
-            $transaction = \Transaction::with('details')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'cashier')->where('transaction_id',$transaction_id)->first();
 
             if (! is_object($transaction)) {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
@@ -514,6 +514,7 @@ class CashierAPIController extends ControllerAPI
             $customer = "guest";
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
+            $cashier = $transaction['cashier']->username;
 
             $head  = $this->just40CharMid('MATAHARI');
             $head .= $this->just40CharMid('DEPARTMENT STORE');
@@ -522,6 +523,7 @@ class CashierAPIController extends ControllerAPI
 
             $head .= 'Date : '.$date." \n";
             $head .= 'Bill No  : '.time()." \n";
+            $head .= 'Cashier : '.$cashier." \n";
             $head .= 'Customer : '.$customer." \n";
             $head .= " \n";
             $head .= '----------------------------------------'." \n";
