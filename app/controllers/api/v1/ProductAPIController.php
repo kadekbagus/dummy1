@@ -19,10 +19,12 @@ class ProductAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @author Kadek <kadek@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`             (required) - ID of the merchant
+     * @param integer    `product_id`              (required) - ID of the product
+     * @param integer    `merchant_id`             (optional) - ID of the merchant
      * @param string     `product_code`            (optional) - Product code
      * @param string     `upc_code`                (optional) - Product UPC code
      * @param string     `product_name`            (optional) - Product name
@@ -43,6 +45,12 @@ class ProductAPIController extends ControllerAPI
      * @param array      `retailer_ids`            (optional) - ORID links
      * @param array      `no_retailer`             (optional) - Flag to delete all ORID links
      * @param images     `images`            	   (optional) - Product image
+     * @param integer    `category_id1`            (optional) - Category ID1.
+     * @param integer    `category_id2`            (optional) - Category ID2.
+     * @param integer    `category_id3`            (optional) - Category ID3.
+     * @param integer    `category_id4`            (optional) - Category ID4.
+     * @param integer    `category_id5`            (optional) - Category ID5.
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateProduct()
@@ -74,16 +82,30 @@ class ProductAPIController extends ControllerAPI
 
             $product_id = OrbitInput::post('product_id');
             $merchant_id = OrbitInput::post('merchant_id');
-            $productretailers = array();
+            $category_id1 = OrbitInput::post('category_id1');
+            $category_id2 = OrbitInput::post('category_id2');
+            $category_id3 = OrbitInput::post('category_id3');
+            $category_id4 = OrbitInput::post('category_id4');
+            $category_id5 = OrbitInput::post('category_id5');
 
             $validator = Validator::make(
                 array(
                     'product_id'        => $product_id,
                     'merchant_id'       => $merchant_id,
+                    'category_id1'      => $category_id1,
+                    'category_id2'      => $category_id2,
+                    'category_id3'      => $category_id3,
+                    'category_id4'      => $category_id4,
+                    'category_id5'      => $category_id5,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'merchant_id'       => 'numeric|orbit.empty.merchant',
+                    'category_id1'      => 'numeric|orbit.empty.category_id1',
+                    'category_id2'      => 'numeric|orbit.empty.category_id2',
+                    'category_id3'      => 'numeric|orbit.empty.category_id3',
+                    'category_id4'      => 'numeric|orbit.empty.category_id4',
+                    'category_id5'      => 'numeric|orbit.empty.category_id5',
                 )
             );
 
@@ -99,7 +121,8 @@ class ProductAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedproduct = Product::with('retailers')->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
+            $updatedproduct = Product::with('retailers', 'category1', 'category2', 'category3', 'category4', 'category5')
+                ->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
                 if (!empty($product_code)) {
@@ -210,7 +233,47 @@ class ProductAPIController extends ControllerAPI
             OrbitInput::post('created_by', function($created_by) use ($updatedproduct) {
                 $updatedproduct->created_by = $created_by;
             });
-            
+
+            OrbitInput::post('category_id1', function($category_id1) use ($updatedproduct) {
+                if (trim($category_id1) === '') {
+                    $category_id1 = NULL;
+                }
+                $updatedproduct->category_id1 = (int) $category_id1;
+                $updatedproduct->load('category1');
+            });
+
+            OrbitInput::post('category_id2', function($category_id2) use ($updatedproduct) {
+                if (trim($category_id2) === '') {
+                    $category_id2 = NULL;
+                }
+                $updatedproduct->category_id2 = (int) $category_id2;
+                $updatedproduct->load('category2');
+            });
+
+            OrbitInput::post('category_id3', function($category_id3) use ($updatedproduct) {
+                if (trim($category_id3) === '') {
+                    $category_id3 = NULL;
+                }
+                $updatedproduct->category_id3 = (int) $category_id3;
+                $updatedproduct->load('category3');
+            });
+
+            OrbitInput::post('category_id4', function($category_id4) use ($updatedproduct) {
+                if (trim($category_id4) === '') {
+                    $category_id4 = NULL;
+                }
+                $updatedproduct->category_id4 = (int) $category_id4;
+                $updatedproduct->load('category4');
+            });
+
+            OrbitInput::post('category_id5', function($category_id5) use ($updatedproduct) {
+                if (trim($category_id5) === '') {
+                    $category_id5 = NULL;
+                }
+                $updatedproduct->category_id5 = (int) $category_id5;
+                $updatedproduct->load('category5');
+            });
+
             OrbitInput::post('no_retailer', function($no_retailer) use ($updatedproduct) {
                 if ($no_retailer == 'y') {
                     $deleted_retailer_ids = ProductRetailer::where('product_id', $updatedproduct->product_id)->get(array('retailer_id'))->toArray();
@@ -229,7 +292,7 @@ class ProductAPIController extends ControllerAPI
 
                         ),
                         array(
-                            'retailer_id'   => 'orbit.empty.retailer',
+                            'retailer_id'   => 'numeric|orbit.empty.retailer',
                         )
                     );
 
@@ -322,9 +385,11 @@ class ProductAPIController extends ControllerAPI
      * GET - Search Product
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
+     * @param string     `with`                     (optional) - Valid value: family.
      * @param integer    `product_id`               (optional) - ID of the product
      * @param string     `product_code`             (optional)
      * @param string     `product_name`             (optional)
@@ -335,9 +400,9 @@ class ProductAPIController extends ControllerAPI
      * @param string     `long_description_like`    (optional)
      * @param integer    `merchant_id`              (optional)
      * @param integer    `status`                   (optional)
+     *
      * @return Illuminate\Support\Facades\Response
      */
-
     public function getSearchProduct()
     {
         try {
@@ -371,10 +436,10 @@ class ProductAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_retailer_id,product_merchant_id,product_status',
+                    'sort_by' => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_merchant_id,product_status',
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                    'in' => Lang::get('validation.orbit.empty.product_sortby'),
                 )
             );
 
@@ -444,6 +509,16 @@ class ProductAPIController extends ControllerAPI
             // Filter product by status
             OrbitInput::get('status', function ($status) use ($products) {
                 $products->whereIn('products.status', $status);
+            });
+
+            // Add new relation based on request
+            OrbitInput::get('with', function ($with) use ($products) {
+                $with = (array) $with;
+                foreach ($with as $relation) {
+                    if ($relation === 'family') {
+                        $products->with('category1', 'category2', 'category3', 'category4', 'category5');
+                    }
+                }
             });
 
             $_products = clone $products;
@@ -567,13 +642,14 @@ class ProductAPIController extends ControllerAPI
      * POST - Add new product
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
      * @param integer    `merchant_id`             (required) - ID of the merchant
      * @param string     `product_code`            (optional) - Product code
      * @param string     `upc_code`                (optional) - Merchant description
-     * @param string     `product_name`            (optional) - Product name
+     * @param string     `product_name`            (required) - Product name
      * @param string     `image`                   (optional) - Product image
      * @param string     `short_description`       (optional) - Product short description
      * @param string     `long_description`        (optional) - Product long description
@@ -585,11 +661,17 @@ class ProductAPIController extends ControllerAPI
      * @param decimal    `price`                   (optional) - Price of the product
      * @param string     `merchant_tax_id1`        (optional) - Tax 1
      * @param string     `merchant_tax_id2`        (optional) - Tax 2
-     * @param string     `status`                  (optional) - Status
+     * @param string     `status`                  (required) - Status
      * @param integer    `created_by`              (optional) - ID of the creator
      * @param integer    `modified_by`             (optional) - Modify by
      * @param file       `images`                  (optional) - Product Image
      * @param array      `retailer_ids`            (optional) - ORID links
+     * @param integer    `category_id1`            (optional) - Category ID1.
+     * @param integer    `category_id2`            (optional) - Category ID2.
+     * @param integer    `category_id3`            (optional) - Category ID3.
+     * @param integer    `category_id4`            (optional) - Category ID4.
+     * @param integer    `category_id5`            (optional) - Category ID5.
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewProduct()
@@ -637,19 +719,32 @@ class ProductAPIController extends ControllerAPI
             $status = OrbitInput::post('status');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $category_id1 = OrbitInput::post('category_id1');
+            $category_id2 = OrbitInput::post('category_id2');
+            $category_id3 = OrbitInput::post('category_id3');
+            $category_id4 = OrbitInput::post('category_id4');
+            $category_id5 = OrbitInput::post('category_id5');
 
             $validator = Validator::make(
                 array(
                     'merchant_id'   => $merchant_id,
                     'product_name'  => $product_name,
-                    'product_code'  => $product_code,
                     'status'        => $status,
+                    'category_id1'  => $category_id1,
+                    'category_id2'  => $category_id2,
+                    'category_id3'  => $category_id3,
+                    'category_id4'  => $category_id4,
+                    'category_id5'  => $category_id5,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric',
+                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
                     'product_name'  => 'required',
-
-                    'status'        => 'required',
+                    'status'        => 'required|orbit.empty.product_status',
+                    'category_id1'  => 'numeric|orbit.empty.category_id1',
+                    'category_id2'  => 'numeric|orbit.empty.category_id2',
+                    'category_id3'  => 'numeric|orbit.empty.category_id3',
+                    'category_id4'  => 'numeric|orbit.empty.category_id4',
+                    'category_id5'  => 'numeric|orbit.empty.category_id5',
                 )
             );
 
@@ -668,7 +763,7 @@ class ProductAPIController extends ControllerAPI
 
                     ),
                     array(
-                        'retailer_id'   => 'orbit.empty.retailer',
+                        'retailer_id'   => 'numeric|orbit.empty.retailer',
                     )
                 );
 
@@ -707,6 +802,11 @@ class ProductAPIController extends ControllerAPI
             $newproduct->status = $status;
             $newproduct->created_by = $this->api->user->user_id;
             $newproduct->modified_by = $this->api->user->user_id;
+            $newproduct->category_id1 = $category_id1;
+            $newproduct->category_id2 = $category_id2;
+            $newproduct->category_id3 = $category_id3;
+            $newproduct->category_id4 = $category_id4;
+            $newproduct->category_id5 = $category_id5;
 
             Event::fire('orbit.product.postnewproduct.before.save', array($this, $newproduct));
 
@@ -724,6 +824,13 @@ class ProductAPIController extends ControllerAPI
 
             $newproduct->setRelation('retailers', $productretailers);
             $newproduct->retailers = $productretailers;
+
+            $newproduct->load('category1');
+            $newproduct->load('category2');
+            $newproduct->load('category3');
+            $newproduct->load('category4');
+            $newproduct->load('category5');
+
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
             $this->response->data = $newproduct;
@@ -794,6 +901,7 @@ class ProductAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `product_id`                  (required) - ID of the product
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteProduct()
@@ -1036,5 +1144,92 @@ class ProductAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // Check the existance of category_id1
+        Validator::extend('orbit.empty.category_id1', function ($attribute, $value, $parameters) {
+            $category_id1 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($category_id1)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.category_id1', $category_id1);
+
+            return TRUE;
+        });
+
+        // Check the existance of category_id2
+        Validator::extend('orbit.empty.category_id2', function ($attribute, $value, $parameters) {
+            $category_id2 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($category_id2)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.category_id2', $category_id2);
+
+            return TRUE;
+        });
+
+        // Check the existance of category_id3
+        Validator::extend('orbit.empty.category_id3', function ($attribute, $value, $parameters) {
+            $category_id3 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($category_id3)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.category_id3', $category_id3);
+
+            return TRUE;
+        });
+
+        // Check the existance of category_id4
+        Validator::extend('orbit.empty.category_id4', function ($attribute, $value, $parameters) {
+            $category_id4 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($category_id4)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.category_id4', $category_id4);
+
+            return TRUE;
+        });
+
+        // Check the existance of category_id5
+        Validator::extend('orbit.empty.category_id5', function ($attribute, $value, $parameters) {
+            $category_id5 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($category_id5)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.category_id5', $category_id5);
+
+            return TRUE;
+        });
+
+        // Check the existence of the product status
+        Validator::extend('orbit.empty.product_status', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $statuses = array('active', 'inactive', 'deleted');
+            foreach ($statuses as $status) {
+                if($value === $status) $valid = $valid || TRUE;
+            }
+
+            return $valid;
+        });
+
     }
 }

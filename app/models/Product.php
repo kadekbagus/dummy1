@@ -83,6 +83,11 @@ class Product extends Eloquent
         return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
     }
 
+    public function cartdetail()
+    {
+        return $this->belongsTo('CartDetail', 'product_id', 'product_id');
+    }
+
     /**
      * Add Filter retailers based on user who request it.
      *
