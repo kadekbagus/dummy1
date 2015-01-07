@@ -303,6 +303,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             });
         };
+        
      
         //Ticket Print
         $scope.ticketprint = function(){
