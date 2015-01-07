@@ -589,6 +589,99 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+
+    /**
+     * POST - Card Payment
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCardPayment()
+    {
+        try {
+            $amount = trim(OrbitInput::post('amount'));
+
+            $validator = Validator::make(
+                array(
+                    'amount' => $amount,
+                ),
+                array(
+                    'amount' => 'required|numeric',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            //sudo ./edc --device /dev/domino/terminal --words
+
+            $driver = '~/drivers/64bits/edc';
+            $device = '/dev/domino/terminal';
+            $cmd = 'sudo '.$driver.' --device '.$device.' --words '.$amount;
+            $card = shell_exec($cmd);
+
+            $this->response->data = $card;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+    /**
+     * POST - Cash Drawer
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCashDrawer()
+    {
+        try {
+            $driver = '~/drivers/64bits/cash_drawer';
+            $cmd = 'sudo '.$driver;
+            $drawer = shell_exec($cmd);
+
+            $this->response->data = $drawer;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
