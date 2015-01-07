@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="cart-page the-cart">
-      @foreach($cartdetails as $cartdetail)
+      @foreach($cartdata->cartdetails as $cartdetail)
       <div class="cart-items-list">
         <div class="single-item">
           <div class="single-item-headers">
@@ -40,7 +40,7 @@
             <div class="single-body unique-column">
               <div class="unique-column-properties">
                 <div class="item-qty">
-                  <span>{{ $cartdetail->quantity }}</span>
+                  <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}"  style="background: white; color: black;" >
                 </div>
                 <div class="item-remover">
                   <span><i class="fa fa-times"></i></span>
@@ -76,16 +76,16 @@
       </div>
       <div class="cart-sum-bodies">
         <div class="cart-sum-single-body">
-          <span>{{ $cart->total_item }}</span>
+          <span>{{ $cartdata->cart->total_item }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cart->subtotal + 0 }}</span>
+          <span>{{ $cartdata->cart->subtotal + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cart->vat + 0}}</span>
+          <span>{{ $cartdata->cart->vat + 0}}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cart->total_to_pay + 0 }}</span>
+          <span>{{ $cartdata->cart->total_to_pay + 0 }}</span>
         </div>
       </div>
     </div>
@@ -132,12 +132,96 @@
       </div>
     </div>
   </div>
+  <table class="ui-bar-a" id="n_keypad" style="display: none; -khtml-user-select: none;">
+    <tr>
+       <td class="num numero"><a data-role="button" data-theme="b" >7</a></td>
+       <td class="num numero"><a data-role="button" data-theme="b" >8</a></td>
+       <td class="num numero"><a data-role="button" data-theme="b" >9</a></td>
+       <td class="del"><a data-role="button" data-theme="e" ><i class="fa fa-long-arrow-left"></i></a></td>
+    </tr>
+    <tr>
+       <td class="num numero"><a data-role="button" data-theme="b" >4</a></td>
+       <td class="num numero"><a data-role="button" data-theme="b" >5</a></td>
+       <td class="num numero"><a data-role="button" data-theme="b" >6</a></td>
+       <td class="clear"><a data-role="button" data-theme="e" ><i class="fa fa-close"></i></a></td>
+    </tr>
+    <tr>
+       <td class="num numero"><a data-role="button" data-theme="b" >1</a></td>
+       <td class="num numero"><a data-role="button" data-theme="b" >2</a></td>
+       <td class="num numero"><a data-role="button" data-theme="b" class="">3</a></td>
+       <td class="emptys"><a data-role="button" data-theme="e">&nbsp;</a></td>
+    </tr>
+    <tr>
+       <td class="neg"><a data-role="button" data-theme="e">-</a></td>
+       <td class="num zero"><a data-role="button" data-theme="b" class="zero">0</a></td>
+       <td class="pos"><a data-role="button" data-theme="e">+</a></td>
+       <td class="done"><a data-role="button" data-theme="e" >Done</a></td>
+    </tr>
+  </table>
 @stop
 
 @section('ext_script_bot')
 <script type="text/javascript">
-  $('#checkOutBtn').click(function(){
-    $('#checkOutModal').modal();
+  $(document).ready(function(){
+    $('#checkOutBtn').click(function(){
+      $('#checkOutModal').modal();
+    });
+    var num;
+    var lastnum;
+    $('.numinput').click(function(){
+        var tops = $(this).offset().top;
+        var lefts = $(this).offset().left;
+        $('#n_keypad').fadeToggle('fast').offset({
+          top: tops + 24,
+          left: lefts
+        });
+        num = $(this);
+        if(!num.val()){
+          num.val(lastnum);
+        }else{
+          lastnum = num.val();
+        }
+    });
+    $('.done').click(function(){
+        $('#n_keypad').hide();
+        if(num.val() == ''){
+          num.val(lastnum);
+        }
+    });
+    $('.numero').click(function(){
+      if (!isNaN(num.val())) {
+         if (parseInt($('.numinput').val()) == 0) {
+           num.val($(this).children('a').text());
+         } else {
+           num.val(num.val() + $(this).children('a').text());
+         }
+      }
+    });
+    $('.neg').click(function(){
+        if (!isNaN(num.val()) && num.val().length > 0) {
+          if (parseInt(num.val()) > 0) {
+            num.val(parseInt(num.val()) - 1);
+          }
+        }
+    });
+    $('.pos').click(function(){
+        if (!isNaN(num.val()) && num.val().length > 0) {
+          num.val(parseInt(num.val()) + 1);
+        }
+    });
+    $('.del').click(function(){
+        num.val(num.val().substring(0,num.val().length - 1));
+    });
+    $('.clear').click(function(){
+        num.val('');
+    });
+    $('.zero').click(function(){
+      if (!isNaN(num.val())) {
+        if (parseInt(num.val()) != 0) {
+          num.val(num.val() + $(this).children('a').text());
+        }
+      }
+    });
   });
 </script>
 @stop

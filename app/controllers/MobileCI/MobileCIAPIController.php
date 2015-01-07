@@ -323,7 +323,9 @@ class MobileCIAPIController extends ControllerAPI
 
             $new_products = Product::with('media')->where('new_from','<=', Carbon::now())->where('new_until', '>=', Carbon::now())->get();
 
-            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer'=>$retailer, 'new_products'=>$new_products));
+            $cartdata = $this->getCartForToolbar();
+
+            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'cartdata' => $cartdata));
         } catch (Exception $e) {
             // Should be redirected or return some meaningful error to customer
             return $e->getMessage();
@@ -379,10 +381,25 @@ class MobileCIAPIController extends ControllerAPI
     public function getCatalogueView()
     {
         try {
+            $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
             $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->excludeDeleted()->get();
 
-            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families));
+            // $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            // if(is_null($cart)){
+            //     $cart = new Cart;
+            //     $cart->cart_code = rand(111111, 99999999999);
+            //     $cart->customer_id = $user->user_id;
+            //     $cart->merchant_id = $retailer->parent_id;
+            //     $cart->retailer_id = $retailer->merchant_id;
+            //     $cart->status = 'active';
+            //     $cart->save();
+            // }
+
+            // $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+            $cartdata = $this->getCartForToolbar();
+
+            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartdata' => $cartdata));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -669,7 +686,9 @@ class MobileCIAPIController extends ControllerAPI
                 $data->records = $listOfRec;
             }
 
-            return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies));
+            $cartdata = $this->getCartForToolbar();
+
+            return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartdata' => $cartdata));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -708,10 +727,12 @@ class MobileCIAPIController extends ControllerAPI
             $product = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                         })->excludeDeleted()->where('product_id', $product_id)->first();
+            $cartdata = $this->getCartForToolbar();
+
             if(is_null($product)){
-                return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer));
+                return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer, 'cartdata' => $cartdata));
             } else {
-                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product));
+                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartdata' => $cartdata));
             }
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -739,19 +760,10 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-            if(is_null($cart)){
-                $cart = new Cart;
-                $cart->cart_code = rand(111111, 99999999999);
-                $cart->customer_id = $user->user_id;
-                $cart->merchant_id = $retailer->parent_id;
-                $cart->retailer_id = $retailer->merchant_id;
-                $cart->status = 'active';
-                $cart->save();
-            }
+            
+            $cartdata = $this->getCartForToolbar();
 
-            $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
-
-            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cart'=>$cart, 'cartdetails'=>$cartdetails));
+            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartdata' => $cartdata));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -1091,4 +1103,26 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    protected function getCartForToolbar()
+    {
+        $user = $this->getLoggedInUser();
+        $retailer = $this->getRetailerInfo();
+        $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+        if(is_null($cart)){
+            $cart = new Cart;
+            $cart->cart_code = rand(111111, 99999999999);
+            $cart->customer_id = $user->user_id;
+            $cart->merchant_id = $retailer->parent_id;
+            $cart->retailer_id = $retailer->merchant_id;
+            $cart->status = 'active';
+            $cart->save();
+        }
+
+        $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+        $cartdata = new stdclass();
+        $cartdata->cart = $cart;
+        $cartdata->cartdetails = $cartdetails;
+
+        return $cartdata;
+    }
 }

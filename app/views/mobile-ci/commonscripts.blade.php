@@ -21,20 +21,25 @@
   </div>
 </div>
 <script type="text/javascript">
-	$('#searchBtn').click(function(){
-		$('#SearchProducts').modal();
-    setTimeout(function(){
-      $('#keyword').focus();
-    }, 500);
-	});
-  $('#searchProductBtn').click(function(){
-    $('#SearchProducts').modal('toggle');
-    $('#searchForm').submit();
-  });
-  $('#backBtn').click(function(){
-    window.history.back()
-  });
-  $('#search-tool-btn').click(function(){
-    $('#search-tool').toggle();
+  $(document).ready(function(){
+    $('#searchBtn').click(function(){
+      $('#SearchProducts').modal();
+      setTimeout(function(){
+        $('#keyword').focus();
+      }, 500);
+    });
+    $('#searchProductBtn').click(function(){
+      $('#SearchProducts').modal('toggle');
+      $('#searchForm').submit();
+    });
+    $('#backBtn').click(function(){
+      window.history.back()
+    });
+    $('#search-tool-btn').click(function(){
+      $('#search-tool').toggle();
+    });
+    if($('#cart-number').attr('data-cart-number') == '0'){
+      $('.cart-qty').css('display', 'none');
+    }
   });
 </script>
