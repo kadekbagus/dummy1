@@ -62,10 +62,16 @@
                                 </td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
+
+                            <tr>
+                                 <td class="tdnoborder"></td>
+                                 <td class="tdnoborder"></td>
+                                 <td class="tdnoborder"></td>
+                            </tr>
                             <tr id="bottom">
-                                 <td></td>
-                                 <td></td>
-                                 <td></td>
+                                 <td class="tdnoborder"></td>
+                                 <td class="tdnoborder"></td>
+                                 <td class="tdnoborder"></td>
                             </tr>
                         </tbody>
                     </table>

@@ -9236,7 +9236,7 @@ input.orbit-component.ng-invalid.ng-dirty {
   text-align: right;
 }
 .orbit-component.faux-text-input {
-  cursor: default;input-group-addon
+  cursor: default;
 }
 .orbit-component.table-noborder tr td {
   border: 0 !important;
@@ -11774,6 +11774,9 @@ body {
     -webkit-opacity:0;
     opacity:1;
     color:#D60000
+}
+.tdnoborder {
+    border-top:none !important
 }
 /*landscape*/
 @media(min-width:768px) and (max-width: 1100px){
