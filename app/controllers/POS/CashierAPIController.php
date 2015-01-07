@@ -517,7 +517,7 @@ class CashierAPIController extends ControllerAPI
             $customer = "guest";
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
-            $cashier = $transaction['cashier']->username;
+            $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
             $head  = $this->just40CharMid('MATAHARI');
