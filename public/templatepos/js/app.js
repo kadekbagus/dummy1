@@ -272,12 +272,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     break;
                 case 'c' :
                     //continue
-                    $scope.savetransactions(true);
+                    $scope.savetransactions();
                     break;
             }
         };
         //save transaction
-        $scope.savetransactions = function(bool){
+        $scope.savetransactions = function(){
             $scope.sendcart = {
                 total_item     : accounting.unformat($scope.cart.totalitem),
                 subtotal       : accounting.unformat($scope.cart.subtotal),
@@ -297,17 +297,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
                     $scope.ticketprint();
-                    if(bool) $scope.cashdrawer();
                 }else{
                     //do something
                     $scope.cheader = 'TRANSAKSI GAGAL';
                 }
             });
         };
-        //cashdrawer
-        $scope.cashdrawer = function(){
-            serviceAjax.posDataToServer('/pos/cashdrawer ').then(function(response){});
-        };
+     
         //Ticket Print
         $scope.ticketprint = function(){
             if($scope.transaction_id){
@@ -358,8 +354,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        /*angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();*/
+                        angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();
                     }
             });
         })();

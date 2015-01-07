@@ -453,6 +453,9 @@ class CashierAPIController extends ControllerAPI
 
                 $transactionDetails->save();
             }
+            
+            //only payment cash
+            if($payment_method == 'cash') self::postCashDrawer();
 
             $this->response->data  = $transaction;
             // Commit the changes
@@ -535,8 +538,13 @@ class CashierAPIController extends ControllerAPI
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
-            $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
-            $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+            if($payment=='Cash'){
+                $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
+                $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+            }
+            if($payment=="Card"){
+                $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
+            }
 
             $footer  = " \n";
             $footer .= " \n";
