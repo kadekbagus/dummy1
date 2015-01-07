@@ -646,6 +646,42 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+    /**
+     * POST - Cash Drawer
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCashDrawer()
+    {
+        try {
+            $driver = '~/drivers/64bits/cash_drawer';
+            $cmd = 'sudo '.$driver;
+            $drawer = shell_exec($cmd);
+
+            $this->response->data = $drawer;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
