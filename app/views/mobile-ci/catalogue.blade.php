@@ -41,18 +41,14 @@
 
 @section('ext_script_bot')
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
+	{{ HTML::script('mobile-ci/scripts/jquery.storageapi.min.js') }}
 	<script type="text/javascript">
 		$(document).ready(function(){
-			// families[1] = undefined;
-			// families[2] = undefined;
-			// families[3] = undefined;
-			// families[4] = undefined;
-			// families[5] = undefined;
 
 			$('.family-list').on('click', 'a.family-a', function(event){
 				var families = [];
 				var open_level = $(this).data('family-level');
-				$('li[data-family-container-level="'+open_level+'"] .product-list').html('');
+				$('li[data-family-container-level="'+open_level+'"] .product-list').css('display','visible').slideUp('slow');
 				$('li[data-family-container-level="'+open_level+'"] .family-label i').attr('class', 'fa fa-chevron-circle-down');
 				$('li[data-family-container-level="'+open_level+'"] .family-a').data('family-isopen', 0);
 				$('li[data-family-container-level="'+open_level+'"] .family-a').attr('data-family-isopen', 0);
@@ -67,16 +63,10 @@
 					var a = $(this);
 					var family_id = $(this).data('family-id');
 					var family_level = $(this).data('family-level');
-					// for(i=family_level;i<=5;i++){
-					// 	families[i] = undefined;
-					// }
-					// families[family_level] = family_id;
-					// console.log(families);
 
 					var aopen = $('a[data-family-isopen="1"]');
 					
 					$.each(aopen, function(index, value) {
-						// console.log();
 						families.push($(value).attr('data-family-id'));
 					});
 
@@ -89,9 +79,7 @@
 							family_level: family_level,
 						}
 					}).done(function(data){
-						// $('.product-list').html(data);
-						// console.log($(this).children("a").data('family-id'));
-						a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list").html(data);
+						a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list").css('display', 'none').html(data).slideDown('slow');
 						$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
 					});
 				} else {
@@ -115,6 +103,7 @@
 						qty:1
 					}
 				}).done(function(data){
+					// animate cart
 
 				});
 			});
