@@ -57,7 +57,7 @@ class PromotionAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.promotion.postnewpromotion.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('create_promotion')) {
+            if (! ACL::create($user)->isAllowed('new_promotion')) {
                 Event::fire('orbit.promotion.postnewpromotion.authz.notallowed', array($this, $user));
                 $createPromotionLang = Lang::get('validation.orbit.actionlist.new_promotion');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createPromotionLang));
