@@ -265,9 +265,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                     break;
-                case 's' :
-                    //cetak struk
-                    break;
                 case 'd' :
                     //done
                     $scope.gotomain();
@@ -309,9 +306,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //cashdrawer
         $scope.cashdrawer = function(){
-            serviceAjax.posDataToServer('/pos/cashdrawer ').then(function(response){
-
-            });
+            serviceAjax.posDataToServer('/pos/cashdrawer ').then(function(response){});
         };
         //Ticket Print
         $scope.ticketprint = function(){
