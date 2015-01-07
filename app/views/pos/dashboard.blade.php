@@ -7,23 +7,23 @@
             <div class="header">
                 <img src=" {{ URL::asset('templatepos/images/logo_matahari.png') }}"  class="img" style="width: 64px">
                 <h1>MATAHARI DEPARTMENT STORE</h1>
-                <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px" dropdown>
+                <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
                         <li> <a href="#" data-ng-click="logoutfn()">Keluar</a></li>
                       </ul>
                 </div>
-                <p  style="float: right; padding-top: 40px;" >Guest  <% guests %> | <% $parent.datetime %></p>
+                <p  style="float: right; padding-top: 40px;color:#030000" >Guest  <% guests %> | <% $parent.datetime %></p>
             </div>
     </div>
 
     <div class="container-fluid">
-     <div class="row">
-        <div class="col-md-12">
-            <div class="col-md-8">
+
+        <div class="row" >
+            <div class="col-md-7" style="margin-left: -8px">
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
-                         <div class="col-md-6" style="margin-top: 6px"><h3>KERANJANG BELANJA</h3></div>
+                         <div class="col-md-6" style="margin-top: 6px"><h4>KERANJANG BELANJA</h4></div>
                          <div class="col-md-6 text-right"> <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">SCAN KERANJANG</button></div>
                     </div>
 
@@ -95,17 +95,16 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-4" style="padding-left: 0px;padding-right: 0px">
+            <div class="col-md-5" style="padding-left: 0px;padding-right: 0px;margin-right: -50px">
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
                               <div class="input-group" id="loadingsearch">
                                    <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
-                                   <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
+                                        <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
                                    <div class="input-group-addon" style="background-color : #D60000; border: none;cursor:pointer" data-ng-click="resetsearch()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></div>
                               </div>
-                            </div>
-                          </div>
+                           </div>
                       </div>
                 </div>
                 <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 495px;overflow-x: hidden; padding-top: 1px" id="loading" >
@@ -119,8 +118,8 @@
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>
-                                           <div class="col-xs-6" style="">
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px">
+                                           <div class="col-xs-6 colorbold" >
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px; ">
                                            	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
                                            	   </div>
                                            	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
@@ -130,9 +129,9 @@
                           </div>
                       </div>
                 </div>
-
             </div>
         </div>
+
     </div>
 
     <!-- Modal Product Detail-->

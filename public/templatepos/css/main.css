@@ -11778,6 +11778,9 @@ body {
 .tdnoborder {
     border-top:none !important
 }
+.colorbold {
+    color:#030000
+}
 /*landscape*/
 @media(min-width:768px) and (max-width: 1100px){
     h1 {
@@ -11785,13 +11788,14 @@ body {
     }
 
     .mini-box {
-        width:155px;
-        margin-left : 0px;
+        width:195px;
+        margin-left : 2px;
     }
     .mini-boxright {
-        width:155px;
+        width:195px;
         margin-left : -10px;
     }
+
 }
 
 /* Portrait tablets and small desktops */
