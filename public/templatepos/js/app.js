@@ -272,12 +272,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     break;
                 case 'c' :
                     //continue
-                    $scope.savetransactions();
+                    $scope.savetransactions(true);
                     break;
             }
         };
         //save transaction
-        $scope.savetransactions = function(){
+        $scope.savetransactions = function(bool){
             $scope.sendcart = {
                 total_item     : accounting.unformat($scope.cart.totalitem),
                 subtotal       : accounting.unformat($scope.cart.subtotal),
@@ -297,7 +297,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
                     $scope.ticketprint();
-                    $scope.cashdrawer();
+                    if(bool) $scope.cashdrawer();
                 }else{
                     //do something
                     $scope.cheader = 'TRANSAKSI GAGAL';
