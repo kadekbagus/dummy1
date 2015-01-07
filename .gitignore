@@ -20,3 +20,6 @@ public/uploads/**
 
 # Environment
 app/config/rio/**
+
+# config pos
+public/templatepos/js/config.js

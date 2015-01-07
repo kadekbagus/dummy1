@@ -17,7 +17,7 @@
             </div>
     </div>
 
-    <div class="container">
+    <div class="container-fluid">
      <div class="row">
         <div class="col-md-12">
             <div class="col-md-8">
@@ -28,7 +28,7 @@
                     </div>
 
                 </div>
-                <div class="table-responsive"  style="overflow: auto;height: 465px" >
+                <div class="table-responsive"  id="tablecart" style="overflow: auto;height: 380px" >
                     <table class="table">
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
@@ -47,7 +47,7 @@
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
-                                          <input type="text" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
+                                          <input type="text" pattern="[0-9]*" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
                                           <span class="input-group-btn">
                                               <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn($index,'p')">
                                                   <i class="fa fa-plus"></i>
@@ -62,16 +62,21 @@
                                 </td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
+                            <tr id="bottom">
+                                 <td></td>
+                                 <td></td>
+                                 <td></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h4>TOTAL ITEMS<br><% cart.totalitem %></b></h4></td>
-                            <td class="text-center"><b><h4>SUBTOTAL<br><% cart.subtotal %></b></h4></td>
-                            <td class="text-center"><b><h4>VAT<br><% cart.vat %></b></h4> </td>
-                            <td class="text-center"><b><h4>TOTAL TO PAY<br><% cart.totalpay %></b></h4></td>
+                            <td class="text-center"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></td>
+                            <td class="text-center"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></td>
+                            <td class="text-center"><b><h5>VAT<br><% cart.vat %></b></h5> </td>
+                            <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                     </table>
                 </div>
@@ -84,26 +89,27 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" style="padding-left: 0px;padding-right: 0px">
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
                           <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
-                            <div class="input-group" id="loadingsearch">
-                                     <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
-
-                                     <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
+                              <div class="input-group" id="loadingsearch">
+                                   <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
+                                   <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
+                                   <div class="input-group-addon" style="background-color : #D60000; border: none;cursor:pointer" data-ng-click="resetsearch()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></div>
+                              </div>
                             </div>
                           </div>
                       </div>
                 </div>
-                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 585px;overflow-x: hidden; padding-top: 1px" id="loading" >
+                <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 495px;overflow-x: hidden; padding-top: 1px" id="loading" >
                       <div class="row">
                       <div data-ng-if="productnotfound">
-                           <p class="text-center"> Produk yang dicari tidak ditemukan </p>
+                           <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
-                                       <div class="row no-gutter">
+                                       <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>
@@ -127,7 +133,12 @@
     <div class="modal fade" id="myModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;" >
-
+             <div class="modal-header"  data-ng-if="hiddenbtn">
+                 <button class="btn  close closemodal"  data-dismiss="modal" type="button">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                 </button>
+                   <h4 class="modal-title text-center" id="myModalLabel"><b>PRODUK DETAIL</b></h4>
+             </div>
           <div class="modal-body">
             <div class="row">
                 <div class="col-md-12">
@@ -168,9 +179,15 @@
                      					<p>31 Oct 2014</p>
                      				</div>
                      			</div>
+                     			<div class="row">
+                     			    <div class="col-xs-12">
+                                       <p><h5><del>300.000</del></h5></p>
+                                       <p><h4>IDR : <% productmodal.price %></h3></p>
+                                    </div>
+                     			</div>
                      </div>
                 </div>
-                <div class="col-md-12">
+                <div class="col-md-12" data-ng-if="!hiddenbtn">
                     <div class="col-xs-12 product-attributes">
                     		<div class="row">
                     			<div class="col-xs-4 main-theme-text">
@@ -199,7 +216,7 @@
                     		</div>
                     	</div>
                 </div>
-                <div class="col-md-12  main-theme">
+                <div class="col-md-12  main-theme" data-ng-if="!hiddenbtn">
                     <div class="col-md-6">
                          <p>UPC :<% productmodal.upc_code %> </p>
                          <p><h5><del>300.000</del></h5></p>
@@ -247,7 +264,7 @@
 
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newcartFn()">Ya</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newdeletecartFn(true)">Ya</button>
             <button type="button" class="btn btn-danger" data-dismiss="modal" >Tidak</button>
           </div>
         </div>
@@ -266,7 +283,7 @@
               <p>Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="deletecartFn()">Ya</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newdeletecartFn()">Ya</button>
             <button type="button" class="btn btn-danger" data-dismiss="modal">Tidak</button>
           </div>
         </div>
@@ -277,7 +294,9 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-             <button type="button" class="close" data-dismiss="modal" data-ng-click="gotomain()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+             <button class="btn  close closemodal" data-ng-if="action != 'done'" data-dismiss="modal" data-ng-click="gotomain()"type="button">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+             </button>
             <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
           </div>
           <div class="modal-body text-center">
@@ -291,15 +310,15 @@
                                <div class="form" style="padding-left: 20px;padding-right: 20px">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
-                                             <input type="text" class="form-control text-right " id="exampleInputEmail1" style="cursor: default;" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
+                                             <input type="text" class="form-control text-right"  id="exampleInputEmail1" style="cursor: default; color:#030000" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
-                                             <input type="text" class="form-control text-right" id="tenderedcash"     numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*"  autofocus="autofocus" numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
-                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;" disabled data-ng-model="cart.change" placeholder="Kembalian">
+                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="Kembalian">
                                           </div>
                                </div>
 

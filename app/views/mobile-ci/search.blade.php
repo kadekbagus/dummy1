@@ -11,12 +11,15 @@
 			    <div class="row" style="padding:15px;">
 				    <div class="col-xs-6 search-tool-col">
 				    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc') }}" id="sort-by-price-up"><i class="fa fa-chevron-up"></i></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc') }}" id="sort-by-price-down"><i class="fa fa-chevron-down"></i></a><span class="sort-lable">IDR</span>
+				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc') }}" id="sort-by-price-up"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i></span></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc') }}" id="sort-by-price-down"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i></span></a><span class="sort-lable">IDR</span>
 				    	{{-- Form::select('sort_by', array('product_name' => 'Nama', 'price' => 'Harga'), Input::get('sort_by'), array('class'=>'form-control')) --}}
 				    </div>
-				    <div class="col-xs-6 search-tool-col">
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc') }}" id="sort-by-name-up"><i class="fa fa-chevron-up"></i></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc') }}" id="sort-by-name-down"><i class="fa fa-chevron-down"></i></a><span class="sort-lable">A-Z</span>
+				    <div class="col-xs-5 search-tool-col">
+				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc') }}" id="sort-by-name-up"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i></span></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc') }}" id="sort-by-name-down"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i></span></a><span class="sort-lable">A-Z</span>
 				    	{{-- Form::select('sort_mode', array('asc' => 'A-Z', 'desc' => 'Z-A'), Input::get('sort_mode'), array('class'=>'form-control')) --}}
+				    </div>
+				    <div class="col-xs-1 search-tool-col text-right">
+						<a href="{{ url('/customer/home') }}"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-close fa-stack-1x sort-chevron"></i></span></a>
 				    </div>
 			 	</div>
 			</div>
