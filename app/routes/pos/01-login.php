@@ -50,6 +50,14 @@ Route::post('/api/v1/pos/ticketprint', function () {
 Route::post('/app/v1/pos/ticketprint', 'IntermediateAuthController@POS\Cashier_postPrintTicket');
 
 
+// card payment
+Route::post('/api/v1/pos/cardpayment', function () {
+    return POS\CashierAPIController::create()->postCardPayment();
+});
+
+Route::post('/app/v1/pos/cardpayment', 'IntermediateAuthController@POS\Cashier_postCardPayment');
+
+
 Route::get('/pos', function () {
     if (Auth::check()) {
         return Redirect::to('pos/dashboard');
