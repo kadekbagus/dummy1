@@ -491,7 +491,7 @@ class CashierAPIController extends ControllerAPI
         try {
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
-            $transaction = \Transaction::with('details')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'cashier')->where('transaction_id',$transaction_id)->first();
 
             if (! is_object($transaction)) {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
@@ -510,8 +510,12 @@ class CashierAPIController extends ControllerAPI
             }
             
             $payment = $transaction['payment_method'];
-            $date  =  $transaction['created_at']->format('d M Y H:i:s');
+            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
             $customer = "guest";
+            if($payment=='cash'){$payment='Cash';}
+            if($payment=='card'){$payment='Card';}
+            $cashier = $transaction['cashier']->username;
+            $bill_no = $transaction['transaction_id'];
 
             $head  = $this->just40CharMid('MATAHARI');
             $head .= $this->just40CharMid('DEPARTMENT STORE');
@@ -519,7 +523,8 @@ class CashierAPIController extends ControllerAPI
             $head .= '----------------------------------------'." \n";
 
             $head .= 'Date : '.$date." \n";
-            $head .= 'Bill No  : '.time()." \n";
+            $head .= 'Bill No  : '.$bill_no." \n";
+            $head .= 'Cashier : '.$cashier." \n";
             $head .= 'Customer : '.$customer." \n";
             $head .= " \n";
             $head .= '----------------------------------------'." \n";
@@ -529,7 +534,7 @@ class CashierAPIController extends ControllerAPI
             $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
-            $pay  .= $this->leftAndRight('Payment Method', $transaction['payment_method']);
+            $pay  .= $this->leftAndRight('Payment Method', $payment);
             $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
             $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
 
@@ -537,11 +542,11 @@ class CashierAPIController extends ControllerAPI
             $footer .= " \n";
             $footer .= " \n";
             $footer .= $this->just40CharMid('Thank you for your purchase');
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
             $footer .= $this->just40CharMid('Powered by DominoPos');
             $footer .= $this->just40CharMid('www.dominopos.com');
-            $footer .= " \n";
-            $footer .= " \n";
-            $footer .= " \n";
             $footer .= '----------------------------------------'." \n";
             $footer .= " \n";
             $footer .= " \n";
