@@ -300,10 +300,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
                     $scope.ticketprint();
+                    $scope.cashdrawer();
                 }else{
                     //do something
                     $scope.cheader = 'TRANSAKSI GAGAL';
                 }
+            });
+        };
+        //cashdrawer
+        $scope.cashdrawer = function(){
+            serviceAjax.posDataToServer('/pos/cashdrawer ').then(function(response){
+
             });
         };
         //Ticket Print
