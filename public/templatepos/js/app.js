@@ -255,6 +255,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         //terminal 1
                     $scope.action = 'card';
                     $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
+                    serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
+                        if(response.code == 0){
+                            //todo:agung: make sure return result
+                            $scope.savetransactions();
+                        }else{
+                            //do something
+                            $scope.cheader = 'TRANSAKSI GAGAL';
+                        }
+                    });
                     break;
                 case 's' :
                     //cetak struk
@@ -266,32 +275,36 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     break;
                 case 'c' :
                     //continue
-                    $scope.sendcart = {
-                        total_item     : accounting.unformat($scope.cart.totalitem),
-                        subtotal       : accounting.unformat($scope.cart.subtotal),
-                        vat            : accounting.unformat($scope.cart.vat),
-                        total_to_pay   : accounting.unformat($scope.cart.totalpay),
-                        tendered       : accounting.unformat($scope.cart.amount),
-                        change         : accounting.unformat($scope.cart.change),
-                        merchant_id    : $scope.datauser['userdetail']['merchant_id'],
-                        customer_id    : '', // check if from mobile ci
-                        cashier_id     : $scope.datauser['user_id'],
-                        payment_method : $scope.action,
-                        cart           : $scope.cart
-                    };
-                    serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
-                        if(response.code == 0){
-                            $scope.action = 'done';
-                            $scope.cheader = 'TRANSAKSI BERHASIL';
-                            $scope.transaction_id = response.data.transaction_id;
-                            $scope.ticketprint();
-                        }else{
-                            //do something
-                            $scope.cheader = 'TRANSAKSI GAGAL';
-                        }
-                      });
+                    $scope.savetransactions();
                     break;
             }
+        };
+        //save transaction
+        $scope.savetransactions = function(){
+            $scope.sendcart = {
+                total_item     : accounting.unformat($scope.cart.totalitem),
+                subtotal       : accounting.unformat($scope.cart.subtotal),
+                vat            : accounting.unformat($scope.cart.vat),
+                total_to_pay   : accounting.unformat($scope.cart.totalpay),
+                tendered       : accounting.unformat($scope.cart.amount),
+                change         : accounting.unformat($scope.cart.change),
+                merchant_id    : $scope.datauser['userdetail']['merchant_id'],
+                customer_id    : '', // check if from mobile ci
+                cashier_id     : $scope.datauser['user_id'],
+                payment_method : $scope.action,
+                cart           : $scope.cart
+            };
+            serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
+                if(response.code == 0){
+                    $scope.action = 'done';
+                    $scope.cheader = 'TRANSAKSI BERHASIL';
+                    $scope.transaction_id = response.data.transaction_id;
+                    $scope.ticketprint();
+                }else{
+                    //do something
+                    $scope.cheader = 'TRANSAKSI GAGAL';
+                }
+            });
         };
         //Ticket Print
         $scope.ticketprint = function(){
