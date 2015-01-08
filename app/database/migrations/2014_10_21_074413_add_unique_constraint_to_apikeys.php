@@ -13,8 +13,8 @@ class AddUniqueConstraintToApikeys extends Migration
     public function up()
     {
         Schema::table('apikeys', function (Blueprint $table) {
-            $table->unique('api_key');
-            $table->unique('api_secret_key');
+            $table->unique(array('api_key'), 'api_key_unique');
+            $table->unique(array('api_secret_key'), 'api_secret_key_unique');
         });
     }
 
@@ -26,8 +26,8 @@ class AddUniqueConstraintToApikeys extends Migration
     public function down()
     {
         Schema::table('apikeys', function (Blueprint $table) {
-            $table->dropUnique('api_key');
-            $table->dropUnique('api_secret_key');
+            $table->dropUnique('api_key_unique');
+            $table->dropUnique('api_secret_key_unique');
         });
     }
 

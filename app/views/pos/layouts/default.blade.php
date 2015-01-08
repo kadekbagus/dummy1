@@ -3,6 +3,7 @@
 <head>
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
    {{--css--}}
     <link rel="stylesheet" href=" {{ URL::asset('templatepos/css/main.css') }} ">
     <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/font-awesome-4.2.0/css/font-awesome.min.css') }}">

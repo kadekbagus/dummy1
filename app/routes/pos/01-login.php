@@ -24,7 +24,7 @@ Route::post('/api/v1/pos/scanbarcode', function () {
     return POS\CashierAPIController::create()->postScanBarcode();
 });
 
-Route::post('/app/v1/pos/scanbarcode', 'IntermediateBaseController@POS\Cashier_postScanBarcode');
+Route::post('/app/v1/pos/scanbarcode', 'IntermediateAuthController@POS\Cashier_postScanBarcode');
 
 
 // product search
@@ -41,6 +41,30 @@ Route::post('/api/v1/pos/savetransaction', function () {
 });
 
 Route::post('/app/v1/pos/savetransaction', 'IntermediateAuthController@POS\Cashier_postSaveTransaction');
+
+
+// print ticket
+Route::post('/api/v1/pos/ticketprint', function () {
+    return POS\CashierAPIController::create()->postPrintTicket();
+});
+
+Route::post('/app/v1/pos/ticketprint', 'IntermediateAuthController@POS\Cashier_postPrintTicket');
+
+
+// card payment
+Route::post('/api/v1/pos/cardpayment', function () {
+    return POS\CashierAPIController::create()->postCardPayment();
+});
+
+Route::post('/app/v1/pos/cardpayment', 'IntermediateAuthController@POS\Cashier_postCardPayment');
+
+
+// cash drawer
+Route::post('/api/v1/pos/cashdrawer', function () {
+    return POS\CashierAPIController::create()->postCashDrawer();
+});
+
+Route::post('/app/v1/pos/cashdrawer', 'IntermediateAuthController@POS\Cashier_postCashDrawer');
 
 
 Route::get('/pos', function () {

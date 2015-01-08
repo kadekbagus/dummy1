@@ -133,7 +133,7 @@ return array(
             'category_status'      => 'The category status you specify is not found.',
             'category_sortby'      => 'The sort by argument you specify is not valid, the valid value are: registered_date, category_name, category_level, category_order, description, status.',
             'promotion_status'     => 'The promotion status you specify is not found.',
-            'promotion_sortby'     => 'The sort by argument you specify is not valid, the valid value are: registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status.',
+            'promotion_sortby'     => 'The sort by argument you specify is not valid, the valid value are: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
             'promotion_type'       => 'The promotion type you specify is not found.',
             'rule_type'            => 'The rule type you specify is not found.',
             'discount_object_type' => 'The discount object type you specify is not found.',
@@ -142,9 +142,21 @@ return array(
             'discount_object_id3'  => 'The discount object ID3 you specify is not found.',
             'discount_object_id4'  => 'The discount object ID4 you specify is not found.',
             'discount_object_id5'  => 'The discount object ID5 you specify is not found.',
-            'attribute_sortby'     => 'The sort by argument you specify is not valid, valid value are: id, name and created.'
+            'category_id1'         => 'The Category ID1 you specify is not found.',
+            'category_id2'         => 'The Category ID2 you specify is not found.',
+            'category_id3'         => 'The Category ID3 you specify is not found.',
+            'category_id4'         => 'The Category ID4 you specify is not found.',
+            'category_id5'         => 'The Category ID5 you specify is not found.',
+            'attribute_sortby'     => 'The sort by argument you specify is not valid, valid value are: id, name and created.',
+            'attribute'            => 'The product attribute ID you specify is not found.',
+            'product_status'       => 'The product status you specify is not found.',
+            'product_sortby'       => 'The sort by argument you specify is not valid, the valid value are: registered_date, product_id, product_name, product_code, product_price, product_tax_code, product_short_description, product_long_description, product_is_new, product_new_until, product_merchant_id, product_status.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
+        'jsonerror'  => array(
+            'format' => 'The JSON input you specify was not valid.',
+            'array'  => 'The JSON input you specify must be in array.'
+        ),
         'actionlist' => array(
             'change_password'           => 'change password',
             'add_new_user'              => 'add new user',

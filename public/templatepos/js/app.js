@@ -55,7 +55,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
     }]);
 
-    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http) {
+    app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
         $scope.cart      = [];
         $scope.product   = [];
@@ -70,7 +70,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //get unix guestid
         ($scope.getguest = function(){
-                $scope.guests = moment().unix();
+                $scope.guests = moment().format('DD-MM-YYYYY hh:mm:ss');
         })();
         //function -+ wish list
         $scope.qaFn = function(id,action){
@@ -102,10 +102,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //get product
         $scope.getproduct = function(){
             if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
-            serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=14').then(function(response){
-                console.log(response);
+            serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=12').then(function(response){
                 if(response.code == 0 ){
-                    for(var i =0; i <response.data.records.length; i++){
+                    if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                     }
                     $scope.product = response.data.records;
@@ -144,6 +143,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.getproduct();
             }
         });
+        //reset search
+        $scope.resetsearch = function(){
+            $scope.searchproduct = '';
+        };
         //function count cart
         $scope.countcart = function(){
             if($scope.cart.length > 0){
@@ -169,6 +172,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 $location.hash('bottom');
+
+                 // call $anchorScroll()
+                 $anchorScroll();
+                 $scope.searchproduct    = '';
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
                  if($scope.checkcart($scope.productmodal['product_id'])){
                      $scope.cart.push({
@@ -223,100 +231,121 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
             return check;
         };
-        //new cart
-        $scope.newcartFn = function(act){
+        //delete cart && new cart
+        $scope.newdeletecartFn = function(act){
             $scope.productidenabled = [];
             $scope.cart             = [];
-            $scope.getguest();
+            $scope.searchproduct    = '';
             $scope.getproduct();
-        };
-        //delete cart
-        $scope.deletecartFn = function(act){
-            $scope.productidenabled = [];
-            $scope.cart             = [];
-            $scope.getproduct();
+           if(act) $scope.getguest();
         };
         //checkout
         $scope.checkoutFn = function(act){
-
             switch(act){
                 case 't':
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
+                    event.preventDefault();
+                    $timeout(function(){
+                        angular.element('#tenderedcash').focus();
+                    },500);
+
                     break;
                 case 'k':
                         //terminal 1
                     $scope.action = 'card';
                     $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
-                    break;
-                case 's' :
-                    //cetak struk
-                    break;
-                case 'd' :
-                    //done
-                    $scope.gotomain();
-                    $scope.newcartFn();
-                    break;
-                case 'c' :
-                    //continue
-                    $scope.sendcart = {
-                        total_item     : accounting.unformat($scope.cart.totalitem),
-                        subtotal       : accounting.unformat($scope.cart.subtotal),
-                        vat            : accounting.unformat($scope.cart.vat),
-                        total_to_pay   : accounting.unformat($scope.cart.totalpay),
-                        merchant_id    : $scope.datauser['userdetail']['merchant_id'],
-                        cashier_id     : $scope.datauser['user_id'],
-                        payment_method : $scope.action,
-                        cart           : $scope.cart
-                    };
-                    serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
+                    serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
                         if(response.code == 0){
-                            $scope.action = 'done';
-                            $scope.cheader = 'TRANSAKSI BERHASIL';
+                            //todo:agung: make sure return result
+                            $scope.savetransactions();
                         }else{
                             //do something
                             $scope.cheader = 'TRANSAKSI GAGAL';
                         }
-                      });
+                    });
+                    break;
+                case 'd' :
+                    //done
+                    $scope.gotomain();
+                    $scope.newdeletecartFn(true);
+                    break;
+                case 'c' :
+                    //continue
+                    $scope.savetransactions();
                     break;
             }
         };
+        //save transaction
+        $scope.savetransactions = function(){
+            $scope.sendcart = {
+                total_item     : accounting.unformat($scope.cart.totalitem),
+                subtotal       : accounting.unformat($scope.cart.subtotal),
+                vat            : accounting.unformat($scope.cart.vat),
+                total_to_pay   : accounting.unformat($scope.cart.totalpay),
+                tendered       : accounting.unformat($scope.cart.amount),
+                change         : accounting.unformat($scope.cart.change),
+                merchant_id    : $scope.datauser['userdetail']['merchant_id'],
+                customer_id    : '', // check if from mobile ci
+                cashier_id     : $scope.datauser['user_id'],
+                payment_method : $scope.action,
+                cart           : $scope.cart
+            };
+            serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
+                if(response.code == 0){
+                    $scope.action = 'done';
+                    $scope.cheader = 'TRANSAKSI BERHASIL';
+                    $scope.transaction_id = response.data.transaction_id;
+                    $scope.ticketprint();
+                }else{
+                    //do something
+                    $scope.cheader = 'TRANSAKSI GAGAL';
+                }
+            });
+        };
+        
+     
+        //Ticket Print
+        $scope.ticketprint = function(){
+            if($scope.transaction_id){
+                serviceAjax.posDataToServer('/pos/ticketprint',{transaction_id : $scope.transaction_id}).then(function(response){
+                    if(response.code == 0){
+
+                    }else{
+                        //do something
+                    }
+                });
+            }else{
+                //do something
+            }
+
+        };
         //watch amount on page cash
         $scope.$watch("cart.amount", function(newvalue,oldvalue){
-            $scope.changetf = false;
             if(newvalue) {
-                $scope.cart['change'] = 0;
-                $scope.messagepay     = '';
                 oldvalue = accounting.unformat(oldvalue);
                 newvalue = accounting.unformat(newvalue);
-                if(oldvalue != newvalue) $scope.cart['amount'] = accounting.formatMoney(newvalue, "", 0, ",", ".");
+                if(oldvalue != newvalue){
+                    $scope.changetf = false;
+                    $scope.cart['amount'] = accounting.formatMoney(newvalue, "", 0, ",", ".");
+                    $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
+                    $scope.changetf = $scope.change >= 0 ? true:false;
+                    $scope.cart['change'] =  $scope.change > 0 ?   accounting.formatMoney($scope.change, "", 0, ",", ".") : 0;
+                }
             }
         });
-        $scope.getChange = function(clickEvent){
-            if(clickEvent.keyCode == '13'){
-                $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
-                $scope.changetf = $scope.change > 0 ? true:false;
-                $scope.messagepay = $scope.changetf ? '' : 'Nominal tunai lebih kecil dari total bayar!';
-               $scope.cart['change'] =    accounting.formatMoney($scope.change, "", 0, ",", ".");
-            }
-        };
         //go to main
         $scope.gotomain = function(){
             $scope.resetpayment();
-            $scope.messagepay = 'PILIH CARA PEMBAYARAN';
-            $scope.action = 'main';
+            $scope.cheader = 'PILIH CARA PEMBAYARAN';
+            $scope.action  = 'main';
         };
         //reset payment
         $scope.resetpayment  = function(){
             $scope.change         = 0;
             $scope.cart['amount'] = '';
             $scope.cart['change'] = '';
-            $scope.messagepay     = '';
             $scope.changetf       = false;
-        };
-        //chose terminal payment debit/redit
-        $scope.choseTerminalFn = function(id){
-            $scope.gesekkartu = true;
         };
         //scan product only run on linux
         ($scope.scanproduct = function(){
@@ -326,8 +355,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        /*angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();*/
+                        angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();
                     }
             });
         })();
@@ -351,9 +380,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             require: 'ngModel',
             link: function(scope, element, attrs, modelCtrl) {
                 modelCtrl.$parsers.push(function (inputValue) {
-                    // this next if is necessary for when using ng-required on your input.
-                    // In such cases, when a letter is typed first, this parser will be called
-                    // again, and the 2nd time, the value will be undefined
                     if (inputValue == undefined) return ''
                     var transformedInput = inputValue.replace(/[^0-9+.]/g, '');
                     if (transformedInput!=inputValue) {

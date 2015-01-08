@@ -22,4 +22,8 @@ class Transaction extends Eloquent
         return $this->hasMany('TransactionDetail', 'transaction_id', 'transaction_id');
     }
 
+    public function cashier()
+    {
+        return $this->belongsTo('User', 'cashier_id', 'user_id');
+    }
 }

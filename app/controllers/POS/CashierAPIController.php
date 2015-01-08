@@ -19,6 +19,9 @@ use \Lang;
 use \Apikey;
 use \Validator;
 use \Product;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
+use \Config;
 
 class CashierAPIController extends ControllerAPI
 {  
@@ -56,15 +59,21 @@ class CashierAPIController extends ControllerAPI
                         ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
                         ->first();           
 
-            if (! is_object($user)) {
+            if (! is_object($user) && ! \Hash::check($password, $user->user_password)) {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
+            }else {
+                // Start the orbit session
+                $data = array(
+                    'logged_in' => TRUE,
+                    'user_id'   => $user->user_id,
+                );
+                $config = new SessionConfig(Config::get('orbit.session'));
+                $session = new Session($config);
+                $session->enableForceNew()->start($data);
             }
 
-            if (! \Hash::check($password, $user->user_password)) {
-                $message = \Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
-            }
+            $user->setHidden(array('user_password', 'apikey'));
 
             \Auth::login($user);
 
@@ -405,8 +414,11 @@ class CashierAPIController extends ControllerAPI
             $subtotal       = trim(OrbitInput::post('subtotal'));
             $vat            = trim(OrbitInput::post('vat'));
             $total_to_pay   = trim(OrbitInput::post('total_to_pay'));
+            $tendered       = trim(OrbitInput::post('tendered'));
+            $change         = trim(OrbitInput::post('change'));
             $merchant_id    = trim(OrbitInput::post('merchant_id'));
             $cashier_id     = trim(OrbitInput::post('cashier_id'));
+            $customer_id    = trim(OrbitInput::post('customer_id'));
             $payment_method = trim(OrbitInput::post('payment_method'));
             $cart           = OrbitInput::post('cart'); //data of array
 
@@ -419,8 +431,11 @@ class CashierAPIController extends ControllerAPI
             $transaction->subtotal       = $subtotal;
             $transaction->vat            = $vat;
             $transaction->total_to_pay   = $total_to_pay;
+            $transaction->tendered       = $tendered;
+            $transaction->change         = $change;
             $transaction->merchant_id    = $merchant_id;
             $transaction->cashier_id     = $cashier_id;
+            $transaction->customer_id    = $customer_id;
             $transaction->payment_method = $payment_method;
 
             $transaction->save();
@@ -430,6 +445,7 @@ class CashierAPIController extends ControllerAPI
                 $transactionDetails = new \TransactionDetail();
                 $transactionDetails->transaction_id = $transaction->transaction_id;
                 $transactionDetails->product_id     = $v['product_id'];
+                $transactionDetails->product_name   = $v['product_name'];
                 $transactionDetails->product_code   = $v['product_code'];
                 $transactionDetails->quantity       = $v['qty'];
                 $transactionDetails->upc            = $v['upc_code'];
@@ -437,7 +453,11 @@ class CashierAPIController extends ControllerAPI
 
                 $transactionDetails->save();
             }
+            
+            //only payment cash
+            if($payment_method == 'cash') self::postCashDrawer();
 
+            $this->response->data  = $transaction;
             // Commit the changes
             $this->commit();
 
@@ -459,5 +479,257 @@ class CashierAPIController extends ControllerAPI
         }
 
         return $this->render();
+    }
+
+
+    /**
+     * POST - Print Ticket
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postPrintTicket()
+    {
+        try {
+            $transaction_id = trim(OrbitInput::post('transaction_id'));
+
+            $transaction = \Transaction::with('details', 'cashier')->where('transaction_id',$transaction_id)->first();
+
+            if (! is_object($transaction)) {
+                $message = \Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
+            
+            $this->response->data = $transaction;   
+
+            foreach ($transaction['details'] as $key => $value) {
+               if($key==0){
+                $product = $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
+               }
+               else {
+                $product .= $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
+               }
+            }
+            
+            $payment = $transaction['payment_method'];
+            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+            $customer = "guest";
+            if($payment=='cash'){$payment='Cash';}
+            if($payment=='card'){$payment='Card';}
+            $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
+            $bill_no = $transaction['transaction_id'];
+
+            $head  = $this->just40CharMid('MATAHARI');
+            $head .= $this->just40CharMid('DEPARTMENT STORE');
+            $head .= $this->just40CharMid('Jl. Raya Semer 88');
+            $head .= '----------------------------------------'." \n";
+
+            $head .= 'Date : '.$date." \n";
+            $head .= 'Bill No  : '.$bill_no." \n";
+            $head .= 'Cashier : '.$cashier." \n";
+            $head .= 'Customer : '.$customer." \n";
+            $head .= " \n";
+            $head .= '----------------------------------------'." \n";
+
+            $pay   = '----------------------------------------'." \n";
+            $pay  .= $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
+            $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
+            $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
+            $pay  .= " \n";
+            $pay  .= $this->leftAndRight('Payment Method', $payment);
+            if($payment=='Cash'){
+                $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
+                $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+            }
+            if($payment=="Card"){
+                $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
+            }
+
+            $footer  = " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= $this->just40CharMid('Thank you for your purchase');
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= $this->just40CharMid('Powered by DominoPos');
+            $footer .= $this->just40CharMid('www.dominopos.com');
+            $footer .= '----------------------------------------'." \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+
+            $file = storage_path()."/views/receipt.txt";
+            $write = $head.$product.$pay.$footer;
+
+            $fp = fopen($file, 'w');
+            fwrite($fp, $write);
+            fclose($fp);
+
+            $print = "cat ".storage_path()."/views/receipt.txt > /dev/domino/printer";
+            $cut = "~/drivers/64bits/cut_paper";
+
+            shell_exec($print);
+
+            shell_exec($cut);
+
+            //$this->response->data = "tes";
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+
+    /**
+     * POST - Card Payment
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCardPayment()
+    {
+        try {
+            $amount = trim(OrbitInput::post('amount'));
+
+            $validator = Validator::make(
+                array(
+                    'amount' => $amount,
+                ),
+                array(
+                    'amount' => 'required|numeric',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            //sudo ./edc --device /dev/domino/terminal --words
+
+            $driver = '~/drivers/64bits/edc';
+            $device = '/dev/domino/terminal';
+            $cmd = 'sudo '.$driver.' --device '.$device.' --words '.$amount;
+            $card = shell_exec($cmd);
+
+            $this->response->data = $card;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+    /**
+     * POST - Cash Drawer
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCashDrawer()
+    {
+        try {
+            $driver = '~/drivers/64bits/cash_drawer';
+            $cmd = 'sudo '.$driver;
+            $drawer = shell_exec($cmd);
+
+            $this->response->data = $drawer;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+    private function just40CharMid($str)
+    {
+        $nnn = strlen($str);
+        if ($nnn>40) {
+            $all = explode('::break-here::', wordwrap($str,38,'::break-here::'));
+            $tmp = '';
+            foreach ($all as $str) {
+                $space = round( (40-strlen($str))/2 );
+                $spc = '';
+                for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+                $tmp .= $spc.$str." \n";
+            }
+        } else {
+            $space = round( (40-strlen($str))/2 );
+            $spc = '';
+            for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+            $tmp = $spc.$str." \n";
+        }
+
+        return $tmp;
+    }
+
+    private function producListFormat($name, $price, $qty, $sku)
+    {
+        $all  = '';
+        $sbT = number_format($price*$qty,2);
+        $space = 40-strlen($name)-strlen($sbT); $spc = '';
+        for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+        $all .= $name.$spc.$sbT." \n";
+        $all .= '   '.$qty.' x '.number_format($price,2).' ('.$sku.')'." \n";
+
+        return $all;
+    }
+
+    private function leftAndRight($left, $right)
+    {
+        $all  = '';
+        $space = 40-strlen($left)-strlen($right); $spc = '';
+        for($i=0;$i<$space;$i++){ $spc .= ' '; }
+        $all .= $left.$spc.$right." \n";
+        return $all;
     }
 }
