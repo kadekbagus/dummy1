@@ -359,7 +359,7 @@
                    <div class="row" ng-show="action == 'card'">
 
                     <div class="row">
-                         <span  class="text-center" data-ng-if="cardfile"><% headrcard %> Fail</span>
+                         <span  class="text-center" data-ng-if="cardfile"><% headrcard %> failed</span>
                          <span  class="text-center" data-ng-if="!cardfile">Gesek Kartu Sekarang</span>
                     </div>
                 </div>
