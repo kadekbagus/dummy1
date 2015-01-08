@@ -126,9 +126,11 @@ class CashierAPIController extends ControllerAPI
     public function postScanBarcode()
     {
         try {
-            $driver = '~/drivers/64bits/barcode';
-            $device = '/dev/domino/scanner';
-            $cmd = 'sudo '.$driver.' '.$device;
+            // $driver = '~/drivers/64bits/barcode';
+            // $device = '/dev/domino/scanner';
+            $driver = Config::get('orbit.devices.barcode.path');
+            $params = Config::get('orbit.devices.barcode.params');
+            $cmd = 'sudo '.$driver.' '.$params;
             $barcode = shell_exec($cmd);
 
             //echo "barcode nya ".$barcode;
@@ -569,8 +571,8 @@ class CashierAPIController extends ControllerAPI
             fwrite($fp, $write);
             fclose($fp);
 
-            $print = "cat ".storage_path()."/views/receipt.txt > /dev/domino/printer";
-            $cut = "~/drivers/64bits/cut_paper";
+            $print = "cat ".storage_path()."/views/receipt.txt > ".Config::get('orbit.devices.printer.params');
+            $cut = Config::get('orbit.devices.cutpaper.path');
 
             shell_exec($print);
 
@@ -625,11 +627,9 @@ class CashierAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            //sudo ./edc --device /dev/domino/terminal --words
-
-            $driver = '~/drivers/64bits/edc';
-            $device = '/dev/domino/terminal';
-            $cmd = 'sudo '.$driver.' --device '.$device.' --words '.$amount;
+            $driver = Config::get('orbit.devices.edc.path');
+            $params = Config::get('orbit.devices.edc.params');
+            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
             $card = shell_exec($cmd);
 
             $this->response->data = $card;
@@ -664,7 +664,7 @@ class CashierAPIController extends ControllerAPI
     public function postCashDrawer()
     {
         try {
-            $driver = '~/drivers/64bits/cash_drawer';
+            $driver = Config::get('orbit.devices.cashdrawer.path');
             $cmd = 'sudo '.$driver;
             $drawer = shell_exec($cmd);
 
