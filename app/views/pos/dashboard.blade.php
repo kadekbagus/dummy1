@@ -115,7 +115,7 @@
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
-                                             	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
+                                             	<div class="col-xs-12"><img src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
                                            </div>
                                            <div class="col-xs-6">
                                            	   <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">

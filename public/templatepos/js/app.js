@@ -8,8 +8,8 @@
 'use strict';
 
 define([
-
-], function () {
+    'config'
+], function (config) {
 
 var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -57,10 +57,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
-        $scope.cart      = [];
-        $scope.product   = [];
+        $scope.cart             = [];
+        $scope.product          = [];
         $scope.productidenabled = [];
-
+        $scope.configs          = config;
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
