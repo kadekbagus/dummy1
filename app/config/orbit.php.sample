@@ -424,4 +424,28 @@ return array(
         ),
 
     ),
+
+    'devices'  => array(
+        'barcode'    => array(
+            'path'   => '/home/dominopos1/drivers/64bits/barcode',
+            'params' => '/dev/domino/scanner'
+        ),
+
+        'edc'        => array(
+            'path'   => '/home/dominopos1/drivers/64bits/edc',
+            'params' => '/dev/domino/terminal'
+        ),
+
+        'printer'    => array(
+            'params' => '/dev/domino/printer'
+        ),
+
+        'cutpaper'   => array(
+            'path'   => '/home/dominopos1/drivers/64bits/cut_paper'
+        ),
+
+        'cashdrawer' => array(
+            'path'   => '/home/dominopos1/drivers/64bits/cash_drawer'
+        ),
+    ),
 );

@@ -5,7 +5,7 @@
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img src=" {{ URL::asset('templatepos/images/logo_matahari.png') }}"  class="img" style="width: 64px">
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="width: 64px">
                 <h1>MATAHARI DEPARTMENT STORE</h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
@@ -17,9 +17,9 @@
             </div>
     </div>
 
-    <div class="container-fluid">
-
+    <div class="container-fluid" style="padding-top:0px !important">
         <div class="row" >
+
             <div class="col-md-7" style="margin-left: -8px">
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
@@ -116,11 +116,11 @@
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
-                                             	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
+                                             	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
                                            </div>
-                                           <div class="col-xs-6 colorbold" >
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px; ">
-                                           	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
+                                           <div class="col-xs-6">
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">
+                                           	    <h5><b class="colorbold"><% v.product_name.substr(0,12) %></b><br><b style="font-size: 10px"><% v.upc_code.substr(0,12) %></b></h5>
                                            	   </div>
                                            	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
                                            </div>
@@ -150,7 +150,7 @@
                 <div class="ribbon-wrapper-red ribbon2nd">
                 				<div class="ribbon-red">30%</div>
                 			</div>
-                    <p class="text-center"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img product"></p>
+                    <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product"></p>
                 </div>
                 <div class="col-md-12 main-theme" >
                     <div class="row">
@@ -305,13 +305,41 @@
             <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
           </div>
           <div class="modal-body text-center">
+
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 1</button> </p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 2</button> </p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 3</button> </p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')">TERMINAL 1</button> </p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')">TERMINAL 2</button> </p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
+                                <div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
+                                     <div class="button-wrapper">
+                                         <button data-ng-key="1">1</button>
+                                         <button data-ng-key="2">2</button>
+                                         <button data-ng-key="3">3</button>
+                                         <button data-ng-key="4">4</button>
+                                         <button data-ng-key="5">5</button>
+                                         <button data-ng-key="6">6</button>
+                                         <button data-ng-key="7">7</button>
+                                         <button data-ng-key="8">8</button>
+                                         <button data-ng-key="9">9</button>
+
+
+                                         <button data-ng-key="[CLEAR]" class="smaller">Clear</button>
+                                         <button data-ng-key="0">0</button>
+                                         <button data-ng-key=".">.</button>
+
+                                         <button data-ng-key="[PREVIOUS]" class="button-wide smaller">Previous</button>
+                                         <button data-ng-key="[NEXT]" class="button-wide smaller">Next</button>
+                                     </div>
+                                     <div class="drag-indicator">
+                                         <span></span>
+                                         <span></span>
+                                         <span></span>
+                                     </div>
+                                     <button class="close" data-ng-click="close()"></button>
+                                 </div>
                                <div class="form" style="padding-left: 20px;padding-right: 20px">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
@@ -319,7 +347,7 @@
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
-                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*"  autofocus="autofocus" numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*" data-ng-keypad-input="numeric" tabindex="1"  numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
@@ -331,7 +359,8 @@
                    <div class="row" ng-show="action == 'card'">
 
                     <div class="row">
-                         <span  class="text-center">Gesek Kartu Sekarang</span>
+                         <span  class="text-center" data-ng-if="cardfile"><% headrcard %> failed</span>
+                         <span  class="text-center" data-ng-if="!cardfile">Gesek Kartu Sekarang</span>
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
@@ -340,6 +369,7 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
+                     <button type="button"  data-ng-if="cardfile" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
                      <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
