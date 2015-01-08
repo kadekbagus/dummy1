@@ -239,7 +239,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
            if(act) $scope.getguest();
         };
         //checkout
-        $scope.checkoutFn = function(act){
+        $scope.checkoutFn = function(act,term){
             switch(act){
                 case 't':
                     $scope.action  = 'cash';
@@ -251,10 +251,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                     break;
                 case 'k':
-                        //terminal 1
+                    $scope.cardfile = false;
+                    //terminal 1
                     $scope.action = 'card';
                     $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
-                    serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
+                    //case success
+                    /*serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
                         if(response.code == 0){
                             //todo:agung: make sure return result
                             $scope.savetransactions();
@@ -262,7 +264,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             //do something
                             $scope.cheader = 'TRANSAKSI GAGAL';
                         }
-                    });
+                    });*/
+                    //case fail
+                    var failcard = function() {
+                        $scope.cheader = 'TRANSAKSI GAGAL';
+                        $scope.cardfile = true;
+                        $scope.headrcard = term ? term :$scope.headrcard;
+                    };
+                    $timeout(failcard, 4000);
                     break;
                 case 'd' :
                     //done

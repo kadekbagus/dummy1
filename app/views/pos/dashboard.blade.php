@@ -308,12 +308,12 @@
 
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 1</button> </p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 2</button> </p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 3</button> </p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')">TERMINAL 1</button> </p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')">TERMINAL 2</button> </p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
-                     <div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
+                                <div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
                                      <div class="button-wrapper">
                                          <button data-ng-key="1">1</button>
                                          <button data-ng-key="2">2</button>
@@ -338,7 +338,6 @@
                                          <span></span>
                                          <span></span>
                                      </div>
-
                                      <button class="close" data-ng-click="close()"></button>
                                  </div>
                                <div class="form" style="padding-left: 20px;padding-right: 20px">
@@ -360,7 +359,8 @@
                    <div class="row" ng-show="action == 'card'">
 
                     <div class="row">
-                         <span  class="text-center">Gesek Kartu Sekarang</span>
+                         <span  class="text-center" data-ng-if="cardfile"><% headrcard %> Fail</span>
+                         <span  class="text-center" data-ng-if="!cardfile">Gesek Kartu Sekarang</span>
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
@@ -369,6 +369,7 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
+                     <button type="button"  data-ng-if="cardfile" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
                      <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
