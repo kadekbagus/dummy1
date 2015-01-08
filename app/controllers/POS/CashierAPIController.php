@@ -53,7 +53,7 @@ class CashierAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('apikey', 'userdetail', 'role', 'merchants')
                         ->active()
                         ->where('username', $username)
                         ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
