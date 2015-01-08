@@ -25,6 +25,8 @@ return array(
     'AlterPermissionsAddPermissionDefaultValueColumn' => $baseDir . '/app/database/migrations/2014_10_23_112725_alter_permissions_add_permission_default_value_column.php',
     'AlterProductCategoryAddCategoryFamilyLevelColumn' => $baseDir . '/app/database/migrations/2014_11_14_023311_alter_product_category_add_category_family_level_column.php',
     'AlterRolesAddRoleOrderColumn' => $baseDir . '/app/database/migrations/2014_10_23_111801_alter_roles_add_role_order_column.php',
+    'AlterTableCartDetailsDropColumnPriceEtc' => $baseDir . '/app/database/migrations/2015_01_08_085539_alter_table_cart_details_drop_column_price_etc.php',
+    'AlterTableCartsDropColumnTotalItemEtc' => $baseDir . '/app/database/migrations/2015_01_08_083728_alter_table_carts_drop_column_total_item_etc.php',
     'AlterTableCategories' => $baseDir . '/app/database/migrations/2014_12_11_062433_alter_table_categories.php',
     'AlterTableCategoriesDropCategoryNameUnique' => $baseDir . '/app/database/migrations/2014_12_17_031758_alter_table_categories_drop_category_name_unique.php',
     'AlterTableChangeEngineInnodb' => $baseDir . '/app/database/migrations/2014_12_05_064558_alter_table_change_engine_innodb.php',

@@ -40,7 +40,7 @@
             <div class="single-body unique-column">
               <div class="unique-column-properties">
                 <div class="item-qty">
-                  <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}"  style="background: white; color: black;" >
+                  <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}" data-detail="{{ $cartdetail->cart_detail_id }}"  style="background: white; color: black;" >
                 </div>
                 <div class="item-remover">
                   <span><i class="fa fa-times"></i></span>
@@ -76,7 +76,7 @@
       </div>
       <div class="cart-sum-bodies">
         <div class="cart-sum-single-body">
-          <span>{{ $cartdata->cart->total_item }}</span>
+          <span>{{ $cartdata->cart->total_item + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
           <span>{{ $cartdata->cart->subtotal + 0 }}</span>
@@ -89,10 +89,10 @@
         </div>
       </div>
     </div>
-    <div class="cart-page button-group">
+    <div class="cart-page button-group text-center">
       <button class="btn box-one cart-btn" id="checkOutBtn">Check Out</button>
       <button class="btn box-three cart-btn">Continue Shopping</button>
-      <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
+      <img class="img-responsive img-center" src="{{ asset($retailer->parent->logo) }}" />
     </div>
   </div>
 @stop
@@ -155,7 +155,7 @@
        <td class="neg"><a data-role="button" data-theme="e">-</a></td>
        <td class="num zero"><a data-role="button" data-theme="b" class="zero">0</a></td>
        <td class="pos"><a data-role="button" data-theme="e">+</a></td>
-       <td class="done"><a data-role="button" data-theme="e" >Done</a></td>
+       <td class="done"><a data-role="button" data-theme="e" ><i class="fa fa-check"></i></a></td>
     </tr>
   </table>
 @stop
@@ -168,6 +168,7 @@
     });
     var num;
     var lastnum;
+    var detail;
     $('.numinput').click(function(){
         var tops = $(this).offset().top;
         var lefts = $(this).offset().left;
@@ -180,12 +181,24 @@
           num.val(lastnum);
         }else{
           lastnum = num.val();
+          detail = num.data('detail');
         }
     });
     $('.done').click(function(){
         $('#n_keypad').hide();
-        if(num.val() == ''){
+        if(!num.val()){
           num.val(lastnum);
+        }else{
+          $.ajax({
+            url: apiPath+'customer/updatecart',
+            method: 'POST',
+            data: {
+              detail: detail,
+              qty:num.val()
+            }
+          }).done(function(data){
+
+          });
         }
     });
     $('.numero').click(function(){
