@@ -17,8 +17,7 @@
             </div>
     </div>
 
-    <div class="container-fluid">
-
+    <div class="container-fluid" style="padding-top:0px !important">
         <div class="row" >
             <div class="col-md-7" style="margin-left: -8px">
                 <div class="orbit-component table-attribute-top">
@@ -118,9 +117,9 @@
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img src=" {{ URL::asset('templatepos/images/ss.jpg') }}"  class="img64_64"></div>
                                            </div>
-                                           <div class="col-xs-6 colorbold" >
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 13px;margin-top:-9px; ">
-                                           	    <h5><b><% v.product_name.substr(0,9) %></b><br><b style="font-size: 10px"><% v.upc_code %></b></h5>
+                                           <div class="col-xs-6">
+                                           	   <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">
+                                           	    <h5><b class="colorbold"><% v.product_name.substr(0,12) %></b><br><b style="font-size: 10px"><% v.upc_code.substr(0,12) %></b></h5>
                                            	   </div>
                                            	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
                                            </div>
