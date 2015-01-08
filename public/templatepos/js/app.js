@@ -11,13 +11,12 @@ define([
     'config'
 ], function (config) {
 
-var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngKeypad','ngDraggable'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
 
 });
-
     app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
         $scope.datauser  = localStorageService.get('user');
         var updatetime = function() {
@@ -246,9 +245,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
                     event.preventDefault();
-                    $timeout(function(){
+                   /* $timeout(function(){
                         angular.element('#tenderedcash').focus();
-                    },500);
+                    },500);*/
 
                     break;
                 case 'k':

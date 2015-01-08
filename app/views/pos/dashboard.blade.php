@@ -19,6 +19,7 @@
 
     <div class="container-fluid" style="padding-top:0px !important">
         <div class="row" >
+
             <div class="col-md-7" style="margin-left: -8px">
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
@@ -304,6 +305,7 @@
             <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
           </div>
           <div class="modal-body text-center">
+
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 1</button> </p>
@@ -311,6 +313,34 @@
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k')">TERMINAL 3</button> </p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
+                     <div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
+                                     <div class="button-wrapper">
+                                         <button data-ng-key="1">1</button>
+                                         <button data-ng-key="2">2</button>
+                                         <button data-ng-key="3">3</button>
+                                         <button data-ng-key="4">4</button>
+                                         <button data-ng-key="5">5</button>
+                                         <button data-ng-key="6">6</button>
+                                         <button data-ng-key="7">7</button>
+                                         <button data-ng-key="8">8</button>
+                                         <button data-ng-key="9">9</button>
+
+
+                                         <button data-ng-key="[CLEAR]" class="smaller">Clear</button>
+                                         <button data-ng-key="0">0</button>
+                                         <button data-ng-key=".">.</button>
+
+                                         <button data-ng-key="[PREVIOUS]" class="button-wide smaller">Previous</button>
+                                         <button data-ng-key="[NEXT]" class="button-wide smaller">Next</button>
+                                     </div>
+                                     <div class="drag-indicator">
+                                         <span></span>
+                                         <span></span>
+                                         <span></span>
+                                     </div>
+
+                                     <button class="close" data-ng-click="close()"></button>
+                                 </div>
                                <div class="form" style="padding-left: 20px;padding-right: 20px">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
@@ -318,7 +348,7 @@
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
-                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*"  autofocus="autofocus" numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*" data-ng-keypad-input="numeric" tabindex="1"  numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
