@@ -44,6 +44,10 @@ return array(
                 'main'          => 'Product image has been successfully uploaded.',
                 'delete_image'  => 'Product images has been successfully deleted.'
             ),
+            'promotion' => array(
+                'main'          => 'Promotion image has been successfully uploaded.',
+                'delete_image'  => 'Promotion image has been successfully deleted.'
+            ),
         )
     )
 );
