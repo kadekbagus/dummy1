@@ -9,6 +9,8 @@ class Cart extends Eloquent
      */
     use ModelStatusTrait;
 
+    const CART_INCREMENT = 111111;
+
     protected $table = 'carts';
 
     protected $primaryKey = 'cart_id';

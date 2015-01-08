@@ -4,7 +4,7 @@
 		@include('mobile-ci.head')
 		@yield('ext_style')
 	</head>
-	<body>
+	<body class="bg">
 		<div class="container">
       		@yield('content')
     	</div>
