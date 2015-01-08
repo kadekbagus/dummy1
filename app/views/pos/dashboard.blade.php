@@ -5,7 +5,7 @@
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img src=" {{ URL::asset('templatepos/images/logo_matahari.png') }}"  class="img" style="width: 64px">
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="width: 64px">
                 <h1>MATAHARI DEPARTMENT STORE</h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
@@ -116,7 +116,7 @@
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
-                                             	<div class="col-xs-12"><img src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
+                                             	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
                                            </div>
                                            <div class="col-xs-6">
                                            	   <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">
