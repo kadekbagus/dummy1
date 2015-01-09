@@ -695,6 +695,53 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+
+    /**
+     * POST - Scan Cart
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postScanCart()
+    {
+        try {
+            $driver = Config::get('orbit.devices.barcode.path');
+            $params = Config::get('orbit.devices.barcode.params');
+            $cmd = 'sudo '.$driver.' '.$params;
+            $barcode = shell_exec($cmd);
+            
+            $barcode = trim($barcode);
+            $cart = \Cart::with('details')->where('cart_code', $barcode)
+                    ->active()
+                    ->first();      
+
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.product');
+                ACL::throwAccessForbidden($message);
+            }
+
+            $this->response->data = $cart;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);

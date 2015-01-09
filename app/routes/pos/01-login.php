@@ -67,6 +67,14 @@ Route::post('/api/v1/pos/cashdrawer', function () {
 Route::post('/app/v1/pos/cashdrawer', 'IntermediateAuthController@POS\Cashier_postCashDrawer');
 
 
+// scan cart
+Route::post('/api/v1/pos/scancart', function () {
+    return POS\CashierAPIController::create()->postScanCart();
+});
+
+Route::post('/app/v1/pos/scancart', 'IntermediateAuthController@POS\Cashier_postScanCart');
+
+
 Route::get('/pos', function () {
     if (Auth::check()) {
         return Redirect::to('pos/dashboard');
