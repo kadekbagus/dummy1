@@ -19,9 +19,6 @@ trait ModelStatusTrait
         if (! empty($table)) {
             // Append the dot using custom table name
             $table .= '.';
-        } else {
-            // Append the dot using default table name
-            $table = $this->table . '.';
         }
 
         return $table;
@@ -114,7 +111,7 @@ trait ModelStatusTrait
      * @param string $table Table name
      * @return Apikey
      */
-    public function scopeMakeActive($table=NULL)
+    public function scopeMakeActive($query, $table=NULL)
     {
         $this->status = $this->appendDot($table) . 'active';
 
@@ -128,7 +125,7 @@ trait ModelStatusTrait
      * @param string $table Table name
      * @return Apikey
      */
-    public function scopeMakeBlocked($table=NULL)
+    public function scopeMakeBlocked($query, $table=NULL)
     {
         $this->status = $this->appendDot($table) . 'blocked';
 
