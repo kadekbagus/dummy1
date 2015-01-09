@@ -28,6 +28,7 @@ use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Cart;
 use \CartDetail;
+use \Exception;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -46,7 +47,6 @@ class MobileCIAPIController extends ControllerAPI
     public function postLoginInShop()
     {
         try {
-
             $email = trim(OrbitInput::post('email'));
 
             if (trim($email) === '') {
@@ -64,29 +64,35 @@ class MobileCIAPIController extends ControllerAPI
                         ->first();
 
             if (! is_object($user)) {
-                $message = \Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
-            } else {
-                // Start the orbit session
-                $data = array(
-                    'logged_in' => TRUE,
-                    'user_id'   => $user->user_id,
-                );
-                $config = new SessionConfig(Config::get('orbit.session'));
-                $session = new Session($config);
-                $session->enableForceNew()->start($data);
-
-                $retailer = $this->getRetailerInfo();
-                $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-                if(is_null($cart)){
-                    $cart = new Cart;
-                    $cart->cart_code = rand(111111, 99999999999);
-                    $cart->customer_id = $user->user_id;
-                    $cart->merchant_id = $retailer->parent_id;
-                    $cart->retailer_id = $retailer->merchant_id;
-                    $cart->status = 'active';
-                    $cart->save();
+                // $message = \Lang::get('validation.orbit.access.loginfailed');
+                // ACL::throwAccessForbidden($message);
+                $response = \LoginAPIController::create('raw')->postRegisterUserInShop();
+                if ($response->code === 0)
+                {
+                    $user = $response->data;
                 }
+
+                // return $this->render($response);
+            } 
+
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $config = new SessionConfig(Config::get('orbit.session'));
+            $session = new Session($config);
+            $session->enableForceNew()->start($data);
+
+            $retailer = $this->getRetailerInfo();
+            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            if(is_null($cart)){
+                $cart = new Cart;
+                $cart->cart_code = rand(111111, 99999999999);
+                $cart->customer_id = $user->user_id;
+                $cart->merchant_id = $retailer->parent_id;
+                $cart->retailer_id = $retailer->merchant_id;
+                $cart->status = 'active';
+                $cart->save();
             }
 
             $user->setHidden(array('user_password', 'apikey'));
@@ -194,125 +200,82 @@ class MobileCIAPIController extends ControllerAPI
      */
     public function postRegisterUserInShop()
     {
-        try {
-            $httpCode = 200;
+        
+            // $httpCode = 200;
 
-            $this->registerCustomValidation();
+            // $this->registerCustomValidation();
 
-            $email = OrbitInput::post('email');
+            // $email = OrbitInput::post('email');
 
-            $validator = \Validator::make(
-                array(
-                    'email'     => $email,
-                ),
-                array(
-                    'email'     => 'required|email|orbit.email.exists',
-                )
-            );
+            // $validator = \Validator::make(
+            //     array(
+            //         'email'     => $email,
+            //     ),
+            //     array(
+            //         'email'     => 'required|email|orbit.email.exists',
+            //     )
+            // );
 
-            // Run the validation
-            if ($validator->fails()) {
-                $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
+            // // Run the validation
+            // if ($validator->fails()) {
+            //     $errorMessage = $validator->messages()->first();
+            //     OrbitShopAPI::throwInvalidArgument($errorMessage);
+            // }
 
-            // Begin database transaction
-            $this->beginTransaction();
+            // // Begin database transaction
+            // $this->beginTransaction();
 
-            $newuser = new User();
-            $newuser->username = $email;
-            $newuser->user_password = str_random(8);
-            $newuser->user_email = $email;
-            $newuser->status = 'active';
-            $newuser->user_role_id = Role::where('role_name','Consumer')->first()->role_id;
-            $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
+            // $newuser = new User();
+            // $newuser->username = $email;
+            // $newuser->user_password = str_random(8);
+            // $newuser->user_email = $email;
+            // $newuser->status = 'active';
+            // $newuser->user_role_id = Role::where('role_name','Consumer')->first()->role_id;
+            // $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
 
-            $newuser->save();
+            // $newuser->save();
 
-            $userdetail = new UserDetail();
-            $userdetail = $newuser->userdetail()->save($userdetail);
+            // $userdetail = new UserDetail();
+            // $userdetail = $newuser->userdetail()->save($userdetail);
 
-            $newuser->setRelation('userdetail', $userdetail);
-            $newuser->userdetail = $userdetail;
+            // $newuser->setRelation('userdetail', $userdetail);
+            // $newuser->userdetail = $userdetail;
 
-            // token
-            $token = new Token();
-            $token->token_name = 'user_registration_mobile';
-            $token->token_value = $token->generateToken($email);
-            $token->status = 'active';
-            $token->email = $email;
-            $token->expire = date('Y-m-d H:i:s', strtotime('+14 days'));
-            $token->ip_address = $_SERVER['REMOTE_ADDR'];
-            $token->user_id = $newuser->user_id;
-            $token->save();
+            // // token
+            // $token = new Token();
+            // $token->token_name = 'user_registration_mobile';
+            // $token->token_value = $token->generateToken($email);
+            // $token->status = 'active';
+            // $token->email = $email;
+            // $token->expire = date('Y-m-d H:i:s', strtotime('+14 days'));
+            // $token->ip_address = $_SERVER['REMOTE_ADDR'];
+            // $token->user_id = $newuser->user_id;
+            // $token->save();
 
-            $apikey = new Apikey();
-            $apikey->api_key = Apikey::genApiKey($newuser);
-            $apikey->api_secret_key = Apikey::genSecretKey($newuser);
-            $apikey->status = 'active';
-            $apikey->user_id = $newuser->user_id;
-            $apikey = $newuser->apikey()->save($apikey);
+            // $apikey = new Apikey();
+            // $apikey->api_key = Apikey::genApiKey($newuser);
+            // $apikey->api_secret_key = Apikey::genSecretKey($newuser);
+            // $apikey->status = 'active';
+            // $apikey->user_id = $newuser->user_id;
+            // $apikey = $newuser->apikey()->save($apikey);
 
-            // send the email
-            \Mail::send('emails.registration.activation-html', array('token' => $token->token_value, 'email' => $email), function($message)
-            {
-                $email = OrbitInput::post('email');
-                $message->from('registration@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
-                $message->to($email);
-            });
+            // // send the email
+            // \Mail::send('emails.registration.activation-html', array('token' => $token->token_value, 'email' => $email), function($message)
+            // {
+            //     $email = OrbitInput::post('email');
+            //     $message->from('registration@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
+            //     $message->to($email);
+            // });
 
-            // authenticate user
-            \Auth::login($newuser);
+            // // authenticate user
+            // \Auth::login($newuser);
 
-            $this->response->data = $newuser;
+            // $this->response->data = $newuser;
 
-            // Commit the changes
-            $this->commit();
+            // // Commit the changes
+            // $this->commit();
 
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $httpCode = 403;
-
-            // Rollback the changes
-            $this->rollBack();
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $httpCode = 403;
-
-            // Rollback the changes
-            $this->rollBack();
-        } catch (QueryException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-
-            // Only shows full query error when we are in debug mode
-            if (Config::get('app.debug')) {
-                $this->response->message = $e->getMessage();
-            } else {
-                $this->response->message = \Lang::get('validation.orbit.queryerror');
-            }
-            $this->response->data = null;
-            $httpCode = 500;
-
-            // Rollback the changes
-            $this->rollBack();
-        } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-
-            // Rollback the changes
-            $this->rollBack();
-        }
-
-        return $this->render($httpCode);
+        
     }
 
     public function getHomeView()
@@ -327,31 +290,22 @@ class MobileCIAPIController extends ControllerAPI
 
             return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'cartdata' => $cartdata));
         } catch (Exception $e) {
-            // Should be redirected or return some meaningful error to customer
-            return $e->getMessage();
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getSignInView()
     {
         try {
-            $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.signin', array('retailer'=>$retailer));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            $user = $this->getLoggedInUser();
+            
+            return \Redirect::to('/customer/welcome');
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            // return $this->redirectIfNotLoggedIn($e);
+            if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.') {
+                $retailer = $this->getRetailerInfo();
+                return View::make('mobile-ci.signin', array('retailer'=>$retailer));
+            }
         }
     }
 
@@ -400,21 +354,8 @@ class MobileCIAPIController extends ControllerAPI
             $cartdata = $this->getCartForToolbar();
 
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartdata' => $cartdata));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
@@ -526,40 +467,19 @@ class MobileCIAPIController extends ControllerAPI
                 $data->records = $listOfRec;
             }
 
-            return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data));
+            $cartdata = $this->getCartForToolbar();
+
+            return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data, 'cartdata' => $cartdata));
             
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getProductList()
     {
         try {
-            // Require authentication
-            $this->checkAuth();
-
-            $user = $this->api->user;
-
-            if (! ACL::create($user)->isAllowed('view_product')) {
-                Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
-                $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message);
-            }
+            $user = $this->getLoggedInUser();
 
             $this->registerCustomValidation();
 
@@ -687,40 +607,18 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $cartdata = $this->getCartForToolbar();
-
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartdata' => $cartdata));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
+        
     }
 
     public function getProductView()
     {
         try {
-            // Require authentication
-            $this->checkAuth();
-
-            $user = $this->api->user;
-
-            if (! ACL::create($user)->isAllowed('view_product')) {
-                Event::fire('orbit.product.getsearchproduct.authz.notallowed', array($this, $user));
-                $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message);
-            }
+            $user = $this->getLoggedInUser();
 
             $retailer = $this->getRetailerInfo();
             $product_id = trim(OrbitInput::get('id'));
@@ -734,21 +632,8 @@ class MobileCIAPIController extends ControllerAPI
             } else {
                 return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartdata' => $cartdata));
             }
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
@@ -759,119 +644,65 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            // $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
             
             $cartdata = $this->getCartForToolbar();
 
             return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartdata' => $cartdata));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getTransferCartView()
     {
         try {
+            $user = $this->getLoggedInUser();
+
             $retailer = $this->getRetailerInfo();
+
             return View::make('mobile-ci.transfer-cart', array('page_title'=>Lang::get('mobileci.page_title.transfercart'), 'retailer'=>$retailer));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getPaymentView()
     {
         try {
+            $user = $this->getLoggedInUser();
+
             $retailer = $this->getRetailerInfo();
+
             return View::make('mobile-ci.payment', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getThankYouView()
     {
         try {
+            $user = $this->getLoggedInUser();
+
             $retailer = $this->getRetailerInfo();
+
             return View::make('mobile-ci.thankyou', array('retailer'=>$retailer));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getWelcomeView()
     {
         try {
+            $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
-            $user = $this->api->user;
-            return View::make('mobile-ci.welcome', array('retailer'=>$retailer, 'user'=>$user));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            $cartdata = $this->getCartForToolbar();
+
+            return View::make('mobile-ci.welcome', array('retailer'=>$retailer, 'user'=>$user, 'cartdata' => $cartdata));
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
@@ -992,27 +823,104 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->commit();
 
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $this->rollBack();
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $this->rollBack();
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $this->rollBack();
+            return $this->redirectIfNotLoggedIn($e);
         }
-
+        
         return $this->render();
+    }
+
+    public function postUpdateCart()
+    {
+        try {
+            $this->registerCustomValidation();
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartdetailid = OrbitInput::post('detail');
+            $quantity = OrbitInput::post('qty');
+
+            $validator = \Validator::make(
+                array(
+                    'cartdetailid' => $cartdetailid,
+                    'quantity' => $quantity,
+                ),
+                array(
+                    'cartdetailid' => 'required|orbit.exists.cartdetailid',
+                    'quantity' => 'required|numeric',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            
+            $this->beginTransaction();
+            
+            $cartdetail = CartDetail::where('cart_detail_id', $cartdetailid)->first();
+            $cart = Cart::where('cart_id', $cartdetail->cart_id)->excludeDeleted()->first();
+
+            $currentqty = $cartdetail->quantity;
+            $deltaqty = $quantity - $currentqty;
+
+            $cartdetail->quantity = $quantity;
+
+            $cart->total_item = $cart->total_item + $deltaqty;
+            $cart->subtotal = $cart->subtotal + ($deltaqty * $cartdetail->price);
+            
+            $product = Product::with('tax1', 'tax2')->where('product_id', $cartdetail->product_id)->first();
+
+            $tax_value1 = $product->tax1->tax_value;
+            if(empty($tax_value1)) {
+                $tax1 = 0;
+            } else {
+                $tax1 = $product->tax1->tax_value * $product->price;
+            }
+
+            $tax_value2 = $product->tax2->tax_value;
+            if(empty($tax_value2)) {
+                $tax2 = 0;
+            } else {
+                $tax2 = $product->tax2->tax_value * $product->price;
+            }
+            
+            $cart->vat = $cart->vat + ($deltaqty * ($tax1 + $tax2));
+            $cart->total_to_pay = $cart->subtotal + $cart->vat;
+            $cart->save();
+
+            $cartdetail = CartDetail::excludeDeleted()->where('product_id', $product->product_id)->where('cart_id', $cart->cart_id)->first();
+            if(empty($cartdetail)){
+                $cartdetail = new CartDetail;
+                $cartdetail->cart_id = $cart->cart_id;
+                $cartdetail->product_id = $product->product_id;
+                $cartdetail->price = $product->price;
+                $cartdetail->upc = $product->upc_code;
+                $cartdetail->sku = $product->product_code;
+                $cartdetail->quantity = $quantity;
+                $cartdetail->status = 'active';
+                $cartdetail->save();
+            } else {
+                $cartdetail->quantity = $cartdetail->quantity + 1;
+                $cartdetail->save();
+            }
+            
+            $cartdata = new stdclass();
+            $cartdata->cart = $cart;
+            $cartdata->cartdetail = $cartdetail;
+            $this->response->message = 'success';
+            $this->response->data = $cartdata;
+
+            $this->commit();
+            return $this->render();
+
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            $this->rollback();
+            return $e;
+        }
     }
 
     protected function registerCustomValidation()
@@ -1061,6 +969,37 @@ class MobileCIAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // Check cart, it should exists
+        Validator::extend('orbit.exists.cartdetailid', function ($attribute, $value, $parameters) {
+            $retailer = $this->getRetailerInfo();
+
+            $user = $this->getLoggedInUser();
+
+            $cartdetail = CartDetail::whereHas('cart', function($q) use ($user, $retailer)
+            {
+                $q->where('carts.customer_id', $user->user_id)->where('carts.retailer_id', $retailer->merchant_id);
+            })->excludeDeleted()
+                        ->where('cart_detail_id', $value)
+                        ->first();
+
+            if (empty($cartdetail)) {
+                return FALSE;
+            }
+
+            \App::instance('orbit.validation.cartdetailid', $cartdetail);
+
+            return TRUE;
+        });
+    }
+
+    public function redirectIfNotLoggedIn($e)
+    {
+        if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.') {
+            return \Redirect::to('/customer');
+        } else {
+            return \Redirect::to('/customer/welcome');
+        }
     }
 
     /**
@@ -1105,24 +1044,27 @@ class MobileCIAPIController extends ControllerAPI
 
     protected function getCartForToolbar()
     {
-        $user = $this->getLoggedInUser();
-        $retailer = $this->getRetailerInfo();
-        $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-        if(is_null($cart)){
-            $cart = new Cart;
-            $cart->cart_code = rand(111111, 99999999999);
-            $cart->customer_id = $user->user_id;
-            $cart->merchant_id = $retailer->parent_id;
-            $cart->retailer_id = $retailer->merchant_id;
-            $cart->status = 'active';
-            $cart->save();
+        try{
+            $user = $this->getLoggedInUser();
+            $retailer = $this->getRetailerInfo();
+            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            if(is_null($cart)){
+                $cart = new Cart;
+                $cart->cart_code = rand(111111, 99999999999);
+                $cart->customer_id = $user->user_id;
+                $cart->merchant_id = $retailer->parent_id;
+                $cart->retailer_id = $retailer->merchant_id;
+                $cart->status = 'active';
+                $cart->save();
+            }
+
+            $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+            $cartdata = new stdclass();
+            $cartdata->cart = $cart;
+            $cartdata->cartdetails = $cartdetails;
+        } catch (Exception $e) {
+            return $this->redirectIfNotLoggedIn($e);
         }
-
-        $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
-        $cartdata = new stdclass();
-        $cartdata->cart = $cart;
-        $cartdata->cartdetails = $cartdetails;
-
         return $cartdata;
     }
 }

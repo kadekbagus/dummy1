@@ -11,7 +11,7 @@
 @section('content')
   <div class="container">
       <div class="row">
-        <div class="col-xs-12 text-center">
+        <div class="col-xs-12 text-center merchant-logo">
           <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
         </div>
       </div>

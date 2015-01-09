@@ -27,7 +27,7 @@ class PromotionAPIController extends ControllerAPI
      * @param datetime   `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime   `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
      * @param string     `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
-     * @param string     `image`                 (optional) - Image
+     * @param file       `images`                (optional) - Promotion image
      * @param string     `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
      * @param decimal    `rule_value`            (optional) - Rule value
      * @param string     `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
@@ -271,7 +271,7 @@ class PromotionAPIController extends ControllerAPI
      * @param datetime   `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime   `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
      * @param string     `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
-     * @param string     `image`                 (optional) - Image
+     * @param file       `images`                (optional) - Promotion image
      * @param string     `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
      * @param decimal    `rule_value`            (optional) - Rule value
      * @param string     `discount_object_type`  (optional) - Discount object type. Valid value: product, family.

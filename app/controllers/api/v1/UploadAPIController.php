@@ -682,6 +682,395 @@ class UploadAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * Upload photo for a promotion.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `promotion_id`                (required) - ID of the promotion
+     * @param file|array `images`                      (required) - Promotion images
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUploadPromotionImage()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postuploadpromotionimage.before.auth', array($this));
+
+            if (! $this->calledFrom('promotion.new, promotion.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postuploadpromotionimage.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postuploadpromotionimage.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_promotion')) {
+                    Event::fire('orbit.upload.postuploadpromotionimage.authz.notallowed', array($this, $user));
+                    $editPromotionLang = Lang::get('validation.orbit.actionlist.update_promotion');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editPromotionLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postuploadpromotionimage.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $promotion_id = OrbitInput::post('promotion_id');
+            $images = OrbitInput::files('images');
+            $messages = array(
+                'nomore.than.one' => Lang::get('validation.max.array', array(
+                    'max' => 1
+                ))
+            );
+
+            $validator = Validator::make(
+                array(
+                    'promotion_id'  => $promotion_id,
+                    'images'        => $images,
+                ),
+                array(
+                    'promotion_id'  => 'required|numeric|orbit.empty.promotion',
+                    'images'        => 'required|nomore.than.one',
+                ),
+                $messages
+            );
+
+            Event::fire('orbit.upload.postuploadpromotionimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postuploadpromotionimage.after.validation', array($this, $validator));
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
+
+            // We already had Product instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $promotion = App::make('orbit.empty.promotion');
+
+            // Delete old merchant logo
+            $pastMedia = Media::where('object_id', $promotion->promotion_id)
+                              ->where('object_name', 'promotion')
+                              ->where('media_name_id', 'promotion_image');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            // Callback to rename the file, we will format it as follow
+            // [PRODUCT_ID]-[PRODUCT_NAME_SLUG]
+            $renameFile = function($uploader, &$file, $dir) use ($promotion)
+            {
+                $promotion_id = $promotion->promotion_id;
+                $slug = Str::slug($promotion->promotion_name);
+                $file['new']->name = sprintf('%s-%s', $promotion_id, $slug);
+            };
+
+            // Load the orbit configuration for promotion upload
+            $uploadPromotionConfig = Config::get('orbit.upload.promotion.main');
+
+            $message = new UploaderMessage([]);
+            $config = new UploaderConfig($uploadPromotionConfig);
+            $config->setConfig('before_saving', $renameFile);
+
+            // Create the uploader object
+            $uploader = new Uploader($config, $message);
+
+            Event::fire('orbit.upload.postuploadpromotionimage.before.save', array($this, $promotion, $uploader));
+
+            // Begin uploading the files
+            $uploaded = $uploader->upload($images);
+
+            // Save the files metadata
+            $object = array(
+                'id'            => $promotion->promotion_id,
+                'name'          => 'promotion',
+                'media_name_id' => 'promotion_image',
+                'modified_by'   => 1
+            );
+            $mediaList = $this->saveMetadata($object, $uploaded);
+
+            // Update the `image` field which store the original path of the image
+            // This is temporary since right now the business rules actually
+            // only allows one image per promotion
+            if (isset($uploaded[0])) {
+                $promotion->image = $uploaded[0]['path'];
+                $promotion->save();
+            }
+
+            Event::fire('orbit.upload.postuploadpromotionimage.after.save', array($this, $promotion, $uploader));
+
+            $this->response->data = $mediaList;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.promotion.main');
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Commit the changes
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postuploadpromotionimage.after.commit', array($this, $promotion, $uploader));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postuploadpromotionimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postuploadpromotionimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postuploadpromotionimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postuploadpromotionimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            if (! $this->calledFrom('promotion.new, promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postuploadpromotionimage.before.render', array($this, $output));
+
+        return $output;
+    }
+
+    /**
+     * Delete photo for a promotion.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `promotion_id`                  (required) - ID of the promotion
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeletePromotionImage()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postdeletepromotionimage.before.auth', array($this));
+
+            if (! $this->calledFrom('promotion.new, promotion.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postdeletepromotionimage.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postdeletepromotionimage.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_promotion')) {
+                    Event::fire('orbit.upload.postdeletepromotionimage.authz.notallowed', array($this, $user));
+                    $editPromotionLang = Lang::get('validation.orbit.actionlist.update_promotion');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editPromotionLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postdeletepromotionimage.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $promotion_id = OrbitInput::post('promotion_id');
+
+            $validator = Validator::make(
+                array(
+                    'promotion_id'    => $promotion_id,
+                ),
+                array(
+                    'promotion_id'   => 'required|numeric|orbit.empty.promotion',
+                )
+            );
+
+            Event::fire('orbit.upload.postdeletepromotionimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postdeletepromotionimage.after.validation', array($this, $validator));
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
+
+            // We already had Product instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $promotion = App::make('orbit.empty.promotion');
+
+            // Delete old merchant logo
+            $pastMedia = Media::where('object_id', $promotion->promotion_id)
+                              ->where('object_name', 'promotion')
+                              ->where('media_name_id', 'promotion_image');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            Event::fire('orbit.upload.postdeletepromotionimage.before.save', array($this, $promotion));
+
+            // Update the `image` field which store the original path of the image
+            // This is temporary since right know the business rules actually
+            // only allows one image per promotion
+            $promotion->image = NULL;
+            $promotion->save();
+
+            Event::fire('orbit.upload.postdeletepromotionimage.after.save', array($this, $promotion));
+
+            $this->response->data = $promotion;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.promotion.delete_image');
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Commit the changes
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postdeletepromotionimage.after.commit', array($this, $promotion));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postdeletepromotionimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postdeletepromotionimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postdeletepromotionimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            if (! $this->calledFrom('promotion.new,promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postdeletepromotionimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            if (! $this->calledFrom('promotion.new, promotion.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postdeletepromotionimage.before.render', array($this, $output));
+
+        return $output;
+    }
+
     protected function registerCustomValidation()
     {
         if ($this->calledFrom('default')) {
@@ -715,6 +1104,23 @@ class UploadAPIController extends ControllerAPI
                 }
 
                 App::instance('orbit.empty.product', $product);
+
+                return TRUE;
+            });
+        }
+
+        if ($this->calledFrom('default')) {
+            // Check the existance of promotion id
+            Validator::extend('orbit.empty.promotion', function ($attribute, $value, $parameters) {
+                $promotion = Promotion::excludeDeleted()
+                            ->where('promotion_id', $value)
+                            ->first();
+
+                if (empty($promotion)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.empty.promotion', $promotion);
 
                 return TRUE;
             });
