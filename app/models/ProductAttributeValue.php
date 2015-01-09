@@ -16,12 +16,6 @@ class ProductAttributeValue extends Eloquent
     use ModelStatusTrait;
 
     /**
-     * Import trait ModelStatusTrait so we can use some common scope dealing
-     * with `status` field.
-     */
-    use ModelStatusTrait;
-
-    /**
      * Value belong to attribute
      */
     public function attribute()
@@ -43,5 +37,20 @@ class ProductAttributeValue extends Eloquent
     public function modifier()
     {
         return $this->belongsTo('User', 'modified_by', 'user_id');
+    }
+
+    /**
+     * Attribute values belongs to merchant ids.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     */
+    public function scopeMerchantIds($query, array $merchantIds)
+    {
+        return $query->select('product_attribute_values.*')
+                     ->join('product_attributes',
+                           'product_attributes.product_attribute_id',
+                           '=',
+                           'product_attribute_values.product_attribute_id'
+                     )->whereIn('product_attributes.merchant_id', $merchantIds);
     }
 }
