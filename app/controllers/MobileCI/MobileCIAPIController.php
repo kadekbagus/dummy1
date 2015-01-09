@@ -87,11 +87,12 @@ class MobileCIAPIController extends ControllerAPI
             $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
             if(is_null($cart)){
                 $cart = new Cart;
-                $cart->cart_code = rand(111111, 99999999999);
                 $cart->customer_id = $user->user_id;
                 $cart->merchant_id = $retailer->parent_id;
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
+                $cart->save();
+                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
                 $cart->save();
             }
 
@@ -188,18 +189,8 @@ class MobileCIAPIController extends ControllerAPI
         return View::make('mobile-ci.signup', array('email'=>$email, 'retailer'=>$retailer));
     }
 
-    /**
-     * POST - Register new customer
-     *
-     * @author Kadek <kadek@dominopos.com>
-     *
-     * List of API Parameters
-     * ----------------------
-     * @param string    `email`          (required) - Email address of the user
-     * @return Illuminate\Support\Facades\Response
-     */
-    public function postRegisterUserInShop()
-    {
+    // public function postRegisterUserInShop()
+    // {
         
             // $httpCode = 200;
 
@@ -276,7 +267,7 @@ class MobileCIAPIController extends ControllerAPI
             // $this->commit();
 
         
-    }
+    // }
 
     public function getHomeView()
     {
@@ -309,28 +300,28 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
-    public function getSignUpView()
-    {
-        try {
-            $retailer = $this->getRetailerInfo();
-            return View::make('mobile-ci.signup', array('email'=>'', 'retailer'=>$retailer));
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        }
-    }
+    // public function getSignUpView()
+    // {
+    //     try {
+    //         $retailer = $this->getRetailerInfo();
+    //         return View::make('mobile-ci.signup', array('email'=>'', 'retailer'=>$retailer));
+    //     } catch (ACLForbiddenException $e) {
+    //         $this->response->code = $e->getCode();
+    //         $this->response->status = 'error';
+    //         $this->response->message = $e->getMessage();
+    //         $this->response->data = null;
+    //     } catch (InvalidArgsException $e) {
+    //         $this->response->code = $e->getCode();
+    //         $this->response->status = 'error';
+    //         $this->response->message = $e->getMessage();
+    //         $this->response->data = null;
+    //     } catch (Exception $e) {
+    //         $this->response->code = $e->getCode();
+    //         $this->response->status = 'error';
+    //         $this->response->message = $e->getMessage();
+    //         $this->response->data = null;
+    //     }
+    // }
 
     public function getCatalogueView()
     {
@@ -339,18 +330,6 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->excludeDeleted()->get();
 
-            // $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-            // if(is_null($cart)){
-            //     $cart = new Cart;
-            //     $cart->cart_code = rand(111111, 99999999999);
-            //     $cart->customer_id = $user->user_id;
-            //     $cart->merchant_id = $retailer->parent_id;
-            //     $cart->retailer_id = $retailer->merchant_id;
-            //     $cart->status = 'active';
-            //     $cart->save();
-            // }
-
-            // $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
             $cartdata = $this->getCartForToolbar();
 
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartdata' => $cartdata));
@@ -533,6 +512,8 @@ class MobileCIAPIController extends ControllerAPI
                 $subfamilies = NULL;
             }
 
+            
+
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
             })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
@@ -709,14 +690,6 @@ class MobileCIAPIController extends ControllerAPI
     public function getRetailerInfo()
     {
         try {
-            // $this->checkAuth();
-            // $user = $this->api->user;
-            // if (! ACL::create($user)->isAllowed('view_retailer')) {
-            //     $errorlang = Lang::get('validation.orbit.actionlist.view_retailer');
-            //     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorlang));
-            //     ACL::throwAccessForbidden($message);
-            // }
-
             $retailer_id = Config::get('orbit.shop.id');
             $retailer = Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
             return $retailer;
@@ -771,35 +744,36 @@ class MobileCIAPIController extends ControllerAPI
             $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
             if(empty($cart)){
                 $cart = new Cart;
-                $cart->cart_code = rand(111111, 99999999999);
                 $cart->customer_id = $user->user_id;
                 $cart->merchant_id = $retailer->parent_id;
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
+                $cart->save();
+                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
                 $cart->save();
             }
             
             $product = Product::with('tax1', 'tax2')->where('product_id', $product_id)->first();
 
             $cart->total_item = $cart->total_item + 1;
-            $cart->subtotal = $cart->subtotal + $product->price;
+            // $cart->subtotal = $cart->subtotal + $product->price;
             
-            $tax_value1 = $product->tax1->tax_value;
-            if(empty($tax_value1)) {
-                $tax1 = 0;
-            } else {
-                $tax1 = $product->tax1->tax_value * $product->price;
-            }
+            // $tax_value1 = $product->tax1->tax_value;
+            // if(empty($tax_value1)) {
+            //     $tax1 = 0;
+            // } else {
+            //     $tax1 = $product->tax1->tax_value * $product->price;
+            // }
 
-            $tax_value2 = $product->tax2->tax_value;
-            if(empty($tax_value2)) {
-                $tax2 = 0;
-            } else {
-                $tax2 = $product->tax2->tax_value * $product->price;
-            }
+            // $tax_value2 = $product->tax2->tax_value;
+            // if(empty($tax_value2)) {
+            //     $tax2 = 0;
+            // } else {
+            //     $tax2 = $product->tax2->tax_value * $product->price;
+            // }
             
-            $cart->vat = $cart->vat + $tax1 + $tax2;
-            $cart->total_to_pay = $cart->subtotal + $cart->vat;
+            // $cart->vat = $cart->vat + $tax1 + $tax2;
+            // $cart->total_to_pay = $cart->subtotal + $cart->vat;
             $cart->save();
 
             $cartdetail = CartDetail::excludeDeleted()->where('product_id', $product_id)->where('cart_id', $cart->cart_id)->first();
@@ -807,9 +781,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail = new CartDetail;
                 $cartdetail->cart_id = $cart->cart_id;
                 $cartdetail->product_id = $product->product_id;
-                $cartdetail->price = $product->price;
-                $cartdetail->upc = $product->upc_code;
-                $cartdetail->sku = $product->product_code;
+                $cartdetail->product_variant_id = $product->product_id;
                 $cartdetail->quantity = $quantity;
                 $cartdetail->status = 'active';
                 $cartdetail->save();
@@ -1050,11 +1022,12 @@ class MobileCIAPIController extends ControllerAPI
             $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
             if(is_null($cart)){
                 $cart = new Cart;
-                $cart->cart_code = rand(111111, 99999999999);
                 $cart->customer_id = $user->user_id;
                 $cart->merchant_id = $retailer->parent_id;
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
+                $cart->save();
+                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
                 $cart->save();
             }
 
