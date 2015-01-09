@@ -57,20 +57,25 @@ class CashierAPIController extends ControllerAPI
                         ->active()
                         ->where('username', $username)
                         ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
-                        ->first();           
+                        ->first();
 
-            if (! is_object($user) && ! \Hash::check($password, $user->user_password)) {
+            if (is_object($user)) {
+                if( ! \Hash::check($password, $user->user_password)){
+                    $message = \Lang::get('validation.orbit.access.loginfailed');
+                    ACL::throwAccessForbidden($message);
+                }else{
+                    // Start the orbit session
+                    $data = array(
+                        'logged_in' => TRUE,
+                        'user_id'   => $user->user_id,
+                    );
+                    $config = new SessionConfig(Config::get('orbit.session'));
+                    $session = new Session($config);
+                    $session->enableForceNew()->start($data);
+                }
+            } else {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
-            }else {
-                // Start the orbit session
-                $data = array(
-                    'logged_in' => TRUE,
-                    'user_id'   => $user->user_id,
-                );
-                $config = new SessionConfig(Config::get('orbit.session'));
-                $session = new Session($config);
-                $session->enableForceNew()->start($data);
             }
 
             $user->setHidden(array('user_password', 'apikey'));
