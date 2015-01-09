@@ -296,6 +296,179 @@ class UploadAPIController extends ControllerAPI
     }
 
     /**
+     * Delete logo for a merchant.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `merchant_id`                  (required) - ID of the merchant
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteMerchantLogo()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postdeletemerchantlogo.before.auth', array($this));
+
+            if (! $this->calledFrom('merchant.new, merchant.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postdeletemerchantlogo.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postdeletemerchantlogo.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_merchant')) {
+                    Event::fire('orbit.upload.postdeletemerchantlogo.authz.notallowed', array($this, $user));
+                    $editMerchantLang = Lang::get('validation.orbit.actionlist.update_merchant');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editMerchantLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postdeletemerchantlogo.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $merchant_id = OrbitInput::post('merchant_id');
+
+            $validator = Validator::make(
+                array(
+                    'merchant_id'   => $merchant_id,
+                ),
+                array(
+                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                )
+            );
+
+            Event::fire('orbit.upload.postdeletemerchantlogo.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postdeletemerchantlogo.after.validation', array($this, $validator));
+
+            if (! $this->calledFrom('merchant.new,merchant.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
+
+            // We already had Product instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $merchant = App::make('orbit.empty.merchant');
+
+            // Delete old merchant logo
+            $pastMedia = Media::where('object_id', $merchant->merchant_id)
+                              ->where('object_name', 'merchant')
+                              ->where('media_name_id', 'merchant_logo');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            Event::fire('orbit.upload.postdeletemerchantlogo.before.save', array($this, $merchant));
+
+            // Update the `logo` field which store the original path of the logo
+            // This is temporary since right now the business rules actually
+            // only allows one logo per merchant
+            $merchant->logo = NULL;
+            $merchant->save();
+
+            Event::fire('orbit.upload.postdeletemerchantlogo.after.save', array($this, $merchant));
+
+            $this->response->data = $merchant;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.merchant.delete_logo');
+
+            if (! $this->calledFrom('merchant.new,merchant.update')) {
+                // Commit the changes
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postdeletemerchantlogo.after.commit', array($this, $merchant));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postdeletemerchantlogo.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('merchant.new,merchant.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postdeletemerchantlogo.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('merchant.new,merchant.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postdeletemerchantlogo.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            if (! $this->calledFrom('merchant.new,merchant.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postdeletemerchantlogo.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            if (! $this->calledFrom('merchant.new, merchant.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postdeletemerchantlogo.before.render', array($this, $output));
+
+        return $output;
+    }
+
+    /**
      * Upload photo for a product.
      *
      * @author Rio Astamal <me@rioastamal.net>

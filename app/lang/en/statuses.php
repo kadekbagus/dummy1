@@ -35,7 +35,8 @@ return array(
         ),
         'uploaded'  => array(
             'merchant' => array(
-                'logo'  => 'Merchant logo has been successfully uploaded.',
+                'logo'          => 'Merchant logo has been successfully uploaded.',
+                'delete_logo'   => 'Merchant logo has been successfully deleted.'
             ),
             'retailer' => array(
                 'logo'  => 'Retailer logo has been successfully uploaded.',
