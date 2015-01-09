@@ -7,16 +7,35 @@
  */
 trait ModelStatusTrait
 {
+    /**
+     * Method to append dot after a table name. Used on every scope.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table
+     * @return string
+     */
+    protected function appendDot($table=NULL)
+    {
+        if (! empty($table)) {
+            // Append the dot using custom table name
+            $table .= '.';
+        }
+
+        return $table;
+    }
+
    /**
      * Scope to filter records based on status field. Only return records which
      * had value 'active'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param Illuminate\Database\Query\Builder $query
+     * @param string $table Table name
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopeActive($query)
+    public function scopeActive($query, $table=NULL)
     {
-        return $query->whereStatus('active');
+        return $query->whereStatus($this->appendDot($table) . 'active');
     }
 
     /**
@@ -24,11 +43,13 @@ trait ModelStatusTrait
      * had value 'blocked'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param $query Illuminate\Database\Query\Builder
+     * @param string $table Table name
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopeBlocked($query)
+    public function scopeBlocked($query, $table=NULL)
     {
-        return $query->whereStatus('blocked');
+        return $query->whereStatus($this->appendDot($table) . 'blocked');
     }
 
     /**
@@ -36,11 +57,12 @@ trait ModelStatusTrait
      * had value 'pending'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table Table name
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopePending($query)
+    public function scopePending($query, $table=NULL)
     {
-        return $query->whereStatus('pending');
+        return $query->whereStatus($this->appendDot(NULL) . 'pending');
     }
 
     /**
@@ -48,11 +70,12 @@ trait ModelStatusTrait
      * had value 'inactive'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table Table name
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopeInactive($query)
+    public function scopeInactive($query, $table=NULL)
     {
-        return $query->whereStatus('inactive');
+        return $query->whereStatus($this->appendDot($table) . 'inactive');
     }
 
     /**
@@ -60,11 +83,12 @@ trait ModelStatusTrait
      * had value 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table Table name
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopeWithDeleted($query)
+    public function scopeWithDeleted($query, $table=NULL)
     {
-        return $query->whereStatus('deleted');
+        return $query->whereStatus($this->appendDot($table) . 'deleted');
     }
 
     /**
@@ -72,22 +96,24 @@ trait ModelStatusTrait
      * had value 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table Table name
      * @return Illuminate\Database\Query\Builder
      */
-    public function scopeExcludeDeleted($query)
+    public function scopeExcludeDeleted($query, $table=NULL)
     {
-        return $query->where('status', '!=', 'deleted');
+        return $query->where($this->appendDot($table) . 'status', '!=', 'deleted');
     }
 
     /**
      * Scope to change the status of an apikey record to 'active'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table Table name
      * @return Apikey
      */
-    public function scopeMakeActive()
+    public function scopeMakeActive($query, $table=NULL)
     {
-        $this->status = 'active';
+        $this->status = $this->appendDot($table) . 'active';
 
         return $this;
     }
@@ -96,11 +122,12 @@ trait ModelStatusTrait
      * Scope to change the status of an apikey record to 'blocked'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param string $table Table name
      * @return Apikey
      */
-    public function scopeMakeBlocked()
+    public function scopeMakeBlocked($query, $table=NULL)
     {
-        $this->status = 'blocked';
+        $this->status = $this->appendDot($table) . 'blocked';
 
         return $this;
     }
@@ -111,15 +138,16 @@ trait ModelStatusTrait
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param boolean $force Force hard delete (wipe the record from database)
+     * @param string $table Table name
      * @return boolean
      */
-    public function delete($force=FALSE)
+    public function delete($force=FALSE, $table=NULL)
     {
         if ($force === TRUE) {
             return parent::delete();
         }
 
-        $this->status = 'deleted';
+        $this->status = $this->appendDot($table) . 'deleted';
 
         return $this->save();
     }

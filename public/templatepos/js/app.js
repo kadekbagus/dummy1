@@ -11,7 +11,7 @@ define([
     'config'
 ], function (config) {
 
-var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngKeypad','ngDraggable'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngKeypad'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
@@ -100,7 +100,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //get product
         $scope.getproduct = function(){
-            if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
+           /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
             serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=12').then(function(response){
                 if(response.code == 0 ){
                     if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
@@ -111,7 +111,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }else{
                     //do something when error
                 }
-                if(progressJs) progressJs("#loading").end();
+               /* if(progressJs) progressJs("#loading").end();*/
             });
         };
         //watch search
@@ -366,6 +366,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
             });
         })();
+        //binding keypad
+        $scope.keypadFn = function(idx){
+            $scope.cart.amount = $scope.cart.amount+idx;
+        };
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);

@@ -57,20 +57,25 @@ class CashierAPIController extends ControllerAPI
                         ->active()
                         ->where('username', $username)
                         ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
-                        ->first();           
+                        ->first();
 
-            if (! is_object($user) && ! \Hash::check($password, $user->user_password)) {
+            if (is_object($user)) {
+                if( ! \Hash::check($password, $user->user_password)){
+                    $message = \Lang::get('validation.orbit.access.loginfailed');
+                    ACL::throwAccessForbidden($message);
+                }else{
+                    // Start the orbit session
+                    $data = array(
+                        'logged_in' => TRUE,
+                        'user_id'   => $user->user_id,
+                    );
+                    $config = new SessionConfig(Config::get('orbit.session'));
+                    $session = new Session($config);
+                    $session->enableForceNew()->start($data);
+                }
+            } else {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
-            }else {
-                // Start the orbit session
-                $data = array(
-                    'logged_in' => TRUE,
-                    'user_id'   => $user->user_id,
-                );
-                $config = new SessionConfig(Config::get('orbit.session'));
-                $session = new Session($config);
-                $session->enableForceNew()->start($data);
             }
 
             $user->setHidden(array('user_password', 'apikey'));
@@ -670,6 +675,53 @@ class CashierAPIController extends ControllerAPI
 
             $this->response->data = $drawer;
 
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+
+    /**
+     * POST - Scan Cart
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postScanCart()
+    {
+        try {
+            $driver = Config::get('orbit.devices.barcode.path');
+            $params = Config::get('orbit.devices.barcode.params');
+            $cmd = 'sudo '.$driver.' '.$params;
+            $barcode = shell_exec($cmd);
+            
+            $barcode = trim($barcode);
+            $cart = \Cart::with('details')->where('cart_code', $barcode)
+                    ->active()
+                    ->first();      
+
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.product');
+                ACL::throwAccessForbidden($message);
+            }
+
+            $this->response->data = $cart;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
