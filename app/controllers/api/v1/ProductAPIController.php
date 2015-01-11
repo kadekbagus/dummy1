@@ -643,34 +643,40 @@ class ProductAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`             (required) - ID of the merchant
-     * @param string     `product_code`            (optional) - Product code
-     * @param string     `upc_code`                (optional) - Merchant description
-     * @param string     `product_name`            (required) - Product name
-     * @param string     `image`                   (optional) - Product image
-     * @param string     `short_description`       (optional) - Product short description
-     * @param string     `long_description`        (optional) - Product long description
-     * @param string     `is_featured`             (optional) - is featured
-     * @param string     `new_from`                (optional) - new from
-     * @param string     `new_until`               (optional) - new until
-     * @param string     `in_store_localization`   (optional) - in store localization
-     * @param string     `post_sales_url`          (optional) - post sales url
-     * @param decimal    `price`                   (optional) - Price of the product
-     * @param string     `merchant_tax_id1`        (optional) - Tax 1
-     * @param string     `merchant_tax_id2`        (optional) - Tax 2
-     * @param string     `status`                  (required) - Status
-     * @param integer    `created_by`              (optional) - ID of the creator
-     * @param integer    `modified_by`             (optional) - Modify by
-     * @param file       `images`                  (optional) - Product Image
-     * @param array      `retailer_ids`            (optional) - ORID links
-     * @param integer    `category_id1`            (optional) - Category ID1.
-     * @param integer    `category_id2`            (optional) - Category ID2.
-     * @param integer    `category_id3`            (optional) - Category ID3.
-     * @param integer    `category_id4`            (optional) - Category ID4.
-     * @param integer    `category_id5`            (optional) - Category ID5.
+     * @param integer   `merchant_id`               (required) - ID of the merchant
+     * @param string    `product_code`              (optional) - Product code
+     * @param string    `upc_code`                  (optional) - Merchant description
+     * @param string    `product_name`              (required) - Product name
+     * @param string    `image`                     (optional) - Product image
+     * @param string    `short_description`         (optional) - Product short description
+     * @param string    `long_description`          (optional) - Product long description
+     * @param string    `is_featured`               (optional) - is featured
+     * @param string    `new_from`                  (optional) - new from
+     * @param string    `new_until`                 (optional) - new until
+     * @param string    `in_store_localization`     (optional) - in store localization
+     * @param string    `post_sales_url`            (optional) - post sales url
+     * @param decimal   `price`                     (optional) - Price of the product
+     * @param string    `merchant_tax_id1`          (optional) - Tax 1
+     * @param string    `merchant_tax_id2`          (optional) - Tax 2
+     * @param string    `status`                    (required) - Status
+     * @param integer   `created_by`                (optional) - ID of the creator
+     * @param integer   `modified_by`               (optional) - Modify by
+     * @param file      `images`                    (optional) - Product Image
+     * @param array     `retailer_ids`              (optional) - ORID links
+     * @param integer   `category_id1`              (optional) - Category ID1.
+     * @param integer   `category_id2`              (optional) - Category ID2.
+     * @param integer   `category_id3`              (optional) - Category ID3.
+     * @param integer   `category_id4`              (optional) - Category ID4.
+     * @param integer   `category_id5`              (optional) - Category ID5.
+     * @param integer   `attribute_value_id1`       (optional) - Attribute Value Id 1
+     * @param integer   `attribute_value_id2`       (optional) - Attribute Value Id 2
+     * @param integer   `attribute_value_id3`       (optional) - Attribute Value Id 3
+     * @param integer   `attribute_value_id4`       (optional) - Attribute Value Id 4
+     * @param integer   `attribute_value_id5`       (optional) - Attribute Value Id 5
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -725,26 +731,74 @@ class ProductAPIController extends ControllerAPI
             $category_id4 = OrbitInput::post('category_id4');
             $category_id5 = OrbitInput::post('category_id5');
 
+            // Product Attributes (Variant)
+            $attribute_value1 = OrbitInput::post('attribute_value1');
+            $attribute_value2 = OrbitInput::post('attribute_value2');
+            $attribute_value3 = OrbitInput::post('attribute_value3');
+            $attribute_value4 = OrbitInput::post('attribute_value4');
+            $attribute_value5 = OrbitInput::post('attribute_value5');
+
+            $attribute_value1_price = OrbitInput::post('attribute_value1_price');
+            $attribute_value2_price = OrbitInput::post('attribute_value2_price');
+            $attribute_value3_price = OrbitInput::post('attribute_value3_price');
+            $attribute_value4_price = OrbitInput::post('attribute_value4_price');
+            $attribute_value5_price = OrbitInput::post('attribute_value5_price');
+
+            $attribute_value1_sku = OrbitInput::post('attribute_value1_sku');
+            $attribute_value2_sku = OrbitInput::post('attribute_value2_sku');
+            $attribute_value3_sku = OrbitInput::post('attribute_value3_sku');
+            $attribute_value4_sku = OrbitInput::post('attribute_value4_sku');
+            $attribute_value5_sku = OrbitInput::post('attribute_value5_sku');
+
+            $attribute_value1_upc = OrbitInput::post('attribute_value1_upc');
+            $attribute_value2_upc = OrbitInput::post('attribute_value2_upc');
+            $attribute_value3_upc = OrbitInput::post('attribute_value3_upc');
+            $attribute_value4_upc = OrbitInput::post('attribute_value4_upc');
+            $attribute_value5_upc = OrbitInput::post('attribute_value5_upc');
+
             $validator = Validator::make(
                 array(
-                    'merchant_id'   => $merchant_id,
-                    'product_name'  => $product_name,
-                    'status'        => $status,
-                    'category_id1'  => $category_id1,
-                    'category_id2'  => $category_id2,
-                    'category_id3'  => $category_id3,
-                    'category_id4'  => $category_id4,
-                    'category_id5'  => $category_id5,
+                    'merchant_id'       => $merchant_id,
+                    'product_name'      => $product_name,
+                    'status'            => $status,
+                    'category_id1'      => $category_id1,
+                    'category_id2'      => $category_id2,
+                    'category_id3'      => $category_id3,
+                    'category_id4'      => $category_id4,
+                    'category_id5'      => $category_id5,
+
+                    'attribute_value1'  => $attribute_value1,
+                    'attribute_value2'  => $attribute_value2,
+                    'attribute_value3'  => $attribute_value3,
+                    'attribute_value4'  => $attribute_value4,
+                    'attribute_value5'  => $attribute_value5,
+
+                    'attribute_value1_price'  => $attribute_value1_price,
+                    'attribute_value2_price'  => $attribute_value2_price,
+                    'attribute_value3_price'  => $attribute_value3_price,
+                    'attribute_value4_price'  => $attribute_value4_price,
+                    'attribute_value5_price'  => $attribute_value5_price,
+
+                    'attribute_value1_sku'  => $attribute_value1_sku,
+                    'attribute_value2_sku'  => $attribute_value2_sku,
+                    'attribute_value3_sku'  => $attribute_value3_sku,
+                    'attribute_value4_sku'  => $attribute_value4_sku,
+                    'attribute_value5_sku'  => $attribute_value5_sku,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
-                    'product_name'  => 'required',
-                    'status'        => 'required|orbit.empty.product_status',
-                    'category_id1'  => 'numeric|orbit.empty.category_id1',
-                    'category_id2'  => 'numeric|orbit.empty.category_id2',
-                    'category_id3'  => 'numeric|orbit.empty.category_id3',
-                    'category_id4'  => 'numeric|orbit.empty.category_id4',
-                    'category_id5'  => 'numeric|orbit.empty.category_id5',
+                    'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'product_name'      => 'required',
+                    'status'            => 'required|orbit.empty.product_status',
+                    'category_id1'      => 'numeric|orbit.empty.category_id1',
+                    'category_id2'      => 'numeric|orbit.empty.category_id2',
+                    'category_id3'      => 'numeric|orbit.empty.category_id3',
+                    'category_id4'      => 'numeric|orbit.empty.category_id4',
+                    'category_id5'      => 'numeric|orbit.empty.category_id5',
+                    'attribute_value1'  => 'numeric|orbit.empty.attribute_value1',
+                    'attribute_value2'  => 'numeric|orbit.empty.attribute_value2',
+                    'attribute_value3'  => 'numeric|orbit.empty.attribute_value3',
+                    'attribute_value4'  => 'numeric|orbit.empty.attribute_value4',
+                    'attribute_value5'  => 'numeric|orbit.empty.attribute_value5',
                 )
             );
 
@@ -808,6 +862,17 @@ class ProductAPIController extends ControllerAPI
             $newproduct->category_id4 = $category_id4;
             $newproduct->category_id5 = $category_id5;
 
+            // Save product attribute
+            $productAttributeValues = array();
+            for ($i=1; $i<=5; $i++) {
+                // If some of these product attribute are supplied and valid
+                // then it should have also the product attribute id
+                $productAttributeValues[$i] = App::make('orbit.empty.attribute_value_id' . $i);
+                if (! empty($productAttributeValues[$i])) {
+                    $newproduct->{'attribute_id' . $i} = $productAttributeValues[$i]->attribute->product_attribute_id;
+                }
+            }
+
             Event::fire('orbit.product.postnewproduct.before.save', array($this, $newproduct));
 
             $newproduct->save();
@@ -821,16 +886,24 @@ class ProductAPIController extends ControllerAPI
                 $productretailer->save();
                 $productretailers[] = $productretailer;
             }
-
             $newproduct->setRelation('retailers', $productretailers);
             $newproduct->retailers = $productretailers;
+
+            // Save into product variants for each attribute value
+            $productVariant = new ProductVariant();
+            $productVariant->product_id = $newproduct->product_id;
+            for ($i=1; $i<=5; $i++) {
+                // Only save the supplied attribute
+                if (! empty($productAttributeValues[$i])) {
+
+                }
+            }
 
             $newproduct->load('category1');
             $newproduct->load('category2');
             $newproduct->load('category3');
             $newproduct->load('category4');
             $newproduct->load('category5');
-
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
             $this->response->data = $newproduct;
@@ -1231,5 +1304,27 @@ class ProductAPIController extends ControllerAPI
             return $valid;
         });
 
+        // Check the existance of each attribute value
+        $merchantId = OrbitInput::post('merchant_id');
+
+        for ($i=1; $i<=5; $i++) {
+            $validatorName = 'orbit.empty.attribute_value' . $i;
+            Validator::extend($validatorName, function ($attribute, $value, $parameters) use ($merchantId) {
+                // Check the existence of this attribute value id on specific merchant
+                $productAttributeValue = ProductAttributeValue::excludeDeleted()
+                                                              ->with('attribute')
+                                                              ->merchantIds(array($merchantId))
+                                                              ->where('product_attribute_value_id', $value)
+                                                              ->first();
+
+                if (empty($productAttributeValue)) {
+                    return FALSE;
+                }
+
+                App::instance($validatorName . $i, $productAttributeValue);
+
+                return TRUE;
+            });
+        }
     }
 }
