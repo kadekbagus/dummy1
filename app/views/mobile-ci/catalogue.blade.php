@@ -80,8 +80,12 @@
 							family_level: family_level,
 						}
 					}).done(function(data){
-						a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list").css('display', 'none').html(data).slideDown('slow');
-						$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
+						if(data == 'Invalid session data.'){
+							location.replace('/customer');
+						} else {
+							a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list").css('display', 'none').html(data).slideDown('slow');
+							$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
+						}
 					});
 				} else {
 					$(this).data('family-isopen', 0);

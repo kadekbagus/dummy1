@@ -40,7 +40,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.loginFn = function(){
             $scope.showloader = true;
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('/pos/login',$scope.login).then(function(data){
+            serviceAjax.posDataToServer('/pos/logincashier',$scope.login).then(function(data){
               if(data.code == 0){
                   $scope.shownall = false;
                   localStorageService.add('user',data.data);
@@ -373,7 +373,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('/pos/logout').then(function(data){
+            serviceAjax.posDataToServer('/pos/logoutcashier').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("");

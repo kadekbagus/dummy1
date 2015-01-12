@@ -82,6 +82,10 @@ class CustomerportalAPIController extends ControllerAPI
                    $config = new SessionConfig(Config::get('orbit.session'));
                    $session = new Session($config);
                    $session->enableForceNew()->start($data);
+
+                   $sessionHeader = $session->getSessionConfig()->getConfig('session_origin.header.name');
+                   $sessionHeader = 'Set-' . $sessionHeader;
+                   $this->customHeaders[$sessionHeader] = $session->getSessionId();
                }
             } else {
                 $message = \Lang::get('validation.orbit.access.loginfailed');

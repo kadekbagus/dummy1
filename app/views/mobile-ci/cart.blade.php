@@ -48,10 +48,10 @@
               </div>
             </div>
             <div class="single-body">
-              <span>{{ $cartdetail->price + 0 }}</span>
+              <span>{{ $cartdetail->variant['price'] + 0 }}</span>
             </div>
             <div class="single-body">
-              <span>{{ $cartdetail->price * $cartdetail->quantity }}</span>
+              <span>{{ $cartdetail->variant['price'] * $cartdetail->quantity }}</span>
             </div>
           </div>
         </div>
@@ -79,13 +79,13 @@
           <span>{{ $cartdata->cart->total_item + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cartdata->cart->subtotal + 0 }}</span>
+          <span>{{ $cartsummary->subtotal + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cartdata->cart->vat + 0}}</span>
+          <span>{{ $cartsummary->vat + 0}}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cartdata->cart->total_to_pay + 0 }}</span>
+          <span>{{ $cartsummary->total_to_pay + 0 }}</span>
         </div>
       </div>
     </div>

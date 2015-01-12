@@ -23,4 +23,8 @@ class CartDetail extends Eloquent
         return $this->hasOne('Product', 'product_id', 'product_id');
     }
 
+    public function variant()
+    {
+        return $this->belongsTo('ProductVariant', 'product_variant_id', 'product_variant_id');
+    }
 }

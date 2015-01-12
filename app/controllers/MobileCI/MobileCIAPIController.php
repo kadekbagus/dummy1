@@ -512,9 +512,7 @@ class MobileCIAPIController extends ControllerAPI
                 $subfamilies = NULL;
             }
 
-            
-
-            $products = Product::whereHas('retailers', function($query) use ($retailer) {
+            $products = Product::with('variants')->whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
             })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
                 for($i = 1; $i < count($families); $i++) {
@@ -591,7 +589,10 @@ class MobileCIAPIController extends ControllerAPI
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartdata' => $cartdata));
             
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            if($e->getMessage() === 'Invalid session data.'){
+                return $e->getMessage();
+            }
         }
         
     }
@@ -624,14 +625,31 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
 
             $retailer = $this->getRetailerInfo();
-
-            // $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
             
             $cartdata = $this->getCartForToolbar();
 
-            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartdata' => $cartdata));
+            $cartsummary = new stdclass();
+
+            $subtotal = 0;
+            $vat = 0;
+            $total = 0;
+
+            foreach ($cartdata->cartdetails as $cartdetail) {
+                $variant = \ProductVariant::where('product_variant_id', $cartdetail->product_variant_id)->excludeDeleted()->first();
+                $product = Product::with('tax1', 'tax2')->where('product_id', $variant->product_id)->excludeDeleted()->first();
+                $subtotal = $subtotal + ($variant->price * $cartdetail->quantity);
+                $vat = $vat + ($product->tax1->tax_value * $variant->price * $cartdetail->quantity);
+                $vat = $vat + ($product->tax2->tax_value * $variant->price * $cartdetail->quantity);
+                $total = $subtotal + $vat;
+            }
+            $cartsummary->subtotal = $subtotal;
+            $cartsummary->vat = $vat;
+            $cartsummary->total_to_pay = $total;
+
+            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary));
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
         }
     }
 
@@ -721,6 +739,7 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
 
             $product_id = OrbitInput::post('productid');
+            $product_variant_id = OrbitInput::post('variantid');
             $quantity = OrbitInput::post('qty');
 
             $validator = \Validator::make(
@@ -1031,7 +1050,11 @@ class MobileCIAPIController extends ControllerAPI
                 $cart->save();
             }
 
-            $cartdetails = CartDetail::with('product')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+            $cartdetails = CartDetail::with(array('product' => function($q) {
+                $q->where('products.status','active');
+            }, 'variant' => function($q) {
+                $q->where('product_variants.status','active');
+            }))->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
             $cartdata = new stdclass();
             $cartdata->cart = $cart;
             $cartdata->cartdetails = $cartdetails;

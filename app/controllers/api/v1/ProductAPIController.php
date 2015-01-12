@@ -643,34 +643,36 @@ class ProductAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`             (required) - ID of the merchant
-     * @param string     `product_code`            (optional) - Product code
-     * @param string     `upc_code`                (optional) - Merchant description
-     * @param string     `product_name`            (required) - Product name
-     * @param string     `image`                   (optional) - Product image
-     * @param string     `short_description`       (optional) - Product short description
-     * @param string     `long_description`        (optional) - Product long description
-     * @param string     `is_featured`             (optional) - is featured
-     * @param string     `new_from`                (optional) - new from
-     * @param string     `new_until`               (optional) - new until
-     * @param string     `in_store_localization`   (optional) - in store localization
-     * @param string     `post_sales_url`          (optional) - post sales url
-     * @param decimal    `price`                   (optional) - Price of the product
-     * @param string     `merchant_tax_id1`        (optional) - Tax 1
-     * @param string     `merchant_tax_id2`        (optional) - Tax 2
-     * @param string     `status`                  (required) - Status
-     * @param integer    `created_by`              (optional) - ID of the creator
-     * @param integer    `modified_by`             (optional) - Modify by
-     * @param file       `images`                  (optional) - Product Image
-     * @param array      `retailer_ids`            (optional) - ORID links
-     * @param integer    `category_id1`            (optional) - Category ID1.
-     * @param integer    `category_id2`            (optional) - Category ID2.
-     * @param integer    `category_id3`            (optional) - Category ID3.
-     * @param integer    `category_id4`            (optional) - Category ID4.
-     * @param integer    `category_id5`            (optional) - Category ID5.
+     * @param integer   `merchant_id`               (required) - ID of the merchant
+     * @param string    `product_code`              (optional) - Product code
+     * @param string    `upc_code`                  (optional) - Merchant description
+     * @param string    `product_name`              (required) - Product name
+     * @param string    `image`                     (optional) - Product image
+     * @param string    `short_description`         (optional) - Product short description
+     * @param string    `long_description`          (optional) - Product long description
+     * @param string    `is_featured`               (optional) - is featured
+     * @param string    `new_from`                  (optional) - new from
+     * @param string    `new_until`                 (optional) - new until
+     * @param string    `in_store_localization`     (optional) - in store localization
+     * @param string    `post_sales_url`            (optional) - post sales url
+     * @param decimal   `price`                     (optional) - Price of the product
+     * @param string    `merchant_tax_id1`          (optional) - Tax 1
+     * @param string    `merchant_tax_id2`          (optional) - Tax 2
+     * @param string    `status`                    (required) - Status
+     * @param integer   `created_by`                (optional) - ID of the creator
+     * @param integer   `modified_by`               (optional) - Modify by
+     * @param file      `images`                    (optional) - Product Image
+     * @param array     `retailer_ids`              (optional) - ORID links
+     * @param integer   `category_id1`              (optional) - Category ID1.
+     * @param integer   `category_id2`              (optional) - Category ID2.
+     * @param integer   `category_id3`              (optional) - Category ID3.
+     * @param integer   `category_id4`              (optional) - Category ID4.
+     * @param integer   `category_id5`              (optional) - Category ID5.
+     * @param integer   `product_combinations`      (optional) - JSON String of Product Combination
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -725,26 +727,29 @@ class ProductAPIController extends ControllerAPI
             $category_id4 = OrbitInput::post('category_id4');
             $category_id5 = OrbitInput::post('category_id5');
 
+            // Product Attributes (Variant)
+            $product_combinations = OrbitInput::post('product_combinations');
+
             $validator = Validator::make(
                 array(
-                    'merchant_id'   => $merchant_id,
-                    'product_name'  => $product_name,
-                    'status'        => $status,
-                    'category_id1'  => $category_id1,
-                    'category_id2'  => $category_id2,
-                    'category_id3'  => $category_id3,
-                    'category_id4'  => $category_id4,
-                    'category_id5'  => $category_id5,
+                    'merchant_id'       => $merchant_id,
+                    'product_name'      => $product_name,
+                    'status'            => $status,
+                    'category_id1'      => $category_id1,
+                    'category_id2'      => $category_id2,
+                    'category_id3'      => $category_id3,
+                    'category_id4'      => $category_id4,
+                    'category_id5'      => $category_id5,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
-                    'product_name'  => 'required',
-                    'status'        => 'required|orbit.empty.product_status',
-                    'category_id1'  => 'numeric|orbit.empty.category_id1',
-                    'category_id2'  => 'numeric|orbit.empty.category_id2',
-                    'category_id3'  => 'numeric|orbit.empty.category_id3',
-                    'category_id4'  => 'numeric|orbit.empty.category_id4',
-                    'category_id5'  => 'numeric|orbit.empty.category_id5',
+                    'merchant_id'           => 'required|numeric|orbit.empty.merchant',
+                    'product_name'          => 'required',
+                    'status'                => 'required|orbit.empty.product_status',
+                    'category_id1'          => 'numeric|orbit.empty.category_id1',
+                    'category_id2'          => 'numeric|orbit.empty.category_id2',
+                    'category_id3'          => 'numeric|orbit.empty.category_id3',
+                    'category_id4'          => 'numeric|orbit.empty.category_id4',
+                    'category_id5'          => 'numeric|orbit.empty.category_id5',
                 )
             );
 
@@ -822,15 +827,82 @@ class ProductAPIController extends ControllerAPI
                 $productretailers[] = $productretailer;
             }
 
+            // Save product variants (combination)
+            $variants = array();
+            OrbitInput::post('product_combinations', function($product_combinations)
+            use ($price, $merchant_id, $user, $newproduct, $product_code, &$variants)
+            {
+                $variant_decode = $this->JSONValidate($product_combinations);
+                $index = 1;
+                $product_attribute_id = $this->checkVariant($variant_decode);
+
+                foreach ($variant_decode as $variant) {
+                    // Return the default price if the variant price is empty
+                    $price = function() use (&$variants, $price, $product_code, $variant, $merchant_id, $user, $newproduct) {
+                        if (empty($variant->price)) {
+                            return $price;
+                        }
+
+                        return $variant->price;
+                    };
+
+                    // Return the default sku if the variant sku is empty
+                    $sku = function() use ($variant) {
+                        if (empty($variant->sku)) {
+                            return $product_code;
+                        }
+
+                        return $variant->sku;
+                    };
+
+                    // Return the default upc if the variant upc is empty
+                    $upc = function() use ($variant) {
+                        if (empty($variant->upc)) {
+                            return $upc_code;
+                        }
+
+                        return $variant->upc;
+                    };
+
+                    $product_variant = new ProductVariant();
+                    $product_variant->product_id = $newproduct->product_id;
+                    $product_variant->price = $price();
+                    $product_variant->sku = $sku();
+                    $product_variant->upc = $upc();
+                    $product_variant->merchant_id = $merchant_id;
+                    $product_variant->created_by = $user->user_id;
+                    $product_variant->status = 'active';
+
+                    // Save the 5 attributes value id
+                    foreach ($variant->attribute_values as $i=>$value_id) {
+                        $field_value_id = 'product_attribute_value_id' . ($i + 1);
+                        $product_variant->{$field_value_id} = $value_id;
+                    }
+                    $product_variant->save();
+
+                    $variants[] = $product_variant;
+                    $index++;
+                }
+
+                // Save the product attribute id to the product table
+                foreach ($product_attribute_id as $i=>$attr_id) {
+                    $field_attribute_id = 'attribute_id' . ($i + 1);
+                    $newproduct->$field_attribute_id = $attr_id;
+                }
+                $newproduct->save();
+            });
+
             $newproduct->setRelation('retailers', $productretailers);
             $newproduct->retailers = $productretailers;
+
+            $newproduct->setRelation('variants', $variants);
+            $newproduct->variants = $variants;
 
             $newproduct->load('category1');
             $newproduct->load('category2');
             $newproduct->load('category3');
             $newproduct->load('category4');
             $newproduct->load('category5');
-
 
             Event::fire('orbit.product.postnewproduct.after.save', array($this, $newproduct));
             $this->response->data = $newproduct;
@@ -881,10 +953,15 @@ class ProductAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.product.postnewproduct.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
@@ -1231,5 +1308,105 @@ class ProductAPIController extends ControllerAPI
             return $valid;
         });
 
+        // Check the existance of each attribute value
+        $merchantId = OrbitInput::post('merchant_id');
+
+        for ($i=1; $i<=5; $i++) {
+            $validatorName = 'orbit.empty.attribute_value' . $i;
+            Validator::extend($validatorName, function ($attribute, $value, $parameters) use ($merchantId) {
+                // Check the existence of this attribute value id on specific merchant
+                $productAttributeValue = ProductAttributeValue::excludeDeleted()
+                                                              ->with('attribute')
+                                                              ->merchantIds(array($merchantId))
+                                                              ->where('product_attribute_value_id', $value)
+                                                              ->first();
+
+                if (empty($productAttributeValue)) {
+                    return FALSE;
+                }
+
+                App::instance($validatorName . $i, $productAttributeValue);
+
+                return TRUE;
+            });
+        }
+    }
+
+    /**
+     * Validate a JSON.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $string - JSON string to parse.
+     * @return mixed
+     */
+    protected function JSONValidate($string) {
+        $errorMessage = Lang::get('validation.orbit.jsonerror.field.format');
+
+        if (! is_string($string)) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        $result = @json_decode($string);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        $errorMessage = Lang::get('validation.orbit.jsonerror.field.array');
+        if (! is_array($result)) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Check the validity of variant.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param object $variant
+     * @return array - product attribute id
+     */
+    protected function checkVariant($variants)
+    {
+        $productAttributeId = array();
+
+        foreach ($variants as $i=>$variant) {
+            $errorMessage = Lang::get('validation.orbit.jsonerror.format');
+            $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
+
+            foreach ($neededProperties as $property) {
+                // It should have property specified
+                if (! property_exists($variant, $property)) {
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if (! is_array($variant->attribute_values)) {
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Check each of these product attribute value existence
+            $merchantId = OrbitInput::post('merchant_id');
+            foreach ($variant->attribute_values as $value_id) {
+                $productAttributeValue = ProductAttributeValue::excludeDeleted('product_attribute_values')
+                                                              ->with('attribute')
+                                                              ->merchantIds(array($merchantId))
+                                                              ->where('product_attribute_value_id', $value_id)
+                                                              ->first();
+
+                if (empty($productAttributeValue)) {
+                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.value', array('id' => $value_id));
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                // Only check the first loop, no need all of them
+                // This part is f*cking confusing bro! *_*
+                if ($i === 0) {
+                    $productAttributeId[] = $productAttributeValue->attribute->product_attribute_id;
+                }
+            }
+        }
+
+        return $productAttributeId;
     }
 }
