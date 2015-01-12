@@ -313,7 +313,7 @@
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
-                                {{--<div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
+                                <div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
                                      <div class="button-wrapper">
                                          <button data-ng-click="keypadFn('1')">1</button>
                                          <button data-ng-click="keypadFn('2')">2</button>
@@ -339,7 +339,7 @@
                                          <span></span>
                                      </div>
                                      <button class="close" data-ng-click="close()"></button>
-                                 </div>--}}
+                                 </div>
                                <div class="form" style="padding-left: 20px;padding-right: 20px">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
