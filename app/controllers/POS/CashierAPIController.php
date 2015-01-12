@@ -127,6 +127,7 @@ class CashierAPIController extends ControllerAPI
     }
 
 
+
     /**
      * POST - Scan Barcode
      *
