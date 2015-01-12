@@ -113,11 +113,17 @@ class CashierAPIController extends ControllerAPI
      */
     public function postLogoutCashier()
     {
-        \Auth::logout();
-        $this->response->code = 0;
-        $this->response->message = 'success';
-        $this->response->data = 'sukses atuh kang';
-        return $this->render();
+        try {
+            $config = new SessionConfig(Config::get('orbit.session'));
+            $session = new Session($config);
+            $this->prepareSession();
+
+            $session->start(array(), 'no-session-creation');
+            $session->destroy();
+        } catch (Exception $e) {
+        }
+
+        return \Redirect::to('/pos');
     }
 
 
