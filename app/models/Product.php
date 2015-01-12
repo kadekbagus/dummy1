@@ -88,6 +88,11 @@ class Product extends Eloquent
         return $this->belongsTo('CartDetail', 'product_id', 'product_id');
     }
 
+    public function variants()
+    {
+        return $this->hasMany('ProductVariant', 'product_id', 'product_id');
+    }
+
     /**
      * Add Filter retailers based on user who request it.
      *
