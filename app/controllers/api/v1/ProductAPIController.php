@@ -929,7 +929,7 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
@@ -1370,19 +1370,30 @@ class ProductAPIController extends ControllerAPI
     {
         $productAttributeId = array();
 
+        $valueNumbers = array();
         foreach ($variants as $i=>$variant) {
-            $errorMessage = Lang::get('validation.orbit.jsonerror.format');
             $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
 
             foreach ($neededProperties as $property) {
                 // It should have property specified
                 if (! property_exists($variant, $property)) {
+                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.json_property',
+                        array('property' => $property)
+                    );
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
             }
 
             if (! is_array($variant->attribute_values)) {
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Check the price validity
+            if (! empty($variant->price)) {
+                if (! preg_match('/^[+-]?((\d+(\.\d*)?)|(\.\d+))$/', $variant->price)) {
+                    $errorMessage = Lang::get('validation.orbit.formaterror.product.attribute.value.price');
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             // Check each of these product attribute value existence
@@ -1405,6 +1416,20 @@ class ProductAPIController extends ControllerAPI
                     $productAttributeId[] = $productAttributeValue->attribute->product_attribute_id;
                 }
             }
+
+            // Merge all the number of each variant
+            $currentNumber = count($variant->attribute_values);
+            $valueNumbers = array_merge(array($currentNumber), $valueNumbers);
+        }
+
+        // Check the difference of the attribute_values inside each variant
+        $min = min($valueNumbers);
+        $max = max($valueNumbers);
+        if ($min !== $max) {
+            $errorMessage = Lang::get('validation.orbit.jsonerror.field.diffcount',
+                            array('field' => 'attribute_values')
+            );
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
         }
 
         return $productAttributeId;
