@@ -35,14 +35,13 @@
           <div class="single-item-bodies">
             <div class="single-body">
               <span>{{ $cartdetail->product->product_name }}</span>
-              <img class="product-image" src="{{ asset($cartdetail->product->image) }}" />
             </div>
             <div class="single-body unique-column">
               <div class="unique-column-properties">
                 <div class="item-qty">
                   <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}" data-detail="{{ $cartdetail->cart_detail_id }}"  style="background: white; color: black;" >
                 </div>
-                <div class="item-remover">
+                <div class="item-remover" data-detail="{{ $cartdetail->cart_detail_id }}">
                   <span><i class="fa fa-times"></i></span>
                 </div>
               </div>
@@ -126,7 +125,37 @@
         </div>
         <div class="modal-footer">
           <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-            <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Batal</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="deleteLabel">Hapus Item</h4>
+        </div>
+        <div class="modal-body">
+          <div class="row ">
+            <div class="col-xs-12 vertically-spaced">
+              <p>Apakah Anda yakin akan menghapus item ini dari keranjang belanja?</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
+            <div class="row">
+              <div class="col-xs-6">
+                <button type="button" class="btn btn-success btn-block">Ya</button>
+              </div>
+              <div class="col-xs-6">
+                <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Batal</button>
+              </div>
+            </div>
           </form>
         </div>
       </div>
@@ -163,6 +192,10 @@
 @section('ext_script_bot')
 <script type="text/javascript">
   $(document).ready(function(){
+    $('.item-remover').click(function(){
+      $('#deleteModal').modal();
+    });
+
     $('#checkOutBtn').click(function(){
       $('#checkOutModal').modal();
     });
