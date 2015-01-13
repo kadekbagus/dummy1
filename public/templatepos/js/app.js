@@ -26,7 +26,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $timeout(updatetime, 1000);
     }]);
 
-    app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
+    app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
 
         //init object
         $scope.login  = {};
@@ -94,10 +94,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
             $scope.countcart();
         };
-        // qty change manual
-        $scope.qtychangemanualFn = function(){
-            $scope.countcart();
-        };
+
         //get product
         $scope.getproduct = function(){
            /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
@@ -367,21 +364,41 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
             });
         })();
-        //binding keypad
+        //binding keypad cash
         $scope.keypadFn = function(idx){
             if(idx == 'c'){
                 $scope.cart.amount = '';
                 $scope.cart.change = '';
             }else if(idx =='d'){
                 $scope.virtualFn(false);
+            }else if(idx == 'r'){
+                $scope.cart.amount = $scope.cart.amount.length == 1 ? 0 : $scope.cart.amount != '' ? $scope.cart.amount.substring(0, $scope.cart.amount.length-1) : 0;
             }else{
-                $scope.cart.amount =  $scope.cart.amount+idx;
+                $scope.cart.amount =  $scope.cart.amount == 0 ? idx : $scope.cart.amount+idx;
             }
 
+        };
+        //binding keypad qty
+        $scope.keypaqtydFn = function(idx){
+            if(idx == 'c'){
+                $scope.cart[$scope.indexactiveqty]['qty'] = 0;
+            }else if(idx =='d'){
+                $scope.virtualqtyFn(false);
+            }else if(idx == 'r'){
+                $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'].length == 1 ? 0 :$scope.cart[$scope.indexactiveqty]['qty'] != '' ? $scope.cart[$scope.indexactiveqty]['qty'].substring(0, $scope.cart[$scope.indexactiveqty]['qty'].length-1) : 0;
+            }else{
+                $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? idx : $scope.cart[$scope.indexactiveqty]['qty']+idx;
+            }
+            $scope.countcart();
         };
         //show virtual
         $scope.virtualFn = function(bool){
            $scope.isvirtual = bool;
+        };
+        $scope.virtualqtyFn = function(bool,idx){
+            $scope.isvirtualqty = bool;
+            if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
+            $scope.indexactiveqty = idx;
         };
         //logout
         $scope.logoutfn =  function(){

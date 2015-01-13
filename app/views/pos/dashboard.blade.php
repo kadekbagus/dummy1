@@ -28,8 +28,10 @@
                     </div>
 
                 </div>
+
                 <div class="table-responsive"  id="tablecart" style="overflow: auto;height: 380px" >
                     <table class="table">
+
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
@@ -41,13 +43,14 @@
                                     <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
+
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
                                                                   <button type="button" class="btn btn-primary"  data-ng-click="qaFn($index,'m')" data-spin="up">
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
-                                          <input type="text" pattern="[0-9]*" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
+                                          <div type="text" pattern="[0-9]*" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-click="virtualqtyFn(true,k)"  style="margin-top: 5px !important;"><% cart[k]['qty'] %></div>
                                           <span class="input-group-btn">
                                               <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn($index,'p')">
                                                   <i class="fa fa-plus"></i>
@@ -94,6 +97,25 @@
                        </tr>
                     </table>
                 </div>
+                <div data-ng-show="isvirtualqty"   class="numpad numpadqty" style=" margin-top:-450px">
+                                                                                                                          <div class="button-wrapper">
+                                                                                                                             <button data-ng-click="keypaqtydFn('9')">9</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('8')">8</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('7')">7</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('4')">4</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('5')">5</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('6')">6</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('1')">1</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('2')">2</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('3')">3</button>
+
+
+                                                                                                                             <button data-ng-click="keypaqtydFn('c')" class="smaller">Clear</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('0')">0</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                                                                                                                          </div>
+                                                                                                                           <div class="close" data-ng-click="virtualqtyFn(false)" data-ng-click="close()"></div>
+                                                                                                                   </div>
             </div>
             <div class="col-md-5" style="padding-left: 0px;padding-right: 0px;margin-right: -50px">
                 <div class="orbit-component table-attribute-top" >
@@ -333,20 +355,20 @@
                                          <button data-ng-click="keypadFn('9')">9</button>
                                          <button data-ng-click="keypadFn('8')">8</button>
                                          <button data-ng-click="keypadFn('7')">7</button>
-                                         <button data-ng-click="keypadFn('6')">6</button>
-                                         <button data-ng-click="keypadFn('5')">5</button>
                                          <button data-ng-click="keypadFn('4')">4</button>
-                                         <button data-ng-click="keypadFn('3')">3</button>
-                                         <button data-ng-click="keypadFn('2')">2</button>
+                                         <button data-ng-click="keypadFn('5')">5</button>
+                                         <button data-ng-click="keypadFn('6')">6</button>
                                          <button data-ng-click="keypadFn('1')">1</button>
+                                         <button data-ng-click="keypadFn('2')">2</button>
+                                         <button data-ng-click="keypadFn('3')">3</button>
 
 
                                          <button data-ng-click="keypadFn('c')" class="smaller">Clear</button>
                                          <button data-ng-click="keypadFn('0')">0</button>
-                                         <button data-ng-click="keypadFn('d')" class="smaller">Done</button>
+                                         <button data-ng-click="keypadFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
 
                                       </div>
-                                       <button class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></button>
+                                       <div class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></div>
                                </div>
 
                    </div>
@@ -363,7 +385,7 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="button"  data-ng-if="cardfile && action !='done" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
+                     <button type="button"  data-ng-if="cardfile && action != 'done'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
                      <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
