@@ -21,6 +21,7 @@ use \Validator;
 use \Config;
 use \Retailer;
 use \Product;
+use \Promotion;
 use Carbon\Carbon as Carbon;
 use \stdclass;
 use \Category;
@@ -29,6 +30,7 @@ use DominoPOS\OrbitSession\SessionConfig;
 use \Cart;
 use \CartDetail;
 use \Exception;
+use \DB;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -189,86 +191,6 @@ class MobileCIAPIController extends ControllerAPI
         return View::make('mobile-ci.signup', array('email'=>$email, 'retailer'=>$retailer));
     }
 
-    // public function postRegisterUserInShop()
-    // {
-        
-            // $httpCode = 200;
-
-            // $this->registerCustomValidation();
-
-            // $email = OrbitInput::post('email');
-
-            // $validator = \Validator::make(
-            //     array(
-            //         'email'     => $email,
-            //     ),
-            //     array(
-            //         'email'     => 'required|email|orbit.email.exists',
-            //     )
-            // );
-
-            // // Run the validation
-            // if ($validator->fails()) {
-            //     $errorMessage = $validator->messages()->first();
-            //     OrbitShopAPI::throwInvalidArgument($errorMessage);
-            // }
-
-            // // Begin database transaction
-            // $this->beginTransaction();
-
-            // $newuser = new User();
-            // $newuser->username = $email;
-            // $newuser->user_password = str_random(8);
-            // $newuser->user_email = $email;
-            // $newuser->status = 'active';
-            // $newuser->user_role_id = Role::where('role_name','Consumer')->first()->role_id;
-            // $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
-
-            // $newuser->save();
-
-            // $userdetail = new UserDetail();
-            // $userdetail = $newuser->userdetail()->save($userdetail);
-
-            // $newuser->setRelation('userdetail', $userdetail);
-            // $newuser->userdetail = $userdetail;
-
-            // // token
-            // $token = new Token();
-            // $token->token_name = 'user_registration_mobile';
-            // $token->token_value = $token->generateToken($email);
-            // $token->status = 'active';
-            // $token->email = $email;
-            // $token->expire = date('Y-m-d H:i:s', strtotime('+14 days'));
-            // $token->ip_address = $_SERVER['REMOTE_ADDR'];
-            // $token->user_id = $newuser->user_id;
-            // $token->save();
-
-            // $apikey = new Apikey();
-            // $apikey->api_key = Apikey::genApiKey($newuser);
-            // $apikey->api_secret_key = Apikey::genSecretKey($newuser);
-            // $apikey->status = 'active';
-            // $apikey->user_id = $newuser->user_id;
-            // $apikey = $newuser->apikey()->save($apikey);
-
-            // // send the email
-            // \Mail::send('emails.registration.activation-html', array('token' => $token->token_value, 'email' => $email), function($message)
-            // {
-            //     $email = OrbitInput::post('email');
-            //     $message->from('registration@dominopos.com', 'Orbit Registration')->subject('You are almost in Orbit!');
-            //     $message->to($email);
-            // });
-
-            // // authenticate user
-            // \Auth::login($newuser);
-
-            // $this->response->data = $newuser;
-
-            // // Commit the changes
-            // $this->commit();
-
-        
-    // }
-
     public function getHomeView()
     {
         try {
@@ -276,12 +198,37 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             $new_products = Product::with('media')->where('new_from','<=', Carbon::now())->where('new_until', '>=', Carbon::now())->get();
+            
+            $promotion = Promotion::excludeDeleted()->permanent()->where('is_coupon', 'N')->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->where('merchant_id', $retailer->parent_id)
+                ->whereHas('retailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                })->orderBy(DB::raw('RAND()'))->first();
+
+            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or p.is_permanent = "Y") and p.is_coupon = "N"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
 
             $cartdata = $this->getCartForToolbar();
 
-            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'cartdata' => $cartdata));
+            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartdata' => $cartdata));
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
         }
     }
 
@@ -292,36 +239,12 @@ class MobileCIAPIController extends ControllerAPI
             
             return \Redirect::to('/customer/welcome');
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
-            if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.') {
+            if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.' || $e->getMessage() === 'IP address miss match.') {
                 $retailer = $this->getRetailerInfo();
                 return View::make('mobile-ci.signin', array('retailer'=>$retailer));
             }
         }
     }
-
-    // public function getSignUpView()
-    // {
-    //     try {
-    //         $retailer = $this->getRetailerInfo();
-    //         return View::make('mobile-ci.signup', array('email'=>'', 'retailer'=>$retailer));
-    //     } catch (ACLForbiddenException $e) {
-    //         $this->response->code = $e->getCode();
-    //         $this->response->status = 'error';
-    //         $this->response->message = $e->getMessage();
-    //         $this->response->data = null;
-    //     } catch (InvalidArgsException $e) {
-    //         $this->response->code = $e->getCode();
-    //         $this->response->status = 'error';
-    //         $this->response->message = $e->getMessage();
-    //         $this->response->data = null;
-    //     } catch (Exception $e) {
-    //         $this->response->code = $e->getCode();
-    //         $this->response->status = 'error';
-    //         $this->response->message = $e->getMessage();
-    //         $this->response->data = null;
-    //     }
-    // }
 
     public function getCatalogueView()
     {
@@ -524,27 +447,30 @@ class MobileCIAPIController extends ControllerAPI
                 }
             });
 
+            $promotions = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or p.is_permanent = "Y") and p.is_coupon = "N"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+            
+            $product_on_promo = array();
+            foreach($promotions as $promotion) {
+                $product_on_promo[] = $promotion->product_id;
+            }
+
             $_products = clone $products;
-
-            // Get the take args
-            $take = $maxRecord;
-            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord) {
-                    $_take = $maxRecord;
-                }
-                $take = $_take;
-            });
-            $products->take($take);
-
-            $skip = 0;
-            OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
-                if ($_skip < 0) {
-                    $_skip = 0;
-                }
-
-                $skip = $_skip;
-            });
-            $products->skip($skip);
 
             // Default sort by
             $sortBy = 'products.product_name';
@@ -586,13 +512,13 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $cartdata = $this->getCartForToolbar();
-            return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartdata' => $cartdata));
+            return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartdata' => $cartdata, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
-            if($e->getMessage() === 'Invalid session data.'){
+            // if($e->getMessage() === 'Invalid session data.'){
                 return $e->getMessage();
-            }
+            // }
         }
         
     }
@@ -604,18 +530,52 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
             $product_id = trim(OrbitInput::get('id'));
-            $product = Product::whereHas('retailers', function($query) use ($retailer) {
+            $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                         })->excludeDeleted()->where('product_id', $product_id)->first();
+
+            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or p.is_permanent = "Y") and p.is_coupon = "N"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+
+            $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
+                inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1 
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av5 on av5.product_attribute_value_id = v.product_attribute_value_id5
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa1 on pa1.product_attribute_id = av1.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id 
+                WHERE p.product_id = :productid'), array('productid' => $product->product_id));
+
             $cartdata = $this->getCartForToolbar();
 
             if(is_null($product)){
                 return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer, 'cartdata' => $cartdata));
             } else {
-                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartdata' => $cartdata));
+                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartdata' => $cartdata, 'promotions' => $promo_products, 'attributes' => $attributes));
             }
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
         }
     }
 
@@ -821,6 +781,96 @@ class MobileCIAPIController extends ControllerAPI
         return $this->render();
     }
 
+    public function postDeleteFromCart()
+    {
+        try {
+            $this->registerCustomValidation();
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartdetailid = OrbitInput::post('detail');
+
+            $validator = \Validator::make(
+                array(
+                    'cartdetailid' => $cartdetailid,
+                ),
+                array(
+                    'cartdetailid' => 'required|orbit.exists.cartdetailid',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            
+            $this->beginTransaction();
+            
+            $cartdetail = CartDetail::where('cart_detail_id', $cartdetailid)->first();
+            $cart = Cart::where('cart_id', $cartdetail->cart_id)->excludeDeleted()->first();
+
+            $currentqty = $cartdetail->quantity;
+            $deltaqty = $quantity - $currentqty;
+
+            $cartdetail->quantity = $quantity;
+
+            $cart->total_item = $cart->total_item + $deltaqty;
+            $cart->subtotal = $cart->subtotal + ($deltaqty * $cartdetail->price);
+            
+            $product = Product::with('tax1', 'tax2')->where('product_id', $cartdetail->product_id)->first();
+
+            $tax_value1 = $product->tax1->tax_value;
+            if(empty($tax_value1)) {
+                $tax1 = 0;
+            } else {
+                $tax1 = $product->tax1->tax_value * $product->price;
+            }
+
+            $tax_value2 = $product->tax2->tax_value;
+            if(empty($tax_value2)) {
+                $tax2 = 0;
+            } else {
+                $tax2 = $product->tax2->tax_value * $product->price;
+            }
+            
+            $cart->vat = $cart->vat + ($deltaqty * ($tax1 + $tax2));
+            $cart->total_to_pay = $cart->subtotal + $cart->vat;
+            $cart->save();
+
+            $cartdetail = CartDetail::excludeDeleted()->where('product_id', $product->product_id)->where('cart_id', $cart->cart_id)->first();
+            if(empty($cartdetail)){
+                $cartdetail = new CartDetail;
+                $cartdetail->cart_id = $cart->cart_id;
+                $cartdetail->product_id = $product->product_id;
+                $cartdetail->price = $product->price;
+                $cartdetail->upc = $product->upc_code;
+                $cartdetail->sku = $product->product_code;
+                $cartdetail->quantity = $quantity;
+                $cartdetail->status = 'active';
+                $cartdetail->save();
+            } else {
+                $cartdetail->quantity = $cartdetail->quantity + 1;
+                $cartdetail->save();
+            }
+            
+            $cartdata = new stdclass();
+            $cartdata->cart = $cart;
+            $cartdata->cartdetail = $cartdetail;
+            $this->response->message = 'success';
+            $this->response->data = $cartdata;
+
+            $this->commit();
+            return $this->render();
+
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            $this->rollback();
+            return $e;
+        }
+    }
+
     public function postUpdateCart()
     {
         try {
@@ -986,7 +1036,7 @@ class MobileCIAPIController extends ControllerAPI
 
     public function redirectIfNotLoggedIn($e)
     {
-        if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.') {
+        if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.' || $e->getMessage() === 'IP address miss match.') {
             return \Redirect::to('/customer');
         } else {
             return \Redirect::to('/customer/welcome');

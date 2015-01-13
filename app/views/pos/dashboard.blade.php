@@ -5,7 +5,7 @@
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="width: 64px">
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="height: 64px">
                 <h1>MATAHARI DEPARTMENT STORE</h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
@@ -28,8 +28,10 @@
                     </div>
 
                 </div>
+
                 <div class="table-responsive"  id="tablecart" style="overflow: auto;height: 380px" >
                     <table class="table">
+
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
@@ -41,13 +43,14 @@
                                     <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
+
                                     <div class="input-group ui-spinner" data-ui-spinner="">
                                           <span class="input-group-btn">
                                                                   <button type="button" class="btn btn-primary"  data-ng-click="qaFn($index,'m')" data-spin="up">
                                                                       <i class="fa fa-minus"></i>
                                                                   </button>
                                                               </span>
-                                          <input type="text" pattern="[0-9]*" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-change="qtychangemanualFn()" numbers-only="numbers-only" style="margin-top: 5px !important;">
+                                          <div type="text" pattern="[0-9]*" class="spinner-input form-control"  data-ng-model="cart[k]['qty']" data-ng-click="virtualqtyFn(true,k)"  style="margin-top: 5px !important;"><% cart[k]['qty'] %></div>
                                           <span class="input-group-btn">
                                               <button type="button" class="btn btn-primary" data-spin="down" data-ng-click="qaFn($index,'p')">
                                                   <i class="fa fa-plus"></i>
@@ -94,6 +97,26 @@
                        </tr>
                     </table>
                 </div>
+                <div data-ng-show="isvirtualqty"   class="numpad numpadqty" style=" margin-top:-450px">
+                                                                                                                          <div class="button-wrapper">
+                                                                                                                             <button data-ng-click="keypaqtydFn('9')">9</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('8')">8</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('7')">7</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('4')">4</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('5')">5</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('6')">6</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('1')">1</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('2')">2</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('3')">3</button>
+
+
+                                                                                                                             <button data-ng-click="keypaqtydFn('c')" class="smaller">Clear</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('0')">0</button>
+                                                                                                                             <button data-ng-click="keypaqtydFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                                                                                                                             <button data-ng-click="virtualqtyFn(false)" class="button-wide smaller">Done</button>
+                                                                                                                          </div>
+
+                                                                                                                   </div>
             </div>
             <div class="col-md-5" style="padding-left: 0px;padding-right: 0px;margin-right: -50px">
                 <div class="orbit-component table-attribute-top" >
@@ -184,7 +207,7 @@
                      					<p>31 Oct 2014</p>
                      				</div>
                      			</div>
-                     			<div class="row">
+                     			<div class="row" data-ng-if="hiddenbtn">
                      			    <div class="col-xs-12">
                                        <p><h5><del>300.000</del></h5></p>
                                        <p><h4>IDR : <% productmodal.price %></h3></p>
@@ -313,46 +336,41 @@
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
-                                {{--<div data-ng-keypad="numeric" data-auto-close="true" data-ng-draggable class="numpad">
-                                     <div class="button-wrapper">
-                                         <button data-ng-click="keypadFn('1')">1</button>
-                                         <button data-ng-click="keypadFn('2')">2</button>
-                                         <button data-ng-click="keypadFn('3')">3</button>
-                                         <button data-ng-click="keypadFn('4')">4</button>
-                                         <button data-ng-click="keypadFn('5')">5</button>
-                                         <button data-ng-click="keypadFn('6')">6</button>
-                                         <button data-ng-click="keypadFn('7')">7</button>
-                                         <button data-ng-click="keypadFn('8')">8</button>
-                                         <button data-ng-click="keypadFn('9')">9</button>
 
-
-                                         <button data-ng-key="[CLEAR]" class="smaller">Clear</button>
-                                         <button data-ng-key="0">0</button>
-                                         <button data-ng-key=".">.</button>
-
-                                         <button data-ng-key="[PREVIOUS]" class="button-wide smaller">Previous</button>
-                                         <button data-ng-key="[NEXT]" class="button-wide smaller">Next</button>
-                                     </div>
-                                     <div class="drag-indicator">
-                                         <span></span>
-                                         <span></span>
-                                         <span></span>
-                                     </div>
-                                     <button class="close" data-ng-click="close()"></button>
-                                 </div>--}}
-                               <div class="form" style="padding-left: 20px;padding-right: 20px">
+                               <div class="form" style="padding-left: 20px;padding-right: 20px;">
                                          <div class="form-group text-left" >
                                              <label for="exampleInputEmail1">Total bayar</label>
                                              <input type="text" class="form-control text-right"  id="exampleInputEmail1" style="cursor: default; color:#030000" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
                                              <label for="exampleInputEmail1">Nominal Tunai</label>
-                                             <input type="text" class="form-control text-right" id="tenderedcash"  pattern="[0-9]*"  autofocus="autofocus" data-ng-keypad-input="numeric" tabindex="1"  numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai">
+                                             <div class="form-control text-right" id="tenderedcash"  data-ng-click="virtualFn(true)" pattern="[0-9]*"  autofocus="autofocus" tabindex="1"  numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai"><% cart.amount %></div>
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1">Kembalian</label>
                                              <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="Kembalian">
                                           </div>
+                               </div>
+                               <div data-ng-show="isvirtual"  class="numpad">
+                                      <div class="button-wrapper">
+                                         <button data-ng-click="keypadFn('9')">9</button>
+                                         <button data-ng-click="keypadFn('8')">8</button>
+                                         <button data-ng-click="keypadFn('7')">7</button>
+                                         <button data-ng-click="keypadFn('4')">4</button>
+                                         <button data-ng-click="keypadFn('5')">5</button>
+                                         <button data-ng-click="keypadFn('6')">6</button>
+                                         <button data-ng-click="keypadFn('1')">1</button>
+                                         <button data-ng-click="keypadFn('2')">2</button>
+                                         <button data-ng-click="keypadFn('3')">3</button>
+
+
+                                         <button data-ng-click="keypadFn('c')" class="smaller">Clear</button>
+                                         <button data-ng-click="keypadFn('0')">0</button>
+                                         <button data-ng-click="keypadFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                                          <button data-ng-click="virtualFn(false)" class="button-wide smaller">Done</button>
+
+                                      </div>
+                                       {{--<div class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></div>--}}
                                </div>
 
                    </div>
@@ -369,7 +387,7 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="button"  data-ng-if="cardfile" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
+                     <button type="button"  data-ng-if="cardfile && action != 'done'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
                      <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>

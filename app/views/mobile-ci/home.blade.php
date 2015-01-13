@@ -17,19 +17,19 @@
       </div>
       <div class="mobile-ci home-widget widget-container">
         <div class="row">
-          <div class="single-widget-container col-xs-12 col-sm-6">
+          <div class="single-widget-container col-xs-6 col-sm-6">
             <header class="widget-title">
               <span>{{ Lang::get('mobileci.widgets.catalogue') }}</span>
             </header>
             <section class="widget-single">
-              <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />   
+              <a href="{{ url('customer/catalogue') }}"><img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" /></a>
             </section>
           </div>
-          <div class="single-widget-container col-xs-12 col-sm-6">
+          <div class="single-widget-container col-xs-6 col-sm-6">
             <header class="widget-title">
               <span>{{ Lang::get('mobileci.widgets.new_product') }}</span>
             </header>
-            <section class="widget-single">
+            <section class="widget-single" style="height:120px;">
               <div id="slider1_container" style="display: none; position: relative; margin: 0 auto; width: 980px; height: 380px; overflow: hidden;">
                   <!-- Loading Screen -->
                   <div u="loading" style="position: absolute; top: 0px; left: 0px;">
@@ -115,7 +115,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="single-widget-container col-xs-12 col-sm-6">
+          <div class="single-widget-container col-xs-6 col-sm-6">
             <header class="widget-title">
               <span>{{ Lang::get('mobileci.widgets.promotion') }}</span>
             </header>
@@ -136,18 +136,17 @@
                   <!-- Slides Container -->
                   <div u="slides" style="cursor: move; position: absolute; left: 0px; top: 10px; width: 960px; height: 360px;
                   overflow: hidden;">
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product1.png') }}" />
-                      </div>
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product2.png') }}" />
-                      </div>
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product3.png') }}" />
-                      </div>
-                      <div>
-                          <img u="image" src2="{{ asset('mobile-ci/images/products/product5.jpg') }}" />
-                      </div>
+                      @foreach($promo_products as $promo_product)
+                        <div>
+                          <a href="{{ url('customer/product?id='.$promo_product->product_id) }}">
+                          @if(!is_null($promo_product->image))
+                            <img u="image" class="img-responsive" src2="{{ asset($promo_product->image) }}" style="width: 350px;"/>
+                          @else
+                            <img u="image" class="img-responsive" src2="{{ asset('mobile-ci/images/default-product.png') }}" style="width: 350px;"/>
+                          @endif
+                          </a>
+                        </div>
+                      @endforeach
                   </div>
                   <!-- Arrow Navigator Skin Begin -->
                   <style>
@@ -203,7 +202,7 @@
               </div>
             </section>
           </div>
-          <div class="single-widget-container col-xs-12 col-sm-6">
+          <div class="single-widget-container col-xs-6 col-sm-6">
             <header class="widget-title">
               <span>{{ Lang::get('mobileci.widgets.coupon') }}</span>
             </header>
@@ -216,12 +215,41 @@
     </div>
 @stop
 
+@section('modals')
+  <!-- Modal -->
+  <div class="modal fade" id="promoModal" tabindex="-1" role="dialog" aria-labelledby="promoModalLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Tutup</span></button>
+          <h4 class="modal-title" id="promoModalLabel">Promosi</h4>
+        </div>
+        <div class="modal-body">
+          <p id="promoModalText">
+            @if(! is_null($promotion->image)) 
+            <img class="img-responsive" src="{{ asset($promotion->image) }}"><br> 
+            @endif 
+            <b>{{ $promotion->promotion_name }}</b> <br> 
+            {{ $promotion->description }}
+          </p>
+        </div>
+        <div class="modal-footer">
+          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+@stop
+
 @section('ext_script_bot')
   {{ HTML::script('mobile-ci/scripts/ie10-viewport-bug-workaround.js') }}
   {{ HTML::script('mobile-ci/scripts/jssor.slider.mini.js') }}
   <script type="text/javascript">
 
         jQuery(document).ready(function ($) {
+            @if(! is_null($promotion))
+              $('#promoModal').modal();
+            @endif
             var options = {
                 $AutoPlay: false,                                    //[Optional] Whether to auto play, to enable slideshow, this option must be set to true, default value is false
                 $AutoPlaySteps: 1,                                  //[Optional] Steps to go for each navigation request (this options applys only when slideshow disabled), the default value is 1
@@ -268,7 +296,7 @@
                 $DisplayPieces: 1,                                  //[Optional] Number of pieces to display (the slideshow would be disabled if the value is set to greater than 1), the default value is 1
                 $ParkingPosition: 0,                                //[Optional] The offset position to park slide (this options applys only when slideshow disabled), default value is 0.
                 $UISearchMode: 1,                                   //[Optional] The way (0 parellel, 1 recursive, default value is 1) to search UI components (slides container, loading screen, navigator container, arrow navigator container, thumbnail navigator container etc).
-                $PlayOrientation: 2,                                //[Optional] Orientation to play slide (for auto play, navigation), 1 horizental, 2 vertical, 5 horizental reverse, 6 vertical reverse, default value is 1
+                $PlayOrientation: 1,                                //[Optional] Orientation to play slide (for auto play, navigation), 1 horizental, 2 vertical, 5 horizental reverse, 6 vertical reverse, default value is 1
                 $DragOrientation: 3,                                //[Optional] Orientation to drag slide, 0 no drag, 1 horizental, 2 vertical, 3 either, default value is 1 (Note that the $DragOrientation should be the same as $PlayOrientation when $DisplayPieces is greater than 1, or parking position is not 0)
 
                 $FillMode: 1,

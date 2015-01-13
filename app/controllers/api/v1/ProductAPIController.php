@@ -23,33 +23,35 @@ class ProductAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `product_id`              (required) - ID of the product
-     * @param integer    `merchant_id`             (optional) - ID of the merchant
-     * @param string     `product_code`            (optional) - Product code
-     * @param string     `upc_code`                (optional) - Product UPC code
-     * @param string     `product_name`            (optional) - Product name
-     * @param string     `image`                   (optional) - Product image
-     * @param string     `short_description`       (optional) - Product short description
-     * @param string     `long_description`        (optional) - Product long description
-     * @param string     `is_featured`             (optional) - is featured
-     * @param string     `new_from`                (optional) - new from
-     * @param string     `new_until`               (optional) - new until
-     * @param string     `in_store_localization`   (optional) - in store localization
-     * @param string     `post_sales_url`          (optional) - post sales url
-     * @param decimal    `price`                   (optional) - Price of the product
-     * @param string     `merchant_tax_id1`        (optional) - Tax 1
-     * @param string     `merchant_tax_id2`        (optional) - Tax 2
-     * @param string     `status`                  (optional) - Status
-     * @param integer    `created_by`              (optional) - ID of the creator
-     * @param integer    `modified_by`             (optional) - Modify by
-     * @param array      `retailer_ids`            (optional) - ORID links
-     * @param array      `no_retailer`             (optional) - Flag to delete all ORID links
-     * @param images     `images`            	   (optional) - Product image
-     * @param integer    `category_id1`            (optional) - Category ID1.
-     * @param integer    `category_id2`            (optional) - Category ID2.
-     * @param integer    `category_id3`            (optional) - Category ID3.
-     * @param integer    `category_id4`            (optional) - Category ID4.
-     * @param integer    `category_id5`            (optional) - Category ID5.
+     * @param integer   `product_id`                    (required) - ID of the product
+     * @param integer   `merchant_id`                   (optional) - ID of the merchant
+     * @param string    `product_code`                  (optional) - Product code
+     * @param string    `upc_code`                      (optional) - Product UPC code
+     * @param string    `product_name`                  (optional) - Product name
+     * @param string    `image`                         (optional) - Product image
+     * @param string    `short_description`             (optional) - Product short description
+     * @param string    `long_description`              (optional) - Product long description
+     * @param string    `is_featured`                   (optional) - is featured
+     * @param string    `new_from`                      (optional) - new from
+     * @param string    `new_until`                     (optional) - new until
+     * @param string    `in_store_localization`         (optional) - in store localization
+     * @param string    `post_sales_url`                (optional) - post sales url
+     * @param decimal   `price`                         (optional) - Price of the product
+     * @param string    `merchant_tax_id1`              (optional) - Tax 1
+     * @param string    `merchant_tax_id2`              (optional) - Tax 2
+     * @param string    `status`                        (optional) - Status
+     * @param integer   `created_by`                    (optional) - ID of the creator
+     * @param integer   `modified_by`                   (optional) - Modify by
+     * @param array     `retailer_ids`                  (optional) - ORID links
+     * @param array     `no_retailer`                   (optional) - Flag to delete all ORID links
+     * @param images    `images`                        (optional) - Product image
+     * @param integer   `category_id1`                  (optional) - Category ID1.
+     * @param integer   `category_id2`                  (optional) - Category ID2.
+     * @param integer   `category_id3`                  (optional) - Category ID3.
+     * @param integer   `category_id4`                  (optional) - Category ID4.
+     * @param integer   `category_id5`                  (optional) - Category ID5.
+     * @param string    `product_combinations`          (optional) - JSON String for new product combination
+     * @param string    `product_combinations_update`   (optional) - JSON String for updated product combination
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -122,7 +124,11 @@ class ProductAPIController extends ControllerAPI
             $this->beginTransaction();
 
             $updatedproduct = Product::with('retailers', 'category1', 'category2', 'category3', 'category4', 'category5')
-                ->excludeDeleted()->allowedForUser($user)->where('product_id', $product_id)->first();
+                                     ->excludeDeleted()
+                                     ->allowedForUser($user)
+                                     ->where('product_id', $product_id)
+                                     ->first();
+            App::instance('memory:current.updated.product', $updatedproduct);
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
                 if (!empty($product_code)) {
@@ -313,6 +319,105 @@ class ProductAPIController extends ControllerAPI
                 $updatedproduct->load('retailers');
             });
 
+            $lastAttributeIndex = $updatedproduct->getLastAttributeIndexNumber();
+
+            // Save new product variants (combination)
+            $variants = array();
+            OrbitInput::post('product_combinations', function($product_combinations)
+            use ($user, $updatedproduct, &$variants, $lastAttributeIndex)
+            {
+                $variant_decode = $this->JSONValidate($product_combinations);
+                $index = $lastAttributeIndex;
+                $product_attribute_id = $this->checkVariant($variant_decode);
+                $merchant_id = $updatedproduct->merchant_id;
+
+                foreach ($variant_decode as $variant) {
+                    // Return the default price if the variant price is empty
+                    $price = function() use ($variant, $updatedproduct) {
+                        if (empty($variant->price)) {
+                            return $updatedproduct->price;
+                        }
+
+                        return $variant->price;
+                    };
+
+                    // Return the default sku if the variant sku is empty
+                    $sku = function() use ($variant, $updatedproduct) {
+                        if (empty($variant->sku)) {
+                            return $updatedproduct->product_code;
+                        }
+
+                        return $variant->sku;
+                    };
+
+                    // Return the default upc if the variant upc is empty
+                    $upc = function() use ($variant, $updatedproduct) {
+                        if (empty($variant->upc)) {
+                            return $updatedproduct->upc;
+                        }
+
+                        return $variant->upc;
+                    };
+
+                    $product_variant = new ProductVariant();
+                    $product_variant->product_id = $updatedproduct->product_id;
+                    $product_variant->price = $price();
+                    $product_variant->sku = $sku();
+                    $product_variant->upc = $upc();
+                    $product_variant->merchant_id = $merchant_id;
+                    $product_variant->created_by = $user->user_id;
+                    $product_variant->status = 'active';
+
+                    // Save the 5 attributes value id
+                    foreach ($variant->attribute_values as $i=>$value_id) {
+                        foreach ($product_attribute_id as $current_attribute_id) {
+                            if (! $updatedproduct->isAttributeIdExists($current_attribute_id)) {
+                                $errorMessage = 'The new combination value order seems does not correct. ' . $current_attribute_id;
+                                OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            }
+                        }
+                        $field_value_id = 'product_attribute_value_id' . ($i + 1);
+                        $product_variant->{$field_value_id} = $value_id;
+                    }
+                    $product_variant->save();
+
+                    $variants[] = $product_variant;
+                }
+
+                // Save the product attribute id to the product table
+                $max_loop = $index + count($variant->attribute_values);
+                if ($max_loop > 5) {
+                    $max_loop = 5;
+                }
+
+                // Flag to determine if the updated product has been changes
+                $updated_product_changes = FALSE;
+                for ($i=$index + 1; $i<=$max_loop; $i++) {
+                    $current_attribute_id = current($product_attribute_id);
+
+                    // Does this current product attribute id already attached
+                    // to this product
+                    if ($updatedproduct->isAttributeIdExists($current_attribute_id)) {
+                        // Skip no need to save
+                        continue;
+                    }
+
+                    $field_attribute_id = 'attribute_id' . $i;
+                    $updatedproduct->$field_attribute_id = $current_attribute_id;
+
+                    // Move the pointer to the next element
+                    next($product_attribute_id);
+
+                    // Update the flag
+                    $updated_product_changes = TRUE;
+                }
+
+                // Save the updated product
+                if ($updated_product_changes) {
+                    $updatedproduct->save();
+                }
+            });
+
             $updatedproduct->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.product.postupdateproduct.before.save', array($this, $updatedproduct));
@@ -344,7 +449,7 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
@@ -368,17 +473,21 @@ class ProductAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.product.postupdateproduct.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
         }
 
         return $this->render($httpCode);
-
     }
 
     /**
@@ -830,7 +939,7 @@ class ProductAPIController extends ControllerAPI
             // Save product variants (combination)
             $variants = array();
             OrbitInput::post('product_combinations', function($product_combinations)
-            use ($price, $merchant_id, $user, $newproduct, $product_code, &$variants)
+            use ($price, $upc_code, $merchant_id, $user, $newproduct, $product_code, &$variants)
             {
                 $variant_decode = $this->JSONValidate($product_combinations);
                 $index = 1;
@@ -838,7 +947,7 @@ class ProductAPIController extends ControllerAPI
 
                 foreach ($variant_decode as $variant) {
                     // Return the default price if the variant price is empty
-                    $price = function() use (&$variants, $price, $product_code, $variant, $merchant_id, $user, $newproduct) {
+                    $price = function() use ($variant, $price) {
                         if (empty($variant->price)) {
                             return $price;
                         }
@@ -847,7 +956,7 @@ class ProductAPIController extends ControllerAPI
                     };
 
                     // Return the default sku if the variant sku is empty
-                    $sku = function() use ($variant) {
+                    $sku = function() use ($variant, $product_code) {
                         if (empty($variant->sku)) {
                             return $product_code;
                         }
@@ -856,7 +965,7 @@ class ProductAPIController extends ControllerAPI
                     };
 
                     // Return the default upc if the variant upc is empty
-                    $upc = function() use ($variant) {
+                    $upc = function() use ($variant, $upc_code) {
                         if (empty($variant->upc)) {
                             return $upc_code;
                         }
@@ -929,7 +1038,7 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
@@ -1145,8 +1254,10 @@ class ProductAPIController extends ControllerAPI
 
         // Check the existance of retailer id
         Validator::extend('orbit.empty.retailer', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
             $retailer = Retailer::excludeDeleted()->allowedForUser($this->api->user)
                         ->where('merchant_id', $value)
+                        ->where('parent_id', $merchant->merchant_id)
                         ->first();
 
             if (empty($retailer)) {
@@ -1307,29 +1418,6 @@ class ProductAPIController extends ControllerAPI
 
             return $valid;
         });
-
-        // Check the existance of each attribute value
-        $merchantId = OrbitInput::post('merchant_id');
-
-        for ($i=1; $i<=5; $i++) {
-            $validatorName = 'orbit.empty.attribute_value' . $i;
-            Validator::extend($validatorName, function ($attribute, $value, $parameters) use ($merchantId) {
-                // Check the existence of this attribute value id on specific merchant
-                $productAttributeValue = ProductAttributeValue::excludeDeleted()
-                                                              ->with('attribute')
-                                                              ->merchantIds(array($merchantId))
-                                                              ->where('product_attribute_value_id', $value)
-                                                              ->first();
-
-                if (empty($productAttributeValue)) {
-                    return FALSE;
-                }
-
-                App::instance($validatorName . $i, $productAttributeValue);
-
-                return TRUE;
-            });
-        }
     }
 
     /**
@@ -1370,13 +1458,16 @@ class ProductAPIController extends ControllerAPI
     {
         $productAttributeId = array();
 
+        $valueNumbers = array();
         foreach ($variants as $i=>$variant) {
-            $errorMessage = Lang::get('validation.orbit.jsonerror.format');
             $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
 
             foreach ($neededProperties as $property) {
                 // It should have property specified
                 if (! property_exists($variant, $property)) {
+                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.json_property',
+                        array('property' => $property)
+                    );
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
             }
@@ -1385,8 +1476,16 @@ class ProductAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
+            // Check the price validity
+            if (! empty($variant->price)) {
+                if (! preg_match('/^[+-]?((\d+(\.\d*)?)|(\.\d+))$/', $variant->price)) {
+                    $errorMessage = Lang::get('validation.orbit.formaterror.product.attribute.value.price');
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
             // Check each of these product attribute value existence
-            $merchantId = OrbitInput::post('merchant_id');
+            $merchantId = $this->getMerchantId();
             foreach ($variant->attribute_values as $value_id) {
                 $productAttributeValue = ProductAttributeValue::excludeDeleted('product_attribute_values')
                                                               ->with('attribute')
@@ -1405,8 +1504,49 @@ class ProductAPIController extends ControllerAPI
                     $productAttributeId[] = $productAttributeValue->attribute->product_attribute_id;
                 }
             }
+
+            // Merge all the number of each variant
+            $currentNumber = count($variant->attribute_values);
+            $valueNumbers = array_merge(array($currentNumber), $valueNumbers);
+        }
+
+        // Check the difference of the attribute_values inside each variant
+        $min = min($valueNumbers);
+        $max = max($valueNumbers);
+        if ($min !== $max) {
+            $errorMessage = Lang::get('validation.orbit.jsonerror.field.diffcount',
+                            array('field' => 'attribute_values')
+            );
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
         }
 
         return $productAttributeId;
+    }
+
+    /**
+     * Helper for checking current merchant id.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return int
+     */
+    protected function getMerchantId()
+    {
+        $currentProduct = NULL;
+
+        $merchantId = OrbitInput::post('merchant_id', function($_merchantId) {
+            return $_merchantId;
+        });
+
+        if (! $merchantId) {
+            if (App::bound('memory:current.updated.product')) {
+                $currentProduct = App::make('memory:current.updated.product');
+            }
+
+            if (is_object($currentProduct)) {
+                $merchantId = $currentProduct->merchant_id;
+            }
+        }
+
+        return $merchantId;
     }
 }
