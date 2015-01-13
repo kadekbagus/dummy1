@@ -113,8 +113,9 @@
                                                                                                                              <button data-ng-click="keypaqtydFn('c')" class="smaller">Clear</button>
                                                                                                                              <button data-ng-click="keypaqtydFn('0')">0</button>
                                                                                                                              <button data-ng-click="keypaqtydFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                                                                                                                             <button data-ng-click="virtualqtyFn(false)" class="button-wide smaller">Done</button>
                                                                                                                           </div>
-                                                                                                                           <div class="close" data-ng-click="virtualqtyFn(false)" data-ng-click="close()"></div>
+
                                                                                                                    </div>
             </div>
             <div class="col-md-5" style="padding-left: 0px;padding-right: 0px;margin-right: -50px">
@@ -366,9 +367,10 @@
                                          <button data-ng-click="keypadFn('c')" class="smaller">Clear</button>
                                          <button data-ng-click="keypadFn('0')">0</button>
                                          <button data-ng-click="keypadFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                                          <button data-ng-click="virtualFn(false)" class="button-wide smaller">Done</button>
 
                                       </div>
-                                       <div class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></div>
+                                       {{--<div class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></div>--}}
                                </div>
 
                    </div>

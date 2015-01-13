@@ -1,6 +1,6 @@
 .numpad {
   position: relative;
-  height: 260px;
+  height: 320px;
   width: 200px;
   padding: 13px;
   margin-left: 400px;
@@ -49,7 +49,7 @@
 }
 
 .numpad .button-wrapper .button-wide {
-  width: 82px;
+  width: 170px;
 }
 
 .numpad .button-wrapper .pressed {
