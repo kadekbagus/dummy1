@@ -676,7 +676,12 @@ class ProductAttributeAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
