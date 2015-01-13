@@ -410,7 +410,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //customer display
         $scope.customerdispaly = function(line1,line2){
-            $scope.datadisplay.line1 = line1;
+            $scope.datadisplay.line1 = line1.substr(0,12);
             $scope.datadisplay.line2 = line2;
             serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
                 if(response.code == 0){
