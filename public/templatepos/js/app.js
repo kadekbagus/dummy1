@@ -11,7 +11,7 @@ define([
     'config'
 ], function (config) {
 
-var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngKeypad'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
@@ -245,6 +245,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
                     event.preventDefault();
+                    $scope.isvirtual = true;
                    /* $timeout(function(){
                         angular.element('#tenderedcash').focus();
                     },500);*/
@@ -368,7 +369,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         })();
         //binding keypad
         $scope.keypadFn = function(idx){
-            $scope.cart.amount = $scope.cart.amount+idx;
+            if(idx == 'c'){
+                $scope.cart.amount = '';
+                $scope.cart.change = '';
+            }else if(idx =='d'){
+                $scope.virtualFn(false);
+            }else{
+                $scope.cart.amount =  $scope.cart.amount+idx;
+            }
+
+        };
+        //show virtual
+        $scope.virtualFn = function(bool){
+           $scope.isvirtual = bool;
         };
         //logout
         $scope.logoutfn =  function(){
