@@ -436,6 +436,11 @@ return array(
             'params' => '/dev/domino/terminal'
         ),
 
+        'cdisplay'   => array(
+            'path'   => '/home/dominopos1/drivers/64bits/cdisplay_newborn',
+            'params' => '/dev/ttyACM0'
+        ),
+
         'printer'    => array(
             'params' => '/dev/domino/printer'
         ),
