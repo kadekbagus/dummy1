@@ -5,7 +5,7 @@
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="width: 64px">
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="height: 64px">
                 <h1>MATAHARI DEPARTMENT STORE</h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
@@ -184,7 +184,7 @@
                      					<p>31 Oct 2014</p>
                      				</div>
                      			</div>
-                     			<div class="row">
+                     			<div class="row" data-ng-if="hiddenbtn">
                      			    <div class="col-xs-12">
                                        <p><h5><del>300.000</del></h5></p>
                                        <p><h4>IDR : <% productmodal.price %></h3></p>

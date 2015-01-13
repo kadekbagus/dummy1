@@ -69,7 +69,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //get unix guestid
         ($scope.getguest = function(){
-                $scope.guests = moment().format('DD-MM-YYYYY hh:mm:ss');
+                $scope.guests = moment().format('DD-MM-YYYY hh:mm:ss');
         })();
         //function -+ wish list
         $scope.qaFn = function(id,action){
