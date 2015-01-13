@@ -60,10 +60,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.product          = [];
         $scope.productidenabled = [];
         $scope.configs          = config;
-        $scope.datadisplay      = {
-            line1 : 'Welcome',
-            line2 : ''
-        };
+        $scope.datadisplay      = {};
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
@@ -173,9 +170,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
                  //customer display
-                 $scope.datadisplay.line1 = $scope.productmodal['product_name'];
-                 $scope.datadisplay.line2 = $scope.productmodal['price'];
-                 $scope.customerdispaly();
+                 $scope.customerdispaly($scope.productmodal['product_name'],$scope.productmodal['price']);
                  $location.hash('bottom');
                  $anchorScroll();
                  $scope.searchproduct    = '';
@@ -254,9 +249,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         angular.element('#tenderedcash').focus();
                     },500);*/
                     //customer display
-                    $scope.datadisplay.line1 = 'TOTAL';
-                    $scope.datadisplay.line2 = $scope.cart.totalpay;
-                    $scope.customerdispaly();
+                    $scope.customerdispaly('TOTAL',$scope.cart.totalpay);
                     break;
                 case 'k':
                     $scope.cardfile = false;
@@ -313,9 +306,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
                     //customer display
-                    $scope.datadisplay.line1 = 'Thank you';
-                    $scope.datadisplay.line2 = '';
-                    $scope.customerdispaly();
+                    $scope.customerdispaly('Thank you','');
 
                     $scope.ticketprint();
                 }else{
@@ -372,10 +363,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(response.code == 0){
                         $scope.productmodal      = response['data'];
                         //customer display
-                        $scope.datadisplay.line1 = $scope.productmodal['product_name'];
-                        $scope.datadisplay.line2 = $scope.productmodal['price'];
-                        $scope.customerdispaly();
-
+                        $scope.customerdispaly($scope.productmodal['product_name'],$scope.productmodal['price']);
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
@@ -421,7 +409,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.indexactiveqty = idx;
         };
         //customer display
-        $scope.customerdispaly = function(){
+        $scope.customerdispaly = function(line1,line2){
+            $scope.datadisplay.line1 = line1.substr(0,12);
+            $scope.datadisplay.line2 = line2;
             serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
                 if(response.code == 0){
 
@@ -430,6 +420,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             });
         };
+        $scope.customerdispaly('Welcome','');
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
