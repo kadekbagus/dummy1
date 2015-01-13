@@ -4,19 +4,19 @@
  */
 
 // cashier login
-Route::post('/api/v1/pos/login', function () {
+Route::post('/api/v1/pos/logincashier', function () {
     return POS\CashierAPIController::create()->postLoginCashier();
 });
 
-Route::post('/app/v1/pos/login', 'IntermediateLoginController@POS\Cashier_postLoginCashier');
+Route::post('/app/v1/pos/logincashier', 'IntermediateLoginController@POS\Cashier_postLoginCashier');
 
 
 // cashier logout
-Route::post('/api/v1/pos/logout', function () {
+Route::post('/api/v1/pos/logoutcashier', function () {
     return POS\CashierAPIController::create()->postLogoutCashier();
 });
 
-Route::post('/app/v1/pos/logout', 'IntermediateLoginController@POS\Cashier_postLogoutCashier');
+Route::post('/app/v1/pos/logoutcashier', 'IntermediateLoginController@POS\Cashier_postLogoutCashier');
 
 
 // scan barcode
@@ -75,6 +75,14 @@ Route::post('/api/v1/pos/scancart', function () {
 Route::post('/app/v1/pos/scancart', 'IntermediateAuthController@POS\Cashier_postScanCart');
 
 
+// customer display
+Route::post('/api/v1/pos/customerdisplay', function () {
+    return POS\CashierAPIController::create()->postCustomerDisplay();
+});
+
+Route::post('/app/v1/pos/customerdisplay', 'IntermediateAuthController@POS\Cashier_postCustomerDisplay');
+
+
 Route::get('/pos', function () {
     if (Auth::check()) {
         return Redirect::to('pos/dashboard');
@@ -98,11 +106,7 @@ Route::get('/pos/home', function () {
 });
 
 Route::get('/pos/dashboard', function () {
-    if (Auth::check()) {
-        return View::make('pos.dashboard');
-    } else {
-        return Redirect::to('pos');
-    }
+     return View::make('pos.dashboard');
 });
 
 

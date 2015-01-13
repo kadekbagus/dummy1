@@ -4,9 +4,12 @@
 			<div class="col-xs-6 catalogue-img col-xs-height col-middle coupon-wrapper">
 				<div>
 					<?php $x=1; ?>
-					<div class="ribbon-wrapper-yellow ribbon1st">
+					@if(in_array($product->product_id, $promo_products))
+					<div class="ribbon-wrapper-yellow ribbon{{$x}}st">
 						<div class="ribbon-yellow">Promo</div>
 					</div>
+					<?php $x++;?>
+					@endif
 					@if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now())
 					<div class="ribbon-wrapper-red ribbon{{$x}}nd">
 						<div class="ribbon-red">New</div>
@@ -73,6 +76,7 @@
 		</div>
 	</div>
 @endforeach
+
 <ul>
 @if(! is_null($subfamilies))
 	@foreach($subfamilies as $subfamily)

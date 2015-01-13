@@ -672,11 +672,7 @@ class ProductAPIController extends ControllerAPI
      * @param integer   `category_id3`              (optional) - Category ID3.
      * @param integer   `category_id4`              (optional) - Category ID4.
      * @param integer   `category_id5`              (optional) - Category ID5.
-     * @param integer   `attribute_value_id1`       (optional) - Attribute Value Id 1
-     * @param integer   `attribute_value_id2`       (optional) - Attribute Value Id 2
-     * @param integer   `attribute_value_id3`       (optional) - Attribute Value Id 3
-     * @param integer   `attribute_value_id4`       (optional) - Attribute Value Id 4
-     * @param integer   `attribute_value_id5`       (optional) - Attribute Value Id 5
+     * @param integer   `product_combinations`      (optional) - JSON String of Product Combination
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -732,29 +728,7 @@ class ProductAPIController extends ControllerAPI
             $category_id5 = OrbitInput::post('category_id5');
 
             // Product Attributes (Variant)
-            $attribute_value1 = OrbitInput::post('attribute_value1');
-            $attribute_value2 = OrbitInput::post('attribute_value2');
-            $attribute_value3 = OrbitInput::post('attribute_value3');
-            $attribute_value4 = OrbitInput::post('attribute_value4');
-            $attribute_value5 = OrbitInput::post('attribute_value5');
-
-            $attribute_value1_price = OrbitInput::post('attribute_value1_price');
-            $attribute_value2_price = OrbitInput::post('attribute_value2_price');
-            $attribute_value3_price = OrbitInput::post('attribute_value3_price');
-            $attribute_value4_price = OrbitInput::post('attribute_value4_price');
-            $attribute_value5_price = OrbitInput::post('attribute_value5_price');
-
-            $attribute_value1_sku = OrbitInput::post('attribute_value1_sku');
-            $attribute_value2_sku = OrbitInput::post('attribute_value2_sku');
-            $attribute_value3_sku = OrbitInput::post('attribute_value3_sku');
-            $attribute_value4_sku = OrbitInput::post('attribute_value4_sku');
-            $attribute_value5_sku = OrbitInput::post('attribute_value5_sku');
-
-            $attribute_value1_upc = OrbitInput::post('attribute_value1_upc');
-            $attribute_value2_upc = OrbitInput::post('attribute_value2_upc');
-            $attribute_value3_upc = OrbitInput::post('attribute_value3_upc');
-            $attribute_value4_upc = OrbitInput::post('attribute_value4_upc');
-            $attribute_value5_upc = OrbitInput::post('attribute_value5_upc');
+            $product_combinations = OrbitInput::post('product_combinations');
 
             $validator = Validator::make(
                 array(
@@ -766,39 +740,16 @@ class ProductAPIController extends ControllerAPI
                     'category_id3'      => $category_id3,
                     'category_id4'      => $category_id4,
                     'category_id5'      => $category_id5,
-
-                    'attribute_value1'  => $attribute_value1,
-                    'attribute_value2'  => $attribute_value2,
-                    'attribute_value3'  => $attribute_value3,
-                    'attribute_value4'  => $attribute_value4,
-                    'attribute_value5'  => $attribute_value5,
-
-                    'attribute_value1_price'  => $attribute_value1_price,
-                    'attribute_value2_price'  => $attribute_value2_price,
-                    'attribute_value3_price'  => $attribute_value3_price,
-                    'attribute_value4_price'  => $attribute_value4_price,
-                    'attribute_value5_price'  => $attribute_value5_price,
-
-                    'attribute_value1_sku'  => $attribute_value1_sku,
-                    'attribute_value2_sku'  => $attribute_value2_sku,
-                    'attribute_value3_sku'  => $attribute_value3_sku,
-                    'attribute_value4_sku'  => $attribute_value4_sku,
-                    'attribute_value5_sku'  => $attribute_value5_sku,
                 ),
                 array(
-                    'merchant_id'       => 'required|numeric|orbit.empty.merchant',
-                    'product_name'      => 'required',
-                    'status'            => 'required|orbit.empty.product_status',
-                    'category_id1'      => 'numeric|orbit.empty.category_id1',
-                    'category_id2'      => 'numeric|orbit.empty.category_id2',
-                    'category_id3'      => 'numeric|orbit.empty.category_id3',
-                    'category_id4'      => 'numeric|orbit.empty.category_id4',
-                    'category_id5'      => 'numeric|orbit.empty.category_id5',
-                    'attribute_value1'  => 'numeric|orbit.empty.attribute_value1',
-                    'attribute_value2'  => 'numeric|orbit.empty.attribute_value2',
-                    'attribute_value3'  => 'numeric|orbit.empty.attribute_value3',
-                    'attribute_value4'  => 'numeric|orbit.empty.attribute_value4',
-                    'attribute_value5'  => 'numeric|orbit.empty.attribute_value5',
+                    'merchant_id'           => 'required|numeric|orbit.empty.merchant',
+                    'product_name'          => 'required',
+                    'status'                => 'required|orbit.empty.product_status',
+                    'category_id1'          => 'numeric|orbit.empty.category_id1',
+                    'category_id2'          => 'numeric|orbit.empty.category_id2',
+                    'category_id3'          => 'numeric|orbit.empty.category_id3',
+                    'category_id4'          => 'numeric|orbit.empty.category_id4',
+                    'category_id5'          => 'numeric|orbit.empty.category_id5',
                 )
             );
 
@@ -862,17 +813,6 @@ class ProductAPIController extends ControllerAPI
             $newproduct->category_id4 = $category_id4;
             $newproduct->category_id5 = $category_id5;
 
-            // Save product attribute
-            $productAttributeValues = array();
-            for ($i=1; $i<=5; $i++) {
-                // If some of these product attribute are supplied and valid
-                // then it should have also the product attribute id
-                $productAttributeValues[$i] = App::make('orbit.empty.attribute_value_id' . $i);
-                if (! empty($productAttributeValues[$i])) {
-                    $newproduct->{'attribute_id' . $i} = $productAttributeValues[$i]->attribute->product_attribute_id;
-                }
-            }
-
             Event::fire('orbit.product.postnewproduct.before.save', array($this, $newproduct));
 
             $newproduct->save();
@@ -886,18 +826,77 @@ class ProductAPIController extends ControllerAPI
                 $productretailer->save();
                 $productretailers[] = $productretailer;
             }
+
+            // Save product variants (combination)
+            $variants = array();
+            OrbitInput::post('product_combinations', function($product_combinations)
+            use ($price, $merchant_id, $user, $newproduct, $product_code, &$variants)
+            {
+                $variant_decode = $this->JSONValidate($product_combinations);
+                $index = 1;
+                $product_attribute_id = $this->checkVariant($variant_decode);
+
+                foreach ($variant_decode as $variant) {
+                    // Return the default price if the variant price is empty
+                    $price = function() use (&$variants, $price, $product_code, $variant, $merchant_id, $user, $newproduct) {
+                        if (empty($variant->price)) {
+                            return $price;
+                        }
+
+                        return $variant->price;
+                    };
+
+                    // Return the default sku if the variant sku is empty
+                    $sku = function() use ($variant) {
+                        if (empty($variant->sku)) {
+                            return $product_code;
+                        }
+
+                        return $variant->sku;
+                    };
+
+                    // Return the default upc if the variant upc is empty
+                    $upc = function() use ($variant) {
+                        if (empty($variant->upc)) {
+                            return $upc_code;
+                        }
+
+                        return $variant->upc;
+                    };
+
+                    $product_variant = new ProductVariant();
+                    $product_variant->product_id = $newproduct->product_id;
+                    $product_variant->price = $price();
+                    $product_variant->sku = $sku();
+                    $product_variant->upc = $upc();
+                    $product_variant->merchant_id = $merchant_id;
+                    $product_variant->created_by = $user->user_id;
+                    $product_variant->status = 'active';
+
+                    // Save the 5 attributes value id
+                    foreach ($variant->attribute_values as $i=>$value_id) {
+                        $field_value_id = 'product_attribute_value_id' . ($i + 1);
+                        $product_variant->{$field_value_id} = $value_id;
+                    }
+                    $product_variant->save();
+
+                    $variants[] = $product_variant;
+                    $index++;
+                }
+
+                // Save the product attribute id to the product table
+                foreach ($product_attribute_id as $i=>$attr_id) {
+                    $field_attribute_id = 'attribute_id' . ($i + 1);
+                    $newproduct->$field_attribute_id = $attr_id;
+                }
+                $newproduct->save();
+            });
+
             $newproduct->setRelation('retailers', $productretailers);
             $newproduct->retailers = $productretailers;
 
-            // Save into product variants for each attribute value
-            $productVariant = new ProductVariant();
-            $productVariant->product_id = $newproduct->product_id;
-            for ($i=1; $i<=5; $i++) {
-                // Only save the supplied attribute
-                if (! empty($productAttributeValues[$i])) {
-
-                }
-            }
+            $newproduct->setRelation('variants', $variants);
+            $newproduct->variants = $variants;
 
             $newproduct->load('category1');
             $newproduct->load('category2');
@@ -930,7 +929,7 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
@@ -954,10 +953,15 @@ class ProductAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.product.postnewproduct.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
@@ -1141,8 +1145,10 @@ class ProductAPIController extends ControllerAPI
 
         // Check the existance of retailer id
         Validator::extend('orbit.empty.retailer', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
             $retailer = Retailer::excludeDeleted()->allowedForUser($this->api->user)
                         ->where('merchant_id', $value)
+                        ->where('parent_id', $merchant->merchant_id)
                         ->first();
 
             if (empty($retailer)) {
@@ -1326,5 +1332,108 @@ class ProductAPIController extends ControllerAPI
                 return TRUE;
             });
         }
+    }
+
+    /**
+     * Validate a JSON.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $string - JSON string to parse.
+     * @return mixed
+     */
+    protected function JSONValidate($string) {
+        $errorMessage = Lang::get('validation.orbit.jsonerror.field.format');
+
+        if (! is_string($string)) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        $result = @json_decode($string);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        $errorMessage = Lang::get('validation.orbit.jsonerror.field.array');
+        if (! is_array($result)) {
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Check the validity of variant.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param object $variant
+     * @return array - product attribute id
+     */
+    protected function checkVariant($variants)
+    {
+        $productAttributeId = array();
+
+        $valueNumbers = array();
+        foreach ($variants as $i=>$variant) {
+            $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
+
+            foreach ($neededProperties as $property) {
+                // It should have property specified
+                if (! property_exists($variant, $property)) {
+                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.json_property',
+                        array('property' => $property)
+                    );
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if (! is_array($variant->attribute_values)) {
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Check the price validity
+            if (! empty($variant->price)) {
+                if (! preg_match('/^[+-]?((\d+(\.\d*)?)|(\.\d+))$/', $variant->price)) {
+                    $errorMessage = Lang::get('validation.orbit.formaterror.product.attribute.value.price');
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            // Check each of these product attribute value existence
+            $merchantId = OrbitInput::post('merchant_id');
+            foreach ($variant->attribute_values as $value_id) {
+                $productAttributeValue = ProductAttributeValue::excludeDeleted('product_attribute_values')
+                                                              ->with('attribute')
+                                                              ->merchantIds(array($merchantId))
+                                                              ->where('product_attribute_value_id', $value_id)
+                                                              ->first();
+
+                if (empty($productAttributeValue)) {
+                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.value', array('id' => $value_id));
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                // Only check the first loop, no need all of them
+                // This part is f*cking confusing bro! *_*
+                if ($i === 0) {
+                    $productAttributeId[] = $productAttributeValue->attribute->product_attribute_id;
+                }
+            }
+
+            // Merge all the number of each variant
+            $currentNumber = count($variant->attribute_values);
+            $valueNumbers = array_merge(array($currentNumber), $valueNumbers);
+        }
+
+        // Check the difference of the attribute_values inside each variant
+        $min = min($valueNumbers);
+        $max = max($valueNumbers);
+        if ($min !== $max) {
+            $errorMessage = Lang::get('validation.orbit.jsonerror.field.diffcount',
+                            array('field' => 'attribute_values')
+            );
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
+        }
+
+        return $productAttributeId;
     }
 }
