@@ -153,7 +153,8 @@ return array(
             'product_sortby'       => 'The sort by argument you specify is not valid, the valid value are: registered_date, product_id, product_name, product_code, product_price, product_tax_code, product_short_description, product_long_description, product_is_new, product_new_until, product_merchant_id, product_status.',
             'product'              => array(
                     'attribute'    => array(
-                        'value'    => 'The product attribute value ID :id you specify is not found.'
+                        'value'         => 'The product attribute value ID :id you specify is not found.',
+                        'json_property' => 'Missing property of ":property" on your JSON string.',
                     ),
             ),
         ),
@@ -163,7 +164,18 @@ return array(
             'array'  => 'The JSON input you specify must be in array.',
             'field'  => array(
                 'format'    => 'The JSON input of field :field was not valid JSON input.',
-                'array'     => 'The JSON input of field :field must be in array.'
+                'array'     => 'The JSON input of field :field must be in array.',
+                'diffcount' => 'The number of items on field :field are different.',
+            ),
+        ),
+        'formaterror' => array(
+            'product' => array(
+                'attribute' => array(
+                    'default' => '',
+                    'value' => array(
+                        'price' => 'The price should be in numeric or decimal.',
+                    ),
+                ),
             ),
         ),
         'actionlist' => array(
