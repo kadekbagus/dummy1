@@ -153,7 +153,7 @@ return array(
             'product_sortby'       => 'The sort by argument you specify is not valid, the valid value are: registered_date, product_id, product_name, product_code, product_price, product_tax_code, product_short_description, product_long_description, product_is_new, product_new_until, product_merchant_id, product_status.',
             'product'              => array(
                     'attribute'    => array(
-                        'value'         => 'The product attribute value ID :id you specify is not found.',
+                        'value'         => 'The product attribute value ID :id you specify is not found or does not belongs to this merchant.',
                         'json_property' => 'Missing property of ":property" on your JSON string.',
                     ),
             ),
