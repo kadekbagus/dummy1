@@ -35,7 +35,8 @@ return array(
         ),
         'uploaded'  => array(
             'merchant' => array(
-                'logo'  => 'Merchant logo has been successfully uploaded.',
+                'logo'          => 'Merchant logo has been successfully uploaded.',
+                'delete_logo'   => 'Merchant logo has been successfully deleted.'
             ),
             'retailer' => array(
                 'logo'  => 'Retailer logo has been successfully uploaded.',
@@ -43,6 +44,10 @@ return array(
             'product' => array(
                 'main'          => 'Product image has been successfully uploaded.',
                 'delete_image'  => 'Product images has been successfully deleted.'
+            ),
+            'promotion' => array(
+                'main'          => 'Promotion image has been successfully uploaded.',
+                'delete_image'  => 'Promotion image has been successfully deleted.'
             ),
         )
     )

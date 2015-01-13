@@ -13,8 +13,9 @@ define([
 
     //set your base url
 
-     config.baseUrlServer       = 'http://192.168.0.104/orbit-shop/public/app/v1';
-     config.baseUrlServerPublic = 'http://192.168.0.109/orbit-shop/public';
+     config.baseUrlServer       = 'http://192.168.0.103/orbit-shop/public/app/v1';
+     config.baseUrlServerPublic = 'http://192.168.0.103/orbit-shop/public';
+
 
     return config;
 });

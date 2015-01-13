@@ -8,16 +8,15 @@
 'use strict';
 
 define([
+    'config'
+], function (config) {
 
-], function () {
-
-var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngKeypad'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
 
 });
-
     app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
         $scope.datauser  = localStorageService.get('user');
         var updatetime = function() {
@@ -41,7 +40,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.loginFn = function(){
             $scope.showloader = true;
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('/pos/login',$scope.login).then(function(data){
+            serviceAjax.posDataToServer('/pos/logincashier',$scope.login).then(function(data){
               if(data.code == 0){
                   $scope.shownall = false;
                   localStorageService.add('user',data.data);
@@ -57,10 +56,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
-        $scope.cart      = [];
-        $scope.product   = [];
+        $scope.cart             = [];
+        $scope.product          = [];
         $scope.productidenabled = [];
-
+        $scope.configs          = config;
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
@@ -101,7 +100,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //get product
         $scope.getproduct = function(){
-            if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);
+           /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
             serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=12').then(function(response){
                 if(response.code == 0 ){
                     if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
@@ -112,7 +111,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }else{
                     //do something when error
                 }
-                if(progressJs) progressJs("#loading").end();
+               /* if(progressJs) progressJs("#loading").end();*/
             });
         };
         //watch search
@@ -240,22 +239,24 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
            if(act) $scope.getguest();
         };
         //checkout
-        $scope.checkoutFn = function(act){
+        $scope.checkoutFn = function(act,term){
             switch(act){
                 case 't':
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
                     event.preventDefault();
-                    $timeout(function(){
+                   /* $timeout(function(){
                         angular.element('#tenderedcash').focus();
-                    },500);
+                    },500);*/
 
                     break;
                 case 'k':
-                        //terminal 1
+                    $scope.cardfile = false;
+                    //terminal 1
                     $scope.action = 'card';
                     $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
-                    serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
+                    //case success
+                    /*serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
                         if(response.code == 0){
                             //todo:agung: make sure return result
                             $scope.savetransactions();
@@ -263,7 +264,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             //do something
                             $scope.cheader = 'TRANSAKSI GAGAL';
                         }
-                    });
+                    });*/
+                    //case fail
+                    var failcard = function() {
+                        $scope.cheader = 'TRANSAKSI GAGAL';
+                        $scope.cardfile = true;
+                        $scope.headrcard = term ? term :$scope.headrcard;
+                    };
+                    $timeout(failcard, 4000);
                     break;
                 case 'd' :
                     //done
@@ -303,8 +311,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             });
         };
-        
-     
         //Ticket Print
         $scope.ticketprint = function(){
             if($scope.transaction_id){
@@ -355,15 +361,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();
+                        /*angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();*/
                     }
             });
         })();
+        //binding keypad
+        $scope.keypadFn = function(idx){
+            $scope.cart.amount = $scope.cart.amount+idx;
+        };
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('/pos/logout').then(function(data){
+            serviceAjax.posDataToServer('/pos/logoutcashier').then(function(data){
                 if(data.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("");

@@ -22,3 +22,13 @@ Route::post('/app/v1/promotion/update', 'IntermediateAuthController@Promotion_po
  * List and/or Search promotion
  */
 Route::get('/app/v1/promotion/search', 'IntermediateAuthController@Promotion_getSearchPromotion');
+
+/**
+ * Upload promotion Image
+ */
+Route::post('/app/v1/promotion/upload/image', 'IntermediateAuthController@Upload_postUploadPromotionImage');
+
+/**
+ * Delete promotion Image
+ */
+Route::post('/app/v1/promotion/delete/image', 'IntermediateAuthController@Upload_postDeletePromotionImage');

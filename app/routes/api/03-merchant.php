@@ -42,3 +42,11 @@ Route::post('/api/v1/merchant/upload/logo', function()
 {
     return UploadAPIController::create()->postUploadMerchantLogo();
 });
+
+/**
+ * Delete Merchant logo
+ */
+Route::post('/api/v1/merchant/delete/logo', function()
+{
+    return UploadAPIController::create()->postDeleteMerchantLogo();
+});

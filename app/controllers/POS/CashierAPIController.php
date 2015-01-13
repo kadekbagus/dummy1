@@ -53,24 +53,29 @@ class CashierAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('apikey', 'userdetail', 'role', 'merchants')
                         ->active()
                         ->where('username', $username)
                         ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
-                        ->first();           
+                        ->first();
 
-            if (! is_object($user) && ! \Hash::check($password, $user->user_password)) {
+            if (is_object($user)) {
+                if( ! \Hash::check($password, $user->user_password)){
+                    $message = \Lang::get('validation.orbit.access.loginfailed');
+                    ACL::throwAccessForbidden($message);
+                }else{
+                    // Start the orbit session
+                    $data = array(
+                        'logged_in' => TRUE,
+                        'user_id'   => $user->user_id,
+                    );
+                    $config = new SessionConfig(Config::get('orbit.session'));
+                    $session = new Session($config);
+                    $session->enableForceNew()->start($data);
+                }
+            } else {
                 $message = \Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
-            }else {
-                // Start the orbit session
-                $data = array(
-                    'logged_in' => TRUE,
-                    'user_id'   => $user->user_id,
-                );
-                $config = new SessionConfig(Config::get('orbit.session'));
-                $session = new Session($config);
-                $session->enableForceNew()->start($data);
             }
 
             $user->setHidden(array('user_password', 'apikey'));
@@ -108,12 +113,19 @@ class CashierAPIController extends ControllerAPI
      */
     public function postLogoutCashier()
     {
-        \Auth::logout();
-        $this->response->code = 0;
-        $this->response->message = 'success';
-        $this->response->data = 'sukses atuh kang';
-        return $this->render();
+        try {
+            $config = new SessionConfig(Config::get('orbit.session'));
+            $session = new Session($config);
+            $this->prepareSession();
+
+            $session->start(array(), 'no-session-creation');
+            $session->destroy();
+        } catch (Exception $e) {
+        }
+
+        return \Redirect::to('/pos');
     }
+
 
 
     /**
@@ -126,9 +138,11 @@ class CashierAPIController extends ControllerAPI
     public function postScanBarcode()
     {
         try {
-            $driver = '~/drivers/64bits/barcode';
-            $device = '/dev/domino/scanner';
-            $cmd = 'sudo '.$driver.' '.$device;
+            // $driver = '~/drivers/64bits/barcode';
+            // $device = '/dev/domino/scanner';
+            $driver = Config::get('orbit.devices.barcode.path');
+            $params = Config::get('orbit.devices.barcode.params');
+            $cmd = 'sudo '.$driver.' '.$params;
             $barcode = shell_exec($cmd);
 
             //echo "barcode nya ".$barcode;
@@ -569,8 +583,8 @@ class CashierAPIController extends ControllerAPI
             fwrite($fp, $write);
             fclose($fp);
 
-            $print = "cat ".storage_path()."/views/receipt.txt > /dev/domino/printer";
-            $cut = "~/drivers/64bits/cut_paper";
+            $print = "cat ".storage_path()."/views/receipt.txt > ".Config::get('orbit.devices.printer.params');
+            $cut = Config::get('orbit.devices.cutpaper.path');
 
             shell_exec($print);
 
@@ -625,11 +639,9 @@ class CashierAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            //sudo ./edc --device /dev/domino/terminal --words
-
-            $driver = '~/drivers/64bits/edc';
-            $device = '/dev/domino/terminal';
-            $cmd = 'sudo '.$driver.' --device '.$device.' --words '.$amount;
+            $driver = Config::get('orbit.devices.edc.path');
+            $params = Config::get('orbit.devices.edc.params');
+            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
             $card = shell_exec($cmd);
 
             $this->response->data = $card;
@@ -664,12 +676,59 @@ class CashierAPIController extends ControllerAPI
     public function postCashDrawer()
     {
         try {
-            $driver = '~/drivers/64bits/cash_drawer';
+            $driver = Config::get('orbit.devices.cashdrawer.path');
             $cmd = 'sudo '.$driver;
             $drawer = shell_exec($cmd);
 
             $this->response->data = $drawer;
 
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+
+    /**
+     * POST - Scan Cart
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postScanCart()
+    {
+        try {
+            $driver = Config::get('orbit.devices.barcode.path');
+            $params = Config::get('orbit.devices.barcode.params');
+            $cmd = 'sudo '.$driver.' '.$params;
+            $barcode = shell_exec($cmd);
+            
+            $barcode = trim($barcode);
+            $cart = \Cart::with('details')->where('cart_code', $barcode)
+                    ->active()
+                    ->first();      
+
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.product');
+                ACL::throwAccessForbidden($message);
+            }
+
+            $this->response->data = $cart;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';

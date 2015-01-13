@@ -27,3 +27,8 @@ Route::get('/app/v1/merchant/search', 'IntermediateAuthController@Merchant_getSe
  * Upload Merchant Logo
  */
 Route::post('/app/v1/merchant/upload/logo', 'IntermediateAuthController@Upload_postUploadMerchantLogo');
+
+/**
+ * Delete Merchant Logo
+ */
+Route::post('/app/v1/merchant/delete/logo', 'IntermediateAuthController@Upload_postDeleteMerchantLogo');
