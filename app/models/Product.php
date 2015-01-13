@@ -141,4 +141,49 @@ class Product extends Eloquent
         return $this->hasMany('Media', 'object_id', 'product_id')
                     ->where('object_name', 'product');
     }
+
+    /**
+     * Get last attribute index number of an object of Product. In example,
+     * if 'attribute_id1' and 'attribute_id2' filled then the return value
+     * would be '2'. If none of the attribute id are filled then the output
+     * would be '1'.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return int
+     */
+    public function getLastAttributeIndexNumber()
+    {
+        for ($i=5; $i>=1; $i--) {
+            if (! empty($this->{'attribute_id' . $i})) {
+                break;
+            }
+        }
+
+        return $i;
+    }
+
+    /**
+     * Determine whether particular attribute Id are already on the product.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param int $attributeId - The attribute id to check
+     * @return boolean
+     */
+    public function isAttributeIdExists($id)
+    {
+        $ids = array();
+
+        // Loop through all the attribute_idX field
+        for ($i=1; $i<=5; $i++) {
+            if (! empty($this->{'attribute_id' . $i})) {
+                $ids[] = $this->{'attribute_id' . $i};
+            }
+        }
+
+        if (in_array($id, $ids)) {
+            return TRUE;
+        }
+
+        return FALSE;
+    }
 }
