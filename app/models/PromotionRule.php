@@ -12,7 +12,7 @@ class PromotionRule extends Eloquent
 
     protected $primaryKey = 'promotion_rule_id';
 
-    protected $hidden = array('rule_object_type', 'rule_object_id1', 'rule_object_id2', 'rule_object_id3', 'rule_object_id4', 'rule_object_id5', 'coupon_redeem_rule_value');
+    protected $hidden = array('rule_object_type', 'rule_object_id1', 'rule_object_id2', 'rule_object_id3', 'rule_object_id4', 'rule_object_id5', 'is_cumulative_with_coupons', 'is_cumulative_with_promotions', 'coupon_redeem_rule_value');
 
     public function promotion()
     {
