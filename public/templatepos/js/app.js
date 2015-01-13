@@ -60,6 +60,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.product          = [];
         $scope.productidenabled = [];
         $scope.configs          = config;
+        $scope.datadisplay      = {
+            line1 : 'Welcome',
+            line2 : ''
+        };
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
@@ -168,9 +172,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 //customer display
+                 $scope.datadisplay.line1 = $scope.productmodal['product_name'];
+                 $scope.datadisplay.line2 = $scope.productmodal['price'];
+                 $scope.customerdispaly();
                  $location.hash('bottom');
-
-                 // call $anchorScroll()
                  $anchorScroll();
                  $scope.searchproduct    = '';
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
@@ -241,12 +247,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 case 't':
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
-                    event.preventDefault();
+
                     $scope.isvirtual = true;
-                   /* $timeout(function(){
+                   /* event.preventDefault();
+                      $timeout(function(){
                         angular.element('#tenderedcash').focus();
                     },500);*/
-
+                    //customer display
+                    $scope.datadisplay.line1 = 'TOTAL';
+                    $scope.datadisplay.line2 = $scope.cart.totalpay;
+                    $scope.customerdispaly();
                     break;
                 case 'k':
                     $scope.cardfile = false;
@@ -302,6 +312,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.action = 'done';
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
+                    //customer display
+                    $scope.datadisplay.line1 = 'Thank you';
+                    $scope.datadisplay.line2 = '';
+                    $scope.customerdispaly();
+
                     $scope.ticketprint();
                 }else{
                     //do something
@@ -355,7 +370,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                     if(response.code == 0){
-                        $scope.productmodal        = response['data'];
+                        $scope.productmodal      = response['data'];
+                        //customer display
+                        $scope.datadisplay.line1 = $scope.productmodal['product_name'];
+                        $scope.datadisplay.line2 = $scope.productmodal['price'];
+                        $scope.customerdispaly();
+
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
@@ -399,6 +419,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.isvirtualqty = bool;
             if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
             $scope.indexactiveqty = idx;
+        };
+        //customer display
+        $scope.customerdispaly = function(){
+            serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
+                if(response.code == 0){
+
+                }else {
+                    //do something
+                }
+            });
         };
         //logout
         $scope.logoutfn =  function(){
