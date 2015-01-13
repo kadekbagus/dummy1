@@ -749,6 +749,65 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+    /**
+     * POST - Customer display
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCustomerDisplay()
+    {
+        try {
+            $line1 = trim(OrbitInput::post('line1'));
+            $line2 = trim(OrbitInput::post('line2'));
+
+            $validator = Validator::make(
+                array(
+                    'line1' => $line1,
+                ),
+                array(
+                    'line1' => 'required',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $driver = Config::get('orbit.devices.cdisplay.path');
+            $params = Config::get('orbit.devices.cdisplay.params');
+
+            $cmd = 'screen '.$params;
+            $screen = shell_exec($cmd);
+
+            $cmd = 'sudo '.$driver.' '.$line1.$line2;
+            $display = shell_exec($cmd);
+
+            $this->response->data = $screen;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
