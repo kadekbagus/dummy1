@@ -1,8 +1,8 @@
 <?php
-class Promotion extends Eloquent
+class Coupon extends Eloquent
 {
     /**
-     * Promotion Model
+     * Coupon Model
      *
      * @author Tian <tian@dominopos.com>
      */
@@ -27,8 +27,6 @@ class Promotion extends Eloquent
     protected $table = 'promotions';
 
     protected $primaryKey = 'promotion_id';
-
-    protected $hidden = array('is_coupon', 'maximum_issued_coupon', 'coupon_validity_in_days', 'coupon_notification');
 
     public function promotionrule()
     {
@@ -55,23 +53,18 @@ class Promotion extends Eloquent
         return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
     }
 
-    public function scopeProductPromotionType($query)
+    public function retailersredeem()
     {
-        return $query->where('promotions.promotion_type', '=', 'product');
+        return $this->belongsToMany('Retailer', 'promotion_retailer_redeem', 'promotion_id', 'retailer_id');
     }
 
-    public function scopeCartPromotionType($query)
+    public function issuedcoupons()
     {
-        return $query->where('promotions.promotion_type', '=', 'cart');
-    }
-
-    public function scopePermanent($query)
-    {
-        return $query->where('promotions.is_permanent', '=', 'Y');
+        return $this->hasMany('IssuedCoupon', 'promotion_id', 'promotion_id');
     }
 
     /**
-     * Add Filter promotions based on user who request it.
+     * Add Filter coupons based on user who request it.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
@@ -94,8 +87,8 @@ class Promotion extends Eloquent
             return $builder;
         }
 
-        // This will filter only promotions which belongs to merchant
-        // The merchant owner has an ability to view all promotions
+        // This will filter only coupons which belongs to merchant
+        // The merchant owner has an ability to view all coupons
         $builder->where(function($query) use ($user)
         {
             $prefix = DB::getTablePrefix();
@@ -107,13 +100,13 @@ class Promotion extends Eloquent
     }
 
     /**
-     * Promotion has many uploaded media.
+     * Coupon has many uploaded media.
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function media()
     {
         return $this->hasMany('Media', 'object_id', 'promotion_id')
-                    ->where('object_name', 'promotion');
+                    ->where('object_name', 'coupon');
     }
 }
