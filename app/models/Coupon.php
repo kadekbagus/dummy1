@@ -28,9 +28,9 @@ class Coupon extends Eloquent
 
     protected $primaryKey = 'promotion_id';
 
-    public function promotionrule()
+    public function couponrule()
     {
-        return $this->hasOne('PromotionRule', 'promotion_id', 'promotion_id');
+        return $this->hasOne('CouponRule', 'promotion_id', 'promotion_id');
     }
 
     public function merchant()
@@ -48,12 +48,12 @@ class Coupon extends Eloquent
         return $this->belongsTo('User', 'modified_by', 'user_id');
     }
 
-    public function retailers()
+    public function issueretailers()
     {
         return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
     }
 
-    public function retailersredeem()
+    public function redeemretailers()
     {
         return $this->belongsToMany('Retailer', 'promotion_retailer_redeem', 'promotion_id', 'retailer_id');
     }
