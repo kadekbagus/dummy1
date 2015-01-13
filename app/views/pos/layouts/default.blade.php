@@ -21,11 +21,6 @@
     <script src="{{ URL::asset('templatepos/vendor/progressjs/progress.js') }}"></script>
     <script src="{{ URL::asset('templatepos/vendor/bootstrap/bootstrap.min.js') }}"></script>
 
-    {{--lib virtual input--}}
-    <script type="text/javascript" src="{{ URL::asset('templatepos/vendor/ngkeypad/ngdraggable/ngDraggable.js') }}"></script>
-    <script type="text/javascript" src="{{ URL::asset('templatepos/vendor/ngkeypad/ngkeypad/ngKey.js') }}"></script>
-    <script type="text/javascript" src="{{ URL::asset('templatepos/vendor/ngkeypad/ngkeypad/ngKeypad.js') }}"></script>
-    <script type="text/javascript" src="{{ URL::asset('templatepos/vendor/ngkeypad/ngkeypad/ngKeypadInput.js') }}"></script>
 
     <script  data-main="{{ URL::asset('templatepos/js/main.js') }}" src="{{ URL::asset('templatepos/vendor/require/require.js') }}"></script>
      <!-- stylesheet -->

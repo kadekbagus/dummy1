@@ -1,12 +1,12 @@
 .numpad {
   position: relative;
-  height: 300px;
-  width: 215px;
+  height: 320px;
+  width: 200px;
   padding: 13px;
   margin-left: 400px;
   z-index: 10000;
   background: #46c2ff;
-
+  margin-top: -260px;
   box-shadow: rgba(0, 0, 0, 0.4) 0 0 25px;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .numpad .button-wrapper .button-wide {
-  width: 82px;
+  width: 170px;
 }
 
 .numpad .button-wrapper .pressed {
@@ -82,33 +82,21 @@
 }
 
 .numpad .close {
-  -webkit-border-radius: 15px;
-  -moz-border-radius: 15px;
-  -ms-border-radius: 15px;
-  -o-border-radius: 15px;
-  border-radius: 15px;
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=30);
-  opacity: 0.3;
-  -webkit-box-shadow: black 0px 1px 2px inset;
-  -moz-box-shadow: black 0px 1px 2px inset;
-  box-shadow: black 0px 1px 2px inset;
-  position: absolute;
-  box-sizing: border-box;
-  width: 30px;
-  height: 30px;
-  top: 10px;
-  left: 198px;
-  background: #fff;
-  border: none;
-  padding-top: 4px;
+    float:right;
+    margin-top:-265px;
+    margin-right:-30px;
+    cursor:pointer;
+    color: #fff;
+
+    border-radius: 30px;
+    background: #D60000;
+    font-size: 31px;
+    font-weight: bold;
+
+    line-height: 0px;
+    padding: 11px 3px;
 }
 
 .numpad .close:before {
-  font-family: Arial;
-  content: "X";
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);
-  opacity: 0.6;
-  font-weight: bold;
-  color: #000;
-  font-size: 16px;
+    content: "×";
 }

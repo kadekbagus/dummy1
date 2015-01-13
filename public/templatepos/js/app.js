@@ -11,7 +11,7 @@ define([
     'config'
 ], function (config) {
 
-var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngKeypad'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');
@@ -26,7 +26,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $timeout(updatetime, 1000);
     }]);
 
-    app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService' , function($scope,serviceAjax,localStorageService) {
+    app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
 
         //init object
         $scope.login  = {};
@@ -60,6 +60,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.product          = [];
         $scope.productidenabled = [];
         $scope.configs          = config;
+        $scope.datadisplay      = {
+            line1 : 'Welcome',
+            line2 : ''
+        };
         //show modal product detail
         $scope.showdetailFn = function(id,act){
             $scope.productmodal        = $scope.product[id];
@@ -69,7 +73,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //get unix guestid
         ($scope.getguest = function(){
-                $scope.guests = moment().format('DD-MM-YYYYY hh:mm:ss');
+                $scope.guests = moment().format('DD-MM-YYYY hh:mm:ss');
         })();
         //function -+ wish list
         $scope.qaFn = function(id,action){
@@ -94,10 +98,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
             $scope.countcart();
         };
-        // qty change manual
-        $scope.qtychangemanualFn = function(){
-            $scope.countcart();
-        };
+
         //get product
         $scope.getproduct = function(){
            /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
@@ -171,9 +172,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //insert to cart
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
+                 //customer display
+                 $scope.datadisplay.line1 = $scope.productmodal['product_name'];
+                 $scope.datadisplay.line2 = $scope.productmodal['price'];
+                 $scope.customerdispaly();
                  $location.hash('bottom');
-
-                 // call $anchorScroll()
                  $anchorScroll();
                  $scope.searchproduct    = '';
                  $scope.adddelenadis($scope.productmodal['product_id'],'add');
@@ -244,11 +247,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 case 't':
                     $scope.action  = 'cash';
                     $scope.cheader = 'PEMBAYARAN TUNAI';
-                    event.preventDefault();
-                   /* $timeout(function(){
+
+                    $scope.isvirtual = true;
+                   /* event.preventDefault();
+                      $timeout(function(){
                         angular.element('#tenderedcash').focus();
                     },500);*/
-
+                    //customer display
+                    $scope.datadisplay.line1 = 'TOTAL';
+                    $scope.datadisplay.line2 = $scope.cart.totalpay;
+                    $scope.customerdispaly();
                     break;
                 case 'k':
                     $scope.cardfile = false;
@@ -304,6 +312,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.action = 'done';
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
+                    //customer display
+                    $scope.datadisplay.line1 = 'Thank you';
+                    $scope.datadisplay.line2 = '';
+                    $scope.customerdispaly();
+
                     $scope.ticketprint();
                 }else{
                     //do something
@@ -357,7 +370,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         ($scope.scanproduct = function(){
             serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                     if(response.code == 0){
-                        $scope.productmodal        = response['data'];
+                        $scope.productmodal      = response['data'];
+                        //customer display
+                        $scope.datadisplay.line1 = $scope.productmodal['product_name'];
+                        $scope.datadisplay.line2 = $scope.productmodal['price'];
+                        $scope.customerdispaly();
+
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
@@ -366,9 +384,51 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
             });
         })();
-        //binding keypad
+        //binding keypad cash
         $scope.keypadFn = function(idx){
-            $scope.cart.amount = $scope.cart.amount+idx;
+            if(idx == 'c'){
+                $scope.cart.amount = '';
+                $scope.cart.change = '';
+            }else if(idx =='d'){
+                $scope.virtualFn(false);
+            }else if(idx == 'r'){
+                $scope.cart.amount = $scope.cart.amount.length == 1 ? 0 : $scope.cart.amount != '' ? $scope.cart.amount.substring(0, $scope.cart.amount.length-1) : 0;
+            }else{
+                $scope.cart.amount =  $scope.cart.amount == 0 ? idx : $scope.cart.amount+idx;
+            }
+
+        };
+        //binding keypad qty
+        $scope.keypaqtydFn = function(idx){
+            if(idx == 'c'){
+                $scope.cart[$scope.indexactiveqty]['qty'] = 0;
+            }else if(idx =='d'){
+                $scope.virtualqtyFn(false);
+            }else if(idx == 'r'){
+                $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'].length == 1 ? 0 :$scope.cart[$scope.indexactiveqty]['qty'] != '' ? $scope.cart[$scope.indexactiveqty]['qty'].substring(0, $scope.cart[$scope.indexactiveqty]['qty'].length-1) : 0;
+            }else{
+                $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? idx : $scope.cart[$scope.indexactiveqty]['qty']+idx;
+            }
+            $scope.countcart();
+        };
+        //show virtual
+        $scope.virtualFn = function(bool){
+           $scope.isvirtual = bool;
+        };
+        $scope.virtualqtyFn = function(bool,idx){
+            $scope.isvirtualqty = bool;
+            if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
+            $scope.indexactiveqty = idx;
+        };
+        //customer display
+        $scope.customerdispaly = function(){
+            serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
+                if(response.code == 0){
+
+                }else {
+                    //do something
+                }
+            });
         };
         //logout
         $scope.logoutfn =  function(){
