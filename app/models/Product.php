@@ -93,6 +93,30 @@ class Product extends Eloquent
         return $this->hasMany('ProductVariant', 'product_id', 'product_id');
     }
 
+    public function attribute1()
+    {
+        return $this->belongsTo('ProductAttribute', 'attribute_id1', 'product_attribute_id');
+    }
+
+    public function attribute2()
+    {
+        return $this->belongsTo('ProductAttribute', 'attribute_id2', 'product_attribute_id');
+    }
+
+    public function attribute3()
+    {
+        return $this->belongsTo('ProductAttribute', 'attribute_id3', 'product_attribute_id');
+    }
+
+    public function attribute4()
+    {
+        return $this->belongsTo('ProductAttribute', 'attribute_id4', 'product_attribute_id');
+    }
+    public function attribute5()
+    {
+        return $this->belongsTo('ProductAttribute', 'attribute_id5', 'product_attribute_id');
+    }
+
     /**
      * Add Filter retailers based on user who request it.
      *
