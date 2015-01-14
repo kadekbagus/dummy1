@@ -368,8 +368,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        /*angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();*/
+                        angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();
                     }
             });
         })();
