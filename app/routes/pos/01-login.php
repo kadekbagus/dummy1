@@ -84,11 +84,11 @@ Route::post('/app/v1/pos/customerdisplay', 'IntermediateAuthController@POS\Cashi
 
 
 Route::get('/pos', function () {
-    if (Auth::check()) {
-        return Redirect::to('pos/dashboard');
-    } else {
-        return View::make('pos.login');
-    }
+    return View::make('pos.login');
+});
+
+Route::get('/pos/signin', function () {
+    return View::make('pos.login');
 });
 
 Route::get('/pos/home', function () {
