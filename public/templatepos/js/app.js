@@ -234,7 +234,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.cart             = [];
             $scope.searchproduct    = '';
             $scope.getproduct();
-           if(act) $scope.getguest();
+            if(act) $scope.getguest();
+            $scope.customerdispaly('Welcome','');
         };
         //checkout
         $scope.checkoutFn = function(act,term){
@@ -367,8 +368,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        /*angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();*/
+                        angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();
                     }
             });
         })();
@@ -407,6 +408,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.isvirtualqty = bool;
             if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
             $scope.indexactiveqty = idx;
+            $scope.countcart();
         };
         //customer display
         $scope.customerdispaly = function(line1,line2){
@@ -425,9 +427,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
             serviceAjax.posDataToServer('/pos/logoutcashier').then(function(data){
-                if(data.code == 0){
+               var dummy = true;
+                if(dummy){
                     localStorageService.remove('user');
-                    window.location.assign("");
+                    window.location.assign("signin");
                 }else{
                     alert('gagal logout');
                 }

@@ -11800,6 +11800,9 @@ body {
         width:195px;
         margin-left : -10px;
     }
+    h6 {
+        margin-top:1px !important;
+    }
 
 }
 /*landscape 10 inc*/
@@ -11812,6 +11815,9 @@ body {
         font-size: 19px
     }
 
+    h6 {
+        margin-top:-4px !important;
+    }
     .mini-box {
         width:250px;
         margin-left : 2px;
@@ -11819,6 +11825,9 @@ body {
     .mini-boxright {
         width:250px;
         margin-left : -10px;
+    }
+    .numpadqty {
+        margin-left: 493px !important;
     }
 
 }

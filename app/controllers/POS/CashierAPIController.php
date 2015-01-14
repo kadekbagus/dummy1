@@ -138,21 +138,25 @@ class CashierAPIController extends ControllerAPI
     public function postScanBarcode()
     {
         try {
-            // $driver = '~/drivers/64bits/barcode';
-            // $device = '/dev/domino/scanner';
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
             $driver = Config::get('orbit.devices.barcode.path');
             $params = Config::get('orbit.devices.barcode.params');
             $cmd = 'sudo '.$driver.' '.$params;
             $barcode = shell_exec($cmd);
 
-            //echo "barcode nya ".$barcode;
             $barcode = trim($barcode);
             $product = Product::where('upc_code', $barcode)
                     ->active()
                     ->first();      
 
             if (! is_object($product)) {
-                $message = \Lang::get('validation.orbit.empty.product');
+                $message = \Lang::get('validation.orbit.empty.upc_code');
                 ACL::throwAccessForbidden($message);
             }
 
@@ -782,6 +786,13 @@ class CashierAPIController extends ControllerAPI
 
             $cmd = 'screen '.$params;
             $screen = shell_exec($cmd);
+
+            if(strlen($line1)<20)
+            {
+                $line1_length = strlen($line1);
+                $fill = 40 - $line1_length;
+                $line1 = str_pad($line1, $fill, "\ ");
+            }
 
             $cmd = 'sudo '.$driver.' '.$line1.$line2;
             $display = shell_exec($cmd);
