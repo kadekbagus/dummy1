@@ -234,7 +234,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.cart             = [];
             $scope.searchproduct    = '';
             $scope.getproduct();
-           if(act) $scope.getguest();
+            if(act) $scope.getguest();
+            $scope.customerdispaly('Welcome','');
         };
         //checkout
         $scope.checkoutFn = function(act,term){
