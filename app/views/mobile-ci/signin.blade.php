@@ -31,10 +31,10 @@
       </header>
       <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
         <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" placeholder="Email" />
+          <input type="text" class="form-control" name="email" id="email" placeholder="Harap masukan alamat email Anda" />
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">Enter</button>
+          <button type="submit" class="btn btn-info btn-block">Masuk</button>
         </div>
       </form>
     </div>

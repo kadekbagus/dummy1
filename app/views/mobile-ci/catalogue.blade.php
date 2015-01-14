@@ -44,6 +44,12 @@
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
 	{{ HTML::script('mobile-ci/scripts/jquery.storageapi.min.js') }}
 	<script type="text/javascript">
+		// window.onunload = function(){};
+		$(window).bind("pageshow", function(event) {
+		    if (event.originalEvent.persisted) {
+		        window.location.reload() 
+		    }
+		});
 		$(document).ready(function(){
 
 			$('.family-list').on('click', 'a.family-a', function(event){
@@ -100,6 +106,7 @@
 			// add to cart
 			$('.family-list').on('click', 'a.product-add-to-cart', function(event){
 				var prodid = $(this).data('product-id');
+				var prodvarid = $(this).data('product-variant-id');
 				var img = $(this).children('img');
 				var cart = $('#shopping-cart');
 				$.ajax({
@@ -107,6 +114,7 @@
 					method: 'POST',
 					data: {
 						productid: prodid,
+						productvariantid: prodvarid,
 						qty:1
 					}
 				}).done(function(data){
