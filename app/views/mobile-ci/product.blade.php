@@ -79,11 +79,12 @@
 			@if(! is_null($product->attribute1))
 			<div class="col-xs-4 main-theme-text">
 				<div class="radio-container">
-					<ul><h5>{{ $product->attribute1->product_attribute_name }}</h5>
+					<h5>{{ $product->attribute1->product_attribute_name }}</h5>
+					<ul id="attribute1">
 						<?php $attr_val = array();?>
 						@foreach($attributes as $attribute)
 						@if($attribute->attr1 === $product->attribute1->product_attribute_name && !in_array($attribute->value1, $attr_val))
-				        <li><input type="radio" name="size" value="{{$attribute->value1}}" ><span class="attribute-title">{{ $attribute->value1 }}</span></li>
+				        <li><input type="radio" data-attr-lvl="1" class="attribute_value_id" name="product_attribute_value_id1" value="{{$attribute->attr_val_id1}}" ><span class="attribute-title">{{ $attribute->value1 }}</span></li>
 				        <?php $attr_val[] = $attribute->value1;?>
 				        @endif
 				        @endforeach
@@ -94,18 +95,46 @@
 			@if(! is_null($product->attribute2))
 			<div class="col-xs-4 main-theme-text">
 				<div class="radio-container">
-					<ul><h5>{{ $product->attribute2->product_attribute_name }}</h5>
-						<?php $attr_val = array();?>
-						@foreach($attributes as $attribute)
-						@if($attribute->attr2 === $product->attribute2->product_attribute_name && !in_array($attribute->value2, $attr_val))
-				        <li><input type="radio" name="size" value="{{$attribute->value2}}" ><span class="attribute-title">{{ $attribute->value2 }}</span></li>
-				        <?php $attr_val[] = $attribute->value1;?>
-				        @endif
-				        @endforeach
+					<h5>{{ $product->attribute2->product_attribute_name }}</h5>
+					<ul id="attribute2">
+						
 				    </ul>
 				</div>
 			</div>
 			@endif
+			@if(! is_null($product->attribute3))
+			<div class="col-xs-4 main-theme-text">
+				<div class="radio-container">
+					<h5>{{ $product->attribute3->product_attribute_name }}</h5>
+					<ul id="attribute3">
+						
+				    </ul>
+				</div>
+			</div>
+			@endif
+		</div>
+		<div class="row">
+			@if(! is_null($product->attribute4))
+			<div class="col-xs-4 main-theme-text">
+				<div class="radio-container">
+					<h5>{{ $product->attribute4->product_attribute_name }}</h5>
+					<ul id="attribute4">
+						
+				    </ul>
+				</div>
+			</div>
+			@endif
+			@if(! is_null($product->attribute5))
+			<div class="col-xs-4 main-theme-text">
+				<div class="radio-container">
+					<h5>{{ $product->attribute5->product_attribute_name }}</h5>
+					<ul id="attribute5">
+						
+				    </ul>
+				</div>
+			</div>
+			@endif
+		</div>
 			<!-- <div class="col-xs-4 main-theme-text">
 				<div class="radio-container">
 					<ul><h5>Colors</h5>
@@ -143,7 +172,6 @@
 					</tbody>
 				</table>
 			</div> -->
-		</div>
 	</div>
 	<div class="col-xs-12 product-bottom main-theme ">
 		<div class="row">
@@ -153,15 +181,15 @@
 		</div>
 		<div class="row">
 			@if(count($promotions)>0)
-			<div class="col-xs-6 strike">
-				<h3 class="currency"><small>IDR</small> {{ $product->price + 0 }}</h3>
+			<div class="col-xs-6 strike" id="price-before">
+				<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
 			</div>
-			<div class="col-xs-6 pull-right">
-				<h3 class="currency"><small>IDR</small> {{ $product->price - ($product->price * $promotion->discount_value) + 0 }}</h3>
+			<div class="col-xs-6 pull-right" id="price">
+				<h3 class="currency"><small>IDR</small> <span>{{ $product->price - ($product->price * $promotion->discount_value) + 0 }}</span></h3>
 			</div>
 			@else
-			<div class="col-xs-6 pull-right">
-				<h3 class="currency"><small>IDR</small> {{ $product->price + 0 }}</h3>
+			<div class="col-xs-6 pull-right" id="price">
+				<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
 			</div>
 			@endif
 		</div>
@@ -173,7 +201,7 @@
 				</div>
 			</div>
 			<div class="col-xs-2 col-ms-1 col-md-1 col-sm-1 col-lg-1 pull-right">
-				<div class="circlet btn-blue pull-right">
+				<div class="circlet btn-blue pull-right add-to-cart-button btn-disabled">
 					<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
 				</div>
 			</div>
@@ -184,10 +212,212 @@
 @stop
 
 @section('ext_script_bot')
+	{{ HTML::script('mobile-ci/scripts/jquery-ui.min.js') }}
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
 	<script type="text/javascript">
-		$('#backBtnProduct').click(function(){
-		    window.history.back()
+		var indexOf = function(needle) {
+		    if(typeof Array.prototype.indexOf === 'function') {
+		        indexOf = Array.prototype.indexOf;
+		    } else {
+		        indexOf = function(needle) {
+		            var i = -1, index = -1;
+
+		            for(i = 0; i < this.length; i++) {
+		                if(this[i] === needle) {
+		                    index = i;
+		                    break;
+		                }
+		            }
+
+		            return index;
+		        };
+		    }
+
+		    return indexOf.call(this, needle);
+		};
+		var variants = {{ json_encode($product->variants) }};
+		var promotions = {{ json_encode($promotions) }};
+		var attributes = {{ json_encode($attributes) }};
+		var itemReady = [];
+		$(document).ready(function(){
+			// console.log(variants.length);
+			$('#price-before span').text('');
+			$('#price span').text('');
+			if(variants.length < 2){
+				var itemReady = [];
+				itemReady = variants;
+				$('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
+				var pricebefore = parseFloat(itemReady[0].price);
+				var priceafter;
+				if(promotions.length < 1){
+					priceafter = pricebefore;
+				} else {
+					// console.log(promotions);
+					//get first promotions value
+					priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
+				}
+				$('#price-before span').text(pricebefore);
+				$('#price span').text(priceafter);
+			}
+			var selectedVariant = {};
+			var selectedLvl, selectedVal;
+			selectedVariant.attr1 = undefined;
+			selectedVariant.attr2 = undefined;
+			selectedVariant.attr3 = undefined;
+			selectedVariant.attr4 = undefined;
+			selectedVariant.attr5 = undefined;
+			$('.product-attributes').on('change', '.attribute_value_id', function($e){
+				selectedVal = $(this).val();
+				selectedLvl = $(this).data('attr-lvl');
+				var attrArr = [];
+				var filteredAttr = $.grep(attributes, function(n, i){
+					switch(selectedLvl){
+						case 1:
+							selectedVariant.attr1 = selectedVal;
+							selectedVariant.attr2 = undefined;
+							selectedVariant.attr3 = undefined;
+							selectedVariant.attr4 = undefined;
+							selectedVariant.attr5 = undefined;
+							return n.attr_val_id1 == selectedVal;
+						case 2:
+							selectedVariant.attr2 = selectedVal;
+							selectedVariant.attr3 = undefined;
+							selectedVariant.attr4 = undefined;
+							selectedVariant.attr5 = undefined;
+							return n.attr_val_id2 == selectedVal;
+						case 3:
+							selectedVariant.attr3 = selectedVal;
+							selectedVariant.attr4 = undefined;
+							selectedVariant.attr5 = undefined;
+							return n.attr_val_id3 == selectedVal;
+						case 4:
+							selectedVariant.attr4 = selectedVal;
+							selectedVariant.attr5 = undefined;
+							return n.attr_val_id4 == selectedVal;
+						case 5:
+							selectedVariant.attr5 = selectedVal;
+							return n.attr_val_id5 == selectedVal;
+					}
+				});
+				for(var i= selectedLvl+1;i<=5;i++){
+					$('#attribute'+i).html('');
+				}
+				for(var i=0; i<filteredAttr.length; i++){
+					switch(selectedLvl){
+						case 1:
+							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id2) < 0){
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id2 +'" ><span class="attribute-title">'+ filteredAttr[i].value2 +'</span></li>')
+								attrArr.push(filteredAttr[i].attr_val_id2);
+							}
+							break;
+						case 2:
+							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id3) < 0){
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id3 +'" ><span class="attribute-title">'+ filteredAttr[i].value3 +'</span></li>')
+								attrArr.push(filteredAttr[i].attr_val_id3);
+							}
+							break;
+						case 3:
+							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id4) < 0){
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id4 +'" ><span class="attribute-title">'+ filteredAttr[i].value4 +'</span></li>')
+								attrArr.push(filteredAttr[i].attr_val_id4);
+							}
+							break;
+						case 4:
+							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id5) < 0){
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id5 +'" ><span class="attribute-title">'+ filteredAttr[i].value5 +'</span></li>')
+								attrArr.push(filteredAttr[i].attr_val_id5);
+							}
+							break;
+					}
+				}
+				
+				itemReady = $.grep(variants, function(n, i){
+					return (n.product_attribute_value_id1 == selectedVariant.attr1) && (n.product_attribute_value_id2 == selectedVariant.attr2) && (n.product_attribute_value_id3 == selectedVariant.attr3) && (n.product_attribute_value_id4 == selectedVariant.attr4) && (n.product_attribute_value_id5 == selectedVariant.attr5);
+				});
+				
+				if(itemReady.length > 0){
+					// console.log(itemReady);
+					$('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
+					var pricebefore = parseFloat(itemReady[0].price);
+					var priceafter;
+					if(promotions.length < 1){
+						priceafter = pricebefore;
+					} else {
+						// console.log(promotions);
+						//get first promotions value
+						priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
+					}
+					$('#price-before span').text(pricebefore);
+					$('#price span').text(priceafter);
+				}else{
+					$('#price-before span').text('');
+					$('#price span').text('');
+					$('.add-to-cart-button').addClass('btn-disabled').removeAttr('id');
+				}
+			});
+			$('#backBtnProduct').click(function(){
+			    window.history.back()
+			});
+			$('body').on('click', '#addToCartButton', function($event){
+				// add to cart
+				var prodid = itemReady[0].product_id;
+				var prodvarid = itemReady[0].product_variant_id;
+				var img = $(this).children('img');
+				var cart = $('#shopping-cart');
+				
+				$.ajax({
+					url: apiPath+'customer/addtocart',
+					method: 'POST',
+					data: {
+						productid: prodid,
+						productvariantid: prodvarid,
+						qty:1
+					}
+				}).done(function(data){
+					// animate cart
+					
+					var imgclone = img.clone().offset({
+						top: img.offset().top,
+						left: img.offset().left
+					}).css({
+						'opacity': '0.5',
+						'position': 'absolute',
+						'height': '20px',
+						'width': '20px',
+						'z-index': '100'
+					}).appendTo($('body')).animate({
+						'top': cart.offset().top + 10,
+						'left': cart.offset().left + 10,
+						'width': '10px',
+						'height': '10px',
+					}, 1000);
+
+					setTimeout(function(){
+						cart.effect('shake', {
+							times:2,
+							distance:4,
+							direction:'up'
+						}, 200)
+					}, 1000);
+
+					imgclone.animate({
+						'width': 0,
+						'height': 0
+					}, function(){
+						$(this).detach();
+						$('.cart-qty').css('display', 'block');
+					    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+					    cartnumber = cartnumber + 1;
+					    if(cartnumber <= 9){
+					    	$('#cart-number').attr('data-cart-number', cartnumber);
+					    	$('#cart-number').text(cartnumber);
+					    }else{
+					    	$('#cart-number').attr('data-cart-number', '9+');
+					    	$('#cart-number').text('9+');
+					    }
+					});
+				});
+			});
 		});
 	</script>
 @stop
