@@ -368,8 +368,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                        angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();
+                       /* angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();*/
                     }
             });
         })();
@@ -426,9 +426,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('/pos/logoutcashier').then(function(data){
-               var dummy = true;
-                if(dummy){
+            serviceAjax.getDataFromServer('/logout').then(function(response){
+              console.log(response);
+                if(response.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("signin");
                 }else{
