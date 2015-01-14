@@ -184,6 +184,7 @@ return array(
                     'default' => '',
                     'value' => array(
                         'price' => 'The price should be in numeric or decimal.',
+                        'count' => 'The number of value should be 5.',
                     ),
                 ),
             ),
