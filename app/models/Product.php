@@ -200,11 +200,11 @@ class Product extends Eloquent
         // Loop through all the attribute_idX field
         for ($i=1; $i<=5; $i++) {
             if (! empty($this->{'attribute_id' . $i})) {
-                $ids[] = $this->{'attribute_id' . $i};
+                $ids[] = (string)$this->{'attribute_id' . $i};
             }
         }
 
-        if (in_array($id, $ids)) {
+        if (in_array((string)$id, $ids)) {
             return TRUE;
         }
 
