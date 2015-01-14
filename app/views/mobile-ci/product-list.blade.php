@@ -41,7 +41,7 @@
 						@if(count($product->variants) > 1)
 						<small>Starting From</small>
 						@endif
-						<h3 class="">IDR {{ min($prices) + 0 }} </h3>
+						<h3 class="currency"><small>IDR</small> {{ min($prices) + 0 }}</h3>
 					</div>
 					
 					@if(count($product->variants) <= 1)
