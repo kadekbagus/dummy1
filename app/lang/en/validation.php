@@ -166,6 +166,7 @@ return array(
                         'json_property' => 'Missing property of ":property" on your JSON string.',
                     ),
             ),
+            'upc_code'             => 'The UPC code of the product is not found.'
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(
