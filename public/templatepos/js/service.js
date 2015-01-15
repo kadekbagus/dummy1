@@ -13,11 +13,8 @@ define([
     app.factory('serviceAjax' , ['$http', '$q',function($http,$q){
 
         return{
-            getDataFromServer : function(){
-                var params = '';
-                for(var i = 0 ; i < arguments.length; i++){
-                    params += arguments[i];
-                }
+            getDataFromServer : function(params){
+              
                 return $http.get(config['baseUrlServer'] + params)
                     .then(function(response){
                         if (response.data) {
