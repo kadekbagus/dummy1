@@ -24,7 +24,7 @@
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
                          <div class="col-md-6" style="margin-top: 6px"><h4>KERANJANG BELANJA</h4></div>
-                         <div class="col-md-6 text-right"> <button class="btn btn-primary" style="background-color: #2c71a3;" data-ng-click="loginFn()" type="submit">SCAN KERANJANG</button></div>
+                         <div class="col-md-6 text-right"> <button class="btn btn-primary" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit">SCAN KERANJANG BELANJA</button></div>
                     </div>
 
                 </div>
@@ -98,25 +98,24 @@
                     </table>
                 </div>
                 <div data-ng-show="isvirtualqty"   class="numpad numpadqty" style=" margin-top:-450px">
-                                                                                                                          <div class="button-wrapper">
-                                                                                                                             <button data-ng-click="keypaqtydFn('9')">9</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('8')">8</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('7')">7</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('4')">4</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('5')">5</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('6')">6</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('1')">1</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('2')">2</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('3')">3</button>
+                         <div class="button-wrapper">
+                               <button data-ng-click="keypaqtydFn('9')">9</button>
+                               <button data-ng-click="keypaqtydFn('8')">8</button>
+                               <button data-ng-click="keypaqtydFn('7')">7</button>
+                               <button data-ng-click="keypaqtydFn('4')">4</button>
+                               <button data-ng-click="keypaqtydFn('5')">5</button>
+                               <button data-ng-click="keypaqtydFn('6')">6</button>
+                               <button data-ng-click="keypaqtydFn('1')">1</button>
+                               <button data-ng-click="keypaqtydFn('2')">2</button>
+                               <button data-ng-click="keypaqtydFn('3')">3</button>
 
+                               <button data-ng-click="keypaqtydFn('c')" class="smaller">Clear</button>
+                               <button data-ng-click="keypaqtydFn('0')">0</button>
+                               <button data-ng-click="keypaqtydFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                               <button data-ng-click="virtualqtyFn(false)" class="button-wide smaller">Done</button>
+                         </div>
 
-                                                                                                                             <button data-ng-click="keypaqtydFn('c')" class="smaller">Clear</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('0')">0</button>
-                                                                                                                             <button data-ng-click="keypaqtydFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                                                                                                                             <button data-ng-click="virtualqtyFn(false)" class="button-wide smaller">Done</button>
-                                                                                                                          </div>
-
-                                                                                                                   </div>
+                </div>
             </div>
             <div class="col-md-5" style="padding-left: 0px;padding-right: 0px;margin-right: -50px">
                 <div class="orbit-component table-attribute-top" >
@@ -317,6 +316,51 @@
         </div>
       </div>
     </div>
+    <!-- Modal modalscancart-->
+    <div class="modal fade" id="modalscancart" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content" style="width: 400px;  margin: 30px auto;">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel"><b>Scan keranjang belanja</b></h4>
+          </div>
+          <div class="modal-body">
+              <p class="text-center"><b>Scan keranjang belanja sekarang!</b></p>
+              <p>
+                <div class="input-group" >
+                       <div type="text" class="form-control"  data-ng-model="manualscancart" id="exampleInputEmail2" placeholder="Input Manual"><% manualscancart %></div>
+                       <div class="input-group-addon" style="background-color : #46c2ff; border: none;cursor:pointer" data-ng-click="virtualscancartFn(true)"><i class="fa fa-keyboard-o"></i></div>
+                 </div>
+              </p>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </div>
+
+        </div>
+        <div data-ng-show="isvirtualscancart"   class="numpad numpadscan">
+                                                                       <div class="button-wrapper">
+                                                                             <button data-ng-click="keypadscantFn('9')">9</button>
+                                                                             <button data-ng-click="keypadscantFn('8')">8</button>
+                                                                             <button data-ng-click="keypadscantFn('7')">7</button>
+                                                                             <button data-ng-click="keypadscantFn('4')">4</button>
+                                                                             <button data-ng-click="keypadscantFn('5')">5</button>
+                                                                             <button data-ng-click="keypadscantFn('6')">6</button>
+                                                                             <button data-ng-click="keypadscantFn('1')">1</button>
+                                                                             <button data-ng-click="keypadscantFn('2')">2</button>
+                                                                             <button data-ng-click="keypadscantFn('3')">3</button>
+
+                                                                             <button data-ng-click="keypadscantFn('c')" class="smaller">Clear</button>
+                                                                             <button data-ng-click="keypadscantFn('0')">0</button>
+                                                                             <button data-ng-click="keypadscantFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
+                                                                             <button data-ng-click="virtualscancartFn(false)" class="button-wide smaller">Done</button>
+                                                                       </div>
+
+                                                              </div>
+      </div>
+
+    </div>
     <!-- Modal Checkout-->
     <div class="modal fade" id="myModalcheckout" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -392,6 +436,7 @@
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
         </div>
+
       </div>
     </div>
 

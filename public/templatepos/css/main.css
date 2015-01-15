@@ -11784,6 +11784,10 @@ body {
 .numpadqty {
     margin-left: 383px !important;
 }
+.numpadscan {
+    margin-top:-275px !important;
+    margin-left: 500px !important;
+}
 /*landscape*/
 @media(min-width:768px) and (max-width: 1100px){
     h1 {
