@@ -100,7 +100,13 @@ return array(
             'coupon_name'           => 'The coupon name has already been used.',
             'product'               => array(
                 'attribute'         => array(
-                    'unique'        => 'The attribute name \':attrname\' already exists.'
+                    'unique'        => 'The attribute name \':attrname\' already exists.',
+                    'value'         => array(
+                        'transaction'   => 'Some of the product combination already on transaction, so it can not be edited.'
+                    ),
+                ),
+                'variant'           => array(
+                    'transaction'   => 'Product variant ID :id has a transaction, so it can not be edited.'
                 ),
             ),
         ),
@@ -162,7 +168,7 @@ return array(
             'attribute'            => 'The product attribute ID you specify is not found.',
             'product_status'       => 'The product status you specify is not found.',
             'product_sortby'       => 'The sort by argument you specify is not valid, the valid value are: registered_date, product_id, product_name, product_code, product_price, product_tax_code, product_short_description, product_long_description, product_is_new, product_new_until, product_merchant_id, product_status.',
-            'product'              => array(
+            'product_attr'         => array(
                     'attribute'    => array(
                         'value'         => 'The product attribute value ID :id you specify is not found or does not belongs to this merchant.',
                         'json_property' => 'Missing property of ":property" on your JSON string.',
@@ -181,12 +187,12 @@ return array(
             ),
         ),
         'formaterror' => array(
-            'product' => array(
+            'product_attr' => array(
                 'attribute' => array(
-                    'default' => '',
                     'value' => array(
                         'price' => 'The price should be in numeric or decimal.',
                         'count' => 'The number of value should be 5.',
+                        'order' => 'Invalid attribute id order, expected :expect but got :got.'
                     ),
                 ),
             ),

@@ -123,11 +123,7 @@ class ProductAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedproduct = Product::with('retailers', 'category1', 'category2', 'category3', 'category4', 'category5')
-                                     ->excludeDeleted()
-                                     ->allowedForUser($user)
-                                     ->where('product_id', $product_id)
-                                     ->first();
+            $updatedproduct = App::make('orbit.empty.product');
             App::instance('memory:current.updated.product', $updatedproduct);
 
             OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
@@ -319,16 +315,15 @@ class ProductAPIController extends ControllerAPI
                 $updatedproduct->load('retailers');
             });
 
-            $lastAttributeIndex = $updatedproduct->getLastAttributeIndexNumber();
+            $lastAttributeIndexNumber = $updatedproduct->getLastAttributeIndexNumber();
 
             // Save new product variants (combination)
             $variants = array();
-            OrbitInput::post('product_combinations', function($product_combinations)
-            use ($user, $updatedproduct, &$variants, $lastAttributeIndex)
+            OrbitInput::post('product_variants', function($product_combinations)
+            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber)
             {
                 $variant_decode = $this->JSONValidate($product_combinations);
-                $index = $lastAttributeIndex;
-                $product_attribute_id = $this->checkVariant($variant_decode);
+                $attribute_values = $this->checkVariant($variant_decode);
                 $merchant_id = $updatedproduct->merchant_id;
 
                 foreach ($variant_decode as $variant) {
@@ -368,45 +363,242 @@ class ProductAPIController extends ControllerAPI
                     $product_variant->created_by = $user->user_id;
                     $product_variant->status = 'active';
 
-                    // Save the 5 attributes value id
+                    // Check the validity of each attribute value sent
                     foreach ($variant->attribute_values as $i=>$value_id) {
-                        foreach ($product_attribute_id as $current_attribute_id) {
-                            if (! $updatedproduct->isAttributeIdExists($current_attribute_id)) {
-                                $errorMessage = 'The new combination value order seems does not correct. ' . $current_attribute_id;
-                                OrbitShopAPI::throwInvalidArgument($errorMessage);
-                            }
-                        }
-                        $field_value_id = 'product_attribute_value_id' . ($i + 1);
+                        $attributeIndex = $i + 1;
+
+                        $field_value_id = 'product_attribute_value_id' . $attributeIndex;
                         $product_variant->{$field_value_id} = $value_id;
+
+                        // We check the value of the old attribute_id on the products table
+                        // then compare it with attribute_id of this new variant.
+                        // If it is not same then we should not process it
+                        $old_product_id = (string)$updatedproduct->{'attribute_id' . $attributeIndex};
+                        if (empty($old_product_id)) {
+                            continue;
+                        }
+
+                        if (empty($value_id)) {
+                            continue;
+                        }
+
+                        // This ProductAttributeValue object is to get the product attribute_id
+                        // of the new variant
+                        $_attribute_value = ProductAttributeValue::where('product_attribute_value_id', $value_id)->first();
+                        if (empty($_attribute_value)) {
+                            $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', array('id' => $value_id));
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+
+                        // Compare it
+                        if ((string)$_attribute_value->product_attribute_id !== $old_product_id) {
+                            $errorMessage = sprintf('Invalid attribute order. %s vs %s => %s',
+                                                    $_attribute_value->product_attribute_id,
+                                                    $old_product_id,
+                                                    $attributeIndex
+                            );
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
                     }
                     $product_variant->save();
 
                     $variants[] = $product_variant;
                 }
 
-                // Save the product attribute id to the product table
-                $max_loop = $index + count($variant->attribute_values);
-                if ($max_loop > 5) {
-                    $max_loop = 5;
-                }
+
+                // Get the most complete variant with all the product attribute
+                // values which has been set up
+
+                // @Todo
+                // This is slow, it should be rewritten
+                $with = array(
+                    'attributeValue1',
+                    'attributeValue2',
+                    'attributeValue3',
+                    'attributeValue4',
+                    'attributeValue5',
+                );
+                $complete_variant = ProductVariant::excludeDeleted()
+                                                  ->mostCompleteValue()
+                                                  ->with($with)
+                                                  ->first();
 
                 // Flag to determine if the updated product has been changes
                 $updated_product_changes = FALSE;
-                for ($i=$index + 1; $i<=$max_loop; $i++) {
-                    $current_attribute_id = current($product_attribute_id);
 
-                    // Does this current product attribute id already attached
-                    // to this product
-                    if ($updatedproduct->isAttributeIdExists($current_attribute_id)) {
-                        // Skip no need to save
+                // Update the product attribute id{1-5}
+                for ($i=5; $i>=1; $i--) {
+                    if (is_null($complete_variant->{'attributeValue' . $i})) {
                         continue;
                     }
 
-                    $field_attribute_id = 'attribute_id' . $i;
-                    $updatedproduct->$field_attribute_id = $current_attribute_id;
+                    // If we goes here then particular attribute value is not empty
+                    // and also has attributeValue object
+                    $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
 
-                    // Move the pointer to the next element
-                    next($product_attribute_id);
+                    // Update the flag
+                    $updated_product_changes = TRUE;
+                }
+
+                // Save the updated product
+                if ($updated_product_changes) {
+                    $updatedproduct->save();
+                }
+            });
+
+            // Save existing product variants (combination)
+            $variants = array();
+            OrbitInput::post('product_variants_update', function($product_combinations_update)
+            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber)
+            {
+                $variant_decode = $this->JSONValidate($product_combinations_update);
+                $attribute_values = $this->checkVariant($variant_decode, 'update');
+                $merchant_id = $updatedproduct->merchant_id;
+
+                // Get current variant id
+                $current_variant = function($_variant_id) use ($updatedproduct) {
+                    foreach ($updatedproduct->variants as $tmp_variant) {
+                        if ((string)$tmp_variant->product_variant_id !== (string)$_variant_id) {
+                            continue;
+                        }
+
+                        return $tmp_variant;
+                    }
+                };
+
+                foreach ($variant_decode as $variant) {
+                    // Flag for particular product variant which should be edited
+                    $has_transaction = FALSE;
+
+                    $product_variant = $current_variant($variant->variant_id);
+                    $product_variant->modified_by = $user->user_id;
+
+                    $transaction_detail = TransactionDetail::TransactionJoin()
+                                                          ->ExcludeDeletedTransaction()
+                                                          ->where('transaction_details.product_variant_id', $product_variant->product_variant_id)
+                                                          ->first();
+
+                    if (is_object($transaction_detail)) {
+                        $has_transaction = TRUE;
+                    }
+
+                    // Return the default price if the variant price is empty
+                    $price = function() use ($variant, $has_transaction, $product_variant) {
+                        if (empty($variant->price)) {
+                            return $product_variant->price;
+                        }
+
+                        return $variant->price;
+                    };
+
+                    // Return the default sku if the variant sku is empty
+                    $sku = function() use ($variant, $has_transaction, $product_variant) {
+                        if ($has_transaction) {
+                            // Reject the saving
+                            $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
+                                ['id' => $variant->variant_id]
+                            );
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+
+                        if (empty($variant->sku)) {
+                            return $product_variant->product_code;
+                        }
+
+                        return $variant->sku;
+                    };
+
+                    // Return the default upc if the variant upc is empty
+                    $upc = function() use ($variant, $has_transaction, $product_variant) {
+                        if ($has_transaction) {
+                            // Reject the saving
+                            $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
+                                ['id' => $variant->variant_id]
+                            );
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+
+                        if (empty($variant->upc)) {
+                            return $product_variant->upc;
+                        }
+
+                        return $variant->upc;
+                    };
+
+                    $product_variant->price = $price();
+                    $product_variant->sku = $sku();
+                    $product_variant->upc = $upc();
+
+                    // Check the validity of each attribute value sent
+                    foreach ($variant->attribute_values as $i=>$value_id) {
+                        $attributeIndex = $i + 1;
+
+                        $field_value_id = 'product_attribute_value_id' . $attributeIndex;
+                        $product_variant->{$field_value_id} = $value_id;
+
+                        // We check the value of the old attribute_id on the products table
+                        // then compare it with attribute_id of this new variant.
+                        // If it is not same then we should not process it
+                        $old_product_id = (string)$updatedproduct->{'attribute_id' . $attributeIndex};
+                        if (empty($old_product_id)) {
+                            continue;
+                        }
+
+                        if (empty($value_id)) {
+                            continue;
+                        }
+
+                        // This ProductAttributeValue object is to get the product attribute_id
+                        // of the new variant
+                        $_attribute_value = ProductAttributeValue::where('product_attribute_value_id', $value_id)->first();
+                        if (empty($_attribute_value)) {
+                            $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', array('id' => $value_id));
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+
+                        // Compare it
+                        if ((string)$_attribute_value->product_attribute_id !== $old_product_id) {
+                            $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.order', [
+                                                    'expect' => $old_product_id,
+                                                    'got' => $_attribute_value->product_attribute_id
+                            ]);
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+                    }
+                    $product_variant->save();
+
+                    $variants[] = $product_variant;
+                }
+
+                // Get the most complete variant with all the product attribute
+                // values which has been set up
+
+                // @Todo
+                // This is slow, it should be rewritten
+                $with = array(
+                    'attributeValue1',
+                    'attributeValue2',
+                    'attributeValue3',
+                    'attributeValue4',
+                    'attributeValue5',
+                );
+                $complete_variant = ProductVariant::excludeDeleted()
+                                                  ->mostCompleteValue()
+                                                  ->with($with)
+                                                  ->first();
+
+                // Flag to determine if the updated product has been changes
+                $updated_product_changes = FALSE;
+
+                // Update the product attribute id{1-5}
+                for ($i=5; $i>=1; $i--) {
+                    if (is_null($complete_variant->{'attributeValue' . $i})) {
+                        continue;
+                    }
+
+                    // If we goes here then particular attribute value is not empty
+                    // and also has attributeValue object
+                    $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
 
                     // Update the flag
                     $updated_product_changes = TRUE;
@@ -448,7 +640,7 @@ class ProductAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+            //$this->response->data = null;
             $httpCode = 400;
 
             // Rollback the changes
@@ -781,7 +973,7 @@ class ProductAPIController extends ControllerAPI
      * @param integer   `category_id3`              (optional) - Category ID3.
      * @param integer   `category_id4`              (optional) - Category ID4.
      * @param integer   `category_id5`              (optional) - Category ID5.
-     * @param integer   `product_combinations`      (optional) - JSON String of Product Combination
+     * @param integer   `product_variants`          (optional) - JSON String of Product Combination
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -837,7 +1029,7 @@ class ProductAPIController extends ControllerAPI
             $category_id5 = OrbitInput::post('category_id5');
 
             // Product Attributes (Variant)
-            $product_combinations = OrbitInput::post('product_combinations');
+            $product_combinations = OrbitInput::post('product_variants');
 
             $validator = Validator::make(
                 array(
@@ -938,12 +1130,12 @@ class ProductAPIController extends ControllerAPI
 
             // Save product variants (combination)
             $variants = array();
-            OrbitInput::post('product_combinations', function($product_combinations)
+            OrbitInput::post('product_variants', function($product_combinations)
             use ($price, $upc_code, $merchant_id, $user, $newproduct, $product_code, &$variants)
             {
                 $variant_decode = $this->JSONValidate($product_combinations);
                 $index = 1;
-                $product_attribute_id = $this->checkVariant($variant_decode);
+                $attribute_values = $this->checkVariant($variant_decode);
 
                 foreach ($variant_decode as $variant) {
                     // Return the default price if the variant price is empty
@@ -990,13 +1182,12 @@ class ProductAPIController extends ControllerAPI
                     $product_variant->save();
 
                     $variants[] = $product_variant;
-                    $index++;
                 }
 
                 // Save the product attribute id to the product table
-                foreach ($product_attribute_id as $i=>$attr_id) {
-                    $field_attribute_id = 'attribute_id' . ($i + 1);
-                    $newproduct->$field_attribute_id = $attr_id;
+                foreach ($attribute_values as $index_attr=>$value) {
+                    $field_attribute_id = 'attribute_id' . ($index_attr + 1);
+                    $newproduct->$field_attribute_id = $value->product_attribute_id;
                 }
                 $newproduct->save();
             });
@@ -1223,10 +1414,13 @@ class ProductAPIController extends ControllerAPI
     protected function registerCustomValidation()
     {
         // Check the existance of product id
-        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
-            $product = Product::excludeDeleted()
-                        ->where('product_id', $value)
-                        ->first();
+        $user = $this->api->user;
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) use ($user) {
+            $product = Product::with('retailers', 'category1', 'category2', 'category3', 'category4', 'category5', 'variants')
+                                     ->excludeDeleted()
+                                     ->allowedForUser($user)
+                                     ->where('product_id', $value)
+                                     ->first();
 
             if (empty($product)) {
                 return FALSE;
@@ -1452,20 +1646,24 @@ class ProductAPIController extends ControllerAPI
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param object $variant
-     * @return array - product attribute id
+     * @return array - ProductAttributeValue
      */
-    protected function checkVariant($variants)
+    protected function checkVariant($variants, $mode='normal')
     {
-        $productAttributeId = array();
+        $values = array();
 
-        $valueNumbers = array();
         foreach ($variants as $i=>$variant) {
             $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
+
+            if ($mode === 'update') {
+                // Check the existence of 'variant_id'
+                $neededProperties[] = 'variant_id';
+            }
 
             foreach ($neededProperties as $property) {
                 // It should have property specified
                 if (! property_exists($variant, $property)) {
-                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.json_property',
+                    $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.json_property',
                         array('property' => $property)
                     );
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
@@ -1473,54 +1671,55 @@ class ProductAPIController extends ControllerAPI
             }
 
             if (! is_array($variant->attribute_values)) {
+                $errorMessage = Lang::get('validation.orbit.jsonerror.field', array('field' => 'attribute_values'));
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if (count($variant->attribute_values) !== 5) {
+                $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.count');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             // Check the price validity
             if (! empty($variant->price)) {
                 if (! preg_match('/^[+-]?((\d+(\.\d*)?)|(\.\d+))$/', $variant->price)) {
-                    $errorMessage = Lang::get('validation.orbit.formaterror.product.attribute.value.price');
+                    $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.price');
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
+            }
+
+            if ($mode === 'update') {
+                // Check the existence of the product variant id
+                $product = App::make('orbit.empty.product');
             }
 
             // Check each of these product attribute value existence
             $merchantId = $this->getMerchantId();
             foreach ($variant->attribute_values as $value_id) {
+                if (empty($value_id)) {
+                    continue;
+                }
+
                 $productAttributeValue = ProductAttributeValue::excludeDeleted('product_attribute_values')
-                                                              ->with('attribute')
                                                               ->merchantIds(array($merchantId))
                                                               ->where('product_attribute_value_id', $value_id)
                                                               ->first();
 
                 if (empty($productAttributeValue)) {
-                    $errorMessage = Lang::get('validation.orbit.empty.product.attribute.value', array('id' => $value_id));
+                    $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', array('id' => $value_id));
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
 
-                // Only check the first loop, no need all of them
-                // This part is f*cking confusing bro! *_*
+                // This code are executed inside a loop so, we only need the first
+                // index to get the object of productAttributeValue to determine
+                // which product_attribute_id this group belonging to
                 if ($i === 0) {
-                    $productAttributeId[] = $productAttributeValue->attribute->product_attribute_id;
+                    $values[] = $productAttributeValue;
                 }
             }
-
-            // Merge all the number of each variant
-            $currentNumber = count($variant->attribute_values);
-            $valueNumbers = array_merge(array($currentNumber), $valueNumbers);
         }
 
-        // Check the difference of the attribute_values inside each variant
-        $min = min($valueNumbers);
-        $max = max($valueNumbers);
-        if ($min !== $max) {
-            $errorMessage = Lang::get('validation.orbit.jsonerror.field.diffcount',
-                            array('field' => 'attribute_values')
-            );
-            OrbitShopAPI::throwInvalidArgument($errorMessage);
-        }
-
-        return $productAttributeId;
+        return $values;
     }
 
     /**

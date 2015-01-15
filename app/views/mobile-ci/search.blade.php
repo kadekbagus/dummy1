@@ -28,12 +28,19 @@
 					<div class="row row-xs-height catalogue-top">
 						<div class="col-xs-6 catalogue-img col-xs-height col-middle coupon-wrapper">
 							<div>
-								<div class="ribbon-wrapper-yellow ribbon1st">
+								<?php $x = 1; $on_promo = false;?>
+								@if(in_array($product->product_id, $promo_products))
+								<div class="ribbon-wrapper-yellow ribbon{{$x}}st">
 									<div class="ribbon-yellow">Promo</div>
 								</div>
-								<div class="ribbon-wrapper-red ribbon2nd">
+								<?php $on_promo = true; $x++;?>
+								@endif
+								@if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now())
+								<div class="ribbon-wrapper-red ribbon{{$x}}nd">
 									<div class="ribbon-red">New</div>
 								</div>
+								<?php $x++;?>
+								@endif
 							</div>
 							<div class="zoom-wrapper">
 								<div class="zoom"><a href="{{ asset($product->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
@@ -49,14 +56,38 @@
 									<h4>Code : {{ $product->upc_code }}</h4>
 								</div>					
 								<div class="col-xs-6 price">
+									<?php $prices = array();?>
+									@foreach($product->variants as $variant)
+										<?php 
+											$prices[] = $variant->price;
+										?>
+									@endforeach
+									@if(count($product->variants) > 1)
 									<small>Starting From</small>
-									<h3 class="">IDR {{ $product->price + 0 }} </h3>
+									@endif
+									@if($on_promo)
+									<h3 class="currency"><small>IDR</small> <span class="strike">{{ min($prices) + 0 }}</span></h3>
+									@else
+									<h3 class="currency"><small>IDR</small> {{ min($prices) + 0 }}</h3>
+									@endif
 								</div>
+								@if(count($product->variants) <= 1)
 								<div class="col-xs-6 catalogue-control price">
 									<div class="circlet btn-blue pull-right">
-										<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+										<a id="addToCartButton" class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+											<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+										</a>
 									</div>
 								</div>
+								@else
+								<div class="col-xs-6 catalogue-control price">
+									<div class="circlet btn-blue pull-right">
+										<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id) }}">
+											<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+										</a>
+									</div>
+								</div>
+								@endif
 									
 							</div>
 						</div>
@@ -90,5 +121,76 @@
 @stop
 
 @section('ext_script_bot')
+	{{ HTML::script('mobile-ci/scripts/jquery-ui.min.js') }}
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
+	<script type="text/javascript">
+		// window.onunload = function(){};
+		$(window).bind("pageshow", function(event) {
+		    if (event.originalEvent.persisted) {
+		        window.location.reload() 
+		    }
+		});
+		$(document).ready(function(){
+			// add to cart
+			$('body').on('click', '#addToCartButton', function(event){
+				var prodid = $(this).data('product-id');
+				var prodvarid = $(this).data('product-variant-id');
+				var img = $(this).children('img');
+				var cart = $('#shopping-cart');
+				$.ajax({
+					url: apiPath+'customer/addtocart',
+					method: 'POST',
+					data: {
+						productid: prodid,
+						productvariantid: prodvarid,
+						qty:1
+					}
+				}).done(function(data){
+					// animate cart
+					
+					var imgclone = img.clone().offset({
+						top: img.offset().top,
+						left: img.offset().left
+					}).css({
+						'opacity': '0.5',
+						'position': 'absolute',
+						'height': '20px',
+						'width': '20px',
+						'z-index': '100'
+					}).appendTo($('body')).animate({
+						'top': cart.offset().top + 10,
+						'left': cart.offset().left + 10,
+						'width': '10px',
+						'height': '10px',
+					}, 1000);
+
+					setTimeout(function(){
+						cart.effect('shake', {
+							times:2,
+							distance:4,
+							direction:'up'
+						}, 200)
+					}, 1000);
+
+					imgclone.animate({
+						'width': 0,
+						'height': 0
+					}, function(){
+						$(this).detach();
+						$('.cart-qty').css('display', 'block');
+					    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+					    cartnumber = cartnumber + 1;
+					    if(cartnumber <= 9){
+					    	$('#cart-number').attr('data-cart-number', cartnumber);
+					    	$('#cart-number').text(cartnumber);
+					    }else{
+					    	$('#cart-number').attr('data-cart-number', '9+');
+					    	$('#cart-number').text('9+');
+					    }
+					});
+
+				});
+			});
+		});
+	</script>
 @stop

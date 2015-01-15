@@ -20,4 +20,9 @@ class Cart extends Eloquent
         return $this->hasMany('CartDetail', 'cart_id', 'cart_id');
     }
 
+    public function users()
+    {
+        return $this->belongsTo('User', 'customer_id', 'user_id');
+    }
+
 }

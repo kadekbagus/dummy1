@@ -83,9 +83,13 @@ class ProductAttributeAPIController extends ControllerAPI
             Event::fire('orbit.product.getattribute.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.product_attribute.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
             }
 
             // Builder object
@@ -435,7 +439,7 @@ class ProductAttributeAPIController extends ControllerAPI
             if (! ACL::create($user)->isAllowed('update_product_attribute')) {
                 Event::fire('orbit.product.postupdateattribute.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.new_product_attribute');
+                $errorMessage = Lang::get('validation.orbit.actionlist.update_product_attribute');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
@@ -717,10 +721,10 @@ class ProductAttributeAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.product.postdeleteattribute.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('update_product_attribute')) {
+            if (! ACL::create($user)->isAllowed('delete_product_attribute')) {
                 Event::fire('orbit.product.postdeleteattribute.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.new_product_attribute');
+                $errorMessage = Lang::get('validation.orbit.actionlist.delete_product_attribute');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
