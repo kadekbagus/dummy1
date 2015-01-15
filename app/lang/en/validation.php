@@ -99,7 +99,13 @@ return array(
             'promotion_name'        => 'The promotion name has already been used.',
             'product'               => array(
                 'attribute'         => array(
-                    'unique'        => 'The attribute name \':attrname\' already exists.'
+                    'unique'        => 'The attribute name \':attrname\' already exists.',
+                    'value'         => array(
+                        'transaction'   => 'Some of the product combination already on transaction, so it can not be edited.'
+                    ),
+                ),
+                'variant'           => array(
+                    'transaction'   => 'Product variant ID :id has a transaction, so it can not be edited.'
                 ),
             ),
         ),
@@ -184,6 +190,7 @@ return array(
                     'value' => array(
                         'price' => 'The price should be in numeric or decimal.',
                         'count' => 'The number of value should be 5.',
+                        'order' => 'Invalid attribute id order, expected :expect but got :got.'
                     ),
                 ),
             ),
