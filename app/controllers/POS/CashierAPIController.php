@@ -723,7 +723,7 @@ class CashierAPIController extends ControllerAPI
             $barcode = shell_exec($cmd);
             
             $barcode = trim($barcode);
-            $cart = \Cart::with('details')->where('cart_code', $barcode)
+            $cart = \Cart::with('details', 'users')->where('cart_code', $barcode)
                     ->active()
                     ->first();      
 
