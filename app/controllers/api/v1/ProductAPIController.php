@@ -409,6 +409,7 @@ class ProductAPIController extends ControllerAPI
                     $variants[] = $product_variant;
                 }
 
+
                 // Get the most complete variant with all the product attribute
                 // values which has been set up
 
@@ -449,6 +450,95 @@ class ProductAPIController extends ControllerAPI
                 // Save the updated product
                 if ($updated_product_changes) {
                     $updatedproduct->save();
+                }
+            });
+
+            // Save existing product variants (combination)
+            $variants = array();
+            OrbitInput::post('product_variants_update', function($product_combinations_update)
+            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber)
+            {
+                $variant_decode = $this->JSONValidate($product_combinations_update);
+                $attribute_values = $this->checkVariant($variant_decode, 'update');
+                $merchant_id = $updatedproduct->merchant_id;
+
+                foreach ($variant_decode as $variant) {
+                    // Return the default price if the variant price is empty
+                    $price = function() use ($variant, $updatedproduct) {
+                        if (empty($variant->price)) {
+                            return $updatedproduct->price;
+                        }
+
+                        return $variant->price;
+                    };
+
+                    // Return the default sku if the variant sku is empty
+                    $sku = function() use ($variant, $updatedproduct) {
+                        if (empty($variant->sku)) {
+                            return $updatedproduct->product_code;
+                        }
+
+                        return $variant->sku;
+                    };
+
+                    // Return the default upc if the variant upc is empty
+                    $upc = function() use ($variant, $updatedproduct) {
+                        if (empty($variant->upc)) {
+                            return $updatedproduct->upc;
+                        }
+
+                        return $variant->upc;
+                    };
+
+                    $product_variant = new ProductVariant();
+                    $product_variant->product_id = $updatedproduct->product_id;
+                    $product_variant->price = $price();
+                    $product_variant->sku = $sku();
+                    $product_variant->upc = $upc();
+                    $product_variant->merchant_id = $merchant_id;
+                    $product_variant->created_by = $user->user_id;
+                    $product_variant->status = 'active';
+
+                    // Check the validity of each attribute value sent
+                    foreach ($variant->attribute_values as $i=>$value_id) {
+                        $attributeIndex = $i + 1;
+
+                        $field_value_id = 'product_attribute_value_id' . $attributeIndex;
+                        $product_variant->{$field_value_id} = $value_id;
+
+                        // We check the value of the old attribute_id on the products table
+                        // then compare it with attribute_id of this new variant.
+                        // If it is not same then we should not process it
+                        $old_product_id = (string)$updatedproduct->{'attribute_id' . $attributeIndex};
+                        if (empty($old_product_id)) {
+                            continue;
+                        }
+
+                        if (empty($value_id)) {
+                            continue;
+                        }
+
+                        // This ProductAttributeValue object is to get the product attribute_id
+                        // of the new variant
+                        $_attribute_value = ProductAttributeValue::where('product_attribute_value_id', $value_id)->first();
+                        if (empty($_attribute_value)) {
+                            $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', array('id' => $value_id));
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+
+                        // Compare it
+                        if ((string)$_attribute_value->product_attribute_id !== $old_product_id) {
+                            $errorMessage = sprintf('Invalid attribute order. %s vs %s => %s',
+                                                    $_attribute_value->product_attribute_id,
+                                                    $old_product_id,
+                                                    $attributeIndex
+                            );
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
+                    }
+                    $product_variant->save();
+
+                    $variants[] = $product_variant;
                 }
             });
 
@@ -1487,12 +1577,17 @@ class ProductAPIController extends ControllerAPI
      * @param object $variant
      * @return array - ProductAttributeValue
      */
-    protected function checkVariant($variants)
+    protected function checkVariant($variants, $mode='update')
     {
         $values = array();
 
         foreach ($variants as $i=>$variant) {
             $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
+
+            if ($mode === 'update') {
+                // Check the existence of 'variant_id'
+                $neededProperties[] = 'variant_id';
+            }
 
             foreach ($neededProperties as $property) {
                 // It should have property specified
@@ -1520,6 +1615,11 @@ class ProductAPIController extends ControllerAPI
                     $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.price');
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
+            }
+
+            if ($mode === 'update') {
+                // Check the existence of the product variant id
+                $product = App::make('orbit.empty.product');
             }
 
             // Check each of these product attribute value existence
