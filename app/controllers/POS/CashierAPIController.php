@@ -764,7 +764,7 @@ class CashierAPIController extends ControllerAPI
     {
         try {
             $line1 = trim(OrbitInput::post('line1'));
-            $line2 = OrbitInput::post('line2') != '' ?  number_format(trim(OrbitInput::post('line2'))) : '';
+            $line2 = OrbitInput::post('line2');
 
             $validator = Validator::make(
                 array(

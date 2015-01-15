@@ -170,7 +170,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.inserttocartFn = function(){
              if($scope.productmodal){
                  //customer display
-                 $scope.customerdispaly($scope.productmodal['product_name'],$scope.productmodal['price']);
+                 $scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
                  $location.hash('bottom');
                  $anchorScroll();
                  $scope.searchproduct    = '';
@@ -235,7 +235,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             $scope.searchproduct    = '';
             $scope.getproduct();
             if(act) $scope.getguest();
-            $scope.customerdispaly('Welcome','');
+            $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
         };
         //checkout
         $scope.checkoutFn = function(act,term){
@@ -307,7 +307,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.cheader = 'TRANSAKSI BERHASIL';
                     $scope.transaction_id = response.data.transaction_id;
                     //customer display
-                    $scope.customerdispaly('Thank you','');
+                    $scope.customerdispaly('Change '+$scope.cart.change,'Thank You');
 
                     $scope.ticketprint();
                 }else{
@@ -364,12 +364,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(response.code == 0){
                         $scope.productmodal      = response['data'];
                         //customer display
-                        $scope.customerdispaly($scope.productmodal['product_name'],$scope.productmodal['price']);
+                      //  $scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
                         $scope.inserttocartFn();
                         $scope.scanproduct();
                     }else if(response.code == 13){
-                       /* angular.element("#ProductNotFound").modal();
-                        $scope.scanproduct();*/
+                        angular.element("#ProductNotFound").modal();
+                        $scope.scanproduct();
                     }
             });
         })();
@@ -400,6 +400,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
             $scope.countcart();
         };
+        
         //show virtual
         $scope.virtualFn = function(bool){
            $scope.isvirtual = bool;
@@ -412,7 +413,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //customer display
         $scope.customerdispaly = function(line1,line2){
-            $scope.datadisplay.line1 = line1.substr(0,12);
+            $scope.datadisplay.line1 = line1.substr(0,20);
             $scope.datadisplay.line2 = line2;
             serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
                 if(response.code == 0){
@@ -422,7 +423,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
             });
         };
-        $scope.customerdispaly('Welcome','');
+        $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
