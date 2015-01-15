@@ -20,7 +20,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
         $scope.datauser  = localStorageService.get('user');
         var updatetime = function() {
-            $scope.datetime = moment().format('DD MMMM YYYY hh:mm:ss');
+            $scope.datetime = moment().format('DD MMMM YYYY HH:mm:ss');
             $timeout(updatetime, 1000);
         };
         $timeout(updatetime, 1000);
@@ -68,7 +68,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.productidenabled = [];
         $scope.configs          = config;
         $scope.datadisplay      = {};
-
+        $scope.manualscancart   = '';
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -83,7 +83,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get unix guestid
                 ($scope.getguest = function(){
-                    $scope.guests = moment().format('DD-MM-YYYY hh:mm:ss');
+                    $scope.guests = moment().format('DD-MM-YYYY HH:mm:ss');
                 })();
                 //function -+ wish list
                 $scope.qaFn = function(id,action){
@@ -118,6 +118,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             }
                             $scope.product = response.data.records;
                             $scope.enadis();
+                        }else if(response.code == 13){
+                            $scope.logoutfn();
                         }else{
                             //do something when error
                         }
@@ -383,6 +385,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 })();
+                //binding keypad scant
+                $scope.keypadscantFn = function(idx){
+                    if(idx == 'c'){
+                        $scope.manualscancart = '';
+
+                    }else if(idx =='d'){
+                        $scope.virtualFn(false);
+                    }else if(idx == 'r'){
+                        $scope.manualscancart =  $scope.manualscancart != '' ? $scope.manualscancart.substring(0, $scope.manualscancart.length-1) : '';
+                    }else{
+                        $scope.manualscancart =  $scope.manualscancart == 0 ? idx : $scope.manualscancart+idx;
+                    }
+
+                };
                 //binding keypad cash
                 $scope.keypadFn = function(idx){
                     if(idx == 'c'){
@@ -406,11 +422,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else if(idx == 'r'){
                         $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'].length == 1 ? 0 :$scope.cart[$scope.indexactiveqty]['qty'] != '' ? $scope.cart[$scope.indexactiveqty]['qty'].substring(0, $scope.cart[$scope.indexactiveqty]['qty'].length-1) : 0;
                     }else{
+                        if($scope.isqty) {
+                            //overwrite
+                            $scope.cart[$scope.indexactiveqty]['qty'] = '';
+                            $scope.isqty = false;
+                        }
                         $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? idx : $scope.cart[$scope.indexactiveqty]['qty']+idx;
                     }
                     $scope.countcart();
                 };
-
                 //show virtual
                 $scope.virtualFn = function(bool){
                     $scope.isvirtual = bool;
@@ -420,7 +440,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.isvirtualqty = bool;
                     if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
                     $scope.indexactiveqty = idx;
+                    $scope.isqty  = true;
+                    console.log($scope.tmpqty);
                     $scope.countcart();
+                };
+                //show virtual scant cart manual
+                $scope.virtualscancartFn = function(bool){
+                    $scope.isvirtualscancart = bool;
+                    $scope.btnsearch = true;
                 };
                 //customer display
                 $scope.customerdispaly = function(line1,line2){
@@ -434,7 +461,33 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 };
+                //init customer display
                 $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                //scan cart automatic
+                $scope.scancartFn = function(){
+
+                    /*
+                    serviceAjax.posDataToServer('/pos/scancart').then(function(response){
+                        if(response.code == 0 ){
+
+                        }else{
+                            //do something when error
+                        }
+
+                    });*/
+                };
+                //scan cart manually
+                $scope.seacrhmanualCartFn = function(){
+                    /*
+                     serviceAjax.posDataToServer('/pos/scancart').then(function(response){
+                     if(response.code == 0 ){
+
+                     }else{
+                     //do something when error
+                     }
+
+                     });*/
+                };
             }
         });
 
