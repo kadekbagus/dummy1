@@ -439,7 +439,7 @@ class ProductAttributeAPIController extends ControllerAPI
             if (! ACL::create($user)->isAllowed('update_product_attribute')) {
                 Event::fire('orbit.product.postupdateattribute.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.new_product_attribute');
+                $errorMessage = Lang::get('validation.orbit.actionlist.update_product_attribute');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
