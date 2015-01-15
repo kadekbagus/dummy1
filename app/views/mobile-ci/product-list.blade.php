@@ -59,7 +59,7 @@
 					@else
 					<div class="col-xs-6 catalogue-control price">
 						<div class="circlet btn-blue pull-right">
-							<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id) }}">
+							<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
 								<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
 							</a>
 						</div>

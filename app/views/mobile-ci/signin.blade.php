@@ -41,6 +41,16 @@
   </div>
 @stop
 
+@section('footer')
+  <footer>
+    <div class="row">
+      <div class="col-xs-12 text-center">
+        <p >Orbit - powered by DominoPos</p>
+      </div>
+    </div>
+  </footer>
+@stop
+
 @section('modals')
   <!-- Modal -->
   <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
