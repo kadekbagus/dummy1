@@ -441,7 +441,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
                     $scope.indexactiveqty = idx;
                     $scope.isqty  = true;
-                    console.log($scope.tmpqty);
                     $scope.countcart();
                 };
                 //show virtual scant cart manual
