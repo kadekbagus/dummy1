@@ -558,8 +558,8 @@ class MobileCIAPIController extends ControllerAPI
                         })->excludeDeleted()->where('product_id', $product_id)->first();
 
             $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or p.is_permanent = "Y") and p.is_coupon = "N"
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or p.is_permanent = "Y") and p.is_coupon = "N" AND p.merchant_id = :merchantid
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
                 inner join ' . DB::getTablePrefix() . 'products prod on 
                 (
                     (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
@@ -573,7 +573,7 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
                     )
                 )
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+                WHERE prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
 
             $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
                 inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
@@ -631,8 +631,8 @@ class MobileCIAPIController extends ControllerAPI
 
             return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary));
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
-            // return $e->getMessage();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
         }
     }
 
@@ -1132,9 +1132,11 @@ class MobileCIAPIController extends ControllerAPI
             $cartdata = new stdclass();
             $cartdata->cart = $cart;
             $cartdata->cartdetails = $cartdetails;
+
+            return $cartdata;
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
         }
-        return $cartdata;
     }
 }
