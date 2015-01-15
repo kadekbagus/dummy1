@@ -74,7 +74,7 @@
 		@endif
 	</div>
 	<!-- <pre>{{ var_dump($product->attribute1) }}</pre> -->
-	<div class="col-xs-12 product-attributes">
+	<div class="col-xs-12 product-attributes" id="select-attribute">
 		<div class="row">
 			@if(! is_null($product->attribute1))
 			<div class="col-xs-4 main-theme-text">
@@ -135,48 +135,16 @@
 			</div>
 			@endif
 		</div>
-			<!-- <div class="col-xs-4 main-theme-text">
-				<div class="radio-container">
-					<ul><h5>Colors</h5>
-				        <li><input type="radio" name="color" value="Red" ><span class="attribute-title">Red</span></li>
-				        <li><input type="radio" name="color" value="Magenta" ><span class="attribute-title">Magenta</span></li>
-				        <li><input type="radio" name="color" value="Blue" ><span class="attribute-title">Blue</span></li>
-				        <li><input type="radio" name="color" value="Green" ><span class="attribute-title">Green</span></li>
-				        <li><input type="radio" name="color" value="Grey" ><span class="attribute-title">Gray</span></li>
-				    </ul>
-				</div>
-			</div>
-			<div class="col-xs-4 main-theme-text">
-				<div class="radio-container">
-					<ul><h5>Sleeve</h5>
-				        <li><input type="radio" name="sleeve" value="Long Sleeve" ><span class="attribute-title">Long Sleeve</span></li>
-				        <li><input type="radio" name="sleeve" value="Short Sleeve" ><span class="attribute-title">Short Sleeve</span></li>
-				    </ul>
-				</div>
-			</div> -->
-			<!-- <div class="col-xs-12">
-				<table>
-					<thead>
-						<tr>
-							<td>Size</td>
-							<td>Color</td>
-							<td>Sleeve</td>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><input type="radio" name="size" value="S" > S</td>
-							<td><input type="radio" name="color" value="Red" > Red</td>
-							<td><input type="radio" name="sleeve" value="Long Sleeve" > Long Sleeve</td>
-						</tr>
-					</tbody>
-				</table>
-			</div> -->
 	</div>
 	<div class="col-xs-12 product-bottom main-theme ">
 		<div class="row">
 			<div class="col-xs-6">
 				<h4>Code : {{ $product->upc_code }}</h4>
+			</div>
+		</div>
+		<div class="row" id="starting-from">
+			<div class="col-xs-12">
+				<p><small>Starting from :</small></p>
 			</div>
 		</div>
 		<div class="row">
@@ -238,11 +206,12 @@
 		var variants = {{ json_encode($product->variants) }};
 		var promotions = {{ json_encode($promotions) }};
 		var attributes = {{ json_encode($attributes) }};
+		var product = {{ json_encode($product) }}
 		var itemReady = [];
 		$(document).ready(function(){
 			// console.log(variants.length);
-			$('#price-before span').text('');
-			$('#price span').text('');
+			// $('#price-before span').text('');
+			// $('#price span').text('');
 			if(variants.length < 2){
 				var itemReady = [];
 				itemReady = variants;
@@ -256,6 +225,7 @@
 					//get first promotions value
 					priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
 				}
+				$('#starting-from').hide();
 				$('#price-before span').text(pricebefore);
 				$('#price span').text(priceafter);
 			}
@@ -334,30 +304,32 @@
 				itemReady = $.grep(variants, function(n, i){
 					return (n.product_attribute_value_id1 == selectedVariant.attr1) && (n.product_attribute_value_id2 == selectedVariant.attr2) && (n.product_attribute_value_id3 == selectedVariant.attr3) && (n.product_attribute_value_id4 == selectedVariant.attr4) && (n.product_attribute_value_id5 == selectedVariant.attr5);
 				});
-				
+				var pricebefore, priceafter;
 				if(itemReady.length > 0){
 					// console.log(itemReady);
+					pricebefore = parseFloat(itemReady[0].price);
 					$('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
-					var pricebefore = parseFloat(itemReady[0].price);
-					var priceafter;
-					if(promotions.length < 1){
-						priceafter = pricebefore;
-					} else {
-						// console.log(promotions);
-						//get first promotions value
-						priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
-					}
-					$('#price-before span').text(pricebefore);
-					$('#price span').text(priceafter);
+					$('#starting-from').hide();
 				}else{
-					$('#price-before span').text('');
-					$('#price span').text('');
+					pricebefore = parseFloat(product.price);
+					$('#starting-from').show();
 					$('.add-to-cart-button').addClass('btn-disabled').removeAttr('id');
 				}
+				if(promotions.length < 1){
+					priceafter = pricebefore;
+				} else {
+					// console.log(promotions);
+					// get first promotions value
+					priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
+				}
+				$('#price-before span').text(pricebefore);
+				$('#price span').text(priceafter);
 			});
+			
 			$('#backBtnProduct').click(function(){
 			    window.history.back()
 			});
+
 			$('body').on('click', '#addToCartButton', function($event){
 				// add to cart
 				var prodid = itemReady[0].product_id;
