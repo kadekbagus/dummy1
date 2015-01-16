@@ -43,14 +43,14 @@
         overflow: auto;
         .single-header {
           padding: .5em 0;
-          width: 23%;
+          width: 25%;
           // display: inline-block;
           float: left;
-          border-right: 1px solid @theme-main-gray;
+          // border-right: 1px solid @theme-main-gray;
           text-align: center;
-          font-size: 1em;
+          font-size: 10px;
           font-weight: 700;
-          min-height: 60px;
+          // min-height: 60px;
           &:last-of-type {
             border-right: none;
           }
@@ -67,15 +67,28 @@
         .single-body {
           position: relative;
           padding: .6em 0;
-          width: 23%;
+          width: 25%;
           // display: block;
           float: left;
-          border-right: 1px solid @theme-main-gray;
+          // border-right: 1px solid @theme-main-gray;
           text-align: center;
           font-size: 1em;
-          min-height: 125px;
+          // min-height: 125px;
           &:last-of-type {
             border-right: none;
+          }
+          .attributes{
+            span{
+              &:after{
+                content: "/";
+                margin: 0 2px;
+              }
+              &:last-child{
+                &:after{
+                  content: "";
+                }
+              }
+            }
           }
           .product-image {
             width: 80%;
@@ -90,7 +103,9 @@
               cursor: pointer;
               border-top-left-radius: .5em;
               border-top-right-radius: .5em;
-              border-top: 1px solid darken(@theme-main-gray, 10%);
+              webkit-border-top-left-radius: .5em;
+              webkit-border-top-right-radius: .5em;
+              border: 1px solid darken(@theme-main-gray, 10%);
               text-align: center;
               padding-top: .3em;
               input{
@@ -103,7 +118,7 @@
             .item-remover {
               width: 70%;
               height: 2em;
-              margin: .3em auto 0 auto;
+              margin: 0 auto 0 auto;
               background-color: @theme-delete;
               color: @theme-main-complimentary-2;
               cursor: pointer;

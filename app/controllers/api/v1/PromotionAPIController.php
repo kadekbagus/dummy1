@@ -1135,7 +1135,7 @@ class PromotionAPIController extends ControllerAPI
                 return FALSE;
             }
 
-            App::instance('orbit.validation.promotion', $promotion);
+            App::instance('orbit.validation.promotion_name', $promotion);
 
             return TRUE;
         });

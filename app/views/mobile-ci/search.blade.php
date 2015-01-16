@@ -7,8 +7,8 @@
 @section('content')
 	@if($data->status === 1)
 		@if(sizeof($data->records) > 0)
-			<div id="search-tool" style="display:block; background-color:#0aa5d5;">
-			    <div class="row" style="padding:15px;">
+			<div id="search-tool">
+			    <div class="row">
 				    <div class="col-xs-6 search-tool-col">
 				    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
 				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc') }}" id="sort-by-price-up"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i></span></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc') }}" id="sort-by-price-down"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i></span></a><span class="sort-lable">IDR</span>

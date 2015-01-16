@@ -97,6 +97,7 @@ return array(
             'category_name'         => 'The category name has already been used.',
             'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.',
             'promotion_name'        => 'The promotion name has already been used.',
+            'coupon_name'           => 'The coupon name has already been used.',
             'product'               => array(
                 'attribute'         => array(
                     'unique'        => 'The attribute name \':attrname\' already exists.',
@@ -128,6 +129,7 @@ return array(
             'category'             => 'The Category ID you specify is not found.',
             'tax'                  => 'The Tax ID you specify is not found.',
             'promotion'            => 'The Promotion ID you specify is not found.',
+            'coupon'               => 'The Coupon ID you specify is not found.',
             'user_status'          => 'The user status you specify is not found.',
             'user_sortby'          => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'      => 'The merchant status you specify is not found.',
@@ -170,6 +172,7 @@ return array(
                     'attribute'    => array(
                         'value'         => 'The product attribute value ID :id you specify is not found or does not belongs to this merchant.',
                         'json_property' => 'Missing property of ":property" on your JSON string.',
+                        'variant'       => 'The product variant ID you specify is not found.'
                     ),
             ),
             'upc_code'             => 'The UPC code of the product is not found.'

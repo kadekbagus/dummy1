@@ -14,57 +14,70 @@ class CouponAPIController extends ControllerAPI
 {
 
     /**
-     * POST - Create New Promotion
+     * POST - Create New Coupon
      *
      * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`           (required) - Merchant ID
-     * @param string     `promotion_name`        (required) - Promotion name
-     * @param string     `promotion_type`        (required) - Promotion type. Valid value: product, cart.
-     * @param string     `status`                (required) - Status. Valid value: active, inactive, pending, blocked, deleted.
-     * @param string     `description`           (optional) - Description
-     * @param datetime   `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
-     * @param datetime   `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
-     * @param string     `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
-     * @param file       `images`                (optional) - Promotion image
-     * @param string     `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
-     * @param decimal    `rule_value`            (optional) - Rule value
-     * @param string     `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
-     * @param integer    `discount_object_id1`   (optional) - Discount object ID1 (product_id or category_id1).
-     * @param integer    `discount_object_id2`   (optional) - Discount object ID2 (category_id2).
-     * @param integer    `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
-     * @param integer    `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
-     * @param integer    `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
-     * @param decimal    `discount_value`        (optional) - Discount value
-     * @param array      `retailer_ids`          (optional) - Retailer IDs
+     * @param integer    `merchant_id`                       (required) - Merchant ID
+     * @param string     `promotion_name`                    (required) - Coupon name
+     * @param string     `promotion_type`                    (required) - Coupon type. Valid value: product, cart.
+     * @param string     `status`                            (required) - Status. Valid value: active, inactive, pending, blocked, deleted.
+     * @param string     `description`                       (optional) - Description
+     * @param datetime   `begin_date`                        (optional) - Begin date. Example: 2014-12-30 00:00:00
+     * @param datetime   `end_date`                          (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param string     `is_permanent`                      (optional) - Is permanent. Valid value: Y, N.
+     * @param file       `images`                            (optional) - Coupon image
+     * @param integer    `maximum_issued_coupon`             (optional) - Maximum issued coupon
+     * @param integer    `coupon_validity_in_days`           (optional) - Coupon validity in days
+     * @param string     `coupon_notification`               (optional) - Coupon notification. Valid value: Y, N.
+     * @param string     `rule_type`                         (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
+     * @param decimal    `rule_value`                        (optional) - Rule value
+     * @param string     `rule_object_type`                  (optional) - Rule object type. Valid value: product, family.
+     * @param integer    `rule_object_id1`                   (optional) - Rule object ID1 (product_id or category_id1).
+     * @param integer    `rule_object_id2`                   (optional) - Rule object ID2 (category_id2).
+     * @param integer    `rule_object_id3`                   (optional) - Rule object ID3 (category_id3).
+     * @param integer    `rule_object_id4`                   (optional) - Rule object ID4 (category_id4).
+     * @param integer    `rule_object_id5`                   (optional) - Rule object ID5 (category_id5).
+     * @param string     `discount_object_type`              (optional) - Discount object type. Valid value: product, family, cash_rebate.
+     * @param integer    `discount_object_id1`               (optional) - Discount object ID1 (product_id or category_id1).
+     * @param integer    `discount_object_id2`               (optional) - Discount object ID2 (category_id2).
+     * @param integer    `discount_object_id3`               (optional) - Discount object ID3 (category_id3).
+     * @param integer    `discount_object_id4`               (optional) - Discount object ID4 (category_id4).
+     * @param integer    `discount_object_id5`               (optional) - Discount object ID5 (category_id5).
+     * @param decimal    `discount_value`                    (optional) - Discount value
+     * @param string     `is_cumulative_with_coupons`        (optional) - Cumulative with other coupons. Valid value: Y, N.
+     * @param string     `is_cumulative_with_promotions`     (optional) - Cumulative with other promotions. Valid value: Y, N.
+     * @param decimal    `coupon_redeem_rule_value`          (optional) - Coupon redeem rule value
+     * @param array      `issue_retailer_ids`                (optional) - Issue Retailer IDs
+     * @param array      `redeem_retailer_ids`               (optional) - Redeem Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
      */
-    public function postNewPromotion()
+    public function postNewCoupon()
     {
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.promotion.postnewpromotion.before.auth', array($this));
+            Event::fire('orbit.coupon.postnewcoupon.before.auth', array($this));
 
             $this->checkAuth();
             
-            Event::fire('orbit.promotion.postnewpromotion.after.auth', array($this));
+            Event::fire('orbit.coupon.postnewcoupon.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.promotion.postnewpromotion.before.authz', array($this, $user));
+            Event::fire('orbit.coupon.postnewcoupon.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('new_promotion')) {
-                Event::fire('orbit.promotion.postnewpromotion.authz.notallowed', array($this, $user));
-                $createPromotionLang = Lang::get('validation.orbit.actionlist.new_promotion');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createPromotionLang));
+            if (! ACL::create($user)->isAllowed('new_coupon')) {
+                Event::fire('orbit.coupon.postnewcoupon.authz.notallowed', array($this, $user));
+                $createCouponLang = Lang::get('validation.orbit.actionlist.new_coupon');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createCouponLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.promotion.postnewpromotion.after.authz', array($this, $user));
+            Event::fire('orbit.coupon.postnewcoupon.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -76,9 +89,17 @@ class CouponAPIController extends ControllerAPI
             $begin_date = OrbitInput::post('begin_date');
             $end_date = OrbitInput::post('end_date');
             $is_permanent = OrbitInput::post('is_permanent');
-            $image = OrbitInput::post('image');
+            $maximum_issued_coupon = OrbitInput::post('maximum_issued_coupon');
+            $coupon_validity_in_days = OrbitInput::post('coupon_validity_in_days');
+            $coupon_notification = OrbitInput::post('coupon_notification');
             $rule_type = OrbitInput::post('rule_type');
             $rule_value = OrbitInput::post('rule_value');
+            $rule_object_type = OrbitInput::post('rule_object_type');
+            $rule_object_id1 = OrbitInput::post('rule_object_id1');
+            $rule_object_id2 = OrbitInput::post('rule_object_id2');
+            $rule_object_id3 = OrbitInput::post('rule_object_id3');
+            $rule_object_id4 = OrbitInput::post('rule_object_id4');
+            $rule_object_id5 = OrbitInput::post('rule_object_id5');
             $discount_object_type = OrbitInput::post('discount_object_type');
             $discount_object_id1 = OrbitInput::post('discount_object_id1');
             $discount_object_id2 = OrbitInput::post('discount_object_id2');
@@ -86,8 +107,13 @@ class CouponAPIController extends ControllerAPI
             $discount_object_id4 = OrbitInput::post('discount_object_id4');
             $discount_object_id5 = OrbitInput::post('discount_object_id5');
             $discount_value = OrbitInput::post('discount_value');
-            $retailer_ids = OrbitInput::post('retailer_ids');
-            $retailer_ids = (array) $retailer_ids;
+            $is_cumulative_with_coupons = OrbitInput::post('is_cumulative_with_coupons');
+            $is_cumulative_with_promotions = OrbitInput::post('is_cumulative_with_promotions');
+            $coupon_redeem_rule_value = OrbitInput::post('coupon_redeem_rule_value');
+            $issue_retailer_ids = OrbitInput::post('issue_retailer_ids');
+            $issue_retailer_ids = (array) $issue_retailer_ids;
+            $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
+            $redeem_retailer_ids = (array) $redeem_retailer_ids;
 
             $validator = Validator::make(
                 array(
@@ -96,6 +122,12 @@ class CouponAPIController extends ControllerAPI
                     'promotion_type'       => $promotion_type,
                     'status'               => $status,
                     'rule_type'            => $rule_type,
+                    'rule_object_type'     => $rule_object_type,
+                    'rule_object_id1'      => $rule_object_id1,
+                    'rule_object_id2'      => $rule_object_id2,
+                    'rule_object_id3'      => $rule_object_id3,
+                    'rule_object_id4'      => $rule_object_id4,
+                    'rule_object_id5'      => $rule_object_id5,
                     'discount_object_type' => $discount_object_type,
                     'discount_object_id1'  => $discount_object_id1,
                     'discount_object_id2'  => $discount_object_id2,
@@ -105,20 +137,26 @@ class CouponAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
-                    'promotion_name'       => 'required|orbit.exists.promotion_name',
-                    'promotion_type'       => 'required|orbit.empty.promotion_type',
-                    'status'               => 'required|orbit.empty.promotion_status',
+                    'promotion_name'       => 'required|orbit.exists.coupon_name',
+                    'promotion_type'       => 'required|orbit.empty.coupon_type',
+                    'status'               => 'required|orbit.empty.coupon_status',
                     'rule_type'            => 'orbit.empty.rule_type',
+                    'rule_object_type'     => 'orbit.empty.rule_object_type',
+                    'rule_object_id1'      => 'numeric|orbit.empty.rule_object_id1',
+                    'rule_object_id2'      => 'numeric|orbit.empty.rule_object_id2',
+                    'rule_object_id3'      => 'numeric|orbit.empty.rule_object_id3',
+                    'rule_object_id4'      => 'numeric|orbit.empty.rule_object_id4',
+                    'rule_object_id5'      => 'numeric|orbit.empty.rule_object_id5',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
-                    'discount_object_id1'  => 'orbit.empty.discount_object_id1',
-                    'discount_object_id2'  => 'orbit.empty.discount_object_id2',
-                    'discount_object_id3'  => 'orbit.empty.discount_object_id3',
-                    'discount_object_id4'  => 'orbit.empty.discount_object_id4',
-                    'discount_object_id5'  => 'orbit.empty.discount_object_id5',
+                    'discount_object_id1'  => 'numeric|orbit.empty.discount_object_id1',
+                    'discount_object_id2'  => 'numeric|orbit.empty.discount_object_id2',
+                    'discount_object_id3'  => 'numeric|orbit.empty.discount_object_id3',
+                    'discount_object_id4'  => 'numeric|orbit.empty.discount_object_id4',
+                    'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
                 )
             );
 
-            Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
+            Event::fire('orbit.coupon.postnewcoupon.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
@@ -126,7 +164,8 @@ class CouponAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            foreach ($retailer_ids as $retailer_id_check) {
+            // validating issue_retailer_ids.
+            foreach ($issue_retailer_ids as $retailer_id_check) {
                 $validator = Validator::make(
                     array(
                         'retailer_id'   => $retailer_id_check,
@@ -137,7 +176,7 @@ class CouponAPIController extends ControllerAPI
                     )
                 );
 
-                Event::fire('orbit.promotion.postnewpromotion.before.retailervalidation', array($this, $validator));
+                Event::fire('orbit.coupon.postnewcoupon.before.issueretailervalidation', array($this, $validator));
 
                 // Run the validation
                 if ($validator->fails()) {
@@ -145,65 +184,110 @@ class CouponAPIController extends ControllerAPI
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
 
-                Event::fire('orbit.promotion.postnewpromotion.after.retailervalidation', array($this, $validator));
+                Event::fire('orbit.coupon.postnewcoupon.after.issueretailervalidation', array($this, $validator));
             }
 
-            Event::fire('orbit.promotion.postnewpromotion.after.validation', array($this, $validator));
+            // validating redeem_retailer_ids.
+            foreach ($redeem_retailer_ids as $retailer_id_check) {
+                $validator = Validator::make(
+                    array(
+                        'retailer_id'   => $retailer_id_check,
+
+                    ),
+                    array(
+                        'retailer_id'   => 'numeric|orbit.empty.retailer',
+                    )
+                );
+
+                Event::fire('orbit.coupon.postnewcoupon.before.redeemretailervalidation', array($this, $validator));
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                Event::fire('orbit.coupon.postnewcoupon.after.redeemretailervalidation', array($this, $validator));
+            }
+
+            Event::fire('orbit.coupon.postnewcoupon.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
 
-            // save Promotion.
-            $newpromotion = new Promotion();
-            $newpromotion->merchant_id = $merchant_id;
-            $newpromotion->promotion_name = $promotion_name;
-            $newpromotion->promotion_type = $promotion_type;
-            $newpromotion->status = $status;
-            $newpromotion->description = $description;
-            $newpromotion->begin_date = $begin_date;
-            $newpromotion->end_date = $end_date;
-            $newpromotion->is_permanent = $is_permanent;
-            $newpromotion->image = $image;
-            $newpromotion->created_by = $this->api->user->user_id;
+            // save Coupon.
+            $newcoupon = new Coupon();
+            $newcoupon->merchant_id = $merchant_id;
+            $newcoupon->promotion_name = $promotion_name;
+            $newcoupon->promotion_type = $promotion_type;
+            $newcoupon->status = $status;
+            $newcoupon->description = $description;
+            $newcoupon->begin_date = $begin_date;
+            $newcoupon->end_date = $end_date;
+            $newcoupon->is_permanent = $is_permanent;
+            $newcoupon->maximum_issued_coupon = $maximum_issued_coupon;
+            $newcoupon->coupon_validity_in_days = $coupon_validity_in_days;
+            $newcoupon->coupon_notification = $coupon_notification;
+            $newcoupon->created_by = $this->api->user->user_id;
 
-            Event::fire('orbit.promotion.postnewpromotion.before.save', array($this, $newpromotion));
+            Event::fire('orbit.coupon.postnewcoupon.before.save', array($this, $newcoupon));
 
-            $newpromotion->save();
+            $newcoupon->save();
 
-            // save PromotionRule.
-            $promotionrule = new PromotionRule();
-            $promotionrule->rule_type = $rule_type;
-            $promotionrule->rule_value = $rule_value;
-            $promotionrule->discount_object_type = $discount_object_type;
-            $promotionrule->discount_object_id1 = $discount_object_id1;
-            $promotionrule->discount_object_id2 = $discount_object_id2;
-            $promotionrule->discount_object_id3 = $discount_object_id3;
-            $promotionrule->discount_object_id4 = $discount_object_id4;
-            $promotionrule->discount_object_id5 = $discount_object_id5;
-            $promotionrule->discount_value = $discount_value;
-            $promotionrule = $newpromotion->promotionrule()->save($promotionrule);
-            $newpromotion->promotionrule = $promotionrule;
+            // save CouponRule.
+            $couponrule = new CouponRule();
+            $couponrule->rule_type = $rule_type;
+            $couponrule->rule_value = $rule_value;
+            $couponrule->rule_object_type = $rule_object_type;
+            $couponrule->rule_object_id1 = $rule_object_id1;
+            $couponrule->rule_object_id2 = $rule_object_id2;
+            $couponrule->rule_object_id3 = $rule_object_id3;
+            $couponrule->rule_object_id4 = $rule_object_id4;
+            $couponrule->rule_object_id5 = $rule_object_id5;
+            $couponrule->discount_object_type = $discount_object_type;
+            $couponrule->discount_object_id1 = $discount_object_id1;
+            $couponrule->discount_object_id2 = $discount_object_id2;
+            $couponrule->discount_object_id3 = $discount_object_id3;
+            $couponrule->discount_object_id4 = $discount_object_id4;
+            $couponrule->discount_object_id5 = $discount_object_id5;
+            $couponrule->discount_value = $discount_value;
+            $couponrule->is_cumulative_with_coupons = $is_cumulative_with_coupons;
+            $couponrule->is_cumulative_with_promotions = $is_cumulative_with_promotions;
+            $couponrule->coupon_redeem_rule_value = $coupon_redeem_rule_value;
+            $couponrule = $newcoupon->couponrule()->save($couponrule);
+            $newcoupon->couponrule = $couponrule;
 
-            // save PromotionRetailer.
-            $promotionretailers = array();
-            foreach ($retailer_ids as $retailer_id) {
-                $promotionretailer = new PromotionRetailer();
-                $promotionretailer->retailer_id = $retailer_id;
-                $promotionretailer->promotion_id = $newpromotion->promotion_id;
-                $promotionretailer->save();
-                $promotionretailers[] = $promotionretailer;
+            // save CouponRetailer (issue retailers).
+            $issueretailers = array();
+            foreach ($issue_retailer_ids as $retailer_id) {
+                $issueretailer = new CouponRetailer();
+                $issueretailer->retailer_id = $retailer_id;
+                $issueretailer->promotion_id = $newcoupon->promotion_id;
+                $issueretailer->save();
+                $issueretailers[] = $issueretailer;
             }
-            $newpromotion->retailers = $promotionretailers;
+            $newcoupon->issueretailers = $issueretailers;
 
-            Event::fire('orbit.promotion.postnewpromotion.after.save', array($this, $newpromotion));
-            $this->response->data = $newpromotion;
+            // save CouponRetailerRedeem (redeem retailers).
+            $redeemretailers = array();
+            foreach ($redeem_retailer_ids as $retailer_id) {
+                $redeemretailer = new CouponRetailerRedeem();
+                $redeemretailer->retailer_id = $retailer_id;
+                $redeemretailer->promotion_id = $newcoupon->promotion_id;
+                $redeemretailer->save();
+                $redeemretailers[] = $redeemretailer;
+            }
+            $newcoupon->redeemretailers = $redeemretailers;
+
+            Event::fire('orbit.coupon.postnewcoupon.after.save', array($this, $newcoupon));
+            $this->response->data = $newcoupon;
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.promotion.postnewpromotion.after.commit', array($this, $newpromotion));
+            Event::fire('orbit.coupon.postnewcoupon.after.commit', array($this, $newcoupon));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.promotion.postnewpromotion.access.forbidden', array($this, $e));
+            Event::fire('orbit.coupon.postnewcoupon.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -214,7 +298,7 @@ class CouponAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.promotion.postnewpromotion.invalid.arguments', array($this, $e));
+            Event::fire('orbit.coupon.postnewcoupon.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -225,7 +309,7 @@ class CouponAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.promotion.postnewpromotion.query.error', array($this, $e));
+            Event::fire('orbit.coupon.postnewcoupon.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -242,7 +326,7 @@ class CouponAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.promotion.postnewpromotion.general.exception', array($this, $e));
+            Event::fire('orbit.coupon.postnewcoupon.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -257,22 +341,22 @@ class CouponAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Update Promotion
+     * POST - Update Coupon
      *
      * @author <Tian> <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `promotion_id`          (required) - Promotion ID
+     * @param integer    `promotion_id`          (required) - Coupon ID
      * @param integer    `merchant_id`           (optional) - Merchant ID
-     * @param string     `promotion_name`        (optional) - Promotion name
-     * @param string     `promotion_type`        (optional) - Promotion type. Valid value: product, cart.
+     * @param string     `promotion_name`        (optional) - Coupon name
+     * @param string     `promotion_type`        (optional) - Coupon type. Valid value: product, cart.
      * @param string     `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param string     `description`           (optional) - Description
      * @param datetime   `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime   `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
      * @param string     `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
-     * @param file       `images`                (optional) - Promotion image
+     * @param file       `images`                (optional) - Coupon image
      * @param string     `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
      * @param decimal    `rule_value`            (optional) - Rule value
      * @param string     `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
@@ -283,11 +367,11 @@ class CouponAPIController extends ControllerAPI
      * @param integer    `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
      * @param decimal    `discount_value`        (optional) - Discount value
      * @param string     `no_retailer`           (optional) - Flag to delete all ORID links. Valid value: Y.
-     * @param array      `retailer_ids`          (optional) - Retailer IDs
+     * @param array      `issue_retailer_ids`          (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
      */
-    public function postUpdatePromotion()
+    public function postUpdateCoupon()
     {
         try {
             $httpCode=200;
@@ -306,8 +390,8 @@ class CouponAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('update_promotion')) {
                 Event::fire('orbit.promotion.postupdatepromotion.authz.notallowed', array($this, $user));
-                $updatePromotionLang = Lang::get('validation.orbit.actionlist.update_promotion');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updatePromotionLang));
+                $updateCouponLang = Lang::get('validation.orbit.actionlist.update_promotion');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateCouponLang));
                 ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.promotion.postupdatepromotion.after.authz', array($this, $user));
@@ -373,9 +457,9 @@ class CouponAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedpromotion = Promotion::with('promotionrule', 'retailers')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $updatedpromotion = Coupon::with('promotionrule', 'retailers')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
 
-            // save Promotion.
+            // save Coupon.
             OrbitInput::post('merchant_id', function($merchant_id) use ($updatedpromotion) {
                 $updatedpromotion->merchant_id = $merchant_id;
             });
@@ -419,8 +503,8 @@ class CouponAPIController extends ControllerAPI
             $updatedpromotion->save();
 
 
-            // save PromotionRule.
-            $promotionrule = PromotionRule::where('promotion_id', '=', $promotion_id)->first();
+            // save CouponRule.
+            $promotionrule = CouponRule::where('promotion_id', '=', $promotion_id)->first();
             OrbitInput::post('rule_type', function($rule_type) use ($promotionrule) {
                 if (trim($rule_type) === '') {
                     $rule_type = NULL;
@@ -482,10 +566,10 @@ class CouponAPIController extends ControllerAPI
             $updatedpromotion->promotionrule = $promotionrule;
 
 
-            // save PromotionRetailer.
+            // save CouponRetailer.
             OrbitInput::post('no_retailer', function($no_retailer) use ($updatedpromotion) {
                 if ($no_retailer == 'Y') {
-                    $deleted_retailer_ids = PromotionRetailer::where('promotion_id', $updatedpromotion->promotion_id)->get(array('retailer_id'))->toArray();
+                    $deleted_retailer_ids = CouponRetailer::where('promotion_id', $updatedpromotion->promotion_id)->get(array('retailer_id'))->toArray();
                     $updatedpromotion->retailers()->detach($deleted_retailer_ids);
                     $updatedpromotion->load('retailers');
                 }
@@ -585,7 +669,7 @@ class CouponAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Delete Promotion
+     * POST - Delete Coupon
      *
      * @author Tian <tian@dominopos.com>
      *
@@ -595,7 +679,7 @@ class CouponAPIController extends ControllerAPI
      *
      * @return Illuminate\Support\Facades\Response
      */
-    public function postDeletePromotion()
+    public function postDeleteCoupon()
     {
         try {
             $httpCode = 200;
@@ -614,8 +698,8 @@ class CouponAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('delete_promotion')) {
                 Event::fire('orbit.promotion.postdeletepromotion.authz.notallowed', array($this, $user));
-                $deletePromotionLang = Lang::get('validation.orbit.actionlist.delete_promotion');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deletePromotionLang));
+                $deleteCouponLang = Lang::get('validation.orbit.actionlist.delete_promotion');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteCouponLang));
                 ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.promotion.postdeletepromotion.after.authz', array($this, $user));
@@ -645,14 +729,14 @@ class CouponAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deletepromotion = Promotion::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $deletepromotion = Coupon::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
             $deletepromotion->status = 'deleted';
             $deletepromotion->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.promotion.postdeletepromotion.before.save', array($this, $deletepromotion));
 
             // hard delete promotion-retailer.
-            $deletepromotionretailers = PromotionRetailer::where('promotion_id', $deletepromotion->promotion_id)->get();
+            $deletepromotionretailers = CouponRetailer::where('promotion_id', $deletepromotion->promotion_id)->get();
             foreach ($deletepromotionretailers as $deletepromotionretailer) {
                 $deletepromotionretailer->delete();
             }
@@ -748,7 +832,7 @@ class CouponAPIController extends ControllerAPI
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `coupon_notification`   (optional) - Coupon notification. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
-     * @param string   `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage, cash_rebate_discount_by_value, cash_rebate_discount_by_percentage.
+     * @param string   `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
      * @param string   `rule_object_type`      (optional) - Rule object type. Valid value: product, family.
      * @param integer  `rule_object_id1`       (optional) - Rule object ID1 (product_id or category_id1).
      * @param integer  `rule_object_id2`       (optional) - Rule object ID2 (category_id2).
@@ -1188,17 +1272,17 @@ class CouponAPIController extends ControllerAPI
 
         // Check coupon name, it should not exists (for update)
         Validator::extend('coupon_name_exists_but_me', function ($attribute, $value, $parameters) {
-            $coupon_id = trim(OrbitInput::post('coupon_id'));
+            $promotion_id = trim(OrbitInput::post('promotion_id'));
             $coupon = Coupon::excludeDeleted()
                         ->where('promotion_name', $value)
-                        ->where('promotion_id', '!=', $coupon_id)
+                        ->where('promotion_id', '!=', $promotion_id)
                         ->first();
 
             if (! empty($coupon)) {
                 return FALSE;
             }
 
-            App::instance('orbit.validation.coupon', $coupon);
+            App::instance('orbit.validation.coupon_name', $coupon);
 
             return TRUE;
         });
@@ -1228,7 +1312,7 @@ class CouponAPIController extends ControllerAPI
         // Check the existence of the rule type
         Validator::extend('orbit.empty.rule_type', function ($attribute, $value, $parameters) {
             $valid = false;
-            $ruletypes = array('cart_discount_by_value', 'cart_discount_by_percentage', 'new_product_price', 'product_discount_by_value', 'product_discount_by_percentage', 'cash_rebate_discount_by_value', 'cash_rebate_discount_by_percentage');
+            $ruletypes = array('cart_discount_by_value', 'cart_discount_by_percentage', 'new_product_price', 'product_discount_by_value', 'product_discount_by_percentage');
             foreach ($ruletypes as $ruletype) {
                 if($value === $ruletype) $valid = $valid || TRUE;
             }
@@ -1236,10 +1320,103 @@ class CouponAPIController extends ControllerAPI
             return $valid;
         });
 
+        // Check the existence of the rule object type
+        Validator::extend('orbit.empty.rule_object_type', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $ruleobjecttypes = array('product', 'family');
+            foreach ($ruleobjecttypes as $ruleobjecttype) {
+                if($value === $ruleobjecttype) $valid = $valid || TRUE;
+            }
+
+            return $valid;
+        });
+
+        // Check the existance of rule_object_id1
+        Validator::extend('orbit.empty.rule_object_id1', function ($attribute, $value, $parameters) {
+            $ruleobjecttype = trim(OrbitInput::post('rule_object_type'));
+            if ($ruleobjecttype === 'product') {
+                $rule_object_id1 = Product::excludeDeleted()
+                        ->where('product_id', $value)
+                        ->first();
+            } elseif ($ruleobjecttype === 'family') {
+                $rule_object_id1 = Category::excludeDeleted()
+                        ->where('category_id', $value)
+                        ->first();
+            }
+
+            if (empty($rule_object_id1)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.rule_object_id1', $rule_object_id1);
+
+            return TRUE;
+        });
+
+        // Check the existance of rule_object_id2
+        Validator::extend('orbit.empty.rule_object_id2', function ($attribute, $value, $parameters) {
+            $rule_object_id2 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($rule_object_id2)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.rule_object_id2', $rule_object_id2);
+
+            return TRUE;
+        });
+
+        // Check the existance of rule_object_id3
+        Validator::extend('orbit.empty.rule_object_id3', function ($attribute, $value, $parameters) {
+            $rule_object_id3 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($rule_object_id3)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.rule_object_id3', $rule_object_id3);
+
+            return TRUE;
+        });
+
+        // Check the existance of rule_object_id4
+        Validator::extend('orbit.empty.rule_object_id4', function ($attribute, $value, $parameters) {
+            $rule_object_id4 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($rule_object_id4)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.rule_object_id4', $rule_object_id4);
+
+            return TRUE;
+        });
+
+        // Check the existance of rule_object_id5
+        Validator::extend('orbit.empty.rule_object_id5', function ($attribute, $value, $parameters) {
+            $rule_object_id5 = Category::excludeDeleted()
+                    ->where('category_id', $value)
+                    ->first();
+
+            if (empty($rule_object_id5)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.rule_object_id5', $rule_object_id5);
+
+            return TRUE;
+        });
+
         // Check the existence of the discount object type
         Validator::extend('orbit.empty.discount_object_type', function ($attribute, $value, $parameters) {
             $valid = false;
-            $discountobjecttypes = array('product', 'family');
+            $discountobjecttypes = array('product', 'family', 'cash_rebate');
             foreach ($discountobjecttypes as $discountobjecttype) {
                 if($value === $discountobjecttype) $valid = $valid || TRUE;
             }

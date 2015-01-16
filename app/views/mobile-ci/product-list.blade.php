@@ -30,8 +30,8 @@
 					<div class="col-xs-12">
 						<h4>Code : {{ $product->upc_code }}</h4>
 					</div>
-								
-					<div class="col-xs-6 price">
+					<!-- <pre>{{ var_dump($promotions) }}</pre> -->
+					<div class="col-xs-12 price">
 						<?php $prices = array();?>
 						@foreach($product->variants as $variant)
 							<?php 
@@ -42,41 +42,51 @@
 						<small>Starting From</small>
 						@endif
 						@if($on_promo)
-						<h3 class="currency"><small>IDR</small> <span class="strike">{{ min($prices) + 0 }}</span></h3>
+							<?php $discount=0;?>
+							@foreach($promotions as $promotion)
+								@if($promotion->product_id == $product->product_id)
+									@if($promotion->rule_type == 'product_discount_by_percentage')
+										<?php $discount = $discount + (min($prices) * $promotion->discount_value);?>
+									@elseif($promotion->rule_type == 'product_discount_by_value')
+										<?php $discount = $discount + $promotion->discount_value;?>
+									@endif
+								@endif
+							@endforeach
+							<h3 class="currency currency-promo"><small>IDR</small> <span class="strike">{{ min($prices) + 0 }}</span></h3>
+							<h3 class="currency"><small>IDR</small> <span>{{ min($prices) - $discount + 0 }}</span></h3>
 						@else
 						<h3 class="currency"><small>IDR</small> {{ min($prices) + 0 }}</h3>
 						@endif
 					</div>
-					
-					@if(count($product->variants) <= 1)
-					<div class="col-xs-6 catalogue-control price">
-						<div class="circlet btn-blue pull-right">
-							<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
-								<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
-							</a>
-						</div>
-					</div>
-					@else
-					<div class="col-xs-6 catalogue-control price">
-						<div class="circlet btn-blue pull-right">
-							<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
-								<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
-							</a>
-						</div>
-					</div>
-					@endif
 				</div>
 			</div>
 		</div>
 		<div class="row catalogue-control-wrapper">
-			<div class="col-xs-9 catalogue-short-des ">
+			<div class="col-xs-6 catalogue-short-des ">
 				<p>{{ $product->short_description }}</p>
 			</div>
-			<div class="col-xs-3 catalogue-control ">
-				<div class="circlet btn-blue pull-right">
+			<div class="col-xs-2 catalogue-control ">
+				<div class="circlet btn-blue">
 					<a href="{{ url('customer/product?id='.$product->product_id) }}"><img src="{{ asset('mobile-ci/images/detail-clear.png') }}" ></a>
 				</div>
 			</div>
+			@if(count($product->variants) <= 1)
+			<div class="col-xs-2 catalogue-control price">
+				<div class="circlet btn-blue pull-right">
+					<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+						<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+					</a>
+				</div>
+			</div>
+			@else
+			<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+				<div class="circlet btn-blue pull-right">
+					<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
+						<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+					</a>
+				</div>
+			</div>
+			@endif
 		</div>
 	</div>
 @endforeach

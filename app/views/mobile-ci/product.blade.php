@@ -143,20 +143,28 @@
 			</div>
 		</div>
 		<div class="row" id="starting-from">
-			<div class="col-xs-12">
+			<div class="col-xs-12 text-right">
 				<p><small>Starting from :</small></p>
 			</div>
 		</div>
 		<div class="row">
+			<?php $discount=0;?>
 			@if(count($promotions)>0)
-			<div class="col-xs-6 strike" id="price-before">
-				<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
-			</div>
-			<div class="col-xs-6 pull-right" id="price">
-				<h3 class="currency"><small>IDR</small> <span>{{ $product->price - ($product->price * $promotion->discount_value) + 0 }}</span></h3>
-			</div>
+				@foreach($promotions as $promotion)
+					@if($promotion->rule_type == 'product_discount_by_percentage')
+						<?php $discount = $discount + ($product->price * $promotion->discount_value);?>
+					@elseif($promotion->rule_type == 'product_discount_by_value')
+						<?php $discount = $discount + $promotion->discount_value;?>
+					@endif
+				@endforeach
+				<div class="col-xs-6 strike" id="price-before">
+					<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
+				</div>
+				<div class="col-xs-6 pull-right text-right" id="price">
+					<h3 class="currency"><small>IDR</small> <span>{{ $product->price - $discount + 0 }}</span></h3>
+				</div>
 			@else
-			<div class="col-xs-6 pull-right" id="price">
+			<div class="col-xs-6 pull-right text-right" id="price">
 				<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
 			</div>
 			@endif
@@ -209,9 +217,6 @@
 		var product = {{ json_encode($product) }}
 		var itemReady = [];
 		$(document).ready(function(){
-			// console.log(variants.length);
-			// $('#price-before span').text('');
-			// $('#price span').text('');
 			if(variants.length < 2){
 				var itemReady = [];
 				itemReady = variants;
@@ -222,8 +227,16 @@
 					priceafter = pricebefore;
 				} else {
 					// console.log(promotions);
-					//get first promotions value
-					priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
+					var discount=0;
+					for(var i=0;i<promotions.length;i++){
+						if(promotions[i].rule_type == 'product_discount_by_percentage'){
+							discount = discount + (itemReady[0].price * parseFloat(promotions[i].discount_value));
+						}else if(promotions[i].rule_type == 'product_discount_by_value'){
+							discount = discount + parseFloat(promotions[i].discount_value);
+						}
+					}
+					priceafter = itemReady[0].price - discount;
+					console.log(priceafter);
 				}
 				$('#starting-from').hide();
 				$('#price-before span').text(pricebefore);
@@ -310,17 +323,24 @@
 					pricebefore = parseFloat(itemReady[0].price);
 					$('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
 					$('#starting-from').hide();
+					if(promotions.length < 1){
+						priceafter = pricebefore;
+					} else {
+						// get first promotions value
+						var discount=0;
+						for(var i=0;i<promotions.length;i++){
+							if(promotions[i].rule_type == 'product_discount_by_percentage'){
+								discount = discount + (itemReady[0].price * parseFloat(promotions[i].discount_value));
+							}else if(promotions[i].rule_type == 'product_discount_by_value'){
+								discount = discount + parseFloat(promotions[i].discount_value);
+							}
+						}
+						priceafter = itemReady[0].price - discount;
+					}
 				}else{
 					pricebefore = parseFloat(product.price);
 					$('#starting-from').show();
 					$('.add-to-cart-button').addClass('btn-disabled').removeAttr('id');
-				}
-				if(promotions.length < 1){
-					priceafter = pricebefore;
-				} else {
-					// console.log(promotions);
-					// get first promotions value
-					priceafter = itemReady[0].price - (itemReady[0].price * promotions[0].discount_value);
 				}
 				$('#price-before span').text(pricebefore);
 				$('#price span').text(priceafter);
