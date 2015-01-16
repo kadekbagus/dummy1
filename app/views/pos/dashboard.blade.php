@@ -325,6 +325,10 @@
             <h4 class="modal-title" id="myModalLabel"><b>Scan keranjang belanja</b></h4>
           </div>
           <div class="modal-body">
+              <div  data-ng-show="errorscancart" class="alert alert-danger alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4><% errorscancart %></h4>
+              </div>
               <p class="text-center"><b>Scan keranjang belanja sekarang!</b></p>
               <p>
                 <div class="input-group" >

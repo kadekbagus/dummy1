@@ -463,6 +463,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
+                    $scope.errorscancart = '';
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
@@ -476,9 +477,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 angular.element("#modalscancart").modal('hide');
                                 $scope.inserttocartFn(true);
                                 if(bool)  $scope.virtualFn(false);
+                                $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
                             }
                         }else{
                             //do something when error
+                            $scope.errorscancart = 'Maaf, kode yang dimasukan tidak tepat!, silahkan coba lagi';
                         }
 
                     });
