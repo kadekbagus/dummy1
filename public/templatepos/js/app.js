@@ -475,29 +475,32 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
-                    serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
-                        if(response.code == 0 ){
-                            $scope.successscant = true;
-                            $scope.guests       = response.data.users.username;
-                            $scope.cart.user_id = response.data.users.user_id;
-                            for(var i = 0; i < response.data.details.length; i++){
-                                $scope.productmodal        = response.data.details[i]['product'];
-                                $scope.productmodal['idx'] = i;
-                                angular.element("#modalscancart").modal('hide');
-                                $scope.inserttocartFn(true);
-                                if(bool)  $scope.virtualFn(false);
-                                $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
-                                $scope.scanproduct();
+                    $timeout(function(){
+                        serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
+                            if(response.code == 0 ){
+                                $scope.successscant = true;
+                                $scope.guests       = response.data.users.username;
+                                $scope.cart.user_id = response.data.users.user_id;
+                                for(var i = 0; i < response.data.details.length; i++){
+                                    $scope.productmodal        = response.data.details[i]['product'];
+                                    $scope.productmodal['idx'] = i;
+                                    angular.element("#modalscancart").modal('hide');
+                                    $scope.inserttocartFn(true);
+                                    if(bool)  $scope.virtualFn(false);
+                                    $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
+                                    $scope.scanproduct();
+                                }
+
+                            }else{
+                                //do something when error
+                                $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
+                                $scope.manualscancart = '';
+                                $scope.scancartFn();
                             }
 
-                        }else{
-                            //do something when error
-                            $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
-                            $scope.manualscancart = '';
-                            $scope.scancartFn();
-                        }
+                        });
+                    },1000);
 
-                    });
                 };
             }
         });
