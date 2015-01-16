@@ -81,9 +81,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.hiddenbtn = false;
                     if(act) $scope.hiddenbtn = true;
                 };
-
-                $scope.tess = function(){
-                    console.log('cancel');
+                //canceler request
+                $scope.cancelRequestService = function(){
                     serviceAjax.cancelRequest();
                 };
                 //get unix guestid
@@ -471,6 +470,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
+                    $scope.cancelRequestService();
                     $scope.errorscancart = '';
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
@@ -487,12 +487,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.inserttocartFn(true);
                                 if(bool)  $scope.virtualFn(false);
                                 $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
+                                $scope.scanproduct();
                             }
 
                         }else{
                             //do something when error
                             $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
                             $scope.manualscancart = '';
+                            $scope.scancartFn();
                         }
 
                     });
@@ -500,7 +502,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
         });
 
-
+        //cancel cart
+        $scope.cancelCart = function(){
+            $scope.scanproduct();
+        };
 
         //logout
         $scope.logoutfn =  function(){
