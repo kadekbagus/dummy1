@@ -13,7 +13,7 @@
                         <li> <a href="#" data-ng-click="logoutfn()">Keluar</a></li>
                       </ul>
                 </div>
-                <p  style="float: right; padding-top: 40px;color:#030000" >Guest  <% guests %> | <% $parent.datetime %></p>
+                <p  style="float: right; padding-top: 40px;color:#030000" ><% guests %> | <% $parent.datetime %></p>
             </div>
     </div>
 
@@ -24,7 +24,7 @@
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
                          <div class="col-md-6" style="margin-top: 6px"><h4>KERANJANG BELANJA</h4></div>
-                         <div class="col-md-6 text-right"> <button class="btn btn-primary" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit">SCAN KERANJANG BELANJA</button></div>
+                         <div class="col-md-6 text-right"> <button class="btn btn-primary" data-ng-disabled="successscant" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit">SCAN KERANJANG BELANJA</button></div>
                     </div>
 
                 </div>
@@ -339,7 +339,7 @@
 
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" data-ng-click="cancelCart()">Cancel</button>
           </div>
 
         </div>
