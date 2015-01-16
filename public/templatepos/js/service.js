@@ -11,10 +11,11 @@ define([
     'config'
 ], function (app,config) {
     app.factory('serviceAjax' , ['$http', '$q',function($http,$q){
+        var canceler = $q.defer();
 
         return{
             getDataFromServer : function(params){
-              
+
                 return $http.get(config['baseUrlServer'] + params)
                     .then(function(response){
                         if (response.data) {
