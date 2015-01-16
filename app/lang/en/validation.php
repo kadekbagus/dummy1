@@ -175,7 +175,8 @@ return array(
                         'variant'       => 'The product variant ID you specify is not found.'
                     ),
             ),
-            'upc_code'             => 'The UPC code of the product is not found.'
+            'upc_code'             => 'The UPC code of the product is not found.',
+            'transaction'          => 'The Transaction is not found.'
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(

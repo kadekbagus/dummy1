@@ -515,7 +515,7 @@ class CashierAPIController extends ControllerAPI
             $transaction = \Transaction::with('details', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
 
             if (! is_object($transaction)) {
-                $message = \Lang::get('validation.orbit.access.loginfailed');
+                $message = \Lang::get('validation.orbit.empty.transaction');
                 ACL::throwAccessForbidden($message);
             }
             
