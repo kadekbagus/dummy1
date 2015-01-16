@@ -90,7 +90,9 @@ class Product extends Eloquent
 
     public function variants()
     {
-        return $this->hasMany('ProductVariant', 'product_id', 'product_id');
+        return $this->hasMany('ProductVariant', 'product_id', 'product_id')
+                    ->excludeDeleted()
+                    ->orderBy('created_at', 'desc');
     }
 
     public function attribute1()
