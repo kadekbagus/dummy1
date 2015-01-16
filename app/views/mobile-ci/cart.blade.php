@@ -19,24 +19,31 @@
       <div class="cart-items-list">
         <div class="single-item">
           <div class="single-item-headers">
-            <div class="single-header">
+            <div class="single-header unique-column">
               <span class="header-text">Item</span>
             </div>
             <div class="single-header unique-column">
               <span class="header-text">Qty</span>
             </div>
-            <div class="single-header">
-              <span class="header-text">Unit Price</span>
+            <div class="single-header unique-column">
+              <span class="header-text">Unit Price (IDR)</span>
             </div>
-            <div class="single-header">
-              <span class="header-text">Total</span>
+            <div class="single-header unique-column">
+              <span class="header-text">Total (IDR)</span>
             </div>
           </div>
           <div class="single-item-bodies">
             <div class="single-body">
-              <span>{{ $cartdetail->product->product_name }}</span>
+              <p><span>{{ $cartdetail->product->product_name }}</span></p>
+              <p class="attributes">
+                @if(!is_null($cartdetail->attributeValue1['value'])) <span>{{$cartdetail->attributeValue1['value']}}</span>@endif
+                @if(!is_null($cartdetail->attributeValue2['value'])) <span>{{$cartdetail->attributeValue2['value']}}</span>@endif
+                @if(!is_null($cartdetail->attributeValue3['value'])) <span>{{$cartdetail->attributeValue3['value']}}</span>@endif
+                @if(!is_null($cartdetail->attributeValue4['value'])) <span>{{$cartdetail->attributeValue4['value']}}</span>@endif
+                @if(!is_null($cartdetail->attributeValue5['value'])) <span>{{$cartdetail->attributeValue5['value']}}</span>@endif
+              </p>
             </div>
-            <div class="single-body unique-column">
+            <div class="single-body">
               <div class="unique-column-properties">
                 <div class="item-qty">
                   <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}" data-detail="{{ $cartdetail->cart_detail_id }}"  style="background: white; color: black;" >
@@ -64,13 +71,13 @@
           <span>Item</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Price</span>
+          <span>Price (IDR)</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>VAT</span>
+          <span>VAT (IDR)</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Total</span>
+          <span>Total (IDR)</span>
         </div>
       </div>
       <div class="cart-sum-bodies">
@@ -202,14 +209,22 @@
     var num;
     var lastnum;
     var detail;
+    var is_open = false;
     $('.numinput').click(function(){
         var tops = $(this).offset().top;
         var lefts = $(this).offset().left;
-        $('#n_keypad').fadeToggle('fast').offset({
+        num = $(this);
+        $('#n_keypad').fadeToggle('fast', function(){
+          if(is_open) {
+            is_open = false;
+          }else{
+            is_open = true;
+            num.val('');
+          }
+        }).offset({
           top: tops + 24,
           left: lefts
         });
-        num = $(this);
         if(!num.val()){
           num.val(lastnum);
         }else{
@@ -218,6 +233,12 @@
         }
     });
     $('.done').click(function(){
+        if(is_open) {
+          is_open = false;
+        }else{
+          is_open = true;
+          num.val('');
+        }
         $('#n_keypad').hide();
         if(!num.val()){
           num.val(lastnum);

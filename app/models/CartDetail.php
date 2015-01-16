@@ -27,4 +27,29 @@ class CartDetail extends Eloquent
     {
         return $this->belongsTo('ProductVariant', 'product_variant_id', 'product_variant_id');
     }
+
+    public function attributeValue1()
+    {
+        return $this->variant()->join('product_attribute_values', 'product_attribute_values.product_attribute_value_id', '=', 'product_variants.product_attribute_value_id1');
+    }
+
+    public function attributeValue2()
+    {
+        return $this->variant()->join('product_attribute_values', 'product_attribute_values.product_attribute_value_id', '=', 'product_variants.product_attribute_value_id2');
+    }
+
+    public function attributeValue3()
+    {
+        return $this->variant()->join('product_attribute_values', 'product_attribute_values.product_attribute_value_id', '=', 'product_variants.product_attribute_value_id3');
+    }
+
+    public function attributeValue4()
+    {
+        return $this->variant()->join('product_attribute_values', 'product_attribute_values.product_attribute_value_id', '=', 'product_variants.product_attribute_value_id4');
+    }
+
+    public function attributeValue5()
+    {
+        return $this->variant()->join('product_attribute_values', 'product_attribute_values.product_attribute_value_id', '=', 'product_variants.product_attribute_value_id5');
+    }
 }

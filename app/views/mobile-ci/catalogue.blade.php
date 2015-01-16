@@ -76,7 +76,7 @@
 					$.each(aopen, function(index, value) {
 						families.push($(value).attr('data-family-id'));
 					});
-
+					$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-circle-o-notch fa-spin');
 					$.ajax({
 						url: apiPath+'customer/products',
 						method: 'GET',
