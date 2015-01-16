@@ -6,7 +6,7 @@
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
                 <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="height: 64px">
-                <h1>MATAHARI DEPARTMENT STORE</h1>
+                <h1><% datauser['merchants'][0]['name'] %></h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
@@ -325,6 +325,10 @@
             <h4 class="modal-title" id="myModalLabel"><b>Scan keranjang belanja</b></h4>
           </div>
           <div class="modal-body">
+              <div  data-ng-show="errorscancart" class="alert alert-danger alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4><% errorscancart %></h4>
+              </div>
               <p class="text-center"><b>Scan keranjang belanja sekarang!</b></p>
               <p>
                 <div class="input-group" >
@@ -354,7 +358,7 @@
                                                                              <button data-ng-click="keypadscantFn('c')" class="smaller">Clear</button>
                                                                              <button data-ng-click="keypadscantFn('0')">0</button>
                                                                              <button data-ng-click="keypadscantFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                                                                             <button data-ng-click="virtualscancartFn(false)" class="button-wide smaller">Done</button>
+                                                                             <button data-ng-click="keypadscantFn('d')" class="button-wide smaller">Done</button>
                                                                        </div>
 
                                                               </div>

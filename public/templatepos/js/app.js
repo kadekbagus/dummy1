@@ -181,10 +181,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 };
                 //insert to cart
-                $scope.inserttocartFn = function(){
+                $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
                         //customer display
-                        $scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
+                        if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
                         $location.hash('bottom');
                         $anchorScroll();
                         $scope.searchproduct    = '';
@@ -249,7 +249,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.searchproduct    = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
@@ -310,7 +310,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
                         merchant_id    : $scope.datauser['userdetail']['merchant_id'],
-                        customer_id    : '', // check if from mobile ci
+                        customer_id    : $scope.cart.user_id ? $scope.cart.user_id : moment($scope.guests).unix(), // check if from mobile ci
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart
@@ -380,8 +380,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.inserttocartFn();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                            /* angular.element("#ProductNotFound").modal();
-                             $scope.scanproduct();*/
+                             angular.element("#ProductNotFound").modal();
+                             $scope.scanproduct();
                         }
                     });
                 })();
@@ -389,13 +389,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.keypadscantFn = function(idx){
                     if(idx == 'c'){
                         $scope.manualscancart = '';
-
                     }else if(idx =='d'){
-                        $scope.virtualFn(false);
+                        $scope.scancartFn(true);
                     }else if(idx == 'r'){
                         $scope.manualscancart =  $scope.manualscancart != '' ? $scope.manualscancart.substring(0, $scope.manualscancart.length-1) : '';
                     }else{
-                        $scope.manualscancart =  $scope.manualscancart == 0 ? idx : $scope.manualscancart+idx;
+                        $scope.manualscancart =  $scope.manualscancart+idx;
                     }
 
                 };
@@ -441,7 +440,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
                     $scope.indexactiveqty = idx;
                     $scope.isqty  = true;
-                    console.log($scope.tmpqty);
                     $scope.countcart();
                 };
                 //show virtual scant cart manual
@@ -462,31 +460,32 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     });
                 };
                 //init customer display
-                $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
-                //scan cart automatic
-                $scope.scancartFn = function(){
-
-                    /*
-                    serviceAjax.posDataToServer('/pos/scancart').then(function(response){
+                $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                //scan cart automatic and manually
+                $scope.scancartFn = function(bool){
+                    $scope.errorscancart = '';
+                    var data = {
+                        barcode : bool ?  $scope.manualscancart : ''
+                    };
+                    serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                         if(response.code == 0 ){
-
+                            $scope.guests       = response.data.users.username;
+                            $scope.cart.user_id = response.data.users.user_id;
+                            for(var i = 0; i < response.data.details.length; i++){
+                                $scope.productmodal        = response.data.details[i]['product'];
+                                $scope.productmodal['idx'] = i;
+                                angular.element("#modalscancart").modal('hide');
+                                $scope.inserttocartFn(true);
+                                if(bool)  $scope.virtualFn(false);
+                                $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
+                            }
                         }else{
                             //do something when error
+                            $scope.errorscancart  = 'Maaf, kode yang dimasukan tidak tepat!, silahkan coba lagi';
+                            $scope.manualscancart = '';
                         }
 
-                    });*/
-                };
-                //scan cart manually
-                $scope.seacrhmanualCartFn = function(){
-                    /*
-                     serviceAjax.posDataToServer('/pos/scancart').then(function(response){
-                     if(response.code == 0 ){
-
-                     }else{
-                     //do something when error
-                     }
-
-                     });*/
+                    });
                 };
             }
         });
