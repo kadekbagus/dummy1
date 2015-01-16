@@ -39,6 +39,7 @@ return array(
     'AlterTableMerchantsAddNewColumns' => $baseDir . '/app/database/migrations/2014_11_19_024135_alter_table_merchants_add_new_columns.php',
     'AlterTableMerchantsAddcolumnsAndRenamecolumn' => $baseDir . '/app/database/migrations/2014_11_20_033937_alter_table_merchants_addcolumns_and_renamecolumn.php',
     'AlterTableMerchantsR201411171326' => $baseDir . '/app/database/migrations/2014_11_17_080145_alter_table_merchants_r20141117_1326.php',
+    'AlterTablePersonalInterestsAddStatusAndCreatedAndModifiedBy' => $baseDir . '/app/database/migrations/2015_01_16_144225_alter_table_personal_interests_add_status_and_created_and_modified_by.php',
     'AlterTableProductAttributeAndValuesAddModifiedBy' => $baseDir . '/app/database/migrations/2014_12_29_055702_alter_table_product_attribute_and_values_add_modified_by.php',
     'AlterTableProductAttributeValuesAddOrder' => $baseDir . '/app/database/migrations/2015_01_08_063719_alter_table_product_attribute_values_add_order.php',
     'AlterTableProductAttributeValuesChangePk' => $baseDir . '/app/database/migrations/2015_01_02_150733_alter_table_product_attribute_values_change_pk.php',
