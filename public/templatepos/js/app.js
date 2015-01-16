@@ -81,9 +81,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.hiddenbtn = false;
                     if(act) $scope.hiddenbtn = true;
                 };
+
+                $scope.tess = function(){
+                    console.log('cancel');
+                    serviceAjax.cancelRequest();
+                };
                 //get unix guestid
                 ($scope.getguest = function(){
-                    $scope.guests = moment().format('DD-MM-YYYY HH:mm:ss');
+                    $scope.guests = 'Guest-'+moment().format('DD-MM-YYYY-HH-mm-ss');
                 })();
                 //function -+ wish list
                 $scope.qaFn = function(id,action){
@@ -244,6 +249,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //delete cart && new cart
                 $scope.newdeletecartFn = function(act){
+                    $scope.successscant     = false;
                     $scope.productidenabled = [];
                     $scope.cart             = [];
                     $scope.searchproduct    = '';
@@ -310,7 +316,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
                         merchant_id    : $scope.datauser['userdetail']['merchant_id'],
-                        customer_id    : $scope.cart.user_id ? $scope.cart.user_id : moment($scope.guests).unix(), // check if from mobile ci
+                        customer_id    : $scope.cart.user_id,
+                        guest          : $scope.guests,
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart
@@ -380,15 +387,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.inserttocartFn();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                             angular.element("#ProductNotFound").modal();
-                             $scope.scanproduct();
+                             /*angular.element("#ProductNotFound").modal();
+                             $scope.scanproduct();*/
                         }
                     });
                 })();
                 //binding keypad scant
                 $scope.keypadscantFn = function(idx){
                     if(idx == 'c'){
-                        $scope.manualscancart = '';
+                        $scope.manualscancart    = '';
+                        $scope.isvirtualscancart = false;
                     }else if(idx =='d'){
                         $scope.scancartFn(true);
                     }else if(idx == 'r'){
@@ -469,6 +477,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     };
                     serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                         if(response.code == 0 ){
+                            $scope.successscant = true;
                             $scope.guests       = response.data.users.username;
                             $scope.cart.user_id = response.data.users.user_id;
                             for(var i = 0; i < response.data.details.length; i++){
@@ -479,9 +488,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 if(bool)  $scope.virtualFn(false);
                                 $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
                             }
+
                         }else{
                             //do something when error
-                            $scope.errorscancart  = 'Maaf, kode yang dimasukan tidak tepat!, silahkan coba lagi';
+                            $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
                             $scope.manualscancart = '';
                         }
 

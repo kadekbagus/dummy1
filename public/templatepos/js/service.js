@@ -41,7 +41,9 @@ define([
                         params += arguments[i];
                     }
                 }
-                return  $http.post(config['baseUrlServer'] + params, $.param(data))
+                return  $http.post(config['baseUrlServer'] + params, $.param(data),
+                    {timeout: canceler.promise}
+                )
                     .then(function(response){
                         if (response.data) {
                             return response.data;
@@ -53,6 +55,10 @@ define([
                         // invalid response
                         return $q.reject(response.data);
                     });
+            },
+
+            cancelRequest : function(){
+                canceler.resolve();
             }
         }
     }]);
