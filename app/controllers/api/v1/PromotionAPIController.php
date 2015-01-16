@@ -718,8 +718,6 @@ class PromotionAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.promotion.postdeletepromotion.before.render', array($this, $output));
-
         return $output;
     }
 

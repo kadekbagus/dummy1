@@ -867,10 +867,16 @@ class CouponAPIController extends ControllerAPI
 
             Event::fire('orbit.coupon.postdeletecoupon.before.save', array($this, $deletecoupon));
 
-            // hard delete issue-retailer.
+            // hard delete issueretailer.
             $deleteissueretailers = CouponRetailer::where('promotion_id', $deletecoupon->promotion_id)->get();
             foreach ($deleteissueretailers as $deleteissueretailer) {
                 $deleteissueretailer->delete();
+            }
+
+            // hard delete redeemretailer.
+            $deleteredeemretailers = CouponRetailerRedeem::where('promotion_id', $deletecoupon->promotion_id)->get();
+            foreach ($deleteredeemretailers as $deleteredeemretailer) {
+                $deleteredeemretailer->delete();
             }
 
             $deletecoupon->save();
@@ -935,8 +941,6 @@ class CouponAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.coupon.postdeletecoupon.before.render', array($this, $output));
-
         return $output;
     }
 
