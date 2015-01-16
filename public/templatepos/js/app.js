@@ -468,9 +468,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if(response.code == 0 ){
                             $scope.guests       = response.data.users.username;
                             $scope.cart.user_id = response.data.users.user_id;
-                            for(var i = 0; i < response.data.details; i++){
+                            for(var i = 0; i < response.data.details.length; i++){
                                 $scope.productmodal        = response.data.details[i]['product'];
                                 $scope.productmodal['idx'] = i;
+                                angular.element("#modalscancart").modal('hide');
                                 $scope.inserttocartFn(true);
                             }
                         }else{
