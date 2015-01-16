@@ -50,8 +50,9 @@ class ProductAPIController extends ControllerAPI
      * @param integer   `category_id3`                  (optional) - Category ID3.
      * @param integer   `category_id4`                  (optional) - Category ID4.
      * @param integer   `category_id5`                  (optional) - Category ID5.
-     * @param string    `product_combinations`          (optional) - JSON String for new product combination
-     * @param string    `product_combinations_update`   (optional) - JSON String for updated product combination
+     * @param string    `product_variants`              (optional) - JSON String for new product combination
+     * @param string    `product_variants_update`       (optional) - JSON String for updated product combination
+     * @param array     `product_variants_delete`       (optional) - Array of variant id
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -90,6 +91,9 @@ class ProductAPIController extends ControllerAPI
             $category_id4 = OrbitInput::post('category_id4');
             $category_id5 = OrbitInput::post('category_id5');
 
+            // Product Variants Delete
+            $product_combinations_delete = OrbitInput::post('product_variants_delete');
+
             $validator = Validator::make(
                 array(
                     'product_id'        => $product_id,
@@ -99,6 +103,7 @@ class ProductAPIController extends ControllerAPI
                     'category_id3'      => $category_id3,
                     'category_id4'      => $category_id4,
                     'category_id5'      => $category_id5,
+                    'product_variants_delete'    => $product_combinations_delete
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
@@ -108,6 +113,10 @@ class ProductAPIController extends ControllerAPI
                     'category_id3'      => 'numeric|orbit.empty.category_id3',
                     'category_id4'      => 'numeric|orbit.empty.category_id4',
                     'category_id5'      => 'numeric|orbit.empty.category_id5',
+                    'product_variants_delete'   => 'array|orbit.empty.product_variant_array'
+                ),
+                array(
+                    'orbit.empty.product_variant_array' => Lang::get('validation.orbit.empty.product_attr.attribute.variant')
                 )
             );
 
@@ -405,45 +414,7 @@ class ProductAPIController extends ControllerAPI
                     $variants[] = $product_variant;
                 }
 
-
-                // Get the most complete variant with all the product attribute
-                // values which has been set up
-
-                // @Todo
-                // This is slow, it should be rewritten
-                $with = array(
-                    'attributeValue1',
-                    'attributeValue2',
-                    'attributeValue3',
-                    'attributeValue4',
-                    'attributeValue5',
-                );
-                $complete_variant = ProductVariant::excludeDeleted()
-                                                  ->mostCompleteValue()
-                                                  ->with($with)
-                                                  ->first();
-
-                // Flag to determine if the updated product has been changes
-                $updated_product_changes = FALSE;
-
-                // Update the product attribute id{1-5}
-                for ($i=5; $i>=1; $i--) {
-                    if (is_null($complete_variant->{'attributeValue' . $i})) {
-                        continue;
-                    }
-
-                    // If we goes here then particular attribute value is not empty
-                    // and also has attributeValue object
-                    $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
-
-                    // Update the flag
-                    $updated_product_changes = TRUE;
-                }
-
-                // Save the updated product
-                if ($updated_product_changes) {
-                    $updatedproduct->save();
-                }
+                $this->keepProductColumnUpToDate($updatedproduct);
             });
 
             // Save existing product variants (combination)
@@ -570,44 +541,19 @@ class ProductAPIController extends ControllerAPI
                     $variants[] = $product_variant;
                 }
 
-                // Get the most complete variant with all the product attribute
-                // values which has been set up
+                $this->keepProductColumnUpToDate($updatedproduct);
+            });
 
-                // @Todo
-                // This is slow, it should be rewritten
-                $with = array(
-                    'attributeValue1',
-                    'attributeValue2',
-                    'attributeValue3',
-                    'attributeValue4',
-                    'attributeValue5',
-                );
-                $complete_variant = ProductVariant::excludeDeleted()
-                                                  ->mostCompleteValue()
-                                                  ->with($with)
-                                                  ->first();
-
-                // Flag to determine if the updated product has been changes
-                $updated_product_changes = FALSE;
-
-                // Update the product attribute id{1-5}
-                for ($i=5; $i>=1; $i--) {
-                    if (is_null($complete_variant->{'attributeValue' . $i})) {
-                        continue;
-                    }
-
-                    // If we goes here then particular attribute value is not empty
-                    // and also has attributeValue object
-                    $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
-
-                    // Update the flag
-                    $updated_product_changes = TRUE;
+            // Delete product variant
+            OrbitInput::post('product_variants_delete', function($product_combinations_delete) use ($updatedproduct, $user)
+            {
+                $variants = App::make('memory:deleted.variants');
+                foreach ($variants as $variant) {
+                    $variant->modified_by = $user->user_id;
+                    $variant->delete();
                 }
 
-                // Save the updated product
-                if ($updated_product_changes) {
-                    $updatedproduct->save();
-                }
+                $this->keepProductColumnUpToDate($updatedproduct);
             });
 
             $updatedproduct->modified_by = $this->api->user->user_id;
@@ -1027,9 +973,6 @@ class ProductAPIController extends ControllerAPI
             $category_id3 = OrbitInput::post('category_id3');
             $category_id4 = OrbitInput::post('category_id4');
             $category_id5 = OrbitInput::post('category_id5');
-
-            // Product Attributes (Variant)
-            $product_combinations = OrbitInput::post('product_variants');
 
             $validator = Validator::make(
                 array(
@@ -1612,6 +1555,35 @@ class ProductAPIController extends ControllerAPI
 
             return $valid;
         });
+
+        // Check the existence of each variant ID
+        Validator::extend('orbit.empty.product_variant_array', function ($attribute, $value, $parameters) {
+            $variants = App::make('orbit.empty.product')->variants;
+
+            $variant_ids = [];
+            $variant_objects = [];
+            foreach ($variants as $i=>$variant) {
+                $variant_ids[$i] = $variant->product_variant_id;
+            }
+
+            $valid_deleted = [];
+            print_r($variant_objects);
+            foreach ($value as $variant_id) {
+                if (! in_array($variant_id, $variant_ids)) {
+                    return FALSE;
+                }
+
+                foreach ($variants as $variant) {
+                    if ((string)$variant->product_variant_id === (string)$variant_id) {
+                        $variant_objects[] = $variant;
+                    }
+                }
+            }
+
+            App::instance('memory:deleted.variants', $variant_objects);
+
+            return TRUE;
+        });
     }
 
     /**
@@ -1747,5 +1719,56 @@ class ProductAPIController extends ControllerAPI
         }
 
         return $merchantId;
+    }
+
+    /**
+     * Update product column attribute_id{1-5} to reflect the most up to date
+     * changes.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Product $updatedproduct
+     * @return void
+     */
+    protected function keepProductColumnUpToDate(&$updatedproduct)
+    {
+        // Get the most complete variant with all the product attribute
+        // values which has been set up
+
+        // @Todo
+        // This is slow, it should be rewritten
+        $with = array(
+            'attributeValue1',
+            'attributeValue2',
+            'attributeValue3',
+            'attributeValue4',
+            'attributeValue5',
+        );
+        $complete_variant = ProductVariant::excludeDeleted()
+                                          ->mostCompleteValue()
+                                          ->where('product_id', $updatedproduct->product_id)
+                                          ->with($with)
+                                          ->first();
+
+        // Flag to determine if the updated product has been changes
+        $updated_product_changes = FALSE;
+
+        // Update the product attribute id{1-5}
+        for ($i=5; $i>=1; $i--) {
+            if (is_null($complete_variant->{'attributeValue' . $i})) {
+                continue;
+            }
+
+            // If we goes here then particular attribute value is not empty
+            // and also has attributeValue object
+            $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
+
+            // Update the flag
+            $updated_product_changes = TRUE;
+        }
+
+        // Save the updated product
+        if ($updated_product_changes) {
+            $updatedproduct->save();
+        }
     }
 }
