@@ -414,45 +414,7 @@ class ProductAPIController extends ControllerAPI
                     $variants[] = $product_variant;
                 }
 
-
-                // Get the most complete variant with all the product attribute
-                // values which has been set up
-
-                // @Todo
-                // This is slow, it should be rewritten
-                $with = array(
-                    'attributeValue1',
-                    'attributeValue2',
-                    'attributeValue3',
-                    'attributeValue4',
-                    'attributeValue5',
-                );
-                $complete_variant = ProductVariant::excludeDeleted()
-                                                  ->mostCompleteValue()
-                                                  ->with($with)
-                                                  ->first();
-
-                // Flag to determine if the updated product has been changes
-                $updated_product_changes = FALSE;
-
-                // Update the product attribute id{1-5}
-                for ($i=5; $i>=1; $i--) {
-                    if (is_null($complete_variant->{'attributeValue' . $i})) {
-                        continue;
-                    }
-
-                    // If we goes here then particular attribute value is not empty
-                    // and also has attributeValue object
-                    $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
-
-                    // Update the flag
-                    $updated_product_changes = TRUE;
-                }
-
-                // Save the updated product
-                if ($updated_product_changes) {
-                    $updatedproduct->save();
-                }
+                $this->keepProductColumnUpToDate($updatedproduct);
             });
 
             // Save existing product variants (combination)
@@ -579,44 +541,7 @@ class ProductAPIController extends ControllerAPI
                     $variants[] = $product_variant;
                 }
 
-                // Get the most complete variant with all the product attribute
-                // values which has been set up
-
-                // @Todo
-                // This is slow, it should be rewritten
-                $with = array(
-                    'attributeValue1',
-                    'attributeValue2',
-                    'attributeValue3',
-                    'attributeValue4',
-                    'attributeValue5',
-                );
-                $complete_variant = ProductVariant::excludeDeleted()
-                                                  ->mostCompleteValue()
-                                                  ->with($with)
-                                                  ->first();
-
-                // Flag to determine if the updated product has been changes
-                $updated_product_changes = FALSE;
-
-                // Update the product attribute id{1-5}
-                for ($i=5; $i>=1; $i--) {
-                    if (is_null($complete_variant->{'attributeValue' . $i})) {
-                        continue;
-                    }
-
-                    // If we goes here then particular attribute value is not empty
-                    // and also has attributeValue object
-                    $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
-
-                    // Update the flag
-                    $updated_product_changes = TRUE;
-                }
-
-                // Save the updated product
-                if ($updated_product_changes) {
-                    $updatedproduct->save();
-                }
+                $this->keepProductColumnUpToDate($updatedproduct);
             });
 
             // Delete product variant
