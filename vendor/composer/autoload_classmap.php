@@ -148,6 +148,7 @@ return array(
     'CreateTableTransactionDetails' => $baseDir . '/app/database/migrations/2014_12_30_072514_create_table_transaction_details.php',
     'CreateTableTransactions' => $baseDir . '/app/database/migrations/2014_12_30_061111_create_table_transactions.php',
     'CreateTableUserDetails' => $baseDir . '/app/database/migrations/2014_10_20_031134_create_table_user_details.php',
+    'CreateTableUserPersonalInterest' => $baseDir . '/app/database/migrations/2015_01_16_140032_create_table_user_personal_interest.php',
     'CreateTableUsers' => $baseDir . '/app/database/migrations/2014_10_14_055729_create_table_users.php',
     'Crypt_AES' => $vendorDir . '/phpseclib/phpseclib/phpseclib/Crypt/AES.php',
     'Crypt_Base' => $vendorDir . '/phpseclib/phpseclib/phpseclib/Crypt/Base.php',
