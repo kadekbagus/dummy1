@@ -481,7 +481,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             }
                         }else{
                             //do something when error
-                            $scope.errorscancart = 'Maaf, kode yang dimasukan tidak tepat!, silahkan coba lagi';
+                            $scope.errorscancart  = 'Maaf, kode yang dimasukan tidak tepat!, silahkan coba lagi';
+                            $scope.manualscancart = '';
                         }
 
                     });
