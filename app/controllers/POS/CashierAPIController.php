@@ -512,10 +512,10 @@ class CashierAPIController extends ControllerAPI
         try {
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
-            $transaction = \Transaction::with('details', 'cashier')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
 
             if (! is_object($transaction)) {
-                $message = \Lang::get('validation.orbit.access.loginfailed');
+                $message = \Lang::get('validation.orbit.empty.transaction');
                 ACL::throwAccessForbidden($message);
             }
             
@@ -531,10 +531,17 @@ class CashierAPIController extends ControllerAPI
             }
             
             $payment = $transaction['payment_method'];
-            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
-            $customer = "guest";
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
+
+            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+
+            if($transaction['user']==NULL){
+                $customer = "Guest";
+            }else{
+                $customer = $transaction['user']->user_email;
+            }
+            
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
@@ -732,7 +739,7 @@ class CashierAPIController extends ControllerAPI
                     ->first();      
 
             if (! is_object($cart)) {
-                $message = \Lang::get('validation.orbit.empty.product');
+                $message = \Lang::get('validation.orbit.empty.upc_code');
                 ACL::throwAccessForbidden($message);
             }
 
@@ -796,6 +803,13 @@ class CashierAPIController extends ControllerAPI
                 $line1_length = strlen($line1);
                 $fill = 40 - $line1_length;
                 $line1 = str_pad($line1, $fill, "\ ");
+            }
+
+            if(strlen($line2)<20)
+            {
+                $line2_length = strlen($line2);
+                $fill = 36 - $line2_length;
+                $line2 = str_pad($line2, $fill, "\ ");
             }
 
             $cmd = 'sudo '.$driver.' '.$line1.$line2;

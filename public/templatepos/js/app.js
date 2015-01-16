@@ -249,7 +249,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.searchproduct    = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
@@ -380,8 +380,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.inserttocartFn();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                            /* angular.element("#ProductNotFound").modal();
-                             $scope.scanproduct();*/
+                             angular.element("#ProductNotFound").modal();
+                             $scope.scanproduct();
                         }
                     });
                 })();
@@ -394,7 +394,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else if(idx == 'r'){
                         $scope.manualscancart =  $scope.manualscancart != '' ? $scope.manualscancart.substring(0, $scope.manualscancart.length-1) : '';
                     }else{
-                        $scope.manualscancart =  $scope.manualscancart == 0 ? idx : $scope.manualscancart+idx;
+                        $scope.manualscancart =  $scope.manualscancart+idx;
                     }
 
                 };
@@ -460,7 +460,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     });
                 };
                 //init customer display
-                $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
                     $scope.errorscancart = '';
