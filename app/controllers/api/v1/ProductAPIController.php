@@ -20,6 +20,7 @@ class ProductAPIController extends ControllerAPI
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @author Kadek <kadek@dominopos.com>
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -418,7 +419,6 @@ class ProductAPIController extends ControllerAPI
             });
 
             // Save existing product variants (combination)
-            $variants = array();
             OrbitInput::post('product_variants_update', function($product_combinations_update)
             use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber)
             {
@@ -545,10 +545,17 @@ class ProductAPIController extends ControllerAPI
             });
 
             // Delete product variant
-            OrbitInput::post('product_variants_delete', function($product_combinations_delete) use ($updatedproduct, $user)
+            OrbitInput::post('product_variants_delete', function($product_combinations_delete) use ($updatedproduct, $user, &$variants)
             {
-                $variants = App::make('memory:deleted.variants');
-                foreach ($variants as $variant) {
+                $_variants = App::make('memory:deleted.variants');
+                foreach ($_variants as $variant) {
+                    // Unset variant which has been deleted
+                    foreach ($variants as $i=>$v) {
+                        if ((string)$v->product_variant_id === (string)$variant->product_variant_id) {
+                            unset($variants[$i]);
+                        }
+                    }
+
                     $variant->modified_by = $user->user_id;
                     $variant->delete();
                 }
@@ -561,6 +568,15 @@ class ProductAPIController extends ControllerAPI
             Event::fire('orbit.product.postupdateproduct.before.save', array($this, $updatedproduct));
 
             $updatedproduct->save();
+
+            $updatedproduct->setRelation('variants', $variants);
+            $updatedproduct->variants = $variants;
+
+            $updatedproduct->load('category1');
+            $updatedproduct->load('category2');
+            $updatedproduct->load('category3');
+            $updatedproduct->load('category4');
+            $updatedproduct->load('category5');
 
             Event::fire('orbit.product.postupdateproduct.after.save', array($this, $updatedproduct));
             $this->response->data = $updatedproduct;
@@ -637,7 +653,7 @@ class ProductAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string     `with`                     (optional) - Valid value: family.
-     * @param integer    `product_id`               (optional) - ID of the product
+     * @param array    `product_id`               (optional) - ID of the product
      * @param string     `product_code`             (optional)
      * @param string     `product_name`             (optional)
      * @param string     `short_description`        (optional)
@@ -681,9 +697,11 @@ class ProductAPIController extends ControllerAPI
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
+                    'product_id' => OrbitInput::get('product_id'),
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_merchant_id,product_status',
+                    'sort_by'       => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_merchant_id,product_status',
+                    'product_id'    => 'array|min:1'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.product_sortby'),
@@ -763,9 +781,11 @@ class ProductAPIController extends ControllerAPI
                 $with = (array) $with;
                 foreach ($with as $relation) {
                     if ($relation === 'family') {
-                        $products->with('category1', 'category2', 'category3', 'category4', 'category5');
+                        $with = array_merge($with, array('category1', 'category2', 'category3', 'category4', 'category5'));
+                        break;
                     }
                 }
+                $products->with($with);
             });
 
             $_products = clone $products;
