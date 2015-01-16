@@ -805,6 +805,13 @@ class CashierAPIController extends ControllerAPI
                 $line1 = str_pad($line1, $fill, "\ ");
             }
 
+            if(strlen($line2)<20)
+            {
+                $line2_length = strlen($line2);
+                $fill = 36 - $line2_length;
+                $line2 = str_pad($line2, $fill, "\ ");
+            }
+
             $cmd = 'sudo '.$driver.' '.$line1.$line2;
             $display = shell_exec($cmd);
 
