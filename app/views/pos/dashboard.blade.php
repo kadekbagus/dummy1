@@ -6,7 +6,7 @@
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
                 <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="height: 64px">
-                <h1>MATAHARI DEPARTMENT STORE</h1>
+                <h1><% datauser['merchants'][0]['name'] %></h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
