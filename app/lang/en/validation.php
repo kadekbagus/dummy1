@@ -170,6 +170,7 @@ return array(
                     'attribute'    => array(
                         'value'         => 'The product attribute value ID :id you specify is not found or does not belongs to this merchant.',
                         'json_property' => 'Missing property of ":property" on your JSON string.',
+                        'variant'       => 'The product variant ID you specify is not found.'
                     ),
             ),
             'upc_code'             => 'The UPC code of the product is not found.'
