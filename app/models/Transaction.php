@@ -26,4 +26,9 @@ class Transaction extends Eloquent
     {
         return $this->belongsTo('User', 'cashier_id', 'user_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo('User', 'customer_id', 'user_id');
+    }
 }
