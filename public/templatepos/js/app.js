@@ -389,9 +389,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.keypadscantFn = function(idx){
                     if(idx == 'c'){
                         $scope.manualscancart = '';
-
                     }else if(idx =='d'){
-                        $scope.virtualFn(false);
+                        $scope.scancartFn(true);
                     }else if(idx == 'r'){
                         $scope.manualscancart =  $scope.manualscancart != '' ? $scope.manualscancart.substring(0, $scope.manualscancart.length-1) : '';
                     }else{
@@ -462,9 +461,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //init customer display
                 $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
-                //scan cart automatic
-                $scope.scancartFn = function(){
-                    serviceAjax.posDataToServer('/pos/scancart').then(function(response){
+                //scan cart automatic and manually
+                $scope.scancartFn = function(bool){
+                    var data = {
+                        barcode : bool ?  $scope.manualscancart : ''
+                    };
+                    serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                         if(response.code == 0 ){
                             $scope.guests       = response.data.users.username;
                             $scope.cart.user_id = response.data.users.user_id;
@@ -473,24 +475,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.productmodal['idx'] = i;
                                 angular.element("#modalscancart").modal('hide');
                                 $scope.inserttocartFn(true);
+                                if(bool)  $scope.virtualFn(false);
                             }
                         }else{
                             //do something when error
                         }
 
                     });
-                };
-                //scan cart manually
-                $scope.seacrhmanualCartFn = function(){
-                    /*
-                     serviceAjax.posDataToServer('/pos/scancart').then(function(response){
-                     if(response.code == 0 ){
-
-                     }else{
-                     //do something when error
-                     }
-
-                     });*/
                 };
             }
         });

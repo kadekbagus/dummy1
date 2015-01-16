@@ -354,7 +354,7 @@
                                                                              <button data-ng-click="keypadscantFn('c')" class="smaller">Clear</button>
                                                                              <button data-ng-click="keypadscantFn('0')">0</button>
                                                                              <button data-ng-click="keypadscantFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                                                                             <button data-ng-click="virtualscancartFn(false)" class="button-wide smaller">Done</button>
+                                                                             <button data-ng-click="keypadscantFn('d')" class="button-wide smaller">Done</button>
                                                                        </div>
 
                                                               </div>
