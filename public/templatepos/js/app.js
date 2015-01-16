@@ -181,10 +181,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 };
                 //insert to cart
-                $scope.inserttocartFn = function(){
+                $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
                         //customer display
-                        $scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
+                        if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
                         $location.hash('bottom');
                         $anchorScroll();
                         $scope.searchproduct    = '';
@@ -310,7 +310,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
                         merchant_id    : $scope.datauser['userdetail']['merchant_id'],
-                        customer_id    : '', // check if from mobile ci
+                        customer_id    : $scope.cart.user_id ? $scope.cart.user_id : moment($scope.guests).unix(), // check if from mobile ci
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart
@@ -441,7 +441,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
                     $scope.indexactiveqty = idx;
                     $scope.isqty  = true;
-                    console.log($scope.tmpqty);
                     $scope.countcart();
                 };
                 //show virtual scant cart manual
@@ -465,16 +464,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.customerdispaly('Welcome To ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 //scan cart automatic
                 $scope.scancartFn = function(){
-
-                    /*
                     serviceAjax.posDataToServer('/pos/scancart').then(function(response){
                         if(response.code == 0 ){
-
+                            $scope.guests       = response.data.users.username;
+                            $scope.cart.user_id = response.data.users.user_id;
+                            for(var i = 0; i < response.data.details; i++){
+                                $scope.productmodal        = response.data.details[i]['product'];
+                                $scope.productmodal['idx'] = i;
+                                $scope.inserttocartFn(true);
+                            }
                         }else{
                             //do something when error
                         }
 
-                    });*/
+                    });
                 };
                 //scan cart manually
                 $scope.seacrhmanualCartFn = function(){
