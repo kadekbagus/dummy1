@@ -457,7 +457,7 @@ class UserAPIController extends ControllerAPI
                     'avg_annual_income2'    => 'numeric',
                     'avg_monthly_spent1'    => 'numeric',
                     'avg_monthly_spent2'    => 'numeric',
-                    'personal_interests'    => 'array'
+                    'personal_interests'    => 'array|orbit.empty.personal_interest'
                 ),
                 array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
             );
@@ -590,6 +590,10 @@ class UserAPIController extends ControllerAPI
 
             OrbitInput::post('company_name', function($company) use ($updateduser) {
                 $updateduser->userdetail->company_name = $company;
+            });
+
+            OrbitInput::post('personal_interests', function($interests) use ($updateduser) {
+                $updateduser->interests()->sync($interests);
             });
 
             $updateduser->modified_by = $this->api->user->user_id;
@@ -1430,6 +1434,20 @@ class UserAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.user', $user);
+
+            return TRUE;
+        });
+
+        Validator::extend('orbit.empty.personal_interest', function ($attribute, $value, $parameters) {
+            $personal_interest_ids = $value;
+            $number = count($personal_interest_ids);
+            $real_number = PersonalInterest::ExcludeDeleted()
+                                           ->whereIn('personal_interest_id', $personal_interest_ids)
+                                           ->count();
+
+            if ((string)$real_number !== (string)$number) {
+                return FALSE;
+            }
 
             return TRUE;
         });
