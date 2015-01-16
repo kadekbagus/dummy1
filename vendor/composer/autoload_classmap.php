@@ -121,6 +121,7 @@ return array(
     'CouponRetailer' => $baseDir . '/app/models/CouponRetailer.php',
     'CouponRetailerRedeem' => $baseDir . '/app/models/CouponRetailerRedeem.php',
     'CouponRule' => $baseDir . '/app/models/CouponRule.php',
+    'CreatePersonalInterests' => $baseDir . '/app/database/migrations/2015_01_16_143511_create_personal_interests.php',
     'CreateTableApikeys' => $baseDir . '/app/database/migrations/2014_10_14_083536_create_table_apikeys.php',
     'CreateTableCartDetails' => $baseDir . '/app/database/migrations/2015_01_05_030410_create_table_cart_details.php',
     'CreateTableCarts' => $baseDir . '/app/database/migrations/2015_01_05_030015_create_table_carts.php',
