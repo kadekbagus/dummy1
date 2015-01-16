@@ -717,13 +717,17 @@ class CashierAPIController extends ControllerAPI
     public function postScanCart()
     {
         try {
-            $driver = Config::get('orbit.devices.barcode.path');
-            $params = Config::get('orbit.devices.barcode.params');
-            $cmd = 'sudo '.$driver.' '.$params;
-            $barcode = shell_exec($cmd);
+            $barcode = OrbitInput::post('barcode');
+
+            if(empty($barcode)){
+                $driver = Config::get('orbit.devices.barcode.path');
+                $params = Config::get('orbit.devices.barcode.params');
+                $cmd = 'sudo '.$driver.' '.$params;
+                $barcode = shell_exec($cmd);
+            }
             
             $barcode = trim($barcode);
-            $cart = \Cart::with('details', 'users')->where('cart_code', $barcode)
+            $cart = \Cart::with('details.product', 'users')->where('cart_code', $barcode)
                     ->active()
                     ->first();      
 
