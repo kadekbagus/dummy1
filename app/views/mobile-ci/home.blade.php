@@ -63,18 +63,26 @@
               <span>{{ Lang::get('mobileci.widgets.promotion') }}</span>
             </header>
             <section class="widget-single">
-              <ul class="rslides" id="slider2">  
-                @foreach($promo_products as $promo_product)
-                  <li>
-                    <a href="{{ url('customer/product?id='.$promo_product->product_id) }}">
-                    @if(!is_null($promo_product->image))
-                      <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
-                    @else
-                      <img class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+              <ul class="rslides" id="slider2">
+                @if(count($promo_products) > 1)
+                  @foreach($promo_products as $promo_product)
+                    @if($promo_product->promotion_type == 'product')
+                    <li>
+                      <a href="{{ url('customer/product?id='.$promo_product->product_id) }}">
+                      @if(!is_null($promo_product->image))
+                        <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
+                      @else
+                        <img class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                      @endif
+                      </a>
+                    </li>
                     @endif
-                    </a>
+                  @endforeach
+                @else
+                  <li>
+                    <img class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
                   </li>
-                @endforeach
+                @endif
               </ul>
             </section>
           </div>
@@ -110,11 +118,13 @@
         </div>
         <div class="modal-body">
           <p id="promoModalText">
-            @if(! is_null($promotion->image)) 
-            <img class="img-responsive" src="{{ asset($promotion->image) }}"><br> 
+            @if(! is_null($promotion)) 
+              @if(! is_null($promotion->image)) 
+              <img class="img-responsive" src="{{ asset($promotion->image) }}"><br> 
+              @endif
+              <b>{{ $promotion->promotion_name }}</b> <br> 
+              {{ $promotion->description }}
             @endif 
-            <b>{{ $promotion->promotion_name }}</b> <br> 
-            {{ $promotion->description }}
           </p>
         </div>
         <div class="modal-footer">
@@ -129,16 +139,24 @@
   {{ HTML::script('mobile-ci/scripts/responsiveslides.min.js') }}
   <script type="text/javascript">
     $(document).ready(function(){
+        @if(! is_null($promotion))
+          $('#promoModal').modal();
+        @endif
+
         $("#slider1").responsiveSlides({
           auto: true,
           pager: false,
-          nav: false,
+          nav: true,
+          prevText: '<i class="fa fa-chevron-left"></i>',
+          nextText: '<i class="fa fa-chevron-right"></i>',
           speed: 500
         });
         $("#slider2").responsiveSlides({
           auto: true,
           pager: false,
-          nav: false,
+          nav: true,
+          prevText: '<i class="fa fa-chevron-left"></i>',
+          nextText: '<i class="fa fa-chevron-right"></i>',
           speed: 500
         });
     });
