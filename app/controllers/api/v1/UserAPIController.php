@@ -325,7 +325,8 @@ class UserAPIController extends ControllerAPI
     /**
      * POST - Update user (currently only basic info)
      *
-     * @author <Ahmad Anshori> <ahmad@dominopos.com>
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -355,17 +356,21 @@ class UserAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.user.postupdateuser.before.authz', array($this, $user));
 
+            $user_id = OrbitInput::post('user_id');
             if (! ACL::create($user)->isAllowed('update_user')) {
-                Event::fire('orbit.user.postupdateuser.authz.notallowed', array($this, $user));
-                $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
-                ACL::throwAccessForbidden($message);
+                // No need to check if it is the user itself
+                if ((string)$user->user_id !== (string)$user_id)
+                {
+                    Event::fire('orbit.user.postupdateuser.authz.notallowed', array($this, $user));
+                    $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
+                    ACL::throwAccessForbidden($message);
+                }
             }
             Event::fire('orbit.user.postupdateuser.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
-            $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $username = OrbitInput::post('username');
             $user_firstname = OrbitInput::post('firstname');
@@ -373,20 +378,86 @@ class UserAPIController extends ControllerAPI
             $status = OrbitInput::post('status');
             $user_role_id = OrbitInput::post('role_id');
 
+            // Details
+            $birthdate = OrbitInput::post('birthdate');
+            $gender = OrbitInput::post('gender');
+            $address1 = OrbitInput::post('address_line1');
+            $address2 = OrbitInput::post('address_line2');
+            $address3 = OrbitInput::post('address_line3');
+            $city = OrbitInput::post('city');
+            $province = OrbitInput::post('province');
+            $postal_code = OrbitInput::post('postal_code');
+            $country = OrbitInput::post('postal_code');
+            $phone1 = OrbitInput::post('phone');
+            $phone2 = OrbitInput::post('phone2');
+            $relationship_status = OrbitInput::post('relationship_status');
+            $number_of_children = OrbitInput::post('number_of_children');
+            $occupation = OrbitInput::post('occupation');
+            $sector_of_activity = OrbitInput::post('sector_of_activity');
+            $company_name = OrbitInput::post('company_name');
+            $education_level = OrbitInput::post('education_level');
+            $preferred_lang = OrbitInput::post('preferred_language');
+            $avg_annual_income1 = OrbitInput::post('avg_annual_income1');
+            $avg_annual_income2 = OrbitInput::post('avg_annual_income2');
+            $avg_monthly_spent1 = OrbitInput::post('avg_monthly_spent1');
+            $avg_monthly_spent2 = OrbitInput::post('avg_monthly_spent2');
+            $personal_interests = OrbitInput::post('personal_interests');
+
             $validator = Validator::make(
                 array(
-                    'user_id'           => $user_id,
-                    'username'          => $username,
-                    'email'             => $email,
-                    'role_id'           => $user_role_id,
-                    'status'            => $status,
+                    'user_id'               => $user_id,
+                    'username'              => $username,
+                    'email'                 => $email,
+                    'role_id'               => $user_role_id,
+                    'status'                => $status,
+
+                    'firstname'             => $user_firstname,
+                    'lastname'              => $user_lastname,
+
+                    'birthdate'             => $birthdate,
+                    'gender'                => $gender,
+                    'city'                  => $city,
+                    'province'              => $province,
+                    'postal_code'           => $postal_code,
+                    'country'               => $country,
+                    'phone'                 => $phone1,
+                    'phone2'                => $phone2,
+                    'relationship_status'   => $relationship_status,
+                    'number_of_children'    => $number_of_children,
+                    'education_level'       => $education_level,
+                    'preferred_language'    => $preferred_lang,
+                    'avg_annual_income1'    => $avg_annual_income1,
+                    'avg_annual_income2'    => $avg_annual_income2,
+                    'avg_monthly_spent1'    => $avg_monthly_spent1,
+                    'avg_monthly_spent2'    => $avg_monthly_spent2,
+                    'personal_interests'    => $personal_interests
                 ),
                 array(
-                    'user_id'           => 'required|numeric',
-                    'username'          => 'required|orbit.exists.username',
-                    'email'             => 'required|email|email_exists_but_me',
-                    'role_id'           => 'required|numeric|orbit.empty.role',
-                    'status'            => 'orbit.empty.user_status',
+                    'user_id'               => 'required|numeric',
+                    'username'              => 'orbit.exists.username',
+                    'email'                 => 'email|email_exists_but_me',
+                    'role_id'               => 'numeric|orbit.empty.role',
+                    'status'                => 'orbit.empty.user_status',
+
+                    'firstname'             => 'required',
+                    'lastname'              => 'required',
+
+                    'birthdate'             => 'required|date_format:d/m/Y',
+                    'gender'                => 'required|in:m,f',
+                    'city'                  => 'required',
+                    'province'              => 'required',
+                    'postal_code'           => 'required|numeric',
+                    'country'               => 'required',
+                    'phone'                 => 'required',
+                    'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
+                    'number_of_children'    => 'numeric|min:0',
+                    'education_level'       => 'in:none,junior high school,diploma,bachelor,master,ph.d,doctor,other',
+                    'preferred_language'    => 'in:en,id',
+                    'avg_annual_income1'    => 'numeric',
+                    'avg_annual_income2'    => 'numeric',
+                    'avg_monthly_spent1'    => 'numeric',
+                    'avg_monthly_spent2'    => 'numeric',
+                    'personal_interests'    => 'array|orbit.empty.personal_interest'
                 ),
                 array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
             );
@@ -403,23 +474,139 @@ class UserAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updateduser = User::find($user_id);
-            $updateduser->username = $username;
-            $updateduser->user_email = $email;
-            $updateduser->user_firstname = $user_firstname;
-            $updateduser->user_lastname = $user_lastname;
-            $updateduser->status = $status;
-            $updateduser->user_role_id = $user_role_id;
+            $updateduser = User::with('userdetail')
+                               ->excludeDeleted()
+                               ->find($user_id);
+
+            OrbitInput::post('username', function($username) use ($updateduser) {
+                $updateduser->username = $username;
+            });
+
+            OrbitInput::post('email', function($email) use ($updateduser) {
+                $updateduser->user_email = $email;
+            });
+
+            OrbitInput::post('firstname', function($firstname) use ($updateduser) {
+                $updateduser->user_firstname = $firstname;
+            });
+
+            OrbitInput::post('lastname', function($lastname) use ($updateduser) {
+                $updateduser->user_lastname = $lastname;
+            });
+
+            OrbitInput::post('status', function($status) use ($updateduser) {
+                $updateduser->status = $status;
+            });
+
+            OrbitInput::post('role_id', function($role_id) use ($updateduser) {
+                $updateduser->user_role_id = $role_id;
+            });
+
+            // Details
+
+            OrbitInput::post('birthdate', function($date) use ($updateduser) {
+                $updateduser->userdetail->birthdate = $date;
+            });
+
+            OrbitInput::post('gender', function($gender) use ($updateduser) {
+                $updateduser->userdetail->gender = $gender;
+            });
+
+            OrbitInput::post('address_line1', function($addr1) use ($updateduser) {
+                $updateduser->userdetail->address_line1 = $addr1;
+            });
+
+            OrbitInput::post('address_line2', function($addr2) use ($updateduser) {
+                $updateduser->userdetail->address_line2 = $addr2;
+            });
+
+            OrbitInput::post('address_line3', function($addr3) use ($updateduser) {
+                $updateduser->userdetail->address_line3 = $addr3;
+            });
+
+            OrbitInput::post('city', function($city) use ($updateduser) {
+                $updateduser->userdetail->city = $city;
+            });
+
+            OrbitInput::post('province', function($province) use ($updateduser) {
+                $updateduser->userdetail->province = $province;
+            });
+
+            OrbitInput::post('postal_code', function($postal) use ($updateduser) {
+                $updateduser->userdetail->postal_code = $postal;
+            });
+
+            OrbitInput::post('country', function($country) use ($updateduser) {
+                $updateduser->userdetail->country = $country;
+            });
+
+            OrbitInput::post('phone', function($phone1) use ($updateduser) {
+                $updateduser->userdetail->phone = $phone1;
+            });
+
+            OrbitInput::post('phone2', function($phone2) use ($updateduser) {
+                $updateduser->userdetail->phone2 = $phone2;
+            });
+
+            OrbitInput::post('relationship_status', function($status) use ($updateduser) {
+                $updateduser->userdetail->relationship_status = $status;
+            });
+
+            OrbitInput::post('number_of_children', function($number) use ($updateduser) {
+                $updateduser->userdetail->number_of_children = $number;
+
+                if ($number > 0) {
+                    $updateduser->userdetail->has_children = 'Y';
+                }
+            });
+
+            OrbitInput::post('education_level', function($level) use ($updateduser) {
+                $updateduser->userdetail->last_education_degree = $level;
+            });
+
+            OrbitInput::post('preferred_language', function($lang) use ($updateduser) {
+                $updateduser->userdetail->preferred_lang = $lang;
+            });
+
+            OrbitInput::post('avg_annual_income1', function($income1) use ($updateduser) {
+                $updateduser->userdetail->avg_annual_income1 = $income1;
+            });
+
+            OrbitInput::post('avg_annual_income2', function($income2) use ($updateduser) {
+                $updateduser->userdetail->avg_annual_income2 = $income2;
+            });
+
+            OrbitInput::post('avg_monthly_spent1', function($spent1) use ($updateduser) {
+                $updateduser->userdetail->avg_monthly_spent1 = $spent1;
+            });
+
+            OrbitInput::post('avg_monthly_spent2', function($spent2) use ($updateduser) {
+                $updateduser->userdetail->avg_monthly_spent2 = $spent2;
+            });
+
+            OrbitInput::post('occupation', function($occupation) use ($updateduser) {
+                $updateduser->userdetail->occupation = $occupation;
+            });
+
+            OrbitInput::post('sector_of_activity', function($soc) use ($updateduser) {
+                $updateduser->userdetail->sector_of_activity = $soc;
+            });
+
+            OrbitInput::post('company_name', function($company) use ($updateduser) {
+                $updateduser->userdetail->company_name = $company;
+            });
+
+            OrbitInput::post('personal_interests', function($interests) use ($updateduser) {
+                $updateduser->interests()->sync($interests);
+            });
+
             $updateduser->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.user.postupdateuser.before.save', array($this, $updateduser));
 
             $updateduser->save();
-
-            $userdetail = UserDetail::where('user_id', '=', $user_id)->first();
-            $updateduser->setRelation('userdetail', $userdetail);
-
-            $updateduser->userdetail = $userdetail;
+            $updateduser->userdetail->modified_by = $user->user_id;
+            $updateduser->userdetail->save();
 
             $apikey = Apikey::where('user_id', '=', $updateduser->user_id)->first();
             if ($status != 'pending') {
@@ -1251,6 +1438,20 @@ class UserAPIController extends ControllerAPI
             }
 
             App::instance('orbit.validation.user', $user);
+
+            return TRUE;
+        });
+
+        Validator::extend('orbit.empty.personal_interest', function ($attribute, $value, $parameters) {
+            $personal_interest_ids = $value;
+            $number = count($personal_interest_ids);
+            $real_number = PersonalInterest::ExcludeDeleted()
+                                           ->whereIn('personal_interest_id', $personal_interest_ids)
+                                           ->count();
+
+            if ((string)$real_number !== (string)$number) {
+                return FALSE;
+            }
 
             return TRUE;
         });

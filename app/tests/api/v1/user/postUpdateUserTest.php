@@ -481,6 +481,13 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['username'] = 'iansmith';
         $_POST['firstname'] = 'Ian';
         $_POST['lastname'] = 'Smith Jr.';
+        $_POST['birthdate'] = '20/05/1985';
+        $_POST['gender'] = 'm';
+        $_POST['city'] = 'Surabaya';
+        $_POST['country'] = 'Indonesia';
+        $_POST['province'] = 'Jawa Timur';
+        $_POST['postal_code'] = '612345';
+        $_POST['phone'] = '031-7412345';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -540,6 +547,13 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['username'] = 'iansmith2';
         $_POST['firstname'] = 'Ian';
         $_POST['lastname'] = 'Smith Jr.';
+        $_POST['birthdate'] = '20/05/1985';
+        $_POST['gender'] = 'm';
+        $_POST['city'] = 'Surabaya';
+        $_POST['country'] = 'Indonesia';
+        $_POST['province'] = 'Jawa Timur';
+        $_POST['postal_code'] = '612345';
+        $_POST['phone'] = '031-7412345';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -606,6 +620,13 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['username'] = 'smith2';
         $_POST['firstname'] = 'Tom';
         $_POST['lastname'] = 'Smith';
+        $_POST['birthdate'] = '20/05/1985';
+        $_POST['gender'] = 'm';
+        $_POST['city'] = 'Surabaya';
+        $_POST['country'] = 'Indonesia';
+        $_POST['province'] = 'Jawa Timur';
+        $_POST['postal_code'] = '612345';
+        $_POST['phone'] = '031-7412345';
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';

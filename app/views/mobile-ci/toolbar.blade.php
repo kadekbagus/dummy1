@@ -10,29 +10,25 @@
             <span class="fa-1x fa-stack cart-qty ">
               <i class="fa fa-circle fa-stack-2x cart-circle"></i>
               <?php
-                if(!is_null($cartdata->cart)){
-                  if(is_null($cartdata->cart->total_item)) {
-                    $cartnumber = 0;
-                  } else {
-                    if($cartdata->cart->total_item > 9){
-                      $cartnumber = '9+';
-                    } else {
-                      $cartnumber = $cartdata->cart->total_item;
-                    }
-                  }
-                } 
+                if(is_null($cartitems) || $cartitems == 0){
+                  $cartnumber = 0;
+                } elseif ($cartitems > 9){
+                  $cartnumber = '9+';
+                } else {
+                  $cartnumber = $cartitems;
+                }
               ?>
               <strong class="fa-stack-1x" id="cart-number" data-cart-number="{{$cartnumber}}">
-                @if(! is_null($cartdata->cart))
-                  @if($cartdata->cart->total_item > 9)
+                @if(! is_null($cartitems))
+                  @if($cartitems > 9)
                   {{ '9+' }}
                   @else
-                  {{ $cartdata->cart->total_item }}
+                  {{ $cartitems }}
                   @endif
                 @endif
               </strong>
             </span>
-            <i id="shopping-cart" class="glyphicon glyphicon-shopping-cart"></i>
+            <i id="shopping-cart" class="fa fa-shopping-cart"></i>
           </span>
         </a>
       </li>

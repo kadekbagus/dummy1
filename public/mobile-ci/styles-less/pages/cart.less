@@ -1,3 +1,6 @@
+@media only screen and (min-device-width: 1366px), (min-device-height: 1366px) {
+    @-ms-viewport {width: device-width;}
+}
 .box-one {
   background-color: @theme-main-info-1;
 }
@@ -38,6 +41,12 @@
       .unique-column {
         background-color: lighten(@theme-main-gray, 10%);
       }
+      .promotion-column {
+        background-color: #3c9;
+      }
+      .coupon-column {
+        background-color: #ffac41;
+      }
       .single-item-headers {
         border: 1px solid @theme-main-gray;
         overflow: auto;
@@ -48,7 +57,7 @@
           float: left;
           // border-right: 1px solid @theme-main-gray;
           text-align: center;
-          font-size: 10px;
+          font-size: 8px;
           font-weight: 700;
           // min-height: 60px;
           &:last-of-type {

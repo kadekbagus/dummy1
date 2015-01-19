@@ -1,6 +1,7 @@
 @extends('mobile-ci.layout')
 
 @section('content')
+  <!-- <pre>{{ var_dump($cartsummary->total_discount) }}</pre> -->
   <div class="mobile-ci-container">
     <div class="cart-page cart-info-box">
       <div class="single-box">
@@ -16,6 +17,8 @@
     </div>
     <div class="cart-page the-cart">
       @foreach($cartdata->cartdetails as $cartdetail)
+      <?php $promos_for_this_item = array_filter($promotions, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });?>
+      <!-- <pre>{{ var_dump($cartdetail->promo_price) }}</pre> -->
       <div class="cart-items-list">
         <div class="single-item">
           <div class="single-item-headers">
@@ -25,7 +28,13 @@
             <div class="single-header unique-column">
               <span class="header-text">Qty</span>
             </div>
-            <div class="single-header unique-column">
+            <div class="single-header 
+              @if(count($promos_for_this_item) > 0)
+                {{ 'promotion-column' }}
+              @else
+                {{ 'unique-column' }}
+              @endif
+            ">
               <span class="header-text">Unit Price (IDR)</span>
             </div>
             <div class="single-header unique-column">
@@ -54,10 +63,25 @@
               </div>
             </div>
             <div class="single-body">
-              <span>{{ $cartdetail->variant['price'] + 0 }}</span>
+              <?php $discount = 0; $price = $cartdetail->variant['price']?>
+              @if(count($promos_for_this_item) > 0)
+                @foreach($promos_for_this_item as $promo)
+                    @if($promo->product_id == $cartdetail->product_id) 
+                        @if($promo->rule_type == 'product_discount_by_percentage')
+                            <?php $discount = $discount +  ($cartdetail->variant['price'] * $promo->discount_value); ?>
+                        @elseif ($promo->rule_type == 'product_discount_by_value')
+                            <?php $discount = $discount + $promo->discount_value; ?>
+                        @endif
+                    @endif
+                @endforeach
+                <?php $price = $price - $discount  + 0; ?>
+              @else
+                <?php $price = $price + 0; ?>
+              @endif
+              <span>{{$price}}</span>
             </div>
             <div class="single-body">
-              <span>{{ $cartdetail->variant['price'] * $cartdetail->quantity }}</span>
+              <span>{{ $price * $cartdetail->quantity }}</span>
             </div>
           </div>
         </div>
@@ -251,7 +275,11 @@
               qty:num.val()
             }
           }).done(function(data){
-
+            if(data.status == 'success'){
+              location.reload();
+            }else{
+              console(data);
+            }
           });
         }
     });

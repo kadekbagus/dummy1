@@ -50,8 +50,14 @@ class User extends Eloquent implements UserInterface
         return $this->hasMany('Merchant', 'user_id', 'user_id');
     }
 
-    public function lastVisitedShop(){
+    public function lastVisitedShop()
+    {
         return $this->belongsTo('Retailer', 'user_details', 'user_id', 'last_visit_shop_id');
+    }
+
+    public function interests()
+    {
+        return $this->belongsToMany('PersonalInterest', 'user_personal_interest', 'user_id', 'personal_interest_id');
     }
 
     /**

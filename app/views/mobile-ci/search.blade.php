@@ -30,8 +30,8 @@
 							<div>
 								<?php $x = 1; $on_promo = false;?>
 								@if(in_array($product->product_id, $promo_products))
-								<div class="ribbon-wrapper-yellow ribbon{{$x}}st">
-									<div class="ribbon-yellow">Promo</div>
+								<div class="ribbon-wrapper-green ribbon{{$x}}st">
+									<div class="ribbon-green">Promo</div>
 								</div>
 								<?php $on_promo = true; $x++;?>
 								@endif
@@ -71,36 +71,36 @@
 									<h3 class="currency"><small>IDR</small> {{ min($prices) + 0 }}</h3>
 									@endif
 								</div>
-								@if(count($product->variants) <= 1)
-								<div class="col-xs-6 catalogue-control price">
-									<div class="circlet btn-blue pull-right">
-										<a id="addToCartButton" class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
-											<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
-										</a>
-									</div>
-								</div>
-								@else
-								<div class="col-xs-6 catalogue-control price">
-									<div class="circlet btn-blue pull-right">
-										<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id) }}">
-											<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
-										</a>
-									</div>
-								</div>
-								@endif
 									
 							</div>
 						</div>
 					</div>
 					<div class="row catalogue-control-wrapper">
-						<div class="col-xs-9 catalogue-short-des ">
+						<div class="col-xs-6 catalogue-short-des ">
 							<p>{{ $product->short_description }}</p>
 						</div>
-						<div class="col-xs-3 catalogue-control ">
-							<div class="circlet btn-blue pull-right">
-								<a href="{{ url('customer/product?id='.$product->product_id) }}"><img src="{{ asset('mobile-ci/images/detail-clear.png') }}" ></a>
+						<div class="col-xs-2 catalogue-control text-center">
+							<div class="circlet btn-blue detail-btn">
+								<a href="{{ url('customer/product?id='.$product->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 							</div>
 						</div>
+						@if(count($product->variants) <= 1)
+						<div class="col-xs-2 catalogue-control price ">
+							<div class="circlet btn-blue cart-btn text-center">
+								<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+									<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+								</a>
+							</div>
+						</div>
+						@else
+						<div class="col-xs-2 catalogue-control price">
+							<div class="circlet btn-blue cart-btn text-center">
+								<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
+									<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+								</a>
+							</div>
+						</div>
+						@endif
 					</div>
 				</div>
 			@endforeach
@@ -132,10 +132,10 @@
 		});
 		$(document).ready(function(){
 			// add to cart
-			$('body').on('click', '#addToCartButton', function(event){
+			$('body').on('click', 'a.product-add-to-cart', function(event){
 				var prodid = $(this).data('product-id');
 				var prodvarid = $(this).data('product-variant-id');
-				var img = $(this).children('img');
+				var img = $(this).children('i');
 				var cart = $('#shopping-cart');
 				$.ajax({
 					url: apiPath+'customer/addtocart',
@@ -152,6 +152,7 @@
 						top: img.offset().top,
 						left: img.offset().left
 					}).css({
+						'color': '#fff',
 						'opacity': '0.5',
 						'position': 'absolute',
 						'height': '20px',
