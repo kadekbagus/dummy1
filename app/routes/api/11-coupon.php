@@ -34,3 +34,19 @@ Route::get('/api/v1/coupon/search', function()
 {
     return CouponAPIController::create()->getSearchCoupon();
 });
+
+/**
+ * Upload coupon image
+ */
+Route::post('/api/v1/coupon/upload/image', function()
+{
+    return UploadAPIController::create()->postUploadCouponImage();
+});
+
+/**
+ * Delete coupon image
+ */
+Route::post('/api/v1/coupon/delete/image', function()
+{
+    return UploadAPIController::create()->postDeleteCouponImage();
+});
