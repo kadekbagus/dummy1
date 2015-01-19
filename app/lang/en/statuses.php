@@ -57,6 +57,10 @@ return array(
                 'main'          => 'Coupon image has been successfully uploaded.',
                 'delete_image'  => 'Coupon image has been successfully deleted.'
             ),
+            'user' => array(
+                'profile_picture'           => 'Profile picture has been successfully uploaded.',
+                'profile_picture_deleted'   => 'Profile picture has been successfully deleted.'
+            ),
         )
     )
 );

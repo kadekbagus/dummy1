@@ -27,3 +27,8 @@ Route::get('/app/v1/user/search', 'IntermediateAuthController@User_getSearchUser
  * Change password user
  */
 Route::post('/app/v1/user/changepassword', 'IntermediateAuthController@User_postChangePassword');
+
+/**
+ * Delete User profile picture
+ */
+Route::post('/app/v1/user-profile-picture/delete', 'IntermediateAuthController@Upload_postDeleteUserImage');
