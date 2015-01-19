@@ -388,7 +388,7 @@ class UserAPIController extends ControllerAPI
             $province = OrbitInput::post('province');
             $postal_code = OrbitInput::post('postal_code');
             $country = OrbitInput::post('postal_code');
-            $phone1 = OrbitInput::post('phone1');
+            $phone1 = OrbitInput::post('phone');
             $phone2 = OrbitInput::post('phone2');
             $relationship_status = OrbitInput::post('relationship_status');
             $number_of_children = OrbitInput::post('number_of_children');
@@ -420,7 +420,7 @@ class UserAPIController extends ControllerAPI
                     'province'              => $province,
                     'postal_code'           => $postal_code,
                     'country'               => $country,
-                    'phone1'                => $phone1,
+                    'phone'                 => $phone1,
                     'phone2'                => $phone2,
                     'relationship_status'   => $relationship_status,
                     'number_of_children'    => $number_of_children,
@@ -448,7 +448,7 @@ class UserAPIController extends ControllerAPI
                     'province'              => 'required',
                     'postal_code'           => 'required|numeric',
                     'country'               => 'required',
-                    'phone1'                => 'required',
+                    'phone'                 => 'required',
                     'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
                     'number_of_children'    => 'numeric|min:0',
                     'education_level'       => 'in:none,junior high school,diploma,bachelor,master,ph.d,doctor,other',
@@ -477,6 +477,10 @@ class UserAPIController extends ControllerAPI
             $updateduser = User::with('userdetail')
                                ->excludeDeleted()
                                ->find($user_id);
+
+            OrbitInput::post('username', function($username) use ($updateduser) {
+                $updateduser->username = $username;
+            });
 
             OrbitInput::post('email', function($email) use ($updateduser) {
                 $updateduser->user_email = $email;
@@ -536,8 +540,8 @@ class UserAPIController extends ControllerAPI
                 $updateduser->userdetail->country = $country;
             });
 
-            OrbitInput::post('phone1', function($phone1) use ($updateduser) {
-                $updateduser->userdetail->phone1 = $phone1;
+            OrbitInput::post('phone', function($phone1) use ($updateduser) {
+                $updateduser->userdetail->phone = $phone1;
             });
 
             OrbitInput::post('phone2', function($phone2) use ($updateduser) {

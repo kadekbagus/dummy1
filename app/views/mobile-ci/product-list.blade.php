@@ -5,8 +5,8 @@
 				<div>
 					<?php $x = 1; $on_promo = false;?>
 					@if(in_array($product->product_id, $promo_products))
-					<div class="ribbon-wrapper-yellow ribbon{{$x}}st">
-						<div class="ribbon-yellow">Promo</div>
+					<div class="ribbon-wrapper-green ribbon{{$x}}st">
+						<div class="ribbon-green">Promo</div>
 					</div>
 					<?php $on_promo = true; $x++;?>
 					@endif
@@ -65,24 +65,24 @@
 			<div class="col-xs-6 catalogue-short-des ">
 				<p>{{ $product->short_description }}</p>
 			</div>
-			<div class="col-xs-2 catalogue-control ">
-				<div class="circlet btn-blue">
-					<a href="{{ url('customer/product?id='.$product->product_id) }}"><img src="{{ asset('mobile-ci/images/detail-clear.png') }}" ></a>
+			<div class="col-xs-2 catalogue-control text-center">
+				<div class="circlet btn-blue detail-btn">
+					<a href="{{ url('customer/product?id='.$product->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 				</div>
 			</div>
 			@if(count($product->variants) <= 1)
-			<div class="col-xs-2 catalogue-control price">
-				<div class="circlet btn-blue pull-right">
+			<div class="col-xs-2 catalogue-control price ">
+				<div class="circlet btn-blue cart-btn text-center">
 					<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
-						<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 					</a>
 				</div>
 			</div>
 			@else
-			<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-				<div class="circlet btn-blue pull-right">
+			<div class="col-xs-2 catalogue-control price">
+				<div class="circlet btn-blue cart-btn text-center">
 					<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
-						<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 					</a>
 				</div>
 			</div>
