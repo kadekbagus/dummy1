@@ -60,6 +60,17 @@ class User extends Eloquent implements UserInterface
         return $this->belongsToMany('PersonalInterest', 'user_personal_interest', 'user_id', 'personal_interest_id');
     }
 
+    public function media()
+    {
+        return $this->hasMany('Media', 'object_id', 'user_id')
+                    ->where('object_name', 'user');
+    }
+
+    public function profilePicture()
+    {
+        return $this->media()->where('media_name_id', 'user_profile_picture');
+    }
+
     /**
      * Tells Laravel the name of our password field so Laravel does not uses
      * its default `password` field. Our field name is `user_password`.
