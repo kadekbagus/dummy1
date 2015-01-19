@@ -58,8 +58,8 @@ define([
             },
 
             cancelRequest : function(params){
-                $http.delete(config['baseUrlServer'] + params);
-              //  canceler.resolve();
+               // $http.delete(config['baseUrlServer'] + params);
+              return canceler.resolve();
             }
         }
     }]);

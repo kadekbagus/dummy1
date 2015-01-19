@@ -82,8 +82,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(act) $scope.hiddenbtn = true;
                 };
                 //canceler request
-                $scope.cancelRequestService = function(params){
-                    serviceAjax.cancelRequest(params);
+                $scope.cancelRequestService = function(){
+                    serviceAjax.cancelRequest();
                 };
                 //get unix guestid
                 ($scope.getguest = function(){
@@ -470,7 +470,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
-                    $scope.cancelRequestService('/pos/scanbarcode');
+                    $scope.cancelRequestService();
                     $scope.errorscancart = '';
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
