@@ -420,7 +420,7 @@ class UserAPIController extends ControllerAPI
                     'province'              => $province,
                     'postal_code'           => $postal_code,
                     'country'               => $country,
-                    'phone1'                => $phone1,
+                    'phone'                 => $phone1,
                     'phone2'                => $phone2,
                     'relationship_status'   => $relationship_status,
                     'number_of_children'    => $number_of_children,
@@ -448,7 +448,7 @@ class UserAPIController extends ControllerAPI
                     'province'              => 'required',
                     'postal_code'           => 'required|numeric',
                     'country'               => 'required',
-                    'phone1'                => 'required',
+                    'phone'                 => 'required',
                     'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
                     'number_of_children'    => 'numeric|min:0',
                     'education_level'       => 'in:none,junior high school,diploma,bachelor,master,ph.d,doctor,other',
@@ -536,8 +536,8 @@ class UserAPIController extends ControllerAPI
                 $updateduser->userdetail->country = $country;
             });
 
-            OrbitInput::post('phone1', function($phone1) use ($updateduser) {
-                $updateduser->userdetail->phone1 = $phone1;
+            OrbitInput::post('phone', function($phone1) use ($updateduser) {
+                $updateduser->userdetail->phone = $phone1;
             });
 
             OrbitInput::post('phone2', function($phone2) use ($updateduser) {
@@ -1213,14 +1213,10 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('change_password')) {
-                // No need to check if it is the user itself
-                if ((string)$user->user_id !== (string)$user_id)
-                {
-                    Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
-                    $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
-                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
-                    ACL::throwAccessForbidden($message);
-                }
+                Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
+                $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
+                ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.user.postchangepassword.after.authz', array($this, $user));
 
