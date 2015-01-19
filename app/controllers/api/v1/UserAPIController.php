@@ -1213,10 +1213,14 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('change_password')) {
-                Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
-                $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
-                ACL::throwAccessForbidden($message);
+                // No need to check if it is the user itself
+                if ((string)$user->user_id !== (string)$user_id)
+                {
+                    Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
+                    $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
+                    ACL::throwAccessForbidden($message);
+                }
             }
             Event::fire('orbit.user.postchangepassword.after.authz', array($this, $user));
 
