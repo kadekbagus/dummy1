@@ -1391,7 +1391,7 @@ class UploadAPIController extends ControllerAPI
             Event::fire('orbit.upload.postuploaduserimage.after.save', array($this, $user, $uploader));
 
             $this->response->data = $mediaList;
-            $this->response->message = Lang::get('statuses.orbit.uploaded.merchant.logo');
+            $this->response->message = Lang::get('statuses.orbit.uploaded.user.profile_picture');
 
             // Commit the changes
             if (! $this->calledFrom('user.new, user.update')) {
@@ -1460,6 +1460,182 @@ class UploadAPIController extends ControllerAPI
 
         $output = $this->render($httpCode);
         Event::fire('orbit.upload.postuploaduserimage.before.render', array($this, $output));
+
+        return $output;
+    }
+
+    /**
+     * Delete photo for a user.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `user_id`                  (required) - ID of the user
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteUserImage()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postdeleteuserimage.before.auth', array($this));
+
+            if (! $this->calledFrom('user.new, user.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postdeleteuserimage.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                $user_id = OrbitInput::post('user_id');
+                Event::fire('orbit.upload.postdeleteuserimage.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_product')) {
+                    if ((string)$user_id !== $user->user_id) {
+                        Event::fire('orbit.upload.postdeleteuserimage.authz.notallowed', array($this, $user));
+                        $editUserLang = Lang::get('validation.orbit.actionlist.update_user');
+
+                        $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editUserLang));
+                        ACL::throwAccessForbidden($message);
+                    }
+                }
+                Event::fire('orbit.upload.postdeleteuserimage.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $user_id = OrbitInput::post('user_id');
+
+            $validator = Validator::make(
+                array(
+                    'user_id'    => $user_id,
+                ),
+                array(
+                    'user_id'   => 'required|numeric|orbit.empty.user',
+                )
+            );
+
+            Event::fire('orbit.upload.postdeleteuserimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postdeleteuserimage.after.validation', array($this, $validator));
+
+            if (! $this->calledFrom('user.new,user.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
+
+            // We already had Product instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $user = App::make('orbit.empty.user');
+
+            // Delete old merchant logo
+            $pastMedia = Media::where('object_id', $user->user_id)
+                              ->where('object_name', 'user')
+                              ->where('media_name_id', 'user_profile_picture');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            Event::fire('orbit.upload.postdeleteuserimage.before.save', array($this, $user));
+
+            // Update the `image` field which store the original path of the image
+            // This is temporary since right know the business rules actually
+            // only allows one image per product
+            $user->userdetail->photo = NULL;
+            $user->userdetail->save();
+
+            Event::fire('orbit.upload.postdeleteuserimage.after.save', array($this, $user));
+
+            $this->response->data = $user;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.user.profile_picture_deleted');
+
+            if (! $this->calledFrom('user.new,user.update')) {
+                // Commit the changes
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postdeleteuserimage.after.commit', array($this, $user));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postdeleteuserimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('user.new,user.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postdeleteuserimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('user.new,user.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postdeleteuserimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            if (! $this->calledFrom('user.new,user.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postdeleteuserimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            if (! $this->calledFrom('user.new, user.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postdeleteuserimage.before.render', array($this, $output));
 
         return $output;
     }
