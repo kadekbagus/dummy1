@@ -1640,6 +1640,395 @@ class UploadAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * Upload photo for a coupon.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `promotion_id`                (required) - ID of the coupon
+     * @param file|array `images`                      (required) - Coupon images
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUploadCouponImage()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postuploadcouponimage.before.auth', array($this));
+
+            if (! $this->calledFrom('coupon.new, coupon.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postuploadcouponimage.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postuploadcouponimage.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_coupon')) {
+                    Event::fire('orbit.upload.postuploadcouponimage.authz.notallowed', array($this, $user));
+                    $editCouponLang = Lang::get('validation.orbit.actionlist.update_coupon');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editCouponLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postuploadcouponimage.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $promotion_id = OrbitInput::post('promotion_id');
+            $images = OrbitInput::files('images');
+            $messages = array(
+                'nomore.than.one' => Lang::get('validation.max.array', array(
+                    'max' => 1
+                ))
+            );
+
+            $validator = Validator::make(
+                array(
+                    'promotion_id'  => $promotion_id,
+                    'images'        => $images,
+                ),
+                array(
+                    'promotion_id'  => 'required|numeric|orbit.empty.coupon',
+                    'images'        => 'required|nomore.than.one',
+                ),
+                $messages
+            );
+
+            Event::fire('orbit.upload.postuploadcouponimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postuploadcouponimage.after.validation', array($this, $validator));
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
+
+            // We already had Coupon instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $coupon = App::make('orbit.empty.coupon');
+
+            // Delete old coupon image
+            $pastMedia = Media::where('object_id', $coupon->promotion_id)
+                              ->where('object_name', 'coupon')
+                              ->where('media_name_id', 'coupon_image');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            // Callback to rename the file, we will format it as follow
+            // [PROMOTION_ID]-[PROMOTION_NAME_SLUG]
+            $renameFile = function($uploader, &$file, $dir) use ($coupon)
+            {
+                $promotion_id = $coupon->promotion_id;
+                $slug = Str::slug($coupon->promotion_name);
+                $file['new']->name = sprintf('%s-%s', $promotion_id, $slug);
+            };
+
+            // Load the orbit configuration for coupon upload
+            $uploadCouponConfig = Config::get('orbit.upload.coupon.main');
+
+            $message = new UploaderMessage([]);
+            $config = new UploaderConfig($uploadCouponConfig);
+            $config->setConfig('before_saving', $renameFile);
+
+            // Create the uploader object
+            $uploader = new Uploader($config, $message);
+
+            Event::fire('orbit.upload.postuploadcouponimage.before.save', array($this, $coupon, $uploader));
+
+            // Begin uploading the files
+            $uploaded = $uploader->upload($images);
+
+            // Save the files metadata
+            $object = array(
+                'id'            => $coupon->promotion_id,
+                'name'          => 'coupon',
+                'media_name_id' => 'coupon_image',
+                'modified_by'   => 1
+            );
+            $mediaList = $this->saveMetadata($object, $uploaded);
+
+            // Update the `image` field which store the original path of the image
+            // This is temporary since right now the business rules actually
+            // only allows one image per coupon
+            if (isset($uploaded[0])) {
+                $coupon->image = $uploaded[0]['path'];
+                $coupon->save();
+            }
+
+            Event::fire('orbit.upload.postuploadcouponimage.after.save', array($this, $coupon, $uploader));
+
+            $this->response->data = $mediaList;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.coupon.main');
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Commit the changes
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postuploadcouponimage.after.commit', array($this, $coupon, $uploader));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postuploadcouponimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postuploadcouponimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postuploadcouponimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postuploadcouponimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            if (! $this->calledFrom('coupon.new, coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postuploadcouponimage.before.render', array($this, $output));
+
+        return $output;
+    }
+
+    /**
+     * Delete photo for a coupon.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `promotion_id`                  (required) - ID of the coupon
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteCouponImage()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postdeletecouponimage.before.auth', array($this));
+
+            if (! $this->calledFrom('coupon.new, coupon.update'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postdeletecouponimage.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postdeletecouponimage.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_coupon')) {
+                    Event::fire('orbit.upload.postdeletecouponimage.authz.notallowed', array($this, $user));
+                    $editCouponLang = Lang::get('validation.orbit.actionlist.update_coupon');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editCouponLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postdeletecouponimage.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $promotion_id = OrbitInput::post('promotion_id');
+
+            $validator = Validator::make(
+                array(
+                    'promotion_id'    => $promotion_id,
+                ),
+                array(
+                    'promotion_id'   => 'required|numeric|orbit.empty.coupon',
+                )
+            );
+
+            Event::fire('orbit.upload.postdeletecouponimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postdeletecouponimage.after.validation', array($this, $validator));
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Begin database transaction
+                $this->beginTransaction();
+            }
+
+            // We already had Coupon instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $coupon = App::make('orbit.empty.coupon');
+
+            // Delete old merchant logo
+            $pastMedia = Media::where('object_id', $coupon->promotion_id)
+                              ->where('object_name', 'coupon')
+                              ->where('media_name_id', 'coupon_image');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            Event::fire('orbit.upload.postdeletecouponimage.before.save', array($this, $coupon));
+
+            // Update the `image` field which store the original path of the image
+            // This is temporary since right know the business rules actually
+            // only allows one image per coupon
+            $coupon->image = NULL;
+            $coupon->save();
+
+            Event::fire('orbit.upload.postdeletecouponimage.after.save', array($this, $coupon));
+
+            $this->response->data = $coupon;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.coupon.delete_image');
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Commit the changes
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postdeletecouponimage.after.commit', array($this, $coupon));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postdeletecouponimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postdeletecouponimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postdeletecouponimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            if (! $this->calledFrom('coupon.new,coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postdeletecouponimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            if (! $this->calledFrom('coupon.new, coupon.update')) {
+                // Rollback the changes
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postdeletecouponimage.before.render', array($this, $output));
+
+        return $output;
+    }
+
     protected function registerCustomValidation()
     {
         if ($this->calledFrom('default')) {
@@ -1708,6 +2097,23 @@ class UploadAPIController extends ControllerAPI
                 }
 
                 App::instance('orbit.empty.user', $user);
+
+                return TRUE;
+            });
+        }
+
+        if ($this->calledFrom('default')) {
+            // Check the existance of promotion id
+            Validator::extend('orbit.empty.coupon', function ($attribute, $value, $parameters) {
+                $coupon = Coupon::excludeDeleted()
+                            ->where('promotion_id', $value)
+                            ->first();
+
+                if (empty($coupon)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.empty.coupon', $coupon);
 
                 return TRUE;
             });
