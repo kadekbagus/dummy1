@@ -106,3 +106,9 @@ Route::post('/app/v1/customer/updatecart', function()
 {
     return MobileCI\MobileCIAPIController::create()->postUpdateCart();
 });
+
+// delete cart
+Route::post('/app/v1/customer/deletecart', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postDeleteFromCart();
+});
