@@ -12,8 +12,8 @@
 		<div>
 			<?php $x=1; ?>
 			@if(count($promotions)>0)
-			<div class="ribbon-wrapper-yellow ribbon{{$x}}st">
-				<div class="ribbon-yellow">Promo</div>
+			<div class="ribbon-wrapper-green ribbon{{$x}}st">
+				<div class="ribbon-green">Promo</div>
 			</div>
 			<?php $x++;?>
 			@endif
@@ -172,13 +172,13 @@
 		<div class="row text-center product-control">
 			<!-- <div class="col-xs-2 col-xs-offset-8 col-ms-1 col-ms-offset-10 col-md-1 col-md-offset-10 col-sm-1 col-sm-offset-10 col-lg-1 col-lg-offset-10"> -->
 			<div class="col-xs-2  col-ms-1  col-md-1  col-sm-1  col-lg-1">
-				<div class="circlet btn-blue" id="backBtnProduct">
-					<img src="{{ asset('mobile-ci/images/back-clear.png') }}" >
+				<div class="circlet back-btn btn-blue" id="backBtnProduct">
+					<span class="link-spanner"></span><i class="fa fa-mail-reply"></i>
 				</div>
 			</div>
 			<div class="col-xs-2 col-ms-1 col-md-1 col-sm-1 col-lg-1 pull-right">
-				<div class="circlet btn-blue pull-right add-to-cart-button btn-disabled">
-					<img src="{{ asset('mobile-ci/images/cart-clear.png') }}" >
+				<div class="circlet cart-btn btn-blue pull-right add-to-cart-button btn-disabled">
+					<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 				</div>
 			</div>
 		</div>
@@ -339,6 +339,20 @@
 					}
 				}else{
 					pricebefore = parseFloat(product.price);
+					if(promotions.length < 1){
+						priceafter = pricebefore;
+					} else {
+						// get first promotions value
+						var discount=0;
+						for(var i=0;i<promotions.length;i++){
+							if(promotions[i].rule_type == 'product_discount_by_percentage'){
+								discount = discount + (pricebefore * parseFloat(promotions[i].discount_value));
+							}else if(promotions[i].rule_type == 'product_discount_by_value'){
+								discount = discount + parseFloat(promotions[i].discount_value);
+							}
+						}
+						priceafter = pricebefore - discount;
+					}
 					$('#starting-from').show();
 					$('.add-to-cart-button').addClass('btn-disabled').removeAttr('id');
 				}
@@ -354,7 +368,7 @@
 				// add to cart
 				var prodid = itemReady[0].product_id;
 				var prodvarid = itemReady[0].product_variant_id;
-				var img = $(this).children('img');
+				var img = $(this).children('i');
 				var cart = $('#shopping-cart');
 				
 				$.ajax({
@@ -372,6 +386,7 @@
 						top: img.offset().top,
 						left: img.offset().left
 					}).css({
+						'color': '#fff',
 						'opacity': '0.5',
 						'position': 'absolute',
 						'height': '20px',

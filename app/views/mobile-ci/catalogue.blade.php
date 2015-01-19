@@ -107,7 +107,7 @@
 			$('.family-list').on('click', 'a.product-add-to-cart', function(event){
 				var prodid = $(this).data('product-id');
 				var prodvarid = $(this).data('product-variant-id');
-				var img = $(this).children('img');
+				var img = $(this).children('i');
 				var cart = $('#shopping-cart');
 				$.ajax({
 					url: apiPath+'customer/addtocart',
@@ -124,6 +124,7 @@
 						top: img.offset().top,
 						left: img.offset().left
 					}).css({
+						'color': '#fff',
 						'opacity': '0.5',
 						'position': 'absolute',
 						'height': '20px',
