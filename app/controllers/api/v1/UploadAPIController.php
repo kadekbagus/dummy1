@@ -2029,6 +2029,213 @@ class UploadAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * Upload widget images.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `widget_id`                    (required) - ID of the widget
+     * @param file|array `images`                       (required) - Images of the user photo
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUploadWidgetImage()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postuploadwidgetimage.before.auth', array($this));
+
+            // Require authentication
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postuploadwidgetimage.after.auth', array($this));
+
+                // Try to check access control list, does this merchant allowed to
+                // perform this action
+                $user = $this->api->user;
+                Event::fire('orbit.upload.postuploadwidgetimage.before.authz', array($this, $user));
+
+                if (! ACL::create($user)->isAllowed('update_widget')) {
+                    Event::fire('orbit.upload.postuploadwidgetimage.authz.notallowed', array($this, $user));
+
+                    $editUserLang = Lang::get('validation.orbit.actionlist.update_widget');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $editUserLang));
+                    ACL::throwAccessForbidden($message);
+                }
+                Event::fire('orbit.upload.postuploadwidgetimage.after.authz', array($this, $user));
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Application input
+            $widget_id = OrbitInput::post('widget_id');
+            $images = OrbitInput::files('images');
+            $messages = array(
+                'nomore.than.one' => Lang::get('validation.max.array', array(
+                    'max' => 1
+                ))
+            );
+
+            $validator = Validator::make(
+                array(
+                    'widget_id' => $widget_id,
+                    'images'    => $images,
+                ),
+                array(
+                    'widget_id' => 'required|numeric|orbit.empty.widget',
+                    'images'    => 'required|nomore.than.one',
+                ),
+                $messages
+            );
+
+            Event::fire('orbit.upload.postuploadwidgetimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postuploadwidgetimage.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->beginTransaction();
+            }
+
+            // We already had User instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $widget = App::make('orbit.empty.widget');
+
+            // Delete old user picture
+            $pastMedia = Media::where('object_id', $widget->widget_id)
+                              ->where('object_name', 'widget')
+                              ->where('media_name_id', 'home_widget');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            // Callback to rename the file, we will format it as follow
+            // [WIDGET_ID]-[WIDGET_SLOGAN]
+            $renameFile = function($uploader, &$file, $dir) use ($widget)
+            {
+                $widget_id = $widget->widget_id;
+                $slug = Str::slug($widget->widget_slogan);
+                $file['new']->name = sprintf('%s-%s', $widget_id, $slug);
+            };
+
+            // Load the orbit configuration for user profile picture
+            $uploadImageConfig = Config::get('orbit.upload.widget.default');
+
+            $message = new UploaderMessage([]);
+            $config = new UploaderConfig($uploadImageConfig);
+            $config->setConfig('before_saving', $renameFile);
+
+            // Create the uploader object
+            $uploader = new Uploader($config, $message);
+
+            Event::fire('orbit.upload.postuploadwidgetimage.before.save', array($this, $widget, $uploader));
+
+            // Begin uploading the files
+            $uploaded = $uploader->upload($images);
+
+            // Save the files metadata
+            $object = array(
+                'id'            => $widget->widget_id,
+                'name'          => 'widget',
+                'media_name_id' => 'home_widget',
+                'modified_by'   => 1
+            );
+            $mediaList = $this->saveMetadata($object, $uploaded);
+
+            Event::fire('orbit.upload.postuploadwidgetimage.after.save', array($this, $widget, $uploader));
+
+            $this->response->data = $mediaList;
+            $this->response->message = Lang::get('statuses.orbit.uploaded.user.profile_picture');
+
+            // Commit the changes
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->commit();
+            }
+
+            Event::fire('orbit.upload.postuploadwidgetimage.after.commit', array($this, $widget, $uploader));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.upload.postuploadwidgetimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->rollBack();
+            }
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postuploadwidgetimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->rollBack();
+            }
+        } catch (QueryException $e) {
+            Event::fire('orbit.upload.postuploadwidgetimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->rollBack();
+            }
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postuploadwidgetimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            if (! $this->calledFrom('widget.new, widget.update')) {
+                $this->rollBack();
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postuploadwidgetimage.before.render', array($this, $output));
+
+        return $output;
+    }
+
     protected function registerCustomValidation()
     {
         if ($this->calledFrom('default')) {
@@ -2114,6 +2321,22 @@ class UploadAPIController extends ControllerAPI
                 }
 
                 App::instance('orbit.empty.coupon', $coupon);
+
+                return TRUE;
+            });
+        }
+
+        if ($this->calledFrom('default')) {
+            Validator::extend('orbit.empty.widget', function ($attribute, $value, $parameters) use ($user) {
+                $widget = Widget::excludeDeleted()
+                            ->where('widget_id', $value)
+                            ->first();
+
+                if (empty($widget)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.empty.widget', $widget);
 
                 return TRUE;
             });
