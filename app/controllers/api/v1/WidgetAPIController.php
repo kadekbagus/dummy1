@@ -171,7 +171,12 @@ class WidgetAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
@@ -363,7 +368,12 @@ class WidgetAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
@@ -490,13 +500,249 @@ class WidgetAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
         }
 
         return $this->render($httpCode);
+    }
+
+    /**
+     * GET - List of Widgets.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param array         `widget_ids`            (optional) - List of widget IDs
+     * @param array         `widget_type`           (optional) - Type of the widget, e.g: 'catalogue', 'new_product', 'promotion', 'coupon'
+     * @param array         `merchant_ids`          (optional) - List of Merchant IDs
+     * @param array         `retailer_ids`          (optional) - List of Retailer IDs
+     * @param array         `animations`            (optional) - Filter by animation
+     * @param array         `types`                 (optional) - Filter by widget types
+     * @param array         `with`                  (optional) - relationship included
+     * @param integer       `take`                  (optional) - limit
+     * @param integer       `skip`                  (optional) - limit offset
+     * @param string        `sort_by`               (optional) - column order by
+     * @param string        `sort_mode`             (optional) - asc or desc
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getSearchWidget()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.widget.getwidget.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.widget.getwidget.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.widget.getwidget.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product_attribute')) {
+                Event::fire('orbit.widget.getwidget.authz.notallowed', array($this, $user));
+
+                $errorMessage = Lang::get('validation.orbit.actionlist.view_user');
+                $message = Lang::get('validation.orbit.access.view_product_attribute', array('action' => $errorMessage));
+
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.widget.getwidget.after.authz', array($this, $user));
+
+            $validator = Validator::make(
+                array(
+                    'widget_ids'    => OrbitInput::get('widget_ids'),
+                    'merchant_ids'  => OrbitInput::get('merchant_ids'),
+                    'retailer_ids'  => OrbitInput::get('retailer_ids'),
+                    'animations'    => OrbitInput::get('animations'),
+                    'types'         => OrbitInput::get('types')
+                ),
+                array(
+                    'widget_ids'    => 'array|min:1',
+                    'merchant_ids'  => 'array|min:1',
+                    'retailer_ids'  => 'array|min:1',
+                    'animations'    => 'array|min:1',
+                    'types'         => 'array|min:1'
+                )
+            );
+
+            Event::fire('orbit.widget.postdeletewiget.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.widget.postdeletewiget.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.widget.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+
+            // Builder object
+            $widgets = Widget::excludeDeleted();
+
+            // Include other relationship
+            OrbitInput::get('with', function($with) use ($widgets) {
+                $widgets->with($with);
+            });
+
+            // Filter by ids
+            OrbitInput::get('widget_ids', function($widgetIds) use ($widgets) {
+                $widgets->whereIn('widgets.widget_id', $widgetIds);
+            });
+
+            // Filter by merchant ids
+            OrbitInput::get('merchant_ids', function($merchantIds) use ($widgets) {
+                $widgets->whereIn('widgets.merchant_id', $merchantIds);
+            });
+
+            // Filter by retailer ids
+            OrbitInput::get('retailer_ids', function($retailerIds) use ($widgets) {
+                $widgets->retailerIds($retailerIds);
+            });
+
+            // Filter by animation
+            OrbitInput::get('animations', function($animation) use ($widgets) {
+                $widgets->whereIn('widgets.animation', $animation);
+            });
+
+            // Filter by widget type
+            OrbitInput::get('types', function($types) use ($widgets) {
+                $widgets->whereIn('widgets.widget_tyoe', $types);
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_widgets = clone $widgets;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+            });
+            $widgets->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $widgets) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $widgets->skip($skip);
+
+            // Default sort by
+            $sortBy = 'widgets.widget_order';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'widget_order'  => 'widgets.widget_order',
+                    'id'            => 'widgets.widget_id',
+                    'created'       => 'widgets.created_at',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $widgets->orderBy($sortBy, $sortMode);
+
+            $totalWidgets = $_widgets->count();
+            $listOfWidgets = $widgets->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalWidgets;
+            $data->returned_records = count($listOfWidgets);
+            $data->records = $listOfWidgets;
+
+            if ($totalWidgets === 0) {
+                $data->records = null;
+                $this->response->message = Lang::get('statuses.orbit.nodata.widget');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.widget.getwidget.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.widget.getwidget.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.widget.getwidget.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.widget.getwidget.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.widget.getwidget.before.render', array($this, &$output));
+
+        return $output;
     }
 
     protected function registerCustomValidation()
