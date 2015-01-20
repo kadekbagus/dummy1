@@ -416,6 +416,7 @@ class UserAPIController extends ControllerAPI
 
                     'birthdate'             => $birthdate,
                     'gender'                => $gender,
+                    'address_line1'         => $address1,
                     'city'                  => $city,
                     'province'              => $province,
                     'postal_code'           => $postal_code,
@@ -442,8 +443,9 @@ class UserAPIController extends ControllerAPI
                     'firstname'             => 'required',
                     'lastname'              => 'required',
 
-                    'birthdate'             => 'required|date_format:d/m/Y',
+                    'birthdate'             => 'required|date_format:Y-m-d',
                     'gender'                => 'required|in:m,f',
+                    'address_line1'         => 'required',
                     'city'                  => 'required',
                     'province'              => 'required',
                     'postal_code'           => 'required|numeric',
@@ -671,14 +673,19 @@ class UserAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
         }
 
         return $this->render($httpCode);
-
     }
 
     /**

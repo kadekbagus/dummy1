@@ -481,8 +481,9 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['username'] = 'iansmith';
         $_POST['firstname'] = 'Ian';
         $_POST['lastname'] = 'Smith Jr.';
-        $_POST['birthdate'] = '20/05/1985';
+        $_POST['birthdate'] = '1985-12-05';
         $_POST['gender'] = 'm';
+        $_POST['address_line1'] = 'Banjar Semer';
         $_POST['city'] = 'Surabaya';
         $_POST['country'] = 'Indonesia';
         $_POST['province'] = 'Jawa Timur';
@@ -547,8 +548,9 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['username'] = 'iansmith2';
         $_POST['firstname'] = 'Ian';
         $_POST['lastname'] = 'Smith Jr.';
-        $_POST['birthdate'] = '20/05/1985';
+        $_POST['birthdate'] = '1985-12-05';
         $_POST['gender'] = 'm';
+        $_POST['address_line1'] = 'Banjar Semer';
         $_POST['city'] = 'Surabaya';
         $_POST['country'] = 'Indonesia';
         $_POST['province'] = 'Jawa Timur';
@@ -620,8 +622,9 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['username'] = 'smith2';
         $_POST['firstname'] = 'Tom';
         $_POST['lastname'] = 'Smith';
-        $_POST['birthdate'] = '20/05/1985';
+        $_POST['birthdate'] = '1985-12-05';
         $_POST['gender'] = 'm';
+        $_POST['address_line1'] = 'Banjar Semer';
         $_POST['city'] = 'Surabaya';
         $_POST['country'] = 'Indonesia';
         $_POST['province'] = 'Jawa Timur';

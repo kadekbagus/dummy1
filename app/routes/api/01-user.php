@@ -34,3 +34,11 @@ Route::get('/api/v1/user/search', function()
 {
     return UserAPIController::create()->getSearchUser();
 });
+
+/**
+ * Delete user profile picture
+ */
+Route::get('/api/v1/user-profile-picture/delete', function()
+{
+    return UploadAPIController::create()->postUploadUserImage();
+});

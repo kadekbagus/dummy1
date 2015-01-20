@@ -1769,6 +1769,10 @@ class ProductAPIController extends ControllerAPI
                                           ->with($with)
                                           ->first();
 
+        if (empty($complete_variant)) {
+            return ;
+        }
+
         // Flag to determine if the updated product has been changes
         $updated_product_changes = FALSE;
 

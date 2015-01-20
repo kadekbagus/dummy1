@@ -119,49 +119,49 @@
 					}
 				}).done(function(data){
 					// animate cart
-					
-					var imgclone = img.clone().offset({
-						top: img.offset().top,
-						left: img.offset().left
-					}).css({
-						'color': '#fff',
-						'opacity': '0.5',
-						'position': 'absolute',
-						'height': '20px',
-						'width': '20px',
-						'z-index': '100'
-					}).appendTo($('body')).animate({
-						'top': cart.offset().top + 10,
-						'left': cart.offset().left + 10,
-						'width': '10px',
-						'height': '10px',
-					}, 1000);
+					if(prodid){
+						var imgclone = img.clone().offset({
+							top: img.offset().top,
+							left: img.offset().left
+						}).css({
+							'color': '#fff',
+							'opacity': '0.5',
+							'position': 'absolute',
+							'height': '20px',
+							'width': '20px',
+							'z-index': '100'
+						}).appendTo($('body')).animate({
+							'top': cart.offset().top + 10,
+							'left': cart.offset().left + 10,
+							'width': '10px',
+							'height': '10px',
+						}, 1000);
 
-					setTimeout(function(){
-						cart.effect('shake', {
-							times:2,
-							distance:4,
-							direction:'up'
-						}, 200)
-					}, 1000);
+						setTimeout(function(){
+							cart.effect('shake', {
+								times:2,
+								distance:4,
+								direction:'up'
+							}, 200)
+						}, 1000);
 
-					imgclone.animate({
-						'width': 0,
-						'height': 0
-					}, function(){
-						$(this).detach();
-						$('.cart-qty').css('display', 'block');
-					    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
-					    cartnumber = cartnumber + 1;
-					    if(cartnumber <= 9){
-					    	$('#cart-number').attr('data-cart-number', cartnumber);
-					    	$('#cart-number').text(cartnumber);
-					    }else{
-					    	$('#cart-number').attr('data-cart-number', '9+');
-					    	$('#cart-number').text('9+');
-					    }
-					});
-
+						imgclone.animate({
+							'width': 0,
+							'height': 0
+						}, function(){
+							$(this).detach();
+							$('.cart-qty').css('display', 'block');
+						    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+						    cartnumber = cartnumber + 1;
+						    if(cartnumber <= 9){
+						    	$('#cart-number').attr('data-cart-number', cartnumber);
+						    	$('#cart-number').text(cartnumber);
+						    }else{
+						    	$('#cart-number').attr('data-cart-number', '9+');
+						    	$('#cart-number').text('9+');
+						    }
+						});
+					}
 				});
 			});
 		});

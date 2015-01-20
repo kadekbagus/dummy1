@@ -98,6 +98,7 @@ return array(
             'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.',
             'promotion_name'        => 'The promotion name has already been used.',
             'coupon_name'           => 'The coupon name has already been used.',
+            'issued_coupon_code'    => 'The issued coupon code has already been used.',
             'product'               => array(
                 'attribute'         => array(
                     'unique'        => 'The attribute name \':attrname\' already exists.',
@@ -130,6 +131,7 @@ return array(
             'tax'                  => 'The Tax ID you specify is not found.',
             'promotion'            => 'The Promotion ID you specify is not found.',
             'coupon'               => 'The Coupon ID you specify is not found.',
+            'issued_coupon'        => 'The Issued Coupon ID you specify is not found.',
             'user_status'          => 'The user status you specify is not found.',
             'user_sortby'          => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'      => 'The merchant status you specify is not found.',
@@ -159,6 +161,8 @@ return array(
             'coupon_status'        => 'The coupon status you specify is not found.',
             'coupon_sortby'        => 'The sort by argument you specify is not valid, the valid value are: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
             'coupon_type'          => 'The coupon type you specify is not found.',
+            'issued_coupon_status' => 'The issued coupon status you specify is not found.',
+            'issued_coupon_sortby' => 'The sort by argument you specify is not valid, the valid value are: registered_date, issued_coupon_code, expired_date, issued_date, redeemed_date, status.',
             'category_id1'         => 'The Category ID1 you specify is not found.',
             'category_id2'         => 'The Category ID2 you specify is not found.',
             'category_id3'         => 'The Category ID3 you specify is not found.',
@@ -238,6 +242,13 @@ return array(
             'update_coupon'             => 'update coupon',
             'delete_coupon'             => 'delete coupon',
             'view_coupon'               => 'view coupon',
+            'new_issuedcoupon'          => 'add new issued coupon',
+            'update_issuedcoupon'       => 'update issued coupon',
+            'delete_issuedcoupon'       => 'delete issued coupon',
+            'view_issuedcoupon'         => 'view issued coupon',
+            'add_new_widget'            => 'add new widget',
+            'update_widget'             => 'update widget',
+            'delete_widget'             => 'delete widget',
         ),
     ),
 
