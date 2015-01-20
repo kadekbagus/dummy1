@@ -46,4 +46,20 @@ class Widget extends Eloquent
     {
         return $this->belongsTo('User', 'modified_by', 'user_id');
     }
+
+    /**
+     * Widgets belongs to retailer ids.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param array $retailerIds
+     */
+    public function scopeRetailerIds($query, array $retailerIds)
+    {
+        return $query->select('widgets.*')
+                     ->join('widget_retailer',
+                           'widget_retailer.widget_id',
+                           '=',
+                           'widgets.widget_id'
+                     )->whereIn('widget_retailer.retailer_id', $retailerIds);
+    }
 }
