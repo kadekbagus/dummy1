@@ -716,22 +716,46 @@ class CashierAPIController extends ControllerAPI
             //insert to table transaction_details
             foreach($cart as $k => $v){
                 $transactionDetails = new \TransactionDetail();
-                $transactionDetails->transaction_id = $transaction->transaction_id;
-                $transactionDetails->product_id     = $v['product_id'];
-                $transactionDetails->product_name   = $v['product_name'];
-                $transactionDetails->product_code   = $v['product_code'];
-                $transactionDetails->quantity       = $v['qty'];
-                $transactionDetails->upc            = $v['upc_code'];
-                $transactionDetails->price          = str_replace( ',', '', $v['price'] );
-
+                $transactionDetails->transaction_id              = $transaction->transaction_id;
+                $transactionDetails->product_id                  = $v['product_id'];
+                $transactionDetails->product_name                = $v['product_name'];
+                $transactionDetails->product_code                = $v['product_code'];
+                $transactionDetails->quantity                    = $v['qty'];
+                $transactionDetails->upc                         = $v['upc_code'];
+                $transactionDetails->price                       = str_replace( ',', '', $v['price'] );
+                $transactionDetails->variant_price               = $v['variant_price'];
+                $transactionDetails->variant_upc                 = $v['variant_upc'];
+                $transactionDetails->variant_sku                 = $v['variant_sku'];
+                $transactionDetails->variant_stock               = $v['variant_stock'];
+                $transactionDetails->product_attribute_value_id1 = $v['product_attribute_value_id1'];
+                $transactionDetails->product_attribute_value_id2 = $v['product_attribute_value_id2'];
+                $transactionDetails->product_attribute_value_id3 = $v['product_attribute_value_id3'];
+                $transactionDetails->product_attribute_value_id4 = $v['product_attribute_value_id4'];
+                $transactionDetails->product_attribute_value_id5 = $v['product_attribute_value_id5'];
+                $transactionDetails->product_attribute_value1    = $v['product_attribute_value1'];
+                $transactionDetails->product_attribute_value2    = $v['product_attribute_value2'];
+                $transactionDetails->product_attribute_value3    = $v['product_attribute_value3'];
+                $transactionDetails->product_attribute_value4    = $v['product_attribute_value4'];
+                $transactionDetails->product_attribute_value5    = $v['product_attribute_value5'];
+                $transactionDetails->merchant_tax_id1            = $v['merchant_tax_id1'];
+                $transactionDetails->merchant_tax_id2            = $v['merchant_tax_id2'];
+                $transactionDetails->attribute_id1               = $v['attribute_id1'];
+                $transactionDetails->attribute_id2               = $v['attribute_id2'];
+                $transactionDetails->attribute_id3               = $v['attribute_id3'];
+                $transactionDetails->attribute_id4               = $v['attribute_id4'];
+                $transactionDetails->attribute_id5               = $v['attribute_id5'];
+                $transactionDetails->product_attribute_name1     = $v['product_attribute_name1'];
+                $transactionDetails->product_attribute_name2     = $v['product_attribute_name2'];
+                $transactionDetails->product_attribute_name3     = $v['product_attribute_name3'];
+                $transactionDetails->product_attribute_name4     = $v['product_attribute_name4'];
+                $transactionDetails->product_attribute_name5     = $v['product_attribute_name5'];
                 $transactionDetails->save();
             }
             
             //only payment cash
             if($payment_method == 'cash') self::postCashDrawer();
 
-            $this->response->data  = $transaction;
-            // Commit the changes
+            $this->response->data = $transaction;
             $this->commit();
 
         } catch (ACLForbiddenException $e) {
