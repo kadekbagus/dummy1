@@ -1587,7 +1587,7 @@ class ProductAPIController extends ControllerAPI
             }
 
             $valid_deleted = [];
-            print_r($variant_objects);
+
             foreach ($value as $variant_id) {
                 if (! in_array($variant_id, $variant_ids)) {
                     return FALSE;
