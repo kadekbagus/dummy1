@@ -26,3 +26,11 @@ Route::post('/api/v1/widget/delete', function()
 {
     return WidgetAPIController::create()->postDeleteWidget();
 });
+
+/**
+ * List Widgets
+ */
+Route::get('/api/v1/widget/list', function()
+{
+    return WidgetAPIController::create()->getSearchWidget();
+});

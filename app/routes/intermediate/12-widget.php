@@ -17,3 +17,8 @@ Route::post('/app/v1/widget/update', 'IntermediateAuthController@Widget_postUpda
  * Delete Widget
  */
 Route::post('/app/v1/widget/delete', 'IntermediateAuthController@Widget_postDeleteWidget');
+
+/**
+ * List Widgets
+ */
+Route::get('/app/v1/widget/list', 'IntermediateAuthController@Widget_getSearchWidget');
