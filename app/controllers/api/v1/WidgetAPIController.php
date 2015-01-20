@@ -180,8 +180,216 @@ class WidgetAPIController extends ControllerAPI
         return $this->render($httpCode);
     }
 
+    /**
+     * POST - Create new widget
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer   `wiget_id`              (required) - The Widget ID
+     * @param string    `type`                  (optional) - Widget type, 'catalogue', 'new_product', 'promotion', 'coupon'
+     * @param integer   `object_id`             (optional) - The object ID
+     * @param integer   `merchant_id`           (optional) - Merchant ID
+     * @param integer   `retailer_ids`          (optional) - Retailer IDs
+     * @param string    `animation`             (optional) - Animation type, 'none', 'horizontal', 'vertical'
+     * @param string    `slogan`                (optional) - Widget slogan
+     * @param integer   `widget_order`          (optional) - Order of the widget
+     * @param array     `images`                (optional)
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUpdateWidget()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.widget.postupdatewidget.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.widget.postupdatewidget.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.widget.postupdatewidget.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('create_widget')) {
+                Event::fire('orbit.widget.postupdatewidget.authz.notallowed', array($this, $user));
+
+                $errorMessage = Lang::get('validation.orbit.actionlist.add_new_widget');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
+
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.widget.postupdatewidget.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $widgetId = OrbitInput::post('widget_id');
+            $widgetType = OrbitInput::post('widget_type');
+            $widgetObjectId = OrbitInput::post('object_id');
+            $merchantId = OrbitInput::post('merchant_id');
+            $retailerIds = OrbitInput::post('retailer_ids');
+            $slogan = OrbitInput::post('slogan');
+            $animation = OrbitInput::post('animation');
+            $widgetOrder = OrbitInput::post('widget_order');
+
+            $validator = Validator::make(
+                array(
+                    'widget_id'             => $widgetId,
+                    'widget_type'           => $widgetType,
+                    'object_id'             => $widgetObjectId,
+                    'merchant_id'           => $merchantId,
+                    'retailer_ids'          => $retailerIds,
+                    'slogan'                => $slogan,
+                    'animation'             => $animation,
+                    'widget_order'          => $widgetOrder
+                ),
+                array(
+                    'widget_id'             => 'required|numeric|orbit.empty.widget',
+                    'widget_type'           => 'in:catalogue,new_product,promotion,coupon',
+                    'object_id'             => 'numeric',
+                    'merchant_id'           => 'numeric|orbit.empty.merchant',
+                    'animation'             => 'in:none,horizontal,vertical',
+                    'widget_order'          => 'numeric',
+                    'retailer_ids'          => 'array|orbit.empty.retailer',
+                )
+            );
+
+            Event::fire('orbit.widget.postupdatewidget.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.widget.postupdatewidget.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $widget = App::make('orbit.empty.widget');
+
+            OrbitInput::post('widget_type', function($type) use ($widget) {
+                $widget->widget_type = $type;
+            });
+
+            OrbitInput::post('object_id', function($objectId) use ($widget) {
+                $widget->widget_object_id = $objectId;
+            });
+
+            OrbitInput::post('merchant_id', function($merchantId) use ($widget) {
+                $widget->merchant_id = $merchantId;
+            });
+
+            OrbitInput::post('slogan', function($slogan) use ($widget) {
+                $widget->widget_slogan = $slogan;
+            });
+
+
+            OrbitInput::post('widget_order', function($order) use ($widget) {
+                $widget->widget_order = $order;
+            });
+
+            OrbitInput::post('animation', function($animation) use ($widget) {
+                $widget->animation = $animation;
+            });
+
+            OrbitInput::post('animation', function($animation) use ($widget) {
+                $widget->animation = $animation;
+            });
+
+            Event::fire('orbit.widget.postupdatewidget.before.save', array($this, $widget));
+
+            $widget->modified_by = $user->user_id;
+            $widget->save();
+
+            // Insert attribute values if specified by the caller
+            OrbitInput::post('retailer_ids', function($retailerIds) use ($widget) {
+                $widget->retailers()->sync($retailerIds);
+            });
+
+            Event::fire('orbit.widget.postupdatewidget.after.save', array($this, $widget));
+            $this->response->data = $widget;
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.widget.postupdatewidget.after.commit', array($this, $widget));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.widget.postupdatewidget.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.widget.postupdatewidget.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.widget.postupdatewidget.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.widget.postupdatewidget.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
     protected function registerCustomValidation()
     {
+        // Check the existance of widget id
+        $user = $this->api->user;
+        Validator::extend('orbit.empty.widget', function ($attribute, $value, $parameters) use ($user) {
+            $widget = Widget::excludeDeleted()
+                        ->where('widget_id', $value)
+                        ->first();
+
+            if (empty($widget)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.widget', $widget);
+
+            return TRUE;
+        });
+
         // Check the existance of merchant id
         $user = $this->api->user;
         Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) use ($user) {
