@@ -27,6 +27,14 @@ Route::post('/api/v1/pos/scanbarcode', function () {
 Route::post('/app/v1/pos/scanbarcode', 'IntermediateAuthController@POS\Cashier_postScanBarcode');
 
 
+// product search with variant
+Route::get('/api/v1/pos/productsearchvar', function () {
+    return POS\CashierAPIController::create()->getSearchProductPOSwithVariant();
+});
+
+Route::get('/app/v1/pos/productsearchvar', 'IntermediateAuthController@POS\Cashier_getSearchProductPOSwithVariant');
+
+
 // product search
 Route::get('/api/v1/pos/productsearch', function () {
     return POS\CashierAPIController::create()->getSearchProductPOS();

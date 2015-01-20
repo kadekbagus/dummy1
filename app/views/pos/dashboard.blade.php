@@ -172,7 +172,7 @@
                 <div class="ribbon-wrapper-red ribbon2nd">
                 				<div class="ribbon-red">30%</div>
                 			</div>
-                    <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product"></p>
+                    <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product" style="width: 300px"></p>
                 </div>
                 <div class="col-md-12 main-theme" >
                     <div class="row">
