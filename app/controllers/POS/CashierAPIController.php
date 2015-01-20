@@ -22,6 +22,7 @@ use \Product;
 use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Config;
+use \ProductAttribute;
 
 class CashierAPIController extends ControllerAPI
 {  
@@ -416,6 +417,260 @@ class CashierAPIController extends ControllerAPI
         $output = $this->render($httpCode);
         return $output;
     }
+
+
+    /**
+     * GET - Search Product for POS with Variant
+     *
+     * @author kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `product_variant_id`                 (optional)
+     * @param integer    `product_id`                         (optional) 
+     * @param decimal    `price`                              (optional)
+     * @param string     `upc`                                (optional)
+     * @param string     `sku`                                (optional)
+     * @param integer    `stock`                              (optional)
+     * @param integer    `product_attribute_value_id1`        (optional)
+     * @param integer    `product_attribute_value_id2`        (optional)
+     * @param integer    `product_attribute_value_id3`        (optional)
+     * @param integer    `product_attribute_value_id4`        (optional)
+     * @param integer    `product_attribute_value_id5`        (optional)
+     * @param integer    `merchant_id`                        (optional)
+     * @param integer    `retailer_id`                        (optional)
+     * @param integer    `created_by`                         (optional)
+     * @param integer    `modified_by`                        (optional)
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getSearchProductPOSwithVariant()
+    {
+        try {
+            $httpCode = 200;
+
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                ),
+                array(
+                    'sort_by' => 'in:registered_date,product_id,product_sku,product_price,product_retailer_id,product_merchant_id,product_status',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Get the maximum record
+            $maxRecord = (int) \Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            $products = \ProductVariant::with('product', 
+                             'attributeValue1.attribute', 'attributeValue2.attribute', 
+                             'attributeValue3.attribute', 'attributeValue4.attribute', 
+                             'attributeValue5.attribute')->excludeDeleted();
+
+            // Filter product variant by product variant id
+            OrbitInput::get('product_variant_id', function ($productIds) use ($products) {
+                $products->whereIn('product_variants.product_variant_id', $productIds);
+            });
+
+            // Filter product variant by product id
+            OrbitInput::get('product_id', function ($productIds) use ($products) {
+                $products->whereIn('product_variants.product_id', $productIds);
+            });
+
+            // Filter product variant by price
+            OrbitInput::get('price', function ($price) use ($products) {
+                $products->whereIn('product_variants.price', $price);
+            });
+
+            // Filter product variant by upc
+            OrbitInput::get('upc', function ($upc) use ($products) {
+                $products->whereIn('product_variants.upc', $upc);
+            });
+
+            // Filter product variant by sku
+            OrbitInput::get('sku', function ($sku) use ($products) {
+                $products->whereIn('product_variants.sku', $sku);
+            });
+
+            // Filter product variant by stock
+            OrbitInput::get('sku', function ($stock) use ($products) {
+                $products->whereIn('product_variants.sku', $stock);
+            });
+
+            // Filter product variant by product_attribute_value_id1
+            OrbitInput::get('product_attribute_value_id1', function ($product_attribute_value_id1) use ($products) {
+                $products->whereIn('product_variants.product_attribute_value_id1', $product_attribute_value_id1);
+            });
+
+            // Filter product variant by product_attribute_value_id2
+            OrbitInput::get('product_attribute_value_id2', function ($product_attribute_value_id2) use ($products) {
+                $products->whereIn('product_variants.product_attribute_value_id2', $product_attribute_value_id2);
+            });
+
+            // Filter product variant by product_attribute_value_id3
+            OrbitInput::get('product_attribute_value_id3', function ($product_attribute_value_id3) use ($products) {
+                $products->whereIn('product_variants.product_attribute_value_id3', $product_attribute_value_id3);
+            });
+
+            // Filter product variant by product_attribute_value_id4
+            OrbitInput::get('product_attribute_value_id4', function ($product_attribute_value_id4) use ($products) {
+                $products->whereIn('product_variants.product_attribute_value_id4', $product_attribute_value_id4);
+            });
+
+            // Filter product variant by product_attribute_value_id5
+            OrbitInput::get('product_attribute_value_id5', function ($product_attribute_value_id5) use ($products) {
+                $products->whereIn('product_variants.product_attribute_value_id5', $product_attribute_value_id5);
+            });
+
+            // Filter product variant by merchant_id
+            OrbitInput::get('merchant_id', function ($merchant_id) use ($products) {
+                $products->whereIn('product_variants.merchant_id', $merchant_id);
+            });
+
+            // Filter product variant by retailer_id
+            OrbitInput::get('retailer_id', function ($retailer_id) use ($products) {
+                $products->whereIn('product_variants.retailer_id', $retailer_id);
+            });
+
+            // Filter product variant by created by
+            OrbitInput::get('created_by', function ($created_by) use ($products) {
+                $products->whereIn('product_variants.created_by', $created_by);
+            });
+
+            // Filter product variant by modified by
+            OrbitInput::get('modified_by', function ($modified_by) use ($products) {
+                $products->whereIn('product_variants.modified_by', $modified_by);
+            });             
+
+            $_products = clone $products;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+            });
+            $products->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $products->skip($skip);
+
+            // Default sort by
+            $sortBy = 'product_variants.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'registered_date'           => 'product_variants.created_at',
+                    'product_id'                => 'product_variants.product_id',
+                    'product_sku'               => 'product_variants.sku',
+                    'product_price'             => 'product_variants.price',
+                    'product_merchant_id'       => 'product_variants.merchant_id',
+                    'product_retailer_id'       => 'product_variants.retailer_id',
+                    'product_status'            => 'product_variants.status',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $products->orderBy($sortBy, $sortMode);
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->get();
+
+            $data = new \stdClass();
+            $data->total_records = $totalRec;
+            $data->returned_records = count($listOfRec);
+            $data->records = $listOfRec;
+
+            if ($totalRec === 0) {
+                $data->records = null;
+                $this->response->message = \Lang::get('statuses.orbit.nodata.product');
+            }
+
+            $this->response->data = $data;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (\Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = \Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+        $this->response->code = 0;
+        $this->response->status = 'succes';
+        $this->response->message = 'succes';
+        $httpCode =200;
+        $output = $this->render($httpCode);
+        return $output;
+    }
+
+
+
+
 
     /**
      * POST - Save The Transaction
