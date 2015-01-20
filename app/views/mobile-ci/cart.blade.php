@@ -1,7 +1,6 @@
 @extends('mobile-ci.layout')
 
 @section('content')
-  <!-- <pre>{{ var_dump($cartsummary->promo_carts) }}</pre> -->
   <div class="mobile-ci-container">
     <div class="cart-page cart-info-box">
       <div class="single-box">
@@ -41,10 +40,10 @@
                   {{ 'unique-column' }}
                 @endif
               ">
-                <span class="header-text">Unit Price (IDR)</span>
+                <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">Total (IDR)</span>
+                <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
               </div>
             </div>
             <div class="single-item-bodies">
@@ -81,8 +80,7 @@
       @endif
     </div>
 
-    @if(count($promo_carts) > 0)
-    <!-- <pre>{{ print_r($promo_carts) }}</pre> -->
+    @if(count($cartsummary->acquired_promo_carts) > 0)
     <div class="cart-page cart-sum">
       <span class="cart-sum-title">Cart Based Promotions</span>
       <div class="cart-sum-headers">
@@ -90,16 +88,16 @@
           <span>Promotion</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Subtotal (IDR)</span>
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Value (IDR)</span>
+          <span>Value ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Discount (IDR)</span>
+          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
-      @foreach($promo_carts as $promo_cart)
+      @foreach($cartsummary->acquired_promo_carts as $promo_cart)
       <div class="cart-sum-bodies">
         <div class="cart-sum-single-body">
           <span>{{$promo_cart->promotion_name}}</span>
@@ -124,13 +122,13 @@
           <span>Item</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Subtotal (IDR)</span>
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>VAT (IDR)</span>
+          <span>VAT ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Total (IDR)</span>
+          <span>Total ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
       <div class="cart-sum-bodies">

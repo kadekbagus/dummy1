@@ -25,8 +25,8 @@
               <ul class="rslides">
                 @foreach($new_products as $new_product)
                 <li>
-                  <a href="{{ url('customer/product?id='.$new_product->product_id) }}">
-                    <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />
+                  <a href="{{ url('customer/catalogue') }}">
+                    <img class="img-responsive text-center" src="{{ asset('uploads/catalogue.jpg') }}" />
                   </a>
                 </li>
                 @endforeach
@@ -95,7 +95,7 @@
                 @foreach($new_products as $new_product)
                 <li>
                   <a href="{{ url('customer/product?id='.$new_product->product_id) }}">
-                    <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/products/product1.png') }}" />
+                    <img class="img-responsive text-center" src="{{ asset('uploads/coupon.jpg') }}" />
                   </a>
                 </li>
                 @endforeach
