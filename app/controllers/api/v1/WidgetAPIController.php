@@ -181,7 +181,7 @@ class WidgetAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Create new widget
+     * POST - Update widget
      *
      * @author Rio Astamal <me@rioastamal.net>
      *
@@ -215,10 +215,10 @@ class WidgetAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.widget.postupdatewidget.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('create_widget')) {
+            if (! ACL::create($user)->isAllowed('update_widget')) {
                 Event::fire('orbit.widget.postupdatewidget.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.add_new_widget');
+                $errorMessage = Lang::get('validation.orbit.actionlist.update_widget');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
@@ -359,6 +359,133 @@ class WidgetAPIController extends ControllerAPI
             $this->rollBack();
         } catch (Exception $e) {
             Event::fire('orbit.widget.postupdatewidget.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render($httpCode);
+    }
+
+    /**
+     * POST - Delete widget
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer   `wiget_id`              (required) - The Widget ID
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteWidget()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.widget.postdeletewiget.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.widget.postdeletewiget.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.widget.postdeletewiget.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('delete_widget')) {
+                Event::fire('orbit.widget.postdeletewiget.authz.notallowed', array($this, $user));
+
+                $errorMessage = Lang::get('validation.orbit.actionlist.delete_widget');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
+
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.widget.postdeletewiget.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $widgetId = OrbitInput::post('widget_id');
+            $validator = Validator::make(
+                array(
+                    'widget_id'             => $widgetId,
+                ),
+                array(
+                    'widget_id'             => 'required|numeric|orbit.empty.widget',
+                )
+            );
+
+            Event::fire('orbit.widget.postdeletewiget.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.widget.postdeletewiget.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $widget = App::make('orbit.empty.widget');
+            $widget->status = 'deleted';
+            $widget->modified_by = $user->user_id;
+            $widget->save();
+
+            Event::fire('orbit.widget.postdeletewiget.after.save', array($this, $widget));
+            $this->response->data = $widget;
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.widget.postdeletewiget.after.commit', array($this, $widget));
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.widget.postdeletewiget.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.widget.postdeletewiget.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.widget.postdeletewiget.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            Event::fire('orbit.widget.postdeletewiget.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
