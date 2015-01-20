@@ -238,6 +238,9 @@ return array(
             'update_coupon'             => 'update coupon',
             'delete_coupon'             => 'delete coupon',
             'view_coupon'               => 'view coupon',
+            'add_new_widget'            => 'add new widget',
+            'update_widget'             => 'update widget',
+            'delete_widget'             => 'delete widget',
         ),
     ),
 
