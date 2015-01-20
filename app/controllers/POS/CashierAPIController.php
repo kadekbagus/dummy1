@@ -755,7 +755,7 @@ class CashierAPIController extends ControllerAPI
             //only payment cash
             if($payment_method == 'cash') self::postCashDrawer();
 
-            $this->response->dat0
+            $this->response->data = $transaction;
             $this->commit();
 
         } catch (ACLForbiddenException $e) {
