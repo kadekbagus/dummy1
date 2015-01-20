@@ -250,6 +250,7 @@ return array(
             'add_new_widget'            => 'add new widget',
             'update_widget'             => 'update widget',
             'delete_widget'             => 'delete widget',
+            'view_widget'               => 'view widget',
         ),
     ),
 
