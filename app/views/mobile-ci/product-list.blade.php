@@ -1,8 +1,9 @@
 @foreach($data->records as $product)
-	<!-- <pre>{{ $product }}</pre> -->
 	<div class="main-theme catalogue">
 		<div class="row row-xs-height catalogue-top">
-			<div class="col-xs-6 catalogue-img col-xs-height col-middle coupon-wrapper">
+			<div class="col-xs-6 catalogue-img col-xs-height col-middle 
+			@if($product->on_couponstocatch) {{ 'coupon-wrapper' }} @endif
+			">
 				<div>
 					<?php $x = 1;?>
 					@if($product->on_promo)
@@ -37,10 +38,10 @@
 						<small>Starting From</small>
 						@endif
 						@if($product->on_promo)
-							<h3 class="currency currency-promo"><small>IDR</small> <span class="strike">{{ $product->min_price }}</span></h3>
-							<h3 class="currency"><small>IDR</small> <span>{{ $product->priceafterpromo }}</span></h3>
+							<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product->min_price }}</span></h3>
+							<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->priceafterpromo }}</span></h3>
 						@else
-						<h3 class="currency"><small>IDR</small> {{ $product->min_price }}</h3>
+						<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product->min_price }}</h3>
 						@endif
 					</div>
 				</div>
