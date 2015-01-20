@@ -19,3 +19,10 @@ Route::post('/api/v1/widget/update', function()
     return WidgetAPIController::create()->postUpdateWidget();
 });
 
+/**
+ * Delete Widget
+ */
+Route::post('/api/v1/widget/delete', function()
+{
+    return WidgetAPIController::create()->postDeleteWidget();
+});
