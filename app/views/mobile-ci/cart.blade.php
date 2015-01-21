@@ -48,7 +48,7 @@
             </div>
             <div class="single-item-bodies">
               <div class="single-body">
-                <p><span>{{ $cartdetail->product->product_name }}</span></p>
+                <p><span class="product-name" data-product="{{ $cartdetail->product->product_id }}"><b>{{ $cartdetail->product->product_name }}</b></span></p>
                 <p class="attributes">
                   @if(count($cartdetail->attributes) > 0)
                     @foreach($cartdetail->attributes as $attribute)
@@ -100,7 +100,7 @@
       @foreach($cartsummary->acquired_promo_carts as $promo_cart)
       <div class="cart-sum-bodies">
         <div class="cart-sum-single-body">
-          <span>{{$promo_cart->promotion_name}}</span>
+          <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
         </div>
         <div class="cart-sum-single-body">
           <span>{{$cartsummary->subtotal}}</span>
@@ -142,7 +142,7 @@
           <span>{{ $cartsummary->vat + 0}}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cartsummary->total_to_pay + 0 }}</span>
+          <span><b>{{ $cartsummary->total_to_pay + 0 }}</b></span>
         </div>
       </div>
     </div>
@@ -220,6 +220,33 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="previewLabel"></h4>
+        </div>
+        <div class="modal-body">
+          <div class="row ">
+            <div class="col-xs-12 vertically-spaced">
+              <p></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+            <div class="row">
+              <div class="col-xs-6 pull-right">
+                <button type="button" class="btn btn-default btn-block" data-dismiss="modal">Tutup</button>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <table class="ui-bar-a" id="n_keypad" style="display: none; -khtml-user-select: none;">
     <tr>
        <td class="num numero"><a data-role="button" data-theme="b" >7</a></td>
@@ -256,6 +283,44 @@
       $('#deleteModal').modal();
     });
 
+    $('.product-name').click(function(){
+      var detail = $(this).data('product');
+      $.ajax({
+        url: apiPath+'customer/cartproductpopup',
+        method: 'POST',
+        data: {
+          detail: detail
+        }
+      }).done(function(data){
+        if(data.status == 'success'){
+          $('#previewModal #previewLabel').text(data.data.product_name);
+          $('#previewModal .modal-body p').html('<img class="img-responsive" src="'+ data.data.image +'">');
+          $('#previewModal').modal();
+        }else{
+          console.log(data);
+        }
+      });
+    });
+
+    $('.promotion-name').click(function(){
+      var promotion_detail = $(this).data('promotion');
+      $.ajax({
+        url: apiPath+'customer/cartpromopopup',
+        method: 'POST',
+        data: {
+          promotion_detail: promotion_detail
+        }
+      }).done(function(data){
+        if(data.status == 'success'){
+          $('#previewModal #previewLabel').text(data.data.promotion_name);
+          $('#previewModal .modal-body p').html('<img class="img-responsive" src="'+ data.data.image +'"><br>'+data.data.description);
+          $('#previewModal').modal();
+        }else{
+          console.log(data);
+        }
+      });
+    });
+
     $('#cartDeleteBtn').click(function(){
       $.ajax({
         url: apiPath+'customer/deletecart',
@@ -267,7 +332,7 @@
         if(data.status == 'success'){
           location.reload();
         }else{
-          console(data);
+          console.log(data);
         }
       });
     });
@@ -323,7 +388,7 @@
             if(data.status == 'success'){
               location.reload();
             }else{
-              console(data);
+              console.log(data);
             }
           });
         }
