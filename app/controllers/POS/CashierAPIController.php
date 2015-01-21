@@ -23,6 +23,8 @@ use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Config;
 use \ProductAttribute;
+use \DB;
+use Carbon\Carbon as Carbon;
 
 class CashierAPIController extends ControllerAPI
 {  
@@ -1115,6 +1117,61 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+
+    /**
+     * POST - Customer display
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postProductDetail()
+    {
+        $retailer = \Retailer::with('parent')->where('merchant_id',93)->first();
+         $product_id = trim(OrbitInput::post('id'));
+            $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
+                            $query->where('retailer_id', $retailer->merchant_id);
+                        })->excludeDeleted()->where('product_id', $product_id)->first();
+
+            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+    
+                $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
+                inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1 
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av5 on av5.product_attribute_value_id = v.product_attribute_value_id5
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa1 on pa1.product_attribute_id = av1.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id 
+                WHERE p.product_id = :productid'), array('productid' => $product->product_id));
+                
+        $resp = new \stdClass();
+                $resp->dataproduct = $product;
+                $resp->promo_products = $promo_products;
+                $resp->attributes = $attributes;
+        return \Response::json($resp);
+
+    }
 
     private function just40CharMid($str)
     {
