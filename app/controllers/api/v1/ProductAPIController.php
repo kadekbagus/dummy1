@@ -1769,25 +1769,30 @@ class ProductAPIController extends ControllerAPI
                                           ->with($with)
                                           ->first();
 
-        if (empty($complete_variant)) {
-            return ;
-        }
-
         // Flag to determine if the updated product has been changes
         $updated_product_changes = FALSE;
 
-        // Update the product attribute id{1-5}
-        for ($i=5; $i>=1; $i--) {
-            if (is_null($complete_variant->{'attributeValue' . $i})) {
-                continue;
+        if (empty($complete_variant)) {
+            // This product does not have any variant anymore
+            for ($i=5; $i>=1; $i--) {
+                $updatedproduct->{'attribute_id' . $i} = NULL;
             }
 
-            // If we goes here then particular attribute value is not empty
-            // and also has attributeValue object
-            $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
-
-            // Update the flag
             $updated_product_changes = TRUE;
+        } else {
+            // Update the product attribute id{1-5}
+            for ($i=5; $i>=1; $i--) {
+                if (is_null($complete_variant->{'attributeValue' . $i})) {
+                    continue;
+                }
+
+                // If we goes here then particular attribute value is not empty
+                // and also has attributeValue object
+                $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
+
+                // Update the flag
+                $updated_product_changes = TRUE;
+            }
         }
 
         // Save the updated product
