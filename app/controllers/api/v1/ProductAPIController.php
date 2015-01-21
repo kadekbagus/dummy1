@@ -1587,7 +1587,7 @@ class ProductAPIController extends ControllerAPI
             }
 
             $valid_deleted = [];
-            print_r($variant_objects);
+
             foreach ($value as $variant_id) {
                 if (! in_array($variant_id, $variant_ids)) {
                     return FALSE;
@@ -1768,6 +1768,10 @@ class ProductAPIController extends ControllerAPI
                                           ->where('product_id', $updatedproduct->product_id)
                                           ->with($with)
                                           ->first();
+
+        if (empty($complete_variant)) {
+            return ;
+        }
 
         // Flag to determine if the updated product has been changes
         $updated_product_changes = FALSE;

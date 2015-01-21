@@ -4,7 +4,7 @@
  *
  * @author Rio Astamal <me@rioastamal.net?
  */
-class Widget extends Eloquent
+class WidgetRetailer extends Eloquent
 {
     protected $table = 'widgets';
     protected $primaryKey = 'widget_id';
