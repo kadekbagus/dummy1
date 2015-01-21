@@ -755,6 +755,78 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function postCartProductPopup()
+    {
+        try {
+            $this->registerCustomValidation();
+            $product_id = OrbitInput::post('detail');
+
+            $validator = \Validator::make(
+                array(
+                    'product_id' => $product_id,
+                ),
+                array(
+                    'product_id' => 'required|orbit.exists.product',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $product = Product::excludeDeleted()->where('product_id', $product_id)->first();
+
+            $this->response->message = 'success';
+            $this->response->data = $product;
+
+            return $this->render();
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
+        }
+    }
+
+    public function postCartPromoPopup()
+    {
+        try {
+            $this->registerCustomValidation();
+            $promotion_id = OrbitInput::post('promotion_detail');
+
+            $validator = \Validator::make(
+                array(
+                    'promotion_id' => $promotion_id,
+                ),
+                array(
+                    'promotion_id' => 'required|orbit.exists.promotion',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $promotion = Promotion::excludeDeleted()->where('promotion_id', $promotion_id)->first();
+
+            $this->response->message = 'success';
+            $this->response->data = $promotion;
+
+            return $this->render();
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
     public function getCartView()
     {
         try {
@@ -1219,6 +1291,26 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             \App::instance('orbit.validation.product', $product);
+
+            return TRUE;
+        });
+
+        // Check promotion, it should exists
+        Validator::extend('orbit.exists.promotion', function ($attribute, $value, $parameters) {
+            $retailer = $this->getRetailerInfo();
+
+            $promotion = Promotion::with(array('retailers' => function($q) use($retailer) 
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                }))->excludeDeleted()
+                ->where('promotion_id', $value)
+                ->first();
+
+            if (empty($promotion)) {
+                return FALSE;
+            }
+
+            \App::instance('orbit.validation.promotion', $promotion);
 
             return TRUE;
         });
