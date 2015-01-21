@@ -21,6 +21,7 @@ class PersonalInterestAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param array         `personal_interest_ids` (optional) - List of widget IDs
+     * @param array         `user_ids`              (optional) - List of interests for particular user ids
      * @param array         `with`                  (optional) - relationship included
      * @param integer       `take`                  (optional) - limit
      * @param integer       `skip`                  (optional) - limit offset
@@ -45,11 +46,11 @@ class PersonalInterestAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.personalinterest.getpersonalinterest.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_product_attribute')) {
+            if (! ACL::create($user)->isAllowed('view_personal_interests')) {
                 Event::fire('orbit.personalinterest.getpersonalinterest.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.view_product_attribute', array('action' => $errorMessage));
+                $errorMessage = Lang::get('validation.orbit.actionlist.view_personal_interest');
+                $message = Lang::get('validation.orbit.access.view_personal_interest', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
             }
@@ -94,6 +95,11 @@ class PersonalInterestAPIController extends ControllerAPI
             // Filter by ids
             OrbitInput::get('personal_interest_ids', function($widgetIds) use ($interests) {
                 $interests->whereIn('widgets.widget_id', $widgetIds);
+            });
+
+            // Filter by user ids
+            OrbitInput::get('user_ids', function($userIds) use ($interests) {
+                $interests->userIds($userIds);
             });
 
             // Clone the query builder which still does not include the take,
