@@ -567,7 +567,7 @@ class UserAPIController extends ControllerAPI
             });
 
             OrbitInput::post('preferred_language', function($lang) use ($updateduser) {
-                $updateduser->userdetail->preferred_lang = $lang;
+                $updateduser->userdetail->preferred_language = $lang;
             });
 
             OrbitInput::post('avg_annual_income1', function($income1) use ($updateduser) {
