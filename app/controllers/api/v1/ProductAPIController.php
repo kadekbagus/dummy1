@@ -338,7 +338,7 @@ class ProductAPIController extends ControllerAPI
 
                 foreach ($variant_decode as $variant) {
                     // Return the default price if the variant price is empty
-                    $price = function() use ($variant, $updatedproduct) {
+                    $vprice = function() use ($variant, $updatedproduct) {
                         if (empty($variant->price)) {
                             return $updatedproduct->price;
                         }
@@ -347,7 +347,7 @@ class ProductAPIController extends ControllerAPI
                     };
 
                     // Return the default sku if the variant sku is empty
-                    $sku = function() use ($variant, $updatedproduct) {
+                    $vsku = function() use ($variant, $updatedproduct) {
                         if (empty($variant->sku)) {
                             return $updatedproduct->product_code;
                         }
@@ -356,7 +356,7 @@ class ProductAPIController extends ControllerAPI
                     };
 
                     // Return the default upc if the variant upc is empty
-                    $upc = function() use ($variant, $updatedproduct) {
+                    $vupc = function() use ($variant, $updatedproduct) {
                         if (empty($variant->upc)) {
                             return $updatedproduct->upc;
                         }
@@ -366,9 +366,9 @@ class ProductAPIController extends ControllerAPI
 
                     $product_variant = new ProductVariant();
                     $product_variant->product_id = $updatedproduct->product_id;
-                    $product_variant->price = $price();
-                    $product_variant->sku = $sku();
-                    $product_variant->upc = $upc();
+                    $product_variant->price = $vprice();
+                    $product_variant->sku = $vsku();
+                    $product_variant->upc = $vupc();
                     $product_variant->merchant_id = $merchant_id;
                     $product_variant->created_by = $user->user_id;
                     $product_variant->status = 'active';
@@ -1102,7 +1102,7 @@ class ProductAPIController extends ControllerAPI
 
                 foreach ($variant_decode as $variant) {
                     // Return the default price if the variant price is empty
-                    $price = function() use ($variant, $price) {
+                    $vprice = function() use ($variant, $price) {
                         if (empty($variant->price)) {
                             return $price;
                         }
@@ -1111,7 +1111,7 @@ class ProductAPIController extends ControllerAPI
                     };
 
                     // Return the default sku if the variant sku is empty
-                    $sku = function() use ($variant, $product_code) {
+                    $vsku = function() use ($variant, $product_code) {
                         if (empty($variant->sku)) {
                             return $product_code;
                         }
@@ -1120,7 +1120,7 @@ class ProductAPIController extends ControllerAPI
                     };
 
                     // Return the default upc if the variant upc is empty
-                    $upc = function() use ($variant, $upc_code) {
+                    $vupc = function() use ($variant, $upc_code) {
                         if (empty($variant->upc)) {
                             return $upc_code;
                         }
@@ -1130,9 +1130,9 @@ class ProductAPIController extends ControllerAPI
 
                     $product_variant = new ProductVariant();
                     $product_variant->product_id = $newproduct->product_id;
-                    $product_variant->price = $price();
-                    $product_variant->sku = $sku();
-                    $product_variant->upc = $upc();
+                    $product_variant->price = $vprice();
+                    $product_variant->sku = $vsku();
+                    $product_variant->upc = $vupc();
                     $product_variant->merchant_id = $merchant_id;
                     $product_variant->created_by = $user->user_id;
                     $product_variant->status = 'active';
@@ -1769,25 +1769,30 @@ class ProductAPIController extends ControllerAPI
                                           ->with($with)
                                           ->first();
 
-        if (empty($complete_variant)) {
-            return ;
-        }
-
         // Flag to determine if the updated product has been changes
         $updated_product_changes = FALSE;
 
-        // Update the product attribute id{1-5}
-        for ($i=5; $i>=1; $i--) {
-            if (is_null($complete_variant->{'attributeValue' . $i})) {
-                continue;
+        if (empty($complete_variant)) {
+            // This product does not have any variant anymore
+            for ($i=5; $i>=1; $i--) {
+                $updatedproduct->{'attribute_id' . $i} = NULL;
             }
 
-            // If we goes here then particular attribute value is not empty
-            // and also has attributeValue object
-            $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
-
-            // Update the flag
             $updated_product_changes = TRUE;
+        } else {
+            // Update the product attribute id{1-5}
+            for ($i=5; $i>=1; $i--) {
+                if (is_null($complete_variant->{'attributeValue' . $i})) {
+                    continue;
+                }
+
+                // If we goes here then particular attribute value is not empty
+                // and also has attributeValue object
+                $updatedproduct->{'attribute_id' . $i} = $complete_variant->{'attributeValue' . $i}->product_attribute_id;
+
+                // Update the flag
+                $updated_product_changes = TRUE;
+            }
         }
 
         // Save the updated product
