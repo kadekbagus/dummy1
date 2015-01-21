@@ -57,9 +57,9 @@ define([
                     });
             },
 
-            cancelRequest : function(params){
-               // $http.delete(config['baseUrlServer'] + params);
-              return canceler.resolve();
+            cancelRequest : function(){
+                 canceler.resolve();
+                 canceler = $q.defer();
             }
         }
     }]);
