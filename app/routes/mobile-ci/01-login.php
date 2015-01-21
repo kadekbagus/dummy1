@@ -1,22 +1,14 @@
 <?php
 
-// -------------------- views ------------------------------
-// Route::get('/customer', 'IntermediateAuthController@MobileCI\MobileCI_getSignInView');
-
 Route::get('/customer', function()
 {
     return MobileCI\MobileCIAPIController::create()->getSignInView();
 });
 
-// Route::get('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_getSignUpView');
-
 Route::get('/customer/signup', function()
 {
     return MobileCI\MobileCIAPIController::create()->getSignUpView();
 });
-
-// transfer email value from login page to signup page
-// Route::post('/customer/signup', 'IntermediateAuthController@MobileCI\MobileCI_postSignUpView');
 
 Route::post('/customer/signup', function()
 {
@@ -68,8 +60,6 @@ Route::get('/customer/search', function()
     return MobileCI\MobileCIAPIController::create()->getSearchProduct();
 });
 
-// -------------------- end views ------------------------------
-
 Route::get('/customer/activation', function()
 {
     return MobileCI\MobileCIAPIController::create()->getActivationView();
@@ -80,14 +70,10 @@ Route::post('/app/v1/customer/login', function()
     return MobileCI\MobileCIAPIController::create()->postLoginInShop();
 });
 
-// Route::post('/app/v1/customer/login', 'IntermediateLoginController@MobileCI\MobileCI_postLoginInShop');
-
 Route::get('/customer/logout', function() 
 {
     return MobileCI\MobileCIAPIController::create()->getLogoutInShop();
 });
-
-// Route::get('/customer/logout', 'IntermediateLoginController@MobileCI\MobileCI_getLogoutInShop');
 
 // get product listing for families
 Route::get('/app/v1/customer/products', function() 
@@ -111,4 +97,16 @@ Route::post('/app/v1/customer/updatecart', function()
 Route::post('/app/v1/customer/deletecart', function()
 {
     return MobileCI\MobileCIAPIController::create()->postDeleteFromCart();
+});
+
+// cart product pop up
+Route::post('/app/v1/customer/cartproductpopup', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postCartProductPopup();
+});
+
+// cart cart-based-promo pop up
+Route::post('/app/v1/customer/cartpromopopup', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postCartPromoPopup();
 });
