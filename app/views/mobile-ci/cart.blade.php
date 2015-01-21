@@ -1,93 +1,120 @@
 @extends('mobile-ci.layout')
 
 @section('content')
-  <!-- <pre>{{ var_dump($cartsummary->total_discount) }}</pre> -->
   <div class="mobile-ci-container">
     <div class="cart-page cart-info-box">
       <div class="single-box">
         <div class="color-box box-one">
         </div>
-        <span class="box-text">PROMOTION</span>
+        <span class="box-text">PROMO</span>
       </div>
       <div class="single-box">
         <div class="color-box box-two">
         </div>
-        <span class="box-text">COUPON</span>
+        <span class="box-text">KUPON</span>
       </div>
     </div>
     <div class="cart-page the-cart">
-      @foreach($cartdata->cartdetails as $cartdetail)
-      <?php $promos_for_this_item = array_filter($promotions, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });?>
-      <!-- <pre>{{ var_dump($cartdetail->promo_price) }}</pre> -->
-      <div class="cart-items-list">
-        <div class="single-item">
-          <div class="single-item-headers">
-            <div class="single-header unique-column">
-              <span class="header-text">Item</span>
-            </div>
-            <div class="single-header unique-column">
-              <span class="header-text">Qty</span>
-            </div>
-            <div class="single-header 
-              @if(count($promos_for_this_item) > 0)
-                {{ 'promotion-column' }}
-              @else
-                {{ 'unique-column' }}
-              @endif
-            ">
-              <span class="header-text">Unit Price (IDR)</span>
-            </div>
-            <div class="single-header unique-column">
-              <span class="header-text">Total (IDR)</span>
-            </div>
+      @if(count($cartdata->cartdetails) < 1)
+        <div class="row">
+          <div class="col-xs-12">
+            <p><i>Tidak ada item dalam keranjang.</i></p>
           </div>
-          <div class="single-item-bodies">
-            <div class="single-body">
-              <p><span>{{ $cartdetail->product->product_name }}</span></p>
-              <p class="attributes">
-                @if(!is_null($cartdetail->attributeValue1['value'])) <span>{{$cartdetail->attributeValue1['value']}}</span>@endif
-                @if(!is_null($cartdetail->attributeValue2['value'])) <span>{{$cartdetail->attributeValue2['value']}}</span>@endif
-                @if(!is_null($cartdetail->attributeValue3['value'])) <span>{{$cartdetail->attributeValue3['value']}}</span>@endif
-                @if(!is_null($cartdetail->attributeValue4['value'])) <span>{{$cartdetail->attributeValue4['value']}}</span>@endif
-                @if(!is_null($cartdetail->attributeValue5['value'])) <span>{{$cartdetail->attributeValue5['value']}}</span>@endif
-              </p>
-            </div>
-            <div class="single-body">
-              <div class="unique-column-properties">
-                <div class="item-qty">
-                  <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}" data-detail="{{ $cartdetail->cart_detail_id }}"  style="background: white; color: black;" >
-                </div>
-                <div class="item-remover" data-detail="{{ $cartdetail->cart_detail_id }}">
-                  <span><i class="fa fa-times"></i></span>
-                </div>
+        </div>
+      @else
+        @foreach($cartdata->cartdetails as $cartdetail)
+        <!-- <pre>{{ print_r($cartdetail) }}</pre> -->
+        <div class="cart-items-list">
+          <div class="single-item">
+            <div class="single-item-headers">
+              <div class="single-header unique-column">
+                <span class="header-text">Item</span>
+              </div>
+              <div class="single-header unique-column">
+                <span class="header-text">Qty</span>
+              </div>
+              <div class="single-header 
+                @if(count($cartdetail->promoforthisproducts) > 0)
+                  {{ 'promotion-column' }}
+                @else
+                  {{ 'unique-column' }}
+                @endif
+              ">
+                <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
+              </div>
+              <div class="single-header unique-column">
+                <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
               </div>
             </div>
-            <div class="single-body">
-              <?php $discount = 0; $price = $cartdetail->variant['price']?>
-              @if(count($promos_for_this_item) > 0)
-                @foreach($promos_for_this_item as $promo)
-                    @if($promo->product_id == $cartdetail->product_id) 
-                        @if($promo->rule_type == 'product_discount_by_percentage')
-                            <?php $discount = $discount +  ($cartdetail->variant['price'] * $promo->discount_value); ?>
-                        @elseif ($promo->rule_type == 'product_discount_by_value')
-                            <?php $discount = $discount + $promo->discount_value; ?>
-                        @endif
-                    @endif
-                @endforeach
-                <?php $price = $price - $discount  + 0; ?>
-              @else
-                <?php $price = $price + 0; ?>
-              @endif
-              <span>{{$price}}</span>
-            </div>
-            <div class="single-body">
-              <span>{{ $price * $cartdetail->quantity }}</span>
+            <div class="single-item-bodies">
+              <div class="single-body">
+                <p><span>{{ $cartdetail->product->product_name }}</span></p>
+                <p class="attributes">
+                  @if(count($cartdetail->attributes) > 0)
+                    @foreach($cartdetail->attributes as $attribute)
+                      <span>{{$attribute}}</span>
+                    @endforeach
+                  @endif
+                </p>
+              </div>
+              <div class="single-body">
+                <div class="unique-column-properties">
+                  <div class="item-qty">
+                    <input type="text" readonly="readonly" class="numinput" value="{{ $cartdetail->quantity }}" data-detail="{{ $cartdetail->cart_detail_id }}"  style="background: white; color: black;" >
+                  </div>
+                  <div class="item-remover" data-detail="{{ $cartdetail->cart_detail_id }}">
+                    <span><i class="fa fa-times"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="single-body">
+                <span>{{ $cartdetail->priceafterpromo }}</span>
+              </div>
+              <div class="single-body">
+                <span>{{ $cartdetail->ammountafterpromo }}</span>
+              </div>
             </div>
           </div>
+        </div>
+        @endforeach
+      @endif
+    </div>
+
+    @if(count($cartsummary->acquired_promo_carts) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Cart Based Promotions</span>
+      <div class="cart-sum-headers">
+        <div class="cart-promo-single-header">
+          <span>Promotion</span>
+        </div>
+        <div class="cart-promo-single-header">
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-promo-single-header">
+          <span>Value ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-promo-single-header">
+          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+      </div>
+      @foreach($cartsummary->acquired_promo_carts as $promo_cart)
+      <div class="cart-sum-bodies">
+        <div class="cart-sum-single-body">
+          <span>{{$promo_cart->promotion_name}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{$cartsummary->subtotal}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{$promo_cart->disc_val_str}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{$promo_cart->disc_val}}</span>
         </div>
       </div>
       @endforeach
     </div>
+    @endif
     <div class="cart-page cart-sum">
       <span class="cart-sum-title">Total</span>
       <div class="cart-sum-headers">
@@ -95,13 +122,13 @@
           <span>Item</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Price (IDR)</span>
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>VAT (IDR)</span>
+          <span>VAT ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Total (IDR)</span>
+          <span>Total ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
       <div class="cart-sum-bodies">
@@ -109,7 +136,7 @@
           <span>{{ $cartdata->cart->total_item + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cartsummary->subtotal + 0 }}</span>
+          <span>{{ $cartsummary->subtotalaftercartpromo + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
           <span>{{ $cartsummary->vat + 0}}</span>
@@ -120,8 +147,8 @@
       </div>
     </div>
     <div class="cart-page button-group text-center">
-      <button class="btn box-one cart-btn" id="checkOutBtn">Check Out</button>
-      <button class="btn box-three cart-btn">Continue Shopping</button>
+      <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
+      <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
       <img class="img-responsive img-center" src="{{ asset($retailer->parent->logo) }}" />
     </div>
   </div>
@@ -178,10 +205,11 @@
           </div>
         </div>
         <div class="modal-footer">
-          <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
+          <form name="deleteCartItem" id="deleteItem">
             <div class="row">
+              <input type="hidden" name="detail" id="detail" value="">
               <div class="col-xs-6">
-                <button type="button" class="btn btn-success btn-block">Ya</button>
+                <button type="button" id="cartDeleteBtn" class="btn btn-success btn-block">Ya</button>
               </div>
               <div class="col-xs-6">
                 <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Batal</button>
@@ -224,7 +252,24 @@
 <script type="text/javascript">
   $(document).ready(function(){
     $('.item-remover').click(function(){
+      $('#detail').val($(this).data('detail'));
       $('#deleteModal').modal();
+    });
+
+    $('#cartDeleteBtn').click(function(){
+      $.ajax({
+        url: apiPath+'customer/deletecart',
+        method: 'POST',
+        data: {
+          detail: $('#detail').val()
+        }
+      }).done(function(data){
+        if(data.status == 'success'){
+          location.reload();
+        }else{
+          console(data);
+        }
+      });
     });
 
     $('#checkOutBtn').click(function(){

@@ -34,3 +34,51 @@ Route::get('/api/v1/coupon/search', function()
 {
     return CouponAPIController::create()->getSearchCoupon();
 });
+
+/**
+ * Upload coupon image
+ */
+Route::post('/api/v1/coupon/upload/image', function()
+{
+    return UploadAPIController::create()->postUploadCouponImage();
+});
+
+/**
+ * Delete coupon image
+ */
+Route::post('/api/v1/coupon/delete/image', function()
+{
+    return UploadAPIController::create()->postDeleteCouponImage();
+});
+
+/**
+ * Create new issued coupon
+ */
+Route::post('/api/v1/issued-coupon/new', function()
+{
+    return IssuedCouponAPIController::create()->postNewIssuedCoupon();
+});
+
+/**
+ * List issued coupon
+ */
+Route::get('/api/v1/issued-coupon/search', function()
+{
+    return IssuedCouponAPIController::create()->getSearchIssuedCoupon();
+});
+
+/**
+ * Update issued coupon
+ */
+Route::post('/api/v1/issued-coupon/update', function()
+{
+    return IssuedCouponAPIController::create()->postUpdateIssuedCoupon();
+});
+
+/**
+ * Update issued coupon
+ */
+Route::post('/api/v1/issued-coupon/delete', function()
+{
+    return IssuedCouponAPIController::create()->postDeleteIssuedCoupon();
+});

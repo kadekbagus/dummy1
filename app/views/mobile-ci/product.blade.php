@@ -7,7 +7,7 @@
 @section('content')
 <!-- product -->
 <div class="row product">
-	<div class="col-xs-12 product-img">
+	<div class="col-xs-12 @if(count($couponstocatchs)>0) {{ 'coupon-wrapper' }} @endif product-img">
 		<!-- <div ng-include="product.ribbon"></div> -->
 		<div>
 			<?php $x=1; ?>
@@ -50,7 +50,7 @@
 						@if($promotion->rule_type === 'product_discount_by_percentage')
 						{{ $promotion->discount_value * 100 + 0 }}%
 						@else
-						<small>IDR</small> {{ $promotion->discount_value + 0 }}
+						<small>{{ $retailer->parent->currency_symbol }}</small> {{ $promotion->discount_value + 0 }}
 						@endif
 					</p>
 				</div>
@@ -67,6 +67,46 @@
 				</div>
 				<div class="col-xs-5 col-sm-3">
 					<p>{{ date('j M Y', strtotime($promotion->end_date)) }}</p>
+				</div>
+			</div>
+		</div>
+		@endforeach
+		@endif
+
+		@if(count($couponstocatchs)>0)
+		@foreach($couponstocatchs as $couponstocatch)
+		<div class="additional-detail">
+			<div class="row">
+				<div class="col-xs-12">
+					<h3>Dapatkan Kupon</h3>
+				</div>
+				<div class="col-xs-3">
+					<p>
+						@if($couponstocatch->rule_type === 'product_discount_by_percentage')
+						{{ $couponstocatch->discount_value * 100 + 0 }}%
+						@else
+						<small>{{ $retailer->parent->currency_symbol }}</small> {{ $couponstocatch->discount_value + 0 }}
+						@endif
+					</p>
+				</div>
+				<div class="col-xs-9">
+					<p>{{ $couponstocatch->promotion_name }}</p>
+				</div>
+			</div>
+			<div class="row additional-dates">
+				<div class="col-xs-5 col-sm-3">
+					<p>{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}</p>
+				</div>
+				<div class="col-xs-2">
+					<p>to</p>
+				</div>
+				<div class="col-xs-5 col-sm-3">
+					<p>{{ date('j M Y', strtotime($couponstocatch->end_date)) }}</p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					<p>{{ $couponstocatch->description }}</p>
 				</div>
 			</div>
 		</div>
@@ -158,14 +198,14 @@
 					@endif
 				@endforeach
 				<div class="col-xs-6 strike" id="price-before">
-					<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
+					<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->price + 0 }}</span></h3>
 				</div>
 				<div class="col-xs-6 pull-right text-right" id="price">
-					<h3 class="currency"><small>IDR</small> <span>{{ $product->price - $discount + 0 }}</span></h3>
+					<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->price - $discount + 0 }}</span></h3>
 				</div>
 			@else
 			<div class="col-xs-6 pull-right text-right" id="price">
-				<h3 class="currency"><small>IDR</small> <span>{{ $product->price + 0 }}</span></h3>
+				<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->price + 0 }}</span></h3>
 			</div>
 			@endif
 		</div>
