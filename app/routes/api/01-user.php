@@ -42,3 +42,11 @@ Route::get('/api/v1/user-profile-picture/delete', function()
 {
     return UploadAPIController::create()->postUploadUserImage();
 });
+
+/**
+ * Create New Cashier
+ */
+Route::post('/api/v1/employee/new', function()
+{
+    return UserAPIController::create()->postNewUser();
+});
