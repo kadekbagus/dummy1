@@ -82,8 +82,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(act) $scope.hiddenbtn = true;
                 };
                 //canceler request
-                $scope.cancelRequestService = function(params){
-                    serviceAjax.cancelRequest(params);
+                $scope.cancelRequestService = function(){
+                    serviceAjax.cancelRequest();
                 };
                 //get unix guestid
                 ($scope.getguest = function(){
@@ -115,7 +115,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //get product
                 $scope.getproduct = function(){
                     /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
-                    serviceAjax.getDataFromServer('/product/search?merchant_id[]=' + $scope.datauser['userdetail']['merchant_id'] + '&take=12').then(function(response){
+                    serviceAjax.getDataFromServer('/product/search?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
                                 response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -470,7 +470,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
-                    $scope.cancelRequestService('/pos/scanbarcode');
+                    $scope.cancelRequestService();
                     $scope.errorscancart = '';
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
