@@ -132,6 +132,8 @@ return array(
     'CreateTableCategories' => $baseDir . '/app/database/migrations/2014_11_13_094502_create_table_categories.php',
     'CreateTableCoupons' => $baseDir . '/app/database/migrations/2014_12_22_093451_create_table_coupons.php',
     'CreateTableCustomPermission' => $baseDir . '/app/database/migrations/2014_10_14_083119_create_table_custom_permission.php',
+    'CreateTableEventRetailer' => $baseDir . '/app/database/migrations/2015_01_21_041709_create_table_event_retailer.php',
+    'CreateTableEvents' => $baseDir . '/app/database/migrations/2015_01_21_040516_create_table_events.php',
     'CreateTableIssuedCoupons' => $baseDir . '/app/database/migrations/2015_01_12_072523_create_table_issued_coupons.php',
     'CreateTableMedia' => $baseDir . '/app/database/migrations/2014_12_08_020027_create_table_media.php',
     'CreateTableMerchantTaxes' => $baseDir . '/app/database/migrations/2014_12_03_032435_create_table_merchant_taxes.php',
