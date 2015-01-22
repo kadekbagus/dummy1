@@ -22,4 +22,12 @@ class Employee extends Eloquent
     {
         return $this->belongsTo('User', 'user_id', 'user_id');
     }
+
+    /**
+     * Employee could belongs to and has many retailers
+     */
+    public function retailers()
+    {
+        return $this->belongsToMany('Retailer', 'employee_retailer', 'employee_id', 'retailer_id');
+    }
 }
