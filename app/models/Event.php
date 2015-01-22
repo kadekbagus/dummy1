@@ -52,6 +52,16 @@ class Event extends Eloquent
         return $this->belongsTo('Category', 'link_object_id5', 'category_id');
     }
 
+    public function linkpromotion()
+    {
+        return $this->belongsTo('Promotion', 'link_object_id1', 'promotion_id');
+    }
+
+    public function linkwidget()
+    {
+        return $this->belongsTo('Widget', 'link_object_id1', 'widget_id');
+    }
+
     public function creator()
     {
         return $this->belongsTo('User', 'created_by', 'user_id');
