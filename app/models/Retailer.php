@@ -48,6 +48,14 @@ class Retailer extends Eloquent
     }
 
     /**
+     * A Retailer has many and belongs to an employee
+     */
+    public function employees()
+    {
+        return $this->belongsToMany('Employee', 'employee_retailer', 'merchant_id', 'retailer_id');
+    }
+
+    /**
      * Eagler load the count query. It is not very optimized but it works for now
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -122,4 +130,5 @@ class Retailer extends Eloquent
 
         return $builder;
     }
+
 }

@@ -184,7 +184,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $merchant_id = $merchant->merchant_id;
                 $slug = Str::slug($merchant->name);
-                $file['new']->name = sprintf('%s-%s', $merchant_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $merchant_id, $slug, time());
             };
 
             // Load the orbit configuration for merchant upload logo
@@ -572,7 +572,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $product_id = $product->product_id;
                 $slug = Str::slug($product->product_name);
-                $file['new']->name = sprintf('%s-%s', $product_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $product_id, $slug, time());
             };
 
             // Load the orbit configuration for product upload
@@ -960,7 +960,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $promotion_id = $promotion->promotion_id;
                 $slug = Str::slug($promotion->promotion_name);
-                $file['new']->name = sprintf('%s-%s', $promotion_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $promotion_id, $slug, time());
             };
 
             // Load the orbit configuration for promotion upload
@@ -1353,7 +1353,7 @@ class UploadAPIController extends ControllerAPI
                 $user_id = $user->user_id;
                 $slug = str_replace('@', '_at_', $user->user_email);
                 $slug = Str::slug($slug);
-                $file['new']->name = sprintf('%s-%s', $user_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $user_id, $slug, time());
             };
 
             // Load the orbit configuration for user profile picture
@@ -1745,7 +1745,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $promotion_id = $coupon->promotion_id;
                 $slug = Str::slug($coupon->promotion_name);
-                $file['new']->name = sprintf('%s-%s', $promotion_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $promotion_id, $slug, time());
             };
 
             // Load the orbit configuration for coupon upload
@@ -2133,7 +2133,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $widget_id = $widget->widget_id;
                 $slug = Str::slug($widget->widget_slogan);
-                $file['new']->name = sprintf('%s-%s', $widget_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $widget_id, $slug, time());
             };
 
             // Load the orbit configuration for user profile picture

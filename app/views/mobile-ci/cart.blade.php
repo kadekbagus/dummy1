@@ -1,6 +1,7 @@
 @extends('mobile-ci.layout')
 
 @section('content')
+  <!-- <pre>{{ print_r($coupon_carts) }}</pre> -->
   <div class="mobile-ci-container">
     <div class="cart-page cart-info-box">
       <div class="single-box">
@@ -23,7 +24,6 @@
         </div>
       @else
         @foreach($cartdata->cartdetails as $cartdetail)
-        <!-- <pre>{{ print_r($cartdetail) }}</pre> -->
         <div class="cart-items-list">
           <div class="single-item">
             <div class="single-item-headers">
@@ -91,7 +91,7 @@
           <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Value ({{ $retailer->parent->currency_symbol }})</span>
+          <span>Value</span>
         </div>
         <div class="cart-promo-single-header">
           <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
@@ -115,6 +115,44 @@
       @endforeach
     </div>
     @endif
+
+    @if(count($coupon_carts) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Available Cart Based Coupons</span>
+      <div class="cart-sum-headers">
+        <div class="cart-coupon-single-header">
+          <span>Coupon</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Value</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Qty</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>&nbsp;</span>
+        </div>
+      </div>
+      @foreach($coupon_carts as $coupon_cart)
+      <!-- <pre>{{ $coupon_cart }}</pre> -->
+      <div class="cart-sum-bodies">
+        <div class="cart-sum-single-body">
+          <span class="coupon-name" data-coupon="{{ $coupon_cart->promotion_id }}"><b>{{$coupon_cart->promotion_name}}</b></span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{$coupon_cart->disc_val}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{count($coupon_cart->issuedcoupons[0])}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span><a class="btn btn-info" >Pakai</a></span>
+        </div>
+      </div>
+      @endforeach
+    </div>
+    @endif
+
     <div class="cart-page cart-sum">
       <span class="cart-sum-title">Total</span>
       <div class="cart-sum-headers">
@@ -306,6 +344,25 @@
       var promotion_detail = $(this).data('promotion');
       $.ajax({
         url: apiPath+'customer/cartpromopopup',
+        method: 'POST',
+        data: {
+          promotion_detail: promotion_detail
+        }
+      }).done(function(data){
+        if(data.status == 'success'){
+          $('#previewModal #previewLabel').text(data.data.promotion_name);
+          $('#previewModal .modal-body p').html('<img class="img-responsive" src="'+ data.data.image +'"><br>'+data.data.description);
+          $('#previewModal').modal();
+        }else{
+          console.log(data);
+        }
+      });
+    });
+
+    $('.coupon-name').click(function(){
+      var promotion_detail = $(this).data('coupon');
+      $.ajax({
+        url: apiPath+'customer/cartcouponpopup',
         method: 'POST',
         data: {
           promotion_detail: promotion_detail

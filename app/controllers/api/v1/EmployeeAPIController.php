@@ -29,6 +29,7 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
      * @param string    `employee_role`         (required) - Role of the employee, i.e: 'cashier', 'manager', 'supervisor'
+     * @param array     `retailer_ids`          (optional) - List of Retailer IDs
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewEmployee()
@@ -65,32 +66,43 @@ class EmployeeAPIController extends ControllerAPI
             $password = OrbitInput::post('password');
             $password2 = OrbitInput::post('password_confirmation');
             $position = OrbitInput::post('position');
-            $employeeId = OrbitInput::post('employee_id');
+            $employeeId = OrbitInput::post('employee_id_char');
             $firstName = OrbitInput::post('firstname');
             $lastName = OrbitInput::post('lastname');
             $employeeRole = OrbitInput::post('employee_role');
+            $retailerIds = OrbitInput::post('retailer_ids');
 
+            $errorMessage = [
+                'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
+                    'role' => $employeeRole
+                ))
+            ];
             $validator = Validator::make(
                 array(
                     'firstname'             => $firstName,
                     'lastname'              => $lastName,
-                    'birtdate'              => $birthdate,
+                    'birthdate'             => $birthdate,
                     'position'              => $position,
-                    'employee_id'           => $employeeId,
+                    'employee_id_char'      => $employeeId,
                     'username'              => $loginId,
                     'password'              => $password,
                     'password_confirmation' => $password2,
-                    'employee_role'         => $employeeRole
+                    'employee_role'         => $employeeRole,
+                    'retailer_ids'          => $retailerIds
                 ),
                 array(
-                    'firstname'     => 'required',
-                    'lastname'      => 'required',
-                    'birthdate'     => 'required|date_format:Y-m-d',
-                    'position'      => 'required',
-                    'employee_id'   => 'required|orbit.exists.employeeid',
-                    'username'      => 'required|orbit.exists.username',
-                    'password'      => 'required|min:5|confirmed',
-                    'employee_role' => 'required|orbit.empty.employee.role'
+                    'firstname'         => 'required',
+                    'lastname'          => 'required',
+                    'birthdate'         => 'required|date_format:Y-m-d',
+                    'position'          => 'required',
+                    'employee_id_char'  => 'required|orbit.exists.employeeid',
+                    'username'          => 'required|orbit.exists.username',
+                    'password'          => 'required|min:5|confirmed',
+                    'employee_role'     => 'required|orbit.empty.employee.role',
+                    'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
+                ),
+                array(
+                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
                 )
             );
 
@@ -106,37 +118,58 @@ class EmployeeAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $newEmployee = new User();
-            $newEmployee->username = $loginId;
-            $newEmployee->user_email = sprintf('%@local.localdomain', $loginId);
-            $newEmployee->user_password = Hash::make($password);
-            $newEmployee->status = 'active';
-            $newEmployee->user_role_id = $user_role_id;
-            $newEmployee->user_ip = $_SERVER['REMOTE_ADDR'];
-            $newEmployee->modified_by = $this->api->user->user_id;
+            $role = App::make('orbit.empty.employee.role');
 
-            Event::fire('orbit.employee.postnewemployee.before.save', array($this, $newEmployee));
+            $newUser = new User();
+            $newUser->username = $loginId;
+            $newUser->user_email = sprintf('%s@local.localdomain', $loginId);
+            $newUser->user_password = Hash::make($password);
+            $newUser->status = 'active';
+            $newUser->user_role_id = $role->role_id;
+            $newUser->user_ip = $_SERVER['REMOTE_ADDR'];
+            $newUser->modified_by = $this->api->user->user_id;
+            $newUser->user_firstname = $firstName;
+            $newUser->user_lastname = $lastName;
 
-            $newEmployee->save();
+            Event::fire('orbit.employee.postnewemployee.before.save', array($this, $newUser));
+
+            $newUser->save();
 
             $apikey = new Apikey();
-            $apikey->api_key = Apikey::genApiKey($newEmployee);
-            $apikey->api_secret_key = Apikey::genSecretKey($newEmployee);
+            $apikey->api_key = Apikey::genApiKey($newUser);
+            $apikey->api_secret_key = Apikey::genSecretKey($newUser);
             $apikey->status = 'active';
-            $apikey->user_id = $newEmployee->user_id;
-            $apikey = $newEmployee->apikey()->save($apikey);
+            $apikey->user_id = $newUser->user_id;
+            $apikey = $newUser->apikey()->save($apikey);
 
-            $newEmployee->setRelation('apikey', $apikey);
-            $newEmployee->apikey = $apikey;
-            $newEmployee->setHidden(array('user_password'));
+            $newUser->setRelation('apikey', $apikey);
+            $newUser->setHidden(array('user_password'));
 
-            Event::fire('orbit.employee.postnewemployee.after.save', array($this, $newEmployee));
-            $this->response->data = $newEmployee;
+            $userdetail = new UserDetail();
+            $userdetail->birthdate = $birthdate;
+            $userdetail = $newUser->userdetail()->save($userdetail);
+
+            $newUser->setRelation('userDetail', $userdetail);
+
+            $newEmployee = new Employee();
+            $newEmployee->employee_id_char = $employeeId;
+            $newEmployee->position = $position;
+            $newEmployee->status = $newUser->status;
+            $newEmployee = $newUser->employee()->save($newEmployee);
+
+            $newUser->setRelation('employee', $newEmployee);
+
+            if ($retailerIds) {
+                $newEmployee->retailers()->sync($retailerIds);
+            }
+
+            Event::fire('orbit.employee.postnewemployee.after.save', array($this, $newUser));
+            $this->response->data = $newUser;
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.employee.postnewemployee.after.commit', array($this, $newEmployee));
+            Event::fire('orbit.employee.postnewemployee.after.commit', array($this, $newUser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.employee.postnewemployee.access.forbidden', array($this, $e));
 
@@ -182,7 +215,12 @@ class EmployeeAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
@@ -192,95 +230,167 @@ class EmployeeAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Delete user
+     * POST - Update Existing Employee
      *
-     * @author kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `user_id`                 (required) - ID of the user
+     * @param string    `user_id`               (required) - User ID of the employee
+     * @param string    `firstname`             (required) - Employee first name
+     * @param string    `lastname`              (required) - Employee last name
+     * @param string    `birthdate`             (required) - Employee birthdate
+     * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
+     * @param string    `employee_id`           (required) - Employee ID, i.e: 'EMP001', 'CASHIER001' (Unchangable)
+     * @param string    `username`              (required) - Username used to login (Unchangable)
+     * @param string    `password`              (required) - Password for the account
+     * @param string    `password_confirmation` (required) - Confirmation password
+     * @param string    `employee_role`         (required) - Role of the employee, i.e: 'cashier', 'manager', 'supervisor'
+     * @param array     `retailer_ids`          (optional) - List of Retailer IDs
+     * @param array     `retailer_ids_delete    (optional) - List of Retailer IDs need to be deleted
      * @return Illuminate\Support\Facades\Response
      */
-    public function postDeleteUser()
+    public function postUpdateEmployee()
     {
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.user.postdeleteuser.before.auth', array($this));
+            Event::fire('orbit.employee.postupdateemployee.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postdeleteuser.after.auth', array($this));
+            Event::fire('orbit.employee.postupdateemployee.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postdeleteuser.before.authz', array($this, $user));
+            Event::fire('orbit.employee.postupdateemployee.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('delete_user')) {
-                Event::fire('orbit.user.postdeleteuser.authz.notallowed', array($this, $user));
-                $deleteUserLang = Lang::get('validation.orbit.actionlist.delete_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteUserLang));
+            if (! ACL::create($user)->isAllowed('update_employee')) {
+                Event::fire('orbit.employee.postupdateemployee.authz.notallowed', array($this, $user));
+
+                $lang = Lang::get('validation.orbit.actionlist.update_employee');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $lang));
+
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postdeleteuser.after.authz', array($this, $user));
+            Event::fire('orbit.employee.postupdateemployee.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
-            $user_id = OrbitInput::post('user_id');
+            $userId = OrbitInput::post('user_id');
+            $loginId = OrbitInput::post('username');
+            $birthdate = OrbitInput::post('birthdate');
+            $password = OrbitInput::post('password');
+            $password2 = OrbitInput::post('password_confirmation');
+            $position = OrbitInput::post('position');
+            $employeeId = OrbitInput::post('employee_id_char');
+            $employeeRole = OrbitInput::post('employee_role');
+            $retailerIds = OrbitInput::post('retailer_ids');
+            $status = OrbitInput::post('status');
 
-            // Error message when access is forbidden
-            $deleteYourSelf = Lang::get('validation.orbit.actionlist.delete_your_self');
-            $message = Lang::get('validation.orbit.access.forbidden',
-                                 array('action' => $deleteYourSelf));
-
+            $errorMessage = [
+                'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
+                    'role' => $employeeRole
+                ))
+            ];
             $validator = Validator::make(
                 array(
-                    'user_id' => $user_id,
+                    'user_id'               => $userId,
+                    'birthdate'             => $birthdate,
+                    'password'              => $password,
+                    'password_confirmation' => $password2,
+                    'employee_role'         => $employeeRole,
+                    'retailer_ids'          => $retailerIds,
+                    'status'                => $status
                 ),
                 array(
-                    'user_id' => 'required|numeric|orbit.empty.user|no_delete_themself',
+                    'user_id'               => 'orbit.empty.user',
+                    'birthdate'             => 'date_format:Y-m-d',
+                    'password'              => 'min:5|confirmed',
+                    'employee_role'         => 'orbit.empty.employee.role',
+                    'retailer_ids'          => 'array|min:1|orbit.empty.retailer',
+                    'status'                => 'orbit.empty.user_status',
                 ),
                 array(
-                    'no_delete_themself' => $message,
+                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
                 )
             );
 
-            Event::fire('orbit.user.postdeleteuser.before.validation', array($this, $validator));
+            Event::fire('orbit.employee.postupdateemployee.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postdeleteuser.after.validation', array($this, $validator));
+            Event::fire('orbit.employee.postupdateemployee.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
 
-            $deleteuser = User::with(array('apikey'))->find($user_id);
-            $deleteuser->status = 'deleted';
-            $deleteuser->modified_by = $this->api->user->user_id;
+            $role = App::make('orbit.empty.employee.role');
 
-            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-            $deleteapikey->status = 'deleted';
+            $updatedUser = App::make('orbit.empty.user');
 
-            Event::fire('orbit.user.postdeleteuser.before.save', array($this, $deleteuser));
+            OrbitInput::post('password', function($password) use ($updatedUser) {
+                $updatedUser->user_password = Hash::make($password);
+            });
 
-            $deleteuser->save();
-            $deleteapikey->save();
+            OrbitInput::post('status', function($status) use ($updatedUser) {
+                $updatedUser->status = 'active';
+            });
 
-            Event::fire('orbit.user.postdeleteuser.after.save', array($this, $deleteuser));
-            $this->response->data = null;
-            $this->response->message = Lang::get('statuses.orbit.deleted.user');
+            OrbitInput::post('employee_role', function($_role) use ($updatedUser, $role) {
+                $updatedUser->user_role_id = $role->role_id;
+            });
+
+            OrbitInput::post('firstname', function($_firstname) use ($updatedUser) {
+                $updatedUser->user_firstname = $_firstname;
+            });
+
+            OrbitInput::post('lastname', function($_lastname) use ($updatedUser) {
+                $updatedUser->user_lastname = $_lastname;
+            });
+
+            $updatedUser->modified_by = $this->api->user->user_id;
+
+            Event::fire('orbit.employee.postupdateemployee.before.save', array($this, $updatedUser));
+
+            $updatedUser->save();
+            $updatedUser->apikey;
+
+            // Get the relation
+            $employee = $updatedUser->employee;
+            $userDetail = $updatedUser->userDetail;
+
+            OrbitInput::post('position', function($_position) use ($employee) {
+                $employee->position = $_position;
+            });
+
+            $employee->status = $updatedUser->status;
+            $employee->save();
+
+            OrbitInput::post('birthdate', function($_birthdate) use ($userDetail) {
+                $userDetail->birthdate = $_birthdate;
+            });
+
+            $userDetail->save();
+
+            if ($retailerIds) {
+                $employee->retailers()->sync($retailerIds);
+            }
+
+            Event::fire('orbit.employee.postupdateemployee.after.save', array($this, $updatedUser));
+            $this->response->data = $updatedUser;
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postdeleteuser.after.commit', array($this, $deleteuser));
+            Event::fire('orbit.employee.postupdateemployee.after.commit', array($this, $updatedUser));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postdeleteuser.access.forbidden', array($this, $e));
+            Event::fire('orbit.employee.postupdateemployee.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -291,18 +401,18 @@ class EmployeeAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postdeleteuser.invalid.arguments', array($this, $e));
+            Event::fire('orbit.employee.postupdateemployee.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postdeleteuser.query.error', array($this, $e));
+            Event::fire('orbit.employee.postupdateemployee.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -319,331 +429,109 @@ class EmployeeAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postdeleteuser.general.exception', array($this, $e));
+            Event::fire('orbit.employee.postupdateemployee.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
         }
 
-        $output = $this->render($httpCode);
-        Event::fire('orbit.user.postdeleteuser.before.render', array($this, $output));
-
-        return $output;
+        return $this->render($httpCode);
     }
 
     /**
-     * POST - Update user (currently only basic info)
+     * POST - Delete Existing Employee
      *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer   `user_id`               (required) - ID of the user
-     * @param string    `email`                 (optional) - User email address
-     * @param string    `username`              (optional) - Username
-     * @param integer   `role_id`               (optional) - Role ID
-     * @param string    `firstname`             (optional) - User first name
-     * @param string    `lastname`              (optional) - User last name
-     * @param string    `status`                (optional) - Status of the user 'active', 'pending', 'blocked', or 'deleted'
+     * @param string    `user_id`               (required) - User ID of the employee
      * @return Illuminate\Support\Facades\Response
      */
-    public function postUpdateUser()
+    public function postDeleteEmployee()
     {
         try {
-            $httpCode=200;
+            $httpCode = 200;
 
-            Event::fire('orbit.user.postupdateuser.before.auth', array($this));
+            Event::fire('orbit.employee.postdeleteemployee.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postupdateuser.after.auth', array($this));
+            Event::fire('orbit.employee.postdeleteemployee.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postupdateuser.before.authz', array($this, $user));
+            Event::fire('orbit.employee.postdeleteemployee.before.authz', array($this, $user));
 
-            $user_id = OrbitInput::post('user_id');
-            if (! ACL::create($user)->isAllowed('update_user')) {
-                // No need to check if it is the user itself
-                if ((string)$user->user_id !== (string)$user_id)
-                {
-                    Event::fire('orbit.user.postupdateuser.authz.notallowed', array($this, $user));
-                    $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
-                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
-                    ACL::throwAccessForbidden($message);
-                }
+            if (! ACL::create($user)->isAllowed('delete_employee')) {
+                Event::fire('orbit.employee.postdeleteemployee.authz.notallowed', array($this, $user));
+
+                $lang = Lang::get('validation.orbit.actionlist.delete_employee');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $lang));
+
+                ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postupdateuser.after.authz', array($this, $user));
+            Event::fire('orbit.employee.postdeleteemployee.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
-            $email = OrbitInput::post('email');
-            $username = OrbitInput::post('username');
-            $user_firstname = OrbitInput::post('firstname');
-            $user_lastname = OrbitInput::post('lastname');
-            $status = OrbitInput::post('status');
-            $user_role_id = OrbitInput::post('role_id');
-
-            // Details
-            $birthdate = OrbitInput::post('birthdate');
-            $gender = OrbitInput::post('gender');
-            $address1 = OrbitInput::post('address_line1');
-            $address2 = OrbitInput::post('address_line2');
-            $address3 = OrbitInput::post('address_line3');
-            $city = OrbitInput::post('city');
-            $province = OrbitInput::post('province');
-            $postal_code = OrbitInput::post('postal_code');
-            $country = OrbitInput::post('postal_code');
-            $phone1 = OrbitInput::post('phone');
-            $phone2 = OrbitInput::post('phone2');
-            $relationship_status = OrbitInput::post('relationship_status');
-            $number_of_children = OrbitInput::post('number_of_children');
-            $occupation = OrbitInput::post('occupation');
-            $sector_of_activity = OrbitInput::post('sector_of_activity');
-            $company_name = OrbitInput::post('company_name');
-            $education_level = OrbitInput::post('education_level');
-            $preferred_lang = OrbitInput::post('preferred_language');
-            $avg_annual_income1 = OrbitInput::post('avg_annual_income1');
-            $avg_annual_income2 = OrbitInput::post('avg_annual_income2');
-            $avg_monthly_spent1 = OrbitInput::post('avg_monthly_spent1');
-            $avg_monthly_spent2 = OrbitInput::post('avg_monthly_spent2');
-            $personal_interests = OrbitInput::post('personal_interests');
+            $userId = OrbitInput::post('user_id');
 
             $validator = Validator::make(
                 array(
-                    'user_id'               => $user_id,
-                    'username'              => $username,
-                    'email'                 => $email,
-                    'role_id'               => $user_role_id,
-                    'status'                => $status,
-
-                    'firstname'             => $user_firstname,
-                    'lastname'              => $user_lastname,
-
-                    'birthdate'             => $birthdate,
-                    'gender'                => $gender,
-                    'address_line1'         => $address1,
-                    'city'                  => $city,
-                    'province'              => $province,
-                    'postal_code'           => $postal_code,
-                    'country'               => $country,
-                    'phone'                 => $phone1,
-                    'phone2'                => $phone2,
-                    'relationship_status'   => $relationship_status,
-                    'number_of_children'    => $number_of_children,
-                    'education_level'       => $education_level,
-                    'preferred_language'    => $preferred_lang,
-                    'avg_annual_income1'    => $avg_annual_income1,
-                    'avg_annual_income2'    => $avg_annual_income2,
-                    'avg_monthly_spent1'    => $avg_monthly_spent1,
-                    'avg_monthly_spent2'    => $avg_monthly_spent2,
-                    'personal_interests'    => $personal_interests
+                    'user_id'               => $userId,
                 ),
                 array(
-                    'user_id'               => 'required|numeric',
-                    'username'              => 'orbit.exists.username',
-                    'email'                 => 'email|email_exists_but_me',
-                    'role_id'               => 'numeric|orbit.empty.role',
-                    'status'                => 'orbit.empty.user_status',
-
-                    'firstname'             => 'required',
-                    'lastname'              => 'required',
-
-                    'birthdate'             => 'required|date_format:Y-m-d',
-                    'gender'                => 'required|in:m,f',
-                    'address_line1'         => 'required',
-                    'city'                  => 'required',
-                    'province'              => 'required',
-                    'postal_code'           => 'required|numeric',
-                    'country'               => 'required',
-                    'phone'                 => 'required',
-                    'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
-                    'number_of_children'    => 'numeric|min:0',
-                    'education_level'       => 'in:none,junior high school,diploma,bachelor,master,ph.d,doctor,other',
-                    'preferred_language'    => 'in:en,id',
-                    'avg_annual_income1'    => 'numeric',
-                    'avg_annual_income2'    => 'numeric',
-                    'avg_monthly_spent1'    => 'numeric',
-                    'avg_monthly_spent2'    => 'numeric',
-                    'personal_interests'    => 'array|orbit.empty.personal_interest'
-                ),
-                array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
+                    'user_id'               => 'required|numeric|orbit.empty.user'
+                )
             );
 
-            Event::fire('orbit.user.postupdateuser.before.validation', array($this, $validator));
+            Event::fire('orbit.employee.postdeleteemployee.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postupdateuser.after.validation', array($this, $validator));
+            Event::fire('orbit.employee.postdeleteemployee.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
 
-            $updateduser = User::with('userdetail')
-                               ->excludeDeleted()
-                               ->find($user_id);
+            $deletedUser = App::make('orbit.empty.user');
+            $deletedUser->status = 'deleted';
+            $deletedUser->modified_by = $this->api->user->user_id;
 
-            OrbitInput::post('username', function($username) use ($updateduser) {
-                $updateduser->username = $username;
-            });
+            Event::fire('orbit.employee.postdeleteemployee.before.save', array($this, $deletedUser));
 
-            OrbitInput::post('email', function($email) use ($updateduser) {
-                $updateduser->user_email = $email;
-            });
+            $deletedUser->save();
 
-            OrbitInput::post('firstname', function($firstname) use ($updateduser) {
-                $updateduser->user_firstname = $firstname;
-            });
+            // Get the relation
+            $employee = $deletedUser->employee;
+            $employee->status = $deletedUser->status;
+            $employee->save();
 
-            OrbitInput::post('lastname', function($lastname) use ($updateduser) {
-                $updateduser->user_lastname = $lastname;
-            });
-
-            OrbitInput::post('status', function($status) use ($updateduser) {
-                $updateduser->status = $status;
-            });
-
-            OrbitInput::post('role_id', function($role_id) use ($updateduser) {
-                $updateduser->user_role_id = $role_id;
-            });
-
-            // Details
-
-            OrbitInput::post('birthdate', function($date) use ($updateduser) {
-                $updateduser->userdetail->birthdate = $date;
-            });
-
-            OrbitInput::post('gender', function($gender) use ($updateduser) {
-                $updateduser->userdetail->gender = $gender;
-            });
-
-            OrbitInput::post('address_line1', function($addr1) use ($updateduser) {
-                $updateduser->userdetail->address_line1 = $addr1;
-            });
-
-            OrbitInput::post('address_line2', function($addr2) use ($updateduser) {
-                $updateduser->userdetail->address_line2 = $addr2;
-            });
-
-            OrbitInput::post('address_line3', function($addr3) use ($updateduser) {
-                $updateduser->userdetail->address_line3 = $addr3;
-            });
-
-            OrbitInput::post('city', function($city) use ($updateduser) {
-                $updateduser->userdetail->city = $city;
-            });
-
-            OrbitInput::post('province', function($province) use ($updateduser) {
-                $updateduser->userdetail->province = $province;
-            });
-
-            OrbitInput::post('postal_code', function($postal) use ($updateduser) {
-                $updateduser->userdetail->postal_code = $postal;
-            });
-
-            OrbitInput::post('country', function($country) use ($updateduser) {
-                $updateduser->userdetail->country = $country;
-            });
-
-            OrbitInput::post('phone', function($phone1) use ($updateduser) {
-                $updateduser->userdetail->phone = $phone1;
-            });
-
-            OrbitInput::post('phone2', function($phone2) use ($updateduser) {
-                $updateduser->userdetail->phone2 = $phone2;
-            });
-
-            OrbitInput::post('relationship_status', function($status) use ($updateduser) {
-                $updateduser->userdetail->relationship_status = $status;
-            });
-
-            OrbitInput::post('number_of_children', function($number) use ($updateduser) {
-                $updateduser->userdetail->number_of_children = $number;
-
-                if ($number > 0) {
-                    $updateduser->userdetail->has_children = 'Y';
-                }
-            });
-
-            OrbitInput::post('education_level', function($level) use ($updateduser) {
-                $updateduser->userdetail->last_education_degree = $level;
-            });
-
-            OrbitInput::post('preferred_language', function($lang) use ($updateduser) {
-                $updateduser->userdetail->preferred_lang = $lang;
-            });
-
-            OrbitInput::post('avg_annual_income1', function($income1) use ($updateduser) {
-                $updateduser->userdetail->avg_annual_income1 = $income1;
-            });
-
-            OrbitInput::post('avg_annual_income2', function($income2) use ($updateduser) {
-                $updateduser->userdetail->avg_annual_income2 = $income2;
-            });
-
-            OrbitInput::post('avg_monthly_spent1', function($spent1) use ($updateduser) {
-                $updateduser->userdetail->avg_monthly_spent1 = $spent1;
-            });
-
-            OrbitInput::post('avg_monthly_spent2', function($spent2) use ($updateduser) {
-                $updateduser->userdetail->avg_monthly_spent2 = $spent2;
-            });
-
-            OrbitInput::post('occupation', function($occupation) use ($updateduser) {
-                $updateduser->userdetail->occupation = $occupation;
-            });
-
-            OrbitInput::post('sector_of_activity', function($soc) use ($updateduser) {
-                $updateduser->userdetail->sector_of_activity = $soc;
-            });
-
-            OrbitInput::post('company_name', function($company) use ($updateduser) {
-                $updateduser->userdetail->company_name = $company;
-            });
-
-            OrbitInput::post('personal_interests', function($interests) use ($updateduser) {
-                $updateduser->interests()->sync($interests);
-            });
-
-            $updateduser->modified_by = $this->api->user->user_id;
-
-            Event::fire('orbit.user.postupdateuser.before.save', array($this, $updateduser));
-
-            $updateduser->save();
-            $updateduser->userdetail->modified_by = $user->user_id;
-            $updateduser->userdetail->save();
-
-            $apikey = Apikey::where('user_id', '=', $updateduser->user_id)->first();
-            if ($status != 'pending') {
-                $apikey->status = $status;
-            } else {
-                $apikey->status = 'blocked';
-            }
-            $apikey->save();
-            $updateduser->setRelation('apikey', $apikey);
-
-            $updateduser->apikey = $apikey;
-
-            Event::fire('orbit.user.postupdateuser.after.save', array($this, $updateduser));
-            $this->response->data = $updateduser;
+            Event::fire('orbit.employee.postdeleteemployee.after.save', array($this, $deletedUser));
+            $this->response->data = $deletedUser;
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postupdateuser.after.commit', array($this, $updateduser));
+            Event::fire('orbit.employee.postdeleteemployee.after.commit', array($this, $deletedUser));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postupdateuser.access.forbidden', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -654,18 +542,18 @@ class EmployeeAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postupdateuser.invalid.arguments', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postupdateuser.query.error', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -682,15 +570,14 @@ class EmployeeAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postupdateuser.general.exception', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
 
-            // Only shows full query error when we are in debug mode
             if (Config::get('app.debug')) {
-                $this->response->message = $e->getMessage();
+                $this->response->data = $e->__toString();
             } else {
                 $this->response->data = null;
             }
@@ -1359,30 +1246,6 @@ class EmployeeAPIController extends ControllerAPI
 
     protected function registerCustomValidation()
     {
-        // Check user old password
-        Validator::extend('valid_user_password', function ($attribute, $value, $parameters) {
-            if (Hash::check($value, $this->api->user->user_password)) {
-                return TRUE;
-            }
-
-            return FALSE;
-        });
-
-        // Check user email address, it should not exists
-        Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
-            $user = User::excludeDeleted()
-                        ->where('user_email', $value)
-                        ->first();
-
-            if (! empty($user)) {
-                return FALSE;
-            }
-
-            App::instance('orbit.validation.user', $user);
-
-            return TRUE;
-        });
-
         // Check username, it should not exists
         Validator::extend('orbit.exists.username', function ($attribute, $value, $parameters) {
             $user = User::excludeDeleted()
@@ -1435,30 +1298,12 @@ class EmployeeAPIController extends ControllerAPI
             return TRUE;
         });
 
-        // Check the existance of the Role
+        // Check the existance of the Status
         Validator::extend('orbit.empty.user_status', function ($attribute, $value, $parameters) {
-            $valid = false;
             $statuses = array('active', 'pending', 'blocked', 'deleted');
-            foreach ($statuses as $status) {
-                if($value === $status) $valid = $valid || TRUE;
-            }
-
-            return $valid;
-        });
-
-        // Check user email address, it should not exists
-        Validator::extend('email_exists_but_me', function ($attribute, $value, $parameters) {
-            $user_id = OrbitInput::post('user_id');
-            $user = User::excludeDeleted()
-                        ->where('user_email', $value)
-                        ->where('user_id', '!=', $user_id)
-                        ->first();
-
-            if (! empty($user)) {
+            if (! in_array($value, $statuses)) {
                 return FALSE;
             }
-
-            App::instance('orbit.validation.user', $user);
 
             return TRUE;
         });
@@ -1501,6 +1346,26 @@ class EmployeeAPIController extends ControllerAPI
 
             if (! empty($employee)) {
                 App::instance('orbit.exists.employeeid', $employee);
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+
+        Validator::extend('orbit.empty.retailer', function ($attribute, $retailerIds, $parameters) {
+            if (! is_array($retailerIds)) {
+                return FALSE;
+            }
+
+            $number = count($retailerIds);
+            $user = $this->api->user;
+            $realNumber = Retailer::allowedForUser($user)
+                                  ->excludeDeleted()
+                                  ->whereIn('merchant_id', $retailerIds)
+                                  ->count();
+
+            if ((string)$realNumber !== (string)$number) {
                 return FALSE;
             }
 

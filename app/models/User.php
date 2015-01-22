@@ -72,6 +72,14 @@ class User extends Eloquent implements UserInterface
     }
 
     /**
+     * A user could be also mapped to an employee
+     */
+    public function employee()
+    {
+        return $this->hasOne('Employee', 'user_id', 'user_id');
+    }
+
+    /**
      * Tells Laravel the name of our password field so Laravel does not uses
      * its default `password` field. Our field name is `user_password`.
      *
