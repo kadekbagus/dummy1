@@ -65,32 +65,43 @@ class EmployeeAPIController extends ControllerAPI
             $password = OrbitInput::post('password');
             $password2 = OrbitInput::post('password_confirmation');
             $position = OrbitInput::post('position');
-            $employeeId = OrbitInput::post('employee_id');
+            $employeeId = OrbitInput::post('employee_id_char');
             $firstName = OrbitInput::post('firstname');
             $lastName = OrbitInput::post('lastname');
             $employeeRole = OrbitInput::post('employee_role');
+            $retailerIds = OrbitInput::post('retailer_ids');
 
+            $errorMessage = [
+                'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
+                    'role' => $employeeRole
+                ))
+            ];
             $validator = Validator::make(
                 array(
                     'firstname'             => $firstName,
                     'lastname'              => $lastName,
-                    'birtdate'              => $birthdate,
+                    'birthdate'             => $birthdate,
                     'position'              => $position,
-                    'employee_id'           => $employeeId,
+                    'employee_id_char'      => $employeeId,
                     'username'              => $loginId,
                     'password'              => $password,
                     'password_confirmation' => $password2,
-                    'employee_role'         => $employeeRole
+                    'employee_role'         => $employeeRole,
+                    'retailer_ids'          => $retailerIds
                 ),
                 array(
-                    'firstname'     => 'required',
-                    'lastname'      => 'required',
-                    'birthdate'     => 'required|date_format:Y-m-d',
-                    'position'      => 'required',
-                    'employee_id'   => 'required|orbit.exists.employeeid',
-                    'username'      => 'required|orbit.exists.username',
-                    'password'      => 'required|min:5|confirmed',
-                    'employee_role' => 'required|orbit.empty.employee.role'
+                    'firstname'         => 'required',
+                    'lastname'          => 'required',
+                    'birthdate'         => 'required|date_format:Y-m-d',
+                    'position'          => 'required',
+                    'employee_id_char'  => 'required|orbit.exists.employeeid',
+                    'username'          => 'required|orbit.exists.username',
+                    'password'          => 'required|min:5|confirmed',
+                    'employee_role'     => 'required|orbit.empty.employee.role',
+                    'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
+                ),
+                array(
+                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
                 )
             );
 
@@ -106,37 +117,57 @@ class EmployeeAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $newEmployee = new User();
-            $newEmployee->username = $loginId;
-            $newEmployee->user_email = sprintf('%@local.localdomain', $loginId);
-            $newEmployee->user_password = Hash::make($password);
-            $newEmployee->status = 'active';
-            $newEmployee->user_role_id = $user_role_id;
-            $newEmployee->user_ip = $_SERVER['REMOTE_ADDR'];
-            $newEmployee->modified_by = $this->api->user->user_id;
+            $role = App::make('orbit.empty.employee.role');
 
-            Event::fire('orbit.employee.postnewemployee.before.save', array($this, $newEmployee));
+            $newUser = new User();
+            $newUser->username = $loginId;
+            $newUser->user_email = sprintf('%@local.localdomain', $loginId);
+            $newUser->user_password = Hash::make($password);
+            $newUser->status = 'active';
+            $newUser->user_role_id = $role->role_id;
+            $newUser->user_ip = $_SERVER['REMOTE_ADDR'];
+            $newUser->modified_by = $this->api->user->user_id;
+            $newUser->user_firstname = $firstName;
+            $newUser->user_lastname = $lastName;
 
-            $newEmployee->save();
+            Event::fire('orbit.employee.postnewemployee.before.save', array($this, $newUser));
+
+            $newUser->save();
 
             $apikey = new Apikey();
-            $apikey->api_key = Apikey::genApiKey($newEmployee);
-            $apikey->api_secret_key = Apikey::genSecretKey($newEmployee);
+            $apikey->api_key = Apikey::genApiKey($newUser);
+            $apikey->api_secret_key = Apikey::genSecretKey($newUser);
             $apikey->status = 'active';
-            $apikey->user_id = $newEmployee->user_id;
-            $apikey = $newEmployee->apikey()->save($apikey);
+            $apikey->user_id = $newUser->user_id;
+            $apikey = $newUser->apikey()->save($apikey);
 
-            $newEmployee->setRelation('apikey', $apikey);
-            $newEmployee->apikey = $apikey;
-            $newEmployee->setHidden(array('user_password'));
+            $newUser->setRelation('apikey', $apikey);
+            $newUser->apikey = $apikey;
+            $newUser->setHidden(array('user_password'));
 
-            Event::fire('orbit.employee.postnewemployee.after.save', array($this, $newEmployee));
-            $this->response->data = $newEmployee;
+            $userdetail = new UserDetail();
+            $userdetail = $newUser->userdetail()->save($userdetail);
+
+            $newEmployee = new Employee();
+            $newEmployee->employee_id_char = $employeeId;
+            $newEmployee->position = $position;
+            $newEmployee->status = $newUser->status;
+            $newEmployee = $newUser->employee()->save($newEmployee);
+
+            $newUser->setRelation('employee', $newEmployee);
+            $newUser->employee = $newEmployee;
+
+            if ($retailerIds) {
+                $newEmployee->retailers()->sync($retailerIds);
+            }
+
+            Event::fire('orbit.employee.postnewemployee.after.save', array($this, $newUser));
+            $this->response->data = $newUser;
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.employee.postnewemployee.after.commit', array($this, $newEmployee));
+            Event::fire('orbit.employee.postnewemployee.after.commit', array($this, $newUser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.employee.postnewemployee.access.forbidden', array($this, $e));
 
@@ -182,7 +213,12 @@ class EmployeeAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
@@ -1501,6 +1537,22 @@ class EmployeeAPIController extends ControllerAPI
 
             if (! empty($employee)) {
                 App::instance('orbit.exists.employeeid', $employee);
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+
+        Validator::extend('orbit.empty.retailer', function ($attribute, $retailerIds, $parameters) {
+            $number = count($retailerIds);
+            $user = $this->api->user;
+            $realNumber = Retailer::allowedForUser($user)
+                                  ->excludeDeleted()
+                                  ->whereIn('merchant_id', $retailerIds)
+                                  ->count();
+
+            if ((string)$realNumber !== (string)$number) {
                 return FALSE;
             }
 
