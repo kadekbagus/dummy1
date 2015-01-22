@@ -47,3 +47,8 @@ Route::post('/app/v1/employee/update', 'IntermediateAuthController@Employee_post
  * Delete an Employee
  */
 Route::post('/app/v1/employee/delete', 'IntermediateAuthController@Employee_postDeleteEmployee');
+
+/**
+ * Search Employees
+ */
+Route::get('/app/v1/employee/list', 'IntermediateAuthController@Employee_getSearchEmployee');

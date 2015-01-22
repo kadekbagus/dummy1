@@ -66,3 +66,11 @@ Route::post('/api/v1/employee/delete', function()
 {
     return UserAPIController::create()->postDeleteEmployee();
 });
+
+/**
+ * Search Employees
+ */
+Route::get('/api/v1/employee/list', function()
+{
+    return UserAPIController::create()->getSearchEmployee();
+});
