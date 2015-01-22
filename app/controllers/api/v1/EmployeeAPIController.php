@@ -270,8 +270,8 @@ class EmployeeAPIController extends ControllerAPI
             if (! ACL::create($user)->isAllowed('update_employee')) {
                 Event::fire('orbit.employee.postupdateemployee.authz.notallowed', array($this, $user));
 
-                $createUserLang = Lang::get('validation.orbit.actionlist.update_employee');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createUserLang));
+                $lang = Lang::get('validation.orbit.actionlist.update_employee');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $lang));
 
                 ACL::throwAccessForbidden($message);
             }
@@ -449,95 +449,89 @@ class EmployeeAPIController extends ControllerAPI
     }
 
     /**
-     * POST - Delete user
+     * POST - Delete Existing Employee
      *
-     * @author kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `user_id`                 (required) - ID of the user
+     * @param string    `user_id`               (required) - User ID of the employee
      * @return Illuminate\Support\Facades\Response
      */
-    public function postDeleteUser()
+    public function postDeleteEmployee()
     {
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.user.postdeleteuser.before.auth', array($this));
+            Event::fire('orbit.employee.postdeleteemployee.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.user.postdeleteuser.after.auth', array($this));
+            Event::fire('orbit.employee.postdeleteemployee.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.user.postdeleteuser.before.authz', array($this, $user));
+            Event::fire('orbit.employee.postdeleteemployee.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('delete_user')) {
-                Event::fire('orbit.user.postdeleteuser.authz.notallowed', array($this, $user));
-                $deleteUserLang = Lang::get('validation.orbit.actionlist.delete_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteUserLang));
+            if (! ACL::create($user)->isAllowed('delete_employee')) {
+                Event::fire('orbit.employee.postdeleteemployee.authz.notallowed', array($this, $user));
+
+                $lang = Lang::get('validation.orbit.actionlist.delete_employee');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $lang));
+
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.user.postdeleteuser.after.authz', array($this, $user));
+            Event::fire('orbit.employee.postdeleteemployee.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
-            $user_id = OrbitInput::post('user_id');
-
-            // Error message when access is forbidden
-            $deleteYourSelf = Lang::get('validation.orbit.actionlist.delete_your_self');
-            $message = Lang::get('validation.orbit.access.forbidden',
-                                 array('action' => $deleteYourSelf));
+            $userId = OrbitInput::post('user_id');
 
             $validator = Validator::make(
                 array(
-                    'user_id' => $user_id,
+                    'user_id'               => $userId,
                 ),
                 array(
-                    'user_id' => 'required|numeric|orbit.empty.user|no_delete_themself',
-                ),
-                array(
-                    'no_delete_themself' => $message,
+                    'user_id'               => 'required|numeric|orbit.empty.user'
                 )
             );
 
-            Event::fire('orbit.user.postdeleteuser.before.validation', array($this, $validator));
+            Event::fire('orbit.employee.postdeleteemployee.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.user.postdeleteuser.after.validation', array($this, $validator));
+            Event::fire('orbit.employee.postdeleteemployee.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
 
-            $deleteuser = User::with(array('apikey'))->find($user_id);
-            $deleteuser->status = 'deleted';
-            $deleteuser->modified_by = $this->api->user->user_id;
+            $deletedUser = App::make('orbit.empty.user');
+            $deletedUser->status = 'deleted';
+            $deletedUser->modified_by = $this->api->user->user_id;
 
-            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-            $deleteapikey->status = 'deleted';
+            Event::fire('orbit.employee.postdeleteemployee.before.save', array($this, $deletedUser));
 
-            Event::fire('orbit.user.postdeleteuser.before.save', array($this, $deleteuser));
+            $deletedUser->save();
 
-            $deleteuser->save();
-            $deleteapikey->save();
+            // Get the relation
+            $employee = $deletedUser->employee;
+            $employee->status = $deletedUser->status;
+            $employee->save();
 
-            Event::fire('orbit.user.postdeleteuser.after.save', array($this, $deleteuser));
-            $this->response->data = null;
-            $this->response->message = Lang::get('statuses.orbit.deleted.user');
+            Event::fire('orbit.employee.postdeleteemployee.after.save', array($this, $deletedUser));
+            $this->response->data = $deletedUser;
 
             // Commit the changes
             $this->commit();
 
-            Event::fire('orbit.user.postdeleteuser.after.commit', array($this, $deleteuser));
+            Event::fire('orbit.employee.postdeleteemployee.after.commit', array($this, $deletedUser));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postdeleteuser.access.forbidden', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -548,18 +542,18 @@ class EmployeeAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postdeleteuser.invalid.arguments', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
         } catch (QueryException $e) {
-            Event::fire('orbit.user.postdeleteuser.query.error', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -576,21 +570,23 @@ class EmployeeAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         } catch (Exception $e) {
-            Event::fire('orbit.user.postdeleteuser.general.exception', array($this, $e));
+            Event::fire('orbit.employee.postdeleteemployee.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
 
             // Rollback the changes
             $this->rollBack();
         }
 
-        $output = $this->render($httpCode);
-        Event::fire('orbit.user.postdeleteuser.before.render', array($this, $output));
-
-        return $output;
+        return $this->render($httpCode);
     }
 
     /**
