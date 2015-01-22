@@ -58,3 +58,11 @@ Route::post('/api/v1/employee/update', function()
 {
     return UserAPIController::create()->postUpdateEmployee();
 });
+
+/**
+ * Delete an Employee
+ */
+Route::post('/api/v1/employee/delete', function()
+{
+    return UserAPIController::create()->postDeleteEmployee();
+});
