@@ -12,14 +12,20 @@
 		<div>
 			<?php $x=1; ?>
 			@if(count($promotions)>0)
-			<div class="ribbon-wrapper-green ribbon{{$x}}st">
+			<div class="ribbon-wrapper-green ribbon{{$x}}">
 				<div class="ribbon-green">Promo</div>
 			</div>
 			<?php $x++;?>
 			@endif
 			@if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now())
-			<div class="ribbon-wrapper-red ribbon{{$x}}nd">
+			<div class="ribbon-wrapper-red ribbon{{$x}}">
 				<div class="ribbon-red">New</div>
+			</div>
+			<?php $x++;?>
+			@endif
+			@if(count($coupons)>0)
+			<div class="ribbon-wrapper-yellow ribbon{{$x}}">
+				<div class="ribbon-yellow">Coupon</div>
 			</div>
 			<?php $x++;?>
 			@endif

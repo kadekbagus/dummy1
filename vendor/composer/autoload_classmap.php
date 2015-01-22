@@ -80,6 +80,7 @@ return array(
     'CouponRule' => $baseDir . '/app/models/CouponRule.php',
     'CreatePersonalInterests' => $baseDir . '/app/database/migrations/2015_01_16_143511_create_personal_interests.php',
     'CreateTableApikeys' => $baseDir . '/app/database/migrations/2014_10_14_083536_create_table_apikeys.php',
+    'CreateTableCartCoupons' => $baseDir . '/app/database/migrations/2015_01_22_020809_create_table_cart_coupons.php',
     'CreateTableCartDetails' => $baseDir . '/app/database/migrations/2015_01_05_030410_create_table_cart_details.php',
     'CreateTableCarts' => $baseDir . '/app/database/migrations/2015_01_05_030015_create_table_carts.php',
     'CreateTableCategories' => $baseDir . '/app/database/migrations/2014_11_13_094502_create_table_categories.php',
