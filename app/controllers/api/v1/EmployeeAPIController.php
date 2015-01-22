@@ -590,33 +590,34 @@ class EmployeeAPIController extends ControllerAPI
     }
 
     /**
-     * GET - Search user (currently only basic info)
+     * GET - Search employees
      *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
-     * @author Kadek Bagus <kadek@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sort_by`               (optional) - column order by
-     * @param string   `sort_mode`             (optional) - asc or desc
-     * @param integer  `user_id`               (optional)
-     * @param integer  `role_id`               (optional)
-     * @param string   `username`              (optional)
-     * @param string   `email`                 (optional)
-     * @param string   `firstname`             (optional)
-     * @param string   `lastname`              (optional)
-     * @param string   `status`                (optional)
-     * @param string   `username_like`         (optional)
-     * @param string   `email_like`            (optional)
-     * @param string   `firstname_like`        (optional)
-     * @param string   `lastname_like`         (optional)
-     * @param integer  `take`                  (optional) - limit
-     * @param integer  `skip`                  (optional) - limit offset
+     * @param string    `sort_by`               (optional) - column order by
+     * @param string    `sort_mode`             (optional) - asc or desc
+     * @param array     `user_ids`              (optional)
+     * @param array     `role_ids`              (optional)
+     * @param array     `retailer_ids`          (optional)
+     * @param array     `merchant_ids`          (optional)
+     * @param array     `usernames`             (optional)
+     * @param array     `firstnames`            (optional)
+     * @param array     `lastname`              (optional)
+     * @param array     `statuses`              (optional)
+     * @param array     `employee_id_chars`     (optional)
+     * @param string    `username_like`         (optional)
+     * @param string    `firstname_like`        (optional)
+     * @param string    `lastname_like`         (optional)
+     * @param array     `employee_id_char_like` (optional)
+     * @param integer   `take`                  (optional) - limit
+     * @param integer   `skip`                  (optional) - limit offset
+     * @param array     `with`                  (optional) - default to ['employee.retailers', 'userDetail']
      * @return Illuminate\Support\Facades\Response
      */
 
-    public function getSearchUser()
+    public function getSearchEmployee()
     {
         try {
             $httpCode = 200;
@@ -644,15 +645,20 @@ class EmployeeAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $sort_by = OrbitInput::get('sortby');
+            $role_ids = OrbitInput::post('role_ids');
             $validator = Validator::make(
                 array(
-                    'sort_by' => $sort_by,
+                    'sort_by'   => $sort_by,
+                    'role_ids'  => $role_ids,
+                    'with'      => OrbitInput::get('with')
                 ),
                 array(
-                    'sort_by' => 'in:username,email,firstname,lastname,registered_date',
+                    'sort_by'   => 'in:username,firstname,lastname,registered_date,employee_id_char,',
+                    'role_ids'  => 'array|orbit.employee.role.limited',
+                    'with'      => 'array|min:1'
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                    'in' => Lang::get('validation.orbit.empty.employee_sortby'),
                 )
             );
 
@@ -666,21 +672,38 @@ class EmployeeAPIController extends ControllerAPI
             Event::fire('orbit.user.getsearchuser.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.employee.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
             }
 
             // Builder object
-            $users = User::with(array('userdetail'))->excludeDeleted();
+            $joined = FALSE;
+            $users = User::excludeDeleted('users');
+            $defaultWith = array('employee.retailers');
 
             // Filter user by Ids
-            OrbitInput::get('user_id', function ($userIds) use ($users) {
+            OrbitInput::get('user_ids', function ($userIds) use ($users) {
                 $users->whereIn('users.user_id', $userIds);
             });
 
+            // Filter user by Retailer Ids
+            OrbitInput::get('retailer_ids', function ($retailerIds) use ($users, $joined) {
+                $joined = TRUE;
+                $users->employeeRetailerIds($retailerIds);
+            });
+
+            // Filter user by Merchant Ids
+            OrbitInput::get('merchant_ids', function ($merchantIds) use ($users, $joined) {
+                $joined = TRUE;
+                $users->employeeMerchantIds($retailerIds);
+            });
+
             // Filter user by username
-            OrbitInput::get('username', function ($username) use ($users) {
+            OrbitInput::get('usernames', function ($username) use ($users) {
                 $users->whereIn('users.username', $username);
             });
 
@@ -690,8 +713,20 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             // Filter user by their firstname
-            OrbitInput::get('firstname', function ($firstname) use ($users) {
+            OrbitInput::get('firstnames', function ($firstname) use ($users) {
                 $users->whereIn('users.user_firstname', $firstname);
+            });
+
+            // Filter user by their employee_id_char
+            OrbitInput::get('employee_id_char', function ($idChars) use ($users, $joined) {
+                $joined = TRUE;
+                $users->employeeIdChars($idChars);
+            });
+
+           // Filter user by their employee_id_char pattern
+            OrbitInput::get('employee_id_char_like', function ($idCharLike) use ($users, $joined) {
+                $joined = TRUE;
+                $users->employeeIdCharLike($idCharLike);
             });
 
             // Filter user by their firstname pattern
@@ -709,13 +744,8 @@ class EmployeeAPIController extends ControllerAPI
                 $users->where('users.user_lastname', 'like', "%$firstname%");
             });
 
-            // Filter user by their email
-            OrbitInput::get('email', function ($email) use ($users) {
-                $users->whereIn('users.user_email', $email);
-            });
-
             // Filter user by their status
-            OrbitInput::get('status', function ($status) use ($users) {
+            OrbitInput::get('statuses', function ($status) use ($users) {
                 $users->whereIn('users.status', $status);
             });
 
@@ -723,6 +753,24 @@ class EmployeeAPIController extends ControllerAPI
             OrbitInput::get('role_id', function ($roleId) use ($users) {
                 $users->whereIn('users.user_role_id', $roleId);
             });
+
+            if (empty(OrbitInput::get('role_id'))) {
+                $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+                $roles = Role::whereIn('role_name', $invalidRoles)->get();
+
+                $ids = array();
+                foreach ($roles as $role) {
+                    $ids[] = $role->role_id;
+                }
+                $users->whereNotIn('users.user_role_id', $ids);
+            }
+
+            // Include Relationship
+            $with = $defaultWith;
+            OrbitInput::get('with', function ($_with) use ($users, &$with) {
+                $with = array_merge($with, $_with);
+            });
+            $users->with($with);
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
@@ -754,11 +802,15 @@ class EmployeeAPIController extends ControllerAPI
             $sortMode = 'desc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                if ($_sortBy === 'employee_id_char') {
+                    $users->prepareEmployeeRetailerCalled();
+                }
+
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'registered_date'   => 'users.created_at',
                     'username'          => 'users.username',
-                    'email'             => 'users.user_email',
+                    'employee_id_char'  => 'employee.user_email',
                     'lastname'          => 'users.user_lastname',
                     'firstname'         => 'users.user_firstname'
                 );
@@ -832,414 +884,6 @@ class EmployeeAPIController extends ControllerAPI
 
         $output = $this->render($httpCode);
         Event::fire('orbit.user.getsearchuser.before.render', array($this, &$output));
-
-        return $output;
-    }
-
-    /**
-     * GET - Search Consumer (currently only basic info)
-     *
-     * @author Kadek Bagus <kadek@dominopos.com>
-     * @author Rio Astamal <me@rioastamal.net>
-     *
-     * List of API Parameters
-     * ----------------------
-     * @param string        `sort_by`           (optional) - column order by
-     * @param string        `sort_mode`         (optional) - asc or desc
-     * @param integer       `user_id`           (optional)
-     * @param string        `username`          (optional)
-     * @param string        `email`             (optional)
-     * @param string        `firstname`         (optional)
-     * @param string        `lastname`          (optional)
-     * @param string        `status`            (optional)
-     * @param string        `username_like`     (optional)
-     * @param string        `email_like`        (optional)
-     * @param string        `firstname_like`    (optional)
-     * @param string        `lastname_like`     (optional)
-     * @param array|string  `merchant_id`       (optional) - Id of the merchant, could be array or string with comma separated value
-     * @param array|string  `retailer_id`       (optional) - Id of the retailer (Shop), could be array or string with comma separated value
-     * @param integer       `take`              (optional) - limit
-     * @param integer       `skip`              (optional) - limit offset
-     * @return Illuminate\Support\Facades\Response
-     */
-    public function getConsumerListing()
-    {
-        try {
-            $httpCode = 200;
-
-            Event::fire('orbit.user.getconsumer.before.auth', array($this));
-
-            // Require authentication
-            $this->checkAuth();
-
-            Event::fire('orbit.user.getconsumer.after.auth', array($this));
-
-            // Try to check access control list, does this user allowed to
-            // perform this action
-            $user = $this->api->user;
-            Event::fire('orbit.user.getconsumer.before.authz', array($this, $user));
-
-            if (! ACL::create($user)->isAllowed('view_user')) {
-                Event::fire('orbit.user.getconsumer.authz.notallowed', array($this, $user));
-                $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message);
-            }
-            Event::fire('orbit.user.getconsumer.after.authz', array($this, $user));
-
-            $this->registerCustomValidation();
-
-            $sort_by = OrbitInput::get('sortby');
-            $validator = Validator::make(
-                array(
-                    'sort_by' => $sort_by,
-                ),
-                array(
-                    'sort_by' => 'in:username,email,firstname,lastname,registered_date',
-                ),
-                array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
-                )
-            );
-
-            Event::fire('orbit.user.getconsumer.before.validation', array($this, $validator));
-
-            // Run the validation
-            if ($validator->fails()) {
-                $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-            Event::fire('orbit.user.getconsumer.after.validation', array($this, $validator));
-
-            // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
-            if ($maxRecord <= 0) {
-                $maxRecord = 20;
-            }
-
-            // Builder object
-            $users = User::Consumers()
-                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                         ->excludeDeleted();
-
-            // Filter by merchant ids
-            OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
-                $users->merchantIds($merchantIds);
-            });
-
-            // Filter by retailer (shop) ids
-            OrbitInput::get('retailer_id', function($retailerIds) use ($users) {
-                $users->retailerIds($retailerIds);
-            });
-
-            // Filter user by Ids
-            OrbitInput::get('user_id', function ($userIds) use ($users) {
-                $users->whereIn('users.user_id', $userIds);
-            });
-
-            // Filter user by username
-            OrbitInput::get('username', function ($username) use ($users) {
-                $users->whereIn('users.username', $username);
-            });
-
-            // Filter user by matching username pattern
-            OrbitInput::get('username_like', function ($username) use ($users) {
-                $users->where('users.username', 'like', "%$username%");
-            });
-
-            // Filter user by their firstname
-            OrbitInput::get('firstname', function ($firstname) use ($users) {
-                $users->whereIn('users.user_firstname', $firstname);
-            });
-
-            // Filter user by their firstname pattern
-            OrbitInput::get('firstname_like', function ($firstname) use ($users) {
-                $users->where('users.user_firstname', 'like', "%$firstname%");
-            });
-
-            // Filter user by their lastname
-            OrbitInput::get('lastname', function ($lastname) use ($users) {
-                $users->whereIn('users.user_lastname', $lastname);
-            });
-
-            // Filter user by their lastname pattern
-            OrbitInput::get('lastname_like', function ($lastname) use ($users) {
-                $users->where('users.user_lastname', 'like', "%$lastname%");
-            });
-
-            // Filter user by their email
-            OrbitInput::get('email', function ($email) use ($users) {
-                $users->whereIn('users.user_email', $email);
-            });
-
-            // Filter user by their email pattern
-            OrbitInput::get('email_like', function ($email) use ($users) {
-                $users->where('users.user_email', 'like', "%$email%");
-            });
-
-            // Filter user by their status
-            OrbitInput::get('status', function ($status) use ($users) {
-                $users->whereIn('users.status', $status);
-            });
-
-            // Clone the query builder which still does not include the take,
-            // skip, and order by
-            $_users = clone $users;
-
-            // Get the take args
-            $take = $maxRecord;
-            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord) {
-                    $_take = $maxRecord;
-                }
-                $take = $_take;
-            });
-            $users->take($take);
-
-            $skip = 0;
-            OrbitInput::get('skip', function ($_skip) use (&$skip, $users) {
-                if ($_skip < 0) {
-                    $_skip = 0;
-                }
-
-                $skip = $_skip;
-            });
-            $users->skip($skip);
-
-            // Default sort by
-            $sortBy = 'users.created_at';
-            // Default sort mode
-            $sortMode = 'desc';
-
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
-                // Map the sortby request to the real column name
-                $sortByMapping = array(
-                    'registered_date'   => 'users.created_at',
-                    'username'          => 'users.username',
-                    'email'             => 'users.user_email',
-                    'lastname'          => 'users.user_lastname',
-                    'firstname'         => 'users.user_firstname'
-                );
-
-                $sortBy = $sortByMapping[$_sortBy];
-            });
-
-            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
-                }
-            });
-            $users->orderBy($sortBy, $sortMode);
-
-            $totalUsers = $_users->count();
-            $listOfUsers = $users->get();
-
-            $data = new stdclass();
-            $data->total_records = $totalUsers;
-            $data->returned_records = count($listOfUsers);
-            $data->records = $listOfUsers;
-
-            if ($totalUsers === 0) {
-                $data->records = null;
-                $this->response->message = Lang::get('statuses.orbit.nodata.user');
-            }
-
-            $this->response->data = $data;
-        } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.getconsumer.access.forbidden', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $httpCode = 403;
-        } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.getconsumer.invalid.arguments', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $result['total_records'] = 0;
-            $result['returned_records'] = 0;
-            $result['records'] = null;
-
-            $this->response->data = $result;
-            $httpCode = 403;
-        } catch (QueryException $e) {
-            Event::fire('orbit.user.getconsumer.query.error', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-
-            // Only shows full query error when we are in debug mode
-            if (Config::get('app.debug')) {
-                $this->response->message = $e->getMessage();
-            } else {
-                $this->response->message = Lang::get('validation.orbit.queryerror');
-            }
-            $this->response->data = null;
-            $httpCode = 500;
-        } catch (Exception $e) {
-            Event::fire('orbit.user.getconsumer.general.exception', array($this, $e));
-
-            $this->response->code = $this->getNonZeroCode($e->getCode());
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        }
-
-        $output = $this->render($httpCode);
-        Event::fire('orbit.user.getconsumer.before.render', array($this, &$output));
-
-        return $output;
-    }
-
-    /**
-     * POST - Change password user
-     *
-     * @author Ahmad <ahmad@dominopos.com>
-     *
-     * List of API Parameters
-     * ----------------------
-     * @param integer    `user_id`                 (required) - ID of the user
-     * @param string     `old_password`            (required) - user's old password
-     * @param string     `new_password`            (required) - user's new password
-     * @param string     `confirm_password`            (required) - confirmation user's new password
-     * @return Illuminate\Support\Facades\Response
-     */
-    public function postChangePassword()
-    {
-        try {
-            $httpCode = 200;
-
-            Event::fire('orbit.user.postchangepassword.before.auth', array($this));
-
-            // Require authentication
-            $this->checkAuth();
-
-            Event::fire('orbit.user.postchangepassword.after.auth', array($this));
-
-            // Try to check access control list, does this user allowed to
-            // perform this action
-            $user = $this->api->user;
-            Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
-
-            if (! ACL::create($user)->isAllowed('change_password')) {
-                Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
-                $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
-                ACL::throwAccessForbidden($message);
-            }
-            Event::fire('orbit.user.postchangepassword.after.authz', array($this, $user));
-
-            $this->registerCustomValidation();
-
-            // $user_id = OrbitInput::post('user_id');
-            $old_password = OrbitInput::post('old_password');
-            $new_password = OrbitInput::post('new_password');
-            $new_password_confirmation = OrbitInput::post('confirm_password');
-
-            // Error message when old password is not correct
-            $message = Lang::get('validation.orbit.access.old_password_not_match');
-
-            $validator = Validator::make(
-                array(
-                    // 'user_id' => $user_id,
-                    'old_password' => $old_password,
-                    'new_password' => $new_password,
-                    'new_password_confirmation' => $new_password_confirmation,
-                ),
-                array(
-                    // 'user_id' => 'required|numeric|orbit.empty.user',
-                    'old_password' => 'required|min:5|valid_user_password',
-                    'new_password' => 'required|min:5|confirmed',
-                ),
-                array(
-                    'valid_user_password' => $message,
-                )
-            );
-
-            Event::fire('orbit.user.postchangepassword.before.validation', array($this, $validator));
-
-            // Run the validation
-            if ($validator->fails()) {
-                $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-            Event::fire('orbit.user.postchangepassword.after.validation', array($this, $validator));
-
-            // Begin database transaction
-            $this->beginTransaction();
-
-            $passupdateduser = User::excludeDeleted()->find($this->api->user->user_id);
-            $passupdateduser->user_password = Hash::make($new_password);
-            $passupdateduser->modified_by = $this->api->user->user_id;
-
-            Event::fire('orbit.user.postchangepassword.before.save', array($this, $passupdateduser));
-
-            $passupdateduser->save();
-
-            Event::fire('orbit.user.postchangepassword.after.save', array($this, $passupdateduser));
-            $this->response->data = null;
-            $this->response->message = Lang::get('statuses.orbit.updated.user');
-
-            // Commit the changes
-            $this->commit();
-
-            Event::fire('orbit.user.postchangepassword.after.commit', array($this, $passupdateduser));
-        } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.user.postchangepassword.access.forbidden', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $httpCode = 403;
-
-            // Rollback the changes
-            $this->rollBack();
-        } catch (InvalidArgsException $e) {
-            Event::fire('orbit.user.postchangepassword.invalid.arguments', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $httpCode = 403;
-
-            // Rollback the changes
-            $this->rollBack();
-        } catch (QueryException $e) {
-            Event::fire('orbit.user.postchangepassword.query.error', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-
-            // Only shows full query error when we are in debug mode
-            if (Config::get('app.debug')) {
-                $this->response->message = $e->getMessage();
-            } else {
-                $this->response->message = Lang::get('validation.orbit.queryerror');
-            }
-            $this->response->data = null;
-            $httpCode = 500;
-
-            // Rollback the changes
-            $this->rollBack();
-        } catch (Exception $e) {
-            Event::fire('orbit.user.postchangepassword.general.exception', array($this, $e));
-
-            $this->response->code = $this->getNonZeroCode($e->getCode());
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-
-            // Rollback the changes
-            $this->rollBack();
-        }
-
-        $output = $this->render($httpCode);
-        Event::fire('orbit.user.postchangepassword.before.render', array($this, $output));
 
         return $output;
     }
@@ -1335,6 +979,26 @@ class EmployeeAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.employee.role', $role);
+
+            return TRUE;
+        });
+
+        Validator::extend('orbit.employee.role.limited', function ($attribute, $value, $parameters) {
+            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+            $roles = Role::whereIn('role_name', $invalidRoles)->get();
+
+            if ($roles) {
+                foreach ($roles as $role) {
+                    foreach ($value as $roleId) {
+                        if ((string)$roleId === (string)$role->role_id) {
+                            // This role Id is not allowed
+                            return FALSE;
+                        }
+                    }
+                }
+            }
+
+            App::instance('orbit.employee.role.limited', $value);
 
             return TRUE;
         });
