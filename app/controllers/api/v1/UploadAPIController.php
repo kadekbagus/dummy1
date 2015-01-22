@@ -572,7 +572,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $product_id = $product->product_id;
                 $slug = Str::slug($product->product_name);
-                $file['new']->name = sprintf('%s-%s', $product_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $product_id, $slug, time());
             };
 
             // Load the orbit configuration for product upload
@@ -960,7 +960,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $promotion_id = $promotion->promotion_id;
                 $slug = Str::slug($promotion->promotion_name);
-                $file['new']->name = sprintf('%s-%s', $promotion_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $promotion_id, $slug, time());
             };
 
             // Load the orbit configuration for promotion upload
@@ -1745,7 +1745,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $promotion_id = $coupon->promotion_id;
                 $slug = Str::slug($coupon->promotion_name);
-                $file['new']->name = sprintf('%s-%s', $promotion_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $promotion_id, $slug, time());
             };
 
             // Load the orbit configuration for coupon upload
