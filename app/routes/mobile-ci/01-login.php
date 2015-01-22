@@ -116,3 +116,9 @@ Route::post('/app/v1/customer/cartcouponpopup', function()
 {
     return MobileCI\MobileCIAPIController::create()->postCartCouponPopup();
 });
+
+// cart product-based-coupon pop up
+Route::post('/app/v1/customer/productcouponpopup', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postProductCouponPopup();
+});

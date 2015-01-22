@@ -64,7 +64,7 @@
 			@if(count($product->variants) <= 1)
 			<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
 				<div class="circlet btn-blue cart-btn text-center">
-					<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+					<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}" >
 						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 					</a>
 				</div>
