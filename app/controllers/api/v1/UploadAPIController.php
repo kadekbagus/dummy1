@@ -184,7 +184,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $merchant_id = $merchant->merchant_id;
                 $slug = Str::slug($merchant->name);
-                $file['new']->name = sprintf('%s-%s', $merchant_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $merchant_id, $slug, time());
             };
 
             // Load the orbit configuration for merchant upload logo
@@ -1353,7 +1353,7 @@ class UploadAPIController extends ControllerAPI
                 $user_id = $user->user_id;
                 $slug = str_replace('@', '_at_', $user->user_email);
                 $slug = Str::slug($slug);
-                $file['new']->name = sprintf('%s-%s', $user_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $user_id, $slug, time());
             };
 
             // Load the orbit configuration for user profile picture
@@ -2133,7 +2133,7 @@ class UploadAPIController extends ControllerAPI
             {
                 $widget_id = $widget->widget_id;
                 $slug = Str::slug($widget->widget_slogan);
-                $file['new']->name = sprintf('%s-%s', $widget_id, $slug);
+                $file['new']->name = sprintf('%s-%s-%s', $widget_id, $slug, time());
             };
 
             // Load the orbit configuration for user profile picture
