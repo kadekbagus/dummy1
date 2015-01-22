@@ -10,6 +10,12 @@ class Employee extends Eloquent
     protected $primaryKey = 'employee_id';
 
     /**
+     * Import trait ModelStatusTrait so we can use some common scope dealing
+     * with `status` field.
+     */
+    use ModelStatusTrait;
+
+    /**
      * Employee belongs to a User
      */
     public function user()
