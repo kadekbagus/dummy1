@@ -477,8 +477,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     console.log(data);
                     serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
+                                var name = response.data.users.user_firstname+' '+response.data.users.user_lastname;
                                 $scope.successscant = true;
-                                $scope.guests       = response.data.users.username;
+                                $scope.guests       = name;
                                 $scope.cart.user_id = response.data.users.user_id;
                                 for(var i = 0; i < response.data.details.length; i++){
                                     $scope.productmodal        = response.data.details[i]['product'];
@@ -486,7 +487,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     angular.element("#modalscancart").modal('hide');
                                     $scope.inserttocartFn(true);
                                     if(bool)  $scope.virtualFn(false);
-                                    $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));  
+                                    $scope.customerdispaly('Welcome',name.substr(0,20));  
                                 }
                                  $scope.scanproduct();
                                  $scope.errorscancart = '';
