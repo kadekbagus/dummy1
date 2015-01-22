@@ -17,7 +17,7 @@ class CreateTableCartCoupons extends Migration {
 			$table->engine = 'InnoDB';
 			$table->bigIncrements('cart_coupon_id');
 			$table->bigInteger('issued_coupon_id');
-			$table->varchar('object_type', 50);
+			$table->string('object_type', 50);
 			$table->bigInteger('object_id');
 			$table->timestamps();
 
