@@ -37,3 +37,8 @@ Route::post('/app/v1/user-profile-picture/delete', 'IntermediateAuthController@U
  * Create New Employee
  */
 Route::post('/app/v1/employee/new', 'IntermediateAuthController@Employee_postNewEmployee');
+
+/**
+ * Update an Employee
+ */
+Route::post('/app/v1/employee/update', 'IntermediateAuthController@Employee_postUpdateEmployee');
