@@ -77,6 +77,45 @@
           </div>
         </div>
         @endforeach
+
+        @foreach($used_product_coupons as $used_product_coupon)
+        <div class="cart-items-list">
+          <div class="single-item">
+            <div class="single-item-headers">
+              <div class="single-header unique-column">
+                <span class="header-text">Coupon Name</span>
+              </div>
+              <div class="single-header unique-column">
+                <span class="header-text">Discount</span>
+              </div>
+              <div class="single-header coupon-column">
+                <span class="header-text">Value ({{ $retailer->parent->currency_symbol }})</span>
+              </div>
+              <div class="single-header unique-column">
+                <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
+              </div>
+            </div>
+            <div class="single-item-bodies">
+              <div class="single-body">
+                <p><span class="product-coupon-name" data-product="{{ $used_product_coupon->issuedcoupon->promotion_id }}"><b>{{ $used_product_coupon->issuedcoupon->promotion_name }}</b></span></p>
+              </div>
+              <div class="single-body">
+                <div class="unique-column-properties">
+                  <div class="item-remover" data-detail="{{ $used_product_coupon->issuedcoupon->promotion_id }}">
+                    <span><i class="fa fa-times"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="single-body">
+                <span>{{ $used_product_coupon->disc_val_str }}</span>
+              </div>
+              <div class="single-body">
+                <span>{{ $used_product_coupon->disc_val }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        @endforeach
       @endif
     </div>
 
@@ -285,6 +324,25 @@
     </div>
   </div>
 
+  <!-- Modal -->
+  <div class="modal fade" id="transferFunctionModal" tabindex="-1" role="dialog" aria-labelledby="transferFunctionModalLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="transferFunctionModalLabel">{{ Lang::get('mobileci.page_title.transfercart') }}</h4>
+        </div>
+        <div class="modal-body">
+          <p id="errorModalText">Untuk menyelesaikan transfer keranjang, gunakan <i>Transfer Cart</i> pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.</p>
+        </div>
+        <div class="modal-footer">
+          <div class="pull-left"><input type="checkbox" id="dismiss" name="dismiss" value="0"> Jangan tunjukkan pesan ini lagi</div>
+          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <table class="ui-bar-a" id="n_keypad" style="display: none; -khtml-user-select: none;">
     <tr>
        <td class="num numero"><a data-role="button" data-theme="b" >7</a></td>
@@ -314,8 +372,26 @@
 @stop
 
 @section('ext_script_bot')
+{{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
   $(document).ready(function(){
+    $('#dismiss').change(function(){
+      if($(this).is(':checked')) {
+        $.cookie('dismiss_transfercart_popup', 't', { expires: 30 });
+      } else {
+        $.cookie('dismiss_transfercart_popup', 'f', { expires: 30 });
+      }
+    });
+    if(typeof $.cookie('dismiss_transfercart_popup') === 'undefined') {
+      $.cookie('dismiss_transfercart_popup', 'f', { expires: 30 });
+      $('#transferFunctionModal').modal();
+    }
+    else{
+      if($.cookie('dismiss_transfercart_popup') == 'f') {
+        $('#transferFunctionModal').modal();
+      }
+    }
+
     $('.item-remover').click(function(){
       $('#detail').val($(this).data('detail'));
       $('#deleteModal').modal();
