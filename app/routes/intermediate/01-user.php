@@ -32,3 +32,8 @@ Route::post('/app/v1/user/changepassword', 'IntermediateAuthController@User_post
  * Delete User profile picture
  */
 Route::post('/app/v1/user-profile-picture/delete', 'IntermediateAuthController@Upload_postDeleteUserImage');
+
+/**
+ * Create New Employee
+ */
+Route::post('/app/v1/employee/new', 'IntermediateAuthController@Employee_postNewEmployee');
