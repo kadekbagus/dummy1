@@ -110,6 +110,7 @@ return array(
                     'transaction'   => 'Product variant ID :id has a transaction, so it can not be edited.'
                 ),
             ),
+            'employeeid'            => 'The employee id is not available.',
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -183,7 +184,7 @@ return array(
             'transaction'          => 'The Transaction is not found.',
             'widget'               => 'The Widget ID you specify is not found.',
             'employee'             => array(
-                'role'             => 'The role :role you specify is not found.',
+                'role'             => 'The role ":role" is not found.',
             ),
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
