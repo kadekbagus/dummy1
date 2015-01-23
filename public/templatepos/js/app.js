@@ -386,8 +386,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.inserttocartFn();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                             /*angular.element("#ProductNotFound").modal();
-                             $scope.scanproduct();*/
+                             angular.element("#ProductNotFound").modal();
+                             $scope.scanproduct();
                         }
                     });
                 })();
@@ -471,14 +471,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
                     $scope.cancelRequestService();
-                    $scope.errorscancart = '';
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
+                    console.log(data);
                     serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
+                                var name = response.data.users.user_firstname+' '+response.data.users.user_lastname;
                                 $scope.successscant = true;
-                                $scope.guests       = response.data.users.username;
+                                $scope.guests       = name;
                                 $scope.cart.user_id = response.data.users.user_id;
                                 for(var i = 0; i < response.data.details.length; i++){
                                     $scope.productmodal        = response.data.details[i]['product'];
@@ -486,14 +487,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     angular.element("#modalscancart").modal('hide');
                                     $scope.inserttocartFn(true);
                                     if(bool)  $scope.virtualFn(false);
-                                    $scope.customerdispaly('Cart',response.data.users.user_email.substr(0,20));
-                                    $scope.scanproduct();
+                                    $scope.customerdispaly('Welcome',name.substr(0,20));  
                                 }
+                                 $scope.scanproduct();
+                                 $scope.errorscancart = '';
+                                 $scope.manualscancart = '';
                             }else{
                                 //do something when error
                                 $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
                                 $scope.manualscancart = '';
                                 $scope.scancartFn();
+
                             }
                     });
 
@@ -505,6 +509,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //cancel cart
         $scope.cancelCart = function(){
             $scope.scanproduct();
+            $scope.errorscancart  = '';
+            $scope.manualscancart = '';
+            $scope.isvirtualscancart = false;
         };
 
         //logout

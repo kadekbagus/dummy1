@@ -22,6 +22,9 @@ use \Config;
 use \Retailer;
 use \Product;
 use \Promotion;
+use \Coupon;
+use \CartCoupon;
+use \IssuedCoupon;
 use Carbon\Carbon as Carbon;
 use \stdclass;
 use \Category;
@@ -390,10 +393,10 @@ class MobileCIAPIController extends ControllerAPI
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on 
                 (
-                    (pr.discount_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                    (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
                     OR
                     (
-                        (pr.discount_object_type="family") AND 
+                        (pr.rule_object_type="family") AND 
                         ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
                         ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
                         ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
@@ -402,6 +405,25 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+            
+            $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
             $product_on_promo = array();
             foreach($promotions as $promotion) {
@@ -444,6 +466,14 @@ class MobileCIAPIController extends ControllerAPI
                     $product->on_couponstocatch = true;
                 } else {
                     $product->on_couponstocatch = false;
+                }
+
+                // set coupons flag
+                $coupon_for_this_product = array_filter($coupons, function($v) use ($product) { return $v->product_id == $product->product_id; });
+                if(count($coupon_for_this_product) > 0) {
+                    $product->on_coupons = true;
+                } else {
+                    $product->on_coupons = false;
                 }
 
                 // set is_new flag
@@ -594,10 +624,10 @@ class MobileCIAPIController extends ControllerAPI
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on 
                 (
-                    (pr.discount_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                    (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
                     OR
                     (
-                        (pr.discount_object_type="family") AND 
+                        (pr.rule_object_type="family") AND 
                         ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
                         ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
                         ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
@@ -606,6 +636,25 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+
+            $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
             $product_on_promo = array();
             foreach($promotions as $promotion) {
@@ -647,6 +696,13 @@ class MobileCIAPIController extends ControllerAPI
                     $product->on_couponstocatch = false;
                 }
 
+                // set coupons flag
+                $coupon_for_this_product = array_filter($coupons, function($v) use ($product) { return $v->product_id == $product->product_id; });
+                if(count($coupon_for_this_product) > 0) {
+                    $product->on_coupons = true;
+                } else {
+                    $product->on_coupons = false;
+                }
 
                 // set is_new flag
                 if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
@@ -715,10 +771,10 @@ class MobileCIAPIController extends ControllerAPI
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on 
                 (
-                    (pr.discount_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                    (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
                     OR
                     (
-                        (pr.discount_object_type="family") AND 
+                        (pr.rule_object_type="family") AND 
                         ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
                         ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
                         ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
@@ -727,6 +783,25 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+            
+            $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
 
             $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
                 inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
@@ -747,7 +822,7 @@ class MobileCIAPIController extends ControllerAPI
             if(is_null($product)){
                 return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer, 'cartdata' => $cartdata));
             } else {
-                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs));
+                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
             }
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
@@ -786,8 +861,8 @@ class MobileCIAPIController extends ControllerAPI
 
             return $this->render();
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e->getMessage();
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e->getMessage();
         }
     }
 
@@ -819,6 +894,104 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->response->message = 'success';
             $this->response->data = $promotion;
+
+            return $this->render();
+        } catch (Exception $e) {
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
+        }
+    }
+
+    public function postCartCouponPopup()
+    {
+        try {
+            $this->registerCustomValidation();
+            $promotion_id = OrbitInput::post('promotion_detail');
+
+            $validator = \Validator::make(
+                array(
+                    'promotion_id' => $promotion_id, 
+                ),
+                array(
+                    'promotion_id' => 'required|orbit.exists.coupon',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $promotion = Coupon::excludeDeleted()->where('promotion_id', $promotion_id)->first();
+
+            $this->response->message = 'success';
+            $this->response->data = $promotion;
+
+            return $this->render();
+        } catch (Exception $e) {
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
+        }
+    }
+
+    public function postProductCouponPopup()
+    {
+        try {
+            $this->registerCustomValidation();
+            $product_id = OrbitInput::post('productid');
+
+            $validator = \Validator::make(
+                array(
+                    'product_id' => $product_id, 
+                ),
+                array(
+                    'product_id' => 'required|orbit.exists.product',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id));
+
+            // $promotion = Coupon::whereHas('issuedcoupons', function($q) use($user)
+            //     {
+            //         $q->excludeDeleted()->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now());
+            //     })
+            //     ->whereHas('redeemretailers', function($q) use($retailer)
+            //     {
+            //         $q->where('promotion_retailer_redeem', $retailer->merchant_id);
+            //     })->excludeDeleted()->where('promotion_type', 'product')->first();
+
+            $this->response->message = 'success';
+            $this->response->data = $coupons;
 
             return $this->render();
         } catch (Exception $e) {
@@ -862,7 +1035,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
 
-            // check for cart based promotion
+            // check for cart based promotions
             $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
                 {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
@@ -933,6 +1106,46 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail->ammountaftertax = $priceaftertax;
             }
 
+            // check for available cart based coupons
+            $coupon_carts = Coupon::with('couponrule')->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+            {
+                $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+            })
+            ->whereHas('issuedcoupons', function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now());
+            })
+            ->where(function($q) 
+            {
+                $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
+                {
+                    $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
+                });
+            })
+            ->get();
+
+            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
+            {
+                $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
+            }, 'issuedcoupon' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)
+                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+            }))->get();
+
+            // dd($used_product_coupons);
+
+            foreach($used_product_coupons as $used_product_coupon){
+                if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                    $used_product_coupon->disc_val_str = '-'.($used_product_coupon->issuedcoupon->discount_value * 100).'%';
+                    $used_product_coupon->disc_val = '-'.($used_product_coupon->issuedcoupon->discount_value * $used_product_coupon->cartdetail->price);
+                } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                    $used_product_coupon->disc_val_str = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
+                    $used_product_coupon->disc_val = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
+                }
+            }
+
             $cartdiscounts = 0;
             $subtotalaftercartpromo = $subtotal;
             $acquired_promo_carts = array();
@@ -947,11 +1160,35 @@ class MobileCIAPIController extends ControllerAPI
                     } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
                         $discount = $promo_cart->promotionrule->discount_value;
                         $cartdiscounts = $cartdiscounts + $discount;
-                        $promo_cart->disc_val_str = '-';
+                        $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
                         $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
                     }
                     $subtotalaftercartpromo = $subtotalaftercartpromo - $discount;
                     $acquired_promo_carts[] = $promo_cart;
+                }
+            }
+            $total_discount = $total_discount + $cartdiscounts;
+
+            $subtotalaftercartcoupon = $subtotal;
+            $available_coupon_carts = array();
+
+            // TODO : check redeem rule first before applying this
+            foreach($coupon_carts as $coupon_cart){
+                // dd($coupon_cart->couponrule->rule_value);
+                if($subtotal >= $coupon_cart->couponrule->rule_value){
+                    if($coupon_cart->couponrule->rule_type == 'cart_discount_by_percentage') {
+                        $discount = $subtotal * $coupon_cart->couponrule->discount_value;
+                        $cartdiscounts = $cartdiscounts + $discount;
+                        $coupon_cart->disc_val_str = '-'.($coupon_cart->couponrule->discount_value * 100).'%';
+                        $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->couponrule->discount_value);
+                    } elseif ($coupon_cart->couponrule->rule_type == 'cart_discount_by_value') {
+                        $discount = $coupon_cart->couponrule->discount_value;
+                        $cartdiscounts = $cartdiscounts + $discount;
+                        $coupon_cart->disc_val_str = '-';
+                        $coupon_cart->disc_val = '-'.$coupon_cart->couponrule->discount_value + 0;
+                    }
+                    $subtotalaftercartcoupon = $subtotalaftercartcoupon - $discount;
+                    $available_coupon_carts[] = $coupon_cart;
                 }
             }
             $total_discount = $total_discount + $cartdiscounts;
@@ -964,15 +1201,16 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartsummary->subtotal = $subtotal;
             $cartsummary->subtotalaftercartpromo = $subtotalaftercartpromo;
+            $cartsummary->subtotalaftercartcoupon = $subtotalaftercartcoupon;
             $cartsummary->acquired_promo_carts = $acquired_promo_carts;
             $cartsummary->vat = $vat;
             $cartsummary->total_to_pay = $total;
             $cartsummary->total_discount = $total_discount;
 
-            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary, 'promotions' => $promo_products, 'promo_carts' => $promo_carts));
+            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary, 'promotions' => $promo_products, 'promo_carts' => $promo_carts, 'coupon_carts' => $coupon_carts, 'used_product_coupons' => $used_product_coupons));
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
-            return $e->getMessage();
+            return $e;
         }
     }
 
@@ -1068,6 +1306,7 @@ class MobileCIAPIController extends ControllerAPI
             $product_id = OrbitInput::post('productid');
             $product_variant_id = OrbitInput::post('productvariantid');
             $quantity = OrbitInput::post('qty');
+            $coupons = (array) OrbitInput::post('coupons');
 
             $validator = \Validator::make(
                 array(
@@ -1100,7 +1339,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
                 $cart->save();
             }
-            
+
             $product = Product::with('tax1', 'tax2')->where('product_id', $product_id)->first();
 
             $cart->total_item = $cart->total_item + 1;
@@ -1121,6 +1360,55 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail->save();
             }
             
+            foreach($coupons as $coupon) {
+                $validator = \Validator::make(
+                    array(
+                        'coupon' => $coupon,
+                    ),
+                    array(
+                        'coupon' => 'orbit.exists.issuedcoupons',
+                    ),
+                    array(
+                        'coupon' => 'Coupon not exists',
+                    )
+                );
+
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $coupon)->first();
+                $cartcoupon = new CartCoupon;
+                $cartcoupon->issued_coupon_id = $coupon;
+                $cartcoupon->object_type = 'cart_detail';
+                $cartcoupon->object_id = $cartdetail->cart_detail_id;
+                $cartcoupon->save();
+                $used_coupons->status = 'deleted';
+                $used_coupons->save();
+            }
+
+            $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
+            
+            $cartdetail->available_coupons = $coupons;
+            
             $this->response->message = 'success';
             $this->response->data = $cartdetail;
 
@@ -1128,7 +1416,7 @@ class MobileCIAPIController extends ControllerAPI
 
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
-            return $e->getMessage();
+            return $e;
         }
         
         return $this->render();
@@ -1315,6 +1603,26 @@ class MobileCIAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check coupon, it should exists
+        Validator::extend('orbit.exists.coupon', function ($attribute, $value, $parameters) {
+            $retailer = $this->getRetailerInfo();
+
+            $coupon = Coupon::with(array('issueretailers' => function($q) use($retailer) 
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                }))->excludeDeleted()
+                ->where('promotion_id', $value)
+                ->first();
+
+            if (empty($coupon)) {
+                return FALSE;
+            }
+
+            \App::instance('orbit.validation.coupon', $coupon);
+
+            return TRUE;
+        });
+
         // Check product variant, it should exists
         Validator::extend('orbit.exists.productvariant', function ($attribute, $value, $parameters) {
             $product = \ProductVariant::excludeDeleted()
@@ -1326,6 +1634,32 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             \App::instance('orbit.validation.productvariant', $product);
+
+            return TRUE;
+        });
+
+        // Check coupons, it should exists
+        Validator::extend('orbit.exists.issuedcoupons', function ($attribute, $value, $parameters) {
+            $retailer = $this->getRetailerInfo();
+
+            $user = $this->getLoggedInUser();
+           
+            $coupon = Coupon::whereHas('issuedcoupons', function($q) use($user, $value)
+                {
+                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.issued_coupon_id', $value)->where('expired_date', '>=', Carbon::now());
+                })
+                ->whereHas('redeemretailers', function($q) use($retailer)
+                {
+                    $q->where('promotion_retailer_redeem.retailer_id', $retailer->merchant_id);
+                })
+                ->excludeDeleted()
+                ->first();
+
+            if (empty($coupon)) {
+                return FALSE;
+            }
+            
+            \App::instance('orbit.validation.issuedcoupons', $coupon);
 
             return TRUE;
         });

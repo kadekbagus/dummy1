@@ -19,6 +19,6 @@ class PromotionRetailer extends Eloquent
 
     public function retailer()
     {
-        return $this->belongsTo('Retailer', 'retailer_id', 'retailer_id');
+        return $this->belongsTo('Retailer', 'retailer_id', 'merchant_id');
     }
 }

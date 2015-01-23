@@ -44,9 +44,33 @@ Route::get('/api/v1/user-profile-picture/delete', function()
 });
 
 /**
- * Create New Cashier
+ * Create New Employee
  */
 Route::post('/api/v1/employee/new', function()
 {
-    return UserAPIController::create()->postNewUser();
+    return UserAPIController::create()->postNewEmployee();
+});
+
+/**
+ * Update an Employee
+ */
+Route::post('/api/v1/employee/update', function()
+{
+    return UserAPIController::create()->postUpdateEmployee();
+});
+
+/**
+ * Delete an Employee
+ */
+Route::post('/api/v1/employee/delete', function()
+{
+    return UserAPIController::create()->postDeleteEmployee();
+});
+
+/**
+ * Search Employees
+ */
+Route::get('/api/v1/employee/list', function()
+{
+    return UserAPIController::create()->getSearchEmployee();
 });

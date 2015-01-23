@@ -7,14 +7,20 @@
 				<div>
 					<?php $x = 1;?>
 					@if($product->on_promo)
-					<div class="ribbon-wrapper-green ribbon{{$x}}st">
+					<div class="ribbon-wrapper-green ribbon{{$x}}">
 						<div class="ribbon-green">Promo</div>
 					</div>
 					<?php $x++;?>
 					@endif
 					@if($product->is_new)
-					<div class="ribbon-wrapper-red ribbon{{$x}}nd">
+					<div class="ribbon-wrapper-red ribbon{{$x}}">
 						<div class="ribbon-red">New</div>
+					</div>
+					<?php $x++;?>
+					@endif
+					@if($product->on_coupons)
+					<div class="ribbon-wrapper-yellow ribbon{{$x}}">
+						<div class="ribbon-yellow">Coupon</div>
 					</div>
 					<?php $x++;?>
 					@endif
@@ -32,7 +38,6 @@
 					<div class="col-xs-12">
 						<h4>Code : {{ $product->upc_code }}</h4>
 					</div>
-					<!-- <pre>{{ var_dump($promotions) }}</pre> -->
 					<div class="col-xs-12 price">
 						@if(count($product->variants) > 1)
 						<small>Starting From</small>
@@ -59,7 +64,7 @@
 			@if(count($product->variants) <= 1)
 			<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
 				<div class="circlet btn-blue cart-btn text-center">
-					<a class="product-add-to-cart" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+					<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}" >
 						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 					</a>
 				</div>

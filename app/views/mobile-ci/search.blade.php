@@ -28,16 +28,22 @@
 					<div class="row row-xs-height catalogue-top">
 						<div class="col-xs-6 catalogue-img col-xs-height col-middle @if($product->on_couponstocatch) {{ 'coupon-wrapper' }} @endif">
 							<div>
-								<?php $x = 1; $on_promo = false;?>
-								@if(in_array($product->product_id, $promo_products))
-								<div class="ribbon-wrapper-green ribbon{{$x}}st">
+								<?php $x = 1;?>
+								@if($product->on_promo)
+								<div class="ribbon-wrapper-green ribbon{{$x}}">
 									<div class="ribbon-green">Promo</div>
 								</div>
-								<?php $on_promo = true; $x++;?>
+								<?php $x++;?>
 								@endif
-								@if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now())
-								<div class="ribbon-wrapper-red ribbon{{$x}}nd">
+								@if($product->is_new)
+								<div class="ribbon-wrapper-red ribbon{{$x}}">
 									<div class="ribbon-red">New</div>
+								</div>
+								<?php $x++;?>
+								@endif
+								@if($product->on_coupons)
+								<div class="ribbon-wrapper-yellow ribbon{{$x}}">
+									<div class="ribbon-yellow">Coupon</div>
 								</div>
 								<?php $x++;?>
 								@endif

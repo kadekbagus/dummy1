@@ -99,6 +99,7 @@ return array(
             'promotion_name'        => 'The promotion name has already been used.',
             'coupon_name'           => 'The coupon name has already been used.',
             'issued_coupon_code'    => 'The issued coupon code has already been used.',
+            'event_name'            => 'The event name has already been used.',
             'product'               => array(
                 'attribute'         => array(
                     'unique'        => 'The attribute name \':attrname\' already exists.',
@@ -110,6 +111,7 @@ return array(
                     'transaction'   => 'Product variant ID :id has a transaction, so it can not be edited.'
                 ),
             ),
+            'employeeid'            => 'The employee id is not available.',
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -132,6 +134,7 @@ return array(
             'promotion'            => 'The Promotion ID you specify is not found.',
             'coupon'               => 'The Coupon ID you specify is not found.',
             'issued_coupon'        => 'The Issued Coupon ID you specify is not found.',
+            'event'                => 'The Event ID you specify is not found.',
             'user_status'          => 'The user status you specify is not found.',
             'user_sortby'          => 'The sort by argument you specify is not valid, the valid value are: username, email, firstname, lastname, and registered_date.',
             'merchant_status'      => 'The merchant status you specify is not found.',
@@ -163,6 +166,15 @@ return array(
             'coupon_type'          => 'The coupon type you specify is not found.',
             'issued_coupon_status' => 'The issued coupon status you specify is not found.',
             'issued_coupon_sortby' => 'The sort by argument you specify is not valid, the valid value are: registered_date, issued_coupon_code, expired_date, issued_date, redeemed_date, status.',
+            'event_status'         => 'The event status you specify is not found.',
+            'event_sortby'         => 'The sort by argument you specify is not valid, the valid value are: registered_date, event_name, event_type, description, begin_date, end_date, is_permanent, status.',
+            'event_type'           => 'The event type you specify is not found.',
+            'link_object_type'     => 'The link object type you specify is not found.',
+            'link_object_id1'      => 'The link object ID1 you specify is not found.',
+            'link_object_id2'      => 'The link object ID2 you specify is not found.',
+            'link_object_id3'      => 'The link object ID3 you specify is not found.',
+            'link_object_id4'      => 'The link object ID4 you specify is not found.',
+            'link_object_id5'      => 'The link object ID5 you specify is not found.',
             'category_id1'         => 'The Category ID1 you specify is not found.',
             'category_id2'         => 'The Category ID2 you specify is not found.',
             'category_id3'         => 'The Category ID3 you specify is not found.',
@@ -181,7 +193,10 @@ return array(
             ),
             'upc_code'             => 'The UPC code of the product is not found.',
             'transaction'          => 'The Transaction is not found.',
-            'widget'               => 'The Widget ID you specify is not found.'
+            'widget'               => 'The Widget ID you specify is not found.',
+            'employee'             => array(
+                'role'             => 'The role ":role" is not found.',
+            ),
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(
@@ -251,6 +266,10 @@ return array(
             'update_widget'             => 'update widget',
             'delete_widget'             => 'delete widget',
             'view_widget'               => 'view widget',
+            'new_event'                 => 'add new event',
+            'update_event'              => 'update event',
+            'delete_event'              => 'delete event',
+            'view_event'                => 'view event',
         ),
     ),
 

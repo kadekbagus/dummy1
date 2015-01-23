@@ -1,6 +1,7 @@
 @extends('mobile-ci.layout')
 
 @section('content')
+  <!-- <pre>{{ print_r($coupon_carts) }}</pre> -->
   <div class="mobile-ci-container">
     <div class="cart-page cart-info-box">
       <div class="single-box">
@@ -23,7 +24,6 @@
         </div>
       @else
         @foreach($cartdata->cartdetails as $cartdetail)
-        <!-- <pre>{{ print_r($cartdetail) }}</pre> -->
         <div class="cart-items-list">
           <div class="single-item">
             <div class="single-item-headers">
@@ -77,6 +77,45 @@
           </div>
         </div>
         @endforeach
+
+        @foreach($used_product_coupons as $used_product_coupon)
+        <div class="cart-items-list">
+          <div class="single-item">
+            <div class="single-item-headers">
+              <div class="single-header unique-column">
+                <span class="header-text">Coupon Name</span>
+              </div>
+              <div class="single-header unique-column">
+                <span class="header-text">Discount</span>
+              </div>
+              <div class="single-header coupon-column">
+                <span class="header-text">Value ({{ $retailer->parent->currency_symbol }})</span>
+              </div>
+              <div class="single-header unique-column">
+                <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
+              </div>
+            </div>
+            <div class="single-item-bodies">
+              <div class="single-body">
+                <p><span class="product-coupon-name" data-product="{{ $used_product_coupon->issuedcoupon->promotion_id }}"><b>{{ $used_product_coupon->issuedcoupon->promotion_name }}</b></span></p>
+              </div>
+              <div class="single-body">
+                <div class="unique-column-properties">
+                  <div class="item-remover" data-detail="{{ $used_product_coupon->issuedcoupon->promotion_id }}">
+                    <span><i class="fa fa-times"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="single-body">
+                <span>{{ $used_product_coupon->disc_val_str }}</span>
+              </div>
+              <div class="single-body">
+                <span>{{ $used_product_coupon->disc_val }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        @endforeach
       @endif
     </div>
 
@@ -91,7 +130,7 @@
           <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Value ({{ $retailer->parent->currency_symbol }})</span>
+          <span>Value</span>
         </div>
         <div class="cart-promo-single-header">
           <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
@@ -115,6 +154,44 @@
       @endforeach
     </div>
     @endif
+
+    @if(count($coupon_carts) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Available Cart Based Coupons</span>
+      <div class="cart-sum-headers">
+        <div class="cart-coupon-single-header">
+          <span>Coupon</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Value</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Qty</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>&nbsp;</span>
+        </div>
+      </div>
+      @foreach($coupon_carts as $coupon_cart)
+      <!-- <pre>{{ $coupon_cart }}</pre> -->
+      <div class="cart-sum-bodies">
+        <div class="cart-sum-single-body">
+          <span class="coupon-name" data-coupon="{{ $coupon_cart->promotion_id }}"><b>{{$coupon_cart->promotion_name}}</b></span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{$coupon_cart->disc_val}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{count($coupon_cart->issuedcoupons[0])}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span><a class="btn btn-info" >Pakai</a></span>
+        </div>
+      </div>
+      @endforeach
+    </div>
+    @endif
+
     <div class="cart-page cart-sum">
       <span class="cart-sum-title">Total</span>
       <div class="cart-sum-headers">
@@ -247,6 +324,25 @@
     </div>
   </div>
 
+  <!-- Modal -->
+  <div class="modal fade" id="transferFunctionModal" tabindex="-1" role="dialog" aria-labelledby="transferFunctionModalLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="transferFunctionModalLabel">{{ Lang::get('mobileci.page_title.transfercart') }}</h4>
+        </div>
+        <div class="modal-body">
+          <p id="errorModalText">Untuk menyelesaikan transfer keranjang, gunakan <i>Transfer Cart</i> pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.</p>
+        </div>
+        <div class="modal-footer">
+          <div class="pull-left"><input type="checkbox" id="dismiss" name="dismiss" value="0"> Jangan tunjukkan pesan ini lagi</div>
+          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <table class="ui-bar-a" id="n_keypad" style="display: none; -khtml-user-select: none;">
     <tr>
        <td class="num numero"><a data-role="button" data-theme="b" >7</a></td>
@@ -276,8 +372,26 @@
 @stop
 
 @section('ext_script_bot')
+{{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
   $(document).ready(function(){
+    $('#dismiss').change(function(){
+      if($(this).is(':checked')) {
+        $.cookie('dismiss_transfercart_popup', 't', { expires: 30 });
+      } else {
+        $.cookie('dismiss_transfercart_popup', 'f', { expires: 30 });
+      }
+    });
+    if(typeof $.cookie('dismiss_transfercart_popup') === 'undefined') {
+      $.cookie('dismiss_transfercart_popup', 'f', { expires: 30 });
+      $('#transferFunctionModal').modal();
+    }
+    else{
+      if($.cookie('dismiss_transfercart_popup') == 'f') {
+        $('#transferFunctionModal').modal();
+      }
+    }
+
     $('.item-remover').click(function(){
       $('#detail').val($(this).data('detail'));
       $('#deleteModal').modal();
@@ -306,6 +420,25 @@
       var promotion_detail = $(this).data('promotion');
       $.ajax({
         url: apiPath+'customer/cartpromopopup',
+        method: 'POST',
+        data: {
+          promotion_detail: promotion_detail
+        }
+      }).done(function(data){
+        if(data.status == 'success'){
+          $('#previewModal #previewLabel').text(data.data.promotion_name);
+          $('#previewModal .modal-body p').html('<img class="img-responsive" src="'+ data.data.image +'"><br>'+data.data.description);
+          $('#previewModal').modal();
+        }else{
+          console.log(data);
+        }
+      });
+    });
+
+    $('.coupon-name').click(function(){
+      var promotion_detail = $(this).data('coupon');
+      $.ajax({
+        url: apiPath+'customer/cartcouponpopup',
         method: 'POST',
         data: {
           promotion_detail: promotion_detail

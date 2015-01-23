@@ -23,6 +23,8 @@ use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Config;
 use \ProductAttribute;
+use \DB;
+use Carbon\Carbon as Carbon;
 
 class CashierAPIController extends ControllerAPI
 {  
@@ -670,8 +672,6 @@ class CashierAPIController extends ControllerAPI
 
 
 
-
-
     /**
      * POST - Save The Transaction
      *
@@ -723,32 +723,32 @@ class CashierAPIController extends ControllerAPI
                 $transactionDetails->quantity                    = $v['qty'];
                 $transactionDetails->upc                         = $v['upc_code'];
                 $transactionDetails->price                       = str_replace( ',', '', $v['price'] );
-                $transactionDetails->variant_price               = $v['variant_price'];
-                $transactionDetails->variant_upc                 = $v['variant_upc'];
-                $transactionDetails->variant_sku                 = $v['variant_sku'];
-                $transactionDetails->variant_stock               = $v['variant_stock'];
-                $transactionDetails->product_attribute_value_id1 = $v['product_attribute_value_id1'];
-                $transactionDetails->product_attribute_value_id2 = $v['product_attribute_value_id2'];
-                $transactionDetails->product_attribute_value_id3 = $v['product_attribute_value_id3'];
-                $transactionDetails->product_attribute_value_id4 = $v['product_attribute_value_id4'];
-                $transactionDetails->product_attribute_value_id5 = $v['product_attribute_value_id5'];
-                $transactionDetails->product_attribute_value1    = $v['product_attribute_value1'];
-                $transactionDetails->product_attribute_value2    = $v['product_attribute_value2'];
-                $transactionDetails->product_attribute_value3    = $v['product_attribute_value3'];
-                $transactionDetails->product_attribute_value4    = $v['product_attribute_value4'];
-                $transactionDetails->product_attribute_value5    = $v['product_attribute_value5'];
-                $transactionDetails->merchant_tax_id1            = $v['merchant_tax_id1'];
-                $transactionDetails->merchant_tax_id2            = $v['merchant_tax_id2'];
-                $transactionDetails->attribute_id1               = $v['attribute_id1'];
-                $transactionDetails->attribute_id2               = $v['attribute_id2'];
-                $transactionDetails->attribute_id3               = $v['attribute_id3'];
-                $transactionDetails->attribute_id4               = $v['attribute_id4'];
-                $transactionDetails->attribute_id5               = $v['attribute_id5'];
-                $transactionDetails->product_attribute_name1     = $v['product_attribute_name1'];
-                $transactionDetails->product_attribute_name2     = $v['product_attribute_name2'];
-                $transactionDetails->product_attribute_name3     = $v['product_attribute_name3'];
-                $transactionDetails->product_attribute_name4     = $v['product_attribute_name4'];
-                $transactionDetails->product_attribute_name5     = $v['product_attribute_name5'];
+                // $transactionDetails->variant_price               = $v['variant_price'];
+                // $transactionDetails->variant_upc                 = $v['variant_upc'];
+                // $transactionDetails->variant_sku                 = $v['variant_sku'];
+                // $transactionDetails->variant_stock               = $v['variant_stock'];
+                // $transactionDetails->product_attribute_value_id1 = $v['product_attribute_value_id1'];
+                // $transactionDetails->product_attribute_value_id2 = $v['product_attribute_value_id2'];
+                // $transactionDetails->product_attribute_value_id3 = $v['product_attribute_value_id3'];
+                // $transactionDetails->product_attribute_value_id4 = $v['product_attribute_value_id4'];
+                // $transactionDetails->product_attribute_value_id5 = $v['product_attribute_value_id5'];
+                // $transactionDetails->product_attribute_value1    = $v['product_attribute_value1'];
+                // $transactionDetails->product_attribute_value2    = $v['product_attribute_value2'];
+                // $transactionDetails->product_attribute_value3    = $v['product_attribute_value3'];
+                // $transactionDetails->product_attribute_value4    = $v['product_attribute_value4'];
+                // $transactionDetails->product_attribute_value5    = $v['product_attribute_value5'];
+                // $transactionDetails->merchant_tax_id1            = $v['merchant_tax_id1'];
+                // $transactionDetails->merchant_tax_id2            = $v['merchant_tax_id2'];
+                // $transactionDetails->attribute_id1               = $v['attribute_id1'];
+                // $transactionDetails->attribute_id2               = $v['attribute_id2'];
+                // $transactionDetails->attribute_id3               = $v['attribute_id3'];
+                // $transactionDetails->attribute_id4               = $v['attribute_id4'];
+                // $transactionDetails->attribute_id5               = $v['attribute_id5'];
+                // $transactionDetails->product_attribute_name1     = $v['product_attribute_name1'];
+                // $transactionDetails->product_attribute_name2     = $v['product_attribute_name2'];
+                // $transactionDetails->product_attribute_name3     = $v['product_attribute_name3'];
+                // $transactionDetails->product_attribute_name4     = $v['product_attribute_name4'];
+                // $transactionDetails->product_attribute_name5     = $v['product_attribute_name5'];
                 $transactionDetails->save();
             }
             
@@ -1115,6 +1115,107 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+
+    /**
+     * POST - Product Detail with variant and promotion
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postProductDetail()
+    {
+        try {
+            $product_id = trim(OrbitInput::post('product_id'));
+
+            $validator = Validator::make(
+            array(
+                'product_id' => $product_id,
+            ),
+            array(
+                'product_id' => 'required|numeric',
+            )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $retailer = \Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->first();
+
+            $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
+                       $query->where('retailer_id', $retailer->merchant_id);
+                      })->excludeDeleted()->where('product_id', $product_id)->first();
+
+            if (! is_object($product)) {
+                $message = \Lang::get('validation.orbit.empty.product');
+                ACL::throwAccessForbidden($message);
+            }
+
+            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+
+            $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
+            inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
+            left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1 
+            left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2
+            left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3
+            left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4
+            left join ' . DB::getTablePrefix() . 'product_attribute_values as av5 on av5.product_attribute_value_id = v.product_attribute_value_id5
+            left join ' . DB::getTablePrefix() . 'product_attributes as pa1 on pa1.product_attribute_id = av1.product_attribute_id
+            left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id
+            left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id
+            left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id
+            left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id 
+            WHERE p.product_id = :productid'), array('productid' => $product->product_id));
+                    
+            // $resp = new \stdClass();
+            //         $resp->code = 0;
+            //         $resp->status = 'success';
+            //         $resp->dataproduct = $product;
+            //         $resp->promo_products = $promo_products;
+            //         $resp->attributes = $attributes;
+            // return \Response::json($resp);
+            $result['product'] = $product;
+            $result['promo'] = $promo_products;
+            $result['attributes'] = $attributes;
+            $this->response->data = $result;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+        return $this->render();
+    }
 
     private function just40CharMid($str)
     {
