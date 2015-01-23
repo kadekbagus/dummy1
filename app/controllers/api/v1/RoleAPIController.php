@@ -11,17 +11,17 @@ use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 
-class PersonalInterestAPIController extends ControllerAPI
+class RoleAPIController extends ControllerAPI
 {
     /**
-     * GET - List of Personal Interests.
+     * GET - List of Roles.
      *
      * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param array         `personal_interest_ids` (optional) - List of widget IDs
-     * @param array         `user_ids`              (optional) - List of interests for particular user ids
+     * @param array         `role_ids`              (optional) - List of Role IDs
+     * @param array         `role_names`            (optional) - List of Role Name
      * @param array         `with`                  (optional) - relationship included
      * @param integer       `take`                  (optional) - limit
      * @param integer       `skip`                  (optional) - limit offset
@@ -29,53 +29,57 @@ class PersonalInterestAPIController extends ControllerAPI
      * @param string        `sort_mode`             (optional) - asc or desc
      * @return Illuminate\Support\Facades\Response
      */
-    public function getSearchPersonalInterest()
+    public function getSearchRole()
     {
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.personalinterest.getpersonalinterest.before.auth', array($this));
+            Event::fire('orbit.role.getrole.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.personalinterest.getpersonalinterest.after.auth', array($this));
+            Event::fire('orbit.role.getrole.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.personalinterest.getpersonalinterest.before.authz', array($this, $user));
+            Event::fire('orbit.role.getrole.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_personal_interest')) {
-                Event::fire('orbit.personalinterest.getpersonalinterest.authz.notallowed', array($this, $user));
+            if (! ACL::create($user)->isAllowed('view_role')) {
+                Event::fire('orbit.role.getrole.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.view_personal_interest');
-                $message = Lang::get('validation.orbit.access.view_personal_interest', array('action' => $errorMessage));
+                $errorMessage = Lang::get('validation.orbit.actionlist.view_role');
+                $message = Lang::get('validation.orbit.access.view_role', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.personalinterest.getpersonalinterest.after.authz', array($this, $user));
+            Event::fire('orbit.role.getrole.after.authz', array($this, $user));
 
             $validator = Validator::make(
                 array(
-                    'personal_interest_ids'    => OrbitInput::get('widget_ids'),
+                    'role_ids'      => OrbitInput::get('role_ids'),
+                    'role_names'    => OrbitInput::get('role_names'),
+                    'with'          => OrbitInput::get('with'),
                 ),
                 array(
-                    'personal_interest_ids'    => 'array|min:1',
+                    'role_ids'      => 'array|min:1',
+                    'role_name'     => 'array|min:1',
+                    'with'          => 'array|min:1'
                 )
             );
 
-            Event::fire('orbit.personalinterest.getpersonalinterest.before.validation', array($this, $validator));
+            Event::fire('orbit.role.getrole.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.personalinterest.getpersonalinterest.after.validation', array($this, $validator));
+            Event::fire('orbit.role.getrole.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.widget.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.role.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -85,26 +89,26 @@ class PersonalInterestAPIController extends ControllerAPI
             }
 
             // Builder object
-            $interests = PersonalInterest::excludeDeleted();
+            $roles = Role::select('roles.*');
 
             // Include other relationship
-            OrbitInput::get('with', function($with) use ($interests) {
-                $interests->with($with);
+            OrbitInput::get('with', function($with) use ($roles) {
+                $roles->with($with);
             });
 
             // Filter by ids
-            OrbitInput::get('personal_interest_ids', function($widgetIds) use ($interests) {
-                $interests->whereIn('widgets.widget_id', $widgetIds);
+            OrbitInput::get('role_ids', function($ids) use ($roles) {
+                $roles->whereIn('roles.role_ids', $ids);
             });
 
-            // Filter by user ids
-            OrbitInput::get('user_ids', function($userIds) use ($interests) {
-                $interests->userIds($userIds);
+            // Filter by role names
+            OrbitInput::get('role_names', function($roleNames) use ($roles) {
+                $roles->role_name($roleNames);
             });
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
-            $_interests = clone $interests;
+            $_roles = clone $roles;
 
             // Get the take args
             $take = $maxRecord;
@@ -114,29 +118,30 @@ class PersonalInterestAPIController extends ControllerAPI
                 }
                 $take = $_take;
             });
-            $interests->take($take);
+            $roles->take($take);
 
             $skip = 0;
-            OrbitInput::get('skip', function ($_skip) use (&$skip, $interests) {
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $roles) {
                 if ($_skip < 0) {
                     $_skip = 0;
                 }
 
                 $skip = $_skip;
             });
-            $interests->skip($skip);
+            $roles->skip($skip);
 
             // Default sort by
-            $sortBy = 'personal_interests.personal_interest_name';
+            $sortBy = 'roles.role_name';
             // Default sort mode
             $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'id'            => 'personal_interests.personal_interest_id',
-                    'name'          => 'personal_interests.personal_interests',
-                    'created'       => 'personal_interests.created_at'
+                    'id'            => 'roles.role_id',
+                    'name'          => 'roles.role_name',
+                    'created'       => 'roles.created_at',
+                    'registered_at' => 'roles.created_at'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -147,24 +152,24 @@ class PersonalInterestAPIController extends ControllerAPI
                     $sortMode = 'desc';
                 }
             });
-            $interests->orderBy($sortBy, $sortMode);
+            $roles->orderBy($sortBy, $sortMode);
 
-            $totalPersonalInterest = $_interests->count();
-            $listOfPersonalInterest = $interests->get();
+            $totalRole = $_roles->count();
+            $listOfRole = $roles->get();
 
             $data = new stdclass();
-            $data->total_records = $totalPersonalInterest;
-            $data->returned_records = count($listOfPersonalInterest);
-            $data->records = $listOfPersonalInterest;
+            $data->total_records = $totalRole;
+            $data->returned_records = count($listOfRole);
+            $data->records = $listOfRole;
 
-            if ($totalPersonalInterest === 0) {
+            if ($totalRole === 0) {
                 $data->records = null;
-                $this->response->message = Lang::get('statuses.orbit.nodata.personalinterest');
+                $this->response->message = Lang::get('statuses.orbit.nodata.role');
             }
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.personalinterest.getpersonalinterest.access.forbidden', array($this, $e));
+            Event::fire('orbit.role.getrole.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -172,7 +177,7 @@ class PersonalInterestAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.personalinterest.getpersonalinterest.invalid.arguments', array($this, $e));
+            Event::fire('orbit.role.getrole.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -184,7 +189,7 @@ class PersonalInterestAPIController extends ControllerAPI
             $this->response->data = $result;
             $httpCode = 403;
         } catch (QueryException $e) {
-            Event::fire('orbit.personalinterest.getpersonalinterest.query.error', array($this, $e));
+            Event::fire('orbit.role.getrole.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -198,7 +203,7 @@ class PersonalInterestAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
         } catch (Exception $e) {
-            Event::fire('orbit.personalinterest.getpersonalinterest.general.exception', array($this, $e));
+            Event::fire('orbit.role.getrole.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
@@ -212,7 +217,7 @@ class PersonalInterestAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.personalinterest.getpersonalinterest.before.render', array($this, &$output));
+        Event::fire('orbit.role.getrole.before.render', array($this, &$output));
 
         return $output;
     }

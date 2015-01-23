@@ -24,7 +24,7 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `lastname`              (required) - Employee last name
      * @param string    `birthdate`             (required) - Employee birthdate
      * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
-     * @param string    `employee_id`           (required) - Employee ID, i.e: 'EMP001', 'CASHIER001`
+     * @param string    `employee_id_char`      (required) - Employee ID, i.e: 'EMP001', 'CASHIER001`
      * @param string    `username`              (required) - Username used to login
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
@@ -241,7 +241,7 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `lastname`              (required) - Employee last name
      * @param string    `birthdate`             (required) - Employee birthdate
      * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
-     * @param string    `employee_id`           (required) - Employee ID, i.e: 'EMP001', 'CASHIER001' (Unchangable)
+     * @param string    `employee_id_char`      (required) - Employee ID, i.e: 'EMP001', 'CASHIER001' (Unchangable)
      * @param string    `username`              (required) - Username used to login (Unchangable)
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
@@ -455,7 +455,7 @@ class EmployeeAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `user_id`               (required) - User ID of the employee
+     * @param integer    `user_id`               (required) - User ID of the employee
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteEmployee()
@@ -755,7 +755,7 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             if (empty(OrbitInput::get('role_id'))) {
-                $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+                $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant-owner', 'guest'];
                 $roles = Role::whereIn('role_name', $invalidRoles)->get();
 
                 $ids = array();
@@ -967,7 +967,7 @@ class EmployeeAPIController extends ControllerAPI
         });
 
         Validator::extend('orbit.empty.employee.role', function ($attribute, $value, $parameters) {
-            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer', 'merchant-owner');
             if (in_array(strtolower($value), $invalidRoles)) {
                 return FALSE;
             }
@@ -984,7 +984,7 @@ class EmployeeAPIController extends ControllerAPI
         });
 
         Validator::extend('orbit.employee.role.limited', function ($attribute, $value, $parameters) {
-            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+            $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant-owner', 'guest'];
             $roles = Role::whereIn('role_name', $invalidRoles)->get();
 
             if ($roles) {
