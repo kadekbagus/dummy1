@@ -100,11 +100,11 @@ class EventAPIController extends ControllerAPI
                     'event_type'         => 'required|orbit.empty.event_type',
                     'status'             => 'required|orbit.empty.event_status',
                     'link_object_type'   => 'orbit.empty.link_object_type',
-                    'link_object_id1'    => 'orbit.empty.link_object_id1',
-                    'link_object_id2'    => 'orbit.empty.link_object_id2',
-                    'link_object_id3'    => 'orbit.empty.link_object_id3',
-                    'link_object_id4'    => 'orbit.empty.link_object_id4',
-                    'link_object_id5'    => 'orbit.empty.link_object_id5',
+                    'link_object_id1'    => 'numeric|orbit.empty.link_object_id1',
+                    'link_object_id2'    => 'numeric|orbit.empty.link_object_id2',
+                    'link_object_id3'    => 'numeric|orbit.empty.link_object_id3',
+                    'link_object_id4'    => 'numeric|orbit.empty.link_object_id4',
+                    'link_object_id5'    => 'numeric|orbit.empty.link_object_id5',
                 )
             );
 
@@ -324,11 +324,11 @@ class EventAPIController extends ControllerAPI
                     'event_type'       => 'orbit.empty.event_type',
                     'status'           => 'orbit.empty.event_status',
                     'link_object_type' => 'orbit.empty.link_object_type',
-                    'link_object_id1'  => 'orbit.empty.link_object_id1',
-                    'link_object_id2'  => 'orbit.empty.link_object_id2',
-                    'link_object_id3'  => 'orbit.empty.link_object_id3',
-                    'link_object_id4'  => 'orbit.empty.link_object_id4',
-                    'link_object_id5'  => 'orbit.empty.link_object_id5',
+                    'link_object_id1'  => 'numeric|orbit.empty.link_object_id1',
+                    'link_object_id2'  => 'numeric|orbit.empty.link_object_id2',
+                    'link_object_id3'  => 'numeric|orbit.empty.link_object_id3',
+                    'link_object_id4'  => 'numeric|orbit.empty.link_object_id4',
+                    'link_object_id5'  => 'numeric|orbit.empty.link_object_id5',
                 ),
                 array(
                    'event_name_exists_but_me' => Lang::get('validation.orbit.exists.event_name'),
@@ -468,7 +468,6 @@ class EventAPIController extends ControllerAPI
                 // reload retailers relation
                 $updatedevent->load('retailers');
             });
-            
 
             Event::fire('orbit.event.postupdateevent.after.save', array($this, $updatedevent));
             $this->response->data = $updatedevent;
