@@ -93,7 +93,7 @@ Route::post('/app/v1/customer/updatecart', function()
     return MobileCI\MobileCIAPIController::create()->postUpdateCart();
 });
 
-// delete cart
+// delete from cart
 Route::post('/app/v1/customer/deletecart', function()
 {
     return MobileCI\MobileCIAPIController::create()->postDeleteFromCart();
@@ -117,8 +117,26 @@ Route::post('/app/v1/customer/cartcouponpopup', function()
     return MobileCI\MobileCIAPIController::create()->postCartCouponPopup();
 });
 
-// cart product-based-coupon pop up
+// catalogue product-based-coupon pop up
 Route::post('/app/v1/customer/productcouponpopup', function()
 {
     return MobileCI\MobileCIAPIController::create()->postProductCouponPopup();
+});
+
+// cart product-based-coupon pop up
+Route::post('/app/v1/customer/cartproductcouponpopup', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postCartProductCouponPopup();
+});
+
+// delete coupon from cart
+Route::post('/app/v1/customer/deletecouponcart', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postDeleteCouponFromCart();
+});
+
+// add cart based coupon to cart
+Route::post('/app/v1/customer/addcouponcarttocart', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postAddCouponCartToCart();
 });
