@@ -97,13 +97,13 @@ class RoleAPIController extends ControllerAPI
             });
 
             // Filter by ids
-            OrbitInput::get('role_ids', function($widgetIds) use ($roles) {
-                $roles->whereIn('roles.role_ids', $widgetIds);
+            OrbitInput::get('role_ids', function($ids) use ($roles) {
+                $roles->whereIn('roles.role_ids', $ids);
             });
 
-            // Filter by user ids
-            OrbitInput::get('user_ids', function($userIds) use ($roles) {
-                $roles->userIds($userIds);
+            // Filter by role names
+            OrbitInput::get('role_names', function($roleNames) use ($roles) {
+                $roles->role_name($roleNames);
             });
 
             // Clone the query builder which still does not include the take,
