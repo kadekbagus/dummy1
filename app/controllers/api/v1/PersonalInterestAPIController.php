@@ -46,7 +46,7 @@ class PersonalInterestAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.personalinterest.getpersonalinterest.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_personal_interests')) {
+            if (! ACL::create($user)->isAllowed('view_personal_interest')) {
                 Event::fire('orbit.personalinterest.getpersonalinterest.authz.notallowed', array($this, $user));
 
                 $errorMessage = Lang::get('validation.orbit.actionlist.view_personal_interest');
