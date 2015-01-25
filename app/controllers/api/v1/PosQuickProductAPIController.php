@@ -554,7 +554,7 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Filter by retailer ids
             OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
-                $posQuickProducts->whereIn('product_retailer.retailer_ids', $retailerIds);
+                $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
             });
 
             // Clone the query builder which still does not include the take,
