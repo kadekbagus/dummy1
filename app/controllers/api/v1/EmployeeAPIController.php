@@ -339,7 +339,7 @@ class EmployeeAPIController extends ControllerAPI
                 $updatedUser->status = 'active';
             });
 
-            OrbitInput::post('employee_role', function($_role) use ($updatedUser, $role) {
+            OrbitInput::post('employee_role', function($_role) use ($updatedUser) {
                 $role = App::make('orbit.empty.employee.role');
                 $updatedUser->user_role_id = $role->role_id;
             });
