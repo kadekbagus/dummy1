@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Activity' => $baseDir . '/app/models/Activity.php',
     'AddIncrementsToApikeyId' => $baseDir . '/app/database/migrations/2014_10_16_055603_add_increments_to_apikey_id.php',
     'AddIncrementsToCustomPermissionId' => $baseDir . '/app/database/migrations/2014_10_16_070246_add_increments_to_custom_permission_id.php',
     'AddIncrementsToPermissionId' => $baseDir . '/app/database/migrations/2014_10_16_070755_add_increments_to_permission_id.php',
@@ -145,6 +146,7 @@ return array(
     'CreateTableMerchants' => $baseDir . '/app/database/migrations/2014_11_07_020430_create_table_merchants.php',
     'CreateTablePermissionRole' => $baseDir . '/app/database/migrations/2014_10_14_063413_create_table_permission_role.php',
     'CreateTablePermissions' => $baseDir . '/app/database/migrations/2014_10_14_064030_create_table_permissions.php',
+    'CreateTablePosQuickProducts' => $baseDir . '/app/database/migrations/2015_01_25_061213_create_table_pos_quick_products.php',
     'CreateTableProductAttributeValues' => $baseDir . '/app/database/migrations/2014_12_29_040955_create_table_product_attribute_values.php',
     'CreateTableProductAttributes' => $baseDir . '/app/database/migrations/2014_12_29_033808_create_table_product_attributes.php',
     'CreateTableProductCategory' => $baseDir . '/app/database/migrations/2014_11_13_095434_create_table_product_category.php',
@@ -724,6 +726,7 @@ return array(
     'Net_SSH1' => $vendorDir . '/phpseclib/phpseclib/phpseclib/Net/SSH1.php',
     'Net_SSH2' => $vendorDir . '/phpseclib/phpseclib/phpseclib/Net/SSH2.php',
     'Normalizer' => $vendorDir . '/patchwork/utf8/class/Normalizer.php',
+    'OrbitRelation\\BelongsTo' => $baseDir . '/app/models/OrbitRelation/BelongsTo.php',
     'OrbitRelation\\HasManyThrough' => $baseDir . '/app/models/OrbitRelation/HasManyThrough.php',
     'OrbitShop\\API\\v1\\ControllerAPI' => $vendorDir . '/dominopos/orbit-shop-api/OrbitShop/API/v1/ControllerAPI.php',
     'OrbitShop\\API\\v1\\Exception\\InvalidArgsException' => $vendorDir . '/dominopos/orbit-shop-api/OrbitShop/API/v1/Exception/InvalidArgsException.php',
