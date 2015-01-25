@@ -218,6 +218,9 @@ return array(
                     ),
                 ),
             ),
+            'pos_quick_product' => array(
+                'array_count'   => 'The number of item should be no more than :number.'
+            ),
         ),
         'actionlist' => array(
             'change_password'           => 'change password',
