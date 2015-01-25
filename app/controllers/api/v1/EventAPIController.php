@@ -100,11 +100,11 @@ class EventAPIController extends ControllerAPI
                     'event_type'         => 'required|orbit.empty.event_type',
                     'status'             => 'required|orbit.empty.event_status',
                     'link_object_type'   => 'orbit.empty.link_object_type',
-                    'link_object_id1'    => 'orbit.empty.link_object_id1',
-                    'link_object_id2'    => 'orbit.empty.link_object_id2',
-                    'link_object_id3'    => 'orbit.empty.link_object_id3',
-                    'link_object_id4'    => 'orbit.empty.link_object_id4',
-                    'link_object_id5'    => 'orbit.empty.link_object_id5',
+                    'link_object_id1'    => 'numeric|orbit.empty.link_object_id1',
+                    'link_object_id2'    => 'numeric|orbit.empty.link_object_id2',
+                    'link_object_id3'    => 'numeric|orbit.empty.link_object_id3',
+                    'link_object_id4'    => 'numeric|orbit.empty.link_object_id4',
+                    'link_object_id5'    => 'numeric|orbit.empty.link_object_id5',
                 )
             );
 
@@ -143,7 +143,7 @@ class EventAPIController extends ControllerAPI
             $this->beginTransaction();
 
             // save Event.
-            $newevent = new Event();
+            $newevent = new EventModel();
             $newevent->merchant_id = $merchant_id;
             $newevent->event_name = $event_name;
             $newevent->event_type = $event_type;
@@ -324,11 +324,11 @@ class EventAPIController extends ControllerAPI
                     'event_type'       => 'orbit.empty.event_type',
                     'status'           => 'orbit.empty.event_status',
                     'link_object_type' => 'orbit.empty.link_object_type',
-                    'link_object_id1'  => 'orbit.empty.link_object_id1',
-                    'link_object_id2'  => 'orbit.empty.link_object_id2',
-                    'link_object_id3'  => 'orbit.empty.link_object_id3',
-                    'link_object_id4'  => 'orbit.empty.link_object_id4',
-                    'link_object_id5'  => 'orbit.empty.link_object_id5',
+                    'link_object_id1'  => 'numeric|orbit.empty.link_object_id1',
+                    'link_object_id2'  => 'numeric|orbit.empty.link_object_id2',
+                    'link_object_id3'  => 'numeric|orbit.empty.link_object_id3',
+                    'link_object_id4'  => 'numeric|orbit.empty.link_object_id4',
+                    'link_object_id5'  => 'numeric|orbit.empty.link_object_id5',
                 ),
                 array(
                    'event_name_exists_but_me' => Lang::get('validation.orbit.exists.event_name'),
@@ -347,7 +347,7 @@ class EventAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedevent = Event::with('retailers')->excludeDeleted()->allowedForUser($user)->where('event_id', $event_id)->first();
+            $updatedevent = EventModel::with('retailers')->excludeDeleted()->allowedForUser($user)->where('event_id', $event_id)->first();
 
             // save Event.
             OrbitInput::post('merchant_id', function($merchant_id) use ($updatedevent) {
@@ -468,7 +468,6 @@ class EventAPIController extends ControllerAPI
                 // reload retailers relation
                 $updatedevent->load('retailers');
             });
-            
 
             Event::fire('orbit.event.postupdateevent.after.save', array($this, $updatedevent));
             $this->response->data = $updatedevent;
@@ -593,7 +592,7 @@ class EventAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deleteevent = Event::excludeDeleted()->allowedForUser($user)->where('event_id', $event_id)->first();
+            $deleteevent = EventModel::excludeDeleted()->allowedForUser($user)->where('event_id', $event_id)->first();
             $deleteevent->status = 'deleted';
             $deleteevent->modified_by = $this->api->user->user_id;
 
@@ -759,7 +758,7 @@ class EventAPIController extends ControllerAPI
             }
 
             // Builder object
-            $events = Event::excludeDeleted();
+            $events = EventModel::excludeDeleted();
 
             // Filter event by Ids
             OrbitInput::get('event_id', function($eventIds) use ($events)
@@ -1010,7 +1009,7 @@ class EventAPIController extends ControllerAPI
     {
         // Check the existance of event id
         Validator::extend('orbit.empty.event', function ($attribute, $value, $parameters) {
-            $event = Event::excludeDeleted()
+            $event = EventModel::excludeDeleted()
                         ->where('event_id', $value)
                         ->first();
 
@@ -1040,7 +1039,7 @@ class EventAPIController extends ControllerAPI
 
         // Check event name, it should not exists
         Validator::extend('orbit.exists.event_name', function ($attribute, $value, $parameters) {
-            $eventName = Event::excludeDeleted()
+            $eventName = EventModel::excludeDeleted()
                         ->where('event_name', $value)
                         ->first();
 
@@ -1056,7 +1055,7 @@ class EventAPIController extends ControllerAPI
         // Check event name, it should not exists (for update)
         Validator::extend('event_name_exists_but_me', function ($attribute, $value, $parameters) {
             $event_id = trim(OrbitInput::post('event_id'));
-            $event = Event::excludeDeleted()
+            $event = EventModel::excludeDeleted()
                         ->where('event_name', $value)
                         ->where('event_id', '!=', $event_id)
                         ->first();

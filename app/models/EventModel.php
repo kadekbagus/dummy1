@@ -1,5 +1,5 @@
 <?php
-class Event extends Eloquent
+class EventModel extends Eloquent
 {
     /**
      * Event Model
