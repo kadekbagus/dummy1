@@ -30,8 +30,8 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'mobile-ci';
-        $activity->ip_address = $_SERVER['REMOTE_ADDR'];
-        $activity->user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $activity->ip_address = static::getIPAddress();
+        $activity->user_agent = static::getUserAgent();
         $activity->location_id = Config::get('orbit.shop.id');
 
         return $activity;
@@ -47,8 +47,8 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'pos';
-        $activity->ip_address = $_SERVER['REMOTE_ADDR'];
-        $activity->user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $activity->ip_address = static::getIPAddress();
+        $activity->user_agent = static::getUserAgent();
         $activity->location_id = Config::get('orbit.shop.id');
 
         return $activity;
@@ -64,8 +64,8 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'portal';
-        $activity->ip_address = $_SERVER['REMOTE_ADDR'];
-        $activity->user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $activity->ip_address = static::getIPAddress();
+        $activity->user_agent = static::getUserAgent();
 
         return $activity;
     }
@@ -347,6 +347,32 @@ class Activity extends Eloquent
      */
     public function save(array $options = array())
     {
+        if (App::environment() === 'testing') {
+            // Skip saving
+            return 1;
+        }
         return parent::save($options);
+    }
+
+    /**
+     * Get IP Address of the request.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    protected static function getIPAddress()
+    {
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+    }
+
+    /**
+     * Detect the user agent of the request.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    protected static function getUserAgent()
+    {
+        return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Unknown-UA/?';
     }
 }
