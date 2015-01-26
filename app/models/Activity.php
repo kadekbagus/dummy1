@@ -11,6 +11,9 @@ class Activity extends Eloquent
     protected $primaryKey = 'activity_id';
     protected $table = 'activities';
 
+    const ACTIVITY_REPONSE_OK = 'OK';
+    const ACTIVITY_RESPONSE_FAILED = 'Failed';
+
     /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
      * with `status` field.
@@ -82,6 +85,46 @@ class Activity extends Eloquent
         return $this;
     }
 
+    public function setLocation($location)
+    {
+        if (is_object($location)) {
+            if (TRUE === ($location instanceof Retailer)) {
+                $location->parent;
+            }
+
+            $this->location_id = $location->merchant_id;
+            $this->metadata_location = serialize($location->toArray());
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of 'response_status' field with OK status
+     *
+     * @author Rio Astamal
+     * @return Activity
+     */
+    public function responseOK()
+    {
+        $this->response_status = static::ACTIVITY_REPONSE_OK;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of 'response_status' field with Failed status
+     *
+     * @author Rio Astamal
+     * @return Activity
+     */
+    public function responseFailed()
+    {
+        $this->response_status = static::ACTIVITY_RESPONSE_FAILED;
+
+        return $this;
+    }
+
     /**
      * Activity belongs to a User
      */
@@ -107,53 +150,77 @@ class Activity extends Eloquent
     }
 
     /**
-     * An activity belongs to an Object
+     * An activity belongs to an Object (Product)
      */
     public function product()
     {
         return $this->belongsToObject('Product', 'object_id', 'product_id');
     }
 
-	/**
-	 * Define an inverse one-to-one or many relationship.
+    /**
+     * An activity could belongs to a ProductVariant
+     */
+    public function productVariant()
+    {
+        return $this->belongsToObject('ProductVariant', 'object_id', 'product_variant_id');
+    }
+
+    /**
+     * An activity could belongs to a Promotion
+     */
+    public function promotion()
+    {
+        return $this->belongsToObject('Promotion', 'object_id', 'promotion_id');
+    }
+
+    /**
+     * An activity could belongs to a Coupon
+     */
+    public function coupon()
+    {
+        return $this->belongsToObject('Coupon', 'object_id', 'coupon_id');
+    }
+
+    /**
+     * Define an inverse one-to-one or many relationship.
      *
      * @author Rio Astamal <me@rioastamal.net>
-	 *
-	 * @param  string  $related
-	 * @param  string  $foreignKey
-	 * @param  string  $otherKey
-	 * @param  string  $relation
-	 * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-	 */
-	public function belongsToObject($related, $foreignKey = null, $otherKey = null, $relation = null)
-	{
-		// If no relation name was given, we will use this debug backtrace to extract
-		// the calling method's name and use that as the relationship name as most
-		// of the time this will be what we desire to use for the relationships.
-		if (is_null($relation))
-		{
-			list(, $caller) = debug_backtrace(false);
+     *
+     * @param  string  $related
+     * @param  string  $foreignKey
+     * @param  string  $otherKey
+     * @param  string  $relation
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function belongsToObject($related, $foreignKey = null, $otherKey = null, $relation = null)
+    {
+        // If no relation name was given, we will use this debug backtrace to extract
+        // the calling method's name and use that as the relationship name as most
+        // of the time this will be what we desire to use for the relationships.
+        if (is_null($relation))
+        {
+            list(, $caller) = debug_backtrace(false);
 
-			$relation = $caller['function'];
-		}
+            $relation = $caller['function'];
+        }
 
-		// If no foreign key was supplied, we can use a backtrace to guess the proper
-		// foreign key name by using the name of the relationship function, which
-		// when combined with an "_id" should conventionally match the columns.
-		if (is_null($foreignKey))
-		{
-			$foreignKey = snake_case($relation).'_id';
-		}
+        // If no foreign key was supplied, we can use a backtrace to guess the proper
+        // foreign key name by using the name of the relationship function, which
+        // when combined with an "_id" should conventionally match the columns.
+        if (is_null($foreignKey))
+        {
+            $foreignKey = snake_case($relation).'_id';
+        }
 
-		$instance = new $related;
+        $instance = new $related;
 
-		// Once we have the foreign key names, we'll just create a new Eloquent query
-		// for the related models and returns the relationship instance which will
-		// actually be responsible for retrieving and hydrating every relations.
-		$query = $instance->newQuery();
+        // Once we have the foreign key names, we'll just create a new Eloquent query
+        // for the related models and returns the relationship instance which will
+        // actually be responsible for retrieving and hydrating every relations.
+        $query = $instance->newQuery();
 
-		$otherKey = $otherKey ?: $instance->getKeyName();
+        $otherKey = $otherKey ?: $instance->getKeyName();
 
-		return new BelongsToObject($query, $this, $foreignKey, $otherKey, $relation);
-	}
+        return new BelongsToObject($query, $this, $foreignKey, $otherKey, $relation);
+    }
 }
