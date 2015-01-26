@@ -777,7 +777,7 @@ class UserAPIController extends ControllerAPI
             }
 
             // Builder object
-            $with = array('userDetail');
+            $with = array('userdetail');
 
             OrbitInput::get('with', function($_with) use (&$with) {
                 $with = array_merge($_with, $with);
