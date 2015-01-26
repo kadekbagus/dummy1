@@ -680,8 +680,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Builder object
             $joined = FALSE;
-            $users = User::excludeDeleted('users');
             $defaultWith = array('employee.retailers');
+
+            // Include Relationship
+            $with = $defaultWith;
+            OrbitInput::get('with', function ($_with) use ($users, &$with) {
+                $with = array_merge($with, $_with);
+            });
+            $users = User::with($with)->excludeDeleted();
 
             // Filter user by Ids
             OrbitInput::get('user_ids', function ($userIds) use ($users) {
@@ -762,13 +768,6 @@ class EmployeeAPIController extends ControllerAPI
                 }
                 $users->whereNotIn('users.user_role_id', $ids);
             }
-
-            // Include Relationship
-            $with = $defaultWith;
-            OrbitInput::get('with', function ($_with) use ($users, &$with) {
-                $with = array_merge($with, $_with);
-            });
-            $users->with($with);
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
@@ -905,11 +904,12 @@ class EmployeeAPIController extends ControllerAPI
 
         // Check the existance of user id
         Validator::extend('orbit.empty.user', function ($attribute, $value, $parameters) {
-            $user = User::excludeDeleted()
+            $user = User::with('employee')
+                        ->excludeDeleted()
                         ->where('user_id', $value)
                         ->first();
 
-            if (empty($user)) {
+            if (empty($user) || empty($user->employee)) {
                 return FALSE;
             }
 
