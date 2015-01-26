@@ -293,7 +293,7 @@ class Activity extends Eloquent
      */
     public function coupon()
     {
-        return $this->belongsToObject('Coupon', 'object_id', 'coupon_id');
+        return $this->belongsToObject('Coupon', 'object_id', 'promotion_id');
     }
 
     /**
