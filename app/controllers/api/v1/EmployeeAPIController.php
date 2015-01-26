@@ -247,7 +247,6 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `password_confirmation` (required) - Confirmation password
      * @param string    `employee_role`         (required) - Role of the employee, i.e: 'cashier', 'manager', 'supervisor'
      * @param array     `retailer_ids`          (optional) - List of Retailer IDs
-     * @param array     `retailer_ids_delete    (optional) - List of Retailer IDs need to be deleted
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateEmployee()
@@ -330,8 +329,6 @@ class EmployeeAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $role = App::make('orbit.empty.employee.role');
-
             $updatedUser = App::make('orbit.empty.user');
 
             OrbitInput::post('password', function($password) use ($updatedUser) {
@@ -342,7 +339,8 @@ class EmployeeAPIController extends ControllerAPI
                 $updatedUser->status = 'active';
             });
 
-            OrbitInput::post('employee_role', function($_role) use ($updatedUser, $role) {
+            OrbitInput::post('employee_role', function($_role) use ($updatedUser) {
+                $role = App::make('orbit.empty.employee.role');
                 $updatedUser->user_role_id = $role->role_id;
             });
 

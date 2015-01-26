@@ -1,6 +1,6 @@
 <?php namespace OrbitRelation;
 /**
- * Extends Illuminate\Database\Eloquent\Relations to prodived the third key
+ * Extends Illuminate\Database\Eloquent\Relations to prodive the third key
  * (the parent key name) for comparing on join.
  *
  * @author Rio Astamal <me@rioastamal.net>

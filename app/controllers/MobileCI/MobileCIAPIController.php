@@ -933,8 +933,8 @@ class MobileCIAPIController extends ControllerAPI
 
             return $this->render();
         } catch (Exception $e) {
-            return $this->redirectIfNotLoggedIn($e);
-            // return $e;
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
         }
     }
 
@@ -992,6 +992,38 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->response->message = 'success';
             $this->response->data = $coupons;
+
+            return $this->render();
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postCartProductCouponPopup()
+    {
+        try {
+            $this->registerCustomValidation();
+            $promotion_id = OrbitInput::post('promotion_detail');
+
+            $validator = \Validator::make(
+                array(
+                    'promotion_id' => $promotion_id, 
+                ),
+                array(
+                    'promotion_id' => 'required|orbit.exists.coupon',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $coupon = Coupon::excludeDeleted()->where('promotion_id', $promotion_id)->first();
+
+            $this->response->message = 'success';
+            $this->response->data = $coupon;
 
             return $this->render();
         } catch (Exception $e) {
@@ -1106,15 +1138,65 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail->ammountaftertax = $priceaftertax;
             }
 
+            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
+            {
+                $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
+            }, 'issuedcoupon' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)
+                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+            }))->whereHas('cartdetail', function($q) 
+            {
+                $q->where('cart_coupons.object_type', '=', 'cart_detail');
+            })->get();
+
+            $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)
+                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+            }))->where('cart_coupons.object_type', '=', 'cart')->get();
+            // dd($used_cart_coupons);
+            $subtotalaftercartcartcoupon = $subtotal;
+            foreach($used_cart_coupons as $used_cart_coupon) {
+                // dd($used_cart_coupons);
+                if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
+                    $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
+                    $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
+                    $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
+                } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
+                    $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                    $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                    $discount = $used_cart_coupon->issuedcoupon->discount_value;
+                }
+                $subtotalaftercartcartcoupon = $subtotalaftercartcartcoupon-$discount;
+            }
+            
+            foreach($used_product_coupons as $used_product_coupon) {
+                if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                    $used_product_coupon->disc_val_str = '-'.($used_product_coupon->issuedcoupon->discount_value * 100).'%';
+                    $used_product_coupon->disc_val = '-'.($used_product_coupon->issuedcoupon->discount_value * $used_product_coupon->cartdetail->price);
+                    $subtotal = $subtotal - ($used_product_coupon->issuedcoupon->discount_value * $used_product_coupon->cartdetail->price);
+                } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                    $used_product_coupon->disc_val_str = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
+                    $used_product_coupon->disc_val = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
+                    $subtotal = $subtotal - $used_product_coupon->issuedcoupon->discount_value;
+                }
+            }
+
             // check for available cart based coupons
-            $coupon_carts = Coupon::with('couponrule')->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+            $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
+            {
+                $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
+            })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
             {
                 $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
             })
-            ->whereHas('issuedcoupons', function($q) use($user)
+            ->with(array('issuedcoupons' => function($q) use($user)
             {
-                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now());
-            })
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+            }))
             ->where(function($q) 
             {
                 $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
@@ -1124,27 +1206,7 @@ class MobileCIAPIController extends ControllerAPI
             })
             ->get();
 
-            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
-            {
-                $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
-            }, 'issuedcoupon' => function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id)
-                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            }))->get();
-
-            // dd($used_product_coupons);
-
-            foreach($used_product_coupons as $used_product_coupon){
-                if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-                    $used_product_coupon->disc_val_str = '-'.($used_product_coupon->issuedcoupon->discount_value * 100).'%';
-                    $used_product_coupon->disc_val = '-'.($used_product_coupon->issuedcoupon->discount_value * $used_product_coupon->cartdetail->price);
-                } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-                    $used_product_coupon->disc_val_str = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
-                    $used_product_coupon->disc_val = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
-                }
-            }
+            $subtotalbeforecartpromo = $subtotal;
 
             $cartdiscounts = 0;
             $subtotalaftercartpromo = $subtotal;
@@ -1171,27 +1233,31 @@ class MobileCIAPIController extends ControllerAPI
 
             $subtotalaftercartcoupon = $subtotal;
             $available_coupon_carts = array();
-
-            // TODO : check redeem rule first before applying this
-            foreach($coupon_carts as $coupon_cart){
-                // dd($coupon_cart->couponrule->rule_value);
-                if($subtotal >= $coupon_cart->couponrule->rule_value){
-                    if($coupon_cart->couponrule->rule_type == 'cart_discount_by_percentage') {
-                        $discount = $subtotal * $coupon_cart->couponrule->discount_value;
-                        $cartdiscounts = $cartdiscounts + $discount;
-                        $coupon_cart->disc_val_str = '-'.($coupon_cart->couponrule->discount_value * 100).'%';
-                        $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->couponrule->discount_value);
-                    } elseif ($coupon_cart->couponrule->rule_type == 'cart_discount_by_value') {
-                        $discount = $coupon_cart->couponrule->discount_value;
-                        $cartdiscounts = $cartdiscounts + $discount;
-                        $coupon_cart->disc_val_str = '-';
-                        $coupon_cart->disc_val = '-'.$coupon_cart->couponrule->discount_value + 0;
+            // dd($coupon_carts);
+            if(!empty($coupon_carts)) {
+                foreach($coupon_carts as $coupon_cart){
+                    if($subtotalbeforecartpromo >= $coupon_cart->rule_value){
+                        if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
+                            $discount = $subtotal * $coupon_cart->discount_value;
+                            $cartdiscounts = $cartdiscounts + $discount;
+                            $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
+                            $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
+                        } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
+                            $discount = $coupon_cart->discount_value;
+                            $cartdiscounts = $cartdiscounts + $discount;
+                            $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
+                            $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
+                        }
+                        $subtotalaftercartcoupon = $subtotalaftercartcoupon - $discount;
+                        $available_coupon_carts[] = $coupon_cart;
+                    } else {
+                        $coupon_cart->disc_val = $coupon_cart->rule_value;
                     }
-                    $subtotalaftercartcoupon = $subtotalaftercartcoupon - $discount;
-                    $available_coupon_carts[] = $coupon_cart;
                 }
             }
             $total_discount = $total_discount + $cartdiscounts;
+
+            // dd($coupon_carts);
 
             if($retailer->parent->vat_included === 'yes') {
                 $total = $subtotalaftercartpromo;
@@ -1202,12 +1268,13 @@ class MobileCIAPIController extends ControllerAPI
             $cartsummary->subtotal = $subtotal;
             $cartsummary->subtotalaftercartpromo = $subtotalaftercartpromo;
             $cartsummary->subtotalaftercartcoupon = $subtotalaftercartcoupon;
+            $cartsummary->subtotalaftercartcartcoupon = $subtotalaftercartcartcoupon;
             $cartsummary->acquired_promo_carts = $acquired_promo_carts;
             $cartsummary->vat = $vat;
             $cartsummary->total_to_pay = $total;
             $cartsummary->total_discount = $total_discount;
 
-            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary, 'promotions' => $promo_products, 'promo_carts' => $promo_carts, 'coupon_carts' => $coupon_carts, 'used_product_coupons' => $used_product_coupons));
+            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary, 'promotions' => $promo_products, 'promo_carts' => $promo_carts, 'coupon_carts' => $coupon_carts, 'used_product_coupons' => $used_product_coupons, 'used_cart_coupons' => $used_cart_coupons, 'available_coupon_carts' => $available_coupon_carts));
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
@@ -1422,6 +1489,68 @@ class MobileCIAPIController extends ControllerAPI
         return $this->render();
     }
 
+    public function postAddCouponCartToCart()
+    {
+        try {
+            $this->registerCustomValidation();
+
+            $retailer = $this->getRetailerInfo();
+
+            $user = $this->getLoggedInUser();
+
+            $couponid = OrbitInput::post('detail');
+
+            $validator = \Validator::make(
+                array(
+                    'couponid' => $couponid,
+                ),
+                array(
+                    'couponid' => 'required|orbit.exists.issuedcoupons',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            
+            $this->beginTransaction();
+
+            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            if(empty($cart)){
+                $cart = new Cart;
+                $cart->customer_id = $user->user_id;
+                $cart->merchant_id = $retailer->parent_id;
+                $cart->retailer_id = $retailer->merchant_id;
+                $cart->status = 'active';
+                $cart->save();
+                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->save();
+            }
+
+            $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $couponid)->first();
+            
+            $cartcoupon = new CartCoupon;
+            $cartcoupon->issued_coupon_id = $couponid;
+            $cartcoupon->object_type = 'cart';
+            $cartcoupon->object_id = $cart->cart_id;
+            $cartcoupon->save();
+            
+            $used_coupons->status = 'deleted';
+            $used_coupons->save();
+
+            $this->response->message = 'success';
+
+            $this->commit();
+
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+        
+        return $this->render();
+    }
+    
     public function postDeleteFromCart()
     {
         try {
@@ -1450,6 +1579,19 @@ class MobileCIAPIController extends ControllerAPI
             $this->beginTransaction();
             
             $cartdetail = CartDetail::where('cart_detail_id', $cartdetailid)->excludeDeleted()->first();
+            
+            $cartcoupons = CartCoupon::where('object_type', 'cart_detail')->where('object_id', $cartdetail->cart_detail_id)->get();
+
+            if(!empty($cartcoupons)) {
+                foreach($cartcoupons as $cartcoupon) {
+                    $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $cartcoupon->issued_coupon_id)->first();
+                    // dd($issuedcoupon);
+                    $issuedcoupon->makeActive();
+                    $issuedcoupon->save();
+                    $cartcoupon->delete(TRUE);
+                }
+            }
+
             $cart = Cart::where('cart_id', $cartdetail->cart_id)->excludeDeleted()->first();
 
             $quantity = $cartdetail->quantity;
@@ -1463,6 +1605,43 @@ class MobileCIAPIController extends ControllerAPI
             $cartdata->cart = $cart;
             $this->response->message = 'success';
             $this->response->data = $cartdata;
+
+            $this->commit();
+            return $this->render();
+
+        } catch (Exception $e) {
+            $this->rollback();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postDeleteCouponFromCart()
+    {
+        try {
+            $this->registerCustomValidation();
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $couponid = OrbitInput::post('detail');
+
+            $this->beginTransaction();
+            
+            $cartcoupon = CartCoupon::whereHas('issuedcoupon', function($q) use($user, $couponid)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.issued_coupon_id', $couponid);
+            })->first();
+            // dd($cartcoupon);
+            if(!empty($cartcoupon)) {
+                $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $cartcoupon->issued_coupon_id)->first();
+                $issuedcoupon->makeActive();
+                $issuedcoupon->save();
+                $cartcoupon->delete(TRUE);
+            }
+
+            $this->response->message = 'success';
 
             $this->commit();
             return $this->render();

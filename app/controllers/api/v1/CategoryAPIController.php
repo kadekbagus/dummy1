@@ -859,6 +859,21 @@ class CategoryAPIController extends ControllerAPI
                 return FALSE;
             }
 
+            // check category if exists in events.
+            $eventcategory = EventModel::excludeDeleted()
+                ->where('link_object_type', 'family')
+                ->where(function ($query) use ($value) {
+                    $query->where('link_object_id1', $value)
+                        ->orWhere('link_object_id2', $value)
+                        ->orWhere('link_object_id3', $value)
+                        ->orWhere('link_object_id4', $value)
+                        ->orWhere('link_object_id5', $value);
+                })
+                ->first();
+            if (! empty($eventcategory)) {
+                return FALSE;
+            }
+
             App::instance('orbit.exists.have_product_category', $productcategory);
 
             return TRUE;
