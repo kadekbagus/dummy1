@@ -712,6 +712,7 @@ class UserAPIController extends ControllerAPI
      * @param string   `lastname_like`         (optional)
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
+     * @param array    `with`                  (optional) -
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -745,10 +746,12 @@ class UserAPIController extends ControllerAPI
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
                 array(
-                    'sort_by' => $sort_by,
+                    'sort_by'   => $sort_by,
+                    'with'      => OrbitInput::get('with')
                 ),
                 array(
-                    'sort_by' => 'in:username,email,firstname,lastname,registered_date',
+                    'sort_by'   => 'in:username,email,firstname,lastname,registered_date',
+                    'with'      => 'array|min:0'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -765,13 +768,21 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.getsearchuser.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.user.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
             }
 
             // Builder object
-            $users = User::with(array('userdetail'))->excludeDeleted();
+            $with = array('userDetail');
+
+            OrbitInput::get('with', function($_with) use (&$with) {
+                $with = array_merge($_with, $with);
+            });
+            $users = User::with($with)->excludeDeleted();
 
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {
