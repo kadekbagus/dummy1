@@ -20,38 +20,119 @@ class Activity extends Eloquent
      */
     use ModelStatusTrait;
 
+    /**
+     * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
     public static function mobileCI()
     {
         $activity = new static();
         $activity->group = 'mobile-ci';
-        $activity->ip_address = $_SERVER['REMOTE_ADDR'];
-        $activity->user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $activity->ip_address = static::getIPAddress();
+        $activity->user_agent = static::getUserAgent();
         $activity->location_id = Config::get('orbit.shop.id');
 
         return $activity;
     }
 
+    /**
+     * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
     public static function pos()
     {
         $activity = new static();
         $activity->group = 'pos';
-        $activity->ip_address = $_SERVER['REMOTE_ADDR'];
-        $activity->user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $activity->ip_address = static::getIPAddress();
+        $activity->user_agent = static::getUserAgent();
         $activity->location_id = Config::get('orbit.shop.id');
 
         return $activity;
     }
 
+    /**
+     * Set the value of `group`, `ip_address`, `user_agent`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
     public static function portal()
     {
         $activity = new static();
         $activity->group = 'portal';
-        $activity->ip_address = $_SERVER['REMOTE_ADDR'];
-        $activity->user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $activity->ip_address = static::getIPAddress();
+        $activity->user_agent = static::getUserAgent();
 
         return $activity;
     }
 
+    /**
+     * Set the value of `activity_name`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $activityName
+     * @return Activity
+     */
+    public function setActivityName($activityName)
+    {
+        $this->activity_name = $activityName;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `activity_name_long`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $activityNameLong
+     * @return Activity
+     */
+    public function setActivityNameLong($activityNameLong)
+    {
+        $this->activity_name_long = $activityNameLong;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `activity_type`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @type string $type
+     * @return Activity
+     */
+    public function setActivityType($type)
+    {
+        $this->activity_type = $type;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `notes`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $notes - Notes
+     * @return Activity
+     */
+    public function setNotes($notes)
+    {
+        $this->notes = $notes;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `user_id`, `user_email`, and `metadata_user`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string|User $user
+     * @return Activity
+     */
     public function setUser($user='guest')
     {
         if (is_object($user)) {
@@ -73,6 +154,13 @@ class Activity extends Eloquent
         return $this;
     }
 
+    /**
+     * Set the value of `staff_id` and `metadata_staff`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param User $user
+     * @return Activity
+     */
     public function setStaff($user)
     {
         if (is_object($user)) {
@@ -85,6 +173,13 @@ class Activity extends Eloquent
         return $this;
     }
 
+    /**
+     * Set the value of `location_id`, `location_name`, and `metadata_location`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Retailer|Merchant $location
+     * @return Activity
+     */
     public function setLocation($location)
     {
         if (is_object($location)) {
@@ -93,7 +188,27 @@ class Activity extends Eloquent
             }
 
             $this->location_id = $location->merchant_id;
+            $this->location_name = $location->name;
             $this->metadata_location = serialize($location->toArray());
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `object_id`, `object_name`, and `metadata_object`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Object $object
+     * @return Activity
+     */
+    public function setObject($object)
+    {
+        if (is_object($object)) {
+            $this->object_id = $object->getKeyName();
+            $this->object_name = get_class($object);
+
+            $this->metadata_object = serialize($object->toArray());
         }
 
         return $this;
@@ -222,5 +337,42 @@ class Activity extends Eloquent
         $otherKey = $otherKey ?: $instance->getKeyName();
 
         return new BelongsToObject($query, $this, $foreignKey, $otherKey, $relation);
+    }
+
+    /**
+     * Override the save method
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return int
+     */
+    public function save(array $options = array())
+    {
+        if (App::environment() === 'testing') {
+            // Skip saving
+            return 1;
+        }
+        return parent::save($options);
+    }
+
+    /**
+     * Get IP Address of the request.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    protected static function getIPAddress()
+    {
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+    }
+
+    /**
+     * Detect the user agent of the request.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    protected static function getUserAgent()
+    {
+        return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Unknown-UA/?';
     }
 }
