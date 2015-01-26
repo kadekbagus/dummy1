@@ -684,7 +684,7 @@ class EmployeeAPIController extends ControllerAPI
 
             // Include Relationship
             $with = $defaultWith;
-            OrbitInput::get('with', function ($_with) use ($users, &$with) {
+            OrbitInput::get('with', function ($_with) use (&$with) {
                 $with = array_merge($with, $_with);
             });
             $users = User::with($with)->excludeDeleted();
@@ -876,7 +876,12 @@ class EmployeeAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
         }
 
         $output = $this->render($httpCode);
