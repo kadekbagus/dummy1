@@ -40,11 +40,18 @@ echo "-------------------------------------------------------"
     ORBIT_DEPLOY_DIR="$( echo "$ORBIT_DEPLOY_DIR" | sed "s,/\+$,," )"
 
     # Change the ownership of the deployment dir to user jenkins
+    echo -n "Changing permission on ${ORBIT_DEPLOY_DIR} to user jenkins..."
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR jenkins )
+    echo "done."
+
+    echo -n "Copying files to ${ORBIT_DEPLOYE_DIR}..."
     rsync -lrvqW --no-compress --ignore-errors --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
+    echo "done."
 
     # Change the ownership back to orbitshop:git
+    echo -n "Changing permission on ${ORBIT_DEPLOY_DIR} back to orbitshop:git..."
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR orbitshop )
+    echo "done."
 }
 
 phpunit -c phpunit-nocolor.xml
