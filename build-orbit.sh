@@ -41,7 +41,7 @@ echo "-------------------------------------------------------"
 
     # Change the ownership of the deployment dir to user jenkins
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR jenkins )
-    rsync -lrvq --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
+    rsync -lrvqW --no-compress --ignore-errors --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
 
     # Change the ownership back to orbitshop:git
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR orbitshop )
