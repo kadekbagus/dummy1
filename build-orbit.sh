@@ -44,7 +44,7 @@ echo "-------------------------------------------------------"
     $( $ORBIT_CMD_CHOWN_DEPLOY_DIR jenkins )
     echo "done."
 
-    echo -n "Copying files to ${ORBIT_DEPLOYE_DIR}..."
+    echo -n "Copying files to ${ORBIT_DEPLOY_DIR}..."
     rsync -lrvqW --no-compress --ignore-errors --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
     echo "done."
 
