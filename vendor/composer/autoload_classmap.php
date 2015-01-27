@@ -40,6 +40,7 @@ return array(
     'AlterTableMerchantAddColumnModifiedBy' => $baseDir . '/app/database/migrations/2014_11_10_030122_alter_table_merchant_add_column_modified_by.php',
     'AlterTableMerchantTaxesAddColumnStatus' => $baseDir . '/app/database/migrations/2014_12_09_024548_alter_table_merchant_taxes_add_column_status.php',
     'AlterTableMerchantTaxesAddTaxOrder' => $baseDir . '/app/database/migrations/2015_01_27_132819_alter_table_merchant_taxes_add_tax_order.php',
+    'AlterTableMerchantsAddColumnMobileDefaultLanguage' => $baseDir . '/app/database/migrations/2015_01_27_141333_alter_table_merchants_add_column_mobile_default_language.php',
     'AlterTableMerchantsAddColumnOmidOrid' => $baseDir . '/app/database/migrations/2014_11_24_015858_alter_table_merchants_add_column_omid_orid.php',
     'AlterTableMerchantsAddNewColumns' => $baseDir . '/app/database/migrations/2014_11_19_024135_alter_table_merchants_add_new_columns.php',
     'AlterTableMerchantsAddcolumnsAndRenamecolumn' => $baseDir . '/app/database/migrations/2014_11_20_033937_alter_table_merchants_addcolumns_and_renamecolumn.php',
