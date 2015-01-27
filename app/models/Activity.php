@@ -141,7 +141,7 @@ class Activity extends Eloquent
             $this->role_id = $user->role->role_id;
             $this->role = $user->role->role_name;
 
-            $this->metadata_user = serialize($user->toArray());
+            $this->metadata_user = serialize($user->toJSON());
         }
 
         if ($user === 'guest') {
@@ -167,7 +167,7 @@ class Activity extends Eloquent
             $user->employee;
 
             $this->staff_id = $user->user_id;
-            $this->metadata_staff = serialize($user->toArray());
+            $this->metadata_staff = serialize($user->toJSON());
         }
 
         return $this;
@@ -189,7 +189,7 @@ class Activity extends Eloquent
 
             $this->location_id = $location->merchant_id;
             $this->location_name = $location->name;
-            $this->metadata_location = serialize($location->toArray());
+            $this->metadata_location = serialize($location->toJSON());
         }
 
         return $this;
@@ -208,7 +208,7 @@ class Activity extends Eloquent
             $this->object_id = $object->getKeyName();
             $this->object_name = get_class($object);
 
-            $this->metadata_object = serialize($object->toArray());
+            $this->metadata_object = serialize($object->toJSON());
         }
 
         return $this;
@@ -294,6 +294,23 @@ class Activity extends Eloquent
     public function coupon()
     {
         return $this->belongsToObject('Coupon', 'object_id', 'promotion_id');
+    }
+
+    /**
+     * Scope to filter based on merchant ids
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Illuminate\Database\Query\Builder $builder
+     * @param array $merchantIds
+     * @return Illuminate\Database\Query\Builder
+     */
+    public function scopeMerchantIds($builder, array $merchantIds)
+    {
+        return $builder->select('activities.*')
+                       ->join('merchants', 'merchants.merchant_id', '=', 'activities.location_id')
+                       ->whereIn('merchants.parent_id', $merchantIds)
+                       ->where('merchants.status', 'active')
+                       ->where('merchants.object_type', 'retailer');
     }
 
     /**
