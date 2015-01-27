@@ -1239,6 +1239,58 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+    /**
+     * POST - API for checking Cart Based Promotion
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCartBasedPromotion()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            // check for cart based promotions
+            $promo_carts = \Promotion::with('promotionrule')->excludeDeleted()
+                ->where('is_coupon', 'N')
+                ->where('promotion_type', 'cart')
+                ->where('merchant_id', $retailer['parent']['merchant_id'])
+                ->whereHas('retailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', Config::get('orbit.shop.id'));
+                })
+                ->where(function($q) 
+                {
+                    $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
+                    {
+                        $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
+                    });
+                })
+                ->get();
+
+            $this->response->status = 'success';
+            $this->response->message = 'success';
+            $this->response->data = $promo_carts;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+        return $this->render();
+    }
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
@@ -1280,5 +1332,29 @@ class CashierAPIController extends ControllerAPI
         for($i=0;$i<$space;$i++){ $spc .= ' '; }
         $all .= $left.$spc.$right." \n";
         return $all;
+    }
+
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
     }
 }
