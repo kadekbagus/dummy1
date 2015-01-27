@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Activity' => $baseDir . '/app/models/Activity.php',
+    'ActivityAPIController' => $baseDir . '/app/controllers/api/v1/ActivityAPIController.php',
     'AddIncrementsToApikeyId' => $baseDir . '/app/database/migrations/2014_10_16_055603_add_increments_to_apikey_id.php',
     'AddIncrementsToCustomPermissionId' => $baseDir . '/app/database/migrations/2014_10_16_070246_add_increments_to_custom_permission_id.php',
     'AddIncrementsToPermissionId' => $baseDir . '/app/database/migrations/2014_10_16_070755_add_increments_to_permission_id.php',
@@ -38,6 +39,7 @@ return array(
     'AlterTableEngineInnodb' => $baseDir . '/app/database/migrations/2014_11_14_025407_alter_table_engine_innodb.php',
     'AlterTableMerchantAddColumnModifiedBy' => $baseDir . '/app/database/migrations/2014_11_10_030122_alter_table_merchant_add_column_modified_by.php',
     'AlterTableMerchantTaxesAddColumnStatus' => $baseDir . '/app/database/migrations/2014_12_09_024548_alter_table_merchant_taxes_add_column_status.php',
+    'AlterTableMerchantTaxesAddTaxOrder' => $baseDir . '/app/database/migrations/2015_01_27_132819_alter_table_merchant_taxes_add_tax_order.php',
     'AlterTableMerchantsAddColumnOmidOrid' => $baseDir . '/app/database/migrations/2014_11_24_015858_alter_table_merchants_add_column_omid_orid.php',
     'AlterTableMerchantsAddNewColumns' => $baseDir . '/app/database/migrations/2014_11_19_024135_alter_table_merchants_add_new_columns.php',
     'AlterTableMerchantsAddcolumnsAndRenamecolumn' => $baseDir . '/app/database/migrations/2014_11_20_033937_alter_table_merchants_addcolumns_and_renamecolumn.php',
