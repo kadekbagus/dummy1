@@ -87,13 +87,13 @@
                 <span class="header-text">Coupon Name</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">Remove</span>
+                <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
               </div>
               <div class="single-header coupon-column">
                 <span class="header-text">Value ({{ $retailer->parent->currency_symbol }})</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
+                <span class="header-text">Disc. ({{ $retailer->parent->currency_symbol }})</span>
               </div>
             </div>
             <div class="single-item-bodies">
@@ -102,9 +102,7 @@
               </div>
               <div class="single-body">
                 <div class="unique-column-properties">
-                  <div class="coupon-remover" data-detail="{{ $used_product_coupon->issuedcoupon->issued_coupon_id }}">
-                    <span><i class="fa fa-times"></i></span>
-                  </div>
+                  <span>{{ $used_product_coupon->cart_detail->variant->price + 0 }}</span>
                 </div>
               </div>
               <div class="single-body">
@@ -112,6 +110,11 @@
               </div>
               <div class="single-body">
                 <span>{{ $used_product_coupon->disc_val }}</span>
+                <div class="unique-column-properties">
+                  <div class="coupon-remover" data-detail="{{ $used_product_coupon->issuedcoupon->issued_coupon_id }}">
+                    <span><i class="fa fa-times"></i></span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -144,7 +147,7 @@
           <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{$cartsummary->subtotal}}</span>
+          <span>{{$cartsummary->subtotalbeforecartpromo}}</span>
         </div>
         <div class="cart-sum-single-body">
           <span>{{$promo_cart->disc_val_str}}</span>
@@ -163,7 +166,7 @@
       <span class="cart-sum-title">Cart Based Coupons</span>
       <div class="cart-sum-headers">
         <div class="cart-coupon-single-header">
-          <span>Promotion</span>
+          <span>Coupon</span>
         </div>
         <div class="cart-coupon-single-header">
           <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
@@ -176,20 +179,27 @@
         </div>
       </div>
       @foreach($used_cart_coupons as $coupon_cart)
-      <div class="cart-sum-bodies">
-        <div class="cart-sum-single-body">
-          <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
+        @if(!empty($coupon_cart->issuedcoupon))
+        <div class="cart-sum-bodies">
+          <div class="cart-sum-single-body">
+            <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span>{{$cartsummary->subtotalbeforecartpromo}}</span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span>{{$coupon_cart->disc_val_str}}</span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span>{{$coupon_cart->disc_val}}</span>
+            <div class="unique-column-properties">
+              <div class="coupon-remover" data-detail="{{ $coupon_cart->issuedcoupon->issued_coupon_id }}">
+                <span><i class="fa fa-times"></i></span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="cart-sum-single-body">
-          <span>{{$cartsummary->subtotalaftercartcartcoupon}}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{$coupon_cart->disc_val_str}}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{$coupon_cart->disc_val}}</span>
-        </div>
-      </div>
+        @endif  
       @endforeach
     </div>
     @endif
@@ -212,18 +222,18 @@
           <span>&nbsp;</span>
         </div>
       </div>
-      @foreach($available_coupon_carts as $coupon_cart)
-      <!-- <pre>{{ $coupon_cart }}</pre> -->
-        @foreach($coupon_cart->issuedcoupons as $issuedcoupon)
+      @foreach($available_coupon_carts as $available_coupon_cart)
+      <!-- <pre>{{ $available_coupon_cart }}</pre> -->
+        @foreach($available_coupon_cart->issuedcoupons as $issuedcoupon)
         <div class="cart-sum-bodies">
           <div class="cart-sum-single-body">
-            <span class="coupon-name" data-coupon="{{ $coupon_cart->promotion_id }}"><b>{{$coupon_cart->promotion_name}}</b></span>
+            <span class="coupon-name" data-coupon="{{ $available_coupon_cart->promotion_id }}"><b>{{$available_coupon_cart->promotion_name}}</b></span>
           </div>
           <div class="cart-sum-single-body">
-            <span>{{$coupon_cart->disc_val_str}}</span>
+            <span>{{$available_coupon_cart->disc_val_str}}</span>
           </div>
           <div class="cart-sum-single-body">
-            <span>{{$coupon_cart->disc_val}}</span>
+            <span>{{$available_coupon_cart->disc_val}}</span>
           </div>
           <div class="cart-sum-single-body">
             <span><a class="btn btn-info useCouponBtn" data-coupon="{{ $issuedcoupon->issued_coupon_id }}">Pakai</a></span>
@@ -256,7 +266,7 @@
           <span>{{ $cartdata->cart->total_item + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{ $cartsummary->subtotalaftercartpromo + 0 }}</span>
+          <span>{{ $cartsummary->subtotal + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
           <span>{{ $cartsummary->vat + 0}}</span>

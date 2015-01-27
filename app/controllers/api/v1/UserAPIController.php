@@ -459,7 +459,7 @@ class UserAPIController extends ControllerAPI
                     'avg_annual_income2'    => 'numeric',
                     'avg_monthly_spent1'    => 'numeric',
                     'avg_monthly_spent2'    => 'numeric',
-                    'personal_interests'    => 'array|orbit.empty.personal_interest'
+                    'personal_interests'    => 'array|min:0|orbit.empty.personal_interest'
                 ),
                 array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
             );
