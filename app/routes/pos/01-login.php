@@ -91,12 +91,20 @@ Route::post('/api/v1/pos/customerdisplay', function () {
 Route::post('/app/v1/pos/customerdisplay', 'IntermediateAuthController@POS\Cashier_postCustomerDisplay');
 
 
-// customer display
+// product detail
 Route::post('/api/v1/pos/productdetail', function () {
     return POS\CashierAPIController::create()->postProductDetail();
 });
 
 Route::post('/app/v1/pos/productdetail', 'IntermediateAuthController@POS\Cashier_postProductDetail');
+
+
+// cart based promotion
+Route::post('/api/v1/pos/cartbasedpromotion', function () {
+    return POS\CashierAPIController::create()->postCartBasedPromotion();
+});
+
+Route::post('/app/v1/pos/cartbasedpromotion', 'IntermediateAuthController@POS\Cashier_postCartBasedPromotion');
 
 
 Route::get('/pos', function () {
