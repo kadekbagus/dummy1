@@ -116,7 +116,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    serviceAjax.getDataFromServer('/product/search?take=12').then(function(response){
+                    /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
+                    serviceAjax.getDataFromServer('/pos/productsearch?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
                                 response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -497,8 +498,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.inserttocartFn();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                            /* angular.element("#ProductNotFound").modal();
-                             $scope.scanproduct();*/
+                             // angular.element("#ProductNotFound").modal();
+                             // $scope.scanproduct();
                         }
                     });
                 })();
