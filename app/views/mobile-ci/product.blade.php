@@ -45,34 +45,36 @@
 			</div>
 		</div>
 		@if(count($promotions)>0)
+		<div class="col-xs-12">
+			<h3>Promotion Discount</h3>
+		</div>
 		@foreach($promotions as $promotion)
 		<div class="additional-detail">
 			<div class="row">
 				<div class="col-xs-12">
-					<h3>Promotion Discount</h3>
-				</div>
-				<div class="col-xs-3">
 					<p>
-						@if($promotion->rule_type === 'product_discount_by_percentage')
-						{{ $promotion->discount_value * 100 + 0 }}%
-						@else
-						<small>{{ $retailer->parent->currency_symbol }}</small> {{ $promotion->discount_value + 0 }}
-						@endif
+					<b>
+					@if($promotion->rule_type === 'product_discount_by_percentage' || $promotion->rule_type === 'cart_discount_by_percentage')
+					{{ $promotion->discount_value * 100 + 0 }}%
+					@else
+					<small>{{ $retailer->parent->currency_symbol }}</small> {{ $promotion->discount_value + 0 }}
+					@endif
+					| {{ $promotion->promotion_name }}</b>
 					</p>
-				</div>
-				<div class="col-xs-9">
-					<p>{{ $promotion->promotion_name }}</p>
 				</div>
 			</div>
 			<div class="row additional-dates">
-				<div class="col-xs-5 col-sm-3">
-					<p>{{ date('j M Y', strtotime($promotion->begin_date)) }}</p>
+				<div class="col-xs-12 col-sm-12">
+					<p>
+					{{ date('j M Y', strtotime($promotion->begin_date)) }}
+					to
+					{{ date('j M Y', strtotime($promotion->end_date)) }}
+					</p>
 				</div>
-				<div class="col-xs-2">
-					<p>to</p>
-				</div>
-				<div class="col-xs-5 col-sm-3">
-					<p>{{ date('j M Y', strtotime($promotion->end_date)) }}</p>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					<p>{{ $promotion->description }}</p>
 				</div>
 			</div>
 		</div>
@@ -80,39 +82,36 @@
 		@endif
 
 		@if(count($couponstocatchs)>0)
+		<div class="col-xs-12">
+			<h3>Dapatkan Kupon</h3>
+		</div>
 		@foreach($couponstocatchs as $couponstocatch)
 		<div class="additional-detail">
 			<div class="row">
 				<div class="col-xs-12">
-					<h3>Dapatkan Kupon</h3>
-				</div>
-				<div class="col-xs-3">
 					<p>
-						@if($couponstocatch->rule_type === 'product_discount_by_percentage')
+						<b>
+						@if($couponstocatch->rule_type === 'product_discount_by_percentage' || $couponstocatch->rule_type === 'cart_discount_by_percentage')
 						{{ $couponstocatch->discount_value * 100 + 0 }}%
 						@else
 						<small>{{ $retailer->parent->currency_symbol }}</small> {{ $couponstocatch->discount_value + 0 }}
 						@endif
+						| {{ $couponstocatch->promotion_name }}</b>
 					</p>
-				</div>
-				<div class="col-xs-9">
-					<p>{{ $couponstocatch->promotion_name }}</p>
 				</div>
 			</div>
 			<div class="row additional-dates">
-				<div class="col-xs-5 col-sm-3">
-					<p>{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}</p>
-				</div>
-				<div class="col-xs-2">
-					<p>to</p>
-				</div>
-				<div class="col-xs-5 col-sm-3">
-					<p>{{ date('j M Y', strtotime($couponstocatch->end_date)) }}</p>
+				<div class="col-xs-12 col-sm-12">
+					<p>
+					{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
+					to
+					{{ date('j M Y', strtotime($couponstocatch->end_date)) }}
+					</p>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-12">
-					<p>{{ $couponstocatch->description }}</p>
+					<p><small>{{ $couponstocatch->description }}</small></p>
 				</div>
 			</div>
 		</div>
@@ -223,7 +222,7 @@
 				</div>
 			</div>
 			<div class="col-xs-2 col-ms-1 col-md-1 col-sm-1 col-lg-1 pull-right">
-				<div class="circlet cart-btn btn-blue pull-right add-to-cart-button btn-disabled">
+				<div class="circlet cart-btn btn-blue pull-right add-to-cart-button btn-disabled" data-hascoupon="{{$product->on_coupons}}">
 					<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 				</div>
 			</div>
@@ -231,6 +230,38 @@
 	</div>
 </div>
 <!-- end of product -->
+@stop
+
+@section('modals')
+<!-- Modal -->
+  <div class="modal fade" id="hasCouponModal" tabindex="-1" role="dialog" aria-labelledby="hasCouponLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="hasCouponLabel">Kupon Saya</h4>
+        </div>
+        <div class="modal-body">
+          <div class="row ">
+            <div class="col-xs-12 vertically-spaced">
+              <p></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+            <div class="row">
+              <input type="hidden" name="detail" id="detail" value="">
+              <div class="col-xs-6">
+                <button type="button" id="applyCoupon" class="btn btn-success btn-block">Gunakan</button>
+              </div>
+              <div class="col-xs-6">
+                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">Lain Kali</button>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
 @stop
 
 @section('ext_script_bot')
@@ -412,64 +443,229 @@
 
 			$('body').on('click', '#addToCartButton', function($event){
 				// add to cart
+				$('#hasCouponModal .modal-body p').html('');
 				var prodid = itemReady[0].product_id;
 				var prodvarid = itemReady[0].product_variant_id;
 				var img = $(this).children('i');
 				var cart = $('#shopping-cart');
-				
-				$.ajax({
-					url: apiPath+'customer/addtocart',
-					method: 'POST',
-					data: {
-						productid: prodid,
-						productvariantid: prodvarid,
-						qty:1
-					}
-				}).done(function(data){
-					// animate cart
-					
-					var imgclone = img.clone().offset({
-						top: img.offset().top,
-						left: img.offset().left
-					}).css({
-						'color': '#fff',
-						'opacity': '0.5',
-						'position': 'absolute',
-						'height': '20px',
-						'width': '20px',
-						'z-index': '100'
-					}).appendTo($('body')).animate({
-						'top': cart.offset().top + 10,
-						'left': cart.offset().left + 10,
-						'width': '10px',
-						'height': '10px',
-					}, 1000);
+				var hasCoupon = $(this).data('hascoupon');
+				var used_coupons = [];
+				var anchor = $(this);
 
-					setTimeout(function(){
-						cart.effect('shake', {
-							times:2,
-							distance:4,
-							direction:'up'
-						}, 200)
-					}, 1000);
-
-					imgclone.animate({
-						'width': 0,
-						'height': 0
-					}, function(){
-						$(this).detach();
-						$('.cart-qty').css('display', 'block');
-					    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
-					    cartnumber = cartnumber + 1;
-					    if(cartnumber <= 9){
-					    	$('#cart-number').attr('data-cart-number', cartnumber);
-					    	$('#cart-number').text(cartnumber);
-					    }else{
-					    	$('#cart-number').attr('data-cart-number', '9+');
-					    	$('#cart-number').text('9+');
-					    }
+				if(hasCoupon){
+					$.ajax({
+						url: apiPath+'customer/productcouponpopup',
+						method: 'POST',
+						data: {
+							productid: prodid
+						}
+					}).done(function(data){
+						if(data.status == 'success'){
+					        for(var i = 0; i < data.data.length; i++){
+					        	var disc_val;
+					        	if(data.data[i].rule_type == 'product_discount_by_percentage') disc_val = '-' + (data.data[i].discount_value * 100) + '% off';
+					        	else if(data.data[i].rule_type == 'product_discount_by_value') disc_val = '- {{ $retailer->parent->currency }} ' + parseFloat(data.data[i].discount_value) +' off';
+					        	$('#hasCouponModal .modal-body p').html($('#hasCouponModal .modal-body p').html() + '<div class="row vertically-spaced"><div class="col-xs-2"><input type="checkbox" class="used_coupons" name="used_coupons" value="'+ data.data[i].issued_coupon_id +'"></div><div class="col-xs-4"><img style="width:64px;" class="img-responsive" src="'+ data.data[i].promo_image +'"></div><div class="col-xs-6">'+data.data[i].promotion_name+'<br>'+ disc_val +'</div></div>');
+					        }
+					        $('#hasCouponModal').modal();
+				        }else{
+				          	console.log(data);
+				        }
 					});
-				});
+
+					$('#hasCouponModal').on('change', '.used_coupons', function($event){
+						var coupon = $(this).val();
+						if($(this).is(':checked')){
+							used_coupons.push(coupon);
+						}else{
+							used_coupons = $.grep(used_coupons, function(val){
+								return val != coupon;
+							});
+						}
+					});
+					
+					$('#hasCouponModal').on('click', '#applyCoupon', function($event){
+						$.ajax({
+							url: apiPath+'customer/addtocart',
+							method: 'POST',
+							data: {
+								productid: prodid,
+								productvariantid: prodvarid,
+								qty:1,
+								coupons : used_coupons
+							}
+						}).done(function(data){
+							// animate cart
+							if(data.status == 'success'){
+								if(data.data.available_coupons.length < 1){
+									anchor.data('hascoupon', '');
+								}
+								$('#hasCouponModal').modal('hide');
+								if(prodid){
+									var imgclone = img.clone().offset({
+										top: img.offset().top,
+										left: img.offset().left
+									}).css({
+										'color': '#fff',
+										'opacity': '0.5',
+										'position': 'absolute',
+										'height': '20px',
+										'width': '20px',
+										'z-index': '100'
+									}).appendTo($('body')).animate({
+										'top': cart.offset().top + 10,
+										'left': cart.offset().left + 10,
+										'width': '10px',
+										'height': '10px',
+									}, 1000);
+
+									setTimeout(function(){
+										cart.effect('shake', {
+											times:2,
+											distance:4,
+											direction:'up'
+										}, 200)
+									}, 1000);
+
+									imgclone.animate({
+										'width': 0,
+										'height': 0
+									}, function(){
+										$(this).detach();
+										$('.cart-qty').css('display', 'block');
+									    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+									    cartnumber = cartnumber + 1;
+									    if(cartnumber <= 9){
+									    	$('#cart-number').attr('data-cart-number', cartnumber);
+									    	$('#cart-number').text(cartnumber);
+									    }else{
+									    	$('#cart-number').attr('data-cart-number', '9+');
+									    	$('#cart-number').text('9+');
+									    }
+									});
+								}
+							}
+						});
+					});
+
+					$('#hasCouponModal').on('click', '#denyCoupon', function($event){
+						$.ajax({
+							url: apiPath+'customer/addtocart',
+							method: 'POST',
+							data: {
+								productid: prodid,
+								productvariantid: prodvarid,
+								qty:1,
+								coupons : []
+							}
+						}).done(function(data){
+							// animate cart
+							if(data.status == 'success'){
+								if(data.data.available_coupons.length < 1){
+									anchor.data('hascoupon', '');
+								}
+								$('#hasCouponModal').modal('hide');
+								if(prodid){
+									var imgclone = img.clone().offset({
+										top: img.offset().top,
+										left: img.offset().left
+									}).css({
+										'color': '#fff',
+										'opacity': '0.5',
+										'position': 'absolute',
+										'height': '20px',
+										'width': '20px',
+										'z-index': '100'
+									}).appendTo($('body')).animate({
+										'top': cart.offset().top + 10,
+										'left': cart.offset().left + 10,
+										'width': '10px',
+										'height': '10px',
+									}, 1000);
+
+									setTimeout(function(){
+										cart.effect('shake', {
+											times:2,
+											distance:4,
+											direction:'up'
+										}, 200)
+									}, 1000);
+
+									imgclone.animate({
+										'width': 0,
+										'height': 0
+									}, function(){
+										$(this).detach();
+										$('.cart-qty').css('display', 'block');
+									    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+									    cartnumber = cartnumber + 1;
+									    if(cartnumber <= 9){
+									    	$('#cart-number').attr('data-cart-number', cartnumber);
+									    	$('#cart-number').text(cartnumber);
+									    }else{
+									    	$('#cart-number').attr('data-cart-number', '9+');
+									    	$('#cart-number').text('9+');
+									    }
+									});
+								}
+							}
+						});
+					});
+				} else {
+					$.ajax({
+						url: apiPath+'customer/addtocart',
+						method: 'POST',
+						data: {
+							productid: prodid,
+							productvariantid: prodvarid,
+							qty:1
+						}
+					}).done(function(data){
+						// animate cart
+						
+						var imgclone = img.clone().offset({
+							top: img.offset().top,
+							left: img.offset().left
+						}).css({
+							'color': '#fff',
+							'opacity': '0.5',
+							'position': 'absolute',
+							'height': '20px',
+							'width': '20px',
+							'z-index': '100'
+						}).appendTo($('body')).animate({
+							'top': cart.offset().top + 10,
+							'left': cart.offset().left + 10,
+							'width': '10px',
+							'height': '10px',
+						}, 1000);
+
+						setTimeout(function(){
+							cart.effect('shake', {
+								times:2,
+								distance:4,
+								direction:'up'
+							}, 200)
+						}, 1000);
+
+						imgclone.animate({
+							'width': 0,
+							'height': 0
+						}, function(){
+							$(this).detach();
+							$('.cart-qty').css('display', 'block');
+						    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+						    cartnumber = cartnumber + 1;
+						    if(cartnumber <= 9){
+						    	$('#cart-number').attr('data-cart-number', cartnumber);
+						    	$('#cart-number').text(cartnumber);
+						    }else{
+						    	$('#cart-number').attr('data-cart-number', '9+');
+						    	$('#cart-number').text('9+');
+						    }
+						});
+					});
+				}
 			});
 		});
 	</script>
