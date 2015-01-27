@@ -57,7 +57,7 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role', 'merchants')
+            $user = User::with('apikey', 'userdetail.merchant', 'role')
                         ->active()
                         ->where('username', $username)
                         ->where('user_role_id', $role->role_id)
@@ -264,7 +264,7 @@ class CashierAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::with('retailers')->excludeDeleted()->allowedForUser($user);
+            $products = Product::with('retailers')->excludeDeleted();
 
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
