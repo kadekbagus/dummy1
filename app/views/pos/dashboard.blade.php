@@ -40,7 +40,7 @@
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
                                 <td style="max-width: 300px;word-wrap: break-word;" >
-                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %></b></a> <br><% v.upc_code %>
+                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
 
@@ -169,8 +169,8 @@
           <div class="modal-body">
             <div class="row">
                 <div class="col-md-12">
-                <div class="ribbon-wrapper-red ribbon2nd">
-                				<div class="ribbon-red">30%</div>
+                <div class="ribbon-wrapper-green ribbon2nd">
+                				<div class="ribbon-green" data-ng-show="datapromotion.length">Promo</div>
                 			</div>
                     <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product" style="width: 300px"></p>
                 </div>
@@ -184,64 +184,79 @@
                     			</div>
                     </div>
                      <div class="additional-detail">
-                     	<div class="row">
-                     				<div class="col-xs-12">
-                     					<h4>Discount Coupon Promo</h4>
-                     				</div>
-                     				<div class="col-xs-3 ">
-                     					<h5>30%</h5>
-                     				</div>
-                     				<div class="col-xs-9">
-                     					<h5>Happy Halloween</h5>
-                     				</div>
-                     			</div>
-                     	<div class="row">
-                     				<div class="col-xs-5 col-xs-height">
-                     					<p>19 Sep 2014</p>
-                     				</div>
-                     				<div class="col-xs-2 col-xs-height">
-                     					<p>s/d</p>
-                     				</div>
-                     				<div class="col-xs-5 col-xs-height">
-                     					<p>31 Oct 2014</p>
-                     				</div>
-                     			</div>
-                     			<div class="row" data-ng-if="hiddenbtn">
-                     			    <div class="col-xs-12">
-                                       <p><h5><del>300.000</del></h5></p>
-                                       <p><h4>IDR : <% productmodal.price %></h3></p>
-                                    </div>
-                     			</div>
+                     <h4 data-ng-show="datapromotion.length">Promo</h4>
+                     <div data-ng-show="datapromotion.length" data-ng-repeat="(k,v) in datapromotion">
+                        <div class="row" >
+                                          				<div class="col-xs-9">
+                                                           <h5><% v.promotion_name %></h5>
+                                                        </div>
+                                          				<div class="col-xs-3 ">
+                                          					<h5><% v.discount_value  %></h5>
+                                          				</div>
+
+                        </div>
+                        <div class="row">
+                                          				<div class="col-xs-5 col-xs-height">
+                                          					<p><% v.new_from  %></p>
+                                          				</div>
+                                          				<div class="col-xs-2 col-xs-height">
+                                          					<p>s/d</p>
+                                          				</div>
+                                          				<div class="col-xs-5 col-xs-height">
+                                          					<p><% v.new_until  %></p>
+                                          				</div>
+                        </div>
+                     </div>
+
+
+                     	<div class="row" data-ng-if="hiddenbtn">
+                     		   <div class="col-xs-12">
+                                     <p><h5><del>300.000</del></h5></p>
+                                     <p><h4>IDR : <% productmodal.price %></h4></p>
+                               </div>
+                     	</div>
                      </div>
                 </div>
                 <div class="col-md-12" data-ng-if="!hiddenbtn">
                     <div class="col-xs-12 product-attributes">
                     		<div class="row">
-                    			<div class="col-xs-4 main-theme-text">
+                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute1">
                     				<div class="radio-container">
-                    					<h5>Size</h5>
-                    				        <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option1" ><span>Option</span></label>
-                    				        <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option2" checked><span>Option</span></label>
-
+                    					<h5><% productdetail.product.attribute1.product_attribute_name %></h5>
+                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue1"><input name="checkbox1" type="radio" data-ng-model="chooseattr[0]" data-ng-change="changeattr(0,k)" value="<% v.value1  %>" ><span><% v.value1  %></span></label>
                     				</div>
                     			</div>
-                    			<div class="col-xs-4 main-theme-text">
+                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute2">
                     				<div class="radio-container">
-                    					<h5>Colors</h5>
-                    				      <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option1" ><span>Option</span></label>
-                                          <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option2" checked=""><span>Option</span></label>
-
+                    					<h5><% productdetail.product.attribute2.product_attribute_name %></h5>
+                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue2" data-ng-show="v.value1 == chooseattr[0]"><input name="checkbox2" data-ng-change="changeattr(1,k)" data-ng-model="chooseattr[1]" type="radio" value="<% v.value2  %>"  data-ng-model="chooseattr[1]" ><span><% v.value2 %></span></label>
                     				</div>
                     			</div>
-                    			<div class="col-xs-4 main-theme-text">
+                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute3">
                     				<div class="radio-container">
-                    					<h5>Sleeve</h5>
-                    				      <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option1" ><span>Option</span></label>
-                                          <label class="ui-checkbox"><input name="checkbox1" type="checkbox" value="option2" checked=""><span>Option</span></label>
+                    					<h5><% productdetail.product.attribute3.product_attribute_name %></h5>
+                    				      <label class="ui-radio" data-ng-repeat="(k,v) in tmpattr" data-ng-show="v.value2 == chooseattr[1]"><input name="checkbox3"  data-ng-change="changeattr(2,k)" data-ng-model="chooseattr[2]" type="radio" value="<% v.value3  %>"  data-ng-model="chooseattr[2]" ><span><% v.value3  %></span></label>
                     				</div>
                     			</div>
                     		</div>
-                    	</div>
+                    </div>
+                    <div class="col-xs-12 product-attributes" data-ng-show="productdetail.product.attribute4 || productdetail.product.attribute5">
+                    		<div class="row">
+                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute4">
+                    				<div class="radio-container">
+                    					<h5><% productdetail.product.attribute4.product_attribute_name %></h5>
+                    		              <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue4" data-ng-show="v.value3 == chooseattr[2]"><input name="checkbox4" data-ng-change="changeattr(3,k)" data-ng-model="chooseattr[3]"  type="radio" value="<% v.value4  %>"  data-ng-model="chooseattr[3]" ><span><% v.value4  %></span></label>
+                    				</div>
+                    			</div>
+                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute5">
+                    				<div class="radio-container">
+                    					<h5><% productdetail.product.attribute5.product_attribute_name %></h5>
+                               		       <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue5" data-ng-show="v.value4 == chooseattr[3]"><input name="checkbox5" data-ng-change="changeattr(4,k)"  data-ng-model="chooseattr[4]" type="radio" value="<% v.value5  %>"  data-ng-model="chooseattr[4]" ><span><% v.value5  %></span></label>
+                    				</div>
+                    			</div>
+
+                    		</div>
+                    </div>
                 </div>
                 <div class="col-md-12  main-theme" data-ng-if="!hiddenbtn">
                     <div class="col-md-6">
