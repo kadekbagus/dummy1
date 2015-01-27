@@ -80,6 +80,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.productmodal['idx'] = id;
                     $scope.hiddenbtn = false;
                     if(act) $scope.hiddenbtn = true;
+                    $scope.datapromotion = [];
+                    $scope.getpromotion($scope.productmodal['product_id']);
                 };
                 //canceler request
                 $scope.cancelRequestService = function(){
@@ -114,7 +116,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
                     serviceAjax.getDataFromServer('/product/search?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
@@ -127,7 +128,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }else{
                             //do something when error
                         }
-                        /* if(progressJs) progressJs("#loading").end();*/
                     });
                 };
                 //watch search
@@ -136,7 +136,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(newvalue){
                         if(newvalue && newvalue.length > 2) {
                             if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
-                            serviceAjax.getDataFromServer('/pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue +'merchant_id[]=' + $scope.datauser['userdetail']['merchant_id']).then(function (response) {
+                            serviceAjax.getDataFromServer('/pos/productsearch?product_name_like=' + newvalue + '&upc_code_like=' +  newvalue + '&product_code_like='+newvalue).then(function (response) {
                                 if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
                                     for (var i = 0; i < response.data.records.length; i++) {
                                         response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
@@ -158,6 +158,116 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.getproduct();
                     }
                 });
+
+                //get promotion
+                $scope.getpromotion = function(productid){
+                   if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
+                        if (response.code == 0 ) {
+                            $scope.productdetail = response.data;
+                            $scope.datapromotion = response.data.promo;
+                            if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
+                                $scope.datapromotion[i]['discount_value'] = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[i]['new_from']       = moment($scope.datapromotion[i]['new_from']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY')  : '';
+                                $scope.datapromotion[i]['new_until']      = moment($scope.datapromotion[i]['new_until']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY') : '';
+                            }
+
+                            $scope.dataattrvalue1 = [];
+                            $scope.dataattrvalue2 = [];
+                            $scope.dataattrvalue3 = [];
+                            $scope.dataattrvalue4 = [];
+                            $scope.dataattrvalue5 = [];
+                            $scope.tmpattr = [];
+                            $scope.chooseattr = [];
+                            //TODO: agung :Refactor this, try with dfferent data
+                            if($scope.productdetail.attributes)for(var a=0; a < $scope.productdetail.attributes.length;a++){
+
+                                $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue3[a] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue4[a] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue5[a] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.tmpattr[a] = angular.copy($scope.productdetail.attributes[a]);
+                            }
+
+                            for(var i = 0; i < $scope.dataattrvalue1.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue1.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue1[i]['attr_val_id1'] == $scope.dataattrvalue1[a]['attr_val_id1']){
+                                            $scope.dataattrvalue1.splice(i,1);
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue2.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue2.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue2[i]['attr_val_id2'] == $scope.dataattrvalue2[a]['attr_val_id2']){
+                                            $scope.dataattrvalue2.splice(i,1);
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue3.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue3.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue3[i]['attr_val_id3'] == $scope.dataattrvalue3[a]['attr_val_id3']){
+                                            $scope.dataattrvalue3.splice(i,1);
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue4.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue4.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue4[i]['attr_val_id4'] == $scope.dataattrvalue4[a]['attr_val_id4']){
+                                            $scope.dataattrvalue4.splice(i,1);
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue5.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue5.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue5[i]['attr_val_id5'] == $scope.dataattrvalue5[a]['attr_val_id5']){
+                                            $scope.dataattrvalue5.splice(i,1);
+                                       }
+                                   }
+                                }
+                            }
+
+                           $scope.countattr = 0;
+                            if($scope.productdetail.product.attribute1) $scope.countattr++;
+                            if($scope.productdetail.product.attribute2) $scope.countattr++;
+                            if($scope.productdetail.product.attribute3) $scope.countattr++;
+                            if($scope.productdetail.product.attribute4) $scope.countattr++;
+                            if($scope.productdetail.product.attribute5) $scope.countattr++;
+
+                        }
+                    })
+                };
+                $scope.changeattr = function(id,idx){
+                       //reset
+                    $scope.variantstmp = '';
+                    for(var i = id+1; i < $scope.chooseattr.length; i++ ){
+                       $scope.chooseattr[i] = '';
+                    }
+                    if(id +1 == $scope.countattr){
+                        $scope.variantstmp = $scope.tmpattr[idx];
+                        $scope.productmodal.upc_code = $scope.tmpattr[idx]['upc'];
+                        $scope.productmodal.price    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
+                    }
+
+                };
+               /* //get variants
+                ($scope.getvariants = function(){
+                    serviceAjax.getDataFromServer('/product-attribute/list?with[]=values').then(function (response) {
+                        if (response.code == 0 ) {
+                            $scope.dataAttribute = response.data.records;
+                        }else{
+                            //do something
+                        }
+                    })
+                })();*/
                 //reset search
                 $scope.resetsearch = function(){
                     $scope.searchproduct = '';
@@ -196,6 +306,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.checkcart($scope.productmodal['product_id'])){
                             $scope.cart.push({
                                 product_name : $scope.productmodal['product_name'],
+                                variants     : $scope.variantstmp,
                                 qty          : 1,
                                 price        : $scope.productmodal['price'],
                                 idx          : $scope.productmodal['idx'],
@@ -386,8 +497,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.inserttocartFn();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                             angular.element("#ProductNotFound").modal();
-                             $scope.scanproduct();
+                            /* angular.element("#ProductNotFound").modal();
+                             $scope.scanproduct();*/
                         }
                     });
                 })();
