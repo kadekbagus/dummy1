@@ -453,13 +453,13 @@ class UserAPIController extends ControllerAPI
                     'phone'                 => 'required',
                     'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
                     'number_of_children'    => 'numeric|min:0',
-                    'education_level'       => 'in:none,junior high school,diploma,bachelor,master,ph.d,doctor,other',
+                    'education_level'       => 'in:none,junior high school,high school,diploma,bachelor,master,ph.d,doctor,other',
                     'preferred_language'    => 'in:en,id',
                     'avg_annual_income1'    => 'numeric',
                     'avg_annual_income2'    => 'numeric',
                     'avg_monthly_spent1'    => 'numeric',
                     'avg_monthly_spent2'    => 'numeric',
-                    'personal_interests'    => 'array|orbit.empty.personal_interest'
+                    'personal_interests'    => 'array|min:0|orbit.empty.personal_interest'
                 ),
                 array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
             );
@@ -712,6 +712,7 @@ class UserAPIController extends ControllerAPI
      * @param string   `lastname_like`         (optional)
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
+     * @param array    `with`                  (optional) -
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -745,10 +746,12 @@ class UserAPIController extends ControllerAPI
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
                 array(
-                    'sort_by' => $sort_by,
+                    'sort_by'   => $sort_by,
+                    'with'      => OrbitInput::get('with')
                 ),
                 array(
-                    'sort_by' => 'in:username,email,firstname,lastname,registered_date',
+                    'sort_by'   => 'in:username,email,firstname,lastname,registered_date',
+                    'with'      => 'array|min:0'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -765,13 +768,21 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.getsearchuser.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.user.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
             }
 
             // Builder object
-            $users = User::with(array('userdetail'))->excludeDeleted();
+            $with = array('userdetail');
+
+            OrbitInput::get('with', function($_with) use (&$with) {
+                $with = array_merge($_with, $with);
+            });
+            $users = User::with($with)->excludeDeleted();
 
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {

@@ -30,4 +30,9 @@ class UserDetail extends Eloquent
     {
         return $query->join('users', 'user_details.user_id', '=', 'users.user_id')->where('users.status', '=', 'active');
     }
+
+    public function merchant()
+    {
+        return $this->belongsTo('Merchant', 'merchant_id', 'merchant_id');
+    }
 }

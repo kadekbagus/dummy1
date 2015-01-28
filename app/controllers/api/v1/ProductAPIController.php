@@ -336,7 +336,13 @@ class ProductAPIController extends ControllerAPI
                 $attribute_values = $this->checkVariant($variant_decode);
                 $merchant_id = $updatedproduct->merchant_id;
 
-                foreach ($variant_decode as $variant) {
+                foreach ($variant_decode as $variant_index=>$variant) {
+                    $nullNumber = (int)Config::get('memory:productapicontroller.skipped.' . $variant_index);
+                    if ($nullNumber === 5) {
+                        // All attribute values are null, skip saving
+                        continue;
+                    }
+
                     // Return the default price if the variant price is empty
                     $vprice = function() use ($variant, $updatedproduct) {
                         if (empty($variant->price)) {
@@ -437,7 +443,18 @@ class ProductAPIController extends ControllerAPI
                     }
                 };
 
-                foreach ($variant_decode as $variant) {
+                // Reset config which store the skipped variant
+                for ($i=0; $i<=5; $i++) {
+                    Config::set('memory:productapicontroller.skipped.' . $i, 0);
+                }
+
+                foreach ($variant_decode as $variant_index=>$variant) {
+                    $nullNumber = (int)Config::get('memory:productapicontroller.skipped.' . $variant_index);
+                    if ($nullNumber === 5) {
+                        // All attribute values are null, skip saving
+                        continue;
+                    }
+
                     // Flag for particular product variant which should be edited
                     $has_transaction = FALSE;
 
@@ -1100,7 +1117,13 @@ class ProductAPIController extends ControllerAPI
                 $index = 1;
                 $attribute_values = $this->checkVariant($variant_decode);
 
-                foreach ($variant_decode as $variant) {
+                foreach ($variant_decode as $variant_index=>$variant) {
+                    $nullNumber = (int)Config::get('memory:productapicontroller.skipped.' . $variant_index);
+                    if ($nullNumber === 5) {
+                        // All attribute values are null, skip saving
+                        continue;
+                    }
+
                     // Return the default price if the variant price is empty
                     $vprice = function() use ($variant, $price) {
                         if (empty($variant->price)) {
@@ -1153,6 +1176,8 @@ class ProductAPIController extends ControllerAPI
                     $newproduct->$field_attribute_id = $value->product_attribute_id;
                 }
                 $newproduct->save();
+
+                $this->keepProductColumnUpToDate($newproduct);
             });
 
             $newproduct->setRelation('retailers', $productretailers);
@@ -1683,6 +1708,18 @@ class ProductAPIController extends ControllerAPI
             if ($mode === 'update') {
                 // Check the existence of the product variant id
                 $product = App::make('orbit.empty.product');
+            }
+
+            $empty = 0;
+            foreach ($variant->attribute_values as $value_id) {
+                if (empty($value_id)) {
+                    $empty++;
+                }
+            }
+            if ($empty >= 5) {
+                // Add flag to this variant so it not be saved
+                Config::set('memory:productapicontroller.skipped.' . $i, 5);
+                continue;
             }
 
             // Check each of these product attribute value existence

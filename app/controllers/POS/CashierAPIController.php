@@ -25,9 +25,11 @@ use \Config;
 use \ProductAttribute;
 use \DB;
 use Carbon\Carbon as Carbon;
+use \Hash;
+use Activity;
 
 class CashierAPIController extends ControllerAPI
-{  
+{
 
     /**
      * POST - Login cashier in shop
@@ -42,31 +44,30 @@ class CashierAPIController extends ControllerAPI
      */
     public function postLoginCashier()
     {
+        $activity = Activity::pos()->setActivityType('login');
         try {
-            $username = trim(OrbitInput::post('username'));
-            $password = trim(OrbitInput::post('password'));
+            $username = OrbitInput::post('username');
+            $password = OrbitInput::post('password');
 
-            if (trim($username) === '') {
-                $errorMessage = \Lang::get('validation.required', array('attribute' => 'username'));
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            $role = Role::where('role_name', 'cashier')->first();
+            if (empty($role)) {
+                $message = Lang::get('validation.orbit.empty.employee.role',
+                    array('role' => 'Cashier')
+                );
+                ACL::throwAccessForbidden($message);
             }
 
-            if (trim($password) === '') {
-                $errorMessage = \Lang::get('validation.required', array('attribute' => 'password'));
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-
-            $user = User::with('apikey', 'userdetail', 'role', 'merchants')
+            $user = User::with('apikey', 'userdetail.merchant', 'role')
                         ->active()
                         ->where('username', $username)
-                        ->where('user_role_id', Role::where('role_name','Cashier')->first()->role_id)
+                        ->where('user_role_id', $role->role_id)
                         ->first();
 
             if (is_object($user)) {
-                if( ! \Hash::check($password, $user->user_password)){
+                if (! Hash::check($password, $user->user_password)) {
                     $message = \Lang::get('validation.orbit.access.loginfailed');
                     ACL::throwAccessForbidden($message);
-                }else{
+                } else {
                     // Start the orbit session
                     $data = array(
                         'logged_in' => TRUE,
@@ -75,15 +76,19 @@ class CashierAPIController extends ControllerAPI
                     $config = new SessionConfig(Config::get('orbit.session'));
                     $session = new Session($config);
                     $session->enableForceNew()->start($data);
+
+                    // Successfull login
+                    $activity->setUser($user)
+                             ->setActivityName('login_ok')
+                             ->setActivityNameLong('Login OK')
+                             ->responseOK();
                 }
             } else {
-                $message = \Lang::get('validation.orbit.access.loginfailed');
+                $message = Lang::get('validation.orbit.access.loginfailed');
                 ACL::throwAccessForbidden($message);
             }
 
             $user->setHidden(array('user_password', 'apikey'));
-
-            \Auth::login($user);
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
@@ -91,21 +96,39 @@ class CashierAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         }
 
+        $activity->save();
         return $this->render();
     }
-
 
     /**
      * POST - Logout cashier
@@ -119,7 +142,6 @@ class CashierAPIController extends ControllerAPI
         try {
             $config = new SessionConfig(Config::get('orbit.session'));
             $session = new Session($config);
-            $this->prepareSession();
 
             $session->start(array(), 'no-session-creation');
             $session->destroy();
@@ -156,7 +178,7 @@ class CashierAPIController extends ControllerAPI
             $barcode = trim($barcode);
             $product = Product::where('upc_code', $barcode)
                     ->active()
-                    ->first();      
+                    ->first();
 
             if (! is_object($product)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
@@ -242,7 +264,7 @@ class CashierAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::with('retailers')->excludeDeleted()->allowedForUser($user);
+            $products = Product::with('retailers')->excludeDeleted();
 
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
@@ -429,7 +451,7 @@ class CashierAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `product_variant_id`                 (optional)
-     * @param integer    `product_id`                         (optional) 
+     * @param integer    `product_id`                         (optional)
      * @param decimal    `price`                              (optional)
      * @param string     `upc`                                (optional)
      * @param string     `sku`                                (optional)
@@ -484,9 +506,9 @@ class CashierAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = \ProductVariant::with('product', 
-                             'attributeValue1.attribute', 'attributeValue2.attribute', 
-                             'attributeValue3.attribute', 'attributeValue4.attribute', 
+            $products = \ProductVariant::with('product',
+                             'attributeValue1.attribute', 'attributeValue2.attribute',
+                             'attributeValue3.attribute', 'attributeValue4.attribute',
                              'attributeValue5.attribute')->excludeDeleted();
 
             // Filter product variant by product variant id
@@ -562,7 +584,7 @@ class CashierAPIController extends ControllerAPI
             // Filter product variant by modified by
             OrbitInput::get('modified_by', function ($modified_by) use ($products) {
                 $products->whereIn('product_variants.modified_by', $modified_by);
-            });             
+            });
 
             $_products = clone $products;
 
@@ -751,7 +773,7 @@ class CashierAPIController extends ControllerAPI
                 // $transactionDetails->product_attribute_name5     = $v['product_attribute_name5'];
                 $transactionDetails->save();
             }
-            
+
             //only payment cash
             if($payment_method == 'cash') self::postCashDrawer();
 
@@ -797,8 +819,8 @@ class CashierAPIController extends ControllerAPI
                 $message = \Lang::get('validation.orbit.empty.transaction');
                 ACL::throwAccessForbidden($message);
             }
-            
-            $this->response->data = $transaction;   
+
+            $this->response->data = $transaction;
 
             foreach ($transaction['details'] as $key => $value) {
                if($key==0){
@@ -808,7 +830,7 @@ class CashierAPIController extends ControllerAPI
                 $product .= $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
                }
             }
-            
+
             $payment = $transaction['payment_method'];
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
@@ -820,7 +842,7 @@ class CashierAPIController extends ControllerAPI
             }else{
                 $customer = $transaction['user']->user_email;
             }
-            
+
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
@@ -1011,11 +1033,11 @@ class CashierAPIController extends ControllerAPI
                 $cmd = 'sudo '.$driver.' '.$params;
                 $barcode = shell_exec($cmd);
             }
-            
+
             $barcode = trim($barcode);
             $cart = \Cart::with('details.product', 'users')->where('cart_code', $barcode)
                     ->active()
-                    ->first();      
+                    ->first();
 
             if (! is_object($cart)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
@@ -1157,13 +1179,13 @@ class CashierAPIController extends ControllerAPI
             $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on 
+                inner join ' . DB::getTablePrefix() . 'products prod on
                 (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
                     OR
                     (
-                        (pr.discount_object_type="family") AND 
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        (pr.discount_object_type="family") AND
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
                         ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
                         ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
                         ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
@@ -1173,8 +1195,8 @@ class CashierAPIController extends ControllerAPI
                 WHERE prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
 
             $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
-            inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
-            left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1 
+            inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id
+            left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1
             left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2
             left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3
             left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4
@@ -1183,9 +1205,9 @@ class CashierAPIController extends ControllerAPI
             left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id
             left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id
             left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id
-            left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id 
+            left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id
             WHERE p.product_id = :productid'), array('productid' => $product->product_id));
-                    
+
             // $resp = new \stdClass();
             //         $resp->code = 0;
             //         $resp->status = 'success';
@@ -1197,6 +1219,58 @@ class CashierAPIController extends ControllerAPI
             $result['promo'] = $promo_products;
             $result['attributes'] = $attributes;
             $this->response->data = $result;
+
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+        return $this->render();
+    }
+
+    /**
+     * POST - API for checking Cart Based Promotion
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postCartBasedPromotion()
+    {
+        try {
+            $retailer = $this->getRetailerInfo();
+            // check for cart based promotions
+            $promo_carts = \Promotion::with('promotionrule')->excludeDeleted()
+                ->where('is_coupon', 'N')
+                ->where('promotion_type', 'cart')
+                ->where('merchant_id', $retailer['parent']['merchant_id'])
+                ->whereHas('retailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', Config::get('orbit.shop.id'));
+                })
+                ->where(function($q) 
+                {
+                    $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
+                    {
+                        $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
+                    });
+                })
+                ->get();
+
+            $this->response->status = 'success';
+            $this->response->message = 'success';
+            $this->response->data = $promo_carts;
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -1258,5 +1332,29 @@ class CashierAPIController extends ControllerAPI
         for($i=0;$i<$space;$i++){ $spc .= ' '; }
         $all .= $left.$spc.$right." \n";
         return $all;
+    }
+
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
     }
 }

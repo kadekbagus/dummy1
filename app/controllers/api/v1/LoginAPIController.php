@@ -27,6 +27,8 @@ class LoginAPIController extends ControllerAPI
      */
     public function postLogin()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('login');
         try {
             $email = trim(OrbitInput::post('email'));
             $password = trim(OrbitInput::post('password'));
@@ -56,65 +58,11 @@ class LoginAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $this->response->data = $user;
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (Exception $e) {
-            $this->response->code = Status::UNKNOWN_ERROR;
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        }
-
-        return $this->render();
-    }
-
-    /**
-     * POST - Login cashier in shop
-     *
-     * @author Kadek <kadek@dominopos.com>
-     *
-     * List of API Parameters
-     * ----------------------
-     * @param string    `email`          (required) - Email address of the user
-     * @return Illuminate\Support\Facades\Response
-     */
-    public function postLoginCashier()
-    {
-        try {
-            $username = trim(OrbitInput::post('username'));
-            $password = trim(OrbitInput::post('password'));
-
-            if (trim($username) === '') {
-                $errorMessage = Lang::get('validation.required', array('attribute' => 'username'));
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-
-            $user = User::with('apikey', 'userdetail', 'role')
-                        ->active()
-                        ->where('username', $username)
-                        ->where('user_role_id', 6)
-                        ->first();
-
-            if (! is_object($user)) {
-                $message = Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
-            }
-
-            if (! Hash::check($password, $user->user_password)) {
-                $message = Lang::get('validation.orbit.access.loginfailed');
-                ACL::throwAccessForbidden($message);
-            }
-
-            Auth::Login($user);
+            // Successfull login
+            $activity->setUser($user)
+                     ->setActivityName('login_ok')
+                     ->setActivityNameLong('Login OK')
+                     ->responseOK();
 
             $this->response->data = $user;
         } catch (ACLForbiddenException $e) {
@@ -122,17 +70,38 @@ class LoginAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (Exception $e) {
             $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render();
     }

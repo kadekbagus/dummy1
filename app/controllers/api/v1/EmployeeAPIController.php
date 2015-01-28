@@ -24,7 +24,7 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `lastname`              (required) - Employee last name
      * @param string    `birthdate`             (required) - Employee birthdate
      * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
-     * @param string    `employee_id`           (required) - Employee ID, i.e: 'EMP001', 'CASHIER001`
+     * @param string    `employee_id_char`      (required) - Employee ID, i.e: 'EMP001', 'CASHIER001`
      * @param string    `username`              (required) - Username used to login
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
@@ -241,13 +241,12 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `lastname`              (required) - Employee last name
      * @param string    `birthdate`             (required) - Employee birthdate
      * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
-     * @param string    `employee_id`           (required) - Employee ID, i.e: 'EMP001', 'CASHIER001' (Unchangable)
+     * @param string    `employee_id_char`      (required) - Employee ID, i.e: 'EMP001', 'CASHIER001' (Unchangable)
      * @param string    `username`              (required) - Username used to login (Unchangable)
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
      * @param string    `employee_role`         (required) - Role of the employee, i.e: 'cashier', 'manager', 'supervisor'
      * @param array     `retailer_ids`          (optional) - List of Retailer IDs
-     * @param array     `retailer_ids_delete    (optional) - List of Retailer IDs need to be deleted
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateEmployee()
@@ -330,8 +329,6 @@ class EmployeeAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $role = App::make('orbit.empty.employee.role');
-
             $updatedUser = App::make('orbit.empty.user');
 
             OrbitInput::post('password', function($password) use ($updatedUser) {
@@ -342,7 +339,8 @@ class EmployeeAPIController extends ControllerAPI
                 $updatedUser->status = 'active';
             });
 
-            OrbitInput::post('employee_role', function($_role) use ($updatedUser, $role) {
+            OrbitInput::post('employee_role', function($_role) use ($updatedUser) {
+                $role = App::make('orbit.empty.employee.role');
                 $updatedUser->user_role_id = $role->role_id;
             });
 
@@ -455,7 +453,7 @@ class EmployeeAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `user_id`               (required) - User ID of the employee
+     * @param integer    `user_id`               (required) - User ID of the employee
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteEmployee()
@@ -682,8 +680,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Builder object
             $joined = FALSE;
-            $users = User::excludeDeleted('users');
             $defaultWith = array('employee.retailers');
+
+            // Include Relationship
+            $with = $defaultWith;
+            OrbitInput::get('with', function ($_with) use (&$with) {
+                $with = array_merge($with, $_with);
+            });
+            $users = User::with($with)->excludeDeleted();
 
             // Filter user by Ids
             OrbitInput::get('user_ids', function ($userIds) use ($users) {
@@ -755,7 +759,7 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             if (empty(OrbitInput::get('role_id'))) {
-                $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+                $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant-owner', 'guest'];
                 $roles = Role::whereIn('role_name', $invalidRoles)->get();
 
                 $ids = array();
@@ -764,13 +768,6 @@ class EmployeeAPIController extends ControllerAPI
                 }
                 $users->whereNotIn('users.user_role_id', $ids);
             }
-
-            // Include Relationship
-            $with = $defaultWith;
-            OrbitInput::get('with', function ($_with) use ($users, &$with) {
-                $with = array_merge($with, $_with);
-            });
-            $users->with($with);
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
@@ -879,7 +876,12 @@ class EmployeeAPIController extends ControllerAPI
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
         }
 
         $output = $this->render($httpCode);
@@ -907,11 +909,12 @@ class EmployeeAPIController extends ControllerAPI
 
         // Check the existance of user id
         Validator::extend('orbit.empty.user', function ($attribute, $value, $parameters) {
-            $user = User::excludeDeleted()
+            $user = User::with('employee')
+                        ->excludeDeleted()
                         ->where('user_id', $value)
                         ->first();
 
-            if (empty($user)) {
+            if (empty($user) || empty($user->employee)) {
                 return FALSE;
             }
 
@@ -967,7 +970,7 @@ class EmployeeAPIController extends ControllerAPI
         });
 
         Validator::extend('orbit.empty.employee.role', function ($attribute, $value, $parameters) {
-            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer', 'merchant-owner');
             if (in_array(strtolower($value), $invalidRoles)) {
                 return FALSE;
             }
@@ -984,7 +987,7 @@ class EmployeeAPIController extends ControllerAPI
         });
 
         Validator::extend('orbit.employee.role.limited', function ($attribute, $value, $parameters) {
-            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer');
+            $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant-owner', 'guest'];
             $roles = Role::whereIn('role_name', $invalidRoles)->get();
 
             if ($roles) {
