@@ -11,12 +11,30 @@
 			    <div class="row">
 				    <div class="col-xs-6 search-tool-col">
 				    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc') }}" id="sort-by-price-up"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i></span></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc') }}" id="sort-by-price-down"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i></span></a><span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
-				    	{{-- Form::select('sort_by', array('product_name' => 'Nama', 'price' => 'Harga'), Input::get('sort_by'), array('class'=>'form-control')) --}}
+				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&new='.Input::get('new').'&promo='.Input::get('promo')) }}" id="sort-by-price-up">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a> 
+				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&new='.Input::get('new').'&promo='.Input::get('promo')) }}" id="sort-by-price-down">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a>
+				    	<span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
 				    </div>
 				    <div class="col-xs-5 search-tool-col">
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc') }}" id="sort-by-name-up"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i></span></a> <a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc') }}" id="sort-by-name-down"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i></span></a><span class="sort-lable">A-Z</span>
-				    	{{-- Form::select('sort_mode', array('asc' => 'A-Z', 'desc' => 'Z-A'), Input::get('sort_mode'), array('class'=>'form-control')) --}}
+				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&new='.Input::get('new').'&promo='.Input::get('promo')) }}" id="sort-by-name-up">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a> 
+				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&new='.Input::get('new').'&promo='.Input::get('promo')) }}" id="sort-by-name-down">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a>
+				    	<span class="sort-lable">A-Z</span>
 				    </div>
 				    <div class="col-xs-1 search-tool-col text-right">
 						<a href="{{ url('/customer/home') }}"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-close fa-stack-1x sort-chevron"></i></span></a>
@@ -24,9 +42,9 @@
 			 	</div>
 			</div>
 			@foreach($data->records as $product)
-				<div class="main-theme catalogue">
+				<div class="main-theme catalogue" id="product-{{$product->product_id}}">
 					<div class="row row-xs-height catalogue-top">
-						<div class="col-xs-6 catalogue-img col-xs-height col-middle @if($product->on_couponstocatch) {{ 'coupon-wrapper' }} @endif">
+						<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 							<div>
 								<?php $x = 1;?>
 								@if($product->on_promo)
@@ -44,6 +62,12 @@
 								@if($product->on_coupons)
 								<div class="ribbon-wrapper-yellow ribbon{{$x}}">
 									<div class="ribbon-yellow">Coupon</div>
+								</div>
+								<?php $x++;?>
+								@endif
+								@if($product->on_couponstocatch)
+								<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
+									<div class="ribbon-yellow-dash">Coupon</div>
 								</div>
 								<?php $x++;?>
 								@endif
@@ -164,7 +188,17 @@
 		    }
 		});
 		$(document).ready(function(){
-			// add to cart
+			if(window.location.hash){
+				var hash = window.location.hash;
+				var producthash = "#product-"+hash.replace(/^.*?(#|$)/,'');
+				console.log(producthash);
+				var hashoffset = $(producthash).offset();
+				var hashoffsettop = hashoffset.top-68;
+				setTimeout(function() {
+				    $(window).scrollTop(hashoffsettop);
+				}, 1);
+			}
+			// add to cart    		
 			$('body').on('click', 'a.product-add-to-cart', function(event){
 				$('#hasCouponModal .modal-body p').html('');
 				var prodid = $(this).data('product-id');

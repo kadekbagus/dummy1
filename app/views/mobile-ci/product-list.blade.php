@@ -1,9 +1,7 @@
 @foreach($data->records as $product)
 	<div class="main-theme catalogue">
 		<div class="row row-xs-height catalogue-top">
-			<div class="col-xs-6 catalogue-img col-xs-height col-middle 
-			@if($product->on_couponstocatch) {{ 'coupon-wrapper' }} @endif
-			">
+			<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 				<div>
 					<?php $x = 1;?>
 					@if($product->on_promo)
@@ -21,6 +19,12 @@
 					@if($product->on_coupons)
 					<div class="ribbon-wrapper-yellow ribbon{{$x}}">
 						<div class="ribbon-yellow">Coupon</div>
+					</div>
+					<?php $x++;?>
+					@endif
+					@if($product->on_couponstocatch)
+					<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
+						<div class="ribbon-yellow-dash">Coupon</div>
 					</div>
 					<?php $x++;?>
 					@endif

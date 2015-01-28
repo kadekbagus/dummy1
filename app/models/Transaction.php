@@ -31,4 +31,27 @@ class Transaction extends Eloquent
     {
         return $this->belongsTo('User', 'customer_id', 'user_id');
     }
+
+    public function merchant()
+    {
+        return $this->belongsTo('Merchant', 'merchant_id', 'merchant_id');
+    }
+
+    public function retailer()
+    {
+        return $this->belongsTo('Retailer', 'retailer_id', 'merchant_id');
+    }
+
+    /**
+     * Scope to join with TransactionDetails.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Builder
+     */
+    public function scopeTransactionDetailsJoin($builder)
+    {
+        return $builder->select('transactions.*')
+                       ->join('transaction_details', 'transaction_details.transaction_id', '=', 'transactions.transaction_id')
+                       ->groupBy('transactions.transaction_id');
+    }
 }

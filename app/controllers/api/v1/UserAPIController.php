@@ -453,7 +453,7 @@ class UserAPIController extends ControllerAPI
                     'phone'                 => 'required',
                     'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
                     'number_of_children'    => 'numeric|min:0',
-                    'education_level'       => 'in:none,junior high school,diploma,bachelor,master,ph.d,doctor,other',
+                    'education_level'       => 'in:none,junior high school,high school,diploma,bachelor,master,ph.d,doctor,other',
                     'preferred_language'    => 'in:en,id',
                     'avg_annual_income1'    => 'numeric',
                     'avg_annual_income2'    => 'numeric',

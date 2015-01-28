@@ -210,6 +210,17 @@ class Merchant extends Eloquent
     }
 
     /**
+     * Merchant has many transactions
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function transactions()
+    {
+        return $this->hasMany('Transaction', 'merchant_id', 'merchant_id');
+    }
+
+    /**
      * Merchant has many uploaded media.
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -262,6 +273,23 @@ class Merchant extends Eloquent
 
         return $builder;
     }
+
+    /**
+     * Add Filter merchant based on transaction and users.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  User $user Instance of object user
+     */
+    public function scopeTransactionCustomerIds($builder, array $userIds)
+    {
+        return $builder->select('merchants.*')
+                       ->join('transactions', 'transactions.merchant_id', '=', 'merchants.merchant_id')
+                       ->where('transactions.status', 'paid')
+                       ->whereIn('customer_id', $userIds)
+                       ->groupBy('merchants.merchant_id');
+    }
+
 
     /**
      * Accessor for default logo

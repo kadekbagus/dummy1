@@ -282,6 +282,9 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
 
             $sort_by = OrbitInput::get('sort_by');
+
+            $pagetitle = Lang::get('mobileci.page_title.searching');
+
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
@@ -302,7 +305,7 @@ class MobileCIAPIController extends ControllerAPI
             // Get the maximum record
             $maxRecord = (int) Config::get('orbit.pagination.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 100;
+                $maxRecord = 300;
             }
 
             $retailer = $this->getRetailerInfo();
@@ -320,6 +323,15 @@ class MobileCIAPIController extends ControllerAPI
                         ->orWhere('products.long_description', 'like', "%$name%")
                         ->orWhere('products.short_description', 'like', "%$name%");
                 });
+            });
+
+            // Filter by new product
+            OrbitInput::get('new', function ($name) use ($products) {
+                if(!empty($name)) {
+                    $products->where(function($q) use ($name) {
+                        $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                    });
+                }
             });
 
             $_products = clone $products;
@@ -430,6 +442,13 @@ class MobileCIAPIController extends ControllerAPI
                 $product_on_promo[] = $promotion->product_id;
             }
 
+            // Filter by new product
+            OrbitInput::get('promo', function ($name) use ($products, $product_on_promo) {
+                if(!empty($name)) {
+                    $products->whereIn('products.product_id', $product_on_promo);
+                }
+            });
+
             $totalRec = $_products->count();
             $listOfRec = $products->get();
 
@@ -488,7 +507,7 @@ class MobileCIAPIController extends ControllerAPI
             if($totalRec>$search_limit){
                 $data = new stdclass();
                 $data->status = 0;
-            }else{
+            } else {
                 $data = new stdclass();
                 $data->status = 1;
                 $data->total_records = $totalRec;
@@ -496,7 +515,13 @@ class MobileCIAPIController extends ControllerAPI
                 $data->records = $listOfRec;
             }
 
-            return View::make('mobile-ci.search', array('page_title'=>Lang::get('mobileci.page_title.searching'), 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
+            if(!empty(OrbitInput::get('new'))) {
+                $pagetitle = 'NEW PRODUCTS';
+            }
+            if(!empty(OrbitInput::get('promo'))) {
+                $pagetitle = 'PROMOTIONS';
+            }
+            return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
@@ -1152,10 +1177,15 @@ class MobileCIAPIController extends ControllerAPI
                 $q->where('issued_coupons.user_id', $user->user_id)
                 ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            }))->whereHas('cartdetail', function($q) 
+            }))->whereHas('issuedcoupon', function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id);
+            })->whereHas('cartdetail', function($q)
             {
                 $q->where('cart_coupons.object_type', '=', 'cart_detail');
             })->get();
+
+            // dd($used_product_coupons);
 
             $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
             {

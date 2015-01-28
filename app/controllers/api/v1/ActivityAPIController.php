@@ -47,27 +47,27 @@ class ActivityAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.product.getattribute.before.auth', array($this));
+            Event::fire('orbit.activity.getactivity.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.product.getattribute.after.auth', array($this));
+            Event::fire('orbit.activity.getactivity.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.product.getattribute.before.authz', array($this, $user));
+            Event::fire('orbit.activity.getactivity.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_activity')) {
-                Event::fire('orbit.product.getattribute.authz.notallowed', array($this, $user));
+                Event::fire('orbit.activity.getactivity.authz.notallowed', array($this, $user));
 
                 $errorMessage = Lang::get('validation.orbit.actionlist.view_activity');
                 $message = Lang::get('validation.orbit.access.view_activity', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.product.getattribute.after.authz', array($this, $user));
+            Event::fire('orbit.activity.getactivity.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -86,14 +86,14 @@ class ActivityAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.product.getattribute.before.validation', array($this, $validator));
+            Event::fire('orbit.activity.getactivity.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.product.getattribute.after.validation', array($this, $validator));
+            Event::fire('orbit.activity.getactivity.after.validation', array($this, $validator));
 
             // Get the maximum record
             $maxRecord = (int) Config::get('orbit.pagination.activity.max_record');
@@ -251,7 +251,7 @@ class ActivityAPIController extends ControllerAPI
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.product.getattribute.access.forbidden', array($this, $e));
+            Event::fire('orbit.activity.getactivity.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -259,7 +259,7 @@ class ActivityAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.product.getattribute.invalid.arguments', array($this, $e));
+            Event::fire('orbit.activity.getactivity.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -271,7 +271,7 @@ class ActivityAPIController extends ControllerAPI
             $this->response->data = $result;
             $httpCode = 403;
         } catch (QueryException $e) {
-            Event::fire('orbit.product.getattribute.query.error', array($this, $e));
+            Event::fire('orbit.activity.getactivity.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -285,7 +285,7 @@ class ActivityAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
         } catch (Exception $e) {
-            Event::fire('orbit.product.getattribute.general.exception', array($this, $e));
+            Event::fire('orbit.activity.getactivity.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
@@ -299,7 +299,7 @@ class ActivityAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.product.getattribute.before.render', array($this, &$output));
+        Event::fire('orbit.activity.getactivity.before.render', array($this, &$output));
 
         return $output;
     }
