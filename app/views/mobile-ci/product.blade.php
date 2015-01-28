@@ -7,7 +7,7 @@
 @section('content')
 <!-- product -->
 <div class="row product">
-	<div class="col-xs-12 @if(count($couponstocatchs)>0) {{ 'coupon-wrapper' }} @endif product-img">
+	<div class="col-xs-12 product-img">
 		<!-- <div ng-include="product.ribbon"></div> -->
 		<div>
 			<?php $x=1; ?>
@@ -26,6 +26,12 @@
 			@if(count($coupons)>0)
 			<div class="ribbon-wrapper-yellow ribbon{{$x}}">
 				<div class="ribbon-yellow">Coupon</div>
+			</div>
+			<?php $x++;?>
+			@endif
+			@if(count($couponstocatchs)>0)
+			<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
+				<div class="ribbon-yellow-dash">Coupon</div>
 			</div>
 			<?php $x++;?>
 			@endif

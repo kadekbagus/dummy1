@@ -245,6 +245,7 @@
     @endif
 
     {{-- cart summary --}}
+    @if(count($cartdata->cartdetails) > 0)
     <div class="cart-page cart-sum">
       <span class="cart-sum-title">Total</span>
       <div class="cart-sum-headers">
@@ -276,6 +277,7 @@
         </div>
       </div>
     </div>
+    @endif
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
@@ -294,20 +296,20 @@
           <h4 class="modal-title" id="checkOutLabel">Checkout</h4>
         </div>
         <div class="modal-body">
-          <div class="row ">
+          <!-- <div class="row ">
             <div class="col-xs-12 col-sm-6 vertically-spaced">
               <button ng-click="paymentOptionsCtrl.goTo('creditCard')" type="button" class="btn btn-success btn-block" ng-click="">Credit Card</button>
             </div>
             <div class="col-xs-12 col-sm-6 vertically-spaced">
               <button type="button" class="btn btn-success btn-block" ng-click="">PayPal</button>
             </div>
-          </div>
+          </div> -->
           <div class="row ">
             <div class="col-xs-12 col-sm-6 vertically-spaced">
-              <button ng-click="paymentOptionsCtrl.goTo('transferCart')" type="button" class="btn btn-success btn-block" ng-click="">Cash</button>
+              <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">Cash</a>
             </div>
             <div class="col-xs-12 col-sm-6 vertically-spaced">
-              <button ng-click="paymentOptionsCtrl.goTo('transferCart')" type="button" class="btn btn-success btn-block" ng-click="">Card Present</button>
+              <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">Credit Card</a>
             </div>
           </div>
         </div>
@@ -473,7 +475,7 @@
       }).done(function(data){
         if(data.status == 'success'){
           $('#previewModal #previewLabel').text(data.data.product_name);
-          $('#previewModal .modal-body p').html('<img class="img-responsive" src="'+ data.data.image +'">');
+          $('#previewModal .modal-body p').html('<img class="img-responsive" src="'+ data.data.image +'"><br>'+data.data.short_description);
           $('#previewModal').modal();
         }else{
           console.log(data);
