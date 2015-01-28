@@ -6,7 +6,7 @@
 /**
  * Get list of activities
  */
-Route::post('/api/v1/activity/list', function()
+Route::get('/api/v1/activity/list', function()
 {
     return ActivityAPIController::create()->getSearchActivity();
 });
