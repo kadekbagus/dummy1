@@ -53,7 +53,7 @@
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
                                 <td style="max-width: 300px;word-wrap: break-word;" >
-                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
+                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc',k)"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
 
@@ -100,6 +100,12 @@
                             <td class="text-center"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></td>
                             <td class="text-center"><b><h5>VAT<br><% cart.vat %></b></h5> </td>
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
+                        </tr>
+                        <tr>
+                            <td><div class="circle"><span style="margin-left: 15px;">Promotion</span></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     </table>
                 </div>
@@ -224,8 +230,11 @@
 
 
                      	<div class="row" data-ng-if="hiddenbtn">
-                     		   <div class="col-xs-12">
-                                     <p data-ng-show="datapromotion.length"><h5><del><% productmodal.price %></del></h5></p>
+                     		   <div class="col-xs-12" data-ng-show="datapromotion.length">
+                                    <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
+                                    <p><h4>IDR : <% productmodal.price %></h4></p>
+                               </div>
+                     		   <div class="col-xs-12" data-ng-show="!datapromotion.length">
                                      <p><h4>IDR : <% productmodal.price %></h4></p>
                                </div>
                      	</div>
