@@ -1,12 +1,24 @@
 @extends('pos.layouts.default')
 @section('content')
+<style>
+.circle{
+    -webkit-border-radius:8px;
+    -moz-border-radius:8px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    width:15px;
+    height:15px;
+    background-color: #339966;
+    margin-left:70px;
 
+}
+</style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="height: 64px">
-                <h1><% datauser['merchants'][0]['name'] %></h1>
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['userdetail']['merchant']['logo'] %>" class="img" style="height: 64px">
+                <h1><% datauser['userdetail']['merchant']['name'] %></h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
@@ -35,12 +47,13 @@
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
+                            <th class="text-center">DISCOUNT</th>
                             <th class="text-center">HARGA TOTAL</th>
                         </tr>
                         <tbody>
                            <tr data-ng-repeat="(k,v) in cart">
                                 <td style="max-width: 300px;word-wrap: break-word;" >
-                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
+                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc',k)"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
 
@@ -63,6 +76,7 @@
                                           </span>
                                     </div>
                                 </td>
+                                <td class="text-center"><div class="circle" data-ng-show="v.ispromo" ></div></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
 
@@ -86,6 +100,12 @@
                             <td class="text-center"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></td>
                             <td class="text-center"><b><h5>VAT<br><% cart.vat %></b></h5> </td>
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
+                        </tr>
+                        <tr>
+                            <td><div class="circle"><span style="margin-left: 15px;">Promotion</span></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     </table>
                 </div>
@@ -135,7 +155,7 @@
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
@@ -210,8 +230,11 @@
 
 
                      	<div class="row" data-ng-if="hiddenbtn">
-                     		   <div class="col-xs-12">
-                                     <p><h5><del>300.000</del></h5></p>
+                     		   <div class="col-xs-12" data-ng-show="datapromotion.length">
+                                    <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
+                                    <p><h4>IDR : <% productmodal.price %></h4></p>
+                               </div>
+                     		   <div class="col-xs-12" data-ng-show="!datapromotion.length">
                                      <p><h4>IDR : <% productmodal.price %></h4></p>
                                </div>
                      	</div>
@@ -259,14 +282,25 @@
                     </div>
                 </div>
                 <div class="col-md-12  main-theme" data-ng-if="!hiddenbtn">
-                    <div class="col-md-6">
-                         <p>UPC :<% productmodal.upc_code %> </p>
-                         <p><h5><del>300.000</del></h5></p>
-                         <p><h4>IDR : <% productmodal.price %></h3></p>
+                    <div class="col-md-6" >
+                        <div data-ng-show="datapromotion.length && showprice">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
+                            <p><h4>IDR : <% productmodal.price %></h3></p>
+
+                        </div>
+                        <div data-ng-show="!datapromotion.length">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p><h4>IDR : <% productmodal.price %></h3></p>
+
+                        </div>
                     </div>
                     <div class="col-md-6">
                          <p>&nbsp;</p>
-                         <p class="text-center"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                         <p class="text-center" data-ng-show="!datapromotion.length"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                         <p class="text-center" data-ng-show="datapromotion.length">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp;
+                            <button type="button" data-ng-show="datapromotion.length && showprice " data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
                     </div>
                  </div>
             </div>
