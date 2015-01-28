@@ -706,6 +706,7 @@ class CashierAPIController extends ControllerAPI
     public function postSaveTransaction()
     {
         try {
+            $retailer = $this->getRetailerInfo();
             $total_item     = trim(OrbitInput::post('total_item'));
             $subtotal       = trim(OrbitInput::post('subtotal'));
             $vat            = trim(OrbitInput::post('vat'));
@@ -733,6 +734,7 @@ class CashierAPIController extends ControllerAPI
             $transaction->cashier_id     = $cashier_id;
             $transaction->customer_id    = $customer_id;
             $transaction->payment_method = $payment_method;
+            $transaction->status         = 'paid';
 
             $transaction->save();
 
@@ -773,6 +775,32 @@ class CashierAPIController extends ControllerAPI
                 // $transactionDetails->product_attribute_name4     = $v['product_attribute_name4'];
                 // $transactionDetails->product_attribute_name5     = $v['product_attribute_name5'];
                 $transactionDetails->save();
+            }
+
+
+            // issue coupons (if any)
+            if($customer_id!=0 ||$customer_id!=NULL){
+                $coupons = Coupon::with('couponrule')->excludeDeleted()
+                ->where('merchant_id',$retailer->parent_id)
+                ->where('promotion_type','cart')->get()->toArray();
+                
+                if(is_array($coupons)){
+                    foreach($coupons as $kupon){
+                        if($total_to_pay >= $kupon['couponrule']['rule_value']){
+                            $issue_coupon = new \IssueCoupon();
+                            $issue_coupon->promotion_id = $kupon['promotion_id'];
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon['coupon_validity_in_days']);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = $this->ISSUE_COUPON_INCREMENT+$issue_coupon->issue_coupon_id;
+                            $issue_coupon->save();
+                        }
+                    }
+                }
             }
 
             //only payment cash
