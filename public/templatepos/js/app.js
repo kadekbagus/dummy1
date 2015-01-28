@@ -76,14 +76,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }else{
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,idcart){
+                    //set loading
+                    $scope.loadproductdetail = true;
+                    //init product modal
                     $scope.productmodal        = $scope.product[id];
                     $scope.productmodal['idx'] = id;
+                    //hide btn when action view
                     $scope.hiddenbtn = false;
                     if(act){
                         $scope.hiddenbtn = true;
                         $scope.productmodal.price = $scope.cart[idcart]['price'];
                         $scope.productmodal.beforepromoprice = $scope.cart[idcart]['beforepromoprice'];
                     }
+                    //reset data promotion
                     $scope.datapromotion = [];
                     $scope.variantstmp = '';
                     $scope.showprice = false;
@@ -248,7 +253,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.productdetail.product.attribute3) $scope.countattr++;
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
-
+                            $scope.loadproductdetail = false;
+                        }else{
+                            //do smoething
                         }
                     })
                 };

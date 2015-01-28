@@ -1,17 +1,10 @@
 @extends('pos.layouts.default')
 @section('content')
 <style>
-.circle{
-    -webkit-border-radius:8px;
-    -moz-border-radius:8px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    width:15px;
-    height:15px;
-    background-color: #339966;
-    margin-left:70px;
 
-}
+
+/*
+/*
 </style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
@@ -76,7 +69,7 @@
                                           </span>
                                     </div>
                                 </td>
-                                <td class="text-center"><div class="circle" data-ng-show="v.ispromo" ></div></td>
+                                <td class="text-center"><div class="circlegreen" data-ng-show="v.ispromo" ></div></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
 
@@ -180,13 +173,14 @@
     <div class="modal fade" id="myModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;" >
-             <div class="modal-header"  data-ng-if="hiddenbtn">
+            <div data-ng-show="!loadproductdetail" data-ng-init="loadproductdetail = false">
+              <div class="modal-header"  data-ng-if="hiddenbtn">
                  <button class="btn  close closemodal"  data-dismiss="modal" type="button">
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                  </button>
                    <h4 class="modal-title text-center" id="myModalLabel"><b>PRODUK DETAIL</b></h4>
              </div>
-          <div class="modal-body">
+              <div class="modal-body">
             <div class="row">
                 <div class="col-md-12">
                 <div class="ribbon-wrapper-green ribbon2nd">
@@ -305,7 +299,15 @@
                  </div>
             </div>
           </div>
-
+            </div>
+            <div data-ng-show="loadproductdetail">
+                <div class="modal-body">
+                   <span class="ouro ouro3">
+                     <span class="left"><span class="anim"></span></span>
+                     <span class="right"><span class="anim"></span></span>
+                   </span>
+                </div>
+            </div>
         </div>
       </div>
     </div>
