@@ -264,7 +264,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                diskon += $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.tmpattr[idx]['price'] : $scope.datapromotion[i]['oridiscount_value'];
                             }
                             var diskons = $scope.tmpattr[idx]['price'] - diskon;
-                            $scope.productmodal.price = $scope.tmpattr[idx]['price'] - diskons < 0 ?  0 :accounting.formatMoney(diskons, "", 0, ",", ".");
+                            $scope.productmodal.price =  diskons < 0 ?  0 :accounting.formatMoney(diskons, "", 0, ",", ".");
                             $scope.showprice = true;
                         }
                     }

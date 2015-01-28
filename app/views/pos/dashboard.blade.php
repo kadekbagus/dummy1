@@ -149,7 +149,7 @@
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
