@@ -46,7 +46,7 @@ class Merchant extends Eloquent
 
     public function taxes()
     {
-        return $this->hasMany('MerchantTax', 'merchant_id', 'merchant_id')->orderBy('tax_order', 'ASC');
+        return $this->hasMany('MerchantTax', 'merchant_id', 'merchant_id')->excludeDeleted()->orderBy('tax_order', 'ASC');
     }
 
     public function children()
