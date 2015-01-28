@@ -211,7 +211,7 @@ class TransactionHistoryAPIController extends ControllerAPI
     }
 
     /**
-     * GET - List of Merchant for particular user
+     * GET - List of Retailer for particular user
      *
      * @author Rio Astamal <me@rioastamal.net>
      *
@@ -406,6 +406,215 @@ class TransactionHistoryAPIController extends ControllerAPI
 
         $output = $this->render($httpCode);
         Event::fire('orbit.transactionhistory.getretailerlist.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+    /**
+     * GET - List of transaction history of Product for particular user
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param array     `retailer_ids`          (required) - IDs of Retailer
+     * @param string    `user_id`               (required) - ID of the user
+     * @param string    `sort_by`               (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
+     * @param string    `sort_mode`             (optional) - asc or desc
+     * @param integer   `take`                  (optional) - limit
+     * @param integer   `skip`                  (optional) - limit offset
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getProductList()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.transactionhistory.getproductlist.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.transactionhistory.getproductlist.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.transactionhistory.getproductlist.before.authz', array($this, $user));
+
+            $user_id = OrbitInput::get('user_id');
+            if (! ACL::create($user)->isAllowed('view_transaction_history')) {
+                if ((string)$user_id !== (string)$user->user_id) {
+                    Event::fire('orbit.transactionhistory.getproductlist.authz.notallowed', array($this, $user));
+
+                    $errorMessage = Lang::get('validation.orbit.actionlist.view_transaction_history');
+                    $message = Lang::get('validation.orbit.access.view_activity', array('action' => $errorMessage));
+
+                    ACL::throwAccessForbidden($message);
+                }
+            }
+            Event::fire('orbit.transactionhistory.getproductlist.after.authz', array($this, $user));
+
+            $sort_by = OrbitInput::get('sortby');
+            $retailer_ids = OrbitInput::get('retailer_ids');
+            $validator = Validator::make(
+                array(
+                    'sort_by'       => $sort_by,
+                    'user_id'       => $user_id
+                ),
+                array(
+                    'user_id'       => 'required|numeric',
+                    'retailer_ids'  => 'array|min:0',
+                    'sort_by'       => 'in:product_name,last_transaction,qty,price'
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.transaction.history.productlist.sortby'),
+                )
+            );
+
+            Event::fire('orbit.transactionhistory.getproductlist.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.transactionhistory.getproductlist.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.transaction_history.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+
+            // Builder object
+            $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction')
+                                             ->transactionJoin();
+
+            OrbitInput::get('user_id', function($userId) use ($transactions) {
+                $transactions->whereIn('transactions.customer_id', (array)$userId);
+            });
+
+            OrbitInput::get('retailer_ids', function($retailerIds) use ($transactions) {
+                $transactions->whereIn('transactions.retailer_id', $retailerIds);
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_transactions = clone $transactions;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+            });
+            $transactions->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $transactions) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $transactions->skip($skip);
+
+            // Default sort by
+            $sortBy = 'transaction_details.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'product_name'      => 'transaction_details.name',
+                    'last_transcation'  => 'transaction_details.created_at',
+                    'qty'               => 'transaction_details.quantity',
+                    'price'             => 'transaction_details.price'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
+
+            $totalTransactions = $_transactions->count();
+            $listOfTransactions = $transactions->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalTransactions;
+            $data->returned_records = count($listOfTransactions);
+            $data->records = $listOfTransactions;
+
+            if ($listOfTransactions === 0) {
+                $data->records = null;
+                $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.transactionhistory.getproductlist.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.transactionhistory.getproductlist.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.transactionhistory.getproductlist.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.transactionhistory.getproductlist.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.transactionhistory.getproductlist.before.render', array($this, &$output));
 
         return $output;
     }
