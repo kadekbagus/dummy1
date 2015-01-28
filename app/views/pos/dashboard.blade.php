@@ -76,7 +76,7 @@
                                           </span>
                                     </div>
                                 </td>
-                                <td class="text-center"><div class="circle" data-ng-show="ispromo" ></div></td>
+                                <td class="text-center"><div class="circle" data-ng-show="v.ispromo" ></div></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
 
@@ -225,7 +225,7 @@
 
                      	<div class="row" data-ng-if="hiddenbtn">
                      		   <div class="col-xs-12">
-                                     <p><h5><del>300.000</del></h5></p>
+                                     <p data-ng-show="datapromotion.length"><h5><del><% productmodal.price %></del></h5></p>
                                      <p><h4>IDR : <% productmodal.price %></h4></p>
                                </div>
                      	</div>
@@ -273,14 +273,25 @@
                     </div>
                 </div>
                 <div class="col-md-12  main-theme" data-ng-if="!hiddenbtn">
-                    <div class="col-md-6">
-                         <p>UPC :<% productmodal.upc_code %> </p>
-                         <p><h5><del>300.000</del></h5></p>
-                         <p><h4>IDR : <% productmodal.price %></h3></p>
+                    <div class="col-md-6" >
+                        <div data-ng-show="datapromotion.length && showprice">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
+                            <p><h4>IDR : <% productmodal.price %></h3></p>
+
+                        </div>
+                        <div data-ng-show="!datapromotion.length">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p><h4>IDR : <% productmodal.price %></h3></p>
+
+                        </div>
                     </div>
                     <div class="col-md-6">
                          <p>&nbsp;</p>
-                         <p class="text-center"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                         <p class="text-center" data-ng-show="!datapromotion.length"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                         <p class="text-center" data-ng-show="datapromotion.length">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp;
+                            <button type="button" data-ng-show="datapromotion.length && showprice " data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
                     </div>
                  </div>
             </div>
