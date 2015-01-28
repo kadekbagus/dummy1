@@ -22,6 +22,7 @@ class MerchantAPIController extends ControllerAPI
      * ----------------------
      * @param integer    `merchant_id`                 (required) - ID of the merchant
      * @param string     `password`                    (required) - Password of the user for confirmation
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteMerchant()
@@ -189,11 +190,12 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `contact_person_phone2`   (optional) - Contact person second phone
      * @param string     `contact_person_email`    (optional) - Contact person email
      * @param string     `sector_of_activity`      (optional) - Sector of activity
-     * @param string     `vat_included`            (optional) - Vat included
      * @param string     `url`                     (optional) - Url
      * @param string     `masterbox_number`        (optional) - Masterbox number
      * @param string     `slavebox_number`         (optional) - Slavebox number
+     * @param string     `mobile_default_language` (optional) - Mobile default language
      * @param file       `images`                   (optional) - Merchant logo
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewMerchant()
@@ -260,6 +262,7 @@ class MerchantAPIController extends ControllerAPI
             $url = OrbitInput::post('url');
             $masterbox_number = OrbitInput::post('masterbox_number');
             $slavebox_number = OrbitInput::post('slavebox_number');
+            $mobile_default_language = OrbitInput::post('mobile_default_language');
 
             $validator = Validator::make(
                 array(
@@ -327,6 +330,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->url = $url;
             $newmerchant->masterbox_number = $masterbox_number;
             $newmerchant->slavebox_number = $slavebox_number;
+            $newmerchant->mobile_default_language = $mobile_default_language;
             $newmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
@@ -448,8 +452,10 @@ class MerchantAPIController extends ControllerAPI
      * @param string            `url`                           (optional) - Url
      * @param string            `masterbox_number`              (optional) - Masterbox number
      * @param string            `slavebox_number`               (optional) - Slavebox number
+     * @param string            `mobile_default_language`       (optional) - Mobile default language
      * @param string|array      `with`                          (optional) - Relation which need to be included
      * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
+     *
      * @return Illuminate\Support\Facades\Response
      */
 
@@ -706,6 +712,11 @@ class MerchantAPIController extends ControllerAPI
                 $merchants->whereIn('merchants.slavebox_number', $slavebox_number);
             });
 
+            // Filter merchant by mobile_default_language
+            OrbitInput::get('mobile_default_language', function ($mobile_default_language) use ($merchants) {
+                $merchants->whereIn('merchants.mobile_default_language', $mobile_default_language);
+            });
+
             // Add new relation based on request
             OrbitInput::get('with', function ($with) use ($merchants) {
                 $with = (array) $with;
@@ -892,6 +903,13 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `object_type`              (optional) - Object type
      * @param string     `parent_id`                (optional) - The merchant id
      * @param file       `images`                   (optional) - Merchant logo
+     * @param string     `mobile_default_language`  (optional) - Mobile default language
+     * @param array      `merchant_taxes`           (optional) - Merchant taxes array
+     *            @param integer   `merchant_tax_id`         (optional) - Merchant Tax ID
+     *            @param string    `tax_name`                (optional) - Tax name
+     *            @param decimal   `tax_value`               (optional) - Tax value
+     *            @param integer   `tax_order`               (optional) - Tax order
+     *
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateMerchant()
@@ -960,7 +978,7 @@ class MerchantAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $updatedmerchant = Merchant::excludeDeleted()->allowedForUser($user)->where('merchant_id', $merchant_id)->first();
+            $updatedmerchant = Merchant::with('taxes')->excludeDeleted()->allowedForUser($user)->where('merchant_id', $merchant_id)->first();
 
             OrbitInput::post('omid', function($omid) use ($updatedmerchant) {
                 $updatedmerchant->omid = $omid;
@@ -1110,11 +1128,65 @@ class MerchantAPIController extends ControllerAPI
                 $updatedmerchant->slavebox_number = $slavebox_number;
             });
 
+            OrbitInput::post('mobile_default_language', function($mobile_default_language) use ($updatedmerchant) {
+                $updatedmerchant->mobile_default_language = $mobile_default_language;
+            });
+
             $updatedmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postupdatemerchant.before.save', array($this, $updatedmerchant));
 
             $updatedmerchant->save();
+
+            // do insert/update merchant_taxes
+            OrbitInput::post('merchant_taxes', function($merchant_taxes) use ($updatedmerchant) {
+                $merchant_taxes = (array) $merchant_taxes;
+                foreach ($merchant_taxes as $merchant_tax) {
+                    // validate merchant_taxes
+                    $validator = Validator::make(
+                        array(
+                            'merchant_tax_id'   => $merchant_tax['merchant_tax_id'],
+                        ),
+                        array(
+                            'merchant_tax_id'   => 'orbit.empty.tax',
+                        )
+                    );
+
+                    Event::fire('orbit.merchant.postupdatemerchant.before.merchanttaxesvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.merchant.postupdatemerchant.after.merchanttaxesvalidation', array($this, $validator));
+
+                    //save merchant_taxes
+                    if ($merchant_tax['merchant_tax_id'] === '') {
+                        // do insert
+                        $merchanttax = new MerchantTax();
+                        $merchanttax->merchant_id = $updatedmerchant->merchant_id;
+                        $merchanttax->tax_name = $merchant_tax['tax_name'];
+                        $merchanttax->tax_value = $merchant_tax['tax_value'];
+                        $merchanttax->tax_order = $merchant_tax['tax_order'];
+                        $merchanttax->status = 'active';
+                        $merchanttax->created_by = $this->api->user->user_id;
+                        $merchanttax->save();
+                    } else {
+                        // do update
+                        $merchanttax = MerchantTax::excludeDeleted()->where('merchant_tax_id', $merchant_tax['merchant_tax_id'])->first();
+                        $merchanttax->tax_name = $merchant_tax['tax_name'];
+                        $merchanttax->tax_value = $merchant_tax['tax_value'];
+                        $merchanttax->tax_order = $merchant_tax['tax_order'];
+                        $merchanttax->modified_by = $this->api->user->user_id;
+                        $merchanttax->save();
+                    }
+                }
+
+                // reload taxes relation
+                $updatedmerchant->load('taxes');
+            });
 
             Event::fire('orbit.merchant.postupdatemerchant.after.save', array($this, $updatedmerchant));
             $this->response->data = $updatedmerchant;
@@ -1296,6 +1368,21 @@ class MerchantAPIController extends ControllerAPI
             App::instance('orbit.validation.merchant', $value);
 
             return FALSE;
+        });
+
+        // Check the existance of merchant_tax_id
+        Validator::extend('orbit.empty.tax', function ($attribute, $value, $parameters) {
+            $merchanttax = MerchantTax::excludeDeleted()
+                        ->where('merchant_tax_id', $value)
+                        ->first();
+
+            if (empty($merchanttax)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.tax', $merchanttax);
+
+            return TRUE;
         });
     }
 }
