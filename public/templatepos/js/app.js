@@ -116,7 +116,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
                     serviceAjax.getDataFromServer('/pos/productsearch?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
@@ -159,7 +158,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.getproduct();
                     }
                 });
-
                 //get promotion
                 $scope.getpromotion = function(productid){
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
@@ -179,7 +177,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.dataattrvalue5 = [];
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
-                            //TODO: agung :Refactor this, try with dfferent data
+                            //TODO: agung :Refactor this, and try with dfferent data
                             if($scope.productdetail.attributes)for(var a=0; a < $scope.productdetail.attributes.length;a++){
 
                                 $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
@@ -259,16 +257,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
 
                 };
-               /* //get variants
-                ($scope.getvariants = function(){
-                    serviceAjax.getDataFromServer('/product-attribute/list?with[]=values').then(function (response) {
-                        if (response.code == 0 ) {
-                            $scope.dataAttribute = response.data.records;
-                        }else{
-                            //do something
-                        }
-                    })
-                })();*/
+
                 //reset search
                 $scope.resetsearch = function(){
                     $scope.searchproduct = '';
@@ -314,6 +303,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 upc_code     : $scope.productmodal['upc_code'],
                                 product_code : $scope.productmodal['product_code'],
                                 product_id   : $scope.productmodal['product_id'],
+                                ispromo      : $scope.datapromotion.length ? true : false,
                                 hargatotal   : 0
                             });
                         }

@@ -1,12 +1,24 @@
 @extends('pos.layouts.default')
 @section('content')
+<style>
+.circle{
+    -webkit-border-radius:8px;
+    -moz-border-radius:8px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    width:15px;
+    height:15px;
+    background-color: #339966;
+    margin-left:70px;
 
+}
+</style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchants'][0]['logo'] %>" class="img" style="height: 64px">
-                <h1><% datauser['merchants'][0]['name'] %></h1>
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['userdetail']['merchant']['logo'] %>" class="img" style="height: 64px">
+                <h1><% datauser['userdetail']['merchant']['name'] %></h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
@@ -35,6 +47,7 @@
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
+                            <th class="text-center">DISCOUNT</th>
                             <th class="text-center">HARGA TOTAL</th>
                         </tr>
                         <tbody>
@@ -63,6 +76,7 @@
                                           </span>
                                     </div>
                                 </td>
+                                <td class="text-center"><div class="circle" data-ng-show="ispromo" ></div></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
 
@@ -135,7 +149,7 @@
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" ng-disabled="v.disabled" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
