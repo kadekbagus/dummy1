@@ -48,11 +48,10 @@ class Transaction extends Eloquent
      * @author Rio Astamal <me@rioastamal.net>
      * @return Builder
      */
-    public scopeTransactionDetailsJoin()
+    public function scopeTransactionDetailsJoin($builder)
     {
-        $this->select('transactions.*')
-             ->join('transaction_details', 'transaction_details.transaction_id', '=', 'transactions.transaction_id')
-             ->groupBy('transactions.transaction_id');
+        return $builder->select('transactions.*')
+                       ->join('transaction_details', 'transaction_details.transaction_id', '=', 'transactions.transaction_id')
+                       ->groupBy('transactions.transaction_id');
     }
-    public
 }
