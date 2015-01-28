@@ -22,6 +22,16 @@ class TransactionDetail extends Eloquent
         return $this->belongsTo('Transaction', 'transaction_id', 'transaction_id');
     }
 
+    public function product()
+    {
+        return $this->belongsTo('Product', 'product_id', 'product_id');
+    }
+
+    public function productVariant()
+    {
+        return $this->belongsTo('ProductVariant', 'product_variant_id', 'product_variant_id');
+    }
+
     /**
      * Simple join with transaction table
      *
@@ -32,7 +42,10 @@ class TransactionDetail extends Eloquent
      */
     public function scopeTransactionJoin($builder)
     {
-        return $builder->join('transactions', 'transactions.transaction_id', '=', 'transaction_details.transaction_id');
+        return $builder->join('transactions', function($join) {
+                            $join->on('transactions.transaction_id', '=', 'transaction_details.transaction_id');
+                            $join->where('transactions.status', '=', DB::raw('paid'));
+                       });
     }
 
     /**
