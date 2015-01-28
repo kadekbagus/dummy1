@@ -43,7 +43,7 @@
                 <ul class="rslides" id="slider1">
                   @foreach($new_products as $new_product)
                     <li>
-                      <a href="{{ url('customer/product?id='.$new_product->product_id) }}">
+                      <a href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
                       @if(!is_null($new_product->image))
                         <img class="img-responsive" src="{{ asset($new_product->image) }}"/>
                       @else
@@ -68,7 +68,7 @@
                   @foreach($promo_products as $promo_product)
                     @if($promo_product->promotion_type == 'product')
                     <li>
-                      <a href="{{ url('customer/product?id='.$promo_product->product_id) }}">
+                      <a href="{{ url('customer/search?promo=1#'.$promo_product->product_id) }}">
                       @if(!is_null($promo_product->image))
                         <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
                       @else
