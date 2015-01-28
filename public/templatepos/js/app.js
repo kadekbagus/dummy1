@@ -267,6 +267,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     })
                 })();
+                // when choose last the attribute
                 $scope.changeattr = function(id,idx){
 
                     for(var i = id+1; i < $scope.chooseattr.length; i++ ){
