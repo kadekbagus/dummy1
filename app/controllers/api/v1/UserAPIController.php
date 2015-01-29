@@ -430,7 +430,7 @@ class UserAPIController extends ControllerAPI
                     'avg_annual_income2'    => $avg_annual_income2,
                     'avg_monthly_spent1'    => $avg_monthly_spent1,
                     'avg_monthly_spent2'    => $avg_monthly_spent2,
-                    'personal_interests'    => $personal_interests
+                    'personal_interests'    => $personal_interests,
                 ),
                 array(
                     'user_id'               => 'required|numeric',
@@ -458,7 +458,7 @@ class UserAPIController extends ControllerAPI
                     'avg_annual_income2'    => 'numeric',
                     'avg_monthly_spent1'    => 'numeric',
                     'avg_monthly_spent2'    => 'numeric',
-                    'personal_interests'    => 'array|min:0|orbit.empty.personal_interest'
+                    'personal_interests'    => 'array|min:0|orbit.empty.personal_interest',
                 ),
                 array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
             );
@@ -599,6 +599,13 @@ class UserAPIController extends ControllerAPI
 
             OrbitInput::post('personal_interests', function($interests) use ($updateduser) {
                 $updateduser->interests()->sync($interests);
+            });
+
+            // Flag for deleting all personal interests which belongs to this user
+            OrbitInput::post('personal_interests_delete_all', function($delete) use ($updateduser) {
+                if ($delete === 'yes') {
+                    $updateduser->interests()->detach();
+                }
             });
 
             $updateduser->modified_by = $this->api->user->user_id;
