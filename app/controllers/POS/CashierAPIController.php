@@ -778,7 +778,7 @@ class CashierAPIController extends ControllerAPI
             }
 
 
-            // issue coupons (if any)
+            // issue cart based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
                 $coupons = Coupon::with('couponrule')->excludeDeleted()
                 ->where('merchant_id',$retailer->parent_id)
