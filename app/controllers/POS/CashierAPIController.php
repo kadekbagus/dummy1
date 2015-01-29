@@ -1025,7 +1025,12 @@ class CashierAPIController extends ControllerAPI
             $cmd = 'sudo '.$driver.' --device '.$params.' --amounts '.$amount;
             $card = shell_exec($cmd);
 
-            $this->response->data = $coupons;
+            if($card=='failed'){
+                $message = 'Payment failed';
+                ACL::throwAccessForbidden($message);
+            }
+
+            $this->response->data = $card;
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
