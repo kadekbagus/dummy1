@@ -13,6 +13,8 @@ class IssuedCoupon extends Eloquent
      */
     use ModelStatusTrait;
 
+    const ISSUE_COUPON_INCREMENT = 111111;
+
     protected $table = 'issued_coupons';
 
     protected $primaryKey = 'issued_coupon_id';
