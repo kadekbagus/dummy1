@@ -359,8 +359,7 @@ class UserAPIController extends ControllerAPI
             $user_id = OrbitInput::post('user_id');
             if (! ACL::create($user)->isAllowed('update_user')) {
                 // No need to check if it is the user itself
-                if ((string)$user->user_id !== (string)$user_id)
-                {
+                if ((string)$user->user_id !== (string)$user_id) {
                     Event::fire('orbit.user.postupdateuser.authz.notallowed', array($this, $user));
                     $updateUserLang = Lang::get('validation.orbit.actionlist.update_user');
                     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateUserLang));
@@ -431,7 +430,7 @@ class UserAPIController extends ControllerAPI
                     'avg_annual_income2'    => $avg_annual_income2,
                     'avg_monthly_spent1'    => $avg_monthly_spent1,
                     'avg_monthly_spent2'    => $avg_monthly_spent2,
-                    'personal_interests'    => $personal_interests
+                    'personal_interests'    => $personal_interests,
                 ),
                 array(
                     'user_id'               => 'required|numeric',
@@ -459,7 +458,7 @@ class UserAPIController extends ControllerAPI
                     'avg_annual_income2'    => 'numeric',
                     'avg_monthly_spent1'    => 'numeric',
                     'avg_monthly_spent2'    => 'numeric',
-                    'personal_interests'    => 'array|min:0|orbit.empty.personal_interest'
+                    'personal_interests'    => 'array|min:0|orbit.empty.personal_interest',
                 ),
                 array('email_exists_but_me' => Lang::get('validation.orbit.email.exists'))
             );
@@ -602,6 +601,13 @@ class UserAPIController extends ControllerAPI
                 $updateduser->interests()->sync($interests);
             });
 
+            // Flag for deleting all personal interests which belongs to this user
+            OrbitInput::post('personal_interests_delete_all', function($delete) use ($updateduser) {
+                if ($delete === 'yes') {
+                    $updateduser->interests()->detach();
+                }
+            });
+
             $updateduser->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.user.postupdateuser.before.save', array($this, $updateduser));
@@ -734,10 +740,20 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.getsearchuser.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_user')) {
-                Event::fire('orbit.user.getsearchuser.authz.notallowed', array($this, $user));
-                $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message);
+                $user_ids = OrbitInput::get('user_id');
+                $need_check = TRUE;
+                if (! empty($user_ids) && is_array($user_ids)) {
+                    if (in_array($user->user_id, $user_ids)) {
+                        $need_check = FALSE;
+                    }
+                }
+
+                if ($need_check) {
+                    Event::fire('orbit.user.getsearchuser.authz.notallowed', array($this, $user));
+                    $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
+                    ACL::throwAccessForbidden($message);
+                }
             }
             Event::fire('orbit.user.getsearchuser.after.authz', array($this, $user));
 
@@ -990,10 +1006,20 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.getconsumer.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_user')) {
-                Event::fire('orbit.user.getconsumer.authz.notallowed', array($this, $user));
-                $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
-                ACL::throwAccessForbidden($message);
+                $user_ids = OrbitInput::get('user_id');
+                $need_check = TRUE;
+                if (! empty($user_ids) && is_array($user_ids)) {
+                    if (in_array($user->user_id, $user_ids)) {
+                        $need_check = FALSE;
+                    }
+                }
+
+                if ($need_check) {
+                    Event::fire('orbit.user.getconsumer.authz.notallowed', array($this, $user));
+                    $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
+                    ACL::throwAccessForbidden($message);
+                }
             }
             Event::fire('orbit.user.getconsumer.after.authz', array($this, $user));
 
@@ -1214,7 +1240,7 @@ class UserAPIController extends ControllerAPI
      * @param integer    `user_id`                 (required) - ID of the user
      * @param string     `old_password`            (required) - user's old password
      * @param string     `new_password`            (required) - user's new password
-     * @param string     `confirm_password`            (required) - confirmation user's new password
+     * @param string     `confirm_password`        (required) - confirmation user's new password
      * @return Illuminate\Support\Facades\Response
      */
     public function postChangePassword()
@@ -1235,10 +1261,13 @@ class UserAPIController extends ControllerAPI
             Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('change_password')) {
-                Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
-                $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
-                ACL::throwAccessForbidden($message);
+                $user_id = OrbitInput::get('user_id');
+                if ((string)$user->user_id !== (string)$user_id) {
+                    Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
+                    $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
+                    $message = Lang::get('validation.orbit.access.forbidden', array('action' => $changePasswordUserLang));
+                    ACL::throwAccessForbidden($message);
+                }
             }
             Event::fire('orbit.user.postchangepassword.after.authz', array($this, $user));
 

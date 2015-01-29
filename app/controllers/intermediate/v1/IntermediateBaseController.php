@@ -181,6 +181,11 @@ class IntermediateBaseController extends Controller
                 // This will query the database if the apikey has not been set up yet
                 $apikey = $user->apikey;
 
+                if (empty($apikey)) {
+                    // Create new one
+                    $apikey = $user->createAPiKey();
+                }
+
                 // Generate the signature
                 $_GET['apikey'] = $apikey->api_key;
                 $_GET['apitimestamp'] = time();

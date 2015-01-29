@@ -778,7 +778,7 @@ class CashierAPIController extends ControllerAPI
             }
 
 
-            // issue coupons (if any)
+            // issue cart based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
                 $coupons = Coupon::with('couponrule')->excludeDeleted()
                 ->where('merchant_id',$retailer->parent_id)
@@ -840,6 +840,7 @@ class CashierAPIController extends ControllerAPI
     public function postPrintTicket()
     {
         try {
+            $retailer = $this->getRetailerInfo();
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
             $transaction = \Transaction::with('details', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
@@ -875,9 +876,8 @@ class CashierAPIController extends ControllerAPI
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
-            $head  = $this->just40CharMid('MATAHARI');
-            $head .= $this->just40CharMid('DEPARTMENT STORE');
-            $head .= $this->just40CharMid('Jl. Raya Semer 88');
+            $head  = $this->just40CharMid($retailer->name);
+            $head .= $this->just40CharMid($retailer->address_line1);
             $head .= '----------------------------------------'." \n";
 
             $head .= 'Date : '.$date." \n";
@@ -931,7 +931,7 @@ class CashierAPIController extends ControllerAPI
 
             shell_exec($cut);
 
-            //$this->response->data = "tes";
+            //$this->response->data = $retailer;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';

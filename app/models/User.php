@@ -90,4 +90,22 @@ class User extends Eloquent implements UserInterface
     {
         return $this->user_password;
     }
+
+    /**
+     * Method to create api keys for current user.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return ApiKey Object
+     */
+    public function createAPiKey()
+    {
+        $apikey = new Apikey();
+        $apikey->api_key = Apikey::genApiKey($this);
+        $apikey->api_secret_key = Apikey::genSecretKey($this);
+        $apikey->status = 'active';
+        $apikey->user_id = $this->user_id;
+        $apikey = $this->apikey()->save($apikey);
+
+        return $apikey;
+    }
 }
