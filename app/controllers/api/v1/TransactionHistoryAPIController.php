@@ -22,8 +22,8 @@ class TransactionHistoryAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer   `user_id`               (required) - ID of the user
-     * @param string    `sort_by`               (optional) - column order by, e.g: 'name', 'last_transaction'
-     * @param string    `sort_mode`             (optional) - asc or desc
+     * @param string    `sortby`                (optional) - column order by, e.g: 'name', 'last_transaction'
+     * @param string    `sortmode`              (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
@@ -219,8 +219,8 @@ class TransactionHistoryAPIController extends ControllerAPI
      * ----------------------
      * @param integer   `merchant_id`           (required) - ID of the merchant
      * @param integer   `user_id`               (required) - ID of the user
-     * @param string    `sort_by`               (optional) - column order by, e.g: 'name', 'last_transaction'
-     * @param string    `sort_mode`             (optional) - asc or desc
+     * @param string    `sortby`                (optional) - column order by, e.g: 'name', 'last_transaction'
+     * @param string    `sortmode`              (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
@@ -419,8 +419,8 @@ class TransactionHistoryAPIController extends ControllerAPI
      * ----------------------
      * @param array     `retailer_ids`          (required) - IDs of Retailer
      * @param integer   `user_id`               (required) - ID of the user
-     * @param string    `sort_by`               (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
-     * @param string    `sort_mode`             (optional) - asc or desc
+     * @param string    `sortby`                (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
+     * @param string    `sortmode`              (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
@@ -535,7 +535,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'product_name'      => 'transaction_details.name',
+                    'product_name'      => 'transaction_details.product_name',
                     'last_transcation'  => 'transaction_details.created_at',
                     'qty'               => 'transaction_details.quantity',
                     'price'             => 'transaction_details.price'
