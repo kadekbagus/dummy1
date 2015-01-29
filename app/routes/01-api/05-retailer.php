@@ -34,3 +34,11 @@ Route::get('/api/v1/retailer/search', function()
 {
     return RetailerAPIController::create()->getSearchRetailer();
 });
+
+/**
+ * Retailer city list
+ */
+Route::get('/api/v1/retailer/city', function()
+{
+    return RetailerAPIController::create()->getCityList();
+});

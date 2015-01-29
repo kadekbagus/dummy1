@@ -22,3 +22,8 @@ Route::post('/app/v1/retailer/update', 'IntermediateAuthController@Retailer_post
  * List and/or Search retailer
  */
 Route::get('/app/v1/retailer/search', 'IntermediateAuthController@Retailer_getSearchRetailer');
+
+/**
+ * Retailer city list
+ */
+Route::get('/app/v1/retailer/city', 'IntermediateAuthController@Retailer_getCityList');
