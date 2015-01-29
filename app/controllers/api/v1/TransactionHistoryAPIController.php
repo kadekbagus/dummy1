@@ -21,7 +21,7 @@ class TransactionHistoryAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `user_id`               (required) - ID of the user
+     * @param integer   `user_id`               (required) - ID of the user
      * @param string    `sort_by`               (optional) - column order by, e.g: 'name', 'last_transaction'
      * @param string    `sort_mode`             (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
@@ -217,8 +217,8 @@ class TransactionHistoryAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `merchant_id`           (required) - ID of the merchant
-     * @param string    `user_id`               (required) - ID of the user
+     * @param integer   `merchant_id`           (required) - ID of the merchant
+     * @param integer   `user_id`               (required) - ID of the user
      * @param string    `sort_by`               (optional) - column order by, e.g: 'name', 'last_transaction'
      * @param string    `sort_mode`             (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
@@ -418,7 +418,7 @@ class TransactionHistoryAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param array     `retailer_ids`          (required) - IDs of Retailer
-     * @param string    `user_id`               (required) - ID of the user
+     * @param integer   `user_id`               (required) - ID of the user
      * @param string    `sort_by`               (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
      * @param string    `sort_mode`             (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
