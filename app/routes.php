@@ -2,6 +2,7 @@
 if (! defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
+use OrbitShop\API\v1\Helper\RecursiveFileIterator;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,17 +31,14 @@ ClassLoader::register();
 |
 */
 $event_dir = __DIR__ . DS . 'events' . DS . 'enabled';
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($event_dir));
-$it->rewind();
-while ($it->valid()) {
-    if (! $it->isDot()) {
-        // Only for php files
-        if ($it->getExtension() === 'php') {
-            $fullpath = $it->key();
-            require $fullpath;
+$route_iterator = new RecursiveFileIterator($event_dir);
+foreach ($route_iterator as $item) {
+    $file = new SplFileInfo($item);
+    if (! $file->isDir()) {
+        if ($file->getExtension() === 'php') {
+            require $item;
         }
     }
-    $it->next();
 }
 
 /*
@@ -52,15 +50,12 @@ while ($it->valid()) {
 |
 */
 $route_dir = __DIR__ . DS . 'routes';
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($route_dir));
-$it->rewind();
-while ($it->valid()) {
-    if (! $it->isDot()) {
-        // Only for php files
-        if ($it->getExtension() === 'php') {
-            $fullpath = $it->key();
-            require $fullpath;
+$route_iterator = new RecursiveFileIterator($route_dir);
+foreach ($route_iterator as $item) {
+    $file = new SplFileInfo($item);
+    if (! $file->isDir()) {
+        if ($file->getExtension() === 'php') {
+            require $item;
         }
     }
-    $it->next();
 }
