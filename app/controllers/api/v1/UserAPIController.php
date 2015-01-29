@@ -734,7 +734,14 @@ class UserAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('view_user')) {
                 $user_ids = OrbitInput::get('user_id');
-                if (! in_array($user->user_id, $user_ids)) {
+                $need_check = TRUE;
+                if (! empty($user_ids) && is_array($user_ids)) {
+                    if (in_array($user->user_id, $user_ids)) {
+                        $need_check = FALSE;
+                    }
+                }
+
+                if ($need_check) {
                     Event::fire('orbit.user.getsearchuser.authz.notallowed', array($this, $user));
                     $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
                     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
@@ -993,7 +1000,14 @@ class UserAPIController extends ControllerAPI
 
             if (! ACL::create($user)->isAllowed('view_user')) {
                 $user_ids = OrbitInput::get('user_id');
-                if (! in_array($user->user_id, $user_ids)) {
+                $need_check = TRUE;
+                if (! empty($user_ids) && is_array($user_ids)) {
+                    if (in_array($user->user_id, $user_ids)) {
+                        $need_check = FALSE;
+                    }
+                }
+
+                if ($need_check) {
                     Event::fire('orbit.user.getconsumer.authz.notallowed', array($this, $user));
                     $viewUserLang = Lang::get('validation.orbit.actionlist.view_user');
                     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
