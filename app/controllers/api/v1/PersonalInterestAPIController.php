@@ -94,7 +94,7 @@ class PersonalInterestAPIController extends ControllerAPI
 
             // Filter by ids
             OrbitInput::get('personal_interest_ids', function($widgetIds) use ($interests) {
-                $interests->whereIn('widgets.widget_id', $widgetIds);
+                $interests->whereIn('personal_interests.personal_interest_id', $widgetIds);
             });
 
             // Filter by user ids
