@@ -33,17 +33,14 @@
         <div class="modal-body">
           <div class="row ">
             <div class="col-xs-12 vertically-spaced">
-              <p>Pastikan keranjang belanja Anda sudah tertransfer ke kasir.<br>Semua item dalam keranjang Anda akan hilang apabila Anda menekan tombol 'Ya'.<br>Kupon yang tidak jadi terpakai akan diaktifkan kembali.</p>
+              <p>Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.</p>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <div class="row">
-            <div class="col-xs-6">
-              <button type="button" id="sureBtn" class="btn btn-success btn-block">Ya</button>
-            </div>
-            <div class="col-xs-6">
-              <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Batal</button>
+            <div class="col-xs-6 pull-right">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
             </div>
           </div>
         </div>
@@ -77,11 +74,18 @@
         "code128",
         setting
       );
+
       $('#doneBtn').click(function(){
-        $('#doneModal').modal();
-      });
-      $('#sureBtn').click(function(){
-        
+        $.ajax({
+          url: apiPath+'customer/closecart',
+          method: 'POST'
+        }).done(function(data){
+          if(data.message=='moved'){
+            location.replace("{{ url('/customer/thankyou') }}");
+          } else if(data.message=='notmoved') {
+            $('#doneModal').modal();
+          }
+        });
       })
     });
   </script>
