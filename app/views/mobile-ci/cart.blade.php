@@ -22,8 +22,6 @@
           </div>
         </div>
       @else
-        {{-- product listing --}}
-        @foreach($cartdata->cartdetails as $cartdetail)
         <div class="cart-items-list">
           <div class="single-item">
             <div class="single-item-headers">
@@ -33,20 +31,18 @@
               <div class="single-header unique-column">
                 <span class="header-text">Qty</span>
               </div>
-              <div class="single-header 
-                @if(count($cartdetail->promoforthisproducts) > 0)
-                  {{ 'promotion-column' }}
-                @else
-                  {{ 'unique-column' }}
-                @endif
-              ">
+              <div class="single-header unique-column">
                 <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
               </div>
               <div class="single-header unique-column">
                 <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
               </div>
             </div>
-            <div class="single-item-bodies">
+        {{-- product listing --}}
+        <?php $x=1;?>
+        @foreach($cartdata->cartdetails as $cartdetail)
+        
+            <div class="single-item-bodies @if($x % 2 == 0) even-line @endif">
               <div class="single-body">
                 <p><span class="product-name" data-product="{{ $cartdetail->product->product_id }}"><b>{{ $cartdetail->product->product_name }}</b></span></p>
                 <p class="attributes">
@@ -68,216 +64,61 @@
                 </div>
               </div>
               <div class="single-body">
-                <span>{{ $cartdetail->priceafterpromo }}</span>
+                <span class="formatted-num">{{ $cartdetail->variant->price }}</span>
               </div>
               <div class="single-body">
-                <span>{{ $cartdetail->ammountafterpromo }}</span>
+                <span class="formatted-num">{{ $cartdetail->original_ammount }}</span>
               </div>
             </div>
-          </div>
-        </div>
-        @endforeach
 
-        {{-- product-based coupon listing --}}
-        @foreach($used_product_coupons as $used_product_coupon)
-        <div class="cart-items-list">
-          <div class="single-item">
-            <div class="single-item-headers">
-              <div class="single-header unique-column">
-                <span class="header-text">Coupon Name</span>
-              </div>
-              <div class="single-header unique-column">
-                <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
-              </div>
-              <div class="single-header coupon-column">
-                <span class="header-text">Value ({{ $retailer->parent->currency_symbol }})</span>
-              </div>
-              <div class="single-header unique-column">
-                <span class="header-text">Disc. ({{ $retailer->parent->currency_symbol }})</span>
-              </div>
-            </div>
-            <div class="single-item-bodies">
+            @foreach($cartdetail->promo_for_this_product as $promo)
+            <div class="single-item-bodies @if($x % 2 == 0) even-line @endif promo-line">
               <div class="single-body">
-                <p><span class="product-coupon-name" data-coupon="{{ $used_product_coupon->issuedcoupon->promotion_id }}"><b>{{ $used_product_coupon->issuedcoupon->promotion_name }}</b></span></p>
+                <p><span class="promotion-name" data-promotion="{{ $promo->promotion_id }}"><b>{{ $promo->promotion_name }}</b></span></p>
               </div>
               <div class="single-body">
                 <div class="unique-column-properties">
-                  <span>{{ $used_product_coupon->cart_detail->variant->price + 0 }}</span>
+                  
                 </div>
               </div>
               <div class="single-body">
-                <span>{{ $used_product_coupon->disc_val_str }}</span>
+                <span class="@if($promo->rule_type == 'product_discount_by_percentage') percentage-num @elseif($promo->rule_type == 'product_discount_by_value') formatted-num @endif">{{ $promo->discount_str }}</span>
               </div>
               <div class="single-body">
-                <span>{{ $used_product_coupon->disc_val }}</span>
+                - <span class="formatted-num">{{ $promo->discount }}</span>
+              </div>
+            </div>
+            @endforeach
+
+            @foreach($cartdetail->coupon_for_this_product as $coupon)
+            <div class="single-item-bodies @if($x % 2 == 0) even-line @endif coupon-line">
+              <div class="single-body">
+                <p><span class="promotion-name" data-promotion="{{ $coupon->promotion_id }}"><b>{{ $coupon->issuedcoupon->promotion_name }}</b></span></p>
+              </div>
+              <div class="single-body">
                 <div class="unique-column-properties">
-                  <div class="coupon-remover" data-detail="{{ $used_product_coupon->issuedcoupon->issued_coupon_id }}">
+                  <div class="coupon-remover" data-detail="{{ $coupon->issuedcoupon->issued_coupon_id }}">
                     <span><i class="fa fa-times"></i></span>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        @endforeach
-      @endif
-    </div>
-
-    {{-- cart-based promotions --}}
-    @if(count($cartsummary->acquired_promo_carts) > 0)
-    <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Cart Based Promotions</span>
-      <div class="cart-sum-headers">
-        <div class="cart-promo-single-header">
-          <span>Promotion</span>
-        </div>
-        <div class="cart-promo-single-header">
-          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-        <div class="cart-promo-single-header">
-          <span>Value</span>
-        </div>
-        <div class="cart-promo-single-header">
-          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-      </div>
-      @foreach($cartsummary->acquired_promo_carts as $promo_cart)
-      <div class="cart-sum-bodies">
-        <div class="cart-sum-single-body">
-          <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{$cartsummary->subtotalbeforecartpromo}}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{$promo_cart->disc_val_str}}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{$promo_cart->disc_val}}</span>
-        </div>
-      </div>
-      @endforeach
-    </div>
-    @endif
-
-    {{-- cart-based coupons --}}
-    @if(count($used_cart_coupons) > 0)
-    <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Cart Based Coupons</span>
-      <div class="cart-sum-headers">
-        <div class="cart-coupon-single-header">
-          <span>Coupon</span>
-        </div>
-        <div class="cart-coupon-single-header">
-          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-        <div class="cart-coupon-single-header">
-          <span>Value</span>
-        </div>
-        <div class="cart-coupon-single-header">
-          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-      </div>
-      @foreach($used_cart_coupons as $coupon_cart)
-        @if(!empty($coupon_cart->issuedcoupon))
-        <div class="cart-sum-bodies">
-          <div class="cart-sum-single-body">
-            <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
-          </div>
-          <div class="cart-sum-single-body">
-            <span>{{$cartsummary->subtotalbeforecartpromo}}</span>
-          </div>
-          <div class="cart-sum-single-body">
-            <span>{{$coupon_cart->disc_val_str}}</span>
-          </div>
-          <div class="cart-sum-single-body">
-            <span>{{$coupon_cart->disc_val}}</span>
-            <div class="unique-column-properties">
-              <div class="coupon-remover" data-detail="{{ $coupon_cart->issuedcoupon->issued_coupon_id }}">
-                <span><i class="fa fa-times"></i></span>
+              <div class="single-body">
+                <span class="@if($coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') percentage-num @elseif($coupon->issuedcoupon->rule_type == 'product_discount_by_value') formatted-num @endif">{{ $coupon->discount_str }}</span>
+              </div>
+              <div class="single-body">
+                - <span class="formatted-num">{{ $coupon->discount }}</span>
               </div>
             </div>
-          </div>
-        </div>
-        @endif  
-      @endforeach
-    </div>
-    @endif
-
-    {{-- cart-based coupon --}}
-    @if(count($available_coupon_carts) > 0)
-    <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Available Cart Based Coupons</span>
-      <div class="cart-sum-headers">
-        <div class="cart-coupon-single-header">
-          <span>Coupon</span>
-        </div>
-        <div class="cart-coupon-single-header">
-          <span>Value</span>
-        </div>
-        <div class="cart-coupon-single-header">
-          <span>Discount({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-        <div class="cart-coupon-single-header">
-          <span>&nbsp;</span>
-        </div>
-      </div>
-      @foreach($available_coupon_carts as $available_coupon_cart)
-      <!-- <pre>{{ $available_coupon_cart }}</pre> -->
-        @foreach($available_coupon_cart->issuedcoupons as $issuedcoupon)
-        <div class="cart-sum-bodies">
-          <div class="cart-sum-single-body">
-            <span class="coupon-name" data-coupon="{{ $available_coupon_cart->promotion_id }}"><b>{{$available_coupon_cart->promotion_name}}</b></span>
-          </div>
-          <div class="cart-sum-single-body">
-            <span>{{$available_coupon_cart->disc_val_str}}</span>
-          </div>
-          <div class="cart-sum-single-body">
-            <span>{{$available_coupon_cart->disc_val}}</span>
-          </div>
-          <div class="cart-sum-single-body">
-            <span><a class="btn btn-info useCouponBtn" data-coupon="{{ $issuedcoupon->issued_coupon_id }}">Pakai</a></span>
-          </div>
-        </div>
+            @endforeach
+          
+        <?php $x++;?>
         @endforeach
-      @endforeach
+          </div>
+        </div>
     </div>
-    @endif
 
-    {{-- cart summary --}}
-    @if(count($cartdata->cartdetails) > 0)
-    <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Total</span>
-      <div class="cart-sum-headers">
-        <div class="cart-sum-single-header">
-          <span>Item</span>
-        </div>
-        <div class="cart-sum-single-header">
-          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-        <div class="cart-sum-single-header">
-          <span>VAT ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-        <div class="cart-sum-single-header">
-          <span>Total ({{ $retailer->parent->currency_symbol }})</span>
-        </div>
-      </div>
-      <div class="cart-sum-bodies">
-        <div class="cart-sum-single-body">
-          <span>{{ $cartdata->cart->total_item + 0 }}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{ $cartsummary->subtotal + 0 }}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span>{{ $cartsummary->vat + 0}}</span>
-        </div>
-        <div class="cart-sum-single-body">
-          <span><b>{{ $cartsummary->total_to_pay + 0 }}</b></span>
-        </div>
-      </div>
-    </div>
     @endif
+    {{ $cartdata->cartsummary->vat }}
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
@@ -386,7 +227,7 @@
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="transferFunctionModalLabel">{{ Lang::get('mobileci.page_title.transfercart') }}</h4>
+          <h4 class="modal-title" id="transferFunctionModalLabel"><i class="fa fa-lightbulb-o"></i> Tip</h4>
         </div>
         <div class="modal-body">
           <p id="errorModalText">Untuk menyelesaikan transfer keranjang, gunakan <i>Transfer Cart</i> pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.</p>
@@ -430,7 +271,28 @@
 @section('ext_script_bot')
 {{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
+  Number.prototype.formatMoney = function(c, d, t){
+  var n = this, 
+      c = isNaN(c = Math.abs(c)) ? 2 : c, 
+      d = d == undefined ? "." : d, 
+      t = t == undefined ? "," : t, 
+      s = n < 0 ? "-" : "", 
+      i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+      j = (j = i.length) > 3 ? j % 3 : 0;
+     return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+  };
+  // console.log((123456789.12345).formatMoney(2, '.', ','));
+
   $(document).ready(function(){
+    $('.formatted-num').each(function(index){
+      var num = parseFloat($(this).text());
+      $(this).text((num).formatMoney(2, '.', ','));
+    });
+    $('.percentage-num').each(function(index){
+      var num = parseFloat($(this).text());
+      $(this).text(num+'%');
+    });
+    console.log($('.formatted-num').text());
     $('#dismiss').change(function(){
       if($(this).is(':checked')) {
         $.cookie('dismiss_transfercart_popup', 't', { expires: 30 });
