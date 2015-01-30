@@ -328,7 +328,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $anchorScroll();
                         $scope.searchproduct    = '';
                         $scope.adddelenadis($scope.productmodal['product_id'],'add');
-                        if($scope.checkcart($scope.productmodal['product_id'])){
+                        if($scope.checkcart($scope.productmodal)){
                             $scope.cart.push({
                                 product_name      : $scope.productmodal['product_name'],
                                 variants          : $scope.variantstmp,
@@ -340,6 +340,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 product_id        : $scope.productmodal['product_id'],
                                 ispromo           : $scope.datapromotion.length ? true : false,
                                 beforepromoprice  : $scope.productmodal['beforepromoprice'],
+                                attribute_id1     : $scope.productmodal['attribute_id1'],
+                                attribute_id2     : $scope.productmodal['attribute_id2'],
+                                attribute_id3     : $scope.productmodal['attribute_id3'],
+                                attribute_id4     : $scope.productmodal['attribute_id4'],
+                                attribute_id5     : $scope.productmodal['attribute_id5'],
+                                category_id1      : $scope.productmodal['category_id1'],
+                                category_id2      : $scope.productmodal['category_id2'],
+                                category_id3      : $scope.productmodal['category_id3'],
+                                category_id4      : $scope.productmodal['category_id4'],
+                                category_id5      : $scope.productmodal['category_id5'],
                                 hargatotal        : 0
                             });
                         }
@@ -374,12 +384,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 };
                 //checkcart
-                $scope.checkcart = function(id){
+                $scope.checkcart = function(product){
                     var check = true;
                     for(var i = 0; i < $scope.cart.length; i++){
-                        if($scope.cart[i]['product_id'] == id){
-                            $scope.cart[i]['qty']++;
-                            check = false;
+                        if($scope.cart[i]['variants'] == ''){
+                            if($scope.cart[i]['product_id'] == product['product_id']){
+                                $scope.cart[i]['qty']++;
+                                check = false;
+                                break;
+                            }
+                        }else{
+                            if($scope.cart[i]['variants']['product_variant_id'] == $scope.variantstmp['product_variant_id']){
+                                $scope.cart[i]['qty']++;
+                                check = false;
+                                break;
+                            }
                         }
                     }
                     return check;
