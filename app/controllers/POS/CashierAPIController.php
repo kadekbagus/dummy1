@@ -19,6 +19,7 @@ use \Lang;
 use \Apikey;
 use \Validator;
 use \Product;
+use \CartCoupon;
 use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Config;
@@ -705,6 +706,7 @@ class CashierAPIController extends ControllerAPI
     public function postSaveTransaction()
     {
         try {
+            $retailer = $this->getRetailerInfo();
             $total_item     = trim(OrbitInput::post('total_item'));
             $subtotal       = trim(OrbitInput::post('subtotal'));
             $vat            = trim(OrbitInput::post('vat'));
@@ -732,6 +734,7 @@ class CashierAPIController extends ControllerAPI
             $transaction->cashier_id     = $cashier_id;
             $transaction->customer_id    = $customer_id;
             $transaction->payment_method = $payment_method;
+            $transaction->status         = 'paid';
 
             $transaction->save();
 
@@ -774,6 +777,72 @@ class CashierAPIController extends ControllerAPI
                 $transactionDetails->save();
             }
 
+            // issue product based coupons (if any)
+            if($customer_id!=0 ||$customer_id!=NULL){
+                foreach($cart as $k => $v){
+                    $product_id = $v['product_id'];
+                    $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                    inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                    inner join ' . DB::getTablePrefix() . 'products prod on
+                    (
+                        (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                        OR
+                        (
+                            (pr.discount_object_type="family") AND 
+                            ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                            ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                            ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                            ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                            ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        )
+                    )
+                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
+                    if($coupons!=NULL){
+                        foreach($coupons as $k => $v){
+                            $issue_coupon = new \IssueCoupon();
+                            $issue_coupon->promotion_id = $v['promotion_id'];
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($v['coupon_validity_in_days']);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = $this->ISSUE_COUPON_INCREMENT+$issue_coupon->issue_coupon_id;
+                            $issue_coupon->save(); 
+                        }  
+                    }
+                }
+            }
+
+
+
+            // issue cart based coupons (if any)
+            if($customer_id!=0 ||$customer_id!=NULL){
+                $coupons = Coupon::with('couponrule')->excludeDeleted()
+                ->where('merchant_id',$retailer->parent_id)
+                ->where('promotion_type','cart')->get()->toArray();
+                
+                if(is_array($coupons)){
+                    foreach($coupons as $kupon){
+                        if($total_to_pay >= $kupon['couponrule']['rule_value']){
+                            $issue_coupon = new \IssueCoupon();
+                            $issue_coupon->promotion_id = $kupon['promotion_id'];
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon['coupon_validity_in_days']);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = $this->ISSUE_COUPON_INCREMENT+$issue_coupon->issue_coupon_id;
+                            $issue_coupon->save();
+                        }
+                    }
+                }
+            }
+
             //only payment cash
             if($payment_method == 'cash') self::postCashDrawer();
 
@@ -811,6 +880,7 @@ class CashierAPIController extends ControllerAPI
     public function postPrintTicket()
     {
         try {
+            $retailer = $this->getRetailerInfo();
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
             $transaction = \Transaction::with('details', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
@@ -846,9 +916,8 @@ class CashierAPIController extends ControllerAPI
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
-            $head  = $this->just40CharMid('MATAHARI');
-            $head .= $this->just40CharMid('DEPARTMENT STORE');
-            $head .= $this->just40CharMid('Jl. Raya Semer 88');
+            $head  = $this->just40CharMid($retailer->name);
+            $head .= $this->just40CharMid($retailer->address_line1);
             $head .= '----------------------------------------'." \n";
 
             $head .= 'Date : '.$date." \n";
@@ -902,7 +971,7 @@ class CashierAPIController extends ControllerAPI
 
             shell_exec($cut);
 
-            //$this->response->data = "tes";
+            //$this->response->data = $retailer;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -953,8 +1022,13 @@ class CashierAPIController extends ControllerAPI
 
             $driver = Config::get('orbit.devices.edc.path');
             $params = Config::get('orbit.devices.edc.params');
-            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
+            $cmd = 'sudo '.$driver.' --device '.$params.' --amounts '.$amount;
             $card = shell_exec($cmd);
+
+            if($card=='failed'){
+                $message = 'Payment failed';
+                ACL::throwAccessForbidden($message);
+            }
 
             $this->response->data = $card;
 
@@ -1027,6 +1101,7 @@ class CashierAPIController extends ControllerAPI
         try {
             $barcode = OrbitInput::post('barcode');
 
+            $retailer = $this->getRetailerInfo();
             if(empty($barcode)){
                 $driver = Config::get('orbit.devices.barcode.path');
                 $params = Config::get('orbit.devices.barcode.params');
@@ -1043,8 +1118,123 @@ class CashierAPIController extends ControllerAPI
                 $message = \Lang::get('validation.orbit.empty.upc_code');
                 ACL::throwAccessForbidden($message);
             }
+            
+            $user = $cart->users;         
 
-            $this->response->data = $cart;
+            $subtotal = 0;
+            $vat = 0;
+            $total = 0;
+            $total_discount = 0;
+
+            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+
+            foreach ($cart->details as $cartdetail) {
+                $variant = \ProductVariant::where('product_variant_id', $cartdetail->product_variant_id)->excludeDeleted()->first();
+                $product = Product::with('tax1', 'tax2')->where('product_id', $variant->product_id)->excludeDeleted()->first();
+                
+                $filtered = array_filter($promo_products, function($v) use ($product) { return $v->product_id == $product->product_id; });
+
+                $discount = 0;
+                foreach($filtered as $promotion){
+                    if($promotion->product_id == $product->product_id) {
+                        if($promotion->rule_type == 'product_discount_by_percentage') {
+                            $discount = $discount +  ( $variant->price * $promotion->discount_value);
+                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                            $discount = $discount + $promotion->discount_value;
+                        }
+                    }
+                }
+                
+                $subtotal = $subtotal + (($variant->price - $discount) * $cartdetail->quantity);
+                $priceaftertax = ($variant->price - $discount) * $cartdetail->quantity;
+                $totaltaxsingleproduct = 0;
+                if(!is_null($product->tax1)) {
+                    $vat1 = $product->tax1->tax_value * ($variant->price - $discount) * $cartdetail->quantity;
+                    $vat = $vat + $vat1;
+                    $priceaftertax = $priceaftertax + $vat1;
+                    $totaltaxsingleproduct = $totaltaxsingleproduct + $vat1;
+                }
+                if(!is_null($product->tax2)) {
+                    $vat2 = $product->tax2->tax_value * ($variant->price - $discount) * $cartdetail->quantity;
+                    $vat = $vat + $vat2;
+                    $priceaftertax = $priceaftertax + $vat2;
+                    $totaltaxsingleproduct = $totaltaxsingleproduct + $vat2;
+                }
+
+                $total_discount = $total_discount + ($discount * $cartdetail->quantity);
+
+                $attributes = array();
+                if($cartdetail->attributeValue1['value']){
+                    $attributes[] = $cartdetail->attributeValue1['value'];
+                }
+                if($cartdetail->attributeValue2['value']){
+                    $attributes[] = $cartdetail->attributeValue2['value'];
+                }
+                if($cartdetail->attributeValue3['value']){
+                    $attributes[] = $cartdetail->attributeValue3['value'];
+                }
+                if($cartdetail->attributeValue4['value']){
+                    $attributes[] = $cartdetail->attributeValue4['value'];
+                }
+                if($cartdetail->attributeValue5['value']){
+                    $attributes[] = $cartdetail->attributeValue5['value'];
+                }
+                $cartdetail->taxforthisproduct = $totaltaxsingleproduct;
+                $cartdetail->promoforthisproducts = $filtered;
+                $cartdetail->attributes = $attributes;
+                $cartdetail->priceafterpromo = $variant->price - $discount;
+                $cartdetail->ammountbeforepromo = $variant->price * $cartdetail->quantity;
+                $cartdetail->ammountafterpromo = ($variant->price - $discount) * $cartdetail->quantity;
+                $cartdetail->ammountaftertax = $priceaftertax;
+            }
+
+            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
+            {
+                $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
+            }, 'issuedcoupon' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)
+                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+            }))->whereHas('cartdetail', function($q) 
+            {
+                $q->where('cart_coupons.object_type', '=', 'cart_detail');
+            })->get();
+             
+            $used_cart_coupons = \CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)
+                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+            }))
+            ->whereHas('cart', function($q) use($cart)
+            {
+                $q->where('cart_coupons.object_type', '=', 'cart')
+                ->where('cart_coupons.object_id', '=', $cart->cart_id);
+            })
+            ->where('cart_coupons.object_type', '=', 'cart')->get();   
+
+
+            $result = array();
+            $result['datacart'] = $cart;
+            $result['used_cart_coupons'] = $used_cart_coupons;
+            $result['total_vat'] = $vat;
+            $this->response->data = $result;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';

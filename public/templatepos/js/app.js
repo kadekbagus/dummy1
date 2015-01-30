@@ -75,12 +75,24 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 window.location.assign("signin");
             }else{
                 //show modal product detail
-                $scope.showdetailFn = function(id,act){
+                $scope.showdetailFn = function(id,act,idcart){
+                    //set loading
+                    $scope.loadproductdetail = true;
+                    //init product modal
                     $scope.productmodal        = $scope.product[id];
                     $scope.productmodal['idx'] = id;
+                    //hide btn when action view
                     $scope.hiddenbtn = false;
-                    if(act) $scope.hiddenbtn = true;
+                    if(act){
+                        $scope.hiddenbtn = true;
+                        $scope.productmodal.price = $scope.cart[idcart]['price'];
+                        $scope.productmodal.beforepromoprice = $scope.cart[idcart]['beforepromoprice'];
+                    }
+                    //reset data promotion
                     $scope.datapromotion = [];
+                    $scope.variantstmp = '';
+                    $scope.showprice = false;
+
                     $scope.getpromotion($scope.productmodal['product_id']);
                 };
                 //canceler request
@@ -116,7 +128,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    /* if(progressJs) progressJs("#loading").start().autoIncrease(4, 500);*/
                     serviceAjax.getDataFromServer('/pos/productsearch?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
@@ -159,17 +170,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.getproduct();
                     }
                 });
-
-                //get promotion
+                //get product based promotion
                 $scope.getpromotion = function(productid){
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
                         if (response.code == 0 ) {
                             $scope.productdetail = response.data;
                             $scope.datapromotion = response.data.promo;
                             if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
-                                $scope.datapromotion[i]['discount_value'] = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
-                                $scope.datapromotion[i]['new_from']       = moment($scope.datapromotion[i]['new_from']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY')  : '';
-                                $scope.datapromotion[i]['new_until']      = moment($scope.datapromotion[i]['new_until']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY') : '';
+                                $scope.datapromotion[i]['oridiscount_value'] = $scope.datapromotion[i]['discount_value'];
+                                $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[i]['new_from']          = moment($scope.datapromotion[i]['new_from']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY')  : '';
+                                $scope.datapromotion[i]['new_until']         = moment($scope.datapromotion[i]['new_until']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY') : '';
                             }
 
                             $scope.dataattrvalue1 = [];
@@ -179,7 +190,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.dataattrvalue5 = [];
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
-                            //TODO: agung :Refactor this, try with dfferent data
+                            //TODO: agung :Refactor this, and try with dfferent data
                             if($scope.productdetail.attributes)for(var a=0; a < $scope.productdetail.attributes.length;a++){
 
                                 $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
@@ -236,39 +247,52 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }
                             }
 
-                           $scope.countattr = 0;
+                            $scope.countattr = 0;
                             if($scope.productdetail.product.attribute1) $scope.countattr++;
                             if($scope.productdetail.product.attribute2) $scope.countattr++;
                             if($scope.productdetail.product.attribute3) $scope.countattr++;
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
-
+                            $scope.loadproductdetail = false;
+                        }else{
+                            //do smoething
                         }
                     })
                 };
+                //get  cart based promotion
+                ($scope.getcartpromotion = function(){
+                    serviceAjax.posDataToServer('/pos/cartbasedpromotion').then(function (response) {
+                        console.log(response);
+                        if (response.code == 0 ) {
+                        }
+                    })
+                })();
+                // when choose last the attribute
                 $scope.changeattr = function(id,idx){
-                       //reset
-                    $scope.variantstmp = '';
+
                     for(var i = id+1; i < $scope.chooseattr.length; i++ ){
                        $scope.chooseattr[i] = '';
                     }
                     if(id +1 == $scope.countattr){
                         $scope.variantstmp = $scope.tmpattr[idx];
                         $scope.productmodal.upc_code = $scope.tmpattr[idx]['upc'];
-                        $scope.productmodal.price    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
+
+                        if($scope.datapromotion.length) {
+                            var diskon = 0;
+                            $scope.productmodal.beforepromoprice    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
+                            if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
+                               diskon += $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.tmpattr[idx]['price'] : $scope.datapromotion[i]['oridiscount_value'];
+                            }
+                            var diskons = $scope.tmpattr[idx]['price'] - diskon;
+                            $scope.productmodal.price =  diskons < 0 ?  0 :accounting.formatMoney(diskons, "", 0, ",", ".");
+                            $scope.showprice = true;
+                        }else{
+                            $scope.productmodal.price    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
+                            $scope.productmodal.beforepromoprice = 0;
+                        }
                     }
 
                 };
-               /* //get variants
-                ($scope.getvariants = function(){
-                    serviceAjax.getDataFromServer('/product-attribute/list?with[]=values').then(function (response) {
-                        if (response.code == 0 ) {
-                            $scope.dataAttribute = response.data.records;
-                        }else{
-                            //do something
-                        }
-                    })
-                })();*/
                 //reset search
                 $scope.resetsearch = function(){
                     $scope.searchproduct = '';
@@ -304,17 +328,29 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $anchorScroll();
                         $scope.searchproduct    = '';
                         $scope.adddelenadis($scope.productmodal['product_id'],'add');
-                        if($scope.checkcart($scope.productmodal['product_id'])){
+                        if($scope.checkcart($scope.productmodal)){
                             $scope.cart.push({
-                                product_name : $scope.productmodal['product_name'],
-                                variants     : $scope.variantstmp,
-                                qty          : 1,
-                                price        : $scope.productmodal['price'],
-                                idx          : $scope.productmodal['idx'],
-                                upc_code     : $scope.productmodal['upc_code'],
-                                product_code : $scope.productmodal['product_code'],
-                                product_id   : $scope.productmodal['product_id'],
-                                hargatotal   : 0
+                                product_name      : $scope.productmodal['product_name'],
+                                variants          : $scope.variantstmp,
+                                qty               : 1,
+                                price             : $scope.productmodal['price'],
+                                idx               : $scope.productmodal['idx'],
+                                upc_code          : $scope.productmodal['upc_code'],
+                                product_code      : $scope.productmodal['product_code'],
+                                product_id        : $scope.productmodal['product_id'],
+                                ispromo           : $scope.datapromotion.length ? true : false,
+                                beforepromoprice  : $scope.productmodal['beforepromoprice'],
+                                attribute_id1     : $scope.productmodal['attribute_id1'],
+                                attribute_id2     : $scope.productmodal['attribute_id2'],
+                                attribute_id3     : $scope.productmodal['attribute_id3'],
+                                attribute_id4     : $scope.productmodal['attribute_id4'],
+                                attribute_id5     : $scope.productmodal['attribute_id5'],
+                                category_id1      : $scope.productmodal['category_id1'],
+                                category_id2      : $scope.productmodal['category_id2'],
+                                category_id3      : $scope.productmodal['category_id3'],
+                                category_id4      : $scope.productmodal['category_id4'],
+                                category_id5      : $scope.productmodal['category_id5'],
+                                hargatotal        : 0
                             });
                         }
                         $scope.countcart();
@@ -348,12 +384,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 };
                 //checkcart
-                $scope.checkcart = function(id){
+                $scope.checkcart = function(product){
                     var check = true;
                     for(var i = 0; i < $scope.cart.length; i++){
-                        if($scope.cart[i]['product_id'] == id){
-                            $scope.cart[i]['qty']++;
-                            check = false;
+                        if($scope.cart[i]['variants'] == ''){
+                            if($scope.cart[i]['product_id'] == product['product_id']){
+                                $scope.cart[i]['qty']++;
+                                check = false;
+                                break;
+                            }
+                        }else{
+                            if($scope.cart[i]['variants']['product_variant_id'] == $scope.variantstmp['product_variant_id']){
+                                $scope.cart[i]['qty']++;
+                                check = false;
+                                break;
+                            }
                         }
                     }
                     return check;
@@ -579,7 +624,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     });
                 };
                 //init customer display
-                $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchant']['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
                     $scope.cancelRequestService();

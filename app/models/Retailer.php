@@ -131,4 +131,25 @@ class Retailer extends Eloquent
         return $builder;
     }
 
+    /**
+     * Add Filter merchant based on transaction and users.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder  $builder
+     * @param array $userIds - List of user ids
+     * @param array $merchantIds - List of merchant Ids
+     */
+    public function scopeTransactionCustomerMerchantIds($builder, array $userIds, array $merchantIds)
+    {
+        return $builder->select('merchants.*')
+                       // ->join('transactions', 'transactions.merchant_id', '=', 'merchants.merchant_id')
+                       ->join('transactions', function($join) {
+                            $join->on('transactions.retailer_id', '=', 'merchants.merchant_id');
+                            $join->on('merchants.object_type', '=', DB::raw("'retailer'"));
+                       })
+                       ->where('transactions.status', 'paid')
+                       ->whereIn('customer_id', $userIds)
+                       ->whereIn('merchants.parent_id', $merchantIds)
+                       ->groupBy('merchants.merchant_id');
+    }
 }
