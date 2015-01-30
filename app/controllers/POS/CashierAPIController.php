@@ -777,6 +777,46 @@ class CashierAPIController extends ControllerAPI
                 $transactionDetails->save();
             }
 
+            // issue product based coupons (if any)
+            if($customer_id!=0 ||$customer_id!=NULL){
+                foreach($cart as $k => $v){
+                    $product_id = $v['product_id'];
+                    $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                    inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                    inner join ' . DB::getTablePrefix() . 'products prod on
+                    (
+                        (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                        OR
+                        (
+                            (pr.discount_object_type="family") AND 
+                            ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                            ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                            ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                            ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                            ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        )
+                    )
+                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
+                    if($coupons!=NULL){
+                        foreach($coupons as $k => $v){
+                            $issue_coupon = new \IssueCoupon();
+                            $issue_coupon->promotion_id = $v['promotion_id'];
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($v['coupon_validity_in_days']);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = $this->ISSUE_COUPON_INCREMENT+$issue_coupon->issue_coupon_id;
+                            $issue_coupon->save(); 
+                        }  
+                    }
+                }
+            }
+
+
 
             // issue cart based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
@@ -982,8 +1022,13 @@ class CashierAPIController extends ControllerAPI
 
             $driver = Config::get('orbit.devices.edc.path');
             $params = Config::get('orbit.devices.edc.params');
-            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
+            $cmd = 'sudo '.$driver.' --device '.$params.' --amounts '.$amount;
             $card = shell_exec($cmd);
+
+            if($card=='failed'){
+                $message = 'Payment failed';
+                ACL::throwAccessForbidden($message);
+            }
 
             $this->response->data = $card;
 

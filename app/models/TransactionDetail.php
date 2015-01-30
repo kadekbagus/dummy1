@@ -42,7 +42,8 @@ class TransactionDetail extends Eloquent
      */
     public function scopeTransactionJoin($builder)
     {
-        return $builder->join('transactions', function($join) {
+        return $builder->select('transaction_details.*')
+                       ->join('transactions', function($join) {
                             $join->on('transactions.transaction_id', '=', 'transaction_details.transaction_id');
                             $join->where('transactions.status', '=', DB::raw('paid'));
                        });
