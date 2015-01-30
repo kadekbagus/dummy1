@@ -1114,7 +1114,11 @@ class CashierAPIController extends ControllerAPI
                     ->active()
                     ->first();
 
-            //$cart['users'];
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.upc_code');
+                ACL::throwAccessForbidden($message);
+            }
+            
             $user = $cart->users;         
 
             $subtotal = 0;
@@ -1225,10 +1229,7 @@ class CashierAPIController extends ControllerAPI
             })
             ->where('cart_coupons.object_type', '=', 'cart')->get();   
 
-            if (! is_object($cart)) {
-                $message = \Lang::get('validation.orbit.empty.upc_code');
-                ACL::throwAccessForbidden($message);
-            }
+
             $result = array();
             $result['datacart'] = $cart;
             $result['used_cart_coupons'] = $used_cart_coupons;

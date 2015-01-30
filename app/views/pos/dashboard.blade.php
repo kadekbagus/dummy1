@@ -95,7 +95,7 @@
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                         <tr>
-                            <td><div class="circle"><span style="margin-left: 15px;">Promotion</span></div></td>
+                            <td><div class="circlegreen"><span style="margin-left: 15px;">Promotion</span></div></td>
                             <td></td>
                             <td></td>
                             <td></td>
