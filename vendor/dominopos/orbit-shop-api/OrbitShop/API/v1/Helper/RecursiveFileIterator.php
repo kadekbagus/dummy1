@@ -26,15 +26,9 @@ class RecursiveFileIterator
      */
     public function __construct($directory, $sort='sort-ascending', $language=array())
     {
-        $this->language = $language + $this->defaultLangList();
-
-        if (! file_exists($directory)) {
-            $message = sprintf($this->language['directory_not_found'], $directory);
-            throw new Exception ($message);
-        }
-
-        $this->directory = $directory;
-        $this->sort = $sort;
+        $this->setDirectory($directory);
+        $this->setLanguage($language);
+        $this->setSorting($sort);
     }
 
     /**
@@ -110,6 +104,24 @@ class RecursiveFileIterator
     }
 
     /**
+     * Set the value of directory property.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $directory - Directory name
+     * @return RecursiveFileIterator
+     */
+    public function setDirectory($directory)
+    {
+        if (! file_exists($directory)) {
+            $message = sprintf($this->language['directory_not_found'], $directory);
+            throw new Exception ($message);
+        }
+        $this->directory = $directory;
+
+        return $this;
+    }
+
+    /**
      * Method to include directory name on the result (Prefix).
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -159,11 +171,29 @@ class RecursiveFileIterator
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param array $lang Array of sentences
-     * @return  RecursiveFileIterator
+     * @return RecursiveFileIterator
      */
-    public function setLanguage($lang)
+    public function setLanguage(array $lang)
     {
-        $this->language = $lang;
+        $this->language = $lang + $this->defaultLangList();
+
+        return $this;
+    }
+
+    /**
+     * Set the value of sorting.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $sort - Sorting mode: 'sort-ascending' or 'sort-descending'
+     * @return RecursiveFileIterator
+     */
+    public function setSorting($sort)
+    {
+        $valid = array('sort-ascending', 'sort-descending');
+        if (! in_array($sort, $valid)) {
+            throw new Exception($this->language['wrong_sorting_mode']);
+        }
+        $this->sort = $sort;
 
         return $this;
     }
@@ -181,5 +211,21 @@ class RecursiveFileIterator
             'not_a_directory'       => '%s seems not a directory.',
             'wrong_sorting_mode'    => 'Invalid sorting mode.'
         );
+    }
+
+    /**
+     * Magic call to get the property.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
+
+        return NULL;
     }
 }
