@@ -1,4 +1,6 @@
 <?php
+use OrbitShop\API\v1\Helper\RecursiveFileIterator;
+
 if (! defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
@@ -13,12 +15,12 @@ if (! defined('DS')) {
 | instead.
 |
 */
-$orbit_additional_classmap = array(
+$orbitAdditionalClassMap = array(
     __DIR__ . DS . 'controllers' . DS . 'api' . DS . 'v1',
     __DIR__ . DS . 'controllers' . DS . 'intermediate' . DS . 'v1',
     __DIR__ . DS . '..' . DS . 'vendor' . DS . 'eventviva' . DS . 'php-image-resize' . DS . 'src'
 );
-ClassLoader::addDirectories($orbit_additional_classmap);
+ClassLoader::addDirectories($orbitAdditionalClassMap);
 ClassLoader::register();
 
 /*
@@ -29,20 +31,21 @@ ClassLoader::register();
 | Search all php files inside the 'events' directory.
 |
 */
-$event_dir = __DIR__ . DS . 'events' . DS . 'enabled';
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($event_dir));
-$it->rewind();
-while ($it->valid()) {
-    if (! $it->isDot()) {
-        // Only for php files
-        if ($it->getExtension() === 'php') {
-            $fullpath = $it->key();
-            require $fullpath;
-        }
+// Callback which returns only 'php' extension
+$onlyPHPExt = function($file, $fullPath)
+{
+    if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+        return TRUE;
     }
-    $it->next();
-}
 
+    return FALSE;
+};
+$orbitEventDir = __DIR__ . DS . 'events' . DS . 'enabled';
+$recursiveIterator = RecursiveFileIterator::create($orbitEventDir)
+                                          ->setCallbackMatcher($onlyPHPExt);
+foreach ($recursiveIterator->get() as $file) {
+    require $orbitEventDir . DS . $file;
+}
 /*
 |--------------------------------------------------------------------------
 | Orbit API Routes
@@ -51,16 +54,8 @@ while ($it->valid()) {
 | Search all php files inside the 'routes' the directory.
 |
 */
-$route_dir = __DIR__ . DS . 'routes';
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($route_dir));
-$it->rewind();
-while ($it->valid()) {
-    if (! $it->isDot()) {
-        // Only for php files
-        if ($it->getExtension() === 'php') {
-            $fullpath = $it->key();
-            require $fullpath;
-        }
-    }
-    $it->next();
+$orbitRouteDir = __DIR__ . DS . 'routes';
+$recursiveIterator->setDirectory($orbitRouteDir);
+foreach ($recursiveIterator->get() as $file) {
+    require $orbitRouteDir . DS . $file;
 }
