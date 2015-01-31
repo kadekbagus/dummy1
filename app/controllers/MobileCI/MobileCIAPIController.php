@@ -821,16 +821,11 @@ class MobileCIAPIController extends ControllerAPI
                 $data->records = $listOfRec;
             }
 
-            if(!empty(OrbitInput::get('new'))) {
-                $pagetitle = 'NEW PRODUCTS';
+            if(!empty($promotions)) {
+                $pagetitle = 'PROMOTION : '.$promotions[0]->promotion_name;
             }
-            if(!empty(OrbitInput::get('promo'))) {
-                $pagetitle = 'PROMOTIONS';
-            }
-            if(!empty(OrbitInput::get('coupon'))) {
-                $pagetitle = 'COUPONS';
-            }
-            return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
+            
+            return View::make('mobile-ci.promotions', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);

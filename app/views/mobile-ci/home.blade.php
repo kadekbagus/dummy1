@@ -158,18 +158,18 @@
                     @endif
                   @elseif($events->link_object_type == 'promotion')
                     @if(! empty($events->image)) 
-                    <a href="{{ url('customer/search?promoid='.$events->link_object_id1) }}">
+                    <a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset($events->image) }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/search?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @else
-                    <a href="{{ url('customer/search?promoid='.$events->link_object_id1) }}">
+                    <a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/search?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @endif
                   @endif
