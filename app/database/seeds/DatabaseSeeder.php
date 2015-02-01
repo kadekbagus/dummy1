@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call('RoleTableSeeder');
         $this->call('PermissionTableSeeder');
         $this->call('PermissionRoleTableSeeder');
+        $this->call('UserTableSeeder');
 
         DB::connection()->getPdo()->commit();
     }
