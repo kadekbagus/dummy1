@@ -311,12 +311,20 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
             $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->excludeDeleted()->get();
-
+            // dd($families);
             $cartitems = $this->getCartForToolbar();
 
             $family1 = \Session::put('f1', 2);
             $family2 = \Session::put('f2', 9);
-            $family3 = \Session::put('f3', 10);
+            // $family3 = \Session::put('f3', 11);
+            // $family4 = \Session::put('f4', 12);
+            // $family5 = \Session::put('f5', 13);
+
+            // \Session::forget('f1');
+            // \Session::forget('f2');
+            // \Session::forget('f3');
+            // \Session::forget('f4');
+            // \Session::forget('f5');
 
             $family1 = \Session::get('f1');
             $family2 = \Session::get('f2');
@@ -362,9 +370,15 @@ class MobileCIAPIController extends ControllerAPI
                 if(!empty($family3)){
                     $lvl3 = $this->getProductListCatalogue($array_of_families, 3, $family3, '');
                 }
+                if(!empty($family4)){
+                    $lvl4 = $this->getProductListCatalogue($array_of_families, 4, $family4, '');
+                }
+                if(!empty($family5)){
+                    $lvl5 = $this->getProductListCatalogue($array_of_families, 5, $family5, '');
+                }
             }
             // dd($lvl3);
-            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartitems' => $cartitems, 'hasFamily' => $hasFamily, 'lvl1' => $lvl1, 'lvl2' => $lvl2, 'lvl3' => $lvl3));
+            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartitems' => $cartitems, 'hasFamily' => $hasFamily, 'lvl1' => $lvl1, 'lvl2' => $lvl2, 'lvl3' => $lvl3, 'lvl4' => $lvl4, 'lvl5' => $lvl5));
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
         }
