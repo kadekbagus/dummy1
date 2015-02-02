@@ -57,7 +57,7 @@ class Firewall
             $fake = array(
                 'status'    => TRUE,
                 'mac'       => 'FA:KE:MA:CA:DR',
-                'message'   => sprint('Fake grant IP %s', $userIp);
+                'message'   => sprint('Fake grant IP %s', $userIp)
             );
 
             if ($mode !== 'register') {
