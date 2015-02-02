@@ -87,6 +87,22 @@
                     </table>
                 </div>
                 <div class="table-responsive">
+                    <table class="table  orbit-component table-noborder">
+                        <thead>
+                            <tr style="background-color: #009933;">
+                               <th colspan="2" style="color: white">CART BASED PROMOTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ng-repeat="(k,v) in cartpromotions">
+                                <td><% v.promotion_name %></td>
+                                <td><% v.promotionrule.discount_value %></td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+                <div class="table-responsive">
                     <table class="table">
                         <tr>
                             <td class="text-center"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></td>

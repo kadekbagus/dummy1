@@ -90,9 +90,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                     //reset data promotion
                     $scope.datapromotion = [];
-                    $scope.variantstmp = '';
-                    $scope.showprice = false;
-
+                    $scope.variantstmp   = '';
+                    $scope.showprice     = false;
+                    $scope.datapromotion = '';
                     $scope.getpromotion($scope.productmodal['product_id']);
                 };
                 //canceler request
@@ -262,8 +262,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //get  cart based promotion
                 ($scope.getcartpromotion = function(){
                     serviceAjax.posDataToServer('/pos/cartbasedpromotion').then(function (response) {
-                        console.log(response);
                         if (response.code == 0 ) {
+                            $scope.cartpromotions = response.data;
+                            console.log($scope.cartpromotions);
                         }
                     })
                 })();
@@ -332,6 +333,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.cart.push({
                                 product_name      : $scope.productmodal['product_name'],
                                 variants          : $scope.variantstmp,
+                                promotion         : $scope.datapromotion,
                                 qty               : 1,
                                 price             : $scope.productmodal['price'],
                                 idx               : $scope.productmodal['idx'],
