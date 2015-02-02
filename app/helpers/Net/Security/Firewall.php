@@ -5,6 +5,9 @@
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
+use Config;
+use OrbitShop\API\v1\Helper\Command;
+
 class Firewall
 {
     /**
@@ -45,20 +48,35 @@ class Firewall
      * @param string $ip - The IP address which used for detecting mac address
      * @return array
      */
-    public function remokeMacByIP($ip)
+    public function revokeMacByIP($ip)
     {
-        return $this->registerMacAddress($ip);
+        return $this->registerMacAddress($ip, 'revoke');
     }
 
     protected function registerMacAddress($userIp, $mode='register')
     {
+        if (Config::get('orbit.security.firewall.fake_call') === TRUE) {
+            // This is a fake call, so return a fake result
+            $fake = array(
+                'status'    => TRUE,
+                'mac'       => 'FA:KE:MA:CA:DR',
+                'message'   => sprintf('Fake grant IP %s', $userIp)
+            );
+
+            if ($mode !== 'register') {
+                $fake['message'] = sprintf('Fake revoke IP %s', $userIp);
+            }
+
+            return $fake;
+        }
+
         $return = array(
             'status'    => FALSE,
             'mac'       => '',
             'message'   => ''
         );
 
-        $addMacCmd = Config::get('orbit.firewall.command');
+        $addMacCmd = Config::get('orbit.security.firewall.command');
         if (empty($addMacCmd)) {
             $return['status'] = FALSE;
             $return['message'] = 'I could not find the orbit.firewall.command configuration.';
