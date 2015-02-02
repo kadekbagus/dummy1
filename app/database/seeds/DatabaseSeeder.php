@@ -1,17 +1,24 @@
 <?php
 
-class DatabaseSeeder extends Seeder {
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        Eloquent::unguard();
 
-	/**
-	 * Run the database seeds.
-	 *
-	 * @return void
-	 */
-	public function run()
-	{
-		Eloquent::unguard();
 
-		// $this->call('UserTableSeeder');
-	}
+        DB::connection()->getPdo()->beginTransaction();
 
+        $this->call('RoleTableSeeder');
+        $this->call('PermissionTableSeeder');
+        $this->call('PermissionRoleTableSeeder');
+        $this->call('UserTableSeeder');
+
+        DB::connection()->getPdo()->commit();
+    }
 }

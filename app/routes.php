@@ -1,8 +1,9 @@
 <?php
+use OrbitShop\API\v1\Helper\RecursiveFileIterator;
+
 if (! defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
-use OrbitShop\API\v1\Helper\RecursiveFileIterator;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,12 +15,12 @@ use OrbitShop\API\v1\Helper\RecursiveFileIterator;
 | instead.
 |
 */
-$orbit_additional_classmap = array(
+$orbitAdditionalClassMap = array(
     __DIR__ . DS . 'controllers' . DS . 'api' . DS . 'v1',
     __DIR__ . DS . 'controllers' . DS . 'intermediate' . DS . 'v1',
     __DIR__ . DS . '..' . DS . 'vendor' . DS . 'eventviva' . DS . 'php-image-resize' . DS . 'src'
 );
-ClassLoader::addDirectories($orbit_additional_classmap);
+ClassLoader::addDirectories($orbitAdditionalClassMap);
 ClassLoader::register();
 
 /*
@@ -30,17 +31,21 @@ ClassLoader::register();
 | Search all php files inside the 'events' directory.
 |
 */
-$event_dir = __DIR__ . DS . 'events' . DS . 'enabled';
-$route_iterator = new RecursiveFileIterator($event_dir);
-foreach ($route_iterator as $item) {
-    $file = new SplFileInfo($item);
-    if (! $file->isDir()) {
-        if ($file->getExtension() === 'php') {
-            require $item;
-        }
+// Callback which returns only 'php' extension
+$onlyPHPExt = function($file, $fullPath)
+{
+    if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+        return TRUE;
     }
-}
 
+    return FALSE;
+};
+$orbitEventDir = __DIR__ . DS . 'events' . DS . 'enabled';
+$recursiveIterator = RecursiveFileIterator::create($orbitEventDir)
+                                          ->setCallbackMatcher($onlyPHPExt);
+foreach ($recursiveIterator->get() as $file) {
+    require $orbitEventDir . DS . $file;
+}
 /*
 |--------------------------------------------------------------------------
 | Orbit API Routes
@@ -49,13 +54,8 @@ foreach ($route_iterator as $item) {
 | Search all php files inside the 'routes' the directory.
 |
 */
-$route_dir = __DIR__ . DS . 'routes';
-$route_iterator = new RecursiveFileIterator($route_dir);
-foreach ($route_iterator as $item) {
-    $file = new SplFileInfo($item);
-    if (! $file->isDir()) {
-        if ($file->getExtension() === 'php') {
-            require $item;
-        }
-    }
+$orbitRouteDir = __DIR__ . DS . 'routes';
+$recursiveIterator->setDirectory($orbitRouteDir);
+foreach ($recursiveIterator->get() as $file) {
+    require $orbitRouteDir . DS . $file;
 }

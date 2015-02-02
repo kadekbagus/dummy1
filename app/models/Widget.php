@@ -62,4 +62,21 @@ class Widget extends Eloquent
                            'widgets.widget_id'
                      )->whereIn('widget_retailer.retailer_id', $retailerIds);
     }
+
+    /**
+     * Widget has many media
+     */
+    public function media()
+    {
+        return $this->belongsTo('Media', 'object_id', 'widget_id')
+                    ->where('object_name', 'widget');
+    }
+
+    /**
+     * Widget has many home widget media
+     */
+    public function mediaHomeWidget()
+    {
+        return $this->media()->where('media_name_id', 'home_widget');
+    }
 }

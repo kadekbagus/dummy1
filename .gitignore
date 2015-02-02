@@ -23,3 +23,6 @@ app/config/rio/**
 
 # config pos
 public/templatepos/js/config.js
+
+# Laraeval config
+app/config/packages/laraeval/laraeval/config.php
