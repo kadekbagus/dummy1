@@ -60,6 +60,11 @@ Route::get('/customer/search', function()
     return MobileCI\MobileCIAPIController::create()->getSearchProduct();
 });
 
+Route::get('/customer/promotion', function()
+{
+    return MobileCI\MobileCIAPIController::create()->getSearchPromotion();
+});
+
 Route::get('/customer/activation', function()
 {
     return MobileCI\MobileCIAPIController::create()->getActivationView();
@@ -139,4 +144,10 @@ Route::post('/app/v1/customer/deletecouponcart', function()
 Route::post('/app/v1/customer/addcouponcarttocart', function()
 {
     return MobileCI\MobileCIAPIController::create()->postAddCouponCartToCart();
+});
+
+// add cart based coupon to cart
+Route::post('/app/v1/customer/closecart', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postCloseCart();
 });

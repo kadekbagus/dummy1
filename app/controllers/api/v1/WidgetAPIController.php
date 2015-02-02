@@ -551,11 +551,11 @@ class WidgetAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.widget.getwidget.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_product_attribute')) {
+            if (! ACL::create($user)->isAllowed('view_widget')) {
                 Event::fire('orbit.widget.getwidget.authz.notallowed', array($this, $user));
 
-                $errorMessage = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.view_product_attribute', array('action' => $errorMessage));
+                $errorMessage = Lang::get('validation.orbit.actionlist.view_widget');
+                $message = Lang::get('validation.orbit.access.view_widget', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
             }

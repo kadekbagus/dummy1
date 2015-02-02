@@ -52,4 +52,14 @@ class CartDetail extends Eloquent
     {
         return $this->variant()->join('product_attribute_values', 'product_attribute_values.product_attribute_value_id', '=', 'product_variants.product_attribute_value_id5');
     }
+
+    public function tax1()
+    {
+        return $this->product->tax1();
+    }
+
+    public function tax2()
+    {
+        return $this->product->tax2();
+    }
 }
