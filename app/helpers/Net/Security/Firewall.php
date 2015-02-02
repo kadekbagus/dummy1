@@ -45,13 +45,28 @@ class Firewall
      * @param string $ip - The IP address which used for detecting mac address
      * @return array
      */
-    public function remokeMacByIP($ip)
+    public function revokeMacByIP($ip)
     {
         return $this->registerMacAddress($ip);
     }
 
     protected function registerMacAddress($userIp, $mode='register')
     {
+        if (Config::get('orbit.security.firewall.fake_call') === TRUE) {
+            // This is a fake call, so return a fake result
+            $fake = array(
+                'status'    => TRUE,
+                'mac'       => 'FA:KE:MA:CA:DR',
+                'message'   => sprint('Fake grant IP %s', $userIp);
+            );
+
+            if ($mode !== 'register') {
+                $fake['message'] = sprintf('Fake revoke IP %s', $userIp);
+            }
+
+            return $fake;
+        }
+
         $return = array(
             'status'    => FALSE,
             'mac'       => '',
