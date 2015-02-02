@@ -1,5 +1,4 @@
 <?php
-echo "Dummy\n";
 /**
  * A dummy route file
  */
