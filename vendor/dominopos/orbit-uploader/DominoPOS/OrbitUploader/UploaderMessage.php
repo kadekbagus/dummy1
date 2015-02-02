@@ -31,17 +31,17 @@ class UploaderMessage
         $this->default = array(
             'errors' => array(
                 'unknown_error'         => 'Unknown upload error.',
-                'no_file_uploaded'      => 'No file being uploded.',
-                'path_not_found'        => 'Unable to find the upload directry.',
+                'no_file_uploaded'      => 'No file being uploaded.',
+                'path_not_found'        => 'Unable to find the upload directory.',
                 'no_write_access'       => 'Unable to write to the upload directory.',
-                'file_too_big'          => 'File size too big, maximum allowed are :size :unit.',
-                'file_type_not_allowed' => 'File extension :extension are not allowed.',
-                'mime_type_not_allowed' => 'Mime type of :mime are not allowed.',
-                'dimension_not_allowed' => 'Maximum dimension allowed are :maxdimension, yours :yoursdimension',
+                'file_too_big'          => 'File size is too big, maximum size allowed is :size :unit.',
+                'file_type_not_allowed' => 'File extension :extension is not allowed.',
+                'mime_type_not_allowed' => 'Mime type of :mime is not allowed.',
+                'dimension_not_allowed' => 'Maximum dimension allowed is :maxdimension, your image dimension is :yoursdimension',
                 'unable_to_upload'      => 'Unable to move the uploaded file.'
             ),
             'success' => array(
-                'upload_ok'             => 'File has been uploaded successfully'
+                'upload_ok'             => 'File has been uploaded successfully.'
             ),
         );
         $this->messages = $messages + $this->default;
