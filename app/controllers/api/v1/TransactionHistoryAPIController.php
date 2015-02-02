@@ -417,8 +417,9 @@ class TransactionHistoryAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param array     `retailer_ids`          (required) - IDs of Retailer
-     * @param integer   `user_id`               (required) - ID of the user
+     * @param array     `user_id`               (required) - ID of the user
+     * @param array     `retailer_ids`          (optional) - IDs of Retailer
+     * @param array     `merchant_ids`          (optional) - IDs of Merchant
      * @param string    `sortby`                (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
      * @param string    `sortmode`              (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
@@ -465,6 +466,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 array(
                     'user_id'       => 'required|numeric',
                     'retailer_ids'  => 'array|min:0',
+                    'merchant_ids'  => 'array|min:0',
                     'sort_by'       => 'in:product_name,last_transaction,qty,price'
                 ),
                 array(
@@ -501,6 +503,10 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             OrbitInput::get('retailer_ids', function($retailerIds) use ($transactions) {
                 $transactions->whereIn('transactions.retailer_id', $retailerIds);
+            });
+
+            OrbitInput::get('merchant_ids', function($merchantIds) use ($transactions) {
+                $transactions->whereIn('transactions.merchant_id', $merchantIds);
             });
 
             // Clone the query builder which still does not include the take,
