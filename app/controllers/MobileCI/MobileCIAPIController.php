@@ -236,7 +236,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -252,7 +252,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
             // $cartdata = $this->getCartForToolbar();
             if(empty(\Session::get('event'))) {
@@ -314,7 +314,57 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartitems' => $cartitems));
+            $family1 = \Session::put('f1', 2);
+            $family2 = \Session::put('f2', 9);
+            $family3 = \Session::put('f3', 10);
+
+            $family1 = \Session::get('f1');
+            $family2 = \Session::get('f2');
+            $family3 = \Session::get('f3');
+            $family4 = \Session::get('f4');
+            $family5 = \Session::get('f5');
+
+            if(!empty($family1) || !empty($family2) || !empty($family3) || !empty($family4) || !empty($family5)) {
+                $hasFamily = 'yes';
+            } else {
+                $hasFamily = 'no';
+            }
+            $array_of_families = array();
+            if(!empty($family1)){
+                $array_of_families[] = $family1;
+            }
+            if(!empty($family2)){
+                $array_of_families[] = $family2;
+            }
+            if(!empty($family3)){
+                $array_of_families[] = $family3;
+            }
+            if(!empty($family4)){
+                $array_of_families[] = $family4;
+            }
+            if(!empty($family5)){
+                $array_of_families[] = $family5;
+            }
+
+            $lvl1 = null;
+            $lvl2 = null;
+            $lvl3 = null;
+            $lvl4 = null;
+            $lvl5 = null;
+
+            if($hasFamily == 'yes'){
+                if(!empty($family1)){
+                    $lvl1 = $this->getProductListCatalogue($array_of_families, 1, $family1, '');
+                }
+                if(!empty($family2)){
+                    $lvl2 = $this->getProductListCatalogue($array_of_families, 2, $family2, '');
+                }
+                if(!empty($family3)){
+                    $lvl3 = $this->getProductListCatalogue($array_of_families, 3, $family3, '');
+                }
+            }
+            // dd($lvl3);
+            return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartitems' => $cartitems, 'hasFamily' => $hasFamily, 'lvl1' => $lvl1, 'lvl2' => $lvl2, 'lvl3' => $lvl3));
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
         }
@@ -480,7 +530,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -496,7 +546,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
             $product_on_coupon = array();
             foreach($coupons as $coupon) {
@@ -737,7 +787,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -753,7 +803,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
             $totalRec = $_products->count();
             $listOfRec = $products->get();
@@ -968,7 +1018,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -984,7 +1034,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
             $product_on_promo = array();
             foreach($promotions as $promotion) {
@@ -1043,20 +1093,262 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             // $listOfRec = $products;
-            $search_limit = Config::get('orbit.shop.search_limit');
-            if($totalRec>$search_limit){
-                $data = new stdclass();
-                $data->status = 0;
-            }else{
-                $data = new stdclass();
-                $data->status = 1;
-                $data->total_records = $totalRec;
-                $data->returned_records = count($listOfRec);
-                $data->records = $listOfRec;
-            }
+            // $search_limit = Config::get('orbit.shop.search_limit');
+            // if($totalRec>$search_limit){
+            //     $data = new stdclass();
+            //     $data->status = 0;
+            // }else{
+            $data = new stdclass();
+            $data->status = 1;
+            $data->total_records = $totalRec;
+            $data->returned_records = count($listOfRec);
+            $data->records = $listOfRec;
+            // }
 
             $cartitems = $this->getCartForToolbar();
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
+            
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            // if($e->getMessage() === 'Invalid session data.'){
+                return $e->getMessage();
+            // }
+        }
+        
+    }
+
+    public function getProductListCatalogue($families, $family_level, $family_id, $sort_by)
+    {
+        try {
+            $user = $this->getLoggedInUser();
+
+            $this->registerCustomValidation();
+
+            // $sort_by = OrbitInput::get('sort_by');
+            // $family_id = OrbitInput::get('family_id');
+            // $family_level = OrbitInput::get('family_level');
+            // $families = OrbitInput::get('families');
+
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                    'family_id' => $family_id,
+                ),
+                array(
+                    'sort_by' => 'in:product_name,price',
+                    'family_id' => 'orbit.exists.category',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            $retailer = $this->getRetailerInfo();
+            $nextfamily = $family_level + 1;
+
+            // $subfamilies = Category::excludeDeleted();
+            if($nextfamily < 6) {
+                $subfamilies = Category::excludeDeleted()->where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level, $families) {
+                    $nextfamily = $family_level + 1;
+                    for($i = 1; $i < count($families); $i++) {
+                        $q->where('products.category_id'.$i, $families[$i-1]);
+                    }
+
+                    $q  ->where('products.category_id'.$family_level, $family_id)
+                        ->where('products.category_id'.$nextfamily, '<>', 'NULL')
+                        ->where('products.status', 'active');
+                })->get();
+                // dd($families);
+            } else {
+                $subfamilies = NULL;
+            }
+
+            $products = Product::with('variants')->whereHas('retailers', function($query) use ($retailer) {
+                $query->where('retailer_id', $retailer->merchant_id);
+            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
+                for($i = 1; $i < count($families); $i++) {
+                    $q->where('category_id'.$i, $families[$i-1]);
+                }
+                $q->where('category_id' . $family_level, $family_id);
+                for($i = $family_level + 1; $i <= 5; $i++) {
+                    $q->where('category_id' . $i, NULL);
+                }
+            });
+
+            $_products = clone $products;
+            // dd($products->get());
+            // Default sort by
+            $sortBy = 'products.product_name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sort_by', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'product_name'      => 'products.product_name',
+                    'price'             => 'products.price',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sort_mode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }else{
+                    $sortMode = 'desc';
+                }
+            });
+            $products->orderBy($sortBy, $sortMode);
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->get();
+
+            $promotions = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+            
+            $couponstocatchs = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.rule_object_type="family") AND 
+                        ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
+                        ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
+                        ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
+                        ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
+                        ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+
+            $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
+
+            $product_on_promo = array();
+            foreach($promotions as $promotion) {
+                $product_on_promo[] = $promotion->product_id;
+            }
+
+            foreach($listOfRec as $product) {
+                $prices = array();
+                foreach($product->variants as $variant) {
+                    $prices[] = $variant->price;
+                }
+
+                // set minimum price
+                $min_price = min($prices);
+                $product->min_price = $min_price + 0;
+
+                // set on_promo flag
+                $promo_for_this_product = array_filter($promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
+                if(count($promo_for_this_product) > 0) {
+                    $discount=0;
+                    foreach($promo_for_this_product as $promotion) {
+                        if($promotion->rule_type == 'product_discount_by_percentage') {
+                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                        } elseif($promotion->rule_type == 'product_discount_by_value') {
+                            $discount = $discount + $promotion->discount_value;
+                        }
+                    }
+                    $product->on_promo = true;
+                    $product->priceafterpromo = $min_price - $discount;
+                } else {
+                    $product->on_promo = false;
+                }
+
+                // set coupons to catch flag
+                $couponstocatch_this_product = array_filter($couponstocatchs, function($v) use ($product) { return $v->product_id == $product->product_id; });
+                if(count($couponstocatch_this_product) > 0) {
+                    $product->on_couponstocatch = true;
+                } else {
+                    $product->on_couponstocatch = false;
+                }
+
+                // set coupons flag
+                $coupon_for_this_product = array_filter($coupons, function($v) use ($product) { return $v->product_id == $product->product_id; });
+                if(count($coupon_for_this_product) > 0) {
+                    $product->on_coupons = true;
+                } else {
+                    $product->on_coupons = false;
+                }
+
+                // set is_new flag
+                if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                    $product->is_new = true;
+                } else {
+                    $product->is_new = false;
+                }
+            }
+
+            // $listOfRec = $products;
+            // $search_limit = Config::get('orbit.shop.search_limit');
+            // if($totalRec>$search_limit){
+            //     $data = new stdclass();
+            //     $data->status = 0;
+            // }else{
+            //     $data = new stdclass();
+            //     $data->status = 1;
+            //     $data->total_records = $totalRec;
+            //     $data->returned_records = count($listOfRec);
+            //     $data->records = $listOfRec;
+            // }
+
+            $data = new stdclass();
+            $data->records = $listOfRec;
+            $data->subfamilies = $subfamilies;
+            $data->promotions = $promotions;
+            $data->promo_products = $product_on_promo;
+            $data->couponstocatchs = $couponstocatchs;
+
+            return $data;
+            // return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
             
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
@@ -1115,7 +1407,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -1131,7 +1423,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
 
             $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
                 inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id 
@@ -1317,7 +1609,7 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -1333,7 +1625,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id));
 
             // $promotion = Coupon::whereHas('issuedcoupons', function($q) use($user)
             //     {
@@ -2022,7 +2314,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -2038,7 +2330,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
+                WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
             
             $cartdetail->available_coupons = $coupons;
             

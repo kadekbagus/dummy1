@@ -22,6 +22,12 @@
 </div>
 <script type="text/javascript">
   $(document).ready(function(){
+    $('#barcodeBtn').click(function(){
+      $('#get_camera').click();
+    });
+    $('#get_camera').change(function(){
+      $('#qrform').submit();
+    });
     $('#searchBtn').click(function(){
       $('#SearchProducts').modal();
       setTimeout(function(){
