@@ -821,16 +821,11 @@ class MobileCIAPIController extends ControllerAPI
                 $data->records = $listOfRec;
             }
 
-            if(!empty(OrbitInput::get('new'))) {
-                $pagetitle = 'NEW PRODUCTS';
+            if(!empty($promotions)) {
+                $pagetitle = 'PROMOTION : '.$promotions[0]->promotion_name;
             }
-            if(!empty(OrbitInput::get('promo'))) {
-                $pagetitle = 'PROMOTIONS';
-            }
-            if(!empty(OrbitInput::get('coupon'))) {
-                $pagetitle = 'COUPONS';
-            }
-            return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
+            
+            return View::make('mobile-ci.promotions', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
@@ -1752,78 +1747,95 @@ class MobileCIAPIController extends ControllerAPI
             $total = 0;
             $attributes = array();
             
-            foreach($cartdata->cartdetails as $cartdetail) {
-                $original_price = $cartdetail->variant->price;
-                $original_ammount = $original_price * $cartdetail->quantity;
-                $ammount_after_promo = $original_ammount;
+            $vat_included = $retailer->parent->vat_included;
 
-                $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                foreach($promo_filters as $promo_filter) {
-                    if($promo_filter->rule_type == 'product_discount_by_percentage') {
-                        $discount = $promo_filter->discount_value * $original_price;
-                        $promo_filter->discount_str = $promo_filter->discount_value * 100;
-                    } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-                        $discount = $promo_filter->discount_value;
-                        $promo_filter->discount_str = $promo_filter->discount_value;
-                    }
-                    $promo_filter->discount = $discount * $cartdetail->quantity;
-                    $ammount_after_promo = $ammount_after_promo - $promo_filter->discount;
-                }
-                $cartdetail->promo_for_this_product = $promo_filters;
-
-                $coupon_filter = array();
-                foreach($used_product_coupons as $used_product_coupon) {
-                    if($used_product_coupon->cartdetail->product_id == $cartdetail->product->product_id) {
-                        if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-                            $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-                        } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-                            $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                        }
-                        $used_product_coupon->discount = $discount;
-                        $ammount_after_promo = $ammount_after_promo - $discount;
-                        $coupon_filter[] = $used_product_coupon;
-                    }
-                }
-                $cartdetail->coupon_for_this_product = $coupon_filter;
+            if($vat_included === 'yes') {
                 
-                $cartdetail->original_price = $original_price;
-                $cartdetail->original_ammount = $original_ammount;
-                $cartdetail->ammount_after_promo = $ammount_after_promo;
+                foreach($cartdata->cartdetails as $cartdetail) {
+                    $product_vat = 0;
+                    $original_price = $cartdetail->variant->price;
+                    $original_ammount = $original_price * $cartdetail->quantity;
+                    $ammount_after_promo = $original_ammount;
+                    $product_price_wo_tax = $original_price;
 
-                if(!is_null($cartdetail->tax1)) {
-                    $vat1 = $cartdetail->tax1->tax_value * $ammount_after_promo;
-                    $vat = $vat + $vat1;
-                }
-                if(!is_null($cartdetail->tax2)) {
-                    $vat2 = $cartdetail->tax2->tax_value * $ammount_after_promo;
-                    $vat = $vat + $vat2;
+                    if(!is_null($cartdetail->tax1)) {
+                        $vat1 = $cartdetail->tax1->tax_value * $original_price;
+                        $product_vat = $product_vat + $vat1;
+                        $product_price_wo_tax = $product_price_wo_tax - $vat1;
+                        // $vat = $vat + $vat1;
+                    }
+                    if(!is_null($cartdetail->tax2)) {
+                        $vat2 = $cartdetail->tax2->tax_value * $original_price;
+                        $product_vat = $product_vat + $vat2;
+                        $product_price_wo_tax = $product_price_wo_tax - $vat2;
+                        // $vat = $vat + $vat2;
+                    }
+
+                    $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
+                    foreach($promo_filters as $promo_filter) {
+                        if($promo_filter->rule_type == 'product_discount_by_percentage') {
+                            $discount = $promo_filter->discount_value * $original_price;
+                            $promo_filter->discount_str = $promo_filter->discount_value * 100;
+                        } elseif($promo_filter->rule_type == 'product_discount_by_value') {
+                            $discount = $promo_filter->discount_value;
+                            $promo_filter->discount_str = $promo_filter->discount_value;
+                        }
+                        $promo_filter->discount = $discount * $cartdetail->quantity;
+                        $ammount_after_promo = $ammount_after_promo - $promo_filter->discount;
+                    }
+                    $cartdetail->promo_for_this_product = $promo_filters;
+
+                    $coupon_filter = array();
+                    foreach($used_product_coupons as $used_product_coupon) {
+                        if($used_product_coupon->cartdetail->product_id == $cartdetail->product->product_id) {
+                            if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            }
+                            $used_product_coupon->discount = $discount;
+                            $ammount_after_promo = $ammount_after_promo - $discount;
+                            $coupon_filter[] = $used_product_coupon;
+                        }
+                    }
+                    $cartdetail->coupon_for_this_product = $coupon_filter;
+                    
+                    $cartdetail->original_price = $original_price;
+                    $cartdetail->original_ammount = $original_ammount;
+                    $cartdetail->ammount_after_promo = $ammount_after_promo;
+
+                    
+
+                    if($cartdetail->attributeValue1['value']){
+                        $attributes[] = $cartdetail->attributeValue1['value'];
+                    }
+                    if($cartdetail->attributeValue2['value']){
+                        $attributes[] = $cartdetail->attributeValue2['value'];
+                    }
+                    if($cartdetail->attributeValue3['value']){
+                        $attributes[] = $cartdetail->attributeValue3['value'];
+                    }
+                    if($cartdetail->attributeValue4['value']){
+                        $attributes[] = $cartdetail->attributeValue4['value'];
+                    }
+                    if($cartdetail->attributeValue5['value']){
+                        $attributes[] = $cartdetail->attributeValue5['value'];
+                    }
+                    $cartdetail->attributes = $attributes;
+                    $subtotal = $subtotal + $ammount_after_promo;
                 }
 
-                if($cartdetail->attributeValue1['value']){
-                    $attributes[] = $cartdetail->attributeValue1['value'];
-                }
-                if($cartdetail->attributeValue2['value']){
-                    $attributes[] = $cartdetail->attributeValue2['value'];
-                }
-                if($cartdetail->attributeValue3['value']){
-                    $attributes[] = $cartdetail->attributeValue3['value'];
-                }
-                if($cartdetail->attributeValue4['value']){
-                    $attributes[] = $cartdetail->attributeValue4['value'];
-                }
-                if($cartdetail->attributeValue5['value']){
-                    $attributes[] = $cartdetail->attributeValue5['value'];
-                }
-                $cartdetail->attributes = $attributes;
-                $subtotal = $subtotal + $ammount_after_promo;
+                $cartsummary = new stdclass();
+                $cartsummary->vat = $vat;
+                $cartsummary->total_to_pay = $subtotal;
+                $cartdata->cartsummary = $cartsummary;
+            } else {
+
             }
 
-            $cartsummary = new stdclass();
-            $cartsummary->vat = $vat;
-            $cartsummary->total_to_pay = $subtotal;
-            $cartdata->cartsummary = $cartsummary;
+            
             // print_r($cartdata);
 
             return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata, 'attribute' => $attributes));

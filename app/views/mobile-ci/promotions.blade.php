@@ -11,12 +11,12 @@
 			    <div class="row">
 				    <div class="col-xs-6 search-tool-col">
 				    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-price-up">
+				    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&promoid='.Input::get('promoid')) }}" id="sort-by-price-up">
 				    		<span class="fa-stack">
 				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
 				    		</span>
 				    	</a> 
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-price-down">
+				    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&promoid='.Input::get('promoid')) }}" id="sort-by-price-down">
 				    		<span class="fa-stack">
 				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
 				    		</span>
@@ -24,12 +24,12 @@
 				    	<span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
 				    </div>
 				    <div class="col-xs-5 search-tool-col">
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-name-up">
+				    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&promoid='.Input::get('promoid')) }}" id="sort-by-name-up">
 				    		<span class="fa-stack">
 				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
 				    		</span>
 				    	</a> 
-				    	<a href="{{ url('/customer/search?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-name-down">
+				    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&promoid='.Input::get('promoid')) }}" id="sort-by-name-down">
 				    		<span class="fa-stack">
 				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
 				    		</span>
