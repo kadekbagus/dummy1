@@ -5,6 +5,8 @@
  * @author Rio Astamal <me@rioastamal.net>
  */
 use OrbitShop\API\v1\ResponseProvider;
+use MobileCI\MobileCIAPIController;
+use Net\Security\Firewall;
 
 class IntermediateLoginController extends IntermediateBaseController
 {
@@ -116,5 +118,57 @@ class IntermediateLoginController extends IntermediateBaseController
         }
 
         return $this->render($response);
+    }
+
+    /**
+     * Mobile-CI Intermediate call by registering client mac address when login
+     * succeed.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param @see MobileCIAPIController::postLoginInShop()
+     * @return Response
+     */
+    public function postLoginMobileCI()
+    {
+        $response = MobileCIAPIController::create('raw')->postLoginInShop();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+
+            // Register User Mac Address to the Router
+            $registerMac = Firewall::create()->grantMacByIP($_SERVER['REMOTE_ADDR']);
+            if (! $registerMac['status']) {
+                $exitCode = 1;
+                if (isset($registerMac['object'])) {
+                    $exitCode = $registerMac['object']->getExitCode();
+                }
+                $response->message = $registerMac['message'];
+
+                // Call logout to clear session
+                MobileCIAPIController::create('raw')->getLogoutInShop();
+            }
+        }
+
+        return $this->render($response);
+    }
+
+    /**
+     * Mobile-CI Intermediate call by revoking client mac address when logout
+     * succeed.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param @see MobileCIAPIController::postLoginInShop()
+     * @return Response
+     */
+    public function getLogoutMobileCI()
+    {
+        try {
+            $revokeMac = Firewall::create()->revokeMacByIP($_SERVER['REMOTE_ADDR']);
+
+            return MobileCIAPIController::create('raw')->getLogoutInShop();
+        } catch (Exception $e) {
+            return View::make('errors.500');
+        }
     }
 }
