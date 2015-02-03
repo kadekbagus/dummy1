@@ -167,7 +167,7 @@ return array(
             'coupon_type'          => 'The coupon type you specified is not found.',
             'issued_coupon_status' => 'The issued coupon status you specified is not found.',
             'issued_coupon_sortby' => 'The sort by argument you specified is not valid, the valid values are: registered_date, issued_coupon_code, expired_date, issued_date, redeemed_date, status.',
-            'issued_coupon_by_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: redeem_retailer_name.',
+            'issued_coupon_by_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: redeem_retailer_name, registered_date, issued_coupon_code, expired_date, promotion_name, promotion_type, description.',
             'event_status'         => 'The event status you specified is not found.',
             'event_sortby'         => 'The sort by argument you specified is not valid, the valid values are: registered_date, event_name, event_type, description, begin_date, end_date, is_permanent, status.',
             'event_type'           => 'The event type you specified is not found.',

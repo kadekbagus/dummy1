@@ -743,7 +743,7 @@ class IssuedCouponAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sortby`                    (optional) - column order by. Valid value: redeem_retailer_name
+     * @param string   `sortby`                    (optional) - column order by. Valid value: redeem_retailer_name, registered_date, issued_coupon_code, expired_date, promotion_name, promotion_type, description
      * @param string   `sortmode`                  (optional) - asc or desc
      * @param integer  `take`                      (optional) - limit
      * @param integer  `skip`                      (optional) - limit offset
@@ -791,7 +791,7 @@ class IssuedCouponAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:redeem_retailer_name',
+                    'sort_by' => 'in:redeem_retailer_name,registered_date,issued_coupon_code,expired_date,promotion_name,promotion_type,description',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.issued_coupon_by_retailer_sortby'),
@@ -907,7 +907,13 @@ class IssuedCouponAPIController extends ControllerAPI
             {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'redeem_retailer_name'       => 'redeem_retailer_name'
+                    'redeem_retailer_name'    => 'redeem_retailer_name',
+                    'registered_date'         => 'issued_coupons.created_at',
+                    'issued_coupon_code'      => 'issued_coupons.issued_coupon_code',
+                    'expired_date'            => 'issued_coupons.expired_date',
+                    'promotion_name'          => 'promotions.promotion_name',
+                    'promotion_type'          => 'promotions.promotion_type',
+                    'description'             => 'promotions.description'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -915,8 +921,8 @@ class IssuedCouponAPIController extends ControllerAPI
 
             OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
             {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $issuedcoupons->orderBy($sortBy, $sortMode);
