@@ -56,4 +56,4 @@ Route::get('/app/v1/issued-coupon/search', 'IntermediateAuthController@IssuedCou
 /**
  * List issued coupon by retailer
  */
-Route::get('/app/v1/issued-coupon/by-retailer/search', 'IntermediateAuthController@IssuedCoupon_getSearchIssuedCouponByRetailer');
+Route::get('/app/v1/issued-coupon/by-redeem-retailer/search', 'IntermediateAuthController@IssuedCoupon_getSearchIssuedCouponByRedeemRetailer');

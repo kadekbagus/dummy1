@@ -90,9 +90,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                     //reset data promotion
                     $scope.datapromotion = [];
-                    $scope.variantstmp = '';
-                    $scope.showprice = false;
-
+                    $scope.variantstmp   = '';
+                    $scope.showprice     = false;
+                    $scope.datapromotion = '';
                     $scope.getpromotion($scope.productmodal['product_id']);
                 };
                 //canceler request
@@ -170,7 +170,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.getproduct();
                     }
                 });
-                //get product based promotion
+                //get product based promotion TODO:julisman need refactor
                 $scope.getpromotion = function(productid){
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
                         if (response.code == 0 ) {
@@ -254,6 +254,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
                             $scope.loadproductdetail = false;
+                        }else if(response.code == 13) {
+                            $scope.logoutfn();
                         }else{
                             //do smoething
                         }
@@ -262,8 +264,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //get  cart based promotion
                 ($scope.getcartpromotion = function(){
                     serviceAjax.posDataToServer('/pos/cartbasedpromotion').then(function (response) {
-                        console.log(response);
                         if (response.code == 0 ) {
+                            $scope.cartpromotions = response.data;
+                            console.log($scope.cartpromotions);
                         }
                     })
                 })();
@@ -276,7 +279,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(id +1 == $scope.countattr){
                         $scope.variantstmp = $scope.tmpattr[idx];
                         $scope.productmodal.upc_code = $scope.tmpattr[idx]['upc'];
-
+                        $scope.showprice = true;
                         if($scope.datapromotion.length) {
                             var diskon = 0;
                             $scope.productmodal.beforepromoprice    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
@@ -285,7 +288,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             }
                             var diskons = $scope.tmpattr[idx]['price'] - diskon;
                             $scope.productmodal.price =  diskons < 0 ?  0 :accounting.formatMoney(diskons, "", 0, ",", ".");
-                            $scope.showprice = true;
                         }else{
                             $scope.productmodal.price    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
                             $scope.productmodal.beforepromoprice = 0;
@@ -332,6 +334,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.cart.push({
                                 product_name      : $scope.productmodal['product_name'],
                                 variants          : $scope.variantstmp,
+                                promotion         : $scope.datapromotion,
                                 qty               : 1,
                                 price             : $scope.productmodal['price'],
                                 idx               : $scope.productmodal['idx'],

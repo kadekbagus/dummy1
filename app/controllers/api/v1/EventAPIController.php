@@ -96,7 +96,7 @@ class EventAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'        => 'required|numeric|orbit.empty.merchant',
-                    'event_name'         => 'required|orbit.exists.event_name',
+                    'event_name'         => 'required|max:100|orbit.exists.event_name',
                     'event_type'         => 'required|orbit.empty.event_type',
                     'status'             => 'required|orbit.empty.event_status',
                     'link_object_type'   => 'orbit.empty.link_object_type',
@@ -320,7 +320,7 @@ class EventAPIController extends ControllerAPI
                 array(
                     'event_id'         => 'required|numeric|orbit.empty.event',
                     'merchant_id'      => 'numeric|orbit.empty.merchant',
-                    'event_name'       => 'event_name_exists_but_me',
+                    'event_name'       => 'max:100|event_name_exists_but_me',
                     'event_type'       => 'orbit.empty.event_type',
                     'status'           => 'orbit.empty.event_status',
                     'link_object_type' => 'orbit.empty.link_object_type',

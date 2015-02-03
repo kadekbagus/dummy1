@@ -133,9 +133,6 @@ class IntermediateLoginController extends IntermediateBaseController
         $response = MobileCIAPIController::create('raw')->postLoginInShop();
         if ($response->code === 0)
         {
-            $user = $response->data;
-            $user->setHidden(array('user_password', 'apikey'));
-
             // Register User Mac Address to the Router
             $registerMac = Firewall::create()->grantMacByIP($_SERVER['REMOTE_ADDR']);
             if (! $registerMac['status']) {
@@ -147,7 +144,24 @@ class IntermediateLoginController extends IntermediateBaseController
 
                 // Call logout to clear session
                 MobileCIAPIController::create('raw')->getLogoutInShop();
+
+                return $this->render($response);
             }
+
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
         }
 
         return $this->render($response);
@@ -163,12 +177,25 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function getLogoutMobileCI()
     {
+        $response = json_decode($this->getLogout()->getContent());
         try {
-            $revokeMac = Firewall::create()->revokeMacByIP($_SERVER['REMOTE_ADDR']);
+            if ($response->code !== 0) {
+                throw new Exception ($response->message, $response->code);
+            }
 
-            return MobileCIAPIController::create('raw')->getLogoutInShop();
+            // De-register User Mac Address to the Router
+            $deRegisterMac = Firewall::create()->revokeMacByIP($_SERVER['REMOTE_ADDR']);
+            if (! $deRegisterMac['status']) {
+                $exitCode = 1;
+                if (isset($deRegisterMac['object'])) {
+                    $exitCode = $deRegisterMac['object']->getExitCode();
+                }
+                throw new Exception ($deRegisterMac['message'], $exitCode);
+            }
         } catch (Exception $e) {
-            return View::make('errors.500');
         }
+
+        // Redirect back to /customer
+        return Redirect::to('/customer');
     }
 }

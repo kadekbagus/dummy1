@@ -737,7 +737,7 @@ class IssuedCouponAPIController extends ControllerAPI
     }
 
     /**
-     * GET - Search Issued Coupon - List By Retailer
+     * GET - Search Issued Coupon - List By Redeem Retailer
      *
      * @author Tian <tian@dominopos.com>
      *
@@ -758,30 +758,30 @@ class IssuedCouponAPIController extends ControllerAPI
      *
      * @return Illuminate\Support\Facades\Response
      */
-    public function getSearchIssuedCouponByRetailer()
+    public function getSearchIssuedCouponByRedeemRetailer()
     {
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.before.auth', array($this));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.after.auth', array($this));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.before.authz', array($this, $user));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_issuedcoupon')) {
-                Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.authz.notallowed', array($this, $user));
+                Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.authz.notallowed', array($this, $user));
                 $viewIssuedCouponLang = Lang::get('validation.orbit.actionlist.view_issuedcoupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewIssuedCouponLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.after.authz', array($this, $user));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -798,14 +798,14 @@ class IssuedCouponAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.before.validation', array($this, $validator));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.after.validation', array($this, $validator));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.after.validation', array($this, $validator));
 
             // Get the maximum record
             $maxRecord = (int)Config::get('orbit.pagination.max_record');
@@ -936,7 +936,7 @@ class IssuedCouponAPIController extends ControllerAPI
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.access.forbidden', array($this, $e));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -944,7 +944,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.invalid.arguments', array($this, $e));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -956,7 +956,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $this->response->data = $result;
             $httpCode = 403;
         } catch (QueryException $e) {
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.query.error', array($this, $e));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -970,7 +970,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
         } catch (Exception $e) {
-            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.general.exception', array($this, $e));
+            Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.general.exception', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -979,7 +979,7 @@ class IssuedCouponAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyretailer.before.render', array($this, &$output));
+        Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.before.render', array($this, &$output));
 
         return $output;
     }
