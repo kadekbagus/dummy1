@@ -75,18 +75,12 @@ Route::get('/customer/activation', function()
     return MobileCI\MobileCIAPIController::create()->getActivationView();
 });
 
-Route::post('/app/v1/customer/login', function() 
-{
-    return MobileCI\MobileCIAPIController::create()->postLoginInShop();
-});
+Route::post('/app/v1/customer/login', 'IntermediateLoginController@postLoginMobileCI');
 
-Route::get('/customer/logout', function() 
-{
-    return MobileCI\MobileCIAPIController::create()->getLogoutInShop();
-});
+Route::get('/customer/logout', 'IntermediateLoginController@getLogoutMobileCI');
 
 // get product listing for families
-Route::get('/app/v1/customer/products', function() 
+Route::get('/app/v1/customer/products', function()
 {
     return MobileCI\MobileCIAPIController::create()->getProductList();
 });
