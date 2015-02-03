@@ -36,6 +36,14 @@ Route::get('/api/v1/coupon/search', function()
 });
 
 /**
+ * List/Search coupon by issue retailer
+ */
+Route::get('/api/v1/coupon/by-issue-retailer/search', function()
+{
+    return CouponAPIController::create()->getSearchCouponByIssueRetailer();
+});
+
+/**
  * Upload coupon image
  */
 Route::post('/api/v1/coupon/upload/image', function()
@@ -84,7 +92,7 @@ Route::get('/api/v1/issued-coupon/search', function()
 });
 
 /**
- * List issued coupon by retailer
+ * List issued coupon by redeem retailer
  */
 Route::get('/api/v1/issued-coupon/by-redeem-retailer/search', function()
 {

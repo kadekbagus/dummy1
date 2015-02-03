@@ -24,6 +24,11 @@ Route::post('/app/v1/coupon/update', 'IntermediateAuthController@Coupon_postUpda
 Route::get('/app/v1/coupon/search', 'IntermediateAuthController@Coupon_getSearchCoupon');
 
 /**
+ * List and/or Search coupon by issue retailer
+ */
+Route::get('/app/v1/coupon/by-issue-retailer/search', 'IntermediateAuthController@Coupon_getSearchCouponByIssueRetailer');
+
+/**
  * Upload coupon Image
  */
 Route::post('/app/v1/coupon/upload/image', 'IntermediateAuthController@Upload_postUploadCouponImage');
@@ -54,6 +59,6 @@ Route::post('/app/v1/issued-coupon/delete', 'IntermediateAuthController@IssuedCo
 Route::get('/app/v1/issued-coupon/search', 'IntermediateAuthController@IssuedCoupon_getSearchIssuedCoupon');
 
 /**
- * List issued coupon by retailer
+ * List issued coupon by redeem retailer
  */
 Route::get('/app/v1/issued-coupon/by-redeem-retailer/search', 'IntermediateAuthController@IssuedCoupon_getSearchIssuedCouponByRedeemRetailer');

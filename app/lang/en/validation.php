@@ -163,6 +163,7 @@ return array(
             'discount_object_id5'  => 'The discount object ID5 you specified is not found.',
             'coupon_status'        => 'The coupon status you specified is not found.',
             'coupon_sortby'        => 'The sort by argument you specified is not valid, the valid values are: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
+            'coupon_by_issue_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: issue_retailer_name, registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
             'coupon_type'          => 'The coupon type you specified is not found.',
             'issued_coupon_status' => 'The issued coupon status you specified is not found.',
             'issued_coupon_sortby' => 'The sort by argument you specified is not valid, the valid values are: registered_date, issued_coupon_code, expired_date, issued_date, redeemed_date, status.',
