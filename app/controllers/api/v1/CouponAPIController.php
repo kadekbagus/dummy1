@@ -137,7 +137,7 @@ class CouponAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
-                    'promotion_name'       => 'required|orbit.exists.coupon_name',
+                    'promotion_name'       => 'required|max:100|orbit.exists.coupon_name',
                     'promotion_type'       => 'required|orbit.empty.coupon_type',
                     'status'               => 'required|orbit.empty.coupon_status',
                     'rule_type'            => 'orbit.empty.rule_type',
@@ -455,7 +455,7 @@ class CouponAPIController extends ControllerAPI
                 array(
                     'promotion_id'         => 'required|numeric|orbit.empty.coupon',
                     'merchant_id'          => 'numeric|orbit.empty.merchant',
-                    'promotion_name'       => 'coupon_name_exists_but_me',
+                    'promotion_name'       => 'max:100|coupon_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.coupon_type',
                     'status'               => 'orbit.empty.coupon_status',
                     'rule_type'            => 'orbit.empty.rule_type',

@@ -86,7 +86,7 @@ Route::get('/api/v1/issued-coupon/search', function()
 /**
  * List issued coupon by retailer
  */
-Route::get('/api/v1/issued-coupon/by-retailer/search', function()
+Route::get('/api/v1/issued-coupon/by-redeem-retailer/search', function()
 {
-    return IssuedCouponAPIController::create()->getSearchIssuedCouponByRetailer();
+    return IssuedCouponAPIController::create()->getSearchIssuedCouponByRedeemRetailer();
 });
