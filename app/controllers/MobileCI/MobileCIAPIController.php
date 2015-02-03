@@ -897,6 +897,45 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function getPromotionList()
+    {
+        try {
+            $this->registerCustomValidation();
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $promotions = Promotion::excludeDeleted()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->where(function($q)
+                {
+                    $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
+                    {
+                        $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
+                    });
+                })
+                ->get();
+            
+            if(count($promotions) > 0) {
+                $data = new stdclass();
+                $data->status = 1;
+                $data->records = $promotions;
+            } else {
+                $data = new stdclass();
+                $data->status = 0;
+            }
+
+            $cartitems = $this->getCartForToolbar();
+            
+            return View::make('mobile-ci.promotion-list', array('page_title' => 'PROMOTIONS', 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
+        } catch (Exception $e) {
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e->getMessage();
+        }
+    }
+
     public function getProductList()
     {
         try {
