@@ -104,7 +104,7 @@ class PromotionAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
-                    'promotion_name'       => 'required|orbit.exists.promotion_name',
+                    'promotion_name'       => 'required|max:100|orbit.exists.promotion_name',
                     'promotion_type'       => 'required|orbit.empty.promotion_type',
                     'status'               => 'required|orbit.empty.promotion_status',
                     'rule_type'            => 'orbit.empty.rule_type',
@@ -344,7 +344,7 @@ class PromotionAPIController extends ControllerAPI
                 array(
                     'promotion_id'         => 'required|numeric|orbit.empty.promotion',
                     'merchant_id'          => 'numeric|orbit.empty.merchant',
-                    'promotion_name'       => 'promotion_name_exists_but_me',
+                    'promotion_name'       => 'max:100|promotion_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.promotion_type',
                     'status'               => 'orbit.empty.promotion_status',
                     'rule_type'            => 'orbit.empty.rule_type',
