@@ -11,7 +11,8 @@
 */
 Route::get('/', function()
 {
-    return View::make('orbit-shop');
+    // Default to Mobile-CI login page
+    return MobileCI\MobileCIAPIController::create()->getSignInView();
 });
 
 /*
