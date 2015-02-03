@@ -42,6 +42,16 @@ class Transaction extends Eloquent
         return $this->belongsTo('Retailer', 'retailer_id', 'merchant_id');
     }
 
+    public function detailpromotion()
+    {
+        return $this->hasMany('TransactionDetailPromotion', 'transaction_id', 'transaction_id');
+    }
+
+    public function detailcoupon()
+    {
+        return $this->hasMany('TransactionDetailCoupon', 'transaction_id', 'transaction_id');
+    }
+
     /**
      * Scope to join with TransactionDetails.
      *

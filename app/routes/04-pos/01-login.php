@@ -108,7 +108,7 @@ Route::post('/app/v1/pos/cartbasedpromotion', 'IntermediateAuthController@POS\Ca
 
 
 Route::get('/pos', function () {
-    return View::make('pos.login');
+    return Redirect::to('/pos/signin');
 });
 
 Route::get('/pos/signin', function () {
