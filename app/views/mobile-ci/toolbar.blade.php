@@ -1,7 +1,10 @@
 <header class="mobile-ci ci-header header-container">
   <div class="header-buttons-container">
+    <form id="qrform" action="#" method="post" enctype="multipart/form-data">
+      <div style='height: 0px;width:0px; overflow:hidden;'><input id="get_camera" name="qrphoto" type="file" accept="image/*;capture=camera" value="camera" /></div>
+    </form>
     <ul class="buttons-list right">
-      <li><span><i class="glyphicon glyphicon-barcode"></i></span></li>
+      <li><a id="barcodeBtn"><span><i class="glyphicon glyphicon-barcode"></i></span></a></li>
       <li><a id="searchBtn"><span><i class="glyphicon glyphicon-search"></i></span></a></li>
       <li><a href="{{ url('/customer/catalogue') }}"><span class="glyphicon glyphicon-book"></span></a></li>
       <li>

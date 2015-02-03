@@ -65,6 +65,11 @@ Route::get('/customer/promotion', function()
     return MobileCI\MobileCIAPIController::create()->getSearchPromotion();
 });
 
+Route::get('/customer/promotions', function()
+{
+    return MobileCI\MobileCIAPIController::create()->getPromotionList();
+});
+
 Route::get('/customer/activation', function()
 {
     return MobileCI\MobileCIAPIController::create()->getActivationView();
