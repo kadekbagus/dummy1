@@ -53,6 +53,14 @@ class Firewall
         return $this->registerMacAddress($ip, 'revoke');
     }
 
+    /**
+     * Main routine which register or deregister client mac address.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $userIp - IP address
+     * @param string $mode - 'register' or anything else (considered as "deregister")
+     * @return array
+     */
     protected function registerMacAddress($userIp, $mode='register')
     {
         if (Config::get('orbit.security.firewall.fake_call') === TRUE) {
