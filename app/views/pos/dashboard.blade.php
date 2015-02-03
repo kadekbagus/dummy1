@@ -86,7 +86,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive" data-ng-show="cartpromotions.length">
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">
@@ -302,15 +302,14 @@
                         <div data-ng-show="!datapromotion.length">
                             <p>UPC :<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
-
                         </div>
                     </div>
                     <div class="col-md-6">
-                         <p>&nbsp;</p>
-                         <p class="text-center" data-ng-show="!datapromotion.length"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
-                         <p class="text-center" data-ng-show="datapromotion.length">
+                         <p class="text-center" >
                             <button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp;
-                            <button type="button" data-ng-show="datapromotion.length && showprice " data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                            <button type="button"  data-ng-show="showprice" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button>
+                            <button type="button"  data-ng-show="productdetail.product.attribute1 == null" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button>
+                            </p>
                     </div>
                  </div>
             </div>
