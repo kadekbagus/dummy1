@@ -5,12 +5,12 @@
 @stop
 
 @section('content')
-	@if(count($promotions) > 0)
-		<img class="img-responsive" src="{{ asset($promotions[0]->promo_image) }}">
+	@if(count($coupons) > 0)
+		<img class="img-responsive" src="{{ asset($coupons[0]->promo_image) }}">
 		<div class="row">
 			<div class="col-xs-12 vertically-spaced">
-				<p>{{ $promotions[0]->description }}</p>
-				<h4>{{ date('j M Y', strtotime($promotions[0]->begin_date)) }} - {{ date('j M Y', strtotime($promotions[0]->end_date)) }}</h4>
+				<p>{{ $coupons[0]->description }}</p>
+				<h4>Valid hingga : {{ date('j M Y', strtotime($coupons[0]->expired_date)) }}</h4>
 			</div>
 		</div>
 		@if($data->status === 1)
@@ -19,12 +19,12 @@
 				    <div class="row">
 					    <div class="col-xs-6 search-tool-col">
 					    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
-					    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-price-up">
+					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-price-up">
 					    		<span class="fa-stack">
 					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
 					    		</span>
 					    	</a> 
-					    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-price-down">
+					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-price-down">
 					    		<span class="fa-stack">
 					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
 					    		</span>
@@ -32,12 +32,12 @@
 					    	<span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
 					    </div>
 					    <div class="col-xs-5 search-tool-col">
-					    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-name-up">
+					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-name-up">
 					    		<span class="fa-stack">
 					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
 					    		</span>
 					    	</a> 
-					    	<a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-name-down">
+					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-name-down">
 					    		<span class="fa-stack">
 					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
 					    		</span>
@@ -120,7 +120,7 @@
 							@if(count($product->variants) <= 1)
 							<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
 								<div class="circlet btn-blue cart-btn text-center">
-									<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}tidak ada atau " data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+									<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
 										<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
 									</a>
 								</div>
@@ -142,7 +142,7 @@
 	@else
 		<div class="row padded">
 			<div class="col-xs-12">
-				<h4>Promo tidak ada atau sudah tidak berlaku. <a href="{{ url('customer/home') }}">Kembali</a>.</h4>
+				<h4>Anda tidak memiliki kupon ini. <a href="{{ url('customer/home') }}">Kembali</a>.</h4>
 			</div>
 		</div>
 	@endif

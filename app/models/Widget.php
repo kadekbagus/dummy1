@@ -68,7 +68,7 @@ class Widget extends Eloquent
      */
     public function media()
     {
-        return $this->belongsTo('Media', 'object_id', 'widget_id')
+        return $this->belongsTo('Media', 'widget_id', 'object_id')
                     ->where('object_name', 'widget');
     }
 

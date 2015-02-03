@@ -30,7 +30,11 @@
                       <ul class="rslides">
                         <li>
                           <a href="{{ url('customer/catalogue') }}">
-                            <img class="img-responsive text-center" src="{{ asset('uploads/catalogue.jpg') }}" />
+                            @if(!empty($widget->media->path))
+                              <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
+                            @else
+                              <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_catalogue.png') }}" />
+                            @endif
                           </a>
                         </li>
                       </ul>
@@ -54,14 +58,14 @@
                                 @if(!is_null($new_product->image))
                                   <img class="img-responsive" src="{{ asset($new_product->image) }}"/>
                                 @else
-                                  <img class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                                  <img class="img-responsive" src="{{ asset('mobile-ci/images/default_product.png') }}"/>
                                 @endif
                                 </a>
                               </li>
                             @endforeach
                           @else
                             <li>
-                              <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                              <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_new_product.png') }}"/>
                             </li>
                           @endif
                         </ul>
@@ -81,11 +85,11 @@
                         @foreach($promo_products as $promo_product)
                           @if($promo_product->promotion_type == 'product')
                           <li>
-                            <a href="{{ url('customer/search?promo=1#'.$promo_product->product_id) }}">
+                            <a href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
                             @if(!is_null($promo_product->image))
                               <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
                             @else
-                              <img class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                              <img class="img-responsive" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
                             @endif
                             </a>
                           </li>
@@ -93,7 +97,7 @@
                         @endforeach
                       @else
                         <li>
-                          <img id="emptyPromo" class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                          <img id="emptyPromo" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
                         </li>
                       @endif
                     </ul>
@@ -109,7 +113,7 @@
                   <section class="widget-single">
                     <ul class="rslides" id="slider2">
                       <li>
-                        <a @if(!empty($coupons)) href="{{ url('customer/search?coupon=1') }}" @else id="emptyCoupon" @endif>
+                        <a @if(!empty($coupons)) href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
                           <img class="img-responsive text-center" src="{{ asset('uploads/coupon.jpg') }}" />
                         </a>
                       </li>

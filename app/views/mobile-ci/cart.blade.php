@@ -231,6 +231,7 @@
         </div>
         <div class="modal-body">
           <p id="errorModalText">Untuk menyelesaikan transfer keranjang, gunakan <i>Transfer Cart</i> pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.</p>
+          <img src="{{ url('mobile-ci/images/transfer_cart_tip.gif') }}" class="img-responsive">
         </div>
         <div class="modal-footer">
           <div class="pull-left"><input type="checkbox" id="dismiss" name="dismiss" value="0"> Jangan tunjukkan pesan ini lagi</div>
