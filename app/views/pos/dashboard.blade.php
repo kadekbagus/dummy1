@@ -40,11 +40,11 @@
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
-                            <th class="text-center">DISCOUNT</th>
+                            <th class="text-center">UNIT PRICE</th>
                             <th class="text-center">HARGA TOTAL</th>
                         </tr>
-                        <tbody>
-                           <tr data-ng-repeat="(k,v) in cart">
+                        <tbody data-ng-repeat="(k,v) in cart">
+                           <tr>
                                 <td style="max-width: 300px;word-wrap: break-word;" >
                                     <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc',k)"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
                                 </td>
@@ -69,10 +69,16 @@
                                           </span>
                                     </div>
                                 </td>
-                                <td class="text-center"><div class="circlegreen" data-ng-show="v.ispromo" ></div></td>
+                                <td class="text-right"><% v.price %></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
-
+                            <tr data-ng-repeat="(a,r) in v.promotion">
+                                <td><div class="circlegreen" data-ng-show="v.ispromo" ></div> <% r.promotion_name %> </td>
+                                <td></td>
+                                <td>1</td>
+                                <td>1</td>
+                            </tr>
+                        </tbody>
                             <tr>
                                  <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td>
@@ -83,7 +89,7 @@
                                  <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td>
                             </tr>
-                        </tbody>
+
                     </table>
                 </div>
                 <div class="table-responsive" data-ng-show="cartpromotions.length">
