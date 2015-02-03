@@ -8,7 +8,7 @@
 	@if($data->status === 1)
 		@if(sizeof($data->records) > 0)
 			@foreach($data->records as $promo)
-				<div class="main-theme catalogue promo-list" id="product-{{$promo->promotion_id}}">
+				<div class="main-theme catalogue promo-list" id="promo-{{$promo->promotion_id}}">
 					<div class="row row-xs-height catalogue-top">
 						<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 							<div class="zoom-wrapper">
@@ -61,7 +61,7 @@
 		$(document).ready(function(){
 			if(window.location.hash){
 				var hash = window.location.hash;
-				var producthash = "#product-"+hash.replace(/^.*?(#|$)/,'');
+				var producthash = "#promo-"+hash.replace(/^.*?(#|$)/,'');
 				console.log(producthash);
 				var hashoffset = $(producthash).offset();
 				var hashoffsettop = hashoffset.top-68;

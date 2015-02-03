@@ -81,7 +81,7 @@
                         @foreach($promo_products as $promo_product)
                           @if($promo_product->promotion_type == 'product')
                           <li>
-                            <a href="{{ url('customer/search?promo=1#'.$promo_product->product_id) }}">
+                            <a href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
                             @if(!is_null($promo_product->image))
                               <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
                             @else
