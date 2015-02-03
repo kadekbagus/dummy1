@@ -80,15 +80,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // return $this->render($response);
-            } 
-
-            $data = array(
-                'logged_in' => TRUE,
-                'user_id'   => $user->user_id,
-            );
-            $config = new SessionConfig(Config::get('orbit.session'));
-            $session = new Session($config);
-            $session->enableForceNew()->start($data);
+            }
 
             $retailer = $this->getRetailerInfo();
             $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
@@ -276,7 +268,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            $widgets = Widget::excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->whereHas('retailers', function($q) use($retailer)
+            $widgets = Widget::with('media')->excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->whereHas('retailers', function($q) use($retailer)
             {
                 $q->where('retailer_id', $retailer->merchant_id);
             })->orderBy('widget_order', 'ASC')->take(4)->get();
@@ -409,7 +401,6 @@ class MobileCIAPIController extends ControllerAPI
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             // Get the maximum record
@@ -690,7 +681,6 @@ class MobileCIAPIController extends ControllerAPI
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             // Get the maximum record
@@ -3035,6 +3025,7 @@ class MobileCIAPIController extends ControllerAPI
         $this->prepareSession();
 
         $userId = $this->session->read('user_id');
+
         if ($this->session->read('logged_in') !== TRUE || ! $userId) {
             throw new Exception ('Invalid session data.');
         }

@@ -54,14 +54,14 @@
                                 @if(!is_null($new_product->image))
                                   <img class="img-responsive" src="{{ asset($new_product->image) }}"/>
                                 @else
-                                  <img class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                                  <img class="img-responsive" src="{{ asset('mobile-ci/images/default_product.png') }}"/>
                                 @endif
                                 </a>
                               </li>
                             @endforeach
                           @else
                             <li>
-                              <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default-product.png') }}"/>
+                              <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_new_product.png') }}"/>
                             </li>
                           @endif
                         </ul>
