@@ -38,7 +38,8 @@ return array(
             'issued_coupon' => 'There is no issued coupon found that matched your criteria.',
             'event'         => 'There is no event found that matched your criteria.',
             'attribute'     => 'There is no product attribute found that matches your criteria.',
-            'widget'        => 'There is no widget found that matches your criteria.'
+            'widget'        => 'There is no widget found that matches your criteria.',
+            'city'          => 'There is no city found that matched your criteria.'
         ),
         'uploaded'  => array(
             'merchant' => array(

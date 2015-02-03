@@ -60,14 +60,6 @@ Route::post('/api/v1/issued-coupon/new', function()
 });
 
 /**
- * List issued coupon
- */
-Route::get('/api/v1/issued-coupon/search', function()
-{
-    return IssuedCouponAPIController::create()->getSearchIssuedCoupon();
-});
-
-/**
  * Update issued coupon
  */
 Route::post('/api/v1/issued-coupon/update', function()
@@ -81,4 +73,20 @@ Route::post('/api/v1/issued-coupon/update', function()
 Route::post('/api/v1/issued-coupon/delete', function()
 {
     return IssuedCouponAPIController::create()->postDeleteIssuedCoupon();
+});
+
+/**
+ * List issued coupon
+ */
+Route::get('/api/v1/issued-coupon/search', function()
+{
+    return IssuedCouponAPIController::create()->getSearchIssuedCoupon();
+});
+
+/**
+ * List issued coupon by retailer
+ */
+Route::get('/api/v1/issued-coupon/by-retailer/search', function()
+{
+    return IssuedCouponAPIController::create()->getSearchIssuedCouponByRetailer();
 });
