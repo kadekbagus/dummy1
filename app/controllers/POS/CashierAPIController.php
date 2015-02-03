@@ -1003,6 +1003,21 @@ class CashierAPIController extends ControllerAPI
     public function postCardPayment()
     {
         try {
+
+            // Check the device exist or not
+            if(!file_exists(Config::get('orbit.devices.edc.params')))
+            {
+                $message = 'Payment Terminal not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
+            // Check the driver exist or not
+            if(!file_exists(Config::get('orbit.devices.edc.path')))
+            {
+                $message = 'EDC driver not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
             $amount = trim(OrbitInput::post('amount'));
 
             $validator = Validator::make(
