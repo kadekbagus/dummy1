@@ -40,11 +40,11 @@
                         <tr>
                             <th class="text-center">NAMA + UPC</th>
                             <th class="text-center">JUMLAH</th>
-                            <th class="text-center">DISCOUNT</th>
+                            <th class="text-center">UNIT PRICE</th>
                             <th class="text-center">HARGA TOTAL</th>
                         </tr>
-                        <tbody>
-                           <tr data-ng-repeat="(k,v) in cart">
+                        <tbody data-ng-repeat="(k,v) in cart">
+                           <tr>
                                 <td style="max-width: 300px;word-wrap: break-word;" >
                                     <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc',k)"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
                                 </td>
@@ -69,10 +69,16 @@
                                           </span>
                                     </div>
                                 </td>
-                                <td class="text-center"><div class="circlegreen" data-ng-show="v.ispromo" ></div></td>
+                                <td class="text-right"><% v.price %></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
-
+                            <tr data-ng-repeat="(a,r) in v.promotion">
+                                <td><div class="circlegreen" data-ng-show="v.ispromo" ></div> <% r.promotion_name %> </td>
+                                <td></td>
+                                <td>1</td>
+                                <td>1</td>
+                            </tr>
+                        </tbody>
                             <tr>
                                  <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td>
@@ -83,7 +89,23 @@
                                  <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td>
                             </tr>
+
+                    </table>
+                </div>
+                <div class="table-responsive" data-ng-show="cartpromotions.length">
+                    <table class="table  orbit-component table-noborder">
+                        <thead>
+                            <tr style="background-color: #009933;">
+                               <th colspan="2" style="color: white">CART BASED PROMOTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ng-repeat="(k,v) in cartpromotions">
+                                <td><% v.promotion_name %></td>
+                                <td><% v.promotionrule.discount_value %></td>
+                            </tr>
                         </tbody>
+
                     </table>
                 </div>
                 <div class="table-responsive">
@@ -286,15 +308,14 @@
                         <div data-ng-show="!datapromotion.length">
                             <p>UPC :<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
-
                         </div>
                     </div>
                     <div class="col-md-6">
-                         <p>&nbsp;</p>
-                         <p class="text-center" data-ng-show="!datapromotion.length"><button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp; <button type="button" data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
-                         <p class="text-center" data-ng-show="datapromotion.length">
+                         <p class="text-center" >
                             <button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px"><i class="fa fa-mail-reply"></i></button> &nbsp;
-                            <button type="button" data-ng-show="datapromotion.length && showprice " data-ng-if="!hiddenbtn" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button></p>
+                            <button type="button"  data-ng-show="showprice" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button>
+                            <button type="button"  data-ng-show="productdetail.product.attribute1 == null" class="btn btn-primary" style="background-color:#097494 ;padding-left: 20px; padding-right: 20px" data-ng-click="inserttocartFn()" data-dismiss="modal" ><i class="fa fa-shopping-cart"></i></button>
+                            </p>
                     </div>
                  </div>
             </div>
