@@ -144,6 +144,15 @@ return array(
                 'header_name_php'   => 'HTTP_X_ORBIT_TOKEN',
             ),
         ),
+
+        // Firewall on Orbit Box
+        'firewall'  => array(
+            // Fake call means, no real call to the router
+            'fake_call' => TRUE,
+
+            // Command to register or deregister client Mac address
+            'command'   => 'sudo /home/orbit/scripts/firewall/register_mac.sh'
+        ),
     ),
 
     'upload'    => array(
