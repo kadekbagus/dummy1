@@ -1359,12 +1359,6 @@ class CouponAPIController extends ControllerAPI
         return $output;
     }
 
-
-
-
-
-
-
     /**
      * GET - Search Coupon - List By Issue Retailer
      *
@@ -1384,7 +1378,7 @@ class CouponAPIController extends ControllerAPI
      * @param string   `description`           (optional) - Description
      * @param string   `description_like`      (optional) - Description like
      * @param datetime `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
-     * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param datetime `end_date`              (optional) - End date. Example: 2014-12-30 23:59:59
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `coupon_notification`   (optional) - Coupon notification. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
@@ -1427,7 +1421,7 @@ class CouponAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:issue_retailer_name,registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status.',
+                    'sort_by' => 'in:issue_retailer_name,registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.coupon_by_issue_retailer_sortby'),
@@ -1600,8 +1594,8 @@ class CouponAPIController extends ControllerAPI
 
             OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
             {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $coupons->orderBy($sortBy, $sortMode);
@@ -1668,11 +1662,6 @@ class CouponAPIController extends ControllerAPI
 
         return $output;
     }
-
-
-
-
-
 
     protected function registerCustomValidation()
     {
