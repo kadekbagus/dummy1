@@ -12,9 +12,9 @@
 					<div class="row row-xs-height catalogue-top">
 						<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 							<div class="zoom-wrapper">
-								<div class="zoom"><a href="{{ asset($promo->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
+								<div class="zoom"><a href="{{ asset($promo->promo_image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
 							</div>
-							<a href="{{ asset($promo->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($promo->image) }}"></a>
+							<a href="{{ asset($promo->promo_image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($promo->promo_image) }}"></a>
 						</div>
 						<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
 							<div class="row">
@@ -22,11 +22,11 @@
 									<h3>{{ $promo->promotion_name }}</h3>
 								</div>
 								<div class="col-xs-12">
-									<h4>{{ date('j M Y', strtotime($promo->begin_date)) }} - {{ date('j M Y', strtotime($promo->end_date)) }}</h4>
+									<h4>Valid hingga : <br>{{ date('j M Y', strtotime($promo->expired_date)) }}</h4>
 								</div>
 								<div class="col-xs-6 catalogue-control text-right pull-right">
 									<div class="circlet btn-blue detail-btn pull-right vertically-spaced">
-										<a href="{{ url('customer/promotion?promoid='.$promo->promotion_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
+										<a href="{{ url('customer/coupon?couponid='.$promo->issued_coupon_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 									</div>
 								</div>
 							</div>

@@ -5,6 +5,14 @@
 @stop
 
 @section('content')
+	
+	<img class="img-responsive" src="{{ asset($promotions[0]->promo_image) }}">
+	<div class="row">
+		<div class="col-xs-12 vertically-spaced">
+			<p>{{ $promotions[0]->description }}</p>
+			<h4>{{ date('j M Y', strtotime($promotions[0]->begin_date)) }} - {{ date('j M Y', strtotime($promotions[0]->end_date)) }}</h4>
+		</div>
+	</div>
 	@if($data->status === 1)
 		@if(sizeof($data->records) > 0)
 			<div id="search-tool">
@@ -129,12 +137,6 @@
 					</div>
 				</div>
 			@endforeach
-		@else
-			<div class="row padded">
-				<div class="col-xs-12">
-					<h4>Tidak ada produk yang sesuai kriteria.</h4>
-				</div>
-			</div>
 		@endif
 	@else
 		<div class="row padded">

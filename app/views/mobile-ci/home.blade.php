@@ -109,7 +109,7 @@
                   <section class="widget-single">
                     <ul class="rslides" id="slider2">
                       <li>
-                        <a @if(!empty($coupons)) href="{{ url('customer/search?coupon=1') }}" @else id="emptyCoupon" @endif>
+                        <a @if(!empty($coupons)) href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
                           <img class="img-responsive text-center" src="{{ asset('uploads/coupon.jpg') }}" />
                         </a>
                       </li>
