@@ -1025,8 +1025,10 @@ class CashierAPIController extends ControllerAPI
             $cmd = 'sudo '.$driver.' --device '.$params.' --amounts '.$amount;
             $card = shell_exec($cmd);
 
-            if($card=='failed'){
-                $message = 'Payment failed';
+            $card = trim($card);
+
+            if($card=='Failed'){
+                $message = 'Payment Failed';
                 ACL::throwAccessForbidden($message);
             }
 
