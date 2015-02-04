@@ -52,10 +52,10 @@ return array(
 
             // Activation URL
             // This should be frontend URL not backend
-            'activation_base_url' => 'http://orbit-shop.here/app/v1/user/activate/?token=%s',
+            'activation_base_url' => 'http://orbit-shop.here/activate-account?token=%s',
 
             // Number of days the activation link will expires
-            'activation_expire' => 30,
+            'activation_expire' => 365,
 
             // Sign in URL
             'signin_url' => 'http://orbit-shop.here/signin',
@@ -63,6 +63,9 @@ return array(
             // Fake registration means it does not save the data, only sends
             // the welcome email
             'fake'  => FALSE,
+
+            // Flag to send welcome email
+            'send_welcome_email'    => FALSE
         ),
     ),
 
