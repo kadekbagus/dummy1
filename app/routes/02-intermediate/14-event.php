@@ -24,6 +24,11 @@ Route::post('/app/v1/event/update', 'IntermediateAuthController@Event_postUpdate
 Route::get('/app/v1/event/search', 'IntermediateAuthController@Event_getSearchEvent');
 
 /**
+ * List and/or Search event by retailer
+ */
+Route::get('/app/v1/event/by-retailer/search', 'IntermediateAuthController@Event_getSearchEventByRetailer');
+
+/**
  * Upload event Image
  */
 Route::post('/app/v1/event/upload/image', 'IntermediateAuthController@Upload_postUploadEventImage');
