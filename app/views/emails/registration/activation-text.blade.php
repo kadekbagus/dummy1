@@ -6,6 +6,14 @@ follow the link below:
 
 {{ $token_url }}
 
-Happy shopping,
 
-DominoPOS Team
+Regards,
+Orbit Team
+
+-----------------------------------------------------------
+ORBIT CUSTOMER SERVICE
+
+Phone: {{ $cs_phone }} ({{ $cs_office_hour }})
+Email: {{ $cs_email }}
+------------------------------------------------------------
+

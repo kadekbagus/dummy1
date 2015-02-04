@@ -194,12 +194,7 @@ class LoginAPIController extends ControllerAPI
             $userdetail = $newuser->userdetail()->save($userdetail);
 
             // Generate API key for this user
-            $apikey = new Apikey();
-            $apikey->api_key = Apikey::genApiKey($newuser);
-            $apikey->api_secret_key = Apikey::genSecretKey($newuser);
-            $apikey->status = 'active';
-            $apikey->user_id = $newuser->user_id;
-            $apikey = $newuser->apikey()->save($apikey);
+            $apikey = $newuser->createApiKey();
 
             $newuser->setRelation('userDetail', $userdetail);
             $newuser->user_detail = $userdetail;
@@ -207,13 +202,16 @@ class LoginAPIController extends ControllerAPI
             $newuser->setRelation('apikey', $apikey);
             $newuser->apikey = $apikey;
 
-            // token
+            // Token expiration, fallback to 30 days
+            $expireInDays = Config::get('orbit.registration.mobile.activation_expire', 30);
+
+            // Token Settings
             $token = new Token();
             $token->token_name = 'user_registration_mobile';
             $token->token_value = $token->generateToken($email);
             $token->status = 'active';
             $token->email = $email;
-            $token->expire = date('Y-m-d H:i:s', strtotime('+14 days'));
+            $token->expire = date('Y-m-d H:i:s', strtotime('+' . $expireInDays . ' days'));
             $token->ip_address = $_SERVER['REMOTE_ADDR'];
             $token->user_id = $newuser->user_id;
             $token->save();
@@ -221,12 +219,16 @@ class LoginAPIController extends ControllerAPI
             // URL Activation link
             $baseUrl = Config::get('orbit.registration.mobile.activation_base_url');
             $tokenUrl = sprintf($baseUrl, $token->token_value);
+            $contactInfo = Config::get('orbit.contact_information.customer_service');
 
             $data = array(
-                'token'     => $token->token_value,
-                'email'     => $email,
-                'token_url' => $tokenUrl,
-                'shop_name' => $retailer->name
+                'token'             => $token->token_value,
+                'email'             => $email,
+                'token_url'         => $tokenUrl,
+                'shop_name'         => $retailer->name,
+                'cs_phone'          => $contactInfo['phone'],
+                'cs_email'          => $contactInfo['email'],
+                'cs_office_hour'    => $contactInfo['office_hour']
             );
             $mailviews = array(
                 'html' => 'emails.registration.activation-html',
@@ -246,7 +248,9 @@ class LoginAPIController extends ControllerAPI
             $this->response->data = $newuser;
 
             // Commit the changes
-            $this->commit();
+            if (Config::get('orbit.registration.mobile.fake') !== TRUE) {
+                $this->commit();
+            }
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -357,29 +361,32 @@ class LoginAPIController extends ControllerAPI
             $user->status = 'active';
             $user->save();
 
+            $this->response->message = Lang::get('statuses.orbit.updated.your_password');
             $this->response->data = $user;
 
-            // Sign page link
-            $signinUrl = Config::get('orbit.registration.mobile.signin_url');
+            if (Config::get('orbit.registration.mobile.send_welcome_email') === TRUE) {
+                // Sign page link
+                $signinUrl = Config::get('orbit.registration.mobile.signin_url');
 
-            $data = array(
-                'email'         => $user->user_email,
-                'password'      => $password,
-                'signin_url'    => $signinUrl
-            );
-            $mailviews = array(
-                'html' => 'emails.registration.activated-html',
-                'text' => 'emails.registration.activated-text'
-            );
-            Mail::send($mailviews, $data, function($message) use ($user)
-            {
-                $emailconf = Config::get('orbit.registration.mobile.sender');
-                $from = $emailconf['email'];
-                $name = $emailconf['name'];
+                $data = array(
+                    'email'         => $user->user_email,
+                    'password'      => $password,
+                    'signin_url'    => $signinUrl
+                );
+                $mailviews = array(
+                    'html' => 'emails.registration.activated-html',
+                    'text' => 'emails.registration.activated-text'
+                );
+                Mail::send($mailviews, $data, function($message) use ($user)
+                {
+                    $emailconf = Config::get('orbit.registration.mobile.sender');
+                    $from = $emailconf['email'];
+                    $name = $emailconf['name'];
 
-                $message->from($from, $name)->subject('Your Account on Orbit has been Activated!');
-                $message->to($user->user_email);
-            });
+                    $message->from($from, $name)->subject('Your Account on Orbit has been Activated!');
+                    $message->to($user->user_email);
+                });
+            }
 
             // Commit the changes
             $this->commit();
