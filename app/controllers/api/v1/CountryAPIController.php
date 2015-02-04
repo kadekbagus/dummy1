@@ -20,6 +20,13 @@ class CountryAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
+     * @param array     `country_ids`   (optional) - IDs of country
+     * @param array     `names`         (optional) - Names of country
+     * @param array     `codes`         (optional) - Code of coutnry (2 char)
+     * @param integer   `take`          (optional) - limit
+     * @param integer   `skip`          (optional) - limit offset
+     * @param string    `sort_by`       (optional) - column order by name
+     * @param string    `sort_mode`     (optional) - asc or desc
      * @return Illuminate\Support\Facades\Response
      */
     public function getSearchCountry()
