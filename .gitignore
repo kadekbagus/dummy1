@@ -20,6 +20,7 @@ public/uploads/**
 
 # Environment
 app/config/rio/**
+orbit.env.php
 
 # config pos
 public/templatepos/js/config.js
