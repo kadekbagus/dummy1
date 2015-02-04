@@ -361,6 +361,7 @@ class LoginAPIController extends ControllerAPI
             $user->status = 'active';
             $user->save();
 
+            $this->response->message = Lang::get('statuses.orbit.updated.your_password');
             $this->response->data = $user;
 
             if (Config::get('orbit.registration.mobile.send_welcome_email') === TRUE) {
