@@ -363,27 +363,29 @@ class LoginAPIController extends ControllerAPI
 
             $this->response->data = $user;
 
-            // Sign page link
-            $signinUrl = Config::get('orbit.registration.mobile.signin_url');
+            if (Config::get('orbit.registration.mobile.send_welcome_email') === TRUE) {
+                // Sign page link
+                $signinUrl = Config::get('orbit.registration.mobile.signin_url');
 
-            $data = array(
-                'email'         => $user->user_email,
-                'password'      => $password,
-                'signin_url'    => $signinUrl
-            );
-            $mailviews = array(
-                'html' => 'emails.registration.activated-html',
-                'text' => 'emails.registration.activated-text'
-            );
-            Mail::send($mailviews, $data, function($message) use ($user)
-            {
-                $emailconf = Config::get('orbit.registration.mobile.sender');
-                $from = $emailconf['email'];
-                $name = $emailconf['name'];
+                $data = array(
+                    'email'         => $user->user_email,
+                    'password'      => $password,
+                    'signin_url'    => $signinUrl
+                );
+                $mailviews = array(
+                    'html' => 'emails.registration.activated-html',
+                    'text' => 'emails.registration.activated-text'
+                );
+                Mail::send($mailviews, $data, function($message) use ($user)
+                {
+                    $emailconf = Config::get('orbit.registration.mobile.sender');
+                    $from = $emailconf['email'];
+                    $name = $emailconf['name'];
 
-                $message->from($from, $name)->subject('Your Account on Orbit has been Activated!');
-                $message->to($user->user_email);
-            });
+                    $message->from($from, $name)->subject('Your Account on Orbit has been Activated!');
+                    $message->to($user->user_email);
+                });
+            }
 
             // Commit the changes
             $this->commit();
