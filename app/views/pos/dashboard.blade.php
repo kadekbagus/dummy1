@@ -3,8 +3,6 @@
 <style>
 
 
-/*
-/*
 </style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
@@ -34,7 +32,7 @@
 
                 </div>
 
-                <div class="table-responsive"  id="tablecart" style="overflow: auto;height: 380px" >
+                <div ng-class="table-responsive"  id="tablecart" style="overflow: auto;height: 280px" >
                     <table class="table">
 
                         <tr>
