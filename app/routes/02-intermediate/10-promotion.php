@@ -24,6 +24,11 @@ Route::post('/app/v1/promotion/update', 'IntermediateAuthController@Promotion_po
 Route::get('/app/v1/promotion/search', 'IntermediateAuthController@Promotion_getSearchPromotion');
 
 /**
+ * List and/or Search promotion by retailer
+ */
+Route::get('/app/v1/promotion/by-retailer/search', 'IntermediateAuthController@Promotion_getSearchPromotionByRetailer');
+
+/**
  * Upload promotion Image
  */
 Route::post('/app/v1/promotion/upload/image', 'IntermediateAuthController@Upload_postUploadPromotionImage');

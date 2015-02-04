@@ -59,6 +59,7 @@ return array(
     'AlterTableProductsAsTheNewERDDec2' => $baseDir . '/app/database/migrations/2014_12_02_082538_alter_table_products_as_the_new_ERD_Dec_2.php',
     'AlterTableProductsRelatedAddStatus' => $baseDir . '/app/database/migrations/2014_12_30_000829_alter_table_products_related_add_status.php',
     'AlterTablePromotionRulesAddCumulativeColumn' => $baseDir . '/app/database/migrations/2015_01_13_032218_alter_table_promotion_rules_add_cumulative_column.php',
+    'AlterTablePromotionsChangeColumnsToNull' => $baseDir . '/app/database/migrations/2015_02_04_090532_alter_table_promotions_change_columns_to_null.php',
     'AlterTableTransactionModifyTransactionid' => $baseDir . '/app/database/migrations/2015_01_06_094006_alter_table_transaction_modify_transactionid.php',
     'AlterTableTransactionsAddStatus' => $baseDir . '/app/database/migrations/2015_01_15_041119_alter_table_transactions_add_status.php',
     'AlterTableTransactionsAddTimestamp' => $baseDir . '/app/database/migrations/2014_12_30_082900_alter_table_transactions_add_timestamp.php',
