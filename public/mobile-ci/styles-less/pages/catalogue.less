@@ -496,3 +496,17 @@ h3.currency.currency-promo{
     left: 0;
     z-index: 1;
 }
+.promo-cover{
+    margin: 0 auto;
+}
+.promo-item{
+    font-style: italic;
+    span:after{
+        content: ' > ';
+    }
+    span:last-child{
+        &:after{
+            content: '';
+        }
+    }
+}

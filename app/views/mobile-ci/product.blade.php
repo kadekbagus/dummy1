@@ -135,7 +135,7 @@
 						<?php $attr_val = array();?>
 						@foreach($attributes as $attribute)
 						@if($attribute->attr1 === $product->attribute1->product_attribute_name && !in_array($attribute->value1, $attr_val))
-				        <li><input type="radio" data-attr-lvl="1" class="attribute_value_id" name="product_attribute_value_id1" value="{{$attribute->attr_val_id1}}" ><span class="attribute-title">{{ $attribute->value1 }}</span></li>
+				        <li><input type="radio" data-attr-lvl="1" class="attribute_value_id" id="attribute_id{{$attribute->attr_val_id1}}" name="product_attribute_value_id1" value="{{$attribute->attr_val_id1}}" ><label for="attribute_id{{$attribute->attr_val_id1}}"><span class="attribute-title">{{ $attribute->value1 }}</span></label></li>
 				        <?php $attr_val[] = $attribute->value1;?>
 				        @endif
 				        @endforeach
@@ -192,31 +192,22 @@
 			<div class="col-xs-6">
 				<h4>Code : {{ $product->upc_code }}</h4>
 			</div>
-		</div>
-		<div class="row" id="starting-from">
-			<div class="col-xs-12 text-right">
-				<p><small>Starting from :</small></p>
+			<div class="col-xs-6 text-right" id="starting-from">
+				<h4><small>Starting from :</small></h4>
 			</div>
 		</div>
 		<div class="row">
 			<?php $discount=0;?>
 			@if(count($promotions)>0)
-				@foreach($promotions as $promotion)
-					@if($promotion->rule_type == 'product_discount_by_percentage')
-						<?php $discount = $discount + ($product->price * $promotion->discount_value);?>
-					@elseif($promotion->rule_type == 'product_discount_by_value')
-						<?php $discount = $discount + $promotion->discount_value;?>
-					@endif
-				@endforeach
 				<div class="col-xs-6 strike" id="price-before">
-					<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->price + 0 }}</span></h3>
+					<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->min_price }}</span></h3>
 				</div>
 				<div class="col-xs-6 pull-right text-right" id="price">
-					<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->price - $discount + 0 }}</span></h3>
+					<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->min_promo_price }}</span></h3>
 				</div>
 			@else
 			<div class="col-xs-6 pull-right text-right" id="price">
-				<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->price + 0 }}</span></h3>
+				<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->min_price + 0 }}</span></h3>
 			</div>
 			@endif
 		</div>
@@ -297,7 +288,7 @@
 		var variants = {{ json_encode($product->variants) }};
 		var promotions = {{ json_encode($promotions) }};
 		var attributes = {{ json_encode($attributes) }};
-		var product = {{ json_encode($product) }}
+		var product = {{ json_encode($product) }};
 		var itemReady = [];
 		$(document).ready(function(){
 			if(variants.length < 2){
@@ -305,22 +296,22 @@
 				itemReady = variants;
 				$('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
 				var pricebefore = parseFloat(itemReady[0].price);
-				var priceafter;
-				if(promotions.length < 1){
-					priceafter = pricebefore;
-				} else {
-					// console.log(promotions);
-					var discount=0;
-					for(var i=0;i<promotions.length;i++){
-						if(promotions[i].rule_type == 'product_discount_by_percentage'){
-							discount = discount + (itemReady[0].price * parseFloat(promotions[i].discount_value));
-						}else if(promotions[i].rule_type == 'product_discount_by_value'){
-							discount = discount + parseFloat(promotions[i].discount_value);
-						}
-					}
-					priceafter = itemReady[0].price - discount;
-					console.log(priceafter);
-				}
+				var priceafter = parseFloat(itemReady[0].promo_price);
+				// if(promotions.length < 1){
+				// 	priceafter = pricebefore;
+				// } else {
+				// 	// console.log(promotions);
+				// 	var discount=0;
+				// 	for(var i=0;i<promotions.length;i++){
+				// 		if(promotions[i].rule_type == 'product_discount_by_percentage'){
+				// 			discount = discount + (itemReady[0].price * parseFloat(promotions[i].discount_value));
+				// 		}else if(promotions[i].rule_type == 'product_discount_by_value'){
+				// 			discount = discount + parseFloat(promotions[i].discount_value);
+				// 		}
+				// 	}
+				// 	priceafter = itemReady[0].price - discount;
+				// 	console.log(priceafter);
+				// }
 				$('#starting-from').hide();
 				$('#price-before span').text(pricebefore);
 				$('#price span').text(priceafter);
@@ -372,25 +363,25 @@
 					switch(selectedLvl){
 						case 1:
 							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id2) < 0){
-								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id2 +'" ><span class="attribute-title">'+ filteredAttr[i].value2 +'</span></li>')
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" id="attribute_id'+filteredAttr[i].attr_val_id2+'" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id2 +'" ><label for="attribute_id'+filteredAttr[i].attr_val_id2+'"><span class="attribute-title">'+ filteredAttr[i].value2 +'</span></label></li>')
 								attrArr.push(filteredAttr[i].attr_val_id2);
 							}
 							break;
 						case 2:
 							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id3) < 0){
-								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id3 +'" ><span class="attribute-title">'+ filteredAttr[i].value3 +'</span></li>')
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" id="attribute_id'+filteredAttr[i].attr_val_id3+'" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id3 +'" ><label for="attribute_id'+filteredAttr[i].attr_val_id3+'"><span class="attribute-title">'+ filteredAttr[i].value3 +'</span></label></li>')
 								attrArr.push(filteredAttr[i].attr_val_id3);
 							}
 							break;
 						case 3:
 							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id4) < 0){
-								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id4 +'" ><span class="attribute-title">'+ filteredAttr[i].value4 +'</span></li>')
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" id="attribute_id'+filteredAttr[i].attr_val_id4+'" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id4 +'" ><label for="attribute_id'+filteredAttr[i].attr_val_id4+'"><span class="attribute-title">'+ filteredAttr[i].value4 +'</span></label></li>')
 								attrArr.push(filteredAttr[i].attr_val_id4);
 							}
 							break;
 						case 4:
 							if(indexOf.call(attrArr, filteredAttr[i].attr_val_id5) < 0){
-								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id5 +'" ><span class="attribute-title">'+ filteredAttr[i].value5 +'</span></li>')
+								$('#attribute'+ (selectedLvl+1)).append('<li><input type="radio" data-attr-lvl="'+ (selectedLvl+1) +'"  class="attribute_value_id" id="attribute_id'+filteredAttr[i].attr_val_id5+'" name="product_attribute_value_id'+ (selectedLvl+1) +'" value="'+ filteredAttr[i].attr_val_id5 +'" ><label for="attribute_id'+filteredAttr[i].attr_val_id5+'"><span class="attribute-title">'+ filteredAttr[i].value5 +'</span></label></li>')
 								attrArr.push(filteredAttr[i].attr_val_id5);
 							}
 							break;
@@ -402,40 +393,13 @@
 				});
 				var pricebefore, priceafter;
 				if(itemReady.length > 0){
-					// console.log(itemReady);
 					pricebefore = parseFloat(itemReady[0].price);
+					priceafter = parseFloat(itemReady[0].promo_price);
 					$('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
 					$('#starting-from').hide();
-					if(promotions.length < 1){
-						priceafter = pricebefore;
-					} else {
-						// get first promotions value
-						var discount=0;
-						for(var i=0;i<promotions.length;i++){
-							if(promotions[i].rule_type == 'product_discount_by_percentage'){
-								discount = discount + (itemReady[0].price * parseFloat(promotions[i].discount_value));
-							}else if(promotions[i].rule_type == 'product_discount_by_value'){
-								discount = discount + parseFloat(promotions[i].discount_value);
-							}
-						}
-						priceafter = itemReady[0].price - discount;
-					}
 				}else{
-					pricebefore = parseFloat(product.price);
-					if(promotions.length < 1){
-						priceafter = pricebefore;
-					} else {
-						// get first promotions value
-						var discount=0;
-						for(var i=0;i<promotions.length;i++){
-							if(promotions[i].rule_type == 'product_discount_by_percentage'){
-								discount = discount + (pricebefore * parseFloat(promotions[i].discount_value));
-							}else if(promotions[i].rule_type == 'product_discount_by_value'){
-								discount = discount + parseFloat(promotions[i].discount_value);
-							}
-						}
-						priceafter = pricebefore - discount;
-					}
+					pricebefore = parseFloat(product.min_price);
+					priceafter = parseFloat(product.min_promo_price);
 					$('#starting-from').show();
 					$('.add-to-cart-button').addClass('btn-disabled').removeAttr('id');
 				}
