@@ -1,6 +1,6 @@
 <?php
 /**
- * An API controller for managing token.
+ * An API controller for managing countries.
  */
 use OrbitShop\API\v1\ControllerAPI;
 use OrbitShop\API\v1\OrbitShopAPI;
@@ -11,40 +11,31 @@ use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 
-class TokenAPIController extends ControllerAPI
+class CountryAPIController extends ControllerAPI
 {
     /**
-     * GET - A Token object
+     * GET - List of countries
      *
      * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
-     * @param string    `token` (required) - The token string
+     * @param array     `country_ids`   (optional) - IDs of country
+     * @param array     `names`         (optional) - Names of country
+     * @param array     `codes`         (optional) - Code of coutnry (2 char)
+     * @param integer   `take`          (optional) - limit
+     * @param integer   `skip`          (optional) - limit offset
+     * @param string    `sort_by`       (optional) - column order by name
+     * @param string    `sort_mode`     (optional) - asc or desc
      * @return Illuminate\Support\Facades\Response
      */
-    public function getSearchToken()
+    public function getSearchCountry()
     {
         try {
             $httpCode = 200;
 
-            $tokenId = OrbitInput::get('token');
-            $validator = Validator::make(
-                ['token'    => $tokenId],
-                ['token'    => 'required']
-            );
-
-            Event::fire('orbit.token.getsearchtoken.before.validation', array($this, $validator));
-
-            // Run the validation
-            if ($validator->fails()) {
-                $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-            Event::fire('orbit.token.getsearchtoken.after.validation', array($this, $validator));
-
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.token.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.country.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -54,14 +45,26 @@ class TokenAPIController extends ControllerAPI
             }
 
             // Builder object
-            $tokens = Token::excludeDeleted()
-                           ->where('token_name', 'user_registration_mobile')
-                           ->where('token_value', $tokenId)
-                           ->active();
+            $countries = Country::with(array());
+
+            OrbitInput::get('country_ids', function($ids) use ($countries) {
+                $ids = (array)$ids;
+                $countries->whereIn('country_id', $ids);
+            });
+
+            OrbitInput::get('codes', function($codes) use ($countries) {
+                $codes = (array)$codes;
+                $countries->whereIn('code', $codes);
+            });
+
+            OrbitInput::get('names', function($names) use ($countries) {
+                $names = (array)$names;
+                $countries->whereIn('name', $names);
+            });
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
-            $_token = clone $tokens;
+            $_countries = clone $countries;
 
             // Get the take args
             $take = $maxRecord;
@@ -71,55 +74,55 @@ class TokenAPIController extends ControllerAPI
                 }
                 $take = $_take;
             });
-            $tokens->take($take);
+            $countries->take($take);
 
             $skip = 0;
-            OrbitInput::get('skip', function ($_skip) use (&$skip, $tokens) {
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $countries) {
                 if ($_skip < 0) {
                     $_skip = 0;
                 }
 
                 $skip = $_skip;
             });
-            $tokens->skip($skip);
+            $countries->skip($skip);
 
             // Default sort by
-            $sortBy = 'tokens.created_at';
+            $sortBy = 'countries.name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'created'       => 'tokens.created_at'
+                    'name'       => 'countries.name'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
-            $tokens->orderBy($sortBy, $sortMode);
+            $countries->orderBy($sortBy, $sortMode);
 
-            $totalToken = $_token->count();
-            $listToken = $tokens->get();
+            $totalCountry = $_countries->count();
+            $listCountry = $countries->get();
 
             $data = new stdclass();
-            $data->total_records = $totalToken;
-            $data->returned_records = count($listToken);
-            $data->records = $listToken;
+            $data->total_records = $totalCountry;
+            $data->returned_records = count($listCountry);
+            $data->records = $listCountry;
 
-            if ($totalToken === 0) {
+            if ($totalCountry === 0) {
                 $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.personalinterest');
             }
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.token.getsearchtoken.access.forbidden', array($this, $e));
+            Event::fire('orbit.country.getsearchcountry.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -127,7 +130,7 @@ class TokenAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.token.getsearchtoken.invalid.arguments', array($this, $e));
+            Event::fire('orbit.country.getsearchcountry.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -139,7 +142,7 @@ class TokenAPIController extends ControllerAPI
             $this->response->data = $result;
             $httpCode = 403;
         } catch (QueryException $e) {
-            Event::fire('orbit.token.getsearchtoken.query.error', array($this, $e));
+            Event::fire('orbit.country.getsearchcountry.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -153,7 +156,7 @@ class TokenAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
         } catch (Exception $e) {
-            Event::fire('orbit.token.getsearchtoken.general.exception', array($this, $e));
+            Event::fire('orbit.country.getsearchcountry.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
@@ -167,7 +170,7 @@ class TokenAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.token.getsearchtoken.before.render', array($this, &$output));
+        Event::fire('orbit.country.getsearchcountry.before.render', array($this, &$output));
 
         return $output;
     }
