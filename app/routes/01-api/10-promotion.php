@@ -36,6 +36,14 @@ Route::get('/api/v1/promotion/search', function()
 });
 
 /**
+ * List/Search promotion by retailer
+ */
+Route::get('/api/v1/promotion/by-retailer/search', function()
+{
+    return PromotionAPIController::create()->getSearchPromotionByRetailer();
+});
+
+/**
  * Upload promotion image
  */
 Route::post('/api/v1/promotion/upload/image', function()

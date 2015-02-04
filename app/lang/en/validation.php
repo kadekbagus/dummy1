@@ -147,6 +147,7 @@ return array(
             'category_sortby'      => 'The sort by argument you specified is not valid, the valid values are: registered_date, category_name, category_level, category_order, description, status.',
             'promotion_status'     => 'The promotion status you specified is not found.',
             'promotion_sortby'     => 'The sort by argument you specified is not valid, the valid values are: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
+            'promotion_by_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: retailer_name, registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
             'promotion_type'       => 'The promotion type you specified is not found.',
             'rule_type'            => 'The rule type you specified is not found.',
             'rule_object_type'     => 'The rule object type you specified is not found.',
