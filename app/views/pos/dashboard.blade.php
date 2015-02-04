@@ -72,11 +72,12 @@
                                 <td class="text-right"><% v.price %></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
+                            <!-- <div class="circlegreen" data-ng-show="v.ispromo"></div>-->
                             <tr data-ng-repeat="(a,r) in v.promotion">
-                                <td><div class="circlegreen" data-ng-show="v.ispromo" ></div> <% r.promotion_name %> </td>
+                                <td><span style="padding-left:20px"><% r.promotion_name %></span></td>
                                 <td></td>
-                                <td>1</td>
-                                <td>1</td>
+                                <td class="text-right"><% r.discount_value %></td>
+                                <td class="text-right">- <% r.afterpromotionprice %></td>
                             </tr>
                         </tbody>
                             <tr>
@@ -92,7 +93,7 @@
 
                     </table>
                 </div>
-                <div class="table-responsive" data-ng-show="cartpromotions.length">
+                <div class="table-responsive" data-ng-show="applycartpromotion.length">
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">
@@ -100,7 +101,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr data-ng-repeat="(k,v) in cartpromotions">
+                            <tr data-ng-repeat="(k,v) in applycartpromotion">
                                 <td><% v.promotion_name %></td>
                                 <td><% v.promotionrule.discount_value %></td>
                             </tr>
@@ -169,7 +170,7 @@
                       <div data-ng-if="productnotfound">
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
-                          <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
+                          <div class="col-md-6" data-ng-repeat="(k,v) in product">
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
@@ -247,8 +248,8 @@
 
                      	<div class="row" data-ng-if="hiddenbtn">
                      		   <div class="col-xs-12" data-ng-show="datapromotion.length">
-                                    <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
-                                    <p><h4>IDR : <% productmodal.price %></h4></p>
+                                    <p ><h5><del><% productmodal.price %></del></h5></p>
+                                    <p><h4>IDR : <% productmodal.afterpromotionprice %> </h4></p>
                                </div>
                      		   <div class="col-xs-12" data-ng-show="!datapromotion.length">
                                      <p><h4>IDR : <% productmodal.price %></h4></p>
@@ -301,8 +302,8 @@
                     <div class="col-md-6" >
                         <div data-ng-show="datapromotion.length && showprice">
                             <p>UPC :<% productmodal.upc_code %> </p>
-                            <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
-                            <p><h4>IDR : <% productmodal.price %></h3></p>
+                            <p ><h5><del><% productmodal.price %></del></h5></p>
+                            <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
 
                         </div>
                         <div data-ng-show="!datapromotion.length">
