@@ -121,6 +121,17 @@ class IntermediateLoginController extends IntermediateBaseController
     }
 
     /**
+     * Get token list
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Response
+     */
+    public function getTokenList()
+    {
+        return $this->render(TokenAPIController::create('raw')->getSearchToken());
+    }
+
+    /**
      * Mobile-CI Intermediate call by registering client mac address when login
      * succeed.
      *
