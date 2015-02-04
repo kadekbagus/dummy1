@@ -15,6 +15,17 @@ return array(
         'id'    => 93
     ),
 
+    // General contact data
+    'contact_information' => array(
+        'customer_service'  => array(
+            'email' => 'cs@localhost.org',
+            'name'  => 'Orbit Customer Service',
+            'phone' => '+62123456789',
+            'fax'   => '+62123456789',
+            'office_hour'   => '9am - 6pm'
+        )
+    ),
+
     // Default Pagination
     'pagination' => array(
         'max_record' => 50,
@@ -43,8 +54,15 @@ return array(
             // This should be frontend URL not backend
             'activation_base_url' => 'http://orbit-shop.here/app/v1/user/activate/?token=%s',
 
+            // Number of days the activation link will expires
+            'activation_expire' => 30,
+
             // Sign in URL
-            'signin_url' => 'http://orbit-shop.here/signin'
+            'signin_url' => 'http://orbit-shop.here/signin',
+
+            // Fake registration means it does not save the data, only sends
+            // the welcome email
+            'fake'  => FALSE,
         ),
     ),
 
