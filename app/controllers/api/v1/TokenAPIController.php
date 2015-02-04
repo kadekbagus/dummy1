@@ -61,7 +61,7 @@ class TokenAPIController extends ControllerAPI
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
-            $_interests = clone $tokens;
+            $_token = clone $tokens;
 
             // Get the take args
             $take = $maxRecord;
@@ -104,7 +104,7 @@ class TokenAPIController extends ControllerAPI
             });
             $tokens->orderBy($sortBy, $sortMode);
 
-            $totalToken = $_interests->count();
+            $totalToken = $_token->count();
             $listToken = $tokens->get();
 
             $data = new stdclass();
