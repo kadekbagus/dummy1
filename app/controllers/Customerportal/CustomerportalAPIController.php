@@ -63,6 +63,7 @@ class CustomerportalAPIController extends ControllerAPI
             $user = User::with('apikey', 'userdetail', 'role')
                 ->excludeDeleted()
                 ->where('user_email', $email)
+                ->where('status', 'active')
                 ->whereHas('role', function($query)
                 {
                     $query->where('role_name','Consumer');
