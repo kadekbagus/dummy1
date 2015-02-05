@@ -102,7 +102,8 @@ class EmployeeAPIController extends ControllerAPI
                     'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
                 ),
                 array(
-                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
+                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role'],
+                    'employee_id_char.required' => Lang::get('validation.required', ['required' => 'employee id'])
                 )
             );
 
@@ -288,6 +289,8 @@ class EmployeeAPIController extends ControllerAPI
             $employeeRole = OrbitInput::post('employee_role');
             $retailerIds = OrbitInput::post('retailer_ids');
             $status = OrbitInput::post('status');
+            $firstName = OrbitInput::post('firstname');
+            $lastName = OrbitInput::post('lastname');
 
             $errorMessage = [
                 'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
@@ -296,6 +299,8 @@ class EmployeeAPIController extends ControllerAPI
             ];
             $validator = Validator::make(
                 array(
+                    'firstname'             => $firstName,
+                    'lastname'              => $lastName,
                     'user_id'               => $userId,
                     'birthdate'             => $birthdate,
                     'password'              => $password,
@@ -305,10 +310,12 @@ class EmployeeAPIController extends ControllerAPI
                     'status'                => $status
                 ),
                 array(
-                    'user_id'               => 'orbit.empty.user',
-                    'birthdate'             => 'date_format:Y-m-d',
+                    'firstname'             => 'required',
+                    'lastname'              => 'required',
+                    'user_id'               => 'required|orbit.empty.user',
+                    'birthdate'             => 'required|date_format:Y-m-d',
                     'password'              => 'min:5|confirmed',
-                    'employee_role'         => 'orbit.empty.employee.role',
+                    'employee_role'         => 'required|orbit.empty.employee.role',
                     'retailer_ids'          => 'array|min:1|orbit.empty.retailer',
                     'status'                => 'orbit.empty.user_status',
                 ),
