@@ -58,6 +58,7 @@ return array(
     'AlterTableProductsAddAttributes' => $baseDir . '/app/database/migrations/2014_12_29_042539_alter_table_products_add_attributes.php',
     'AlterTableProductsAddColumnCategoryId1To5' => $baseDir . '/app/database/migrations/2014_12_29_041959_alter_table_products_add_column_category_id1_to_5.php',
     'AlterTableProductsAsTheNewERDDec2' => $baseDir . '/app/database/migrations/2014_12_02_082538_alter_table_products_as_the_new_ERD_Dec_2.php',
+    'AlterTableProductsDropUniqueIndexProductCodeUpcCode' => $baseDir . '/app/database/migrations/2015_02_05_102951_alter_table_products_drop_unique_index_product_code_upc_code.php',
     'AlterTableProductsRelatedAddStatus' => $baseDir . '/app/database/migrations/2014_12_30_000829_alter_table_products_related_add_status.php',
     'AlterTablePromotionRulesAddCumulativeColumn' => $baseDir . '/app/database/migrations/2015_01_13_032218_alter_table_promotion_rules_add_cumulative_column.php',
     'AlterTablePromotionsChangeColumnsToNull' => $baseDir . '/app/database/migrations/2015_02_04_090532_alter_table_promotions_change_columns_to_null.php',
