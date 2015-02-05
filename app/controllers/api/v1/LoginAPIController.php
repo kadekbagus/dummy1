@@ -339,7 +339,7 @@ class LoginAPIController extends ControllerAPI
             }
 
             $token = App::make('orbit.empty.token');
-            $user = User::with('userDetail')
+            $user = User::with('userdetail')
                         ->excludeDeleted()
                         ->where('user_id', $token->user_id)
                         ->first();

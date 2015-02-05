@@ -114,7 +114,7 @@ class TokenAPIController extends ControllerAPI
 
             if ($totalToken === 0) {
                 $data->records = null;
-                $this->response->message = Lang::get('statuses.orbit.nodata.personalinterest');
+                $this->response->message = Lang::get('statuses.orbit.nodata.token');
             }
 
             $this->response->data = $data;
