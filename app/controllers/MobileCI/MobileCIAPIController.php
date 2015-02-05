@@ -306,8 +306,8 @@ class MobileCIAPIController extends ControllerAPI
             // dd($families);
             $cartitems = $this->getCartForToolbar();
 
-            $family1 = \Session::put('f1', 2);
-            $family2 = \Session::put('f2', 9);
+            // $family1 = \Session::put('f1', 1);
+            // $family2 = \Session::put('f2', 7);
             // $family3 = \Session::put('f3', 11);
             // $family4 = \Session::put('f4', 12);
             // $family5 = \Session::put('f5', 13);
@@ -331,19 +331,29 @@ class MobileCIAPIController extends ControllerAPI
             }
             $array_of_families = array();
             if(!empty($family1)){
-                $array_of_families[] = $family1;
+                $array_of_families_lvl1[] = $family1;
             }
             if(!empty($family2)){
-                $array_of_families[] = $family2;
+                $array_of_families_lvl2[] = $family1;
+                $array_of_families_lvl2[] = $family2;
             }
             if(!empty($family3)){
-                $array_of_families[] = $family3;
+                $array_of_families_lvl3[] = $family1;
+                $array_of_families_lvl3[] = $family2;
+                $array_of_families_lvl3[] = $family3;
             }
             if(!empty($family4)){
-                $array_of_families[] = $family4;
+                $array_of_families_lvl4[] = $family1;
+                $array_of_families_lvl4[] = $family2;
+                $array_of_families_lvl4[] = $family3;
+                $array_of_families_lvl4[] = $family4;
             }
             if(!empty($family5)){
-                $array_of_families[] = $family5;
+                $array_of_families_lvl5[] = $family1;
+                $array_of_families_lvl5[] = $family2;
+                $array_of_families_lvl5[] = $family3;
+                $array_of_families_lvl5[] = $family4;
+                $array_of_families_lvl5[] = $family5;
             }
 
             $lvl1 = null;
@@ -352,24 +362,25 @@ class MobileCIAPIController extends ControllerAPI
             $lvl4 = null;
             $lvl5 = null;
 
-            if($hasFamily == 'yes'){
-                if(!empty($family1)){
-                    $lvl1 = $this->getProductListCatalogue($array_of_families, 1, $family1, '');
+            if($hasFamily == 'yes') {
+                if(!empty($family1)) {
+                    $lvl1 = $this->getProductListCatalogue($array_of_families_lvl1, 1, $family1, '');
                 }
-                if(!empty($family2)){
-                    $lvl2 = $this->getProductListCatalogue($array_of_families, 2, $family2, '');
+                if(!empty($family2)) {
+                    $lvl2 = $this->getProductListCatalogue($array_of_families_lvl2, 2, $family2, '');
                 }
-                if(!empty($family3)){
-                    $lvl3 = $this->getProductListCatalogue($array_of_families, 3, $family3, '');
+                if(!empty($family3)) {
+                    $lvl3 = $this->getProductListCatalogue($array_of_families_lvl3, 3, $family3, '');
                 }
-                if(!empty($family4)){
-                    $lvl4 = $this->getProductListCatalogue($array_of_families, 4, $family4, '');
+                if(!empty($family4)) {
+                    $lvl4 = $this->getProductListCatalogue($array_of_families_lvl4, 4, $family4, '');
                 }
-                if(!empty($family5)){
-                    $lvl5 = $this->getProductListCatalogue($array_of_families, 5, $family5, '');
+                if(!empty($family5)) {
+                    $lvl5 = $this->getProductListCatalogue($array_of_families_lvl5, 5, $family5, '');
                 }
             }
             // dd($lvl3);
+
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartitems' => $cartitems, 'hasFamily' => $hasFamily, 'lvl1' => $lvl1, 'lvl2' => $lvl2, 'lvl3' => $lvl3, 'lvl4' => $lvl4, 'lvl5' => $lvl5));
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
@@ -1225,6 +1236,29 @@ class MobileCIAPIController extends ControllerAPI
             $family_level = OrbitInput::get('family_level');
             $families = OrbitInput::get('families');
 
+            if(count($families) == 1) {
+                // dd($families);
+                \Session::put('f1', $family_id);
+                \Session::forget('f2');
+                \Session::forget('f3');
+                \Session::forget('f4');
+                \Session::forget('f5');
+            } elseif(count($families) == 2) {
+                \Session::put('f2', $family_id);
+                \Session::forget('f3');
+                \Session::forget('f4');
+                \Session::forget('f5');
+            } elseif(count($families) == 3) {
+                \Session::put('f3', $family_id);
+                \Session::forget('f4');
+                \Session::forget('f5');
+            } elseif(count($families) == 4) {
+                \Session::put('f4', $family_id);
+                \Session::forget('f5');
+            } elseif(count($families) == 5) {
+                \Session::put('f5', $family_id);
+            }
+
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
@@ -1488,9 +1522,8 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $nextfamily = $family_level + 1;
 
-            // $subfamilies = Category::excludeDeleted();
             if($nextfamily < 6) {
-                $subfamilies = Category::excludeDeleted()->where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level, $families) {
+                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level, $families) {
                     $nextfamily = $family_level + 1;
                     for($i = 1; $i < count($families); $i++) {
                         $q->where('products.category_id'.$i, $families[$i-1]);
@@ -1500,7 +1533,6 @@ class MobileCIAPIController extends ControllerAPI
                         ->where('products.category_id'.$nextfamily, '<>', 'NULL')
                         ->where('products.status', 'active');
                 })->get();
-                // dd($families);
             } else {
                 $subfamilies = NULL;
             }
@@ -1656,7 +1688,7 @@ class MobileCIAPIController extends ControllerAPI
                     $product->is_new = false;
                 }
             }
-
+            // dd($subfamilies);
             // $listOfRec = $products;
             // $search_limit = Config::get('orbit.shop.search_limit');
             // if($totalRec>$search_limit){
@@ -2521,7 +2553,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 $cart_vat = $vat / $subtotal_wo_tax;
-                // dd($vat);
+                // dd($cart_vat);
                 $cartdiscounts = 0;
 
                 $acquired_promo_carts = array();
@@ -2543,10 +2575,17 @@ class MobileCIAPIController extends ControllerAPI
                                 $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
                                 $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
                             }
-                            $cart_promo_tax = $discount * $cart_vat;
+
+                            $cart_promo_wo_tax = $discount / (1 + $cart_vat);
+                            $cart_promo_tax = $discount - $cart_promo_wo_tax;
                             $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
                             $discount_cart_promo = $discount_cart_promo + $discount;
-                            $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $discount - $cart_promo_tax;
+                            $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
+
+                            // $cart_promo_tax = $discount * $cart_vat;
+                            // $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
+                            // $discount_cart_promo = $discount_cart_promo + $discount;
+                            // $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $discount - $cart_promo_tax;
                             $acquired_promo_carts[] = $promo_cart;
                         }
                     }
@@ -2575,33 +2614,11 @@ class MobileCIAPIController extends ControllerAPI
                 $available_coupon_carts = array();
 
                 $cart_discount_by_percentage_counter = 0;
-                if(!empty($coupon_carts)) {
-                    foreach($coupon_carts as $coupon_cart) {
-                        if($subtotal >= $coupon_cart->coupon_redeem_rule_value){
-                            if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-                                if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-                                    $discount = $subtotal * $coupon_cart->discount_value;
-                                    $cartdiscounts = $cartdiscounts + $discount;
-                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-                                    $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
-                                    $available_coupon_carts[] = $coupon_cart;
-                                    // $used_cart_coupon->disc_val = 'asdasd';
-                                }
-                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-                                $discount = $coupon_cart->discount_value;
-                                $cartdiscounts = $cartdiscounts + $discount;
-                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-                                $available_coupon_carts[] = $coupon_cart;
-                            }
-                            // $subtotalaftercartcoupon = $subtotalaftercartcoupon - $discount;
-                        } else {
-                            $coupon_cart->disc_val = $coupon_cart->rule_value;
-                        }
-                    }
-                }
 
+                $discount_cart_coupon = 0;
+                $discount_cart_coupon_wo_tax = 0;
                 $total_cart_coupon_discount = 0;
+                $cart_coupon_taxes = 0;
                 $acquired_coupon_carts = array();
                 if(!empty($used_cart_coupons)) {
                     foreach($used_cart_coupons as $used_cart_coupon) {
@@ -2619,7 +2636,13 @@ class MobileCIAPIController extends ControllerAPI
                                     $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
                                     $discount = $used_cart_coupon->issuedcoupon->discount_value;
                                 }
-                                $total_cart_coupon_discount = $total_cart_coupon_discount+$discount;
+                                $cart_coupon_wo_tax = $discount / (1 + $cart_vat);
+                                $cart_coupon_tax = $discount - $cart_coupon_wo_tax;
+                                $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
+                                $discount_cart_coupon = $discount_cart_coupon + $discount;
+                                $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
+
+                                $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
                                 $acquired_coupon_carts[] = $used_cart_coupon;
                             } else {
                                 $this->beginTransaction();
@@ -2631,11 +2654,39 @@ class MobileCIAPIController extends ControllerAPI
                             }
                         }
                     }
+                    // var_dump($cart_coupon_taxes); exit;
                 }
 
-                $subtotal = $subtotal - $discount_cart_promo;
-                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax;
-                $vat = $vat - $cart_promo_taxes;
+                if(!empty($coupon_carts)) {
+                    foreach($coupon_carts as $coupon_cart) {
+                        if($subtotal >= $coupon_cart->coupon_redeem_rule_value){
+                            if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
+                                if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
+                                    $discount = $subtotal * $coupon_cart->discount_value;
+                                    $cartdiscounts = $cartdiscounts + $discount;
+                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
+                                    $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
+                                    $available_coupon_carts[] = $coupon_cart;
+                                    $cart_discount_by_percentage_counter++;
+                                    // $used_cart_coupon->disc_val = 'asdasd';
+                                }
+                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
+                                $discount = $coupon_cart->discount_value;
+                                $cartdiscounts = $cartdiscounts + $discount;
+                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
+                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
+                                $available_coupon_carts[] = $coupon_cart;
+                            }
+                            // $subtotalaftercartcoupon = $subtotalaftercartcoupon - $discount;
+                        } else {
+                            $coupon_cart->disc_val = $coupon_cart->rule_value;
+                        }
+                    }
+                }
+
+                $subtotal = $subtotal - $discount_cart_promo - $discount_cart_coupon;
+                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax - $discount_cart_coupon_wo_tax;
+                $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
 
                 $cartsummary = new stdclass();
                 $cartsummary->vat = $vat;

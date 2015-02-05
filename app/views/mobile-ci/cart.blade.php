@@ -240,7 +240,42 @@
     </div>
     @endif
 
-    {{ $cartdata->cartsummary->subtotal_wo_tax }} | {{ $cartdata->cartsummary->vat }} | {{ $cartdata->cartsummary->subtotal_wo_tax + $cartdata->cartsummary->vat }}
+    {{-- cart summary --}}
+    @if(count($cartdata->cartdetails) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Total</span>
+      <div class="cart-sum-headers">
+        <div class="cart-sum-single-header">
+          <span>Item</span>
+        </div>
+        <div class="cart-sum-single-header">
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-sum-single-header">
+          <span>VAT ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-sum-single-header">
+          <span>Total ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+      </div>
+      <div class="cart-sum-bodies">
+        <div class="cart-sum-single-body">
+          <span>{{ $cartdata->cart->total_item + 0 }}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span class="formatted-num">{{ $cartdata->cartsummary->total_to_pay }}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span class="formatted-num">{{ $cartdata->cartsummary->vat + 0}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span class="formatted-num"><b>{{ $cartdata->cartsummary->total_to_pay }}</b></span>
+        </div>
+      </div>
+    </div>
+    @endif
+
+    {{ $cartdata->cartsummary->subtotal_wo_tax }} | {{ $cartdata->cartsummary->vat }} | {{ $cartdata->cartsummary->subtotal_wo_tax + $cartdata->cartsummary->vat }} || {{ $cartdata->cartsummary->total_to_pay }}
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>

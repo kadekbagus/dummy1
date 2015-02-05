@@ -74,7 +74,7 @@
   <footer>
     <div class="row">
       <div class="col-xs-12 text-center">
-        <img class="img-responsive orbit-footer" src="{{ asset('mobile-ci/images/orbit-footer.png') }}">
+        <img class="img-responsive orbit-footer" style="width:120px;" src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
       </div>
     </div>
   </footer>

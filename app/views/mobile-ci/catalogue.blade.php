@@ -5,7 +5,7 @@
 @stop
 
 @section('content')
-<div>
+<div onunload="">
 	@if($hasFamily == 'no')
 		<ul class="family-list">
 		@foreach($families as $family)
@@ -15,11 +15,10 @@
 		@endforeach
 		</ul>
 	@else
-		<!-- <pre>{{ print_r($families) }}</pre> -->
 		<ul class="family-list">
 
 		@foreach($families as $family)
-			<li data-family-container="{{ $family->category_id }}" data-family-container-level="{{ $family->category_level }}"><a class="family-a" data-family-id="{{ $family->category_id }}" data-family-level="{{ $family->category_level }}" data-family-isopen="0"><div class="family-label">{{ $family->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+			<li data-family-container="{{ $family->category_id }}" data-family-container-level="{{ $family->category_level }}"><a class="family-a" data-family-id="{{ $family->category_id }}" data-family-level="{{ $family->category_level }}" data-family-isopen="@if($family->category_id == Session::get('f1')){{1}}@else{{0}}@endif"><div class="family-label">{{ $family->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
 				<div class="product-list">
 					@if($family->category_id == Session::get('f1'))
 						@foreach($lvl1->records as $product)
@@ -109,11 +108,10 @@
 								</div>
 							</div>
 						@endforeach
-
 						<ul>
 						@if(! is_null($lvl1->subfamilies))
 							@foreach($lvl1->subfamilies as $subfamily)
-								<li data-family-container="{{ $subfamily->category_id }}" data-family-container-level="{{ $subfamily->category_level }}"><a class="family-a" data-family-id="{{ $subfamily->category_id }}" data-family-level="{{ $subfamily->category_level }}" data-family-isopen="0" ><div class="family-label">{{ $subfamily->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+								<li data-family-container="{{ $subfamily->category_id }}" data-family-container-level="{{ $subfamily->category_level }}"><a class="family-a" data-family-id="{{ $subfamily->category_id }}" data-family-level="{{ $subfamily->category_level }}" data-family-isopen="@if($subfamily->category_id == Session::get('f2')){{1}}@else{{0}}@endif" ><div class="family-label">{{ $subfamily->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
 									<div class="product-list">
 										@if($subfamily->category_id == Session::get('f2'))
 											@foreach($lvl2->records as $product2)
@@ -123,25 +121,25 @@
 															<div>
 																<?php $x2 = 1;?>
 																@if($product2->on_promo)
-																<div class="ribbon-wrapper-green ribbon{{$x}}">
+																<div class="ribbon-wrapper-green ribbon{{$x2}}">
 																	<div class="ribbon-green">Promo</div>
 																</div>
 																<?php $x2++;?>
 																@endif
 																@if($product2->is_new)
-																<div class="ribbon-wrapper-red ribbon{{$x}}">
+																<div class="ribbon-wrapper-red ribbon{{$x2}}">
 																	<div class="ribbon-red">New</div>
 																</div>
 																<?php $x2++;?>
 																@endif
 																@if($product2->on_coupons)
-																<div class="ribbon-wrapper-yellow ribbon{{$x}}">
+																<div class="ribbon-wrapper-yellow ribbon{{$x2}}">
 																	<div class="ribbon-yellow">Coupon</div>
 																</div>
 																<?php $x2++;?>
 																@endif
 																@if($product2->on_couponstocatch)
-																<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
+																<div class="ribbon-wrapper-yellow-dash ribbon{{$x2}}">
 																	<div class="ribbon-yellow-dash">Coupon</div>
 																</div>
 																<?php $x2++;?>
@@ -203,13 +201,299 @@
 													</div>
 												</div>
 											@endforeach
-
 											<ul>
 											@if(! is_null($lvl2->subfamilies))
 												@foreach($lvl2->subfamilies as $subfamily2)
-													<li data-family-container="{{ $subfamily2->category_id }}" data-family-container-level="{{ $subfamily2->category_level }}"><a class="family-a" data-family-id="{{ $subfamily2->category_id }}" data-family-level="{{ $subfamily2->category_level }}" data-family-isopen="0" ><div class="family-label">{{ $subfamily2->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+													<li data-family-container="{{ $subfamily2->category_id }}" data-family-container-level="{{ $subfamily2->category_level }}"><a class="family-a" data-family-id="{{ $subfamily2->category_id }}" data-family-level="{{ $subfamily2->category_level }}" data-family-isopen="@if($subfamily2->category_id == Session::get('f2')){{1}}@else{{0}}@endif" ><div class="family-label">{{ $subfamily2->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
 														<div class="product-list">
-															
+															@if($subfamily2->category_id == Session::get('f3'))
+																@foreach($lvl3->records as $product3)
+																	<div class="main-theme catalogue">
+																		<div class="row row-xs-height catalogue-top">
+																			<div class="col-xs-6 catalogue-img col-xs-height col-middle">
+																				<div>
+																					<?php $x3 = 1;?>
+																					@if($product3->on_promo)
+																					<div class="ribbon-wrapper-green ribbon{{$x3}}">
+																						<div class="ribbon-green">Promo</div>
+																					</div>
+																					<?php $x3++;?>
+																					@endif
+																					@if($product3->is_new)
+																					<div class="ribbon-wrapper-red ribbon{{$x3}}">
+																						<div class="ribbon-red">New</div>
+																					</div>
+																					<?php $x3++;?>
+																					@endif
+																					@if($product3->on_coupons)
+																					<div class="ribbon-wrapper-yellow ribbon{{$x3}}">
+																						<div class="ribbon-yellow">Coupon</div>
+																					</div>
+																					<?php $x3++;?>
+																					@endif
+																					@if($product3->on_couponstocatch)
+																					<div class="ribbon-wrapper-yellow-dash ribbon{{$x3}}">
+																						<div class="ribbon-yellow-dash">Coupon</div>
+																					</div>
+																					<?php $x3++;?>
+																					@endif
+																				</div>
+																				<div class="zoom-wrapper">
+																					<div class="zoom"><a href="{{ asset($product3->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
+																				</div>
+																				<a href="{{ asset($product3->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product3->image) }}"></a>
+																			</div>
+																			<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
+																				<div class="row">
+																					<div class="col-xs-12">
+																						<h3>{{ $product3->product_name }}</h3>
+																					</div>
+																					<div class="col-xs-12">
+																						<h4>Code : {{ $product3->upc_code }}</h4>
+																					</div>
+																					<div class="col-xs-12 price">
+																						@if(count($product3->variants) > 1)
+																						<small>Starting From</small>
+																						@endif
+																						@if($product3->on_promo)
+																							<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product3->min_price }}</span></h3>
+																							<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product3->priceafterpromo }}</span></h3>
+																						@else
+																						<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product3->min_price }}</h3>
+																						@endif
+																					</div>
+																				</div>
+																			</div>
+																		</div>
+																		<div class="row catalogue-control-wrapper">
+																			<div class="col-xs-6 catalogue-short-des ">
+																				<p>{{ $product3->short_description }}</p>
+																			</div>
+																			<div class="col-xs-2 catalogue-control text-center">
+																				<div class="circlet btn-blue detail-btn">
+																					<a href="{{ url('customer/product?id='.$product3->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
+																				</div>
+																			</div>
+																			@if(count($product3->variants) <= 1)
+																			<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																				<div class="circlet btn-blue cart-btn text-center">
+																					<a class="product-add-to-cart" data-hascoupon="{{$product3->on_coupons}}" data-product-id="{{ $product3->product_id }}" data-product-variant-id="{{ $product3->variants[0]->product_variant_id }}" >
+																						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																					</a>
+																				</div>
+																			</div>
+																			@else
+																			<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																				<div class="circlet btn-blue cart-btn text-center">
+																					<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product3->product_id.'#select-attribute') }}">
+																						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																					</a>
+																				</div>
+																			</div>
+																			@endif
+																		</div>
+																	</div>
+																@endforeach
+																<ul>
+																@if(! is_null($lvl3->subfamilies))
+																	@foreach($lvl3->subfamilies as $subfamily3)
+																		<li data-family-container="{{ $subfamily3->category_id }}" data-family-container-level="{{ $subfamily3->category_level }}"><a class="family-a" data-family-id="{{ $subfamily3->category_id }}" data-family-level="{{ $subfamily3->category_level }}" data-family-isopen="@if($subfamily3->category_id == Session::get('f2')){{1}}@else{{0}}@endif" ><div class="family-label">{{ $subfamily3->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+																			<div class="product-list">
+																				@if($subfamily3->category_id == Session::get('f4'))
+																					@foreach($lvl4->records as $product4)
+																						<div class="main-theme catalogue">
+																							<div class="row row-xs-height catalogue-top">
+																								<div class="col-xs-6 catalogue-img col-xs-height col-middle">
+																									<div>
+																										<?php $x4 = 1;?>
+																										@if($product4->on_promo)
+																										<div class="ribbon-wrapper-green ribbon{{$x4}}">
+																											<div class="ribbon-green">Promo</div>
+																										</div>
+																										<?php $x4++;?>
+																										@endif
+																										@if($product4->is_new)
+																										<div class="ribbon-wrapper-red ribbon{{$x4}}">
+																											<div class="ribbon-red">New</div>
+																										</div>
+																										<?php $x4++;?>
+																										@endif
+																										@if($product4->on_coupons)
+																										<div class="ribbon-wrapper-yellow ribbon{{$x4}}">
+																											<div class="ribbon-yellow">Coupon</div>
+																										</div>
+																										<?php $x4++;?>
+																										@endif
+																										@if($product4->on_couponstocatch)
+																										<div class="ribbon-wrapper-yellow-dash ribbon{{$x4}}">
+																											<div class="ribbon-yellow-dash">Coupon</div>
+																										</div>
+																										<?php $x4++;?>
+																										@endif
+																									</div>
+																									<div class="zoom-wrapper">
+																										<div class="zoom"><a href="{{ asset($product4->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
+																									</div>
+																									<a href="{{ asset($product4->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product4->image) }}"></a>
+																								</div>
+																								<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
+																									<div class="row">
+																										<div class="col-xs-12">
+																											<h3>{{ $product4->product_name }}</h3>
+																										</div>
+																										<div class="col-xs-12">
+																											<h4>Code : {{ $product4->upc_code }}</h4>
+																										</div>
+																										<div class="col-xs-12 price">
+																											@if(count($product4->variants) > 1)
+																											<small>Starting From</small>
+																											@endif
+																											@if($product4->on_promo)
+																												<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product4->min_price }}</span></h3>
+																												<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product4->priceafterpromo }}</span></h3>
+																											@else
+																											<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product4->min_price }}</h3>
+																											@endif
+																										</div>
+																									</div>
+																								</div>
+																							</div>
+																							<div class="row catalogue-control-wrapper">
+																								<div class="col-xs-6 catalogue-short-des ">
+																									<p>{{ $product4->short_description }}</p>
+																								</div>
+																								<div class="col-xs-2 catalogue-control text-center">
+																									<div class="circlet btn-blue detail-btn">
+																										<a href="{{ url('customer/product?id='.$product4->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
+																									</div>
+																								</div>
+																								@if(count($product4->variants) <= 1)
+																								<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																									<div class="circlet btn-blue cart-btn text-center">
+																										<a class="product-add-to-cart" data-hascoupon="{{$product4->on_coupons}}" data-product-id="{{ $product4->product_id }}" data-product-variant-id="{{ $product4->variants[0]->product_variant_id }}" >
+																											<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																										</a>
+																									</div>
+																								</div>
+																								@else
+																								<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																									<div class="circlet btn-blue cart-btn text-center">
+																										<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product4->product_id.'#select-attribute') }}">
+																											<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																										</a>
+																									</div>
+																								</div>
+																								@endif
+																							</div>
+																						</div>
+																					@endforeach
+																					<ul>
+																					@if(! is_null($lvl4->subfamilies))
+																						@foreach($lvl4->subfamilies as $subfamily4)
+																							<li data-family-container="{{ $subfamily4->category_id }}" data-family-container-level="{{ $subfamily4->category_level }}"><a class="family-a" data-family-id="{{ $subfamily4->category_id }}" data-family-level="{{ $subfamily4->category_level }}" data-family-isopen="@if($subfamily4->category_id == Session::get('f2')){{1}}@else{{0}}@endif" ><div class="family-label">{{ $subfamily4->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
+																								<div class="product-list">
+																									@if($subfamily4->category_id == Session::get('f5'))
+																										@foreach($lvl5->records as $product5)
+																											<div class="main-theme catalogue">
+																												<div class="row row-xs-height catalogue-top">
+																													<div class="col-xs-6 catalogue-img col-xs-height col-middle">
+																														<div>
+																															<?php $x5 = 1;?>
+																															@if($product5->on_promo)
+																															<div class="ribbon-wrapper-green ribbon{{$x5}}">
+																																<div class="ribbon-green">Promo</div>
+																															</div>
+																															<?php $x5++;?>
+																															@endif
+																															@if($product5->is_new)
+																															<div class="ribbon-wrapper-red ribbon{{$x5}}">
+																																<div class="ribbon-red">New</div>
+																															</div>
+																															<?php $x5++;?>
+																															@endif
+																															@if($product5->on_coupons)
+																															<div class="ribbon-wrapper-yellow ribbon{{$x5}}">
+																																<div class="ribbon-yellow">Coupon</div>
+																															</div>
+																															<?php $x5++;?>
+																															@endif
+																															@if($product5->on_couponstocatch)
+																															<div class="ribbon-wrapper-yellow-dash ribbon{{$x5}}">
+																																<div class="ribbon-yellow-dash">Coupon</div>
+																															</div>
+																															<?php $x5++;?>
+																															@endif
+																														</div>
+																														<div class="zoom-wrapper">
+																															<div class="zoom"><a href="{{ asset($product5->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
+																														</div>
+																														<a href="{{ asset($product5->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product5->image) }}"></a>
+																													</div>
+																													<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
+																														<div class="row">
+																															<div class="col-xs-12">
+																																<h3>{{ $product5->product_name }}</h3>
+																															</div>
+																															<div class="col-xs-12">
+																																<h4>Code : {{ $product5->upc_code }}</h4>
+																															</div>
+																															<div class="col-xs-12 price">
+																																@if(count($product5->variants) > 1)
+																																<small>Starting From</small>
+																																@endif
+																																@if($product5->on_promo)
+																																	<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product5->min_price }}</span></h3>
+																																	<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product5->priceafterpromo }}</span></h3>
+																																@else
+																																<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product5->min_price }}</h3>
+																																@endif
+																															</div>
+																														</div>
+																													</div>
+																												</div>
+																												<div class="row catalogue-control-wrapper">
+																													<div class="col-xs-6 catalogue-short-des ">
+																														<p>{{ $product5->short_description }}</p>
+																													</div>
+																													<div class="col-xs-2 catalogue-control text-center">
+																														<div class="circlet btn-blue detail-btn">
+																															<a href="{{ url('customer/product?id='.$product5->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
+																														</div>
+																													</div>
+																													@if(count($product5->variants) <= 1)
+																													<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																														<div class="circlet btn-blue cart-btn text-center">
+																															<a class="product-add-to-cart" data-hascoupon="{{$product5->on_coupons}}" data-product-id="{{ $product5->product_id }}" data-product-variant-id="{{ $product5->variants[0]->product_variant_id }}" >
+																																<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																															</a>
+																														</div>
+																													</div>
+																													@else
+																													<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																														<div class="circlet btn-blue cart-btn text-center">
+																															<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product5->product_id.'#select-attribute') }}">
+																																<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																															</a>
+																														</div>
+																													</div>
+																													@endif
+																												</div>
+																											</div>
+																										@endforeach
+																										{{-- - --}}
+																									@endif
+																								</div>
+																							</li>
+																						@endforeach
+																					@endif
+																					</ul>
+																				@endif
+																			</div>
+																		</li>
+																	@endforeach
+																@endif
+																</ul>
+															@endif
 														</div>
 													</li>
 												@endforeach
@@ -268,15 +552,33 @@
 	{{ HTML::script('mobile-ci/scripts/jquery.storageapi.min.js') }}
 	<script type="text/javascript">
 		// window.onunload = function(){};
-		$(window).bind("pageshow", function(event) {
-		    if (event.originalEvent.persisted) {
-		        window.location.reload() 
-		    }
-		});
+		// window.onbeforeunload = function () {
+		//    window.location.reload(true);
+		// }
+		// $(window).bind("pageshow", function(event) {
+		//     if (event.originalEvent.persisted) {
+		//         window.location.reload() 
+		//     }
+		// });
 		$(document).ready(function(){
 
 			$('.family-list').on('click', 'a.family-a', function(event){
 				var families = [];
+				@if(!empty(Session::get('f1')))
+					families[0] = {{ Session::get('f1') }};
+					@if(!empty(Session::get('f2')))
+						families[1] = {{ Session::get('f2') }};
+						@if(!empty(Session::get('f3')))
+							families[2] = {{ Session::get('f3') }};
+							@if(!empty(Session::get('f4')))
+								families[3] = {{ Session::get('f4') }};
+								@if(!empty(Session::get('f5')))
+									families[4] = {{ Session::get('f5') }};
+								@endif
+							@endif
+						@endif
+					@endif
+				@endif
 				var open_level = $(this).data('family-level');
 				$('li[data-family-container-level="'+open_level+'"] .product-list').css('display','visible').slideUp('slow');
 				$('li[data-family-container-level="'+open_level+'"] .family-label i').attr('class', 'fa fa-chevron-circle-down');
@@ -295,7 +597,7 @@
 					var family_level = $(this).data('family-level');
 
 					var aopen = $('a[data-family-isopen="1"]');
-					
+					var families = [];
 					$.each(aopen, function(index, value) {
 						families.push($(value).attr('data-family-id'));
 					});
