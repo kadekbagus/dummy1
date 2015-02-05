@@ -63,7 +63,7 @@ class LineChecker
 
             if ($len > $limit) {
                 $exceeds[] = array(
-                    'line'  => $lineNumber,
+                    'line'  => $lineNumber + 1,
                     'text'  => $line,
                     'chars' => $len
                 );
