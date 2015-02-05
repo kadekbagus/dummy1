@@ -92,7 +92,6 @@ class EmployeeAPIController extends ControllerAPI
                 ),
                 array(
                     'firstname'         => 'required',
-                    'lastname'          => 'required',
                     'birthdate'         => 'required|date_format:Y-m-d',
                     'position'          => 'required',
                     'employee_id_char'  => 'required|orbit.exists.employeeid',
@@ -102,8 +101,8 @@ class EmployeeAPIController extends ControllerAPI
                     'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
                 ),
                 array(
+                    'employee_id_char.required' => Lang::get('validation.required', ['required' => 'employee id']),
                     'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role'],
-                    'employee_id_char.required' => Lang::get('validation.required', ['required' => 'employee id'])
                 )
             );
 
@@ -111,7 +110,15 @@ class EmployeeAPIController extends ControllerAPI
 
             // Run the validation
             if ($validator->fails()) {
+                /**
+                 * It sucks! why the f*ck the custom message did not work!!!
+                 * @author Rio Astamal <me@rioastamal.net>
+                 *
+                 * Change it manually by subtitution
+                 */
                 $errorMessage = $validator->messages()->first();
+                $errorMessage = str_replace('employee id char', 'Employee ID', $errorMessage);
+                $errorMessage = str_replace('username', 'Login ID', $errorMessage);
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
             Event::fire('orbit.employee.postnewemployee.after.validation', array($this, $validator));
@@ -307,17 +314,18 @@ class EmployeeAPIController extends ControllerAPI
                     'password_confirmation' => $password2,
                     'employee_role'         => $employeeRole,
                     'retailer_ids'          => $retailerIds,
-                    'status'                => $status
+                    'status'                => $status,
+                    'position'              => $position
                 ),
                 array(
                     'firstname'             => 'required',
-                    'lastname'              => 'required',
                     'user_id'               => 'required|orbit.empty.user',
                     'birthdate'             => 'required|date_format:Y-m-d',
                     'password'              => 'min:5|confirmed',
-                    'employee_role'         => 'required|orbit.empty.employee.role',
+                    'employee_role'         => 'orbit.empty.employee.role',
                     'retailer_ids'          => 'array|min:1|orbit.empty.retailer',
                     'status'                => 'orbit.empty.user_status',
+                    'position'              => 'required'
                 ),
                 array(
                     'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
