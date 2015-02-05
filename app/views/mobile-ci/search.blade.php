@@ -7,6 +7,7 @@
 @section('content')
 	@if($data->status === 1)
 		@if(sizeof($data->records) > 0)
+			@if(sizeof($data->records) > 1)
 			<div id="search-tool">
 			    <div class="row">
 				    <div class="col-xs-6 search-tool-col">
@@ -41,6 +42,7 @@
 				    </div>
 			 	</div>
 			</div>
+			@endif
 			@foreach($data->records as $product)
 				<div class="main-theme catalogue" id="product-{{$product->product_id}}">
 					<div class="row row-xs-height catalogue-top">

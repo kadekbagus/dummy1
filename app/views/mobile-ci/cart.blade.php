@@ -66,7 +66,7 @@
               <div class="single-body">
                 <span class="formatted-num">{{ $cartdetail->variant->price }}</span>
               </div>
-              <div class="single-body">
+              <div class="single-body text-right">
                 <span class="formatted-num">{{ $cartdetail->original_ammount }}</span>
               </div>
             </div>
@@ -84,7 +84,7 @@
               <div class="single-body">
                 <span class="@if($promo->rule_type == 'product_discount_by_percentage') percentage-num @elseif($promo->rule_type == 'product_discount_by_value') formatted-num @endif">{{ $promo->discount_str }}</span>
               </div>
-              <div class="single-body">
+              <div class="single-body text-right">
                 - <span class="formatted-num">{{ $promo->discount }}</span>
               </div>
             </div>
@@ -105,7 +105,7 @@
               <div class="single-body">
                 <span class="@if($coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') percentage-num @elseif($coupon->issuedcoupon->rule_type == 'product_discount_by_value') formatted-num @endif">{{ $coupon->discount_str }}</span>
               </div>
-              <div class="single-body">
+              <div class="single-body text-right">
                 - <span class="formatted-num">{{ $coupon->discount }}</span>
               </div>
             </div>
@@ -118,7 +118,129 @@
     </div>
 
     @endif
-    {{ $cartdata->cartsummary->vat }}
+
+    {{-- cart-based promotions --}}
+    @if(count($cartdata->cartsummary->acquired_promo_carts) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Cart Based Promotions</span>
+      <div class="cart-sum-headers">
+        <div class="cart-promo-single-header">
+          <span>Promotion</span>
+        </div>
+        <div class="cart-promo-single-header">
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-promo-single-header">
+          <span>Value</span>
+        </div>
+        <div class="cart-promo-single-header">
+          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+      </div>
+      @foreach($cartdata->cartsummary->acquired_promo_carts as $promo_cart)
+      <div class="cart-sum-bodies">
+        <div class="cart-sum-single-body">
+          <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span class="formatted-num"></span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span>{{$promo_cart->disc_val_str}}</span>
+        </div>
+        <div class="cart-sum-single-body">
+          <span class="formatted-num">{{$promo_cart->disc_val}}</span>
+        </div>
+      </div>
+      @endforeach
+    </div>
+    @endif
+
+    {{-- cart-based coupons --}}
+    @if(count($cartdata->cartsummary->used_cart_coupons) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Cart Based Coupons</span>
+      <div class="cart-sum-headers">
+        <div class="cart-coupon-single-header">
+          <span>Coupon</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Value</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+      </div>
+      @foreach($cartdata->cartsummary->used_cart_coupons as $coupon_cart)
+        @if(!empty($coupon_cart->issuedcoupon))
+        <div class="cart-sum-bodies">
+          <div class="cart-sum-single-body">
+            <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span class="formatted-num"></span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span>{{$coupon_cart->disc_val_str}}</span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span class="formatted-num">{{$coupon_cart->disc_val}}</span>
+            <div class="unique-column-properties">
+              <div class="coupon-remover" data-detail="{{ $coupon_cart->issuedcoupon->issued_coupon_id }}">
+                <span><i class="fa fa-times"></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        @endif  
+      @endforeach
+    </div>
+    @endif
+
+    {{-- cart-based coupon --}}
+    @if(count($cartdata->cartsummary->available_coupon_carts) > 0)
+    <div class="cart-page cart-sum">
+      <span class="cart-sum-title">Available Cart Based Coupons</span>
+      <div class="cart-sum-headers">
+        <div class="cart-coupon-single-header">
+          <span>Coupon</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Value</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>Discount({{ $retailer->parent->currency_symbol }})</span>
+        </div>
+        <div class="cart-coupon-single-header">
+          <span>&nbsp;</span>
+        </div>
+      </div>
+      @foreach($cartdata->cartsummary->available_coupon_carts as $available_coupon_cart)
+      <!-- <pre>{{ $available_coupon_cart }}</pre> -->
+        @foreach($available_coupon_cart->issuedcoupons as $issuedcoupon)
+        <div class="cart-sum-bodies">
+          <div class="cart-sum-single-body">
+            <span class="coupon-name" data-coupon="{{ $available_coupon_cart->promotion_id }}"><b>{{$available_coupon_cart->promotion_name}}</b></span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span>{{$available_coupon_cart->disc_val_str}}</span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span class="formatted-num">{{$available_coupon_cart->disc_val}}</span>
+          </div>
+          <div class="cart-sum-single-body">
+            <span><a class="btn btn-info useCouponBtn" data-coupon="{{ $issuedcoupon->issued_coupon_id }}">Pakai</a></span>
+          </div>
+        </div>
+        @endforeach
+      @endforeach
+    </div>
+    @endif
+
+    {{ $cartdata->cartsummary->subtotal_wo_tax }} | {{ $cartdata->cartsummary->vat }} | {{ $cartdata->cartsummary->subtotal_wo_tax + $cartdata->cartsummary->vat }}
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>

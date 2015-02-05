@@ -21,6 +21,32 @@
 								<div class="col-xs-12">
 									<h3>{{ $promo->promotion_name }}</h3>
 								</div>
+								@if($promo->promotion_type == 'product')
+									<div class="col-xs-12">
+									@if($promo->promotionrule->discount_object_type == 'product')
+										<p class="promo-item">Product : {{ $promo->promotionrule->discountproduct->product_name }}</p>
+									@elseif($promo->promotionrule->discount_object_type == 'family')
+										<p class="promo-item">
+											Category : 
+											@if(!is_null($promo->promotionrule->discountcategory1))
+											<span>{{ $promo->promotionrule->discountcategory1->category_name }}</span>
+											@endif
+											@if(!is_null($promo->promotionrule->discountcategory2))
+											<span>{{ $promo->promotionrule->discountcategory2->category_name }}</span>
+											@endif
+											@if(!is_null($promo->promotionrule->discountcategory3))
+											<span>{{ $promo->promotionrule->discountcategory3->category_name }}</span>
+											@endif
+											@if(!is_null($promo->promotionrule->discountcategory4))
+											<span>{{ $promo->promotionrule->discountcategory4->category_name }}</span>
+											@endif
+											@if(!is_null($promo->promotionrule->discountcategory5))
+											<span>{{ $promo->promotionrule->discountcategory5->category_name }}</span>
+											@endif
+										</p>
+									@endif
+									</div>
+								@endif
 								<div class="col-xs-12">
 									<h4>{{ date('j M Y', strtotime($promo->begin_date)) }} - {{ date('j M Y', strtotime($promo->end_date)) }}</h4>
 								</div>
