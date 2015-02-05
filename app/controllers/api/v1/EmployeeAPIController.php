@@ -21,10 +21,10 @@ class EmployeeAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string    `firstname`             (required) - Employee first name
-     * @param string    `lastname`              (required) - Employee last name
-     * @param string    `birthdate`             (required) - Employee birthdate
-     * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
-     * @param string    `employee_id_char`      (required) - Employee ID, i.e: 'EMP001', 'CASHIER001`
+     * @param string    `lastname`              (optional) - Employee last name
+     * @param string    `birthdate`             (optional) - Employee birthdate
+     * @param string    `position`              (optional) - Employee position, i.e: 'Cashier 1', 'Supervisor'
+     * @param string    `employee_id_char`      (optional) - Employee ID, i.e: 'EMP001', 'CASHIER001`
      * @param string    `username`              (required) - Username used to login
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
@@ -92,17 +92,15 @@ class EmployeeAPIController extends ControllerAPI
                 ),
                 array(
                     'firstname'         => 'required',
-                    'birthdate'         => 'required|date_format:Y-m-d',
-                    'position'          => 'required',
-                    'employee_id_char'  => 'required|orbit.exists.employeeid',
+                    'birthdate'         => 'date_format:Y-m-d',
+                    'employee_id_char'  => 'orbit.exists.employeeid',
                     'username'          => 'required|orbit.exists.username',
                     'password'          => 'required|min:5|confirmed',
                     'employee_role'     => 'required|orbit.empty.employee.role',
                     'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
                 ),
                 array(
-                    'employee_id_char.required' => Lang::get('validation.required', ['required' => 'employee id']),
-                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role'],
+                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
                 )
             );
 
@@ -110,15 +108,7 @@ class EmployeeAPIController extends ControllerAPI
 
             // Run the validation
             if ($validator->fails()) {
-                /**
-                 * It sucks! why the f*ck the custom message did not work!!!
-                 * @author Rio Astamal <me@rioastamal.net>
-                 *
-                 * Change it manually by subtitution
-                 */
                 $errorMessage = $validator->messages()->first();
-                $errorMessage = str_replace('employee id char', 'Employee ID', $errorMessage);
-                $errorMessage = str_replace('username', 'Login ID', $errorMessage);
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
             Event::fire('orbit.employee.postnewemployee.after.validation', array($this, $validator));
@@ -245,11 +235,11 @@ class EmployeeAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string    `user_id`               (required) - User ID of the employee
-     * @param string    `firstname`             (required) - Employee first name
-     * @param string    `lastname`              (required) - Employee last name
-     * @param string    `birthdate`             (required) - Employee birthdate
-     * @param string    `position`              (required) - Employee position, i.e: 'Cashier 1', 'Supervisor'
-     * @param string    `employee_id_char`      (required) - Employee ID, i.e: 'EMP001', 'CASHIER001' (Unchangable)
+     * @param string    `firstname`             (required) - Employee first name (Unchangeable)
+     * @param string    `lastname`              (optional) - Employee last name (Unchangeable)
+     * @param string    `birthdate`             (optional) - Employee birthdate
+     * @param string    `position`              (optional) - Employee position, i.e: 'Cashier 1', 'Supervisor'
+     * @param string    `employee_id_char`      (optional) - Employee ID, i.e: 'EMP001', 'CASHIER001'
      * @param string    `username`              (required) - Username used to login (Unchangable)
      * @param string    `password`              (required) - Password for the account
      * @param string    `password_confirmation` (required) - Confirmation password
@@ -296,8 +286,6 @@ class EmployeeAPIController extends ControllerAPI
             $employeeRole = OrbitInput::post('employee_role');
             $retailerIds = OrbitInput::post('retailer_ids');
             $status = OrbitInput::post('status');
-            $firstName = OrbitInput::post('firstname');
-            $lastName = OrbitInput::post('lastname');
 
             $errorMessage = [
                 'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
@@ -306,26 +294,23 @@ class EmployeeAPIController extends ControllerAPI
             ];
             $validator = Validator::make(
                 array(
-                    'firstname'             => $firstName,
-                    'lastname'              => $lastName,
                     'user_id'               => $userId,
                     'birthdate'             => $birthdate,
                     'password'              => $password,
                     'password_confirmation' => $password2,
+                    'employee_id_char'      => $employeeId,
                     'employee_role'         => $employeeRole,
                     'retailer_ids'          => $retailerIds,
-                    'status'                => $status,
-                    'position'              => $position
+                    'status'                => $status
                 ),
                 array(
-                    'firstname'             => 'required',
-                    'user_id'               => 'required|orbit.empty.user',
-                    'birthdate'             => 'required|date_format:Y-m-d',
+                    'user_id'               => 'orbit.empty.user',
+                    'birthdate'             => 'date_format:Y-m-d',
                     'password'              => 'min:5|confirmed',
                     'employee_role'         => 'orbit.empty.employee.role',
+                    'employee_id_char'      => 'orbit.exists.employeeid_but_me',
                     'retailer_ids'          => 'array|min:1|orbit.empty.retailer',
                     'status'                => 'orbit.empty.user_status',
-                    'position'              => 'required'
                 ),
                 array(
                     'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
@@ -359,14 +344,6 @@ class EmployeeAPIController extends ControllerAPI
                 $updatedUser->user_role_id = $role->role_id;
             });
 
-            OrbitInput::post('firstname', function($_firstname) use ($updatedUser) {
-                $updatedUser->user_firstname = $_firstname;
-            });
-
-            OrbitInput::post('lastname', function($_lastname) use ($updatedUser) {
-                $updatedUser->user_lastname = $_lastname;
-            });
-
             $updatedUser->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.employee.postupdateemployee.before.save', array($this, $updatedUser));
@@ -380,6 +357,10 @@ class EmployeeAPIController extends ControllerAPI
 
             OrbitInput::post('position', function($_position) use ($employee) {
                 $employee->position = $_position;
+            });
+
+            OrbitInput::post('employee_id_char', function($empId) use ($employee) {
+                $employee->employee_id_char = $empId;
             });
 
             $employee->status = $updatedUser->status;
@@ -1034,6 +1015,20 @@ class EmployeeAPIController extends ControllerAPI
             return TRUE;
         });
 
+        Validator::extend('orbit.exists.employeeid_but_me', function ($attribute, $value, $parameters) {
+            $userId = OrbitInput::post('user_id');
+            $employee = Employee::excludeDeleted()
+                                ->where('employee_id_char', $value)
+                                ->where('user_id', '!=', $userId)
+                                ->first();
+
+            if (! empty($employee)) {
+                App::instance('orbit.exists.employeeid', $employee);
+                return FALSE;
+            }
+
+            return TRUE;
+        });
 
         Validator::extend('orbit.empty.retailer', function ($attribute, $retailerIds, $parameters) {
             if (! is_array($retailerIds)) {
