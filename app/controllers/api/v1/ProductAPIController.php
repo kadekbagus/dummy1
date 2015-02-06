@@ -337,12 +337,6 @@ class ProductAPIController extends ControllerAPI
                 $merchant_id = $updatedproduct->merchant_id;
 
                 foreach ($variant_decode as $variant_index=>$variant) {
-                    $nullNumber = (int)Config::get('memory:productapicontroller.skipped.' . $variant_index);
-                    if ($nullNumber === 5) {
-                        // All attribute values are null, skip saving
-                        continue;
-                    }
-
                     // Return the default price if the variant price is empty
                     $vprice = function() use ($variant, $updatedproduct) {
                         if (empty($variant->price)) {
@@ -364,7 +358,7 @@ class ProductAPIController extends ControllerAPI
                     // Return the default upc if the variant upc is empty
                     $vupc = function() use ($variant, $updatedproduct) {
                         if (empty($variant->upc)) {
-                            return $updatedproduct->upc;
+                            return $updatedproduct->upc_code;
                         }
 
                         return $variant->upc;
@@ -408,11 +402,10 @@ class ProductAPIController extends ControllerAPI
 
                         // Compare it
                         if ((string)$_attribute_value->product_attribute_id !== $old_product_id) {
-                            $errorMessage = sprintf('Invalid attribute order. %s vs %s => %s',
-                                                    $_attribute_value->product_attribute_id,
-                                                    $old_product_id,
-                                                    $attributeIndex
-                            );
+                            $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.order', [
+                                                    'expect' => $old_product_id,
+                                                    'got' => $_attribute_value->product_attribute_id
+                            ]);
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
                         }
                     }
@@ -1718,9 +1711,12 @@ class ProductAPIController extends ControllerAPI
             }
             if ($empty >= 5) {
                 // Add flag to this variant so it not be saved
-                Config::set('memory:productapicontroller.skipped.' . $i, 5);
-                continue;
+                $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            // Make sure the combinations does not exist yet
+            // $productVariant = ProductVariant::where(
 
             // Check each of these product attribute value existence
             $merchantId = $this->getMerchantId();
