@@ -169,7 +169,9 @@
               if(data.data){
                 // console.log(data.data);
                 $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365 });
-                window.location.replace(homePath);
+                setTimeout(function() {
+                  window.location.replace(homePath);
+                }, 1500);
               }
             }).fail(function(data){
               $('#errorModalText').text(data.responseJSON.message);

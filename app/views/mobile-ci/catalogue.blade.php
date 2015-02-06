@@ -2,13 +2,31 @@
 
 @section('ext_style')
 	{{ HTML::style('mobile-ci/stylesheet/featherlight.min.css') }}
+	<script type="text/javascript">
+       	$(document).ready(function()
+        {
+            var d = new Date();
+            d = d.getTime();
+            if ($('#reloadValue').val().length == 0)
+            {
+                $('#reloadValue').val(d);
+                $('body').show();
+                $(window).scrollTop($.cookie('lastpos')); 
+            }
+            else
+            {
+                $('#reloadValue').val('');
+                location.reload();
+            }
+        });
+   </script>
 @stop
 
 @section('content')
 <div onunload="">
 	@if($hasFamily == 'no')
 		<ul class="family-list">
-		@foreach($families as $family)
+		@foreach($families as $family) 
 			<li data-family-container="{{ $family->category_id }}" data-family-container-level="{{ $family->category_level }}"><a class="family-a" data-family-id="{{ $family->category_id }}" data-family-level="{{ $family->category_level }}" data-family-isopen="0"><div class="family-label">{{ $family->category_name }} <i class="fa fa-chevron-circle-down"></i></div></a>
 				<div class="product-list"></div>
 			</li>
@@ -22,7 +40,7 @@
 				<div class="product-list">
 					@if($family->category_id == Session::get('f1'))
 						@foreach($lvl1->records as $product)
-							<div class="main-theme catalogue">
+							<div class="main-theme catalogue" id="product-{{$product->product_id}}">
 								<div class="row row-xs-height catalogue-top">
 									<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 										<div>
@@ -115,7 +133,7 @@
 									<div class="product-list">
 										@if($subfamily->category_id == Session::get('f2'))
 											@foreach($lvl2->records as $product2)
-												<div class="main-theme catalogue">
+												<div class="main-theme catalogue" id="product-{{$product2->product_id}}">
 													<div class="row row-xs-height catalogue-top">
 														<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 															<div>
@@ -208,7 +226,7 @@
 														<div class="product-list">
 															@if($subfamily2->category_id == Session::get('f3'))
 																@foreach($lvl3->records as $product3)
-																	<div class="main-theme catalogue">
+																	<div class="main-theme catalogue" id="product-{{$product3->product_id}}">
 																		<div class="row row-xs-height catalogue-top">
 																			<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 																				<div>
@@ -301,7 +319,7 @@
 																			<div class="product-list">
 																				@if($subfamily3->category_id == Session::get('f4'))
 																					@foreach($lvl4->records as $product4)
-																						<div class="main-theme catalogue">
+																						<div class="main-theme catalogue" id="product-{{$product4->product_id}}">
 																							<div class="row row-xs-height catalogue-top">
 																								<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 																									<div>
@@ -394,7 +412,7 @@
 																								<div class="product-list">
 																									@if($subfamily4->category_id == Session::get('f5'))
 																										@foreach($lvl5->records as $product5)
-																											<div class="main-theme catalogue">
+																											<div class="main-theme catalogue" id="product-{{$product5->product_id}}">
 																												<div class="row row-xs-height catalogue-top">
 																													<div class="col-xs-6 catalogue-img col-xs-height col-middle">
 																														<div>
@@ -512,6 +530,8 @@
 		</ul>
 	@endif
 </div>
+
+<input id="reloadValue" type="hidden" name="reloadValue" value="" />
 @stop
 
 @section('modals')
@@ -549,7 +569,7 @@
 @section('ext_script_bot')
 	{{ HTML::script('mobile-ci/scripts/jquery-ui.min.js') }}
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
-	{{ HTML::script('mobile-ci/scripts/jquery.storageapi.min.js') }}
+	{{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 	<script type="text/javascript">
 		// window.onunload = function(){};
 		// window.onbeforeunload = function () {
@@ -560,6 +580,18 @@
 		//         window.location.reload() 
 		//     }
 		// });
+		var timeout = null;
+        $(window).scroll(function () {
+		    if (!timeout) {
+		        timeout = setTimeout(function () {
+		            // console.log($(window).scrollTop());
+		            $.cookie('lastpos', $(window).scrollTop(), { expires: 300 });
+		            clearTimeout(timeout);
+		            timeout = null;
+		        }, 250);
+		    }
+		});
+
 		$(document).ready(function(){
 
 			$('.family-list').on('click', 'a.family-a', function(event){
@@ -638,6 +670,8 @@
 				var prodvarid = $(this).data('product-variant-id');
 				var img = $(this).children('i');
 				var cart = $('#shopping-cart');
+				anchor.hide();
+				$('<div class="circlet btn-blue detail-btn cart-spinner"><a><span class="link-spanner"></span><i class="fa fa-circle-o-notch fa-spin"></i></a></div>').insertAfter(anchor);
 				if(hasCoupon){
 					$.ajax({
 						url: apiPath+'customer/productcouponpopup',
@@ -682,6 +716,8 @@
 							}
 						}).done(function(data){
 							// animate cart
+							anchor.show();
+							$('.cart-spinner').hide();
 							if(data.status == 'success'){
 								if(data.data.available_coupons.length < 1){
 									anchor.data('hascoupon', '');

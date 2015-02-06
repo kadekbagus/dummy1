@@ -275,7 +275,7 @@
     </div>
     @endif
 
-    {{ $cartdata->cartsummary->subtotal_wo_tax }} | {{ $cartdata->cartsummary->vat }} | {{ $cartdata->cartsummary->subtotal_wo_tax + $cartdata->cartsummary->vat }} || {{ $cartdata->cartsummary->total_to_pay }}
+    {{-- $cartdata->cartsummary->subtotal_wo_tax }} | {{ $cartdata->cartsummary->vat }} | {{ $cartdata->cartsummary->subtotal_wo_tax + $cartdata->cartsummary->vat }} || {{ $cartdata->cartsummary->total_to_pay --}}
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
