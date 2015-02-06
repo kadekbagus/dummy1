@@ -51,7 +51,7 @@
                       <!-- Slideshow 4 -->
                       <div class="callbacks_container">
                         <ul class="rslides" id="slider1">
-                          @if(count($new_products) > 1)
+                          @if(count($new_products) > 0)
                             @foreach($new_products as $new_product)
                               <li>
                                 <a href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
