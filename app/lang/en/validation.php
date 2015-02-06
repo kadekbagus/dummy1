@@ -216,9 +216,11 @@ return array(
             'product_attr' => array(
                 'attribute' => array(
                     'value' => array(
-                        'price' => 'The price should be in numeric or decimal.',
-                        'count' => 'The number of value must be 5.',
-                        'order' => 'Invalid attribute ID order, expected :expect but got :got.'
+                        'price'     => 'The price should be in numeric or decimal.',
+                        'count'     => 'The number of value must be 5.',
+                        'order'     => 'Invalid attribute ID order, expected :expect but got :got.',
+                        'allnull'   => 'All five attribute values can not be null at the same time.',
+                        'exists'    => 'The attribute combinations you have sent already exists.'
                     ),
                 ),
             ),
