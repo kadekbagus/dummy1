@@ -293,7 +293,6 @@ class EventAPIController extends ControllerAPI
 
             $event_id = OrbitInput::post('event_id');
             $merchant_id = OrbitInput::post('merchant_id');
-            $event_name = OrbitInput::post('event_name');
             $event_type = OrbitInput::post('event_type');
             $status = OrbitInput::post('status');
             $link_object_type = OrbitInput::post('link_object_type');
@@ -303,24 +302,30 @@ class EventAPIController extends ControllerAPI
             $link_object_id4 = OrbitInput::post('link_object_id4');
             $link_object_id5 = OrbitInput::post('link_object_id5');
 
+            $data = array(
+                'event_id'         => $event_id,
+                'merchant_id'      => $merchant_id,
+                'event_type'       => $event_type,
+                'status'           => $status,
+                'link_object_type' => $link_object_type,
+                'link_object_id1'  => $link_object_id1,
+                'link_object_id2'  => $link_object_id2,
+                'link_object_id3'  => $link_object_id3,
+                'link_object_id4'  => $link_object_id4,
+                'link_object_id5'  => $link_object_id5,
+            );
+
+            // Validate event_name only if exists in POST.
+            OrbitInput::post('event_name', function($event_name) use (&$data) {
+                $data['event_name'] = $event_name;
+            });
+
             $validator = Validator::make(
-                array(
-                    'event_id'         => $event_id,
-                    'merchant_id'      => $merchant_id,
-                    'event_name'       => $event_name,
-                    'event_type'       => $event_type,
-                    'status'           => $status,
-                    'link_object_type' => $link_object_type,
-                    'link_object_id1'  => $link_object_id1,
-                    'link_object_id2'  => $link_object_id2,
-                    'link_object_id3'  => $link_object_id3,
-                    'link_object_id4'  => $link_object_id4,
-                    'link_object_id5'  => $link_object_id5,
-                ),
+                $data,
                 array(
                     'event_id'         => 'required|numeric|orbit.empty.event',
                     'merchant_id'      => 'numeric|orbit.empty.merchant',
-                    'event_name'       => 'max:100|event_name_exists_but_me',
+                    'event_name'       => 'sometimes|required|min:5|max:100|event_name_exists_but_me',
                     'event_type'       => 'orbit.empty.event_type',
                     'status'           => 'orbit.empty.event_status',
                     'link_object_type' => 'orbit.empty.link_object_type',
