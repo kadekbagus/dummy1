@@ -315,7 +315,6 @@ class PromotionAPIController extends ControllerAPI
 
             $promotion_id = OrbitInput::post('promotion_id');
             $merchant_id = OrbitInput::post('merchant_id');
-            $promotion_name = OrbitInput::post('promotion_name');
             $promotion_type = OrbitInput::post('promotion_type');
             $status = OrbitInput::post('status');
             $rule_type = OrbitInput::post('rule_type');
@@ -326,25 +325,31 @@ class PromotionAPIController extends ControllerAPI
             $discount_object_id4 = OrbitInput::post('discount_object_id4');
             $discount_object_id5 = OrbitInput::post('discount_object_id5');
 
+            $data = array(
+                'promotion_id'         => $promotion_id,
+                'merchant_id'          => $merchant_id,
+                'promotion_type'       => $promotion_type,
+                'status'               => $status,
+                'rule_type'            => $rule_type,
+                'discount_object_type' => $discount_object_type,
+                'discount_object_id1'  => $discount_object_id1,
+                'discount_object_id2'  => $discount_object_id2,
+                'discount_object_id3'  => $discount_object_id3,
+                'discount_object_id4'  => $discount_object_id4,
+                'discount_object_id5'  => $discount_object_id5,
+            );
+
+            // Validate promotion_name only if exists in POST.
+            OrbitInput::post('promotion_name', function($promotion_name) use (&$data) {
+                $data['promotion_name'] = $promotion_name;
+            });
+
             $validator = Validator::make(
-                array(
-                    'promotion_id'         => $promotion_id,
-                    'merchant_id'          => $merchant_id,
-                    'promotion_name'       => $promotion_name,
-                    'promotion_type'       => $promotion_type,
-                    'status'               => $status,
-                    'rule_type'            => $rule_type,
-                    'discount_object_type' => $discount_object_type,
-                    'discount_object_id1'  => $discount_object_id1,
-                    'discount_object_id2'  => $discount_object_id2,
-                    'discount_object_id3'  => $discount_object_id3,
-                    'discount_object_id4'  => $discount_object_id4,
-                    'discount_object_id5'  => $discount_object_id5,
-                ),
+                $data,
                 array(
                     'promotion_id'         => 'required|numeric|orbit.empty.promotion',
                     'merchant_id'          => 'numeric|orbit.empty.merchant',
-                    'promotion_name'       => 'max:100|promotion_name_exists_but_me',
+                    'promotion_name'       => 'sometimes|required|min:5|max:100|promotion_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.promotion_type',
                     'status'               => 'orbit.empty.promotion_status',
                     'rule_type'            => 'orbit.empty.rule_type',
