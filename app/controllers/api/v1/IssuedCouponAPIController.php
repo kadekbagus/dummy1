@@ -818,7 +818,8 @@ class IssuedCouponAPIController extends ControllerAPI
                 ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
                 ->join('promotion_retailer_redeem', 'promotions.promotion_id', '=', 'promotion_retailer_redeem.promotion_id')
                 ->join('merchants', 'promotion_retailer_redeem.retailer_id', '=', 'merchants.merchant_id')
-                ->select('promotion_retailer_redeem.retailer_id', 'merchants.name AS redeem_retailer_name', 'promotions.*', 'issued_coupons.*');
+                ->select('promotion_retailer_redeem.retailer_id', 'merchants.name AS redeem_retailer_name', 'promotions.*', 'issued_coupons.*')
+                ->where('issued_coupons.status', '!=', 'deleted');
 
             // Filter coupon by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($issuedcoupons)

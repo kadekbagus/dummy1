@@ -6,15 +6,41 @@
 
 @section('content')
 	@if(count($coupons) > 0)
-		<img class="img-responsive" src="{{ asset($coupons[0]->promo_image) }}">
+		<img class="img-responsive text-center promo-cover" src="{{ asset($coupons[0]->promo_image) }}">
 		<div class="row">
 			<div class="col-xs-12 vertically-spaced">
 				<p>{{ $coupons[0]->description }}</p>
+				@if($coupons[0]->promotion_type == 'product')
+					@if($coupons[0]->discount_object_type == 'product')
+						<p class="promo-item">Product : {{ $coupons[0]->product_name }}</p>
+					@elseif($coupons[0]->discount_object_type == 'family')
+						<p class="promo-item">
+							Category : 
+							@if(!is_null($coupons[0]->discount_object_id1))
+							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id1)->first()->category_name }}</span>
+							@endif
+							@if(!is_null($coupons[0]->discount_object_id2))
+							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id2)->first()->category_name }}</span>
+							@endif
+							@if(!is_null($coupons[0]->discount_object_id3))
+							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id3)->first()->category_name }}</span>
+							@endif
+							@if(!is_null($coupons[0]->discount_object_id4))
+							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id4)->first()->category_name }}</span>
+							@endif
+							@if(!is_null($coupons[0]->discount_object_id5))
+							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id5)->first()->category_name }}</span>
+							@endif
+						</p>
+					@endif
+				@endif
+				<h4>Kode kupon : {{ $coupons[0]->issued_coupon_code }}</h4>
 				<h4>Valid hingga : {{ date('j M Y', strtotime($coupons[0]->expired_date)) }}</h4>
 			</div>
 		</div>
 		@if($data->status === 1)
 			@if(sizeof($data->records) > 0)
+				@if(sizeof($data->records) > 1)
 				<div id="search-tool">
 				    <div class="row">
 					    <div class="col-xs-6 search-tool-col">
@@ -49,6 +75,7 @@
 					    </div>
 				 	</div>
 				</div>
+				@endif
 				@foreach($data->records as $product)
 					<div class="main-theme catalogue" id="product-{{$product->product_id}}">
 						<div class="row row-xs-height catalogue-top">

@@ -74,7 +74,7 @@
   <footer>
     <div class="row">
       <div class="col-xs-12 text-center">
-        <img class="img-responsive orbit-footer" src="{{ asset('mobile-ci/images/orbit-footer.png') }}">
+        <img class="img-responsive orbit-footer" style="width:120px;" src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
       </div>
     </div>
   </footer>
@@ -169,7 +169,9 @@
               if(data.data){
                 // console.log(data.data);
                 $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365 });
-                window.location.replace(homePath);
+                setTimeout(function() {
+                  window.location.replace(homePath);
+                }, 1500);
               }
             }).fail(function(data){
               $('#errorModalText').text(data.responseJSON.message);

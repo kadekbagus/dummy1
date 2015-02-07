@@ -13,22 +13,22 @@ use Illuminate\Database\QueryException;
 class MerchantTaxAPIController extends ControllerAPI
 {
     /**
-     * GET - Search merchant tax
+     * GET - Search Merchant Tax
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
-     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_by`                       (optional) - column order by. Valid value: registered_date, merchant_tax_id, tax_name, tax_value, tax_order.
      * @param string            `sort_mode`                     (optional) - asc or desc
      * @param integer           `take`                          (optional) - limit
      * @param integer           `skip`                          (optional) - limit offset
-     * @param integer           `merchant_tax_id`               (optional)
-     * @param string            `tax_name`                      (optional)
-     * @param string            `tax_name_like`                 (optional)
-     * @param decimal           `tax_value`                     (optional)
+     * @param integer           `merchant_tax_id`               (optional) - Merchant tax ID
+     * @param string            `tax_name`                      (optional) - Tax name
+     * @param string            `tax_name_like`                 (optional) - Tax name like pattern
+     * @param decimal           `tax_value`                     (optional) - Tax value
+     * @param integer           `tax_order`                     (optional) - Tax order
      */
-
     public function getSearchMerchantTax()
     {
         try {
@@ -62,7 +62,7 @@ class MerchantTaxAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,merchant_tax_id,tax_name,tax_value',
+                    'sort_by' => 'in:registered_date,merchant_tax_id,tax_name,tax_value,tax_order',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.tax_sortby'),
@@ -93,6 +93,11 @@ class MerchantTaxAPIController extends ControllerAPI
                 $taxes->whereIn('merchant_taxes.merchant_tax_id', $merchantTaxId);
             });
 
+            // Filter Merchant Tax by Merchant Ids
+            OrbitInput::get('merchant_id', function ($merchantIds) use ($taxes) {
+                $taxes->whereIn('merchant_taxes.merchant_id', $merchantIds);
+            });
+
             // Filter Merchant Tax by Tax Name
             OrbitInput::get('tax_name', function($tax_name) use ($taxes)
             {
@@ -109,6 +114,12 @@ class MerchantTaxAPIController extends ControllerAPI
             OrbitInput::get('tax_value', function($tax_value) use ($taxes)
             {
                 $taxes->whereIn('merchant_taxes.tax_value', $tax_value);
+            });
+
+            // Filter Merchant Tax by Tax Order
+            OrbitInput::get('tax_order', function($tax_order) use ($taxes)
+            {
+                $taxes->whereIn('merchant_taxes.tax_order', $tax_order);
             });
 
             $_taxes = clone $taxes;
@@ -148,6 +159,7 @@ class MerchantTaxAPIController extends ControllerAPI
                     'merchant_tax_id'           => 'merchant_taxes.merchant_tax_id',
                     'tax_name'                  => 'merchant_taxes.tax_name',
                     'tax_value'                 => 'merchant_taxes.tax_value',
+                    'tax_order'                 => 'merchant_taxes.tax_order',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];

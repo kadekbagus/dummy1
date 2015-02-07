@@ -21,6 +21,35 @@
 								<div class="col-xs-12">
 									<h3>{{ $promo->promotion_name }}</h3>
 								</div>
+								@if($promo->promotion_type == 'product')
+									<div class="col-xs-12">
+									@if($promo->discount_object_type == 'product')
+										<p class="promo-item">Product : {{ $promo->product_name }}</p>
+									@elseif($promo->discount_object_type == 'family')
+										<p class="promo-item">
+											Category : 
+											@if(!is_null($promo->discount_object_id1))
+											<span>{{ Category::where('category_id', $promo->discount_object_id1)->first()->category_name }}</span>
+											@endif
+											@if(!is_null($promo->discount_object_id2))
+											<span>{{ Category::where('category_id', $promo->discount_object_id2)->first()->category_name }}</span>
+											@endif
+											@if(!is_null($promo->discount_object_id3))
+											<span>{{ Category::where('category_id', $promo->discount_object_id3)->first()->category_name }}</span>
+											@endif
+											@if(!is_null($promo->discount_object_id4))
+											<span>{{ Category::where('category_id', $promo->discount_object_id4)->first()->category_name }}</span>
+											@endif
+											@if(!is_null($promo->discount_object_id5))
+											<span>{{ Category::where('category_id', $promo->discount_object_id5)->first()->category_name }}</span>
+											@endif
+										</p>
+									@endif
+									</div>
+								@endif
+								<div class="col-xs-12">
+									<h4>Kode Kupon : {{ $promo->issued_coupon_code }}</h4>
+								</div>
 								<div class="col-xs-12">
 									<h4>Valid hingga : <br>{{ date('j M Y', strtotime($promo->expired_date)) }}</h4>
 								</div>

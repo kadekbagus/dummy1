@@ -25,3 +25,8 @@ Route::post('/app/v1/user/token/check', 'IntermediateLoginController@postRegiste
  * Alias for check token
  */
 Route::post('/app/v1/user/activate', 'IntermediateLoginController@postRegisterTokenCheck');
+
+/**
+ * Token List
+ */
+Route::get('/app/v1/token/list', 'IntermediateLoginController@getTokenList');

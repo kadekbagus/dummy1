@@ -31,3 +31,11 @@ Route::get('/api/v1/user/token/check', function()
 {
     return LoginAPIController::create()->getRegisterTokenCheck();
 });
+
+/**
+ * Token List
+ */
+Route::get('/api/v1/token/list', function()
+{
+    return TokenAPIController::create()->getSearchToken();
+});

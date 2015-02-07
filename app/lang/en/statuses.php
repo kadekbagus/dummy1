@@ -24,7 +24,8 @@ return array(
             'event'          => 'Event has been successfully deleted.',
         ),
         'updated'   => array(
-            'user'      => 'User has been successfully updated.',
+            'user'           => 'User has been successfully updated.',
+            'your_password'  => 'Your password has been successfully updated.'
         ),
         'nodata'    => array(
             'user'          => 'There is no user found that matched your criteria.',
