@@ -443,7 +443,7 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-             <button class="btn  close closemodal" data-ng-if="action != 'done'" data-dismiss="modal" data-ng-click="gotomain()"type="button">
+             <button class="btn  close closemodal" data-ng-if="action != 'done' && cardfile" data-dismiss="modal" data-ng-click="gotomain()"type="button">
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
              </button>
             <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
@@ -491,15 +491,19 @@
                                           <button data-ng-click="virtualFn(false)" class="button-wide smaller">Done</button>
 
                                       </div>
-                                       {{--<div class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></div>--}}
+
                                </div>
 
                    </div>
                    <div class="row" ng-show="action == 'card'">
 
                     <div class="row">
-                         <span  class="text-center" data-ng-if="cardfile"><% headrcard %> failed</span>
-                         <span  class="text-center" data-ng-if="!cardfile">Gesek Kartu Sekarang</span>
+                            <div class="col-md-12">
+                              <span  class="text-center"><% cardfile ? headrcard+' failed':'Gesek Kartu Sekarang' %> </span>
+                            </div>
+                            <div class="col-md-12">
+                             <img src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
+                            </div>
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
@@ -509,7 +513,7 @@
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
                      <button type="button"  data-ng-if="cardfile && action != 'done'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
-                     <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
+                     <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
         </div>

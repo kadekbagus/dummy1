@@ -476,27 +476,31 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.customerdispaly('TOTAL',$scope.cart.totalpay);
                             break;
                         case 'k':
-                            $scope.cardfile = false;
+                            $scope.cardfile  = false;
+                            $scope.headrcard = term;
+                            $scope.tmpcarad = [];
                             //terminal 1
                             $scope.action = 'card';
                             $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
                             //case success
                             serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
-                             if(response.code == 0){
-                             //todo:agung: make sure return result
-                             $scope.savetransactions();
-                             }else{
-                             //do something
-                             $scope.cheader = 'TRANSAKSI GAGAL';
-                             }
+                               $scope.tmpcarad = response;
                              });
                             //case fail
-                           /* var failcard = function() {
-                                $scope.cheader = 'TRANSAKSI GAGAL';
-                                $scope.cardfile = true;
-                                $scope.headrcard = term ? term :$scope.headrcard;
-                            };
-                            $timeout(failcard, 4000);*/
+                            $timeout(function(){
+                                if($scope.tmpcarad.length){
+                                    if($scope.tmpcarad.code == 0){
+                                        //todo:agung: make sure return result
+                                        $scope.savetransactions();
+                                    }else{
+                                        $scope.cheader  = 'TRANSAKSI GAGAL';
+                                        $scope.cardfile = true;
+                                    }
+                                }else{
+                                    $scope.cheader  = 'TRANSAKSI GAGAL';
+                                    $scope.cardfile = true;
+                                }
+                            },10000);
                             break;
                         case 'd' :
                             //done
