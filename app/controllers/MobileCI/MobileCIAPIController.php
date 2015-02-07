@@ -2560,6 +2560,7 @@ class MobileCIAPIController extends ControllerAPI
                 $discount_cart_promo_wo_tax = 0;
                 $discount_cart_coupon = 0;
                 $cart_promo_taxes = 0;
+                $subtotal_before_cart_promo = $subtotal;
 
                 if(!empty($promo_carts)) {
                     foreach($promo_carts as $promo_cart){
@@ -2678,6 +2679,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cartsummary->acquired_promo_carts = $acquired_promo_carts;
                 $cartsummary->used_cart_coupons = $acquired_coupon_carts;
                 $cartsummary->available_coupon_carts = $available_coupon_carts;
+                $cartsummary->subtotal_before_cart_promo = $subtotal_before_cart_promo;
                 $cartdata->cartsummary = $cartsummary;
                 // $cartdata->attributes = $attributes;
             } else {

@@ -137,16 +137,17 @@
           <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
+
       @foreach($cartdata->cartsummary->acquired_promo_carts as $promo_cart)
       <div class="cart-sum-bodies">
         <div class="cart-sum-single-body">
           <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
         </div>
         <div class="cart-sum-single-body">
-          <span class="formatted-num"></span>
+          <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_before_cart_promo }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span>{{$promo_cart->disc_val_str}}</span>
+          <span class="@if($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$promo_cart->disc_val_str}}</span>
         </div>
         <div class="cart-sum-single-body">
           <span class="formatted-num">{{$promo_cart->disc_val}}</span>
@@ -181,10 +182,10 @@
             <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
           </div>
           <div class="cart-sum-single-body">
-            <span class="formatted-num"></span>
+            <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_before_cart_promo }}</span>
           </div>
           <div class="cart-sum-single-body">
-            <span>{{$coupon_cart->disc_val_str}}</span>
+            <span class="@if($coupon_cart->issuedcoupon->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($coupon_cart->issuedcoupon->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$coupon_cart->disc_val_str}}</span>
           </div>
           <div class="cart-sum-single-body">
             <span class="formatted-num">{{$coupon_cart->disc_val}}</span>
@@ -219,14 +220,13 @@
         </div>
       </div>
       @foreach($cartdata->cartsummary->available_coupon_carts as $available_coupon_cart)
-      <!-- <pre>{{ $available_coupon_cart }}</pre> -->
         @foreach($available_coupon_cart->issuedcoupons as $issuedcoupon)
         <div class="cart-sum-bodies">
           <div class="cart-sum-single-body">
             <span class="coupon-name" data-coupon="{{ $available_coupon_cart->promotion_id }}"><b>{{$available_coupon_cart->promotion_name}}</b></span>
           </div>
           <div class="cart-sum-single-body">
-            <span>{{$available_coupon_cart->disc_val_str}}</span>
+            <span class="@if($available_coupon_cart->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($available_coupon_cart->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$available_coupon_cart->disc_val_str}}</span>
           </div>
           <div class="cart-sum-single-body">
             <span class="formatted-num">{{$available_coupon_cart->disc_val}}</span>
@@ -429,22 +429,31 @@
 @section('ext_script_bot')
 {{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
-  Number.prototype.formatMoney = function(c, d, t){
-  var n = this, 
-      c = isNaN(c = Math.abs(c)) ? 2 : c, 
-      d = d == undefined ? "." : d, 
-      t = t == undefined ? "," : t, 
-      s = n < 0 ? "-" : "", 
-      i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
-      j = (j = i.length) > 3 ? j % 3 : 0;
-     return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
-  };
+  // Number.prototype.formatMoney = function(c, d, t){
+  // var n = this, 
+  //     c = isNaN(c = Math.abs(c)) ? 2 : c, 
+  //     d = d == undefined ? "." : d, 
+  //     t = t == undefined ? "," : t, 
+  //     s = n < 0 ? "-" : "", 
+  //     i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+  //     j = (j = i.length) > 3 ? j % 3 : 0;
+  //    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+  // };
   // console.log((123456789.12345).formatMoney(2, '.', ','));
 
   $(document).ready(function(){
     $('.formatted-num').each(function(index){
-      var num = parseFloat($(this).text());
-      $(this).text((num).formatMoney(2, '.', ','));
+
+      var num = parseFloat($(this).text()).toFixed(2);
+      var partnum = num.toString().split('.');
+      console.log(partnum);
+      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+      if(partnum[1] == '00'){
+        $(this).text(part1);
+      } else {
+        var part2 = partnum[1];
+        $(this).text(part1 + '.' + part2);
+      }
     });
     $('.percentage-num').each(function(index){
       var num = parseFloat($(this).text());
