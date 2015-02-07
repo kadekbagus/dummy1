@@ -478,29 +478,26 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         case 'k':
                             $scope.cardfile  = false;
                             $scope.headrcard = term;
-                            $scope.tmpcarad = [];
+
                             //terminal 1
                             $scope.action = 'card';
                             $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
+                            $scope.hasaccepted = false;
                             //case success
                             serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
-                               $scope.tmpcarad = response;
+                                if(response.code == 0){
+                                    $scope.savetransactions();
+                                    $scope.hasaccepted = true;
+                                }
                              });
-                            //case fail
+                            //wait driver until 45 seconds
                             $timeout(function(){
-                                if($scope.tmpcarad.length){
-                                    if($scope.tmpcarad.code == 0){
-                                        //todo:agung: make sure return result
-                                        $scope.savetransactions();
-                                    }else{
-                                        $scope.cheader  = 'TRANSAKSI GAGAL';
-                                        $scope.cardfile = true;
-                                    }
-                                }else{
+                                if(!$scope.hasaccepted) {
                                     $scope.cheader  = 'TRANSAKSI GAGAL';
                                     $scope.cardfile = true;
                                 }
                             },10000);
+
                             break;
                         case 'd' :
                             //done
