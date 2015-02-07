@@ -2679,7 +2679,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cartsummary->used_cart_coupons = $acquired_coupon_carts;
                 $cartsummary->available_coupon_carts = $available_coupon_carts;
                 $cartdata->cartsummary = $cartsummary;
-                $cartdata->attributes = $attributes;
+                // $cartdata->attributes = $attributes;
             } else {
 
             }

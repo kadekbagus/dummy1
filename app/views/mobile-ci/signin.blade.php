@@ -18,6 +18,14 @@
 @stop
 
 @section('content')
+  @if (isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'CaptiveNetwork') !== false))
+    header($_SERVER['SERVER_PROTOCOL'].' 200 OK');
+    header('Content-type: text/html');
+    header('Connection: close');
+    header('Vary: Accept-Encoding');
+    echo('<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>');
+    exit();
+  @else
   <div class="row top-space" id="signIn">
     <div class="col-xs-12">
       <header>
@@ -68,6 +76,7 @@
       <a id="notMe">Bukan <span class="signedUser"></span>, klik disini.</a>
     </div>
   </div>
+  @endif
 @stop
 
 @section('footer')
@@ -169,9 +178,7 @@
               if(data.data){
                 // console.log(data.data);
                 $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365 });
-                setTimeout(function() {
-                  window.location.replace(homePath);
-                }, 1500);
+                window.location.replace(homePath);
               }
             }).fail(function(data){
               $('#errorModalText').text(data.responseJSON.message);
