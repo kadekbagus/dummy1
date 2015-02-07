@@ -112,23 +112,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.adddelenadis($scope.cart[id]['product_id'],'del');
                         $scope.cart.splice(id ,1);
                     };
-                    //check is promotion
-                    var checkpromotion = function(){
-                        if($scope.cart[id]['promotion'].length){
-                            for(var i = 0; i < $scope.cart[id]['promotion'].length;i++){
-                                $scope.cart[id]['promotion'][i]['afterpromotionprice'] = accounting.formatMoney($scope.cart[id]['promotion'][i]['tmpafterpromotionprice'] * $scope.cart[id]['qty'], "", 0, ",", ".");
-                            }
-                        }
-                    };
+
                     if(action == 'p'){//add
                         $scope.cart[id]['qty'] = $scope.cart[id]['qty'] ? parseInt($scope.cart[id]['qty']) + 1 : 1;
-                        checkpromotion();
+                        $scope.watchqtypromotion(id);
                     }else if(action == 'm'){//minus
                         if($scope.cart[id]['qty'] == 1){
                             fndelete();
                         }else{
                             $scope.cart[id]['qty'] = $scope.cart[id]['qty'] - 1;
-                            checkpromotion();
+                            $scope.watchqtypromotion(id);
                         }
                     }else if(action == 'd'){//delete
                         fndelete();
@@ -137,6 +130,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         //do something when error
                     }
                     $scope.countcart();
+                };
+                //watch qty promotion
+                $scope.watchqtypromotion = function(id){
+                    if($scope.cart[id]['promotion'].length){
+                        for(var i = 0; i < $scope.cart[id]['promotion'].length;i++){
+                            $scope.cart[id]['promotion'][i]['afterpromotionprice'] = accounting.formatMoney($scope.cart[id]['promotion'][i]['tmpafterpromotionprice'] * $scope.cart[id]['qty'], "", 0, ",", ".");
+                        }
+                    }
                 };
                 //get product
                 $scope.getproduct = function(){
@@ -352,8 +353,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     promotioncartbase +=  $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
                                     $scope.applycartpromotion.push(angular.copy($scope.cartpromotions[j]));
                                     var idxapply = $scope.applycartpromotion.length -1;
-                                    $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = $scope.applycartpromotion[idxapply]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] * 100 +' %': accounting.unformat($scope.applycartpromotion[idxapply]['promotionrule']['discount_value']);
-                                    console.log($scope.applycartpromotion);
+                                    $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = $scope.applycartpromotion[idxapply]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] * 100 +' %': '- '+accounting.unformat($scope.applycartpromotion[idxapply]['promotionrule']['discount_value']);
                                 }
                             }
                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase, "", 0, ",", ".");
@@ -451,10 +451,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //delete cart && new cart
                 $scope.newdeletecartFn = function(act){
-                    $scope.successscant     = false;
-                    $scope.productidenabled = [];
-                    $scope.cart             = [];
-                    $scope.searchproduct    = '';
+                    $scope.successscant         = false;
+                    $scope.productidenabled     = [];
+                    $scope.cart                 = [];
+                    $scope.searchproduct        = '';
+                    $scope.applycartpromotion   = [];
                     $scope.getproduct();
                     if(act) $scope.getguest();
                     $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
@@ -480,7 +481,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.action = 'card';
                             $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
                             //case success
-                            /*serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
+                            serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
                              if(response.code == 0){
                              //todo:agung: make sure return result
                              $scope.savetransactions();
@@ -488,14 +489,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                              //do something
                              $scope.cheader = 'TRANSAKSI GAGAL';
                              }
-                             });*/
+                             });
                             //case fail
-                            var failcard = function() {
+                           /* var failcard = function() {
                                 $scope.cheader = 'TRANSAKSI GAGAL';
                                 $scope.cardfile = true;
                                 $scope.headrcard = term ? term :$scope.headrcard;
                             };
-                            $timeout(failcard, 4000);
+                            $timeout(failcard, 4000);*/
                             break;
                         case 'd' :
                             //done
@@ -637,6 +638,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.isqty = false;
                         }
                         $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? idx : $scope.cart[$scope.indexactiveqty]['qty']+idx;
+                        $scope.watchqtypromotion($scope.indexactiveqty);
                     }
                     $scope.countcart();
                 };
@@ -647,7 +649,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //show virtual qty
                 $scope.virtualqtyFn = function(bool,idx){
                     $scope.isvirtualqty = bool;
-                    if(!bool) $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
+                    if(!bool) {
+                        $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
+
+                    }
                     $scope.indexactiveqty = idx;
                     $scope.isqty  = true;
                     $scope.countcart();

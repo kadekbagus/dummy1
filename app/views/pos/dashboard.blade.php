@@ -95,13 +95,15 @@
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">
-                               <th colspan="2" style="color: white">CART BASED PROMOTION</th>
+                               <th colspan="4" style="color: white">CART BASED PROMOTION</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr data-ng-repeat="(k,v) in applycartpromotion">
                                 <td><% v.promotion_name %></td>
-                                <td><% v.promotionrule.discount_value %></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-right"><% v.promotionrule.discount_value %></td>
                             </tr>
                         </tbody>
 
