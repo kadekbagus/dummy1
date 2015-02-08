@@ -843,7 +843,6 @@ class RetailerAPIController extends ControllerAPI
             }
 
             // Builder object
-            // $retailers = Retailer::excludeDeleted();
             $retailers = Retailer::excludeDeleted()->allowedForUser($user);
 
             // Filter retailer by Ids
