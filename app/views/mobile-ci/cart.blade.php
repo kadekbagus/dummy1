@@ -443,7 +443,6 @@
 
   $(document).ready(function(){
     $('.formatted-num').each(function(index){
-
       var num = parseFloat($(this).text()).toFixed(2);
       var partnum = num.toString().split('.');
       console.log(partnum);
@@ -459,7 +458,7 @@
       var num = parseFloat($(this).text());
       $(this).text(num+'%');
     });
-    console.log($('.formatted-num').text());
+    // console.log($('.formatted-num').text());
     $('#dismiss').change(function(){
       if($(this).is(':checked')) {
         $.cookie('dismiss_transfercart_popup', 't', { expires: 30 });
