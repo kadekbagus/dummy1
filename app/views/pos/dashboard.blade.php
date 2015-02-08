@@ -91,7 +91,7 @@
 
                     </table>
                 </div>
-                <div class="table-responsive" data-ng-show="applycartpromotion.length">
+                <div class="table-responsive" data-ng-show="applycartpromotion.length > 1">
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">

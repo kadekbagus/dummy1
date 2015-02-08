@@ -285,7 +285,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 })();
                 // when choose last the attribute
                 $scope.changeattr = function(id,idx){
-
+                    $scope.showprice = false;
                     for(var i = id+1; i < $scope.chooseattr.length; i++ ){
                        $scope.chooseattr[i] = '';
                     }
@@ -348,6 +348,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.applycartpromotion      = [];
                             var promotioncartbase          = 0;
                             var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
+                            //add header subtotal before promotion
+                            $scope.applycartpromotion.push({
+                              promotion_name : 'Sub Total',
+                              promotionrule : {
+                                  discount_value :  $scope.cart.subtotal
+                              }
+                            });
                             for(var j = 0; j < $scope.cartpromotions.length;j++){
                                 if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
                                     promotioncartbase +=  $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
