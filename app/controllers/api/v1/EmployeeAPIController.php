@@ -805,7 +805,8 @@ class EmployeeAPIController extends ControllerAPI
                     'username'          => 'users.username',
                     'employee_id_char'  => 'employee.employee_id_char',
                     'lastname'          => 'users.user_lastname',
-                    'firstname'         => 'users.user_firstname'
+                    'firstname'         => 'users.user_firstname',
+                    'position'          => 'employee.position'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
