@@ -230,6 +230,14 @@ return array(
             'pos_quick_product' => array(
                 'array_count'   => 'The number of item should not be more than :number.'
             ),
+            'merchant' => array(
+                'ticket_header' => array(
+                    'max_length' => 'Merchant ticket header max length is 40 characters for each line.'
+                ),
+                'ticket_footer' => array(
+                    'max_length' => 'Merchant ticket footer max length is 40 characters for each line.'
+                ),
+            ),
         ),
         'actionlist' => array(
             'change_password'           => 'change password',
