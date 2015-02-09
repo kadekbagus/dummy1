@@ -88,10 +88,10 @@
 												<small>Starting From</small>
 												@endif
 												@if($product->on_promo)
-													<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product->min_price }}</span></h3>
-													<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->priceafterpromo }}</span></h3>
+													<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product->min_price }}</span></h3>
+													<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->priceafterpromo }}</span></h3>
 												@else
-												<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product->min_price }}</h3>
+												<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->min_price }}</span></h3>
 												@endif
 											</div>
 										</div>
@@ -181,10 +181,10 @@
 																	<small>Starting From</small>
 																	@endif
 																	@if($product2->on_promo)
-																		<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product2->min_price }}</span></h3>
-																		<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product2->priceafterpromo }}</span></h3>
+																		<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product2->min_price }}</span></h3>
+																		<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product2->priceafterpromo }}</span></h3>
 																	@else
-																	<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product2->min_price }}</h3>
+																	<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product2->min_price }}</span></h3>
 																	@endif
 																</div>
 															</div>
@@ -274,10 +274,10 @@
 																						<small>Starting From</small>
 																						@endif
 																						@if($product3->on_promo)
-																							<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product3->min_price }}</span></h3>
-																							<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product3->priceafterpromo }}</span></h3>
+																							<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product3->min_price }}</span></h3>
+																							<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product3->priceafterpromo }}</span></h3>
 																						@else
-																						<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product3->min_price }}</h3>
+																						<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product3->min_price }}</span></h3>
 																						@endif
 																					</div>
 																				</div>
@@ -367,10 +367,10 @@
 																											<small>Starting From</small>
 																											@endif
 																											@if($product4->on_promo)
-																												<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product4->min_price }}</span></h3>
-																												<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product4->priceafterpromo }}</span></h3>
+																												<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product4->min_price }}</span></h3>
+																												<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product4->priceafterpromo }}</span></h3>
 																											@else
-																											<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product4->min_price }}</h3>
+																											<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product4->min_price }}</span></h3>
 																											@endif
 																										</div>
 																									</div>
@@ -460,10 +460,10 @@
 																																<small>Starting From</small>
 																																@endif
 																																@if($product5->on_promo)
-																																	<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product5->min_price }}</span></h3>
-																																	<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product5->priceafterpromo }}</span></h3>
+																																	<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product5->min_price }}</span></h3>
+																																	<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product5->priceafterpromo }}</span></h3>
 																																@else
-																																<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product5->min_price }}</h3>
+																																<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product5->min_price }}</h3>
 																																@endif
 																															</div>
 																														</div>
@@ -580,6 +580,18 @@
 		//         window.location.reload() 
 		//     }
 		// });
+		$('.formatted-num').each(function(index){
+	      var num = parseFloat($(this).text()).toFixed(2);
+	      var partnum = num.toString().split('.');
+	      console.log(partnum);
+	      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+	      if(partnum[1] == '00'){
+	        $(this).text(part1);
+	      } else {
+	        var part2 = partnum[1];
+	        $(this).text(part1 + '.' + part2);
+	      }
+	    });
 		var timeout = null;
         $(window).scroll(function () {
 		    if (!timeout) {
@@ -593,7 +605,6 @@
 		});
 
 		$(document).ready(function(){
-
 			$('.family-list').on('click', 'a.family-a', function(event){
 				var families = [];
 				@if(!empty(Session::get('f1')))
@@ -648,6 +659,18 @@
 						} else {
 							a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list").css('display', 'none').html(data).slideDown('slow');
 							$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
+							$('.formatted-num').each(function(index){
+						      var num = parseFloat($(this).text()).toFixed(2);
+						      var partnum = num.toString().split('.');
+						      console.log(partnum);
+						      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+						      if(partnum[1] == '00'){
+						        $(this).text(part1);
+						      } else {
+						        var part2 = partnum[1];
+						        $(this).text(part1 + '.' + part2);
+						      }
+						    });
 						}
 					});
 				} else {
@@ -663,6 +686,7 @@
 			// add to cart
 			$('.family-list').on('click', 'a.product-add-to-cart', function(event){
 				$('#hasCouponModal .modal-body p').html('');
+				var cc = 0;
 				var used_coupons = [];
 				var anchor = $(this);
 				var hasCoupon = $(this).data('hascoupon');
@@ -705,72 +729,152 @@
 					});
 					
 					$('#hasCouponModal').on('click', '#applyCoupon', function($event){
-						$.ajax({
-							url: apiPath+'customer/addtocart',
-							method: 'POST',
-							data: {
-								productid: prodid,
-								productvariantid: prodvarid,
-								qty:1,
-								coupons : used_coupons
-							}
-						}).done(function(data){
-							// animate cart
-							anchor.show();
-							$('.cart-spinner').hide();
-							if(data.status == 'success'){
-								if(data.data.available_coupons.length < 1){
-									anchor.data('hascoupon', '');
+						if(cc == 0) {
+							cc++;
+							$.ajax({
+								url: apiPath+'customer/addtocart',
+								method: 'POST',
+								data: {
+									productid: prodid,
+									productvariantid: prodvarid,
+									qty:1,
+									coupons : used_coupons
 								}
-								$('#hasCouponModal').modal('hide');
-								if(prodid){
-									var imgclone = img.clone().offset({
-										top: img.offset().top,
-										left: img.offset().left
-									}).css({
-										'color': '#fff',
-										'opacity': '0.5',
-										'position': 'absolute',
-										'height': '20px',
-										'width': '20px',
-										'z-index': '100'
-									}).appendTo($('body')).animate({
-										'top': cart.offset().top + 10,
-										'left': cart.offset().left + 10,
-										'width': '10px',
-										'height': '10px',
-									}, 1000);
+							}).done(function(data){
+								// animate cart
+								if(data.status == 'success'){
+									anchor.show();
+									$('.cart-spinner').hide();
+									if(data.data.available_coupons.length < 1){
+										anchor.data('hascoupon', '');
+									}
+									$('#hasCouponModal').modal('hide');
+									if(prodid){
+										var imgclone = img.clone().offset({
+											top: img.offset().top,
+											left: img.offset().left
+										}).css({
+											'color': '#fff',
+											'opacity': '0.5',
+											'position': 'absolute',
+											'height': '20px',
+											'width': '20px',
+											'z-index': '100'
+										}).appendTo($('body')).animate({
+											'top': cart.offset().top + 10,
+											'left': cart.offset().left + 10,
+											'width': '10px',
+											'height': '10px',
+										}, 1000);
 
-									setTimeout(function(){
-										cart.effect('shake', {
-											times:2,
-											distance:4,
-											direction:'up'
-										}, 200)
-									}, 1000);
+										setTimeout(function(){
+											cart.effect('shake', {
+												times:2,
+												distance:4,
+												direction:'up'
+											}, 200)
+										}, 1000);
 
-									imgclone.animate({
-										'width': 0,
-										'height': 0
-									}, function(){
-										$(this).detach();
-										$('.cart-qty').css('display', 'block');
-									    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
-									    cartnumber = cartnumber + 1;
-									    if(cartnumber <= 9){
-									    	$('#cart-number').attr('data-cart-number', cartnumber);
-									    	$('#cart-number').text(cartnumber);
-									    }else{
-									    	$('#cart-number').attr('data-cart-number', '9+');
-									    	$('#cart-number').text('9+');
-									    }
-									});
+										imgclone.animate({
+											'width': 0,
+											'height': 0
+										}, function(){
+											$(this).detach();
+											$('.cart-qty').css('display', 'block');
+										    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+										    cartnumber = cartnumber + 1;
+										    if(cartnumber <= 9){
+										    	$('#cart-number').attr('data-cart-number', cartnumber);
+										    	$('#cart-number').text(cartnumber);
+										    }else{
+										    	$('#cart-number').attr('data-cart-number', '9+');
+										    	$('#cart-number').text('9+');
+										    }
+										});
+									}
 								}
-							}
-						});
+							});
+						}
+					});
+					
+					$('#hasCouponModal').on('hide.bs.modal', function(){
+						anchor.show();
+						$('.cart-spinner').hide();
 					});
 
 					$('#hasCouponModal').on('click', '#denyCoupon', function($event){
+						if(cc == 0) {
+							cc++;
+							$.ajax({
+								url: apiPath+'customer/addtocart',
+								method: 'POST',
+								data: {
+									productid: prodid,
+									productvariantid: prodvarid,
+									qty:1,
+									coupons : []
+								}
+							}).done(function(data){
+								// animate cart
+								if(data.status == 'success'){
+									anchor.show();
+									$('.cart-spinner').hide();
+									if(data.data.available_coupons.length < 1){
+										anchor.data('hascoupon', '');
+									}
+									$('#hasCouponModal').modal('hide');
+									if(prodid){
+										console.log('denied');
+										var imgclone = img.clone().offset({
+											top: img.offset().top,
+											left: img.offset().left
+										}).css({
+											'color': '#fff',
+											'opacity': '0.5',
+											'position': 'absolute',
+											'height': '20px',
+											'width': '20px',
+											'z-index': '100'
+										}).appendTo($('body')).animate({
+											'top': cart.offset().top + 10,
+											'left': cart.offset().left + 10,
+											'width': '10px',
+											'height': '10px',
+										}, 1000);
+
+										setTimeout(function(){
+											cart.effect('shake', {
+												times:2,
+												distance:4,
+												direction:'up'
+											}, 200)
+										}, 1000);
+
+										imgclone.animate({
+											'width': 0,
+											'height': 0
+										}, function(){
+											$(this).detach();
+											$('.cart-qty').css('display', 'block');
+										    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+										    cartnumber = cartnumber + 1;
+										    if(cartnumber <= 9){
+										    	$('#cart-number').attr('data-cart-number', cartnumber);
+										    	$('#cart-number').text(cartnumber);
+										    }else{
+										    	$('#cart-number').attr('data-cart-number', '9+');
+										    	$('#cart-number').text('9+');
+										    }
+										});
+									}
+								}
+							});
+						}
+					});
+				} else {
+					if(cc == 0) {
+						cc++;
+						console.log(cc);
 						$.ajax({
 							url: apiPath+'customer/addtocart',
 							method: 'POST',
@@ -782,114 +886,55 @@
 							}
 						}).done(function(data){
 							// animate cart
-							if(data.status == 'success'){
-								if(data.data.available_coupons.length < 1){
-									anchor.data('hascoupon', '');
-								}
-								$('#hasCouponModal').modal('hide');
-								if(prodid){
-									var imgclone = img.clone().offset({
-										top: img.offset().top,
-										left: img.offset().left
-									}).css({
-										'color': '#fff',
-										'opacity': '0.5',
-										'position': 'absolute',
-										'height': '20px',
-										'width': '20px',
-										'z-index': '100'
-									}).appendTo($('body')).animate({
-										'top': cart.offset().top + 10,
-										'left': cart.offset().left + 10,
-										'width': '10px',
-										'height': '10px',
-									}, 1000);
+							if(prodid){
+								anchor.show();
+								$('.cart-spinner').hide();
+								var imgclone = img.clone().offset({
+									top: img.offset().top,
+									left: img.offset().left
+								}).css({
+									'color': '#fff',
+									'opacity': '0.5',
+									'position': 'absolute',
+									'height': '20px',
+									'width': '20px',
+									'z-index': '100'
+								}).appendTo($('body')).animate({
+									'top': cart.offset().top + 10,
+									'left': cart.offset().left + 10,
+									'width': '10px',
+									'height': '10px',
+								}, 1000);
 
-									setTimeout(function(){
-										cart.effect('shake', {
-											times:2,
-											distance:4,
-											direction:'up'
-										}, 200)
-									}, 1000);
+								setTimeout(function(){
+									cart.effect('shake', {
+										times:2,
+										distance:4,
+										direction:'up'
+									}, 200)
+								}, 1000);
 
-									imgclone.animate({
-										'width': 0,
-										'height': 0
-									}, function(){
-										$(this).detach();
-										$('.cart-qty').css('display', 'block');
-									    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
-									    cartnumber = cartnumber + 1;
-									    if(cartnumber <= 9){
-									    	$('#cart-number').attr('data-cart-number', cartnumber);
-									    	$('#cart-number').text(cartnumber);
-									    }else{
-									    	$('#cart-number').attr('data-cart-number', '9+');
-									    	$('#cart-number').text('9+');
-									    }
-									});
-								}
+								imgclone.animate({
+									'width': 0,
+									'height': 0
+								}, function(){
+									$(this).detach();
+									$('.cart-qty').css('display', 'block');
+								    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
+								    cartnumber = cartnumber + 1;
+								    if(cartnumber <= 9){
+								    	$('#cart-number').attr('data-cart-number', cartnumber);
+								    	$('#cart-number').text(cartnumber);
+								    }else{
+								    	$('#cart-number').attr('data-cart-number', '9+');
+								    	$('#cart-number').text('9+');
+								    }
+								});
 							}
 						});
-					});
-				} else {
-					$.ajax({
-						url: apiPath+'customer/addtocart',
-						method: 'POST',
-						data: {
-							productid: prodid,
-							productvariantid: prodvarid,
-							qty:1,
-							coupons : []
-						}
-					}).done(function(data){
-						// animate cart
-						if(prodid){
-							var imgclone = img.clone().offset({
-								top: img.offset().top,
-								left: img.offset().left
-							}).css({
-								'color': '#fff',
-								'opacity': '0.5',
-								'position': 'absolute',
-								'height': '20px',
-								'width': '20px',
-								'z-index': '100'
-							}).appendTo($('body')).animate({
-								'top': cart.offset().top + 10,
-								'left': cart.offset().left + 10,
-								'width': '10px',
-								'height': '10px',
-							}, 1000);
-
-							setTimeout(function(){
-								cart.effect('shake', {
-									times:2,
-									distance:4,
-									direction:'up'
-								}, 200)
-							}, 1000);
-
-							imgclone.animate({
-								'width': 0,
-								'height': 0
-							}, function(){
-								$(this).detach();
-								$('.cart-qty').css('display', 'block');
-							    var cartnumber = parseInt($('#cart-number').attr('data-cart-number'));
-							    cartnumber = cartnumber + 1;
-							    if(cartnumber <= 9){
-							    	$('#cart-number').attr('data-cart-number', cartnumber);
-							    	$('#cart-number').text(cartnumber);
-							    }else{
-							    	$('#cart-number').attr('data-cart-number', '9+');
-							    	$('#cart-number').text('9+');
-							    }
-							});
-						}
-					});
+					}
 				}
+				// $('.family-list').unbind('click');
 			});
 		});
 	</script>
