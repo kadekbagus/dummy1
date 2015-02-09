@@ -279,7 +279,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/cartbasedpromotion').then(function (response) {
                         if (response.code == 0 ) {
                             $scope.cartpromotions = response.data;
-                            console.log($scope.cartpromotions);
                         }
                     })
                 })();
@@ -350,7 +349,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
                             //add header subtotal before promotion
                             $scope.applycartpromotion.push({
-                              promotion_name : 'Sub Total',
+                              promotion_name : 'Subtotal',
                               promotionrule : {
                                   discount_value :  $scope.cart.subtotal
                               }
@@ -469,6 +468,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
+                    $scope.cardfile  = true;
                     switch(act){
                         case 't':
                             $scope.action  = 'cash';
@@ -495,15 +495,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 if(response.code == 0){
                                     $scope.savetransactions();
                                     $scope.hasaccepted = true;
+                                }else{
+                                    $scope.cheader  = 'TRANSAKSI GAGAL';
+                                    $scope.cardfile = true;
                                 }
                              });
                             //wait driver until 45 seconds
-                            $timeout(function(){
+                            /*$timeout(function(){
                                 if(!$scope.hasaccepted) {
                                     $scope.cheader  = 'TRANSAKSI GAGAL';
                                     $scope.cardfile = true;
                                 }
-                            },10000);
+                            },10000);*/
 
                             break;
                         case 'd' :
@@ -690,7 +693,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
-                    console.log(data);
                     serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
                                 var name = response.data.users.user_firstname+' '+response.data.users.user_lastname;

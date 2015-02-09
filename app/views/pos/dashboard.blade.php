@@ -302,11 +302,15 @@
                     <div class="col-md-6" >
                         <div data-ng-show="datapromotion.length && showprice">
                             <p>UPC :<% productmodal.upc_code %> </p>
-                            <p ><h5><del><% productmodal.price %></del></h5></p>
+                            <p><h5><del><% productmodal.price %></del></h5></p>
                             <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
 
                         </div>
-                        <div data-ng-show="!datapromotion.length">
+                        <div data-ng-show="!datapromotion.length && showprice ">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p><h4>IDR : <% productmodal.price %></h3></p>
+                        </div>
+                        <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1'">
                             <p>UPC :<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
                         </div>
@@ -512,7 +516,7 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="button"  data-ng-if="cardfile && action != 'done'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
+                     <button type="button"  data-ng-if="cardfile && action != 'done' && cheader == 'PEMBAYARAN KARTU DEBIT/KREDIT'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
                      <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
