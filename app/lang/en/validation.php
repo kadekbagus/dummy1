@@ -142,11 +142,12 @@ return array(
             'retailer_status'      => 'The retailer status you specified is not found.',
             'retailer_sortby'      => 'The sort by argument for retailer you specified is not valid, the valid values are: registered_date, retailer_name, retailer_email, and orid.',
             'tax_status'           => 'The tax status you specified is not found.',
-            'tax_sortby'           => 'The sort by argument for tax you specified is not valid, the valid values are: registered_date, merchant_tax_id, tax_name, tax_value.',
+            'tax_sortby'           => 'The sort by argument for tax you specified is not valid, the valid values are: registered_date, merchant_tax_id, tax_name, tax_value, tax_order.',
             'category_status'      => 'The category status you specified is not found.',
             'category_sortby'      => 'The sort by argument you specified is not valid, the valid values are: registered_date, category_name, category_level, category_order, description, status.',
             'promotion_status'     => 'The promotion status you specified is not found.',
             'promotion_sortby'     => 'The sort by argument you specified is not valid, the valid values are: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
+            'promotion_by_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: retailer_name, registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status.',
             'promotion_type'       => 'The promotion type you specified is not found.',
             'rule_type'            => 'The rule type you specified is not found.',
             'rule_object_type'     => 'The rule object type you specified is not found.',
@@ -170,6 +171,7 @@ return array(
             'issued_coupon_by_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: redeem_retailer_name, registered_date, issued_coupon_code, expired_date, promotion_name, promotion_type, description.',
             'event_status'         => 'The event status you specified is not found.',
             'event_sortby'         => 'The sort by argument you specified is not valid, the valid values are: registered_date, event_name, event_type, description, begin_date, end_date, is_permanent, status.',
+            'event_by_retailer_sortby' => 'The sort by argument you specified is not valid, the valid values are: retailer_name, registered_date, event_name, event_type, description, begin_date, end_date, is_permanent, status.',
             'event_type'           => 'The event type you specified is not found.',
             'link_object_type'     => 'The link object type you specified is not found.',
             'link_object_id1'      => 'The link object ID1 you specified is not found.',
@@ -214,9 +216,11 @@ return array(
             'product_attr' => array(
                 'attribute' => array(
                     'value' => array(
-                        'price' => 'The price should be in numeric or decimal.',
-                        'count' => 'The number of value must be 5.',
-                        'order' => 'Invalid attribute ID order, expected :expect but got :got.'
+                        'price'     => 'The price should be in numeric or decimal.',
+                        'count'     => 'The number of value must be 5.',
+                        'order'     => 'Invalid attribute ID order, expected :expect but got :got.',
+                        'allnull'   => 'All five attribute values can not be null at the same time.',
+                        'exists'    => 'The attribute combinations you have sent already exists.'
                     ),
                 ),
             ),

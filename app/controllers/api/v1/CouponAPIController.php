@@ -1444,12 +1444,12 @@ class CouponAPIController extends ControllerAPI
             }
 
             // Builder object
-            //$coupons = Coupon::with('couponrule')->excludeDeleted();
-            $coupons =  DB::table('promotions')
+            $coupons = DB::table('promotions')
                 ->join('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
                 ->join('merchants', 'promotion_retailer.retailer_id', '=', 'merchants.merchant_id')
                 ->select('promotion_retailer.retailer_id', 'merchants.name AS issue_retailer_name', 'promotions.*')
-                ->where('promotions.is_coupon','=','Y');
+                ->where('promotions.is_coupon', '=', 'Y')
+                ->where('promotions.status', '!=', 'deleted');
 
             // Filter coupon by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($coupons)

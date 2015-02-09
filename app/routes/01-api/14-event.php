@@ -36,6 +36,14 @@ Route::get('/api/v1/event/search', function()
 });
 
 /**
+ * List/Search event by retailer
+ */
+Route::get('/api/v1/event/by-retailer/search', function()
+{
+    return EventAPIController::create()->getSearchEventByRetailer();
+});
+
+/**
  * Upload event image
  */
 Route::post('/api/v1/event/upload/image', function()
