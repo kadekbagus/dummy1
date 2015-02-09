@@ -683,7 +683,7 @@ class EmployeeAPIController extends ControllerAPI
             OrbitInput::get('with', function ($_with) use (&$with) {
                 $with = array_merge($with, $_with);
             });
-            $users = User::with($with)->excludeDeleted();
+            $users = User::with($with)->excludeDeleted('users');
 
             // Filter user by Ids
             OrbitInput::get('user_ids', function ($userIds) use ($users) {
@@ -794,9 +794,11 @@ class EmployeeAPIController extends ControllerAPI
             // Default sort mode
             $sortMode = 'desc';
 
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
-                if ($_sortBy === 'employee_id_char') {
-                    $users->prepareEmployeeRetailerCalled();
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy, $users, $joined) {
+                if ($_sortBy === 'employee_id_char' || $_sortBy === 'position') {
+                    if ($joined === FALSE) {
+                        $users->prepareEmployeeRetailer();
+                    }
                 }
 
                 // Map the sortby request to the real column name
