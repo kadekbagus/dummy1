@@ -803,7 +803,7 @@ class EmployeeAPIController extends ControllerAPI
                 $sortByMapping = array(
                     'registered_date'   => 'users.created_at',
                     'username'          => 'users.username',
-                    'employee_id_char'  => 'employee.user_email',
+                    'employee_id_char'  => 'employee.employee_id_char',
                     'lastname'          => 'users.user_lastname',
                     'firstname'         => 'users.user_firstname'
                 );

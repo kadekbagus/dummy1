@@ -18,6 +18,14 @@
 @stop
 
 @section('content')
+  @if (isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'CaptiveNetwork') !== false))
+    header($_SERVER['SERVER_PROTOCOL'].' 200 OK');
+    header('Content-type: text/html');
+    header('Connection: close');
+    header('Vary: Accept-Encoding');
+    echo('<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>');
+    exit();
+  @else
   <div class="row top-space" id="signIn">
     <div class="col-xs-12">
       <header>
@@ -68,13 +76,14 @@
       <a id="notMe">Bukan <span class="signedUser"></span>, klik disini.</a>
     </div>
   </div>
+  @endif
 @stop
 
 @section('footer')
   <footer>
     <div class="row">
       <div class="col-xs-12 text-center">
-        <img class="img-responsive orbit-footer" src="{{ asset('mobile-ci/images/orbit-footer.png') }}">
+        <img class="img-responsive orbit-footer" style="width:120px;" src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
       </div>
     </div>
   </footer>

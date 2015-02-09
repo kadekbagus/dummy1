@@ -69,7 +69,7 @@ class CountryAPIController extends ControllerAPI
             // Get the take args
             $take = $maxRecord;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord) {
+                if ($_take > $maxRecord || (int)$_take === 0) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;

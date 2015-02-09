@@ -205,11 +205,11 @@ AAAAAElFTkSuQmCC" alt="You are almost in Orbit!">
 
     <div id="main" style="width:95%;margin: 0 auto;">
         <p>Hi <strong style="font-size:18px">{{ $email }}</strong>,</p>
-        <p>We hope you had a great shopping experience at <b>&quot;{{ $shop_name }}&quot;</b>.
-        <p>To complete your <strong style="font-size:18px">registration</strong> and obtain <strong style="font-size:18px">great promotion</strong>
+        <p style="text-align:justify">We hope you had a great shopping experience at <b>&quot;{{ $shop_name }}&quot;</b>.
+        <p  style="text-align:justify">To complete your <strong style="font-size:18px">registration</strong> and obtain <strong style="font-size:18px">great promotions</strong>
         and <strong style="font-size:18px">money saving deals</strong>, follow the link below:
-        <br>
-        <a href="{{ $token_url }}">{{ $token_url}}</a></p>
+
+        <a href="{{ $token_url }}" style="display: block; text-align: center; padding: 4px; background: #3DBEEC; width: 200px; font-weight: bold; text-decoration: none; color: #fff; margin: 1em auto 0 auto;">Activate My Account</a></p>
 
         <div id="regards" style="padding-top:1em;">
         <p>Regards,
