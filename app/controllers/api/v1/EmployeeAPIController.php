@@ -647,7 +647,7 @@ class EmployeeAPIController extends ControllerAPI
                     'with'      => OrbitInput::get('with')
                 ),
                 array(
-                    'sort_by'   => 'in:username,firstname,lastname,registered_date,employee_id_char,',
+                    'sort_by'   => 'in:username,firstname,lastname,registered_date,employee_id_char,position',
                     'role_ids'  => 'array|orbit.employee.role.limited',
                     'with'      => 'array|min:1'
                 ),
