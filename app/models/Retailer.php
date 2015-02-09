@@ -115,6 +115,15 @@ class Retailer extends Eloquent
             return $builder;
         }
 
+        // if user role is consumer, then do nothing.
+        $consumer = array('consumer');
+        $userRole = trim(strtolower($user->role->role_name));
+        if (in_array($userRole, $consumer))
+        {
+            // do nothing return as is
+            return $builder;
+        }
+
         // This will filter only user which belongs to retailer or
         // merchant owner (the parent). The merchant owner has an ability
         // to view all retailers
