@@ -100,7 +100,7 @@ class EmployeeAPIController extends ControllerAPI
                     'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
                 ),
                 array(
-                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
+                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role'],
                 )
             );
 
@@ -109,6 +109,10 @@ class EmployeeAPIController extends ControllerAPI
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
+
+                // WTHell Laravel message wont work!! I need to subtitute manually
+                $errorMessage = str_replace('username', 'Login ID', $errorMessage);
+                $errorMessage = str_replace('employee id char', 'Employee ID', $errorMessage);
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
             Event::fire('orbit.employee.postnewemployee.after.validation', array($this, $validator));
@@ -144,7 +148,10 @@ class EmployeeAPIController extends ControllerAPI
             $newUser->setHidden(array('user_password'));
 
             $userdetail = new UserDetail();
-            $userdetail->birthdate = $birthdate;
+
+            OrbitInput::post('birthdate', function($_birthdate) use ($userdetail) {
+                $userdetail->birthdate = $_birthdate;
+            });
             $userdetail = $newUser->userdetail()->save($userdetail);
 
             $newUser->setRelation('userDetail', $userdetail);
@@ -322,6 +329,10 @@ class EmployeeAPIController extends ControllerAPI
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
+
+                // WTHell Laravel message wont work!! I need to subtitute manually
+                $errorMessage = str_replace('username', 'Login ID', $errorMessage);
+                $errorMessage = str_replace('employee id char', 'Employee ID', $errorMessage);
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
             Event::fire('orbit.employee.postupdateemployee.after.validation', array($this, $validator));
