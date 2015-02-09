@@ -24,6 +24,7 @@ class MerchantTaxAPIController extends ControllerAPI
      * @param integer           `take`                          (optional) - limit
      * @param integer           `skip`                          (optional) - limit offset
      * @param integer           `merchant_tax_id`               (optional) - Merchant tax ID
+     * @param integer           `merchant_id`                   (optional) - Merchant ID
      * @param string            `tax_name`                      (optional) - Tax name
      * @param string            `tax_name_like`                 (optional) - Tax name like pattern
      * @param decimal           `tax_value`                     (optional) - Tax value

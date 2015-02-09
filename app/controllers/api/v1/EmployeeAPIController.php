@@ -647,7 +647,7 @@ class EmployeeAPIController extends ControllerAPI
                     'with'      => OrbitInput::get('with')
                 ),
                 array(
-                    'sort_by'   => 'in:username,firstname,lastname,registered_date,employee_id_char,',
+                    'sort_by'   => 'in:username,firstname,lastname,registered_date,employee_id_char,position',
                     'role_ids'  => 'array|orbit.employee.role.limited',
                     'with'      => 'array|min:1'
                 ),
@@ -683,7 +683,7 @@ class EmployeeAPIController extends ControllerAPI
             OrbitInput::get('with', function ($_with) use (&$with) {
                 $with = array_merge($with, $_with);
             });
-            $users = User::with($with)->excludeDeleted();
+            $users = User::with($with)->excludeDeleted('users');
 
             // Filter user by Ids
             OrbitInput::get('user_ids', function ($userIds) use ($users) {
@@ -794,18 +794,21 @@ class EmployeeAPIController extends ControllerAPI
             // Default sort mode
             $sortMode = 'desc';
 
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
-                if ($_sortBy === 'employee_id_char') {
-                    $users->prepareEmployeeRetailerCalled();
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy, $users, $joined) {
+                if ($_sortBy === 'employee_id_char' || $_sortBy === 'position') {
+                    if ($joined === FALSE) {
+                        $users->prepareEmployeeRetailer();
+                    }
                 }
 
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'registered_date'   => 'users.created_at',
                     'username'          => 'users.username',
-                    'employee_id_char'  => 'employee.user_email',
+                    'employee_id_char'  => 'employees.employee_id_char',
                     'lastname'          => 'users.user_lastname',
-                    'firstname'         => 'users.user_firstname'
+                    'firstname'         => 'users.user_firstname',
+                    'position'          => 'employees.position'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
