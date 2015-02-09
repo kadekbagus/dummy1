@@ -894,10 +894,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($transaction['details'] as $key => $value) {
                if($key==0){
-                $product = $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
+                $product = $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
                }
                else {
-                $product .= $this->producListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
+                $product .= $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
                }
             }
 
@@ -1520,7 +1520,7 @@ class CashierAPIController extends ControllerAPI
         return $tmp;
     }
 
-    private function producListFormat($name, $price, $qty, $sku)
+    private function productListFormat($name, $price, $qty, $sku)
     {
         $all  = '';
         $sbT = number_format($price*$qty,2);
@@ -1528,6 +1528,17 @@ class CashierAPIController extends ControllerAPI
         for ($i=0;$i<$space;$i++) { $spc .= ' '; }
         $all .= $name.$spc.$sbT." \n";
         $all .= '   '.$qty.' x '.number_format($price,2).' ('.$sku.')'." \n";
+
+        return $all;
+    }
+
+    private function discountListFormat($discount_name, $discount_value)
+    {
+        $all  = '';
+        $sbT = number_format($discount_value,2);
+        $space = 36-strlen($discount_name)-strlen($sbT); $spc = '';
+        for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+        $all .= '   '.$discount_name.$spc."-".$sbT." \n";
 
         return $all;
     }
