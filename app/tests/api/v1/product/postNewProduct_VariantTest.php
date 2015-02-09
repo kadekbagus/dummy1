@@ -385,6 +385,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $attribute_values_table = static::$dbPrefix . 'product_attribute_values';
         $variants_table = static::$dbPrefix . 'product_variants';
         $products_table = static::$dbPrefix . 'products';
+        $transactions_table = static::$dbPrefix . 'transactions';
+        $transaction_details_table = static::$dbPrefix . 'transaction_details';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
@@ -397,6 +399,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
                         TRUNCATE `{$attribute_values_table}`;
                         TRUNCATE `{$variants_table}`;
                         TRUNCATE `{$products_table}`;
+                        TRUNCATE `{$transactions_table}`;
+                        TRUNCATE `{$transaction_details_table}`;
                         ");
     }
 
@@ -457,7 +461,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
     }
 
     /**
-     * This method would produce a zero variant on the database
+     * This method would produce error, all null values are not allowed
      */
     public function testSaveProductUpdate_newVariant_allValuesAreNull()
     {
@@ -556,6 +560,14 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         $product = Product::with('variants')->find(1);
 
+        // The values of attribute_id1,2,3,4,5 for Product ID 1 should be
+        // 1, 2, 3, 5, 4
+        $this->assertSame('1', (string)$product->attribute_id1);
+        $this->assertSame('2', (string)$product->attribute_id2);
+        $this->assertSame('3', (string)$product->attribute_id3);
+        $this->assertSame('5', (string)$product->attribute_id4);
+        $this->assertSame('4', (string)$product->attribute_id5);
+
         // Check data for first Object
         $variant1 = $product->variants[0];
 
@@ -632,7 +644,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
      *
      * Kemeja Mahal	Size 15 (20, 1)	Color White (5,2)	Material Cotton (8,3)	Origin USA (17, 5)	Class KW 1 (15,4)
      */
-    public function xtestSaveProductUpdate_newVariant_KemejaMahal_Same_Data()
+    public function testSaveProductUpdate_newVariant_KemejaMahal_Same_Data()
     {
         // Object of first "Kemeja Mahal"
         $kemejaMahal1 = new stdClass();
@@ -665,5 +677,907 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $this->assertSame('error', $response->status);
         $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
         $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce an error since the there is a null value prepend
+     * a real value. I.e:
+     *
+     * [null, null, 1, null, null] OR
+     * [null, null, null, null, 1] OR
+     * [1, null, null, 2, null]
+     *
+     * Celana Murah	NULL,   Size 15 (20, 1)	Color White (5,2)	Material Cotton (8,3)	Origin USA (17, 5)
+     */
+    public function testSaveProductUpdate_newVariant_CelanaMurah_NullValue2Value3Value4()
+    {
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->upc = 'UPC-001-NULL';
+        $celanaMurah1->sku = 'SKU-001-NULL';
+        $celanaMurah1->price = 321000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [NULL, 20, 5, 8, 17];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants'] = json_encode([$celanaMurah1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.nullprepend');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce an error since the there is a null value prepend
+     * a real value. I.e:
+     *
+     * [null, null, 1, null, null] OR
+     * [null, null, null, null, 1] OR
+     * [1, null, null, 2, null]
+     *
+     * Celana Murah	NULL, NULL, NULL, NULL,	Origin USA (17, 5)
+     */
+    public function testSaveProductUpdate_newVariant_CelanaMurah_NullNullNullNullValue5()
+    {
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->upc = 'UPC-001-NULL';
+        $celanaMurah1->sku = 'SKU-001-NULL';
+        $celanaMurah1->price = 321000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [NULL, NULL, NULL, NULL, 17];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants'] = json_encode([$celanaMurah1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.nullprepend');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce an error since the there is a null value prepend
+     * a real value. I.e:
+     *
+     * [null, null, 1, null, null] OR
+     * [null, null, null, null, 1] OR
+     * [1, null, null, 2, null]
+     *
+     * Celana Murah	Size 15 (20, 1)  NULL, NULL, NULL,	Origin USA (17, 5)
+     */
+    public function testSaveProductUpdate_newVariant_CelanaMurah_Value1NullNullNullValue5()
+    {
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->upc = 'UPC-001-NULL';
+        $celanaMurah1->sku = 'SKU-001-NULL';
+        $celanaMurah1->price = 321000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [20, NULL, NULL, NULL, 17];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants'] = json_encode([$celanaMurah1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.nullprepend');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce an error since there is a duplicate value on
+     * attribute value:
+     *
+     * Celana Murah	Size (1, 1)    Color Gray (6, 2)   Class KW 2 (16, 4)  Color Gray (6, 2)
+     */
+    public function testSaveProductUpdate_newVariant_CelanaMurah_DuplicateAttributeValue()
+    {
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->upc = 'UPC-002-DUPLICATE';
+        $celanaMurah1->sku = 'SKU-002-DUPLICATE';
+        $celanaMurah1->price = 321000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [1, 6, 16, 6, NULL];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants'] = json_encode([$celanaMurah1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.duplicate');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce no error
+     *
+     * Celana Murah	Size 27 (1, 1) Color Gray (6, 2)   Class KW 2 (16, 4)
+     * Celana Murah	Size 28 (2, 1) Color Gray (6, 2)   Class KW 2 (16, 4)
+     */
+    public function testSaveProductUpdate_newVariant_CelanaMurah_Size27_ColorGray_ClassKW2()
+    {
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->upc = 'UPC-002-MURAH1';
+        $celanaMurah1->sku = 'SKU-002-MURAH1';
+        $celanaMurah1->price = 35000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [1, 6, 16, NULL, NULL];
+
+        // Object of second "Celana Murah"
+        $celanaMurah2 = new stdClass();
+        $celanaMurah2->upc = 'UPC-002-MURAH2';
+        $celanaMurah2->sku = 'SKU-002-MURAH2';
+        $celanaMurah2->price = 37000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah2->attribute_values = [2, 6, 16, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants'] = json_encode([$celanaMurah1, $celanaMurah2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+        $this->assertSame('Request OK', $response->message);
+
+        $product = Product::with('variants')->find(2);
+
+        // The values of attribute_id1,2,3,4,5 for Product ID 1 should be
+        // 1, 2, 4, N
+        $this->assertSame('1', (string)$product->attribute_id1);
+        $this->assertSame('2', (string)$product->attribute_id2);
+        $this->assertSame('4', (string)$product->attribute_id3);
+        $this->assertSame('', (string)$product->attribute_id4);
+        $this->assertSame('', (string)$product->attribute_id5);
+
+        // Check data for first Object
+        $variant1 = $product->variants[0];
+
+        $this->assertSame('SKU-002-MURAH1', $variant1->sku);
+        $this->assertSame('UPC-002-MURAH1', $variant1->upc);
+        $this->assertSame('35000.00', (string)$variant1->price);
+
+        // Check data for second Object
+        $variant2 = $product->variants[1];
+
+        $this->assertSame('SKU-002-MURAH2', $variant2->sku);
+        $this->assertSame('UPC-002-MURAH2', $variant2->upc);
+        $this->assertSame('37000.00', (string)$variant2->price);
+    }
+
+    /**
+     * This test should produce no error. This test will update upc, sku, and
+     * price for variant which does not have a transaction yet.
+     *
+     */
+    public function testSaveProductUpdate_updateVariant_CelanaMurah_SKU_UPC_PRICE_NoTransactionYet()
+    {
+        $productVariant1 = ProductVariant::where('upc', 'UPC-002-MURAH1')->first();
+        $productVariant2 = ProductVariant::where('upc', 'UPC-002-MURAH2')->first();
+
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->variant_id = $productVariant1->product_variant_id;
+        $celanaMurah1->upc = 'UPC-002-MURAH1-FIRST';
+        $celanaMurah1->sku = 'SKU-002-MURAH1-FIRST';
+        $celanaMurah1->price = 45000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [1, 6, 16, NULL, NULL];
+
+        // Object of second "Celana Murah"
+        $celanaMurah2 = new stdClass();
+        $celanaMurah2->variant_id = $productVariant2->product_variant_id;
+        $celanaMurah2->upc = 'UPC-002-MURAH2-SECOND';
+        $celanaMurah2->sku = 'SKU-002-MURAH2-SECOND';
+        $celanaMurah2->price = 47000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah2->attribute_values = [2, 6, 16, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants_update'] = json_encode([$celanaMurah1, $celanaMurah2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+        $this->assertSame('Request OK', $response->message);
+
+        $product = Product::with('variants')->find(2);
+
+        // The values of attribute_id1,2,3,4,5 for Product ID 1 should be
+        // 1, 2, 4, N
+        $this->assertSame('1', (string)$product->attribute_id1);
+        $this->assertSame('2', (string)$product->attribute_id2);
+        $this->assertSame('4', (string)$product->attribute_id3);
+        $this->assertSame('', (string)$product->attribute_id4);
+        $this->assertSame('', (string)$product->attribute_id5);
+
+        // Check data for first Object
+        $variant1 = $product->variants[0];
+
+        $this->assertSame('SKU-002-MURAH1-FIRST', $variant1->sku);
+        $this->assertSame('UPC-002-MURAH1-FIRST', $variant1->upc);
+        $this->assertSame('45000.00', (string)$variant1->price);
+
+        // Check data for second Object
+        $variant2 = $product->variants[1];
+
+        $this->assertSame('SKU-002-MURAH2-SECOND', $variant2->sku);
+        $this->assertSame('UPC-002-MURAH2-SECOND', $variant2->upc);
+        $this->assertSame('47000.00', (string)$variant2->price);
+    }
+
+    /**
+     * This test should produce error error. This test will add new attribute value
+     * to the existing variant and the value number does not the same.
+     *
+     * Celana Murah	Size 27 (1, 1) Color Gray (6, 2)   Class KW 2 (16, 4)   Origin USA (17, 5)
+     * Celana Murah	Size 27 (1, 1) Color Gray (6, 2)   Class KW 2 (16, 4)
+     */
+    public function testSaveProductUpdate_updateVariant_CelanaMurah_Size27_ColorGray_ClassKW2_OriginUSA_secondVariantNotSame()
+    {
+        $productVariant1 = ProductVariant::where('upc', 'UPC-002-MURAH1-FIRST')->first();
+        $productVariant2 = ProductVariant::where('upc', 'UPC-002-MURAH2-SECOND')->first();
+
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->variant_id = $productVariant1->product_variant_id;
+        $celanaMurah1->upc = 'UPC-002-MURAH1-FIRST';
+        $celanaMurah1->sku = 'SKU-002-MURAH1-FIRST';
+        $celanaMurah1->price = 45000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [1, 6, 16, 17, NULL];
+
+        // Object of second "Celana Murah"
+        $celanaMurah2 = new stdClass();
+        $celanaMurah2->variant_id = $productVariant2->product_variant_id;
+        $celanaMurah2->upc = 'UPC-002-MURAH2-SECOND';
+        $celanaMurah2->sku = 'SKU-002-MURAH2-SECOND';
+        $celanaMurah2->price = 47000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah2->attribute_values = [2, 6, 16, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants_update'] = json_encode([$celanaMurah1, $celanaMurah2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.notsame');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce no error. This test will add new attribute value
+     * which does not have a transaction yet.
+     *
+     * Celana Murah	Size 27 (1, 1) Color Gray (6, 2)   Class KW 2 (16, 4)   Origin USA (17, 5)
+     */
+    public function testSaveProductUpdate_updateVariant_CelanaMurah_Size27_ColorGray_ClassKW2_OriginUSA()
+    {
+        $productVariant1 = ProductVariant::where('upc', 'UPC-002-MURAH1-FIRST')->first();
+        $productVariant2 = ProductVariant::where('upc', 'UPC-002-MURAH2-SECOND')->first();
+
+        // Object of first "Celana Murah"
+        $celanaMurah1 = new stdClass();
+        $celanaMurah1->variant_id = $productVariant1->product_variant_id;
+        $celanaMurah1->upc = 'UPC-002-MURAH1-FIRST';
+        $celanaMurah1->sku = 'SKU-002-MURAH1-FIRST';
+        $celanaMurah1->price = 45000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah1->attribute_values = [1, 6, 16, 17, NULL];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants_update'] = json_encode([$celanaMurah1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+        $this->assertSame('Request OK', $response->message);
+
+        $product = Product::with('variants')->find(2);
+
+        // The values of attribute_id1,2,3,4,5 for Product ID 1 should be
+        // 1, 2, 4, N
+        $this->assertSame('1', (string)$product->attribute_id1);
+        $this->assertSame('2', (string)$product->attribute_id2);
+        $this->assertSame('4', (string)$product->attribute_id3);
+        $this->assertSame('5', (string)$product->attribute_id4);
+        $this->assertSame('', (string)$product->attribute_id5);
+
+        // Check data for first Object
+        $variant1 = $product->variants[0];
+
+        $this->assertSame('SKU-002-MURAH1-FIRST', $variant1->sku);
+        $this->assertSame('UPC-002-MURAH1-FIRST', $variant1->upc);
+        $this->assertSame('45000.00', (string)$variant1->price);
+        $this->assertSame('1', (string)$variant1->product_attribute_value_id1);
+        $this->assertSame('6', (string)$variant1->product_attribute_value_id2);
+        $this->assertSame('16', (string)$variant1->product_attribute_value_id3);
+        $this->assertSame('17', (string)$variant1->product_attribute_value_id4);
+        $this->assertSame('', (string)$variant1->product_attribute_value_id5);
+    }
+
+    /**
+     * This test should produce no error. This test will add new attribute value
+     * which does not have a transaction yet.
+     *
+     * Celana Murah	Size 27 (1, 1) Color Gray (6, 2)   Class KW 2 (16, 4)
+     */
+    public function testSaveProductUpdate_updateVariant_CelanaMurah_Size27_ColorGray_ClassKW2_OriginUSA_Stays()
+    {
+        $productVariant2 = ProductVariant::where('upc', 'UPC-002-MURAH2-SECOND')->first();
+
+        // Object of second "Celana Murah"
+        $celanaMurah2 = new stdClass();
+        $celanaMurah2->variant_id = $productVariant2->product_variant_id;
+        $celanaMurah2->upc = 'UPC-002-MURAH2-SECOND';
+        $celanaMurah2->sku = 'SKU-002-MURAH2-SECOND';
+        $celanaMurah2->price = 47000;
+
+        // It containts array of product_attribute_value_id
+        $celanaMurah2->attribute_values = [2, 6, 16, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants_update'] = json_encode([$celanaMurah2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+        $this->assertSame('Request OK', $response->message);
+
+        $product = Product::with('variants')->find(2);
+
+        // Check data for second Object
+        $variant2 = $product->variants[1];
+
+        $this->assertSame('SKU-002-MURAH2-SECOND', $variant2->sku);
+        $this->assertSame('UPC-002-MURAH2-SECOND', $variant2->upc);
+        $this->assertSame('47000.00', (string)$variant2->price);
+        $this->assertSame('2', (string)$variant2->product_attribute_value_id1);
+        $this->assertSame('6', (string)$variant2->product_attribute_value_id2);
+        $this->assertSame('16', (string)$variant2->product_attribute_value_id3);
+        $this->assertSame('', (string)$variant2->product_attribute_value_id4);
+        $this->assertSame('', (string)$variant2->product_attribute_value_id5);
+    }
+
+    /**
+     * This test should produce error since product variant id 2 is not belongs
+     * to product id 2.
+     *
+     * Kemeja Mahal 2 - UPC: UPC-001-MAHAL
+     */
+    public function testSaveProductUpdate_updateVariant_KemejaMahal2_ChangeUPC_withNull()
+    {
+        $productVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+
+        $kemejaMahal2 = new stdClass();
+        $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
+        $kemejaMahal2->upc = NULL;
+        $kemejaMahal2->sku = NULL;
+        $kemejaMahal2->price = NULL;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
+
+        // POST data
+        $_POST['product_id'] = 2;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.variant');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This test should produce no error. This test not changes the UPC and SKU
+     * by giving NULL values to each of them thus should not be error when
+     * saving even it has an transaction.
+     *
+     * Kemeja Mahal 2 - UPC: UPC-001-MAHAL
+     */
+    public function testSaveProductUpdate_updateVariant_KemejaMahal2_ChangeUPC_SKU_Price_withNull_hasTransaction()
+    {
+        $productVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+        $transactionData = [
+            'transaction_id'        => 1,
+            'transaction_code'      => 'TR001',
+            'cashier_id'            => 0,
+            'customer_id'           => 1,
+            'merchant_id'           => 1,
+            'retailer_id'           => 0,
+            'total_item'            => 1,
+            'subtotal'              => $productVariant2->price,
+            'vat'                   => 0.10,
+            'total_to_pay'          => $productVariant2->price + ($productVariant2->price * 0.10),
+            'tendered'              => $productVariant2->price + ($productVariant2->price * 0.10),
+            'change'                => 0.0,
+            'payment_method'        => 'cash',
+            'status'                => 'paid'
+        ];
+        DB::table('transactions')->insert($transactionData);
+
+        $transDetailData = [
+            'transaction_detail_id' => 1,
+            'transaction_id'        => 1,
+            'product_id'            => static::$products[0]['product_id'],
+            'product_name'          => static::$products[0]['product_name'],
+            'price'                 => static::$products[0]['price'],
+            'product_code'          => '',
+            'upc'                   => static::$products[0]['upc_code'],
+            'sku'                   => static::$products[0]['product_code'],
+            'quantity'              => 1,
+            'product_variant_id'    => 2,
+            'variant_sku'           => $productVariant2->sku,
+            'variant_upc'           => $productVariant2->upc,
+            'variant_price'         => $productVariant2->price,
+            'product_attribute_value_id1'   => 20,
+            'product_attribute_value_id2'   => 5,
+            'product_attribute_value_id3'   => 8,
+            'product_attribute_value_id4'   => 17,
+            'product_attribute_value_id5'   => 15,
+        ];
+        DB::table('transaction_details')->insert($transDetailData);
+
+        $kemejaMahal2 = new stdClass();
+        $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
+        $kemejaMahal2->upc = NULL;
+        $kemejaMahal2->sku = NULL;
+        $kemejaMahal2->price = NULL;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+
+        $updatedVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+        $this->assertSame('UPC-001-MAHAL', $updatedVariant2->upc);
+        $this->assertSame('SKU-001-MAHAL', $updatedVariant2->sku);
+        $this->assertSame('999000.00', $updatedVariant2->price);
+    }
+
+    /**
+     * This test should produce error. This test change the UPC product variant
+     * which already on the transaction table.
+     *
+     * Kemeja Mahal 2 - UPC: UPC-001-MAHAL
+     */
+    public function testSaveProductUpdate_updateVariant_KemejaMahal2_ChangeUPC_withNonNullValue_hasTransaction()
+    {
+        $productVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+
+        $kemejaMahal2 = new stdClass();
+        $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
+        $kemejaMahal2->upc = 'UPC-001-MUAHAL-BINGITS';
+        $kemejaMahal2->sku = NULL;
+        $kemejaMahal2->price = NULL;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', [
+            'id' => $productVariant2->product_variant_id
+        ]);
+    }
+
+    /**
+     * This test should produce error. This test change the SKU product variant
+     * which already on the transaction table.
+     *
+     * Kemeja Mahal 2 - UPC: UPC-001-MAHAL
+     */
+    public function testSaveProductUpdate_updateVariant_KemejaMahal2_ChangeSKU_withNonNullValue_hasTransaction()
+    {
+        $productVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+
+        $kemejaMahal2 = new stdClass();
+        $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
+        $kemejaMahal2->upc = NULL;
+        $kemejaMahal2->sku = 'SKU-001-MUAHAL-BINGITS';
+        $kemejaMahal2->price = NULL;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', [
+            'id' => $productVariant2->product_variant_id
+        ]);
+    }
+
+    /**
+     * This test should produce no error. This test change the price of the
+     * product variant.
+     *
+     * Kemeja Mahal 2 - UPC: UPC-001-MAHAL
+     */
+    public function testSaveProductUpdate_updateVariant_KemejaMahal2_ChangePrice_hasTransaction()
+    {
+        $productVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+
+        $kemejaMahal2 = new stdClass();
+        $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
+        $kemejaMahal2->upc = NULL;
+        $kemejaMahal2->sku = NULL;
+        $kemejaMahal2->price = 799000;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+
+        $updatedVariant2 = ProductVariant::where('upc', 'UPC-001-MAHAL')->first();
+        $this->assertSame('UPC-001-MAHAL', $updatedVariant2->upc);
+        $this->assertSame('SKU-001-MAHAL', $updatedVariant2->sku);
+        $this->assertSame('799000.00', $updatedVariant2->price);
+    }
+
+    /**
+     * This method would produce error, all null values are not allowed
+     */
+    public function testSaveProductNew_newVariant_allValuesAreNull()
+    {
+        // Object of first "Kunci Obeng"
+        $kunciObeng1 = new stdClass();
+        $kunciObeng1->upc = NULL;  // Follows the parent
+        $kunciObeng1->sku = NULL;  // Follows the parent
+        $kunciObeng1->price = NULL;  // Follows the parent
+
+        // It containts array of product_attribute_value_id
+        $kunciObeng1->attribute_values = [NULL, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['merchant_id'] = 2;
+        $_POST['product_name'] = 'Kunci Obeng';
+        $_POST['product_code'] = 'SKU-001';
+        $_POST['upc_code'] = 'SKU-001';
+        $_POST['status'] = 'active';
+        $_POST['product_variants'] = json_encode([$kunciObeng1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/new?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame($errorMessage, $response->message);
+
+        $this->assertTrue(empty($response->variants));
+    }
+
+    /**
+     * This method would produce error since there are null values prepend the
+     * attribute value.
+     *
+     * Kunci Obeng Material Steel (14, 7) NULL NULL Original USA (17, 5) NULL
+     */
+    public function testSaveProductNew_newVariant_MaterialStell_NullNull_OriginalUSA_Null()
+    {
+        // Object of first "Kunci Obeng"
+        $kunciObeng1 = new stdClass();
+        $kunciObeng1->upc = NULL;  // Follows the parent
+        $kunciObeng1->sku = NULL;  // Follows the parent
+        $kunciObeng1->price = NULL;  // Follows the parent
+
+        // It containts array of product_attribute_value_id
+        $kunciObeng1->attribute_values = [14, NULL, NULL, 17, NULL];
+
+        // POST data
+        $_POST['merchant_id'] = 2;
+        $_POST['product_name'] = 'Kunci Obeng';
+        $_POST['product_code'] = 'SKU-001';
+        $_POST['upc_code'] = 'SKU-001';
+        $_POST['status'] = 'active';
+        $_POST['product_variants'] = json_encode([$kunciObeng1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/new?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.nullprepend');
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    /**
+     * This method would produce no error. This will create two variant of
+     * "Kunci Obeng"
+     *
+     * Kunci Obeng Material Steel (14, 7)  Size Small (10, 7)  NULL NULL NULL
+     * Kunci Obeng Material Iron (13, 7)   Size Big (12, 7)  NULL NULL NULL
+     */
+    public function testSaveProductNew_newVariant_TwoKunciObeng()
+    {
+        // Object of first "Kunci Obeng"
+        $kunciObeng1 = new stdClass();
+        $kunciObeng1->upc = NULL;  // Follows the parent
+        $kunciObeng1->sku = NULL;  // Follows the parent
+        $kunciObeng1->price = NULL;  // Follows the parent
+
+        // It containts array of product_attribute_value_id
+        $kunciObeng1->attribute_values = [14, 10, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['merchant_id'] = 2;
+        $_POST['product_name'] = 'Kunci Obeng';
+        $_POST['product_code'] = 'SKU-001';
+        $_POST['upc_code'] = 'SKU-001';
+        $_POST['price'] = 1000000;
+        $_POST['status'] = 'active';
+        $_POST['product_variants'] = json_encode([$kunciObeng1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/new?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
     }
 }

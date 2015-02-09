@@ -10,6 +10,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Arrays\Util\DuplicateChecker as ArrayChecker;
 
 class ProductAPIController extends ControllerAPI
 {
@@ -436,18 +437,7 @@ class ProductAPIController extends ControllerAPI
                     }
                 };
 
-                // Reset config which store the skipped variant
-                for ($i=0; $i<=5; $i++) {
-                    Config::set('memory:productapicontroller.skipped.' . $i, 0);
-                }
-
                 foreach ($variant_decode as $variant_index=>$variant) {
-                    $nullNumber = (int)Config::get('memory:productapicontroller.skipped.' . $variant_index);
-                    if ($nullNumber === 5) {
-                        // All attribute values are null, skip saving
-                        continue;
-                    }
-
                     // Flag for particular product variant which should be edited
                     $has_transaction = FALSE;
 
@@ -474,16 +464,16 @@ class ProductAPIController extends ControllerAPI
 
                     // Return the default sku if the variant sku is empty
                     $sku = function() use ($variant, $has_transaction, $product_variant) {
+                        if (empty($variant->sku)) {
+                            return $product_variant->sku;
+                        }
+
                         if ($has_transaction) {
                             // Reject the saving
                             $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
                                 ['id' => $variant->variant_id]
                             );
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
-                        }
-
-                        if (empty($variant->sku)) {
-                            return $product_variant->product_code;
                         }
 
                         return $variant->sku;
@@ -491,16 +481,16 @@ class ProductAPIController extends ControllerAPI
 
                     // Return the default upc if the variant upc is empty
                     $upc = function() use ($variant, $has_transaction, $product_variant) {
+                        if (empty($variant->upc)) {
+                            return $product_variant->upc;
+                        }
+
                         if ($has_transaction) {
                             // Reject the saving
                             $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
                                 ['id' => $variant->variant_id]
                             );
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
-                        }
-
-                        if (empty($variant->upc)) {
-                            return $product_variant->upc;
                         }
 
                         return $variant->upc;
@@ -1662,6 +1652,9 @@ class ProductAPIController extends ControllerAPI
     {
         $values = array();
 
+        // Flag to determine how many vlaue are filled for each variant submitted
+        $lastNumber = -1;
+
         foreach ($variants as $i=>$variant) {
             $neededProperties = array('attribute_values', 'price', 'sku', 'upc');
 
@@ -1710,20 +1703,60 @@ class ProductAPIController extends ControllerAPI
                 }
             }
             if ($empty >= 5) {
-                // Add flag to this variant so it not be saved
                 $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
+            if ($lastNumber !== -1) {
+                // This is the first time no need to check
+                if ($lastNumber !== (5 - $empty)) {
+                    // The last number should be 5 - $empty, so if it does not the same
+                    // the number of values should not be the same also
+                    $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.notsame');
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+            $lastNumber = 5 - $empty;
+
+            // Make sure there is no duplicate value, but make sure we remove the empty value first
+            if (ArrayChecker::create(array_filter($variant->attribute_values))->hasDuplicate()) {
+                $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.duplicate');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Check for null in front of the value
+            if ($this->isPrependedByNull($variant->attribute_values)) {
+                $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.nullprepend');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
             // Make sure the combinations does not exist yet
-            // $productVariant = ProductVariant::where(
+            $productVariantCombination = ProductVariant::with(array())->excludeDeleted();
+
+            // If this one are update process then make sure not select our current one
+            if ($mode === 'update') {
+                // Check the existence of productVariant
+                $productVariantExists = ProductVariant::where('product_variant_id', $variant->variant_id)
+                                                      ->where('product_id', $product->product_id)
+                                                      ->first();
+
+                if (empty($productVariantExists)) {
+                    $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.variant');
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                $productVariantCombination->where('product_variant_id', '!=', $variant->variant_id);
+            }
 
             // Check each of these product attribute value existence
             $merchantId = $this->getMerchantId();
-            foreach ($variant->attribute_values as $value_id) {
+            foreach ($variant->attribute_values as $index=>$value_id) {
                 if (empty($value_id)) {
                     continue;
                 }
+
+                $variantAttributeValueId = 'product_attribute_value_id' . ($index + 1);
+                $productVariantCombination->where($variantAttributeValueId, $value_id);
 
                 $productAttributeValue = ProductAttributeValue::excludeDeleted('product_attribute_values')
                                                               ->merchantIds(array($merchantId))
@@ -1741,6 +1774,13 @@ class ProductAPIController extends ControllerAPI
                 if ($i === 0) {
                     $values[] = $productAttributeValue;
                 }
+            }
+
+            // Try to get the records of the ProductVariant, if it exists then
+            // reject the request
+            if (! empty($productVariantCombination->first())) {
+                $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
         }
 
@@ -1832,5 +1872,43 @@ class ProductAPIController extends ControllerAPI
         if ($updated_product_changes) {
             $updatedproduct->save();
         }
+    }
+
+    /**
+     * Method to check whether a NULL value prepends the attribute value. I.e:
+     *
+     * [NULL, 1, 2, 3, 4] OR
+     * [1, 2, NULL, 4, 5] OR
+     * [NULL, NULL, NULL, NULL, 5]
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param array $values - Array of values
+     * @return boolean
+     */
+    protected function isPrependedByNull($values)
+    {
+        $nullNumber = -1;
+        $valueNumber = -1;
+        foreach ($values as $i=>$value) {
+            if (is_null($value)) {
+                if ($nullNumber === -1) {
+                    // First time, only record the very first NULL
+                    $nullNumber = $i;
+                }
+            } else {
+                $valueNumber = $i;
+            }
+        }
+
+        if ($valueNumber === -1) {
+            // There is no real value supplied
+            return TRUE;
+        }
+
+        if ($nullNumber < $valueNumber && $nullNumber !== -1) {
+            return TRUE;
+        }
+
+        return FALSE;
     }
 }
