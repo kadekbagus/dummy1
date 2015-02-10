@@ -160,6 +160,22 @@
                     <b><a href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @endif
+                  @elseif($events->link_object_type == 'family')
+                    @if(! empty($events->image))
+                    <a href="{{ url('customer/category?'.$event_family_url_param) }}">
+                      <img class="img-responsive" src="{{ asset($events->image) }}">
+                    </a>
+                    <br> 
+                    <b><a href="{{ url('customer/category?'.$event_family_url_param) }}">{{ $events->event_name }}</a></b> <br> 
+                    {{ $events->description }}
+                    @else
+                    <a href="{{ url('customer/category?'.$event_family_url_param) }}">
+                      <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
+                    </a>
+                    <br> 
+                    <b><a href="{{ url('customer/category?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    {{ $events->description }}
+                    @endif
                   @elseif($events->link_object_type == 'promotion')
                     @if(! empty($events->image)) 
                     <a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">

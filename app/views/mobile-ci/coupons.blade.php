@@ -125,10 +125,10 @@
 										<small>Starting From</small>
 										@endif
 										@if($product->on_promo)
-											<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike">{{ $product->min_price }}</span></h3>
-											<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span>{{ $product->priceafterpromo }}</span></h3>
+											<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product->min_price }}</span></h3>
+											<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->priceafterpromo }}</span></h3>
 										@else
-										<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> {{ $product->min_price }}</h3>
+										<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->min_price }}</span></h3>
 										@endif
 									</div>
 										
@@ -217,6 +217,18 @@
 		        window.location.reload() 
 		    }
 		});
+		$('.formatted-num').each(function(index){
+	      var num = parseFloat($(this).text()).toFixed(2);
+	      var partnum = num.toString().split('.');
+	      console.log(partnum);
+	      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+	      if(partnum[1] == '00'){
+	        $(this).text(part1);
+	      } else {
+	        var part2 = partnum[1];
+	        $(this).text(part1 + '.' + part2);
+	      }
+	    });
 		$(document).ready(function(){
 			// if(window.location.hash){
 			// 	var hash = window.location.hash;
@@ -244,7 +256,8 @@
 						url: apiPath+'customer/productcouponpopup',
 						method: 'POST',
 						data: {
-							productid: prodid
+							productid: prodid,
+							productvariantid: prodvarid
 						}
 					}).done(function(data){
 						if(data.status == 'success'){
