@@ -100,6 +100,8 @@ return array(
             'coupon_name'           => 'The coupon name has already been used.',
             'issued_coupon_code'    => 'The coupon code has been redeemed.',
             'event_name'            => 'The event name has already been used.',
+            'tax_name'              => 'The tax name has already been used.',
+            'tax_link_to_product'   => 'The tax cannot be deleted: One or more products are attached to this tax.',
             'product'               => array(
                 'attribute'         => array(
                     'unique'        => 'The attribute name \':attrname\' already exists.',
@@ -143,6 +145,7 @@ return array(
             'retailer_sortby'      => 'The sort by argument for retailer you specified is not valid, the valid values are: registered_date, retailer_name, retailer_email, and orid.',
             'tax_status'           => 'The tax status you specified is not found.',
             'tax_sortby'           => 'The sort by argument for tax you specified is not valid, the valid values are: registered_date, merchant_tax_id, tax_name, tax_type, tax_value, tax_order.',
+            'tax_type'             => 'The tax type you specified is not found. Valid values are: government, service, luxury.',
             'category_status'      => 'The category status you specified is not found.',
             'category_sortby'      => 'The sort by argument you specified is not valid, the valid values are: registered_date, category_name, category_level, category_order, description, status.',
             'promotion_status'     => 'The promotion status you specified is not found.',
