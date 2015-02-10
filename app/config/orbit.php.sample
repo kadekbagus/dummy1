@@ -694,7 +694,7 @@ return array(
         ),
 
         'edc'        => array(
-            'path'   => '/home/dominopos1/drivers/64bits/edc_v18',
+            'path'   => '/home/dominopos1/drivers/64bits/edcbz_v41',
             'params' => '/dev/domino/terminal'
         ),
 
