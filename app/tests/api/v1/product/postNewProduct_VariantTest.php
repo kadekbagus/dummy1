@@ -1580,4 +1580,49 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', $response->status);
     }
+
+    /**
+     * This method would produce an error. The data submitted same as previous.
+     *
+     * Kunci Obeng Material Steel (14, 7)  Size Small (10, 7)  NULL NULL NULL
+     */
+    public function testSaveProductNew_newVariant_DuplicateData()
+    {
+        // Object of first "Kunci Obeng"
+        $kunciObeng1 = new stdClass();
+        $kunciObeng1->upc = NULL;  // Follows the parent
+        $kunciObeng1->sku = NULL;  // Follows the parent
+        $kunciObeng1->price = NULL;  // Follows the parent
+
+        // It containts array of product_attribute_value_id
+        $kunciObeng1->attribute_values = [14, 10, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['merchant_id'] = 2;
+        $_POST['product_name'] = 'Kunci Obeng';
+        $_POST['product_code'] = 'SKU-001';
+        $_POST['upc_code'] = 'SKU-001';
+        $_POST['price'] = 1000000;
+        $_POST['status'] = 'active';
+        $_POST['product_variants'] = json_encode([$kunciObeng1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/new?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
+        $this->assertSame($errorMessage, $response->message);
+    }
 }
