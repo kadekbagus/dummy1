@@ -228,7 +228,8 @@
 						url: apiPath+'customer/productcouponpopup',
 						method: 'POST',
 						data: {
-							productid: prodid
+							productid: prodid,
+							productvariantid: prodvarid
 						}
 					}).done(function(data){
 						if(data.status == 'success'){

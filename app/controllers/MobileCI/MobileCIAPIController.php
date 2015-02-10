@@ -2433,7 +2433,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->response->message = 'success';
             $this->response->data = $coupons;
-
+            // dd($coupons);
             return $this->render();
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
@@ -2958,7 +2958,7 @@ class MobileCIAPIController extends ControllerAPI
                     }
                     $cartdetail->attributes = $attributes;
                 }
-                if(count($cartdata->cartdetails) > 0) {
+                if(count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
                     $cart_vat = $vat / $subtotal_wo_tax;
                 }
 

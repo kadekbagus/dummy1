@@ -15,7 +15,7 @@
         <a id="doneBtn" class="btn btn-success">Selesai</a>
       </div>
       <div class="col-xs-6 text-center">
-        <a href="{{ url('customer/home') }}" class="btn btn-info">Kembali</a>
+        <a href="{{ url('customer/cart') }}" class="btn btn-info">Kembali</a>
       </div>
     </div>
   </div>

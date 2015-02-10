@@ -112,6 +112,14 @@
           
         <?php $x++;?>
         @endforeach
+            <div class="subtotal">
+              <div class="subtotal-title text-right">
+                Subtotal : 
+              </div>
+              <div class="subtotal-price text-right formatted-num">
+                {{ $cartdata->cartsummary->subtotal_before_cart_promo }}
+              </div>
+            </div>
           </div>
         </div>
     </div>
@@ -139,16 +147,16 @@
 
       @foreach($cartdata->cartsummary->acquired_promo_carts as $promo_cart)
       <div class="cart-sum-bodies">
-        <div class="cart-sum-single-body">
+        <div class="cart-sum-single-body-promo">
           <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
         </div>
-        <div class="cart-sum-single-body">
+        <div class="cart-sum-single-body-promo">
           <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_before_cart_promo }}</span>
         </div>
-        <div class="cart-sum-single-body">
+        <div class="cart-sum-single-body-promo">
           <span class="@if($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$promo_cart->disc_val_str}}</span>
         </div>
-        <div class="cart-sum-single-body">
+        <div class="cart-sum-single-body-promo text-right">
           <span class="formatted-num">{{$promo_cart->disc_val}}</span>
         </div>
       </div>
@@ -177,16 +185,16 @@
       @foreach($cartdata->cartsummary->used_cart_coupons as $coupon_cart)
         @if(!empty($coupon_cart->issuedcoupon))
         <div class="cart-sum-bodies">
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
           </div>
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_before_cart_promo }}</span>
           </div>
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="@if($coupon_cart->issuedcoupon->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($coupon_cart->issuedcoupon->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$coupon_cart->disc_val_str}}</span>
           </div>
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="formatted-num">{{$coupon_cart->disc_val}}</span>
             <div class="unique-column-properties">
               <div class="coupon-remover" data-detail="{{ $coupon_cart->issuedcoupon->issued_coupon_id }}">
@@ -221,16 +229,16 @@
       @foreach($cartdata->cartsummary->available_coupon_carts as $available_coupon_cart)
         @foreach($available_coupon_cart->issuedcoupons as $issuedcoupon)
         <div class="cart-sum-bodies">
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="coupon-name" data-coupon="{{ $available_coupon_cart->promotion_id }}"><b>{{$available_coupon_cart->promotion_name}}</b></span>
           </div>
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="@if($available_coupon_cart->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($available_coupon_cart->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$available_coupon_cart->disc_val_str}}</span>
           </div>
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span class="formatted-num">{{$available_coupon_cart->disc_val}}</span>
           </div>
-          <div class="cart-sum-single-body">
+          <div class="cart-sum-single-body-promo">
             <span><a class="btn btn-info useCouponBtn" data-coupon="{{ $issuedcoupon->issued_coupon_id }}">Pakai</a></span>
           </div>
         </div>
@@ -274,7 +282,6 @@
     </div>
     @endif
 
-    {{-- $cartdata->cartsummary->subtotal_wo_tax }} | {{ $cartdata->cartsummary->vat }} | {{ $cartdata->cartsummary->subtotal_wo_tax + $cartdata->cartsummary->vat }} || {{ $cartdata->cartsummary->total_to_pay --}}
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
@@ -442,16 +449,18 @@
 
   $(document).ready(function(){
     $('.formatted-num').each(function(index){
-      var num = parseFloat($(this).text()).toFixed(2);
+      var num = parseFloat($(this).text()).toFixed(0);
       var partnum = num.toString().split('.');
-      console.log(partnum);
+      // console.log(partnum);
       var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-      if(partnum[1] == '00'){
-        $(this).text(part1);
-      } else {
-        var part2 = partnum[1];
-        $(this).text(part1 + '.' + part2);
-      }
+      // if decimal place is accepted
+      // if(partnum[1] == '00'){
+      //   $(this).text(part1);
+      // } else {
+      //   var part2 = partnum[1];
+      //   $(this).text(part1 + '.' + part2);
+      // }
+      $(this).text(part1);
     });
     $('.percentage-num').each(function(index){
       var num = parseFloat($(this).text());
