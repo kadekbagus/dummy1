@@ -216,16 +216,27 @@ return array(
             'product_attr' => array(
                 'attribute' => array(
                     'value' => array(
-                        'price'     => 'The price should be in numeric or decimal.',
-                        'count'     => 'The number of value must be 5.',
-                        'order'     => 'Invalid attribute ID order, expected :expect but got :got.',
-                        'allnull'   => 'All five attribute values can not be null at the same time.',
-                        'exists'    => 'The attribute combinations you have sent already exists.'
+                        'price'         => 'The price should be in numeric or decimal.',
+                        'count'         => 'The number of value must be 5.',
+                        'order'         => 'Invalid attribute ID order, expected :expect but got :got.',
+                        'allnull'       => 'All five attribute values can not be null at the same time.',
+                        'exists'        => 'The attribute combinations you have sent already exists.',
+                        'nullprepend'   => 'Null value must be put after attribute value.',
+                        'duplicate'     => 'There is a duplicate of product attribute value you have sent.',
+                        'notsame'       => 'One or more product combination you sent does not have the same number of order.'
                     ),
                 ),
             ),
             'pos_quick_product' => array(
                 'array_count'   => 'The number of item should not be more than :number.'
+            ),
+            'merchant' => array(
+                'ticket_header' => array(
+                    'max_length' => 'Merchant ticket header max length is 40 characters for each line.'
+                ),
+                'ticket_footer' => array(
+                    'max_length' => 'Merchant ticket footer max length is 40 characters for each line.'
+                ),
             ),
         ),
         'actionlist' => array(
