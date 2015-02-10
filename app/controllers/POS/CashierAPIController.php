@@ -919,8 +919,16 @@ class CashierAPIController extends ControllerAPI
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
-            $head  = $this->just40CharMid($retailer->name);
-            $head .= $this->just40CharMid($retailer->address_line1);
+            // ticket header
+            $ticket_header = $retailer->parent->ticket_header;
+            $ticket_header_line = explode("\n", $ticket_header);
+            foreach ($ticket_header_line as $line => $value) {
+                if($line==0){
+                    $head  = $this->just40CharMid($value);
+                }else{
+                    $head .= $this->just40CharMid($value);
+                }
+            }
             $head .= '----------------------------------------'." \n";
 
             $head .= 'Date : '.$date." \n";
@@ -947,7 +955,14 @@ class CashierAPIController extends ControllerAPI
             $footer  = " \n";
             $footer .= " \n";
             $footer .= " \n";
-            $footer .= $this->just40CharMid('Thank you for your purchase');
+
+            // ticket footer
+            $ticket_footer = $retailer->parent->ticket_footer;
+            $ticket_footer_line = explode("\n", $ticket_footer);
+            foreach ($ticket_footer_line as $line => $value) {
+                $footer .= $this->just40CharMid($value);
+            }
+
             $footer .= " \n";
             $footer .= " \n";
             $footer .= " \n";
@@ -974,7 +989,6 @@ class CashierAPIController extends ControllerAPI
 
             shell_exec($cut);
 
-            //$this->response->data = $retailer;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
