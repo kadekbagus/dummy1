@@ -1052,7 +1052,7 @@ class CashierAPIController extends ControllerAPI
 
             $driver = Config::get('orbit.devices.edc.path');
             $params = Config::get('orbit.devices.edc.params');
-            $cmd = 'sudo '.$driver.' --device '.$params.' --amounts '.$amount;
+            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
             $card = shell_exec($cmd);
 
             $card = trim($card);
