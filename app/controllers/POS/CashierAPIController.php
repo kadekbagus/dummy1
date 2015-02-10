@@ -886,6 +886,13 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
+            // Check the device exist or not
+            if(!file_exists(Config::get('orbit.devices.printer.params')))
+            {
+                $message = 'Printer not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
             $transaction = \Transaction::with('details', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
 
             if (! is_object($transaction)) {
