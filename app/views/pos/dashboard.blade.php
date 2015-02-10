@@ -91,7 +91,7 @@
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">
-                               <th colspan="4" style="color: white">CART BASED PROMOTION</th>
+                               <th colspan="4" style="color: white"><h4>CART BASED PROMOTION</h4></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,7 +114,7 @@
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                         <tr>
-                            <td><div class="foo promotion" style="margin-left:70px;" ><span style="margin-left: 23px;">Promotion</span></div></td>
+                            <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -309,6 +309,11 @@
                         <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1'">
                             <p>UPC :<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
+                        </div>
+                        <div data-ng-show="datapromotion.length && dataattrvalue1.length == '1'">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p><h5><del><% productmodal.price %></del></h5></p>
+                            <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
                         </div>
                     </div>
                     <div class="col-md-6">
