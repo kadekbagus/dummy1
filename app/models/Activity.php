@@ -21,6 +21,28 @@ class Activity extends Eloquent
     use ModelStatusTrait;
 
     /**
+     * Common task which called by multiple group.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function fillCommonValues()
+    {
+        $this->ip_address = static::getIPAddress();
+        $this->user_agent = static::getUserAgent();
+        $this->http_method = $_SERVER['REQUEST_METHOD'];
+        $this->request_uri = $_SERVER['REQUEST_URI'];
+
+        if (isset($_POST) && ! empty($_POST)) {
+            $this->post_data = serialize($_POST);
+        }
+
+        if ($this->group === 'pos' || $this->group === 'mobile-ci') {
+            $this->location_id = Config::get('orbit.shop.id');
+        }
+    }
+
+    /**
      * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -30,9 +52,7 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'mobile-ci';
-        $activity->ip_address = static::getIPAddress();
-        $activity->user_agent = static::getUserAgent();
-        $activity->location_id = Config::get('orbit.shop.id');
+        $activity->fillCommonValues();
 
         return $activity;
     }
@@ -47,9 +67,7 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'pos';
-        $activity->ip_address = static::getIPAddress();
-        $activity->user_agent = static::getUserAgent();
-        $activity->location_id = Config::get('orbit.shop.id');
+        $activity->fillCommonValues();
 
         return $activity;
     }
@@ -64,8 +82,7 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'portal';
-        $activity->ip_address = static::getIPAddress();
-        $activity->user_agent = static::getUserAgent();
+        $activity->fillCommonValues();
 
         return $activity;
     }
