@@ -919,15 +919,13 @@ class CashierAPIController extends ControllerAPI
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
+            $head  = $this->just40CharMid($retailer->parent->name);
+            $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
             // ticket header
             $ticket_header = $retailer->parent->ticket_header;
             $ticket_header_line = explode("\n", $ticket_header);
             foreach ($ticket_header_line as $line => $value) {
-                if($line==0){
-                    $head  = $this->just40CharMid($value);
-                }else{
-                    $head .= $this->just40CharMid($value);
-                }
+                $head .= $this->just40CharMid($value);
             }
             $head .= '----------------------------------------'." \n";
 
