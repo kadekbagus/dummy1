@@ -77,25 +77,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 window.location.assign("signin");
             }else{
                 //show modal product detail
-                $scope.showdetailFn = function(id,act,idcart){
+                $scope.showdetailFn = function(id,act){
                     //set loading
                     $scope.loadproductdetail = true;
-                    //init product modal
-                    $scope.productmodal        = $scope.product[id];
-                    $scope.productmodal['idx'] = id;
-                    //hide btn when action view
-                    $scope.hiddenbtn = false;
-                    if(act){
-                        $scope.hiddenbtn = true;
-                        $scope.productmodal.price = $scope.cart[idcart]['price'];
-                        $scope.productmodal.afterpromotionprice = $scope.cart[idcart]['afterpromotionprice'];
-                    }
-                    //reset data promotion
-                    $scope.datapromotion = [];
-                    $scope.variantstmp   = '';
-                    $scope.showprice     = false;
-                    $scope.datapromotion = '';
-                    $scope.getpromotion($scope.productmodal['product_id']);
+                    $scope.hiddenbtn         = false;
+                    $scope.showprice         = false;
+                    $scope.variantstmp       = '';
+                    $scope.getpromotion(id,act);
+                    $scope.hiddenbtn = act ? true : false;
                 };
                 //canceler request
                 $scope.cancelRequestService = function(){
@@ -184,17 +173,33 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 });
                 //get product based promotion TODO:
-                $scope.getpromotion = function(productid){
+                $scope.getpromotion = function(productid,act){
+                    $scope.datapromotion = [];
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
                         if (response.code == 0 ) {
+                            $scope.productmodal = response.data.product;
+
                             $scope.productdetail = response.data;
                             $scope.datapromotion = response.data.promo;
+                            var discount    = 0;
+                            var tmpdiscount = 0;
                             if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
                                 $scope.datapromotion[i]['oridiscount_value'] = $scope.datapromotion[i]['discount_value'];
                                 $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
                                 $scope.datapromotion[i]['new_from']          = moment($scope.datapromotion[i]['new_from']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY')  : '';
                                 $scope.datapromotion[i]['new_until']         = moment($scope.datapromotion[i]['new_until']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY') : '';
+                                if(act){
+                                    tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
+                                    $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                    $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
+                                    discount += tmpdiscount;
+                                }
                             }
+                            if(act){
+                                var discounts = accounting.unformat($scope.productmodal['price']) - discount;
+                                $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
+                            }
+                            $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", 0, ",", ".");
 
                             $scope.dataattrvalue1 = [];
                             $scope.dataattrvalue2 = [];
@@ -279,13 +284,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/cartbasedpromotion').then(function (response) {
                         if (response.code == 0 ) {
                             $scope.cartpromotions = response.data;
-                            console.log($scope.cartpromotions);
                         }
                     })
                 })();
                 // when choose last the attribute
                 $scope.changeattr = function(id,idx){
-
+                    $scope.showprice = false;
                     for(var i = id+1; i < $scope.chooseattr.length; i++ ){
                        $scope.chooseattr[i] = '';
                     }
@@ -348,6 +352,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.applycartpromotion      = [];
                             var promotioncartbase          = 0;
                             var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
+                            //add header subtotal before promotion
+                            $scope.applycartpromotion.push({
+                              promotion_name : 'Subtotal',
+                              promotionrule : {
+                                  discount_value :  $scope.cart.subtotal
+                              }
+                            });
                             for(var j = 0; j < $scope.cartpromotions.length;j++){
                                 if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
                                     promotioncartbase +=  $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
@@ -462,6 +473,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
+                    $scope.cardfile  = true;
                     switch(act){
                         case 't':
                             $scope.action  = 'cash';
@@ -488,15 +500,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 if(response.code == 0){
                                     $scope.savetransactions();
                                     $scope.hasaccepted = true;
+                                }else{
+                                    $scope.cheader  = 'TRANSAKSI GAGAL';
+                                    $scope.cardfile = true;
                                 }
                              });
                             //wait driver until 45 seconds
-                            $timeout(function(){
+                            /*$timeout(function(){
                                 if(!$scope.hasaccepted) {
                                     $scope.cheader  = 'TRANSAKSI GAGAL';
                                     $scope.cardfile = true;
                                 }
-                            },10000);
+                            },10000);*/
 
                             break;
                         case 'd' :
@@ -683,7 +698,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
-                    console.log(data);
                     serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
                                 var name = response.data.users.user_firstname+' '+response.data.users.user_lastname;
