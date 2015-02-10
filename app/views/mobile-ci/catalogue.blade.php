@@ -596,7 +596,6 @@
         $(window).scroll(function () {
 		    if (!timeout) {
 		        timeout = setTimeout(function () {
-		            // console.log($(window).scrollTop());
 		            $.cookie('lastpos', $(window).scrollTop(), { expires: 300 });
 		            clearTimeout(timeout);
 		            timeout = null;
@@ -657,9 +656,10 @@
 						if(data == 'Invalid session data.'){
 							location.replace('/customer');
 						} else {
+							// console.log(a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list"));
 							a.parent('[data-family-container="'+ family_id +'"]').children("div.product-list").css('display', 'none').html(data).slideDown('slow');
 							$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
-							$('.formatted-num').each(function(index){
+							a.parent('[data-family-container="'+ family_id +'"]').find('.formatted-num').each(function(index){
 						      var num = parseFloat($(this).text()).toFixed(2);
 						      var partnum = num.toString().split('.');
 						      console.log(partnum);

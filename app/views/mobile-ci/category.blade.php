@@ -5,171 +5,143 @@
 @stop
 
 @section('content')
-	@if(count($coupons) > 0)
-		<img class="img-responsive text-center promo-cover" src="{{ asset($coupons[0]->promo_image) }}">
-		<div class="row">
-			<div class="col-xs-12 vertically-spaced">
-				<p>{{ $coupons[0]->description }}</p>
-				@if($coupons[0]->promotion_type == 'product')
-					@if($coupons[0]->discount_object_type == 'product')
-						<p class="promo-item">Product : {{ $coupons[0]->product_name }}</p>
-					@elseif($coupons[0]->discount_object_type == 'family')
-						<p class="promo-item">
-							Category : 
-							@if(!is_null($coupons[0]->discount_object_id1))
-							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id1)->first()->category_name }}</span>
-							@endif
-							@if(!is_null($coupons[0]->discount_object_id2))
-							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id2)->first()->category_name }}</span>
-							@endif
-							@if(!is_null($coupons[0]->discount_object_id3))
-							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id3)->first()->category_name }}</span>
-							@endif
-							@if(!is_null($coupons[0]->discount_object_id4))
-							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id4)->first()->category_name }}</span>
-							@endif
-							@if(!is_null($coupons[0]->discount_object_id5))
-							<span>{{ Category::where('category_id', $coupons[0]->discount_object_id5)->first()->category_name }}</span>
-							@endif
-						</p>
-					@endif
-				@endif
-				<h4>Kode kupon : {{ $coupons[0]->issued_coupon_code }}</h4>
-				<h4>Valid hingga : {{ date('j M Y', strtotime($coupons[0]->expired_date)) }}</h4>
+	@if($data->status === 1)
+		@if(sizeof($data->records) > 0)
+			@if(sizeof($data->records) > 1)
+			<div id="search-tool">
+			    <div class="row">
+				    <div class="col-xs-6 search-tool-col">
+				    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
+				    	<a href="{{ url('/customer/category?f1='.Input::get('f1').'&f2='.Input::get('f2').'&f3='.Input::get('f3').'&f4='.Input::get('f4').'&f5='.Input::get('f5').'&keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-price-up">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a> 
+				    	<a href="{{ url('/customer/category?f1='.Input::get('f1').'&f2='.Input::get('f2').'&f3='.Input::get('f3').'&f4='.Input::get('f4').'&f5='.Input::get('f5').'&keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-price-down">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a>
+				    	<span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
+				    </div>
+				    <div class="col-xs-5 search-tool-col">
+				    	<a href="{{ url('/customer/category?f1='.Input::get('f1').'&f2='.Input::get('f2').'&f3='.Input::get('f3').'&f4='.Input::get('f4').'&f5='.Input::get('f5').'&keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-name-up">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a> 
+				    	<a href="{{ url('/customer/category?f1='.Input::get('f1').'&f2='.Input::get('f2').'&f3='.Input::get('f3').'&f4='.Input::get('f4').'&f5='.Input::get('f5').'&keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&new='.Input::get('new').'&promo='.Input::get('promo').'&coupon='.Input::get('coupon')) }}" id="sort-by-name-down">
+				    		<span class="fa-stack">
+				    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
+				    		</span>
+				    	</a>
+				    	<span class="sort-lable">A-Z</span>
+				    </div>
+				    <div class="col-xs-1 search-tool-col text-right">
+						<a href="{{ url('/customer/home') }}"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-close fa-stack-1x sort-chevron"></i></span></a>
+				    </div>
+			 	</div>
 			</div>
-		</div>
-		@if($data->status === 1)
-			@if(sizeof($data->records) > 0)
-				@if(sizeof($data->records) > 1)
-				<div id="search-tool">
-				    <div class="row">
-					    <div class="col-xs-6 search-tool-col">
-					    	<input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
-					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-price-up">
-					    		<span class="fa-stack">
-					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
-					    		</span>
-					    	</a> 
-					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-price-down">
-					    		<span class="fa-stack">
-					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
-					    		</span>
-					    	</a>
-					    	<span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
-					    </div>
-					    <div class="col-xs-5 search-tool-col">
-					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-name-up">
-					    		<span class="fa-stack">
-					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
-					    		</span>
-					    	</a> 
-					    	<a href="{{ url('/customer/coupon?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&couponid='.Input::get('couponid')).'#search-tool' }}" id="sort-by-name-down">
-					    		<span class="fa-stack">
-					    			<i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
-					    		</span>
-					    	</a>
-					    	<span class="sort-lable">A-Z</span>
-					    </div>
-					    <div class="col-xs-1 search-tool-col text-right">
-							<a href="{{ url('/customer/home') }}"><span class="fa-stack"><i class="fa fa-square fa-stack-2x"></i><i class="fa fa-close fa-stack-1x sort-chevron"></i></span></a>
-					    </div>
-				 	</div>
-				</div>
-				@endif
-				@foreach($data->records as $product)
-					<div class="main-theme catalogue" id="product-{{$product->product_id}}">
-						<div class="row row-xs-height catalogue-top">
-							<div class="col-xs-6 catalogue-img col-xs-height col-middle">
-								<div>
-									<?php $x = 1;?>
-									@if($product->on_promo)
-									<div class="ribbon-wrapper-green ribbon{{$x}}">
-										<div class="ribbon-green">Promo</div>
-									</div>
-									<?php $x++;?>
-									@endif
-									@if($product->is_new)
-									<div class="ribbon-wrapper-red ribbon{{$x}}">
-										<div class="ribbon-red">New</div>
-									</div>
-									<?php $x++;?>
-									@endif
-									@if($product->on_coupons)
-									<div class="ribbon-wrapper-yellow ribbon{{$x}}">
-										<div class="ribbon-yellow">Coupon</div>
-									</div>
-									<?php $x++;?>
-									@endif
-									@if($product->on_couponstocatch)
-									<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
-										<div class="ribbon-yellow-dash">Coupon</div>
-									</div>
-									<?php $x++;?>
-									@endif
+			@endif
+			@foreach($data->records as $product)
+				<div class="main-theme catalogue" id="product-{{$product->product_id}}">
+					<div class="row row-xs-height catalogue-top">
+						<div class="col-xs-6 catalogue-img col-xs-height col-middle">
+							<div>
+								<?php $x = 1;?>
+								@if($product->on_promo)
+								<div class="ribbon-wrapper-green ribbon{{$x}}">
+									<div class="ribbon-green">Promo</div>
 								</div>
-								<div class="zoom-wrapper">
-									<div class="zoom"><a href="{{ asset($product->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
+								<?php $x++;?>
+								@endif
+								@if($product->is_new)
+								<div class="ribbon-wrapper-red ribbon{{$x}}">
+									<div class="ribbon-red">New</div>
 								</div>
-								<a href="{{ asset($product->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product->image) }}"></a>
+								<?php $x++;?>
+								@endif
+								@if($product->on_coupons)
+								<div class="ribbon-wrapper-yellow ribbon{{$x}}">
+									<div class="ribbon-yellow">Coupon</div>
+								</div>
+								<?php $x++;?>
+								@endif
+								@if($product->on_couponstocatch)
+								<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
+									<div class="ribbon-yellow-dash">Coupon</div>
+								</div>
+								<?php $x++;?>
+								@endif
 							</div>
-							<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
-								<div class="row">
-									<div class="col-xs-12">
-										<h3>{{ $product->product_name }}</h3>
-									</div>
-									<div class="col-xs-12">
-										<h4>Code : {{ $product->upc_code }}</h4>
-									</div>					
-									<div class="col-xs-12 price">
-										@if(count($product->variants) > 1)
-										<small>Starting From</small>
-										@endif
-										@if($product->on_promo)
-											<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product->min_price }}</span></h3>
-											<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->priceafterpromo }}</span></h3>
-										@else
-										<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->min_price }}</span></h3>
-										@endif
-									</div>
-										
-								</div>
+							<div class="zoom-wrapper">
+								<div class="zoom"><a href="{{ asset($product->image) }}" data-featherlight="image"><img src="{{ asset('mobile-ci/images/product-zoom.png') }}"></a></div>
 							</div>
+							<a href="{{ asset($product->image) }}" data-featherlight="image"><img class="img-responsive" alt="" src="{{ asset($product->image) }}"></a>
 						</div>
-						<div class="row catalogue-control-wrapper">
-							<div class="col-xs-6 catalogue-short-des ">
-								<p>{{ $product->short_description }}</p>
-							</div>
-							<div class="col-xs-2 catalogue-control text-center">
-								<div class="circlet btn-blue detail-btn">
-									<a href="{{ url('customer/product?id='.$product->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
+						<div class="col-xs-6 catalogue-detail bg-catalogue col-xs-height">
+							<div class="row">
+								<div class="col-xs-12">
+									<h3>{{ $product->product_name }}</h3>
 								</div>
-							</div>
-							@if(count($product->variants) <= 1)
-							<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-								<div class="circlet btn-blue cart-btn text-center">
-									<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
-										<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-									</a>
+								<div class="col-xs-12">
+									<h4>Code : {{ $product->upc_code }}</h4>
+								</div>					
+								<div class="col-xs-12 price">
+									@if(count($product->variants) > 1)
+									<small>Starting From</small>
+									@endif
+									@if($product->on_promo)
+										<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product->min_price }}</span></h3>
+										<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->priceafterpromo }}</span></h3>
+									@else
+									<h3 class="currency"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $product->min_price }}</span></h3>
+									@endif
 								</div>
+									
 							</div>
-							@else
-							<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-								<div class="circlet btn-blue cart-btn text-center">
-									<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
-										<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-									</a>
-								</div>
-							</div>
-							@endif
 						</div>
 					</div>
-				@endforeach
-			@endif
+					<div class="row catalogue-control-wrapper">
+						<div class="col-xs-6 catalogue-short-des ">
+							<p>{{ $product->short_description }}</p>
+						</div>
+						<div class="col-xs-2 catalogue-control text-center">
+							<div class="circlet btn-blue detail-btn">
+								<a href="{{ url('customer/product?id='.$product->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
+							</div>
+						</div>
+						@if(count($product->variants) <= 1)
+						<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+							<div class="circlet btn-blue cart-btn text-center">
+								<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}">
+									<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+								</a>
+							</div>
+						</div>
+						@else
+						<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+							<div class="circlet btn-blue cart-btn text-center">
+								<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
+									<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+								</a>
+							</div>
+						</div>
+						@endif
+					</div>
+				</div>
+			@endforeach
+		@else
+			<div class="row padded">
+				<div class="col-xs-12">
+					<h4>Tidak ada produk yang sesuai kriteria.</h4>
+				</div>
+			</div>
 		@endif
 	@else
 		<div class="row padded">
 			<div class="col-xs-12">
-				<h4>Anda tidak memiliki kupon ini. <a href="{{ url('customer/home') }}">Kembali</a>.</h4>
+				<h4>Hasil pencarian terlalu banyak, tolong persempit pencarian Anda.</h4>
 			</div>
 		</div>
 	@endif
@@ -230,16 +202,16 @@
 	      }
 	    });
 		$(document).ready(function(){
-			// if(window.location.hash){
-			// 	var hash = window.location.hash;
-			// 	var producthash = "#product-"+hash.replace(/^.*?(#|$)/,'');
-			// 	console.log(producthash);
-			// 	var hashoffset = $(producthash).offset();
-			// 	var hashoffsettop = hashoffset.top-68;
-			// 	setTimeout(function() {
-			// 	    $(window).scrollTop(hashoffsettop);
-			// 	}, 1);
-			// }
+			if(window.location.hash){
+				var hash = window.location.hash;
+				var producthash = "#product-"+hash.replace(/^.*?(#|$)/,'');
+				console.log(producthash);
+				var hashoffset = $(producthash).offset();
+				var hashoffsettop = hashoffset.top-68;
+				setTimeout(function() {
+				    $(window).scrollTop(hashoffsettop);
+				}, 1);
+			}
 			// add to cart    		
 			$('body').on('click', 'a.product-add-to-cart', function(event){
 				$('#hasCouponModal .modal-body p').html('');

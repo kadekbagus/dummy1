@@ -70,7 +70,6 @@
                 <span class="formatted-num">{{ $cartdetail->original_ammount }}</span>
               </div>
             </div>
-
             @foreach($cartdetail->promo_for_this_product as $promo)
             <div class="single-item-bodies @if($x % 2 == 0) even-line @endif promo-line">
               <div class="single-body">
@@ -93,7 +92,7 @@
             @foreach($cartdetail->coupon_for_this_product as $coupon)
             <div class="single-item-bodies @if($x % 2 == 0) even-line @endif coupon-line">
               <div class="single-body">
-                <p><span class="promotion-name" data-promotion="{{ $coupon->promotion_id }}"><b>{{ $coupon->issuedcoupon->promotion_name }}</b></span></p>
+                <p><span class="product-coupon-name" data-coupon="{{ $coupon->issuedcoupon->promotion_id }}"><b>{{ $coupon->issuedcoupon->promotion_name }}</b></span></p>
               </div>
               <div class="single-body">
                 <div class="unique-column-properties">

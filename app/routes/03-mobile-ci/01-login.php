@@ -160,3 +160,9 @@ Route::post('/app/v1/customer/closecart', function()
 {
     return MobileCI\MobileCIAPIController::create()->postCloseCart();
 });
+
+// family page
+Route::get('/customer/category', function()
+{
+    return MobileCI\MobileCIAPIController::create()->getCategory();
+});
