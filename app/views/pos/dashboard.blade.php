@@ -96,9 +96,9 @@
                         </thead>
                         <tbody>
                             <tr data-ng-repeat="(k,v) in applycartpromotion" >
-                                <td><% v.promotion_name %></td>
+                                <td><b data-ng-show="v.promotion_name == 'Subtotal'"><% v.promotion_name %></b><span data-ng-show="v.promotion_name != 'Subtotal'"><% v.promotion_name %></span></td>
                                 <td></td>
-                                <td></td>
+                                <td class="text-right"><% v.promotionrule.discount %></td>
                                 <td class="text-right"><% v.promotionrule.discount_value %></td>
                             </tr>
                         </tbody>
@@ -228,15 +228,15 @@
                                           				</div>
 
                         </div>
-                        <div class="row">
+                        <div class="row" data-ng-show="v.is_permanent !='Y'">
                                           				<div class="col-xs-5 col-xs-height">
-                                          					<p><% v.new_from  %></p>
+                                          					<p><% v.begin_date  %></p>
                                           				</div>
                                           				<div class="col-xs-2 col-xs-height">
                                           					<p>s/d</p>
                                           				</div>
                                           				<div class="col-xs-5 col-xs-height">
-                                          					<p><% v.new_until  %></p>
+                                          					<p><% v.end_date  %></p>
                                           				</div>
                         </div>
                      </div>
