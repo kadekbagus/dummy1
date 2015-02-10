@@ -1,11 +1,6 @@
 @extends('pos.layouts.default')
 @section('content')
-<style>
 
-
-/*
-/*
-</style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
@@ -34,7 +29,7 @@
 
                 </div>
 
-                <div class="table-responsive"  id="tablecart" style="overflow: auto;height: 380px" >
+                <div ng-class="table-responsive"  id="tablecart" style="overflow: auto;height: 280px" >
                     <table class="table">
 
                         <tr>
@@ -46,7 +41,7 @@
                         <tbody data-ng-repeat="(k,v) in cart">
                            <tr>
                                 <td style="max-width: 300px;word-wrap: break-word;" >
-                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.idx,'fc',k)"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
+                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
 
@@ -73,10 +68,10 @@
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
                             <tr data-ng-repeat="(a,r) in v.promotion">
-                                <td><div class="circlegreen" data-ng-show="v.ispromo" ></div> <% r.promotion_name %> </td>
+                                <td><div class="foo promotion" style="margin-left: 23px;"></div><span><% r.promotion_name %></span></td>
                                 <td></td>
-                                <td>1</td>
-                                <td>1</td>
+                                <td class="text-right"><% r.discount_value %></td>
+                                <td class="text-right">- <% r.afterpromotionprice %></td>
                             </tr>
                         </tbody>
                             <tr>
@@ -92,17 +87,19 @@
 
                     </table>
                 </div>
-                <div class="table-responsive" data-ng-show="cartpromotions.length">
+                <div class="table-responsive" data-ng-show="applycartpromotion.length > 1">
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">
-                               <th colspan="2" style="color: white">CART BASED PROMOTION</th>
+                               <th colspan="4" style="color: white">CART BASED PROMOTION</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr data-ng-repeat="(k,v) in cartpromotions">
+                            <tr data-ng-repeat="(k,v) in applycartpromotion" >
                                 <td><% v.promotion_name %></td>
-                                <td><% v.promotionrule.discount_value %></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-right"><% v.promotionrule.discount_value %></td>
                             </tr>
                         </tbody>
 
@@ -117,7 +114,7 @@
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                         <tr>
-                            <td><div class="circlegreen"><span style="margin-left: 15px;">Promotion</span></div></td>
+                            <td><div class="foo promotion" style="margin-left:70px;" ><span style="margin-left: 23px;">Promotion</span></div></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -169,8 +166,8 @@
                       <div data-ng-if="productnotfound">
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
-                          <div class="col-md-6" data-ng-repeat="(k,v) in product" class="repeat-item">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(k)">
+                          <div class="col-md-6" data-ng-repeat="(k,v) in product">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
@@ -247,8 +244,8 @@
 
                      	<div class="row" data-ng-if="hiddenbtn">
                      		   <div class="col-xs-12" data-ng-show="datapromotion.length">
-                                    <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
-                                    <p><h4>IDR : <% productmodal.price %></h4></p>
+                                    <p><h5><del><% productmodal.price %></del></h5></p>
+                                    <p><h4>IDR : <% productmodal.afterpromotionprice %> </h4></p>
                                </div>
                      		   <div class="col-xs-12" data-ng-show="!datapromotion.length">
                                      <p><h4>IDR : <% productmodal.price %></h4></p>
@@ -301,11 +298,15 @@
                     <div class="col-md-6" >
                         <div data-ng-show="datapromotion.length && showprice">
                             <p>UPC :<% productmodal.upc_code %> </p>
-                            <p ><h5><del><% productmodal.beforepromoprice %></del></h5></p>
-                            <p><h4>IDR : <% productmodal.price %></h3></p>
+                            <p><h5><del><% productmodal.price %></del></h5></p>
+                            <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
 
                         </div>
-                        <div data-ng-show="!datapromotion.length">
+                        <div data-ng-show="!datapromotion.length && showprice ">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p><h4>IDR : <% productmodal.price %></h3></p>
+                        </div>
+                        <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1'">
                             <p>UPC :<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
                         </div>
@@ -442,7 +443,7 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-             <button class="btn  close closemodal" data-ng-if="action != 'done'" data-dismiss="modal" data-ng-click="gotomain()"type="button">
+             <button class="btn  close closemodal" data-ng-if="action != 'done' && cardfile" data-dismiss="modal" data-ng-click="gotomain()"type="button">
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
              </button>
             <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
@@ -490,15 +491,19 @@
                                           <button data-ng-click="virtualFn(false)" class="button-wide smaller">Done</button>
 
                                       </div>
-                                       {{--<div class="close" data-ng-click="virtualFn(false)" data-ng-click="close()"></div>--}}
+
                                </div>
 
                    </div>
                    <div class="row" ng-show="action == 'card'">
 
                     <div class="row">
-                         <span  class="text-center" data-ng-if="cardfile"><% headrcard %> failed</span>
-                         <span  class="text-center" data-ng-if="!cardfile">Gesek Kartu Sekarang</span>
+                            <div class="col-md-12">
+                              <span  class="text-center"><% cardfile ? headrcard+' failed':'Gesek Kartu Sekarang' %> </span>
+                            </div>
+                            <div class="col-md-12">
+                             <img src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
+                            </div>
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
@@ -507,8 +512,8 @@
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="button"  data-ng-if="cardfile && action != 'done'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
-                     <button type="button"  data-ng-if="action !='done'" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
+                     <button type="button"  data-ng-if="cardfile && action != 'done' && cheader == 'PEMBAYARAN KARTU DEBIT/KREDIT'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
+                     <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
                      <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
            </div>
         </div>
