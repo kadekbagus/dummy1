@@ -1,9 +1,6 @@
 @extends('pos.layouts.default')
 @section('content')
-<style>
 
-
-</style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
@@ -70,9 +67,8 @@
                                 <td class="text-right"><% v.price %></td>
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
-                            <!-- <div class="circlegreen" data-ng-show="v.ispromo"></div>-->
                             <tr data-ng-repeat="(a,r) in v.promotion">
-                                <td><span style="padding-left:20px"><% r.promotion_name %></span></td>
+                                <td><div class="foo promotion" style="margin-left: 23px;"></div><span><% r.promotion_name %></span></td>
                                 <td></td>
                                 <td class="text-right"><% r.discount_value %></td>
                                 <td class="text-right">- <% r.afterpromotionprice %></td>
@@ -99,7 +95,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr data-ng-repeat="(k,v) in applycartpromotion">
+                            <tr data-ng-repeat="(k,v) in applycartpromotion" >
                                 <td><% v.promotion_name %></td>
                                 <td></td>
                                 <td></td>
@@ -118,7 +114,7 @@
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                         <tr>
-                            <td><div class="circlegreen"><span style="margin-left: 15px;">Promotion</span></div></td>
+                            <td><div class="foo promotion" style="margin-left:70px;" ><span style="margin-left: 23px;">Promotion</span></div></td>
                             <td></td>
                             <td></td>
                             <td></td>
