@@ -77,13 +77,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 window.location.assign("signin");
             }else{
                 //show modal product detail
-                $scope.showdetailFn = function(id,act){
+                $scope.showdetailFn = function(id,act,attr1){
                     //set loading
+                    if(attr1 != null) angular.element('#myModal').modal('show');
                     $scope.loadproductdetail = true;
                     $scope.hiddenbtn         = false;
                     $scope.showprice         = false;
                     $scope.variantstmp       = '';
-                    $scope.getpromotion(id,act);
+                    $scope.getpromotion(id,act,attr1);
                     $scope.hiddenbtn = act ? true : false;
                 };
                 //canceler request
@@ -173,7 +174,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 });
                 //get product based promotion TODO:
-                $scope.getpromotion = function(productid,act){
+                $scope.getpromotion = function(productid,act,attr1){
                     $scope.datapromotion = [];
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
                         if (response.code == 0 ) {
@@ -272,6 +273,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
                             $scope.loadproductdetail = false;
+                            if(attr1 == null) $scope.inserttocartFn();
                         }else if(response.code == 13) {
                             $scope.logoutfn();
                         }else{

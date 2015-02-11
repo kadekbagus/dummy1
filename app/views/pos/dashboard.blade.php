@@ -68,7 +68,7 @@
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
                             <tr data-ng-repeat="(a,r) in v.promotion">
-                                <td><div class="foo promotion" style="margin-left: 23px;"></div><span><% r.promotion_name %></span></td>
+                                <td><div class="foo promotion" style="margin-left: 23px;"></div><span style="margin-left: 5px;"><% r.promotion_name %></span></td>
                                 <td></td>
                                 <td class="text-right"><% r.discount_value %></td>
                                 <td class="text-right">- <% r.afterpromotionprice %></td>
@@ -167,7 +167,7 @@
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-ng-click="showdetailFn(v.product_id,false,v.attribute_id1)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
