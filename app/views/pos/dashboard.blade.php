@@ -457,9 +457,10 @@
 
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')">TERMINAL 1</button> </p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')">TERMINAL 2</button> </p>
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')">TERMINAL 1</button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')">TERMINAL 2</button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
+                          <p data-ng-show="!holdbtn">Terminal is not ready</p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
 

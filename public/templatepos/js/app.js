@@ -69,7 +69,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.configs            = config;
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
-
+        $scope.holdbtn            = true;
 
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
@@ -501,7 +501,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         case 'k':
                             $scope.cardfile  = false;
                             $scope.headrcard = term;
-
+                          
                             //terminal 1
                             $scope.action = 'card';
                             $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
@@ -515,6 +515,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.cheader  = 'TRANSAKSI GAGAL';
                                     $scope.cardfile = true;
                                 }
+                                $scope.holdbtn = false;
+                                $timeout(function(){
+                                    $scope.holdbtn = true;
+                                 },50000);
                              });
                             //wait driver until 45 seconds
                             /*$timeout(function(){
