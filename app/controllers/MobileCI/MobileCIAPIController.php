@@ -246,40 +246,49 @@ class MobileCIAPIController extends ControllerAPI
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
             
-            $event_counter = 0;
+            // $event_counter = 0;
             // $cartdata = $this->getCartForToolbar();
-            // \Session::forget('event');
-            if(empty(\Session::get('event'))) {
-                // \Session::put('event', 0);
-                $event_counter = 0;
+
+            if(empty(\Cookie::get('event'))) {
+                $event_store = array();
             } else {
-                // $event_counter = \Session::get('event');
+                $event_store = \Cookie::get('event');
             }
 
             $events = EventModel::excludeDeleted()->whereHas('retailers', function($q) use($retailer)
                 {
                     $q->where('event_retailer.retailer_id', $retailer->merchant_id);
-                })->where('merchant_id', $retailer->parent->merchant_id)-> orderBy('events.event_id', 'DESC')->skip($event_counter)->first();
-            // dd($events);
-            $event_families = array();
-            if($events->link_object_type == 'family') {
-                if(!empty($events->link_object_id1)) {
-                    $event_families[] = Category::where('category_id', $events->link_object_id1)->excludeDeleted()->first();
-                }
-                if(!empty($events->link_object_id2)) {
-                    $event_families[] = Category::where('category_id', $events->link_object_id2)->excludeDeleted()->first();
-                }
-                if(!empty($events->link_object_id3)) {
-                    $event_families[] = Category::where('category_id', $events->link_object_id3)->excludeDeleted()->first();
-                }
-                if(!empty($events->link_object_id4)) {
-                    $event_families[] = Category::where('category_id', $events->link_object_id4)->excludeDeleted()->first();
-                }
-                if(!empty($events->link_object_id5)) {
-                    $event_families[] = Category::where('category_id', $events->link_object_id5)->excludeDeleted()->first();
+                })->where('merchant_id', $retailer->parent->merchant_id);
+
+            if(!empty($event_store)) {
+                foreach($event_store as $event_idx) {
+                    $events->where('event_id', '!=', $event_idx);
                 }
             }
 
+            $events = $events->orderBy('events.event_id', 'DESC')->first();
+            
+            $event_families = array();
+            if(!empty($events)) {
+                if($events->link_object_type == 'family') {
+                    if(!empty($events->link_object_id1)) {
+                        $event_families[] = Category::where('category_id', $events->link_object_id1)->excludeDeleted()->first();
+                    }
+                    if(!empty($events->link_object_id2)) {
+                        $event_families[] = Category::where('category_id', $events->link_object_id2)->excludeDeleted()->first();
+                    }
+                    if(!empty($events->link_object_id3)) {
+                        $event_families[] = Category::where('category_id', $events->link_object_id3)->excludeDeleted()->first();
+                    }
+                    if(!empty($events->link_object_id4)) {
+                        $event_families[] = Category::where('category_id', $events->link_object_id4)->excludeDeleted()->first();
+                    }
+                    if(!empty($events->link_object_id5)) {
+                        $event_families[] = Category::where('category_id', $events->link_object_id5)->excludeDeleted()->first();
+                    }
+                }
+            }
+            
             $event_family_url_param = '';
             for($i = 0; $i <= count($event_families) - 1; $i++) {
                 $event_family_url_param = $event_family_url_param . 'f' . ($i + 1) . '=' . $event_families[$i]->category_id;
@@ -289,8 +298,9 @@ class MobileCIAPIController extends ControllerAPI
             }
             // dd($event_family_url_param);
             if(!empty($events)) {
-                $event_counter++;
-                \Session::put('event', $event_counter);
+                $event_store[] = $events->event_id;
+                \Cookie::queue('event', $event_store, 1440);
+                // \Session::put('event', $event_store);
             }
 
             // \Session::forget('event');
@@ -303,7 +313,7 @@ class MobileCIAPIController extends ControllerAPI
             })->orderBy('widget_order', 'ASC')->take(4)->get();
 
             // dd($widgets);
-            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartitems' => $cartitems, 'coupons' => $coupons, 'events' => $events, 'widgets' => $widgets, 'event_families' => $event_families, 'event_family_url_param' => $event_family_url_param));
+            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartitems' => $cartitems, 'coupons' => $coupons, 'events' => $events, 'widgets' => $widgets, 'event_families' => $event_families, 'event_family_url_param' => $event_family_url_param))->withCookie($event_store);
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
