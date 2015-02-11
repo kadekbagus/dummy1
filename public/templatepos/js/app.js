@@ -455,7 +455,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.checkcart = function(product){
                     var check = true;
                     for(var i = 0; i < $scope.cart.length; i++){
-                        if($scope.cart[i]['variants'] == ''){
+                        if($scope.cart[i]['variants'] == '' || $scope.cart[i]['variants'] == undefined){
                             if($scope.cart[i]['product_id'] == product['product_id']){
                                 $scope.cart[i]['qty']++;
                                 check = false;
@@ -615,8 +615,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
                            // $scope.inserttocartFn();
-                            if($scope.productmodal['attr1'] != null) angular.element('#myModal').modal('show');
-                            $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attr1']);
+                            if($scope.productmodal['attribute_id1'] != null) angular.element('#myModal').modal('show');
+                            $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attribute_id1']);
                             $scope.scanproduct();
                         }else if(response.code == 13){
                              // angular.element("#ProductNotFound").modal();
