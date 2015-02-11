@@ -273,7 +273,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
                             $scope.loadproductdetail = false;
-                            if(attr1 == null) $scope.inserttocartFn();
+                            if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
                         }else if(response.code == 13) {
                             $scope.logoutfn();
                         }else{
@@ -390,8 +390,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
                         if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
-                        $location.hash('bottom');
-                        $anchorScroll();
+
                         $scope.searchproduct    = '';
                         $scope.adddelenadis($scope.productmodal['product_id'],'add');
                         if($scope.checkcart($scope.productmodal)){
@@ -419,6 +418,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 category_id5           : angular.copy($scope.productmodal['category_id5']),
                                 hargatotal             : 0
                             });
+                            $location.hash('bottom');
+                            $anchorScroll();
                         }
                         $scope.countcart();
                     }
@@ -613,7 +614,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
-                            $scope.inserttocartFn();
+                           // $scope.inserttocartFn();
+                            if($scope.productmodal['attr1'] != null) angular.element('#myModal').modal('show');
+                            $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attr1']);
                             $scope.scanproduct();
                         }else if(response.code == 13){
                              // angular.element("#ProductNotFound").modal();
