@@ -259,7 +259,7 @@
           <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>VAT ({{ $retailer->parent->currency_symbol }})</span>
+          <span>Taxes ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
           <span>Total ({{ $retailer->parent->currency_symbol }})</span>
