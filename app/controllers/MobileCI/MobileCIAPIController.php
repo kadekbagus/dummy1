@@ -3227,7 +3227,7 @@ class MobileCIAPIController extends ControllerAPI
                         if(!is_null($cartdetail->tax2)) {
                             $tax2 = $cartdetail->tax2->tax_value;
                             if($cartdetail->tax2->tax_type == 'service') {
-                                $pwot = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
+                                $pwot  = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                                 $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
                                 $tax1_total_value = $tax1_value * $cartdetail->quantity;
                             } elseif($cartdetail->tax2->tax_type == 'luxury') {
@@ -3308,14 +3308,14 @@ class MobileCIAPIController extends ControllerAPI
                             if(!is_null($cartdetail->tax2)) {
                                 $tax2 = $cartdetail->tax2->tax_value;
                                 if($cartdetail->tax2->tax_type == 'service') {
-                                    $tax1_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
+                                    $tax1_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
                                     $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                 } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
+                                    $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
                                     $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                 }
                             } else {
-                                $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
+                                $tax1_value = ($discount / (1 + $tax1)) * $tax1;
                                 $tax1_total_value = $tax1_value * $cartdetail->quantity;
                             }
                             foreach($taxes as $tax) {
@@ -3329,16 +3329,16 @@ class MobileCIAPIController extends ControllerAPI
                             $tax2 = $cartdetail->tax2->tax_value;
                             if(!is_null($cartdetail->tax1)) {
                                 if($cartdetail->tax2->tax_type == 'service') {
-                                    $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                                    $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
                                     $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                 } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
+                                    $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
                                     $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                 }
                             }
                             foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
                                 }
                             }
                         }
@@ -3384,14 +3384,14 @@ class MobileCIAPIController extends ControllerAPI
                                 if(!is_null($cartdetail->tax2)) {
                                     $tax2 = $cartdetail->tax2->tax_value;
                                     if($cartdetail->tax2->tax_type == 'service') {
-                                        $tax1_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
+                                        $tax1_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
                                         $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                     } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
+                                        $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
                                         $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                     }
                                 } else {
-                                    $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
+                                    $tax1_value = ($discount / (1 + $tax1)) * $tax1;
                                     $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                 }
                                 foreach($taxes as $tax) {
@@ -3405,16 +3405,16 @@ class MobileCIAPIController extends ControllerAPI
                                 $tax2 = $cartdetail->tax2->tax_value;
                                 if(!is_null($cartdetail->tax1)) {
                                     if($cartdetail->tax2->tax_type == 'service') {
-                                        $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                                        $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
                                         $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                     } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
+                                        $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
                                         $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                     }
                                 }
                                 foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                    if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
                                     }
                                 }
                             }
@@ -3488,14 +3488,14 @@ class MobileCIAPIController extends ControllerAPI
                                 if(!is_null($cartdetail->tax2)) {
                                     $tax2 = $cartdetail->tax2->tax_value;
                                     if($cartdetail->tax2->tax_type == 'service') {
-                                        $tax1_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
+                                        $tax1_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
                                         $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                     } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
+                                        $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
                                         $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                     }
                                 } else {
-                                    $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
+                                    $tax1_value = ($discount / (1 + $tax1)) * $tax1;
                                     $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                 }
                                 foreach($taxes as $tax) {
@@ -3509,16 +3509,16 @@ class MobileCIAPIController extends ControllerAPI
                                 $tax2 = $cartdetail->tax2->tax_value;
                                 if(!is_null($cartdetail->tax1)) {
                                     if($cartdetail->tax2->tax_type == 'service') {
-                                        $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                                        $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
                                         $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                     } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
+                                        $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
                                         $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                     }
                                 }
                                 foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                    if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
                                     }
                                 }
                             }
@@ -3585,14 +3585,14 @@ class MobileCIAPIController extends ControllerAPI
                                     if(!is_null($cartdetail->tax2)) {
                                         $tax2 = $cartdetail->tax2->tax_value;
                                         if($cartdetail->tax2->tax_type == 'service') {
-                                            $tax1_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
+                                            $tax1_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax1;
                                             $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                         } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                            $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
+                                            $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
                                             $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                         }
                                     } else {
-                                        $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
+                                        $tax1_value = ($discount / (1 + $tax1)) * $tax1;
                                         $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                     }
                                     foreach($taxes as $tax) {
@@ -3606,16 +3606,16 @@ class MobileCIAPIController extends ControllerAPI
                                     $tax2 = $cartdetail->tax2->tax_value;
                                     if(!is_null($cartdetail->tax1)) {
                                         if($cartdetail->tax2->tax_type == 'service') {
-                                            $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                                            $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
                                             $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                         } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                            $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
+                                            $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
                                             $tax2_total_value = $tax2_value * $cartdetail->quantity;
                                         }
                                     }
                                     foreach($taxes as $tax) {
-                                        if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                            $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                        if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                            $tax->total_tax = $tax->total_tax - $tax2_total_value;
                                         }
                                     }
                                 }
@@ -3685,6 +3685,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cartsummary->used_cart_coupons = $acquired_coupon_carts;
                 $cartsummary->available_coupon_carts = $available_coupon_carts;
                 $cartsummary->subtotal_before_cart_promo = $subtotal_before_cart_promo;
+                $cartsummary->taxes = $taxes;
                 $cartdata->cartsummary = $cartsummary;
                 // $cartdata->attributes = $attributes;
             } else {

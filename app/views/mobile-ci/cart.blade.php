@@ -282,6 +282,13 @@
     </div>
     @endif
 
+    @foreach($cartdata->cartsummary->taxes as $tax)
+      @if(!empty($tax->total_tax))
+      <div>
+        <span>{{ $tax->tax_name }}</span> : <span>{{ $tax->total_tax }}</span>
+      </div>
+      @endif
+    @endforeach
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
