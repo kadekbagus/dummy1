@@ -865,7 +865,8 @@ class MerchantAPIController extends ControllerAPI
     /**
      * POST - Update merchant
      *
-     * @author <Kadek> <kadek@dominopos.com>
+     * @author Kadek <kadek@dominopos.com>
+     * @author Tian <tian@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -908,8 +909,9 @@ class MerchantAPIController extends ControllerAPI
      * @param array      `merchant_taxes`           (optional) - Merchant taxes array
      *            @param integer   `merchant_tax_id`         (optional) - Merchant Tax ID
      *            @param string    `tax_name`                (optional) - Tax name
+     *            @param string    `tax_type`                (optional) - Tax type. Valid value: government, service, luxury.
      *            @param decimal   `tax_value`               (optional) - Tax value
-     *            @param integer   `tax_order`               (optional) - Tax order
+     *            @param string    `is_delete`               (optional) - Soft delete flag. Valid value: Y.
      * @param string     `ticket_header`            (optional) - Ticket header
      * @param string     `ticket_footer`            (optional) - Ticket footer
      *
@@ -1157,17 +1159,26 @@ class MerchantAPIController extends ControllerAPI
 
             $updatedmerchant->save();
 
-            // do insert/update merchant_taxes
+            // do insert/update/delete merchant_taxes
             OrbitInput::post('merchant_taxes', function($merchant_taxes) use ($updatedmerchant) {
                 $merchant_taxes = (array) $merchant_taxes;
                 foreach ($merchant_taxes as $merchant_tax) {
                     // validate merchant_taxes
                     $validator = Validator::make(
                         array(
-                            'merchant_tax_id'   => $merchant_tax['merchant_tax_id'],
+                            'merchant_tax_id'        => $merchant_tax['merchant_tax_id'],
+                            'tax_name'               => $merchant_tax['tax_name'],
+                            'tax_type'               => $merchant_tax['tax_type'],
+                            'is_delete'              => $merchant_tax['is_delete'],
                         ),
                         array(
-                            'merchant_tax_id'   => 'orbit.empty.tax',
+                            'merchant_tax_id'        => 'orbit.empty.tax',
+                            'tax_name'               => 'required|min:5|max:50|tax_name_exists_but_me:'.$merchant_tax['merchant_tax_id'],
+                            'tax_type'               => 'orbit.empty.tax_type',
+                            'is_delete'              => 'orbit.exists.tax_link_to_product:'.$merchant_tax['merchant_tax_id'],
+                        ),
+                        array(
+                            'tax_name_exists_but_me' => Lang::get('validation.orbit.exists.tax_name'),
                         )
                     );
 
@@ -1182,24 +1193,32 @@ class MerchantAPIController extends ControllerAPI
                     Event::fire('orbit.merchant.postupdatemerchant.after.merchanttaxesvalidation', array($this, $validator));
 
                     //save merchant_taxes
-                    if ($merchant_tax['merchant_tax_id'] === '') {
+                    if (trim($merchant_tax['merchant_tax_id']) === '') {
                         // do insert
                         $merchanttax = new MerchantTax();
                         $merchanttax->merchant_id = $updatedmerchant->merchant_id;
                         $merchanttax->tax_name = $merchant_tax['tax_name'];
+                        $merchanttax->tax_type = $merchant_tax['tax_type'];
                         $merchanttax->tax_value = $merchant_tax['tax_value'];
-                        $merchanttax->tax_order = $merchant_tax['tax_order'];
                         $merchanttax->status = 'active';
                         $merchanttax->created_by = $this->api->user->user_id;
                         $merchanttax->save();
                     } else {
-                        // do update
-                        $merchanttax = MerchantTax::excludeDeleted()->where('merchant_tax_id', $merchant_tax['merchant_tax_id'])->first();
-                        $merchanttax->tax_name = $merchant_tax['tax_name'];
-                        $merchanttax->tax_value = $merchant_tax['tax_value'];
-                        $merchanttax->tax_order = $merchant_tax['tax_order'];
-                        $merchanttax->modified_by = $this->api->user->user_id;
-                        $merchanttax->save();
+                        if ($merchant_tax['is_delete'] === 'Y') {
+                            // do soft delete
+                            $merchanttax = MerchantTax::excludeDeleted()->where('merchant_tax_id', $merchant_tax['merchant_tax_id'])->first();
+                            $merchanttax->status = 'deleted';
+                            $merchanttax->modified_by = $this->api->user->user_id;
+                            $merchanttax->save();
+                        } else {
+                            // do update
+                            $merchanttax = MerchantTax::excludeDeleted()->where('merchant_tax_id', $merchant_tax['merchant_tax_id'])->first();
+                            $merchanttax->tax_name = $merchant_tax['tax_name'];
+                            $merchanttax->tax_type = $merchant_tax['tax_type'];
+                            $merchanttax->tax_value = $merchant_tax['tax_value'];
+                            $merchanttax->modified_by = $this->api->user->user_id;
+                            $merchanttax->save();
+                        }
                     }
                 }
 
@@ -1266,7 +1285,6 @@ class MerchantAPIController extends ControllerAPI
         }
 
         return $this->render($httpCode);
-
     }
 
     protected function registerCustomValidation()
@@ -1400,6 +1418,61 @@ class MerchantAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.tax', $merchanttax);
+
+            return TRUE;
+        });
+
+        // Check the existance of the tax type
+        Validator::extend('orbit.empty.tax_type', function ($attribute, $value, $parameters) {
+            $valid = false;
+            $taxTypes = array('government', 'service', 'luxury');
+            foreach ($taxTypes as $taxType) {
+                if($value === $taxType) $valid = $valid || TRUE;
+            }
+
+            return $valid;
+        });
+
+        // Check tax name for duplication
+        Validator::extend('tax_name_exists_but_me', function ($attribute, $value, $parameters) {
+            $merchant_tax_id = trim($parameters[0]);
+            if ($merchant_tax_id === '') {
+                $tax_name = MerchantTax::excludeDeleted()
+                    ->where('tax_name', $value)
+                    ->first();
+            } else {
+                $tax_name = MerchantTax::excludeDeleted()
+                    ->where('tax_name', $value)
+                    ->where('merchant_tax_id', '!=', $merchant_tax_id)
+                    ->first();
+            }
+
+            if (! empty($tax_name)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.validation.tax_name', $tax_name);
+
+            return TRUE;
+        });
+
+        // Check if tax have linked to product
+        Validator::extend('orbit.exists.tax_link_to_product', function ($attribute, $value, $parameters) {
+
+            // check tax if exists in products.
+            $merchant_tax_id = trim($parameters[0]);
+            $product = Product::excludeDeleted()
+                ->where(function ($query) use ($merchant_tax_id) {
+                    $query->where('merchant_tax_id1', $merchant_tax_id)
+                        ->orWhere('merchant_tax_id2', $merchant_tax_id);
+                })
+                ->first();
+
+            if (! empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.tax_link_to_product', $product);
 
             return TRUE;
         });
