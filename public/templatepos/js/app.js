@@ -455,7 +455,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.checkcart = function(product){
                     var check = true;
                     for(var i = 0; i < $scope.cart.length; i++){
-                        if($scope.cart[i]['variants'] == '' || $scope.cart[i]['variants'] == undefined){
+                        if($scope.cart[i]['variants'] == '' || $scope.cart[i]['variants'] == undefined || product['variants'].length == 1){
                             if($scope.cart[i]['product_id'] == product['product_id']){
                                 $scope.cart[i]['qty']++;
                                 check = false;
