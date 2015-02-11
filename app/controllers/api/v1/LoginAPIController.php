@@ -273,7 +273,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Registration
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
@@ -288,7 +289,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Registration
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (QueryException $e) {
             $this->response->code = $e->getCode();
@@ -309,7 +311,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Registration
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (Exception $e) {
             $this->response->code = Status::UNKNOWN_ERROR;
@@ -323,7 +326,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Registration
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
                      ->responseFailed();
         }
 
@@ -459,7 +463,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Activation
             $activity->setUser('guest')
                      ->setActivityName('activation_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Activation Failed')
+                     ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (Exception $e) {
             $this->response->code = Status::UNKNOWN_ERROR;
@@ -473,7 +478,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Activation
             $activity->setUser('guest')
                      ->setActivityName('activation_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Activation Failed')
+                     ->setNotes($e->getMessage())
                      ->responseFailed();
         }
 

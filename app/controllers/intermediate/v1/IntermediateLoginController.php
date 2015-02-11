@@ -48,17 +48,52 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function getLogout()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('logout');
+
         $response = new ResponseProvider();
 
         try {
             $this->session->start(array(), 'no-session-creation');
+
+            $userId = $this->session->read('user_id');
+
+            if ($this->session->read('logged_in') !== TRUE || ! $userId) {
+                throw new Exception ('Invalid session data.');
+            }
+
+            $user = User::excludeDeleted()->find($userId);
+
+            if (! $user) {
+                throw new Exception ('Session error: user not found.');
+            }
+
             $this->session->destroy();
             $response->data = NULL;
+
+            // Successfull login
+            $activity->setUser($user)
+                     ->setActivityName('logout_ok')
+                     ->setActivityNameLong('Logout OK')
+                     ->responseOK();
         } catch (Exception $e) {
+            try {
+                $this->session->destroy();
+            } catch (Exception $e) {
+            }
+
             $response->code = $e->getCode();
             $response->status = 'error';
             $response->message = $e->getMessage();
+
+            $activity->setUser('guest')
+                     ->setActivityName('logout_failed')
+                     ->setActivityNameLong('Logout Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         }
+
+        $activity->save();
 
         return $this->render($response);
     }

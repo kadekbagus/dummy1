@@ -21,7 +21,7 @@ class EmployeeAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string    `firstname`             (required) - Employee first name
-     * @param string    `lastname`              (optional) - Employee last name
+     * @param string    `lastname`              (required) - Employee last name
      * @param string    `birthdate`             (optional) - Employee birthdate
      * @param string    `position`              (optional) - Employee position, i.e: 'Cashier 1', 'Supervisor'
      * @param string    `employee_id_char`      (optional) - Employee ID, i.e: 'EMP001', 'CASHIER001`
@@ -77,6 +77,7 @@ class EmployeeAPIController extends ControllerAPI
                     'role' => $employeeRole
                 ))
             ];
+            $dateOfBirthLimit = date('Y-m-d', strtotime('yesterday'));
             $validator = Validator::make(
                 array(
                     'firstname'             => $firstName,
@@ -92,7 +93,8 @@ class EmployeeAPIController extends ControllerAPI
                 ),
                 array(
                     'firstname'         => 'required',
-                    'birthdate'         => 'date_format:Y-m-d',
+                    'lastname'          => 'required',
+                    'birthdate'         => 'date_format:Y-m-d|before:' . $dateOfBirthLimit,
                     'employee_id_char'  => 'orbit.exists.employeeid',
                     'username'          => 'required|orbit.exists.username',
                     'password'          => 'required|min:5|confirmed',
@@ -299,6 +301,7 @@ class EmployeeAPIController extends ControllerAPI
                     'role' => $employeeRole
                 ))
             ];
+            $dateOfBirthLimit = date('Y-m-d', strtotime('yesterday'));
             $validator = Validator::make(
                 array(
                     'user_id'               => $userId,
@@ -312,7 +315,7 @@ class EmployeeAPIController extends ControllerAPI
                 ),
                 array(
                     'user_id'               => 'orbit.empty.user',
-                    'birthdate'             => 'date_format:Y-m-d',
+                    'birthdate'             => 'date_format:Y-m-d|before:' . $dateOfBirthLimit,
                     'password'              => 'min:5|confirmed',
                     'employee_role'         => 'orbit.empty.employee.role',
                     'employee_id_char'      => 'orbit.exists.employeeid_but_me',
