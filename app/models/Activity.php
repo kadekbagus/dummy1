@@ -11,6 +11,11 @@ class Activity extends Eloquent
     protected $primaryKey = 'activity_id';
     protected $table = 'activities';
 
+    /**
+     * Field which need to be masked.
+     */
+    protected $maskedFields = ['password', 'password_confirmation'];
+
     const ACTIVITY_REPONSE_OK = 'OK';
     const ACTIVITY_RESPONSE_FAILED = 'Failed';
 
@@ -19,6 +24,51 @@ class Activity extends Eloquent
      * with `status` field.
      */
     use ModelStatusTrait;
+
+    /**
+     * Add new masked fields, so it will not saved plaintext
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
+    public function setMaskedFields(array $maskedFields)
+    {
+        $this->maskedFields = array_merge($this->maskedFields + $maskedFields);
+
+        return $this;
+    }
+
+    /**
+     * Common task which called by multiple group.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function fillCommonValues()
+    {
+        $this->ip_address = static::getIPAddress();
+        $this->user_agent = static::getUserAgent();
+        $this->http_method = $_SERVER['REQUEST_METHOD'];
+        $this->request_uri = $_SERVER['REQUEST_URI'];
+
+        if (isset($_POST) && ! empty($_POST)) {
+            $post = $_POST;
+
+            // Check for masked fields
+            foreach ($post as $key=>&$field) {
+                if (in_array($key, $this->maskedFields)) {
+                    $field = '**********';
+                }
+            }
+            $this->post_data = serialize($post);
+        }
+
+        if ($this->group === 'pos' || $this->group === 'mobile-ci') {
+            $this->location_id = Config::get('orbit.shop.id');
+        }
+
+        return $this;
+    }
 
     /**
      * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
@@ -30,9 +80,7 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'mobile-ci';
-        $activity->ip_address = static::getIPAddress();
-        $activity->user_agent = static::getUserAgent();
-        $activity->location_id = Config::get('orbit.shop.id');
+        $activity->fillCommonValues();
 
         return $activity;
     }
@@ -47,9 +95,7 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'pos';
-        $activity->ip_address = static::getIPAddress();
-        $activity->user_agent = static::getUserAgent();
-        $activity->location_id = Config::get('orbit.shop.id');
+        $activity->fillCommonValues();
 
         return $activity;
     }
@@ -64,8 +110,7 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'portal';
-        $activity->ip_address = static::getIPAddress();
-        $activity->user_agent = static::getUserAgent();
+        $activity->fillCommonValues();
 
         return $activity;
     }

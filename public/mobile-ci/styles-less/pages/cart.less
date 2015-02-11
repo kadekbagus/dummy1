@@ -74,7 +74,7 @@
         border-top: none;
         overflow: auto;
         &.even-line{
-          background: #D8D8D8;
+          background: #ECECEC;
         }
         &.promo-line{
           border-left:4px solid #3c9;
@@ -177,6 +177,7 @@
     font-weight: 600;
     display: inline-block;
     padding-left: .5em;
+    padding-top: .8em;
   }
   .cart-sum-headers {
     width: 100%;
@@ -232,6 +233,7 @@
     border: 1px solid @theme-main-gray;
     border-top: none;
     .cart-sum-single-body {
+      font-weight: bold;
       text-align: center;
       width: 25%;
       padding: 1em 0;
@@ -239,6 +241,33 @@
       // border-right: 1px solid @theme-main-gray;
       &:last-of-type {
         border-right: none;
+      }
+      .coupon-remover {
+        border-top-left-radius: .5em;
+        border-top-right-radius: .5em;
+        width: 70%;
+        height: 2em;
+        margin: 0 auto 0 auto;
+        background-color: @theme-delete;
+        color: @theme-main-complimentary-2;
+        cursor: pointer;
+        border-bottom-left-radius: .5em;
+        border-bottom-right-radius: .5em;
+        text-align: center;
+        padding: .2em 0 .3em 0;
+      }
+    }
+    .cart-sum-single-body-promo {
+      text-align: center;
+      width: 25%;
+      padding: 1em 0;
+      float: left;
+      // border-right: 1px solid @theme-main-gray;
+      &:last-of-type {
+        border-right: none;
+      }
+      .text-right{
+        text-align:right;
       }
       .coupon-remover {
         border-top-left-radius: .5em;
@@ -329,4 +358,23 @@
 }
 #cartcode{
   margin:20px auto;
+}
+.subtotal{
+  width:100%;
+}
+.subtotal-title{
+  width: 75%;
+  float:left;
+  font-weight: bold;
+  border-bottom: 1px solid #dedede;
+  border-left: 1px solid #dedede;
+  padding: 8px 4px;
+}
+.subtotal-price{
+  width: 25%;
+  font-weight: bold;
+  float:right;
+  border-bottom: 1px solid #dedede;
+  border-right: 1px solid #dedede;
+  padding: 8px 4px;
 }

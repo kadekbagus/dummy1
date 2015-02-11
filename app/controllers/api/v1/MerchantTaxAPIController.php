@@ -19,7 +19,7 @@ class MerchantTaxAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string            `sort_by`                       (optional) - column order by. Valid value: registered_date, merchant_tax_id, tax_name, tax_value, tax_order.
+     * @param string            `sort_by`                       (optional) - column order by. Valid value: registered_date, merchant_tax_id, tax_name, tax_type, tax_value, tax_order.
      * @param string            `sort_mode`                     (optional) - asc or desc
      * @param integer           `take`                          (optional) - limit
      * @param integer           `skip`                          (optional) - limit offset
@@ -27,6 +27,7 @@ class MerchantTaxAPIController extends ControllerAPI
      * @param integer           `merchant_id`                   (optional) - Merchant ID
      * @param string            `tax_name`                      (optional) - Tax name
      * @param string            `tax_name_like`                 (optional) - Tax name like pattern
+     * @param string            `tax_type`                      (optional) - Tax type. Valid value: government, service, luxury.
      * @param decimal           `tax_value`                     (optional) - Tax value
      * @param integer           `tax_order`                     (optional) - Tax order
      */
@@ -63,7 +64,7 @@ class MerchantTaxAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,merchant_tax_id,tax_name,tax_value,tax_order',
+                    'sort_by' => 'in:registered_date,merchant_tax_id,tax_name,tax_type,tax_value,tax_order',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.tax_sortby'),
@@ -109,6 +110,12 @@ class MerchantTaxAPIController extends ControllerAPI
             OrbitInput::get('tax_name_like', function($tax_name_like) use ($taxes)
             {
                 $taxes->where('merchant_taxes.tax_name', 'like', "%$tax_name_like%");
+            });
+
+            // Filter Merchant Tax by Tax Type
+            OrbitInput::get('tax_type', function($tax_type) use ($taxes)
+            {
+                $taxes->whereIn('merchant_taxes.tax_type', $tax_type);
             });
 
             // Filter Merchant Tax by Tax Value
@@ -159,6 +166,7 @@ class MerchantTaxAPIController extends ControllerAPI
                     'registered_date'           => 'merchant_taxes.created_at',
                     'merchant_tax_id'           => 'merchant_taxes.merchant_tax_id',
                     'tax_name'                  => 'merchant_taxes.tax_name',
+                    'tax_type'                  => 'merchant_taxes.tax_type',
                     'tax_value'                 => 'merchant_taxes.tax_value',
                     'tax_order'                 => 'merchant_taxes.tax_order',
                 );

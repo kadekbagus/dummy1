@@ -133,6 +133,8 @@ class LoginAPIController extends ControllerAPI
      */
     public function postRegisterUserInShop()
     {
+        $activity = Activity::mobileci()
+                            ->setActivityType('registration');
         try {
             $httpCode = 200;
 
@@ -252,6 +254,12 @@ class LoginAPIController extends ControllerAPI
                 $this->commit();
             }
 
+            // Successfull registration
+            $activity->setUser($newuser)
+                     ->setActivityName('registration_ok')
+                     ->setActivityNameLong('Registration OK')
+                     ->responseOK();
+
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -261,6 +269,13 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Registration
+            $activity->setUser('guest')
+                     ->setActivityName('registration_failed')
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -270,6 +285,13 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Registration
+            $activity->setUser('guest')
+                     ->setActivityName('registration_failed')
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (QueryException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -285,6 +307,13 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Registration
+            $activity->setUser('guest')
+                     ->setActivityName('registration_failed')
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (Exception $e) {
             $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
@@ -293,7 +322,17 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Registration
+            $activity->setUser('guest')
+                     ->setActivityName('registration_failed')
+                     ->setActivityNameLong('Registration Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -313,6 +352,8 @@ class LoginAPIController extends ControllerAPI
      */
     public function postRegisterTokenCheck()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('activation');
         try {
             $this->registerCustomValidation();
 
@@ -390,6 +431,12 @@ class LoginAPIController extends ControllerAPI
 
             // Commit the changes
             $this->commit();
+
+            // Successfull activation
+            $activity->setUser($user)
+                     ->setActivityName('activation_ok')
+                     ->setActivityNameLong('Activation OK')
+                     ->responseOK();
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -398,6 +445,12 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Activation
+            $activity->setUser('guest')
+                     ->setActivityName('activation_failed')
+                     ->setActivityNameLong($e->getMessage())
+                     ->responseFailed();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -406,6 +459,13 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Activation
+            $activity->setUser('guest')
+                     ->setActivityName('activation_failed')
+                     ->setActivityNameLong('Activation Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         } catch (Exception $e) {
             $this->response->code = Status::UNKNOWN_ERROR;
             $this->response->status = 'error';
@@ -414,7 +474,17 @@ class LoginAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Activation
+            $activity->setUser('guest')
+                     ->setActivityName('activation_failed')
+                     ->setActivityNameLong('Activation Failed')
+                     ->setNotes($e->getMessage())
+                     ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render();
     }
