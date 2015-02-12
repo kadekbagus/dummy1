@@ -108,4 +108,52 @@ class ProductVariant extends Eloquent
     {
         return $builder->orderBy('product_variants.created_at', 'desc');
     }
+
+    /**
+     * Scope to exclude the default variant.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeExcludeDefault($builder)
+    {
+        return $builder->where('default_variant', 'no');
+    }
+
+    /**
+     * Static method to create default variant
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Product $product Instance of Product Object
+     * @param int $creator User ID who create the product
+     * @param
+     * @return ProductVariant
+     */
+    public static function createDefaultVariant($product)
+    {
+        // Check for existing record first
+        $variant = Static::where('product_id', $product->product_id)
+                         ->where('default_variant', 'yes')
+                         ->excludeDeleted()
+                         ->first();
+
+        if (empty($variant)) {
+            // No need to create
+            $variant = new static();
+        }
+
+        $variant->product_id = $product->product_id;
+        $variant->price = $product->price;
+        $variant->upc = $product->upc_code;
+        $variant->sku = $product->product_code;
+        $variant->merchant_id = $product->merchant_id;
+        $variant->default_variant = 'yes';
+        $variant->created_by = $product->created_by;
+        $variant->modified_by = $product->modified_by;
+        $variant->status = 'active';
+        $variant->save();
+
+        return $variant;
+    }
 }
