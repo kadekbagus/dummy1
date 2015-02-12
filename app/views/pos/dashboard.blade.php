@@ -74,15 +74,10 @@
                                 <td class="text-right">- <% r.afterpromotionprice %></td>
                             </tr>
                         </tbody>
-                            <tr>
-                                 <td class="tdnoborder"></td>
-                                 <td class="tdnoborder"></td>
-                                 <td class="tdnoborder"></td>
-                            </tr>
                             <tr id="bottom">
+                                <!-- <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td>
-                                 <td class="tdnoborder"></td>
-                                 <td class="tdnoborder"></td>
+                                 <td class="tdnoborder"></td> -->
                             </tr>
 
                     </table>
@@ -96,8 +91,8 @@
                         </thead>
                         <tbody>
                             <tr data-ng-repeat="(k,v) in applycartpromotion" >
-                                <td><b data-ng-show="v.promotion_name == 'Subtotal'"><% v.promotion_name %></b><span data-ng-show="v.promotion_name != 'Subtotal'"><% v.promotion_name %></span></td>
-                                <td></td>
+                                <td colspan="2"><b data-ng-show="v.promotion_name == 'Subtotal'"><% v.promotion_name %></b><span data-ng-show="v.promotion_name != 'Subtotal'"><% v.promotion_name %></span></td>
+
                                 <td class="text-right"><% v.promotionrule.discount %></td>
                                 <td class="text-right"><% v.promotionrule.discount_value %></td>
                             </tr>
@@ -205,7 +200,7 @@
                 <div class="ribbon-wrapper-green ribbon2nd">
                 				<div class="ribbon-green" data-ng-show="datapromotion.length">Promo</div>
                 			</div>
-                    <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product" style="width: 300px"></p>
+                    <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product" style="width: 200px; height: 200px;" ></p>
                 </div>
                 <div class="col-md-12 main-theme" >
                     <div class="row">
@@ -259,19 +254,19 @@
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute1">
                     				<div class="radio-container">
                     					<h5><% productdetail.product.attribute1.product_attribute_name %></h5>
-                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue1"><input name="checkbox1" type="radio" data-ng-model="chooseattr[0]" data-ng-change="changeattr(0,k)" value="<% v.value1  %>" ><span><% v.value1  %></span></label>
+                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue1"><input name="checkbox1" type="radio" data-ng-model="chooseattr[0]" data-ng-click="changeattr(0,k)" value="<% v.value1  %>" ><span><% v.value1  %></span></label>
                     				</div>
                     			</div>
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute2">
                     				<div class="radio-container">
                     					<h5><% productdetail.product.attribute2.product_attribute_name %></h5>
-                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue2" data-ng-show="v.value1 == chooseattr[0]"><input name="checkbox2" data-ng-change="changeattr(1,k)" data-ng-model="chooseattr[1]" type="radio" value="<% v.value2  %>"  data-ng-model="chooseattr[1]" ><span><% v.value2 %></span></label>
+                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue2" data-ng-show="v.value1 == chooseattr[0]"><input name="checkbox2" data-ng-click="changeattr(1,k)" data-ng-model="chooseattr[1]" type="radio" value="<% v.value2  %>" ><span><% v.value2 %></span></label>
                     				</div>
                     			</div>
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute3">
                     				<div class="radio-container">
                     					<h5><% productdetail.product.attribute3.product_attribute_name %></h5>
-                    				      <label class="ui-radio" data-ng-repeat="(k,v) in tmpattr" data-ng-show="v.value2 == chooseattr[1]"><input name="checkbox3"  data-ng-change="changeattr(2,k)" data-ng-model="chooseattr[2]" type="radio" value="<% v.value3  %>"  data-ng-model="chooseattr[2]" ><span><% v.value3  %></span></label>
+                    				      <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue3" data-ng-show="v.value2 == chooseattr[1]"><input name="checkbox3"  data-ng-click="changeattr(2,k)" data-ng-model="chooseattr[2]" type="radio" value="<% v.value3  %>" ><span><% v.value3  %></span></label>
                     				</div>
                     			</div>
                     		</div>
@@ -281,13 +276,13 @@
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute4">
                     				<div class="radio-container">
                     					<h5><% productdetail.product.attribute4.product_attribute_name %></h5>
-                    		              <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue4" data-ng-show="v.value3 == chooseattr[2]"><input name="checkbox4" data-ng-change="changeattr(3,k)" data-ng-model="chooseattr[3]"  type="radio" value="<% v.value4  %>"  data-ng-model="chooseattr[3]" ><span><% v.value4  %></span></label>
+                    		              <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue4" data-ng-show="v.value3 == chooseattr[2]"><input name="checkbox4" data-ng-change="changeattr(3,k)" data-ng-model="chooseattr[3]"  type="radio" value="<% v.value4  %>"  ><span><% v.value4  %></span></label>
                     				</div>
                     			</div>
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute5">
                     				<div class="radio-container">
                     					<h5><% productdetail.product.attribute5.product_attribute_name %></h5>
-                               		       <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue5" data-ng-show="v.value4 == chooseattr[3]"><input name="checkbox5" data-ng-change="changeattr(4,k)"  data-ng-model="chooseattr[4]" type="radio" value="<% v.value5  %>"  data-ng-model="chooseattr[4]" ><span><% v.value5  %></span></label>
+                               		       <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue5" data-ng-show="v.value4 == chooseattr[3]"><input name="checkbox5" data-ng-change="changeattr(4,k)"  data-ng-model="chooseattr[4]" type="radio" value="<% v.value5  %>" ><span><% v.value5  %></span></label>
                     				</div>
                     			</div>
 

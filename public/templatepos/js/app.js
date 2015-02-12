@@ -418,8 +418,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 category_id5           : angular.copy($scope.productmodal['category_id5']),
                                 hargatotal             : 0
                             });
-                            $location.hash('bottom');
-                            $anchorScroll();
+                            $timeout(function(){
+                                $location.hash('bottom');
+                                $anchorScroll();
+                            },500);
                         }
                         $scope.countcart();
                     }
