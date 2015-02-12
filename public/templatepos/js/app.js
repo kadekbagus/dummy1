@@ -11,7 +11,7 @@ define([
     'config'
 ], function (config) {
 
-var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'], function($interpolateProvider,$httpProvider) {
+var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngTouch'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
     $interpolateProvider.startSymbol('<%');
     $interpolateProvider.endSymbol('%>');

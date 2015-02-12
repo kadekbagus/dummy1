@@ -508,7 +508,8 @@
                               <span  class="text-center"><% cardfile ? headrcard+' failed':'Gesek Kartu Sekarang' %> </span>
                             </div>
                             <div class="col-md-12">
-                             <img src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
+                             <img data-ng-show="!cardfile" src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
+                             <img data-ng-show="cardfile" src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
                             </div>
                     </div>
                 </div>
