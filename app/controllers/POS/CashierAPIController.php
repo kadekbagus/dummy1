@@ -927,17 +927,57 @@ class CashierAPIController extends ControllerAPI
                         $product .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['discount_value']);
                     }
                 }
+            }
+
+            $product .= '----------------------------------------'." \n";
+
+            $promo = FALSE;
+
+            foreach ($details as $details_key => $details_value) {
+                $x = 0;
+                foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
+                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='cart'){
+                        if($x==0){
+                            //echo "Cart Promotions <br/>";
+                            if(!$promo){
+                                $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
+                            }
+                            $cart_based_promo .= "Cart Promotions"." \n";
+                            $promo = TRUE;
+                        }
+                        //echo $detailpromotion_value['promotion_name']."<br/>";
+                        $x = $x+1;
+                        $promo = TRUE;
+                        $cart_based_promo .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['discount_value']);
+                    }
+                }
 
             }
 
-            // foreach ($transaction['details'] as $key => $value) {
-            //    if($key==0){
-            //     $product = $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
-            //    }
-            //    else {
-            //     $product .= $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
-            //    }
-            // }
+            foreach ($details as $details_key => $details_value) {
+                $x = 0;
+                foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
+                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
+                        if($x==0){
+                            //echo "Cart Promotions <br/>";
+                            if(!$promo){
+                                $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
+                            }
+                            $cart_based_promo .= "Cart Coupons"." \n";
+                            $promo = TRUE;
+                        }
+                        //echo $detailcoupon_value['promotion_name']."<br/>";
+                        $x = $x+1;
+                        $promo = TRUE;
+                        $cart_based_promo .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['discount_value']);
+                    }
+                }
+
+            }
+
+            if($promo){
+                $cart_based_promo .= '----------------------------------------'." \n";
+            }
 
             $payment = $transaction['payment_method'];
             if($payment=='cash'){$payment='Cash';}
@@ -956,7 +996,7 @@ class CashierAPIController extends ControllerAPI
 
             $head  = $this->just40CharMid($retailer->parent->name);
             $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
-            
+
             // ticket header
             $ticket_header = $retailer->parent->ticket_header;
             $ticket_header_line = explode("\n", $ticket_header);
@@ -964,16 +1004,15 @@ class CashierAPIController extends ControllerAPI
                 $head .= $this->just40CharMid($value);
             }
             $head .= '----------------------------------------'." \n";
-
             $head .= 'Date : '.$date." \n";
             $head .= 'Bill No  : '.$bill_no." \n";
             $head .= 'Cashier : '.$cashier." \n";
             $head .= 'Customer : '.$customer." \n";
-            $head .= " \n";
+            //$head .= " \n";
             $head .= '----------------------------------------'." \n";
 
-            $pay   = '----------------------------------------'." \n";
-            $pay  .= $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
+            //$pay   = '----------------------------------------'." \n";
+            $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
             $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
@@ -1010,7 +1049,12 @@ class CashierAPIController extends ControllerAPI
             $footer .= " \n";
 
             $file = storage_path()."/views/receipt.txt";
-            $write = $head.$product.$pay.$footer;
+
+            if(!empty($cart_based_promo)){
+                $write = $head.$product.$cart_based_promo.$pay.$footer;
+            }else{
+                $write = $head.$product.$pay.$footer;
+            }
 
             $fp = fopen($file, 'w');
             fwrite($fp, $write);
