@@ -893,7 +893,7 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $transaction = \Transaction::with('details', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
 
             if (! is_object($transaction)) {
                 $message = \Lang::get('validation.orbit.empty.transaction');
@@ -902,14 +902,42 @@ class CashierAPIController extends ControllerAPI
 
             $this->response->data = $transaction;
 
-            foreach ($transaction['details'] as $key => $value) {
-               if($key==0){
-                $product = $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
-               }
-               else {
-                $product .= $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
-               }
+            $details = $transaction->details->toArray();
+            $detailcoupon = $transaction->detailcoupon->toArray();
+            $detailpromotion = $transaction->detailpromotion->toArray();
+
+            foreach ($details as $details_key => $details_value) {
+                if($details_key==0){
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0,25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                }
+                else {
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0,25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                }
+                //echo $details_key." ".$details_value['product_name']."<br/>";
+                foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
+                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
+                        //echo $detailcoupon_value['promotion_name']."<br/>";
+                        $product .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['discount_value']);
+                    }
+                }
+
+                foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
+                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
+                        //echo $detailpromotion_value['promotion_name']."<br/>";
+                        $product .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['discount_value']);
+                    }
+                }
+
             }
+
+            // foreach ($transaction['details'] as $key => $value) {
+            //    if($key==0){
+            //     $product = $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
+            //    }
+            //    else {
+            //     $product .= $this->productListFormat(substr($value['product_name'], 0,25), $value['price'], $value['quantity'], $value['product_code']);
+            //    }
+            // }
 
             $payment = $transaction['payment_method'];
             if($payment=='cash'){$payment='Cash';}
@@ -928,6 +956,7 @@ class CashierAPIController extends ControllerAPI
 
             $head  = $this->just40CharMid($retailer->parent->name);
             $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
+            
             // ticket header
             $ticket_header = $retailer->parent->ticket_header;
             $ticket_header_line = explode("\n", $ticket_header);
