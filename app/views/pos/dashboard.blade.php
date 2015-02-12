@@ -68,7 +68,7 @@
                                 <td class="text-right"><% v.hargatotal %></td>
                             </tr>
                             <tr data-ng-repeat="(a,r) in v.promotion">
-                                <td><div class="foo promotion" style="margin-left: 23px;"></div><span><% r.promotion_name %></span></td>
+                                <td><div class="foo promotion" style="margin-left: 23px;"></div><span style="margin-left: 5px;"><% r.promotion_name %></span></td>
                                 <td></td>
                                 <td class="text-right"><% r.discount_value %></td>
                                 <td class="text-right">- <% r.afterpromotionprice %></td>
@@ -91,14 +91,14 @@
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr style="background-color: #009933;">
-                               <th colspan="4" style="color: white">CART BASED PROMOTION</th>
+                               <th colspan="4" style="color: white"><h4>CART BASED PROMOTION</h4></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr data-ng-repeat="(k,v) in applycartpromotion" >
-                                <td><% v.promotion_name %></td>
+                                <td><b data-ng-show="v.promotion_name == 'Subtotal'"><% v.promotion_name %></b><span data-ng-show="v.promotion_name != 'Subtotal'"><% v.promotion_name %></span></td>
                                 <td></td>
-                                <td></td>
+                                <td class="text-right"><% v.promotionrule.discount %></td>
                                 <td class="text-right"><% v.promotionrule.discount_value %></td>
                             </tr>
                         </tbody>
@@ -114,7 +114,7 @@
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                         <tr>
-                            <td><div class="foo promotion" style="margin-left:70px;" ><span style="margin-left: 23px;">Promotion</span></div></td>
+                            <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -167,7 +167,7 @@
                            <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product">
-                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id)">
+                                <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-ng-click="showdetailFn(v.product_id,false,v.attribute_id1)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
                                              	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
@@ -228,15 +228,15 @@
                                           				</div>
 
                         </div>
-                        <div class="row">
+                        <div class="row" data-ng-show="v.is_permanent !='Y'">
                                           				<div class="col-xs-5 col-xs-height">
-                                          					<p><% v.new_from  %></p>
+                                          					<p><% v.begin_date  %></p>
                                           				</div>
                                           				<div class="col-xs-2 col-xs-height">
                                           					<p>s/d</p>
                                           				</div>
                                           				<div class="col-xs-5 col-xs-height">
-                                          					<p><% v.new_until  %></p>
+                                          					<p><% v.end_date  %></p>
                                           				</div>
                         </div>
                      </div>
@@ -309,6 +309,11 @@
                         <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1'">
                             <p>UPC :<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
+                        </div>
+                        <div data-ng-show="datapromotion.length && dataattrvalue1.length == '1'">
+                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p><h5><del><% productmodal.price %></del></h5></p>
+                            <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
                         </div>
                     </div>
                     <div class="col-md-6">

@@ -77,13 +77,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 window.location.assign("signin");
             }else{
                 //show modal product detail
-                $scope.showdetailFn = function(id,act){
+                $scope.showdetailFn = function(id,act,attr1){
                     //set loading
+                    if(attr1 != null) angular.element('#myModal').modal('show');
                     $scope.loadproductdetail = true;
                     $scope.hiddenbtn         = false;
                     $scope.showprice         = false;
                     $scope.variantstmp       = '';
-                    $scope.getpromotion(id,act);
+                    $scope.getpromotion(id,act,attr1);
                     $scope.hiddenbtn = act ? true : false;
                 };
                 //canceler request
@@ -173,7 +174,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                 });
                 //get product based promotion TODO:
-                $scope.getpromotion = function(productid,act){
+                $scope.getpromotion = function(productid,act,attr1){
                     $scope.datapromotion = [];
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
                         if (response.code == 0 ) {
@@ -186,19 +187,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
                                 $scope.datapromotion[i]['oridiscount_value'] = $scope.datapromotion[i]['discount_value'];
                                 $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
-                                $scope.datapromotion[i]['new_from']          = moment($scope.datapromotion[i]['new_from']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY')  : '';
-                                $scope.datapromotion[i]['new_until']         = moment($scope.datapromotion[i]['new_until']).isValid() ? moment($scope.datapromotion[i]['new_from']).format('DD MMMM YYYY') : '';
-                                if(act){
+                                $scope.datapromotion[i]['begin_date']        = moment($scope.datapromotion[i]['begin_date']).isValid() ? moment($scope.datapromotion[i]['begin_date']).format('DD MMMM YYYY')  : '';
+                                $scope.datapromotion[i]['end_date']          = moment($scope.datapromotion[i]['end_date']).isValid() ? moment($scope.datapromotion[i]['end_date']).format('DD MMMM YYYY') : '';
+                               // if(act){
                                     tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
                                     $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
                                     $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
                                     discount += tmpdiscount;
-                                }
+                               // }
                             }
-                            if(act){
+                           // if(act){
                                 var discounts = accounting.unformat($scope.productmodal['price']) - discount;
                                 $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
-                            }
+                           // }
                             $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", 0, ",", ".");
 
                             $scope.dataattrvalue1 = [];
@@ -209,7 +210,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
                             //TODO: agung :Refactor this, and try with dfferent data
-                            if($scope.productdetail.attributes)for(var a=0; a < $scope.productdetail.attributes.length;a++){
+                            if($scope.productdetail.attributes.length)for(var a=0; a < $scope.productdetail.attributes.length;a++){
 
                                 $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
                                 $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
@@ -272,6 +273,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
                             $scope.loadproductdetail = false;
+                            if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
                         }else if(response.code == 13) {
                             $scope.logoutfn();
                         }else{
@@ -350,6 +352,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         //check cart based promo
                         if($scope.cartpromotions.length){
                             $scope.applycartpromotion      = [];
+                            $scope.tmpvallues = '';
                             var promotioncartbase          = 0;
                             var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
                             //add header subtotal before promotion
@@ -361,10 +364,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             });
                             for(var j = 0; j < $scope.cartpromotions.length;j++){
                                 if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
-                                    promotioncartbase +=  $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
+                                    var promotion = $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
+                                    promotioncartbase += promotion;
+                                    $scope.tmpvallues  = promotion;
                                     $scope.applycartpromotion.push(angular.copy($scope.cartpromotions[j]));
                                     var idxapply = $scope.applycartpromotion.length -1;
-                                    $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = $scope.applycartpromotion[idxapply]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] * 100 +' %': '- '+accounting.unformat($scope.applycartpromotion[idxapply]['promotionrule']['discount_value']);
+                                    if($scope.applycartpromotion[idxapply]['promotionrule']['rule_type'] == 'cart_discount_by_percentage'){
+                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount']       = $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] * 100 +' %';
+                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.tmpvallues, "", 0, ",", ".");
+                                    }else{
+                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartpromotion[idxapply]['promotionrule']['discount_value'], "", 0, ",", ".");
+                                    }
                                 }
                             }
                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase, "", 0, ",", ".");
@@ -380,8 +390,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
                         if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
-                        $location.hash('bottom');
-                        $anchorScroll();
+
                         $scope.searchproduct    = '';
                         $scope.adddelenadis($scope.productmodal['product_id'],'add');
                         if($scope.checkcart($scope.productmodal)){
@@ -409,6 +418,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 category_id5           : angular.copy($scope.productmodal['category_id5']),
                                 hargatotal             : 0
                             });
+                            $location.hash('bottom');
+                            $anchorScroll();
                         }
                         $scope.countcart();
                     }
@@ -603,7 +614,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
-                            $scope.inserttocartFn();
+                           // $scope.inserttocartFn();
+                            if($scope.productmodal['attr1'] != null) angular.element('#myModal').modal('show');
+                            $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attr1']);
                             $scope.scanproduct();
                         }else if(response.code == 13){
                              // angular.element("#ProductNotFound").modal();
