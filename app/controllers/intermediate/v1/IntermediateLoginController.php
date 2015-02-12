@@ -48,8 +48,25 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function getLogout()
     {
-        $activity = Activity::portal()
-                            ->setActivityType('logout');
+        $from = isset($_GET['_orbit_logout_from']) === FALSE ? 'portal' : $_GET['_orbit_logout_from'];
+        $validFrom = ['portal', 'mobile-ci', 'pos'];
+
+        switch ($from) {
+            case 'mobile-ci':
+                $activity = Activity::mobileci()
+                                    ->setActivityType('logout');
+                break;
+
+            case 'pos':
+                $activity = Activity::portal()
+                                    ->setActivityType('logout');
+                break;
+
+            case 'portal':
+            default:
+                $activity = Activity::portal()
+                                    ->setActivityType('logout');
+        }
 
         $response = new ResponseProvider();
 
@@ -176,6 +193,9 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function postLoginMobileCI()
     {
+        $activity = Activity::mobileci()
+                            ->setActivityType('login');
+
         $response = MobileCIAPIController::create('raw')->postLoginInShop();
         if ($response->code === 0)
         {
@@ -187,6 +207,13 @@ class IntermediateLoginController extends IntermediateBaseController
                     $exitCode = $registerMac['object']->getExitCode();
                 }
                 $response->message = $registerMac['message'];
+
+                // Login Failed
+                $activity->setUser('guest')
+                         ->setActivityName('login_failed')
+                         ->setActivityNameLong('Login failed - Fails to register mac address')
+                         ->setNotes($response->message)
+                         ->responseFailed();
 
                 // Call logout to clear session
                 MobileCIAPIController::create('raw')->getLogoutInShop();
@@ -208,7 +235,23 @@ class IntermediateLoginController extends IntermediateBaseController
             $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
             $sessionHeader = 'Set-' . $sessionHeader;
             $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+
+            // Successfull login
+            $activity->setUser($user)
+                     ->setActivityName('login_ok')
+                     ->setActivityNameLong('Login OK')
+                     ->responseOK();
+        } else {
+            // Login Failed
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Login failed')
+                     ->setNotes($response->message)
+                     ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($response);
     }
@@ -223,6 +266,9 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function getLogoutMobileCI()
     {
+        // This Query String trigger how activity would be logged
+        $_GET['_orbit_logout_from'] = 'mobile-ci';
+
         $response = json_decode($this->getLogout()->getContent());
         try {
             if ($response->code !== 0) {
