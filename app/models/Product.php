@@ -95,6 +95,14 @@ class Product extends Eloquent
                     ->orderBy('created_at', 'desc');
     }
 
+    public function variantsNoDefault()
+    {
+        return $this->hasMany('ProductVariant', 'product_id', 'product_id')
+                    ->excludeDeleted()
+                    ->excludeDefault()
+                    ->orderBy('created_at', 'desc');
+    }
+
     public function attribute1()
     {
         return $this->belongsTo('ProductAttribute', 'attribute_id1', 'product_attribute_id');

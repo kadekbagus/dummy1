@@ -137,66 +137,20 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct = App::make('orbit.empty.product');
             App::instance('memory:current.updated.product', $updatedproduct);
 
-            OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
-                if (!empty($product_code)) {
-                    $validator = Validator::make(
-                        array(
-                            'product_code'      => $product_code,
-                        ),
-                        array(
-                            'product_code'      => 'product_code_exists_but_me',
-                        ),
-                        array('product_code_exists_but_me' => Lang::get('validation.orbit.productcode.exists'))
-                    );
-
-                    Event::fire('orbit.product.postupdateproduct.before.productcodevalidation', array($this, $validator));
-
-                    // Run the productcodevalidation
-                    if ($validator->fails()) {
-                        $errorMessage = $validator->messages()->first();
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
-                    Event::fire('orbit.product.postupdateproduct.after.productcodevalidation', array($this, $validator));
-
-                    $updatedproduct->product_code = $product_code;
-                } else {
-                    $updatedproduct->product_code = NULL;
-                }
-            });
-
-            OrbitInput::post('upc_code', function($upc_code) use ($updatedproduct) {
-                if (!empty($upc_code)) {
-                    $validator = Validator::make(
-                        array(
-                            'upc_code'      => $upc_code,
-                        ),
-                        array(
-                            'upc_code'      => 'upc_code_exists_but_me',
-                        ),
-                        array('upc_code_exists_but_me' => Lang::get('validation.orbit.upccode.exists'))
-                    );
-
-                    Event::fire('orbit.product.postupdateproduct.before.upccodevalidation', array($this, $validator));
-
-                    // Run the productcodevalidation
-                    if ($validator->fails()) {
-                        $errorMessage = $validator->messages()->first();
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
-                    Event::fire('orbit.product.postupdateproduct.after.upccodevalidation', array($this, $validator));
-
-                    $updatedproduct->upc_code = $upc_code;
-                } else {
-                    $updatedproduct->upc_code = NULL;
-                }
-            });
-
             OrbitInput::post('product_name', function($product_name) use ($updatedproduct) {
                 $updatedproduct->product_name = $product_name;
             });
 
             OrbitInput::post('image', function($image) use ($updatedproduct) {
                 $updatedproduct->image = $image;
+            });
+
+            OrbitInput::post('product_code', function($code) use ($updatedproduct) {
+                $updatedproduct->product_code = $code;
+            });
+
+            OrbitInput::post('upc_code', function($code) use ($updatedproduct) {
+                $updatedproduct->upc_code = $code;
             });
 
             OrbitInput::post('short_description', function($short_description) use ($updatedproduct) {
@@ -578,6 +532,9 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct->load('category4');
             $updatedproduct->load('category5');
 
+            // Create default variant for this product
+            ProductVariant::createDefaultVariant($updatedproduct);
+
             Event::fire('orbit.product.postupdateproduct.after.save', array($this, $updatedproduct));
             $this->response->data = $updatedproduct;
 
@@ -724,7 +681,10 @@ class ProductAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::with('retailers')->excludeDeleted()->allowedForUser($user);
+            $products = Product::with('retailers')
+                                ->excludeDeleted()
+                                ->excludeDefault()
+                                ->allowedForUser($user);
 
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
@@ -1081,6 +1041,10 @@ class ProductAPIController extends ControllerAPI
 
             $newproduct->save();
 
+            // Register the saved product to the IoC named 'orbit.empty.product'
+            // which used on checkVariants() and various places
+            App::instance('orbit.empty.product', $newproduct);
+
             $productretailers = array();
 
             foreach ($retailer_ids as $retailer_id) {
@@ -1168,6 +1132,9 @@ class ProductAPIController extends ControllerAPI
 
             $newproduct->setRelation('variants', $variants);
             $newproduct->variants = $variants;
+
+            // Create default variant for this product
+            ProductVariant::createDefaultVariant($newproduct);
 
             $newproduct->load('category1');
             $newproduct->load('category2');
@@ -1691,10 +1658,8 @@ class ProductAPIController extends ControllerAPI
                 }
             }
 
-            if ($mode === 'update') {
-                // Check the existence of the product variant id
-                $product = App::make('orbit.empty.product');
-            }
+            // Check the existence of the product variant id
+            $product = App::make('orbit.empty.product');
 
             $empty = 0;
             foreach ($variant->attribute_values as $value_id) {
@@ -1731,7 +1696,10 @@ class ProductAPIController extends ControllerAPI
             }
 
             // Make sure the combinations does not exist yet
-            $productVariantCombination = ProductVariant::with(array())->excludeDeleted();
+            $productVariantCombination = ProductVariant::with(array())
+                                                       ->excludeDeleted()
+                                                       ->excludeDefault()
+                                                       ->where('product_id', $product->product_id);
 
             // If this one are update process then make sure not select our current one
             if ($mode === 'update') {
@@ -1778,9 +1746,15 @@ class ProductAPIController extends ControllerAPI
 
             // Try to get the records of the ProductVariant, if it exists then
             // reject the request
-            if (! empty($productVariantCombination->first())) {
+            $variantProduct = $productVariantCombination;
+            if (! empty($variantProduct->first())) {
                 $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if ($product->product_id == 3) {
+                $x = DB::getQueryLog();
+                print_r(end($x));
             }
         }
 
