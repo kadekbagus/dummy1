@@ -710,45 +710,48 @@ class CashierAPIController extends ControllerAPI
     {
         try {
             $retailer = $this->getRetailerInfo();
-            $total_item     = trim(OrbitInput::post('total_item'));
-            $subtotal       = trim(OrbitInput::post('subtotal'));
-            $vat            = trim(OrbitInput::post('vat'));
-            $total_to_pay   = trim(OrbitInput::post('total_to_pay'));
-            $tendered       = trim(OrbitInput::post('tendered'));
-            $change         = trim(OrbitInput::post('change'));
-            $merchant_id    = $retailer->parent->merchant_id;
-            $retailer_id    = $retailer->merchant_id;
-            $cashier_id     = trim(OrbitInput::post('cashier_id'));
-            $customer_id    = trim(OrbitInput::post('customer_id'));
-            $payment_method = trim(OrbitInput::post('payment_method'));
-            $cart           = OrbitInput::post('cart'); //data of array
+            $total_item       = trim(OrbitInput::post('total_item'));
+            $subtotal         = trim(OrbitInput::post('subtotal'));
+            $vat              = trim(OrbitInput::post('vat'));
+            $total_to_pay     = trim(OrbitInput::post('total_to_pay'));
+            $tendered         = trim(OrbitInput::post('tendered'));
+            $change           = trim(OrbitInput::post('change'));
+            $merchant_id      = $retailer->parent->merchant_id;
+            $retailer_id      = $retailer->merchant_id;
+            $cashier_id       = trim(OrbitInput::post('cashier_id'));
+            $customer_id      = trim(OrbitInput::post('customer_id'));
+            $payment_method   = trim(OrbitInput::post('payment_method'));
+            $cart             = OrbitInput::post('cart'); //data of array
+            $issued_coupon_id = OrbitInput::post('issued_coupon_id');  // data of array
 
             //dd($retailer_id);
 
             $validator = Validator::make(
                 array(
-                    'total_item'     => $total_item,
-                    'subtotal'       => $subtotal,
-                    'vat'            => $vat,
-                    'total_to_pay'   => $total_to_pay,
-                    'tendered'       => $tendered,
-                    'change'         => $change,
-                    'cashier_id'     => $cashier_id,
-                    'customer_id'    => $customer_id,
-                    'payment_method' => $payment_method,
-                    'cart'           => $cart,
+                    'total_item'       => $total_item,
+                    'subtotal'         => $subtotal,
+                    'vat'              => $vat,
+                    'total_to_pay'     => $total_to_pay,
+                    'tendered'         => $tendered,
+                    'change'           => $change,
+                    'cashier_id'       => $cashier_id,
+                    'customer_id'      => $customer_id,
+                    'payment_method'   => $payment_method,
+                    'cart'             => $cart,
+                    'issued_coupon_id' => $issued_coupon_id,
                 ),
                 array(
-                    'total_item'     => 'required',
-                    'subtotal'       => 'required',
-                    'vat'            => 'required',
-                    'total_to_pay'   => 'required',
-                    'tendered'       => 'required',
-                    'change'         => 'required',
-                    'cashier_id'     => 'required',
-                    'customer_id'    => 'required',
-                    'payment_method' => 'required',
-                    'cart'           => 'required',
+                    'total_item'       => 'required',
+                    'subtotal'         => 'required',
+                    'vat'              => 'required',
+                    'total_to_pay'     => 'required',
+                    'tendered'         => 'required',
+                    'change'           => 'required',
+                    'cashier_id'       => 'required',
+                    'customer_id'      => 'required',
+                    'payment_method'   => 'required',
+                    'cart'             => 'required',
+                    'issued_coupon_id' => 'required',
                 )
             );
 
@@ -816,6 +819,14 @@ class CashierAPIController extends ControllerAPI
                 // $transactiondetail->product_attribute_name5     = $cart_value['product_attribute_name5'];
                 $transactionDetails->save();
             }
+
+            // issue coupon redeemed
+            // foreach($issue_coupon_id as $issued_coupon_id_key => $issued_coupon_id_value){
+            //     $issue_coupon = IssuedCoupon::->excludeDeleted()->where('issued_coupon_id', $issued_coupon_id_value)->first();
+            //     $issue_coupon->status = "redeemed";
+            //     $issue_coupon->save();
+            // }
+
 
             // issue product based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
