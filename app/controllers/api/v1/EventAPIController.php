@@ -34,6 +34,7 @@ class EventAPIController extends ControllerAPI
      * @param integer    `link_object_id3`       (optional) - Link object ID3 (category_id3).
      * @param integer    `link_object_id4`       (optional) - Link object ID4 (category_id4).
      * @param integer    `link_object_id5`       (optional) - Link object ID5 (category_id5).
+     * @param string     `widget_object_type`    (optional) - Widget object type.
      * @param array      `retailer_ids`          (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
@@ -78,6 +79,7 @@ class EventAPIController extends ControllerAPI
             $link_object_id3 = OrbitInput::post('link_object_id3');
             $link_object_id4 = OrbitInput::post('link_object_id4');
             $link_object_id5 = OrbitInput::post('link_object_id5');
+            $widget_object_type = OrbitInput::post('widget_object_type');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
 
@@ -158,6 +160,7 @@ class EventAPIController extends ControllerAPI
             $newevent->link_object_id3 = $link_object_id3;
             $newevent->link_object_id4 = $link_object_id4;
             $newevent->link_object_id5 = $link_object_id5;
+            $newevent->widget_object_type = $widget_object_type;
             $newevent->created_by = $this->api->user->user_id;
 
             Event::fire('orbit.event.postnewevent.before.save', array($this, $newevent));
@@ -260,6 +263,7 @@ class EventAPIController extends ControllerAPI
      * @param integer    `link_object_id4`       (optional) - Link object ID4 (category_id4).
      * @param integer    `link_object_id5`       (optional) - Link object ID5 (category_id5).
      * @param string     `no_retailer`           (optional) - Flag to delete all ORID links. Valid value: Y.
+     * @param string     `widget_object_type`    (optional) - Widget object type.
      * @param array      `retailer_ids`          (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
@@ -427,6 +431,13 @@ class EventAPIController extends ControllerAPI
                     $link_object_id5 = NULL;
                 }
                 $updatedevent->link_object_id5 = $link_object_id5;
+            });
+
+            OrbitInput::post('widget_object_type', function($widget_object_type) use ($updatedevent) {
+                if (trim($widget_object_type) === '') {
+                    $widget_object_type = NULL;
+                }
+                $updatedevent->widget_object_type = $widget_object_type;
             });
 
             $updatedevent->modified_by = $this->api->user->user_id;
@@ -703,6 +714,7 @@ class EventAPIController extends ControllerAPI
      * @param integer  `link_object_id3`       (optional) - Link object ID3 (category_id3).
      * @param integer  `link_object_id4`       (optional) - Link object ID4 (category_id4).
      * @param integer  `link_object_id5`       (optional) - Link object ID5 (category_id5).
+     * @param string   `widget_object_type`    (optional) - Widget object type.
      * @param integer  `retailer_id`           (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
@@ -856,6 +868,11 @@ class EventAPIController extends ControllerAPI
             // Filter event by link object id5
             OrbitInput::get('link_object_id5', function ($linkObjectId5s) use ($events) {
                 $events->whereIn('events.link_object_id5', $linkObjectId5s);
+            });
+
+            // Filter event by widget object type
+            OrbitInput::get('widget_object_type', function ($widgetObjectTypes) use ($events) {
+                $events->whereIn('events.widget_object_type', $widgetObjectTypes);
             });
 
             // Filter event retailer by retailer id
@@ -1038,6 +1055,7 @@ class EventAPIController extends ControllerAPI
      * @param integer  `link_object_id3`       (optional) - Link object ID3 (category_id3).
      * @param integer  `link_object_id4`       (optional) - Link object ID4 (category_id4).
      * @param integer  `link_object_id5`       (optional) - Link object ID5 (category_id5).
+     * @param string   `widget_object_type`    (optional) - Widget object type.
      * @param string   `city`                  (optional) - City name
      * @param string   `city_like`             (optional) - City name like
      * @param integer  `retailer_id`           (optional) - Retailer IDs
@@ -1197,6 +1215,11 @@ class EventAPIController extends ControllerAPI
             // Filter event by link object id5
             OrbitInput::get('link_object_id5', function ($linkObjectId5s) use ($events) {
                 $events->whereIn('events.link_object_id5', $linkObjectId5s);
+            });
+
+            // Filter event by widget object type
+            OrbitInput::get('widget_object_type', function ($widgetObjectTypes) use ($events) {
+                $events->whereIn('events.widget_object_type', $widgetObjectTypes);
             });
 
             // Filter event by city

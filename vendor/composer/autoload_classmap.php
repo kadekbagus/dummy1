@@ -39,6 +39,7 @@ return array(
     'AlterTableCategoriesDropCategoryNameUnique' => $baseDir . '/app/database/migrations/2014_12_17_031758_alter_table_categories_drop_category_name_unique.php',
     'AlterTableChangeEngineInnodb' => $baseDir . '/app/database/migrations/2014_12_05_064558_alter_table_change_engine_innodb.php',
     'AlterTableEngineInnodb' => $baseDir . '/app/database/migrations/2014_11_14_025407_alter_table_engine_innodb.php',
+    'AlterTableEventsAddColumnWidgetObjectType' => $baseDir . '/app/database/migrations/2015_02_11_101440_alter_table_events_add_column_widget_object_type.php',
     'AlterTableMerchantAddColumnModifiedBy' => $baseDir . '/app/database/migrations/2014_11_10_030122_alter_table_merchant_add_column_modified_by.php',
     'AlterTableMerchantTaxesAddColumnStatus' => $baseDir . '/app/database/migrations/2014_12_09_024548_alter_table_merchant_taxes_add_column_status.php',
     'AlterTableMerchantTaxesAddColumnTaxType' => $baseDir . '/app/database/migrations/2015_02_10_073405_alter_table_merchant_taxes_add_column_tax_type.php',
