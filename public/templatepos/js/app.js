@@ -232,7 +232,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             for(var i = 0; i < $scope.dataattrvalue2.length;i++){
                                 for(var a = 0; a < $scope.dataattrvalue2.length;a++){
                                    if(i != a) {
-                                       if($scope.dataattrvalue2[i]['attr_val_id2'] == $scope.dataattrvalue2[a]['attr_val_id2']){
+                                       if($scope.dataattrvalue2[i]['attr_val_id1'] == $scope.dataattrvalue2[a]['attr_val_id1'] && $scope.dataattrvalue2[i]['attr_val_id2'] == $scope.dataattrvalue2[a]['attr_val_id2']){
                                             $scope.dataattrvalue2.splice(i,1);
                                        }
                                    }
@@ -241,7 +241,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             for(var i = 0; i < $scope.dataattrvalue3.length;i++){
                                 for(var a = 0; a < $scope.dataattrvalue3.length;a++){
                                    if(i != a) {
-                                       if($scope.dataattrvalue3[i]['attr_val_id3'] == $scope.dataattrvalue3[a]['attr_val_id3']){
+                                       if($scope.dataattrvalue3[i]['attr_val_id1'] == $scope.dataattrvalue3[a]['attr_val_id1'] && $scope.dataattrvalue3[i]['attr_val_id2'] == $scope.dataattrvalue3[a]['attr_val_id2'] && $scope.dataattrvalue3[i]['attr_val_id3'] == $scope.dataattrvalue3[a]['attr_val_id3']){
                                             $scope.dataattrvalue3.splice(i,1);
                                        }
                                    }
@@ -250,7 +250,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             for(var i = 0; i < $scope.dataattrvalue4.length;i++){
                                 for(var a = 0; a < $scope.dataattrvalue4.length;a++){
                                    if(i != a) {
-                                       if($scope.dataattrvalue4[i]['attr_val_id4'] == $scope.dataattrvalue4[a]['attr_val_id4']){
+                                       if($scope.dataattrvalue4[i]['attr_val_id1'] == $scope.dataattrvalue4[a]['attr_val_id1'] && $scope.dataattrvalue4[i]['attr_val_id2'] == $scope.dataattrvalue4[a]['attr_val_id2'] && $scope.dataattrvalue4[i]['attr_val_id3'] == $scope.dataattrvalue4[a]['attr_val_id3'] && $scope.dataattrvalue4[i]['attr_val_id4'] == $scope.dataattrvalue4[a]['attr_val_id4']){
                                             $scope.dataattrvalue4.splice(i,1);
                                        }
                                    }
@@ -259,7 +259,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             for(var i = 0; i < $scope.dataattrvalue5.length;i++){
                                 for(var a = 0; a < $scope.dataattrvalue5.length;a++){
                                    if(i != a) {
-                                       if($scope.dataattrvalue5[i]['attr_val_id5'] == $scope.dataattrvalue5[a]['attr_val_id5']){
+                                       if($scope.dataattrvalue5[i]['attr_val_id1'] == $scope.dataattrvalue5[a]['attr_val_id1'] && $scope.dataattrvalue5[i]['attr_val_id2'] == $scope.dataattrvalue5[a]['attr_val_id2'] && $scope.dataattrvalue5[i]['attr_val_id3'] == $scope.dataattrvalue5[a]['attr_val_id3'] && $scope.dataattrvalue5[i]['attr_val_id4'] == $scope.dataattrvalue5[a]['attr_val_id4'] && $scope.dataattrvalue5[i]['attr_val_id5'] == $scope.dataattrvalue5[a]['attr_val_id5']){
                                             $scope.dataattrvalue5.splice(i,1);
                                        }
                                    }
@@ -296,6 +296,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                        $scope.chooseattr[i] = '';
                     }
                     if(id +1 == $scope.countattr){
+                      //  $scope.chooseattr[id] = true;
                         $scope.variantstmp = $scope.tmpattr[idx];
                         $scope.productmodal.upc_code = $scope.tmpattr[idx]['upc'];
                         $scope.showprice = true;
