@@ -37,6 +37,7 @@ use \Cart;
 use \CartDetail;
 use \Exception;
 use \DB;
+use \Activity;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -1582,6 +1583,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getProductList()
     {
+        $user = null;
+        $activityCategory = Activity::mobileci()
+                            ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -1826,11 +1830,31 @@ class MobileCIAPIController extends ControllerAPI
             // }
 
             $cartitems = $this->getCartForToolbar();
+            
+            $activityfamily = Category::where('category_id', $family_id)->first();
+
+            $activityCategoryNotes = sprintf('Category viewed: %s', $activityfamily->category_name);
+            $activityCategory->setUser($user)
+                            ->setActivityName('view_category')
+                            ->setActivityNameLong('View Category ' . $activityfamily->category_name)
+                            ->setObject($activityfamily)
+                            ->setNotes($activityCategoryNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
             
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             // if($e->getMessage() === 'Invalid session data.') {
+                $activityCategoryNotes = sprintf('Category viewed: %s', $family_id);
+                $activityCategory->setUser($user)
+                                ->setActivityName('view_category')
+                                ->setActivityNameLong('View Category Not Found')
+                                ->setObject(null)
+                                ->setNotes($e->getMessage())
+                                ->responseFailed()
+                                ->save();
                 return $e->getMessage();
             // }
         }
@@ -1839,6 +1863,7 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getProductListCatalogue($families, $family_level, $family_id, $sort_by)
     {
+        $user = null;
         try {
             $user = $this->getLoggedInUser();
 
@@ -2079,6 +2104,10 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getProductView()
     {
+        $user = null;
+        $product_id = 0;
+        $activityProduct = Activity::mobileci()
+                                   ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -2087,6 +2116,9 @@ class MobileCIAPIController extends ControllerAPI
             $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                         })->excludeDeleted()->where('product_id', $product_id)->first();
+            if (empty($product)) {
+                throw new Exception('Product id ' . $product_id . ' not found');
+            }
 
             $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
@@ -2198,14 +2230,28 @@ class MobileCIAPIController extends ControllerAPI
             } else {
                 $product->on_coupons = false;
             }
+    
+            $activityProductNotes = sprintf('Product viewed: %s', $product->product_name);
+            $activityProduct->setUser($user)
+                            ->setActivityName('view_product')
+                            ->setActivityNameLong('View Product')
+                            ->setObject($product)
+                            ->setNotes($activityProductNotes)
+                            ->responseOK()
+                            ->save();
 
-            if (is_null($product)) {
-                return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer, 'cartdata' => $cartdata));
-            } else {
-                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
-            }
+            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
+        
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
+            $activityProductNotes = sprintf('Product viewed: %s', $product_id);
+            $activityProduct->setUser($user)
+                            ->setActivityName('view_product')
+                            ->setActivityNameLong('View Product Not Found')
+                            ->setObject(null)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed()
+                            ->save();
             return $e;
         }
     }
@@ -3985,6 +4031,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postAddToCart()
     {
+        $user = null;
+        $activityCart = Activity::mobileci()
+                            ->setActivityType('cart');
         try {
             $this->registerCustomValidation();
 
@@ -4049,36 +4098,48 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail->save();
             }
             
-            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on 
-                (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                    OR
-                    (
-                        (pr.discount_object_type="family") AND 
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                    )
-                )
-                WHERE prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+            $merchant_id = $retailer->parent_id;
+            $prefix = DB::getTablePrefix();
+            $retailer_id = $retailer->merchant_id;
+            $promo_products = Promotion::with('promotionrule')->select('promotions.*')
+                ->join('promotion_rules', function($join) use ($merchant_id, $prefix) {
+                    $join->on('promotion_rules.promotion_id', '=', 'promotions.promotion_id');
+                    $join->on('promotions.promotion_type', '=', DB::raw("'product'"));
+                    $join->on('promotions.status', '=', DB::raw("'active'"));
+                    $join->on('promotions.is_coupon', '=', DB::raw("'N'"));
+                    $join->on('promotions.merchant_id', '=', DB::raw($merchant_id));
+                    $join->on(DB::raw("(({$prefix}promotions.begin_date <= NOW() AND {$prefix}promotions.end_date >= NOW())"), 'OR', 
+                                      DB::raw("({$prefix}promotions.begin_date <= NOW() AND {$prefix}promotions.is_permanent = 'Y'))"));
+                })
+                ->join('promotion_retailer', function($join) use ($retailer_id) {
+                    $join->on('promotion_retailer.promotion_id', '=', 'promotions.promotion_id');
+                    $join->on('promotion_retailer.retailer_id', '=', DB::raw($retailer_id));
+                })
+                ->join('products', DB::raw("(({$prefix}promotion_rules.discount_object_type=\"product\" AND {$prefix}promotion_rules.discount_object_id1={$prefix}products.product_id)"),
+                       'OR',
+                       DB::raw("                    (
+                            ({$prefix}promotion_rules.discount_object_type=\"family\") AND 
+                            (({$prefix}promotion_rules.discount_object_id1 IS NULL) OR ({$prefix}promotion_rules.discount_object_id1={$prefix}products.category_id1)) AND 
+                            (({$prefix}promotion_rules.discount_object_id2 IS NULL) OR ({$prefix}promotion_rules.discount_object_id2={$prefix}products.category_id2)) AND
+                            (({$prefix}promotion_rules.discount_object_id3 IS NULL) OR ({$prefix}promotion_rules.discount_object_id3={$prefix}products.category_id3)) AND
+                            (({$prefix}promotion_rules.discount_object_id4 IS NULL) OR ({$prefix}promotion_rules.discount_object_id4={$prefix}products.category_id4)) AND
+                            (({$prefix}promotion_rules.discount_object_id5 IS NULL) OR ({$prefix}promotion_rules.discount_object_id5={$prefix}products.category_id5))
+                        ))"))->where('products.product_id', $product_id)->get();
     
             $variant_price = $product->variants->find($product_variant_id)->price;
             $price_after_promo = $variant_price;
 
             foreach ($promo_products as $promo) {
-                if($promo->rule_type == 'product_discount_by_percentage') {
-                    $discount = $promo->discount_value * $variant_price;
-                } elseif($promo->rule_type == 'product_discount_by_value') {
-                    $discount = $promo->discount_value;
+                if($promo->promotionrule->rule_type == 'product_discount_by_percentage') {
+                    $discount = $promo->promotionrule->discount_value * $variant_price;
+                } elseif($promo->promotionrule->rule_type == 'product_discount_by_value') {
+                    $discount = $promo->promotionrule->discount_value;
                 }
 
                 $price_after_promo = $price_after_promo - $discount;
             }
+
+            $activityCoupon = array();
 
             foreach ($coupons as $coupon) {
                 $validator = \Validator::make(
@@ -4114,6 +4175,7 @@ class MobileCIAPIController extends ControllerAPI
                     $cartcoupon->save();
                     $used_coupons->status = 'deleted';
                     $used_coupons->save();
+                    $activityCoupon[] = $used_coupons;
                 }
                 // dd($used_coupons->coupon->couponrule->discount_value);
             }
@@ -4142,10 +4204,45 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $cartdetail;
 
+            $activityCartNotes = sprintf('Add to cart: %s', $product->product_id);
+            $activityCart->setUser($user)
+                            ->setActivityName('add_to_cart')
+                            ->setActivityNameLong('Add To Cart ' . $product->product_name)
+                            ->setObject($product)
+                            ->setNotes($activityCartNotes)
+                            ->responseOK()
+                            ->save();
+            foreach ($promo_products as $promo) {
+                $activityChild = Activity::parent($activityCart)
+                                    ->setObject($promo)
+                                    ->setUser($user)
+                                    ->setNotes($promo->promotion_name)
+                                    ->responseOK()
+                                    ->save();
+            }
+
+            foreach ($activityCoupon as $_coupon) {
+                $activityChild = Activity::parent($activityCart)
+                                    ->setObject($_coupon)
+                                    ->setUser($user)
+                                    ->setNotes($_coupon->coupon->promotion_name)
+                                    ->responseOK()
+                                    ->save();
+            }
+
             $this->commit();
 
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
+            $activityCartNotes = sprintf('Add to cart: %s', $product->product_id);
+            $activityCart->setUser($user)
+                            ->setActivityName('add_to_cart')
+                            ->setActivityNameLong('Add To Cart Failed')
+                            ->setObject(null)
+                            ->setNotes($activityCartNotes)
+                            ->responseFailed()
+                            ->save();
+
             return $e;
         }
         
@@ -4154,6 +4251,7 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postAddCouponCartToCart()
     {
+        $user = null;
         try {
             $this->registerCustomValidation();
 
