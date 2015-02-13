@@ -60,6 +60,11 @@ class ProductAPIController extends ControllerAPI
      */
     public function postUpdateProduct()
     {
+        $activityProduct = Activity::portal()
+                                   ->setActivityType('update');
+
+        $user = NULL;
+        $updatedproduct = NULL;
         try {
             $httpCode=200;
 
@@ -137,66 +142,45 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct = App::make('orbit.empty.product');
             App::instance('memory:current.updated.product', $updatedproduct);
 
-            OrbitInput::post('product_code', function($product_code) use ($updatedproduct) {
-                if (!empty($product_code)) {
-                    $validator = Validator::make(
-                        array(
-                            'product_code'      => $product_code,
-                        ),
-                        array(
-                            'product_code'      => 'product_code_exists_but_me',
-                        ),
-                        array('product_code_exists_but_me' => Lang::get('validation.orbit.productcode.exists'))
-                    );
+            // Flag for product which already had a transaction
+            $productHasTransaction = FALSE;
 
-                    Event::fire('orbit.product.postupdateproduct.before.productcodevalidation', array($this, $validator));
+            // Check inside transaction details to see if this product has
+            // a transaction
+            $transactionDetailProduct = TransactionDetail::transactionJoin()
+                                                         ->where('product_id', $updatedproduct->product_id)
+                                                         ->excludeDeleted('transactions')
+                                                         ->first();
+            if (is_object($transactionDetailProduct)) {
+                $productHasTransaction = TRUE;
+            }
 
-                    // Run the productcodevalidation
-                    if ($validator->fails()) {
-                        $errorMessage = $validator->messages()->first();
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
-                    Event::fire('orbit.product.postupdateproduct.after.productcodevalidation', array($this, $validator));
-
-                    $updatedproduct->product_code = $product_code;
-                } else {
-                    $updatedproduct->product_code = NULL;
+            OrbitInput::post('product_name', function($product_name) use ($updatedproduct, $productHasTransaction) {
+                if ($productHasTransaction) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
-            });
-
-            OrbitInput::post('upc_code', function($upc_code) use ($updatedproduct) {
-                if (!empty($upc_code)) {
-                    $validator = Validator::make(
-                        array(
-                            'upc_code'      => $upc_code,
-                        ),
-                        array(
-                            'upc_code'      => 'upc_code_exists_but_me',
-                        ),
-                        array('upc_code_exists_but_me' => Lang::get('validation.orbit.upccode.exists'))
-                    );
-
-                    Event::fire('orbit.product.postupdateproduct.before.upccodevalidation', array($this, $validator));
-
-                    // Run the productcodevalidation
-                    if ($validator->fails()) {
-                        $errorMessage = $validator->messages()->first();
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
-                    Event::fire('orbit.product.postupdateproduct.after.upccodevalidation', array($this, $validator));
-
-                    $updatedproduct->upc_code = $upc_code;
-                } else {
-                    $updatedproduct->upc_code = NULL;
-                }
-            });
-
-            OrbitInput::post('product_name', function($product_name) use ($updatedproduct) {
                 $updatedproduct->product_name = $product_name;
             });
 
             OrbitInput::post('image', function($image) use ($updatedproduct) {
                 $updatedproduct->image = $image;
+            });
+
+            OrbitInput::post('product_code', function($code) use ($updatedproduct, $productHasTransaction) {
+                if ($productHasTransaction) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+                $updatedproduct->product_code = $code;
+            });
+
+            OrbitInput::post('upc_code', function($code) use ($updatedproduct, $productHasTransaction) {
+                if ($productHasTransaction) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+                $updatedproduct->upc_code = $code;
             });
 
             OrbitInput::post('short_description', function($short_description) use ($updatedproduct) {
@@ -231,11 +215,19 @@ class ProductAPIController extends ControllerAPI
                 $updatedproduct->price = $price;
             });
 
-            OrbitInput::post('merchant_tax_id1', function($merchant_tax_id1) use ($updatedproduct) {
+            OrbitInput::post('merchant_tax_id1', function($merchant_tax_id1) use ($updatedproduct, $productHasTransaction) {
+                if ($productHasTransaction) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
                 $updatedproduct->merchant_tax_id1 = $merchant_tax_id1;
             });
 
-            OrbitInput::post('merchant_tax_id2', function($merchant_tax_id2) use ($updatedproduct) {
+            OrbitInput::post('merchant_tax_id2', function($merchant_tax_id2) use ($updatedproduct, $productHasTransaction) {
+                if ($productHasTransaction) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
                 $updatedproduct->merchant_tax_id2 = $merchant_tax_id2;
             });
 
@@ -578,11 +570,23 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct->load('category4');
             $updatedproduct->load('category5');
 
+            // Create default variant for this product
+            ProductVariant::createDefaultVariant($updatedproduct);
+
             Event::fire('orbit.product.postupdateproduct.after.save', array($this, $updatedproduct));
             $this->response->data = $updatedproduct;
 
             // Commit the changes
             $this->commit();
+
+            // Successfull Update
+            $activityProductNotes = sprintf('Product updated: %s', $updatedproduct->product_name);
+            $activityProduct->setUser($user)
+                            ->setActivityName('update_product')
+                            ->setActivityNameLong('Update Product OK')
+                            ->setObject($updatedproduct)
+                            ->setNotes($activityProductNotes)
+                            ->responseOK();
 
             Event::fire('orbit.product.postupdateproduct.after.commit', array($this, $updatedproduct));
         } catch (ACLForbiddenException $e) {
@@ -596,6 +600,18 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('update_product')
+                            ->setActivityNameLong('Update Product Failed')
+                            ->setObject($updatedproduct)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postupdateproduct.invalid.arguments', array($this, $e));
 
@@ -607,6 +623,18 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('update_product')
+                            ->setActivityNameLong('Update Product Failed')
+                            ->setObject($updatedproduct)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postupdateproduct.query.error', array($this, $e));
 
@@ -624,6 +652,18 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('update_product')
+                            ->setActivityNameLong('Update Product Failed')
+                            ->setObject($updatedproduct)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postupdateproduct.general.exception', array($this, $e));
 
@@ -639,7 +679,22 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('update_product')
+                            ->setActivityNameLong('Update Product Failed')
+                            ->setObject($updatedproduct)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         }
+
+        // Save activity
+        $activityProduct->save();
 
         return $this->render($httpCode);
     }
@@ -724,7 +779,9 @@ class ProductAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
-            $products = Product::with('retailers')->excludeDeleted()->allowedForUser($user);
+            $products = Product::with('retailers')
+                                ->excludeDeleted()
+                                ->allowedForUser($user);
 
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
@@ -894,7 +951,7 @@ class ProductAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.product.getsearchproduct.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -945,6 +1002,11 @@ class ProductAPIController extends ControllerAPI
      */
     public function postNewProduct()
     {
+        $activityProduct = Activity::portal()
+                                   ->setActivityType('create');
+
+        $user = NULL;
+        $newproduct = NULL;
         try {
             $httpCode = 200;
 
@@ -1081,6 +1143,10 @@ class ProductAPIController extends ControllerAPI
 
             $newproduct->save();
 
+            // Register the saved product to the IoC named 'orbit.empty.product'
+            // which used on checkVariants() and various places
+            App::instance('orbit.empty.product', $newproduct);
+
             $productretailers = array();
 
             foreach ($retailer_ids as $retailer_id) {
@@ -1169,6 +1235,9 @@ class ProductAPIController extends ControllerAPI
             $newproduct->setRelation('variants', $variants);
             $newproduct->variants = $variants;
 
+            // Create default variant for this product
+            ProductVariant::createDefaultVariant($newproduct);
+
             $newproduct->load('category1');
             $newproduct->load('category2');
             $newproduct->load('category3');
@@ -1180,6 +1249,15 @@ class ProductAPIController extends ControllerAPI
 
             // Commit the changes
             $this->commit();
+
+            // Successfull Creation
+            $activityProductNotes = sprintf('Product Created: %s', $newproduct->product_name);
+            $activityProduct->setUser($user)
+                            ->setActivityName('create_product')
+                            ->setActivityNameLong('Create Product OK')
+                            ->setObject($newproduct)
+                            ->setNotes($activityProductNotes)
+                            ->responseOK();
 
             Event::fire('orbit.product.postnewproduct.after.commit', array($this, $newproduct));
         } catch (ACLForbiddenException $e) {
@@ -1193,6 +1271,17 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('create_product')
+                            ->setActivityNameLong('Create Product Failed')
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postnewproduct.invalid.arguments', array($this, $e));
 
@@ -1204,6 +1293,17 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('create_product')
+                            ->setActivityNameLong('Create Product Failed')
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postnewproduct.query.error', array($this, $e));
 
@@ -1221,6 +1321,17 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('create_product')
+                            ->setActivityNameLong('Create Product Failed')
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postnewproduct.general.exception', array($this, $e));
 
@@ -1236,7 +1347,21 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('create_product')
+                            ->setActivityNameLong('Create Product Failed')
+                            ->setNotes($e->getMessage())
+                            ->responseFailed();
         }
+
+        // Save the activity
+        $activityProduct->save();
 
         return $this->render($httpCode);
     }
@@ -1254,6 +1379,12 @@ class ProductAPIController extends ControllerAPI
      */
     public function postDeleteProduct()
     {
+        $activityProduct = Activity::portal()
+                                   ->setActivityType('create');
+
+        $user = NULL;
+        $deletedproduct = NULL;
+
         try {
             $httpCode = 200;
 
@@ -1324,6 +1455,15 @@ class ProductAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityProductNotes = sprintf('Product Deleted: %s', $newproduct->product_name);
+            $activityProduct->setUser($user)
+                            ->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product OK')
+                            ->setObject($deletedproduct)
+                            ->setNotes($activityProductNotes)
+                            ->responseOK();
+
             Event::fire('orbit.product.postdeleteproduct.after.commit', array($this, $deleteproduct));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postdeleteproduct.access.forbidden', array($this, $e));
@@ -1336,6 +1476,21 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed');
+
+            if (is_object($deletedproduct)) {
+                $activityProduct->setObject($deletedproduct);
+            }
+            $activityProduct->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postdeleteproduct.invalid.arguments', array($this, $e));
 
@@ -1347,6 +1502,21 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed');
+
+            if (is_object($deletedproduct)) {
+                $activityProduct->setObject($deletedproduct);
+            }
+            $activityProduct->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postdeleteproduct.query.error', array($this, $e));
 
@@ -1364,6 +1534,21 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed');
+
+            if (is_object($deletedproduct)) {
+                $activityProduct->setObject($deletedproduct);
+            }
+            $activityProduct->setNotes($e->getMessage())
+                            ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postdeleteproduct.general.exception', array($this, $e));
 
@@ -1374,10 +1559,43 @@ class ProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed');
+
+            if (is_object($deletedproduct)) {
+                $activityProduct->setObject($deletedproduct);
+            }
+            $activityProduct->setNotes($e->getMessage())
+                            ->responseFailed();
+
+            // Deletion failed Activity log
+            if (is_object($user)) {
+                $activityProduct->setUser($user);
+            } else {
+                $activityProduct->setUser('guest');
+            }
+            $activityProduct->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed');
+
+            if (is_object($deletedproduct)) {
+                $activityProduct->setObject($deletedproduct);
+            }
+            $activityProduct->setNotes($e->getMessage())
+                            ->responseFailed();
         }
 
         $output = $this->render($httpCode);
         Event::fire('orbit.product.postdeleteproduct.before.render', array($this, $output));
+
+        // Save the activity
+        $activityProduct->save();
 
         return $output;
     }
@@ -1691,10 +1909,8 @@ class ProductAPIController extends ControllerAPI
                 }
             }
 
-            if ($mode === 'update') {
-                // Check the existence of the product variant id
-                $product = App::make('orbit.empty.product');
-            }
+            // Check the existence of the product variant id
+            $product = App::make('orbit.empty.product');
 
             $empty = 0;
             foreach ($variant->attribute_values as $value_id) {
@@ -1731,7 +1947,10 @@ class ProductAPIController extends ControllerAPI
             }
 
             // Make sure the combinations does not exist yet
-            $productVariantCombination = ProductVariant::with(array())->excludeDeleted();
+            $productVariantCombination = ProductVariant::with(array())
+                                                       ->excludeDeleted()
+                                                       ->excludeDefault()
+                                                       ->where('product_id', $product->product_id);
 
             // If this one are update process then make sure not select our current one
             if ($mode === 'update') {
@@ -1778,9 +1997,15 @@ class ProductAPIController extends ControllerAPI
 
             // Try to get the records of the ProductVariant, if it exists then
             // reject the request
-            if (! empty($productVariantCombination->first())) {
+            $variantProduct = $productVariantCombination;
+            if (! empty($variantProduct->first())) {
                 $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if ($product->product_id == 3) {
+                $x = DB::getQueryLog();
+                print_r(end($x));
             }
         }
 

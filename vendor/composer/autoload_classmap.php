@@ -57,6 +57,7 @@ return array(
     'AlterTableProductAttributeValuesIdUnsigned' => $baseDir . '/app/database/migrations/2014_12_29_043911_alter_table_product_attribute_values_id_unsigned.php',
     'AlterTableProductAttributesAddMerchantId' => $baseDir . '/app/database/migrations/2014_12_29_230700_alter_table_product_attributes_add_merchant_id.php',
     'AlterTableProductFixProductCode' => $baseDir . '/app/database/migrations/2014_12_03_081118_alter_table_product_fix_product_code.php',
+    'AlterTableProductVariantAddDefaultVariant' => $baseDir . '/app/database/migrations/2015_02_12_064548_alter_table_product_variant_add_default_variant.php',
     'AlterTableProductVariantsAddStock' => $baseDir . '/app/database/migrations/2014_12_29_231554_alter_table_product_variants_add_stock.php',
     'AlterTableProductsAddAttributes' => $baseDir . '/app/database/migrations/2014_12_29_042539_alter_table_products_add_attributes.php',
     'AlterTableProductsAddColumnCategoryId1To5' => $baseDir . '/app/database/migrations/2014_12_29_041959_alter_table_products_add_column_category_id1_to_5.php',

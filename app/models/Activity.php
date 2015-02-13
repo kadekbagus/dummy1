@@ -19,6 +19,8 @@ class Activity extends Eloquent
     const ACTIVITY_REPONSE_OK = 'OK';
     const ACTIVITY_RESPONSE_FAILED = 'Failed';
 
+    protected $hidden = ['http_method', 'request_uri', 'post_data'];
+
     /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
      * with `status` field.
@@ -95,6 +97,21 @@ class Activity extends Eloquent
     {
         $activity = new static();
         $activity->group = 'pos';
+        $activity->fillCommonValues();
+
+        return $activity;
+    }
+
+    /**
+     * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
+    public static function unknown($group='unknown')
+    {
+        $activity = new static();
+        $activity->group = $group;
         $activity->fillCommonValues();
 
         return $activity;
@@ -189,7 +206,7 @@ class Activity extends Eloquent
             $this->metadata_user = serialize($user->toJSON());
         }
 
-        if ($user === 'guest') {
+        if ($user === 'guest' || is_null($user)) {
             $this->user_id = 0;
             $this->user_email = 'guest';
             $this->role_id = 0;
@@ -250,7 +267,8 @@ class Activity extends Eloquent
     public function setObject($object)
     {
         if (is_object($object)) {
-            $this->object_id = $object->getKeyName();
+            $primaryKey = $object->getKeyName();
+            $this->object_id = $object->$primaryKey;
             $this->object_name = get_class($object);
 
             $this->metadata_object = serialize($object->toJSON());
