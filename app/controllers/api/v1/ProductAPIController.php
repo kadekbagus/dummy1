@@ -60,6 +60,9 @@ class ProductAPIController extends ControllerAPI
      */
     public function postUpdateProduct()
     {
+        $activityProduct = Activity::portal()
+                                   ->setActivityType('update');
+
         try {
             $httpCode=200;
 
@@ -541,6 +544,15 @@ class ProductAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityProductNotes = sprintf('Updating product: %s', $updatedproduct->product_name);
+            $activityProduct->setUser($user)
+                            ->setActivityName('update_product_ok')
+                            ->setActivityNameLong('Update Product OK')
+                            ->setObject($updatedproduct)
+                            ->setNotes($activityProductNotes)
+                            ->responseOK();
+
             Event::fire('orbit.product.postupdateproduct.after.commit', array($this, $updatedproduct));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postupdateproduct.access.forbidden', array($this, $e));
@@ -597,6 +609,9 @@ class ProductAPIController extends ControllerAPI
             // Rollback the changes
             $this->rollBack();
         }
+
+        // Save activity
+        $activityProduct->save();
 
         return $this->render($httpCode);
     }
@@ -683,7 +698,6 @@ class ProductAPIController extends ControllerAPI
 
             $products = Product::with('retailers')
                                 ->excludeDeleted()
-                                ->excludeDefault()
                                 ->allowedForUser($user);
 
             // Filter product by Ids
@@ -854,7 +868,7 @@ class ProductAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.product.getsearchproduct.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
