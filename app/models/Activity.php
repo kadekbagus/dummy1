@@ -80,10 +80,10 @@ class Activity extends Eloquent
      */
     public static function parent($activityParent)
     {
-        $activity = new static();
-        $activity->fillCommonValues();
-        $activity->group = $activityParent->group;
-        $activity->parent_id = $activityParent;
+        $activity = clone $activityParent;
+        $activity->exists = FALSE;
+        $activity->parent_id = $activityParent->activity_id;
+        unset($activity->activity_id);
 
         return $activity;
     }
