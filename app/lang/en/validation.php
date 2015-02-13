@@ -112,6 +112,7 @@ return array(
                 'variant'           => array(
                     'transaction'   => 'Product variant ID :id has one or more transactions linked to it, so it can not be edited or deleted.'
                 ),
+                'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it can not be edited or deleted.'
             ),
             'employeeid'            => 'The employee ID is not available.',
         ),

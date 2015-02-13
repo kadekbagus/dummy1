@@ -52,6 +52,11 @@ class Transaction extends Eloquent
         return $this->hasMany('TransactionDetailCoupon', 'transaction_id', 'transaction_id');
     }
 
+    public function detailtax()
+    {
+        return $this->hasMany('TransactionDetailTax', 'transaction_id', 'transaction_id');
+    }
+
     /**
      * Scope to join with TransactionDetails.
      *
