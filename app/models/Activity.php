@@ -103,6 +103,21 @@ class Activity extends Eloquent
     }
 
     /**
+     * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
+    public static function unknown($group='unknown')
+    {
+        $activity = new static();
+        $activity->group = $group;
+        $activity->fillCommonValues();
+
+        return $activity;
+    }
+
+    /**
      * Set the value of `group`, `ip_address`, `user_agent`
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -191,7 +206,7 @@ class Activity extends Eloquent
             $this->metadata_user = serialize($user->toJSON());
         }
 
-        if ($user === 'guest') {
+        if ($user === 'guest' || is_null($user)) {
             $this->user_id = 0;
             $this->user_email = 'guest';
             $this->role_id = 0;
