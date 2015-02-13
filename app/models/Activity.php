@@ -19,6 +19,8 @@ class Activity extends Eloquent
     const ACTIVITY_REPONSE_OK = 'OK';
     const ACTIVITY_RESPONSE_FAILED = 'Failed';
 
+    protected $hidden = ['http_method', 'request_uri', 'post_data'];
+
     /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
      * with `status` field.
@@ -250,7 +252,8 @@ class Activity extends Eloquent
     public function setObject($object)
     {
         if (is_object($object)) {
-            $this->object_id = $object->getKeyName();
+            $primaryKey = $object->getKeyName();
+            $this->object_id = $object->$primaryKey;
             $this->object_name = get_class($object);
 
             $this->metadata_object = serialize($object->toJSON());
