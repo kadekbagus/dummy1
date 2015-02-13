@@ -73,6 +73,22 @@ class Activity extends Eloquent
     }
 
     /**
+     * Create an activity based on parent value.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return Activity
+     */
+    public static function parent($activityParent)
+    {
+        $activity = new static();
+        $activity->fillCommonValues();
+        $activity->group = $activityParent->group;
+        $activity->parent_id = $activityParent;
+
+        return $activity;
+    }
+
+    /**
      * Set the value of `group`, `ip_address`, `user_agent`, and `location_id`
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -357,6 +373,15 @@ class Activity extends Eloquent
     public function coupon()
     {
         return $this->belongsToObject('Coupon', 'object_id', 'promotion_id');
+    }
+
+    /**
+     * Activity has many children.
+     *
+     */
+    public function children()
+    {
+        return $this->hasMany('Activity', 'parent_id', 'activity_id');
     }
 
     /**
