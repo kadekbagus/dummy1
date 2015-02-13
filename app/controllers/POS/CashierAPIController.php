@@ -2070,6 +2070,10 @@ class CashierAPIController extends ControllerAPI
                 $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
                 // dd($cart_coupon_taxes);
 
+                if(empty($acquired_coupon_carts)){
+                    $acquired_coupon_carts = NULL;
+                }
+
                 $cartsummary = new \stdclass();
                 $cartsummary->vat = $vat;
                 $cartsummary->total_to_pay = $subtotal;
