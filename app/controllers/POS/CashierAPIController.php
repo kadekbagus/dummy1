@@ -1594,6 +1594,11 @@ class CashierAPIController extends ControllerAPI
             $barcode = trim($barcode);
             $cart = \Cart::where('status', 'active')->where('cart_code', $barcode)->first();
 
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.upc_code');
+                ACL::throwAccessForbidden($message);
+            }
+
             $user = $cart->users;
 
             $cartdetails = CartDetail::with(array('product' => function($q) {
