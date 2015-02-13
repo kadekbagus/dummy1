@@ -3759,9 +3759,139 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_for_this_product_array[] = $promo_for_this_product;
                     }
                     
+                    $cartdetail->promo_for_this_product = $promo_for_this_product_array;
+
+                    $coupon_filter = array();
+                    foreach($used_product_coupons as $used_product_coupon) {
+                        // dd($used_product_coupon->cartdetail);
+                        if($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
+                            if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            }
+                            $used_product_coupon->discount = $discount;
+                            $ammount_after_promo = $ammount_after_promo - $discount;
+                            $coupon_filter[] = $used_product_coupon;
+
+                            // $coupon_wo_tax = $discount / (1 + $product_vat_value);
+
+                            if(!is_null($cartdetail->tax1)) {
+                                $tax1 = $cartdetail->tax1->tax_value;
+                                if(!is_null($cartdetail->tax2)) {
+                                    $tax2 = $cartdetail->tax2->tax_value;
+                                    if ($cartdetail->tax2->tax_type == 'service') {
+                                        $pwt = $original_price + ($original_price * $tax2) ;
+                                        $tax1_value = $pwt * $tax1;
+                                        $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                                    } elseif ($cartdetail->tax2->tax_type == 'luxury') {
+                                        $tax1_value = $original_price * $tax1;
+                                        $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                                    }
+                                } else {
+                                    $tax1_value = $discount * $tax1;
+                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                                }
+                                foreach($taxes as $tax) {
+                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
+                                    }
+                                }
+                            }
+                            
+                            if(!is_null($cartdetail->tax2)) {
+                                $tax2 = $cartdetail->tax2->tax_value;    
+                                $tax2_value = $discount * $tax2;
+                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                                
+                                foreach ($taxes as $tax) {
+                                    if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                        $tax->total_tax = $tax->total_tax + $tax2_total_value;
+                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
+                                    }
+                                }
+                            }
+
+                            if(!is_null($cartdetail->tax2)) {
+                                if($cartdetail->tax2->tax_type == 'service') {
+                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2);
+                                }
+                            } else {
+                                $coupon_with_tax = $discount * (1 + $tax1);
+                            }
+                            // $coupon_vat = ($discount - $coupon_wo_tax);
+                            // $vat = $vat - $coupon_vat;
+                            // $subtotal = $subtotal - $discount;
+                            // $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
+
+                            $coupon_vat = ($coupon_with_tax - $discount) * $cartdetail->quantity;
+                            $vat = $vat - $coupon_vat;
+                            $subtotal = $subtotal - $coupon_with_tax;
+                        }
+                    }
+                    $cartdetail->coupon_for_this_product = $coupon_filter;
+
+                    $cartdetail->original_price = $original_price;
+                    $cartdetail->original_ammount = $original_ammount;
+                    $cartdetail->ammount_after_promo = $ammount_after_promo;
+
+                    if($cartdetail->attributeValue1['value']) {
+                        $attributes[] = $cartdetail->attributeValue1['value'];
+                    }
+                    if($cartdetail->attributeValue2['value']) {
+                        $attributes[] = $cartdetail->attributeValue2['value'];
+                    }
+                    if($cartdetail->attributeValue3['value']) {
+                        $attributes[] = $cartdetail->attributeValue3['value'];
+                    }
+                    if($cartdetail->attributeValue4['value']) {
+                        $attributes[] = $cartdetail->attributeValue4['value'];
+                    }
+                    if($cartdetail->attributeValue5['value']) {
+                        $attributes[] = $cartdetail->attributeValue5['value'];
+                    }
+                    $cartdetail->attributes = $attributes;
+                }
+
+                if (!empty($promo_carts)) {
+                    foreach ($promo_carts as $promo_cart) {
+                        if ($subtotal >= $promo_cart->promotionrule->rule_value) {
+                            if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
+                                $discount = $subtotal * $promo_cart->promotionrule->discount_value;
+                                $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
+                                $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
+                            } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
+                                $discount = $promo_cart->promotionrule->discount_value;
+                                $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
+                                $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
+                            }
+
+                            $cart_promo_with_tax = $discount * (1 + $cart_vat);
+                            $cart_promo_tax = $cart_promo_with_tax - $discount;
+                            $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
+                            
+                            foreach ($taxes as $tax) {
+                                if (!empty($tax->total_tax)) {
+                                    $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
+                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
+                                }
+                            }
+
+                            $discount_cart_promo = $discount_cart_promo + $discount;
+                            $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
+                            $acquired_promo_carts[] = $promo_cart;
+
+                        }
+                    }
+                    
                 }
             }
-            dd($vat);
+            // dd($vat);
             // print_r($cartdata);
             
             return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
@@ -3919,7 +4049,38 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail->save();
             }
             
-            foreach($coupons as $coupon) {
+            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+                inner join ' . DB::getTablePrefix() . 'products prod on 
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND 
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
+    
+            $variant_price = $product->variants->find($product_variant_id)->price;
+            $price_after_promo = $variant_price;
+
+            foreach ($promo_products as $promo) {
+                if($promo->rule_type == 'product_discount_by_percentage') {
+                    $discount = $promo->discount_value * $variant_price;
+                } elseif($promo->rule_type == 'product_discount_by_value') {
+                    $discount = $promo->discount_value;
+                }
+
+                $price_after_promo = $price_after_promo - $discount;
+            }
+
+            foreach ($coupons as $coupon) {
                 $validator = \Validator::make(
                     array(
                         'coupon' => $coupon,
@@ -3938,13 +4099,23 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $coupon)->first();
-                $cartcoupon = new CartCoupon;
-                $cartcoupon->issued_coupon_id = $coupon;
-                $cartcoupon->object_type = 'cart_detail';
-                $cartcoupon->object_id = $cartdetail->cart_detail_id;
-                $cartcoupon->save();
-                $used_coupons->status = 'deleted';
-                $used_coupons->save();
+
+                if ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_percentage') {
+                    $discount = $used_coupons->coupon->couponrule->discount_value * $variant_price;
+                } elseif ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_value') {
+                    $discount = $used_coupons->coupon->couponrule->discount_value;
+                }
+                if($discount <= $price_after_promo) {
+                    $price_after_promo = $price_after_promo - $discount;
+                    $cartcoupon = new CartCoupon;
+                    $cartcoupon->issued_coupon_id = $coupon;
+                    $cartcoupon->object_type = 'cart_detail';
+                    $cartcoupon->object_id = $cartdetail->cart_detail_id;
+                    $cartcoupon->save();
+                    $used_coupons->status = 'deleted';
+                    $used_coupons->save();
+                }
+                // dd($used_coupons->coupon->couponrule->discount_value);
             }
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
