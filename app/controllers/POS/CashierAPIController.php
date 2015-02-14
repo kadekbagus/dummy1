@@ -1594,6 +1594,11 @@ class CashierAPIController extends ControllerAPI
             $barcode = trim($barcode);
             $cart = \Cart::where('status', 'active')->where('cart_code', $barcode)->first();
 
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.upc_code');
+                ACL::throwAccessForbidden($message);
+            }
+
             $user = $cart->users;
 
             $cartdetails = CartDetail::with(array('product' => function($q) {
@@ -1753,7 +1758,7 @@ class CashierAPIController extends ControllerAPI
                         $promo_for_this_product = new \stdclass();
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
@@ -1762,6 +1767,7 @@ class CashierAPIController extends ControllerAPI
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
                         $promo_for_this_product->rule_type = $promo_filter->rule_type;
                         $promo_for_this_product->discount = $discount * $cartdetail->quantity;
+                        $promo_for_this_product->promotion_detail = $promo_filter;
                         $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
 
                         // $promo_wo_tax = $discount / (1 + $product_vat_value);
