@@ -73,7 +73,7 @@
                                 <td class="text-right"><% r.discount_value %></td>
                                 <td class="text-right">- <% r.afterpromotionprice %></td>
                             </tr>
-                            <tr data-ng-repeat="(a,r) in v.coupon_for_this_product">
+                            <tr data-ng-repeat="(a,r) in v.coupon">
                                 <td><div class="foo coupon" style="margin-left: 23px;"></div><span style="margin-left: 5px;"><% r.issuedcoupon.promotion_name %></span></td>
                                 <td></td>
                                 <td class="text-right"><% r.discount_value %></td>

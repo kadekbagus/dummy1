@@ -336,16 +336,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
                                 //promotion
+                                var promotionprice = 0;
+                                var couponprice    = 0;
                                 if($scope.cart[i]['promotion'].length){
-                                    var promotionprice = 0;
                                     for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
                                         promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
                                     }
-                                    tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice;
-                                }else{
-                                    tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']);
                                 }
-
+                                if($scope.cart[i]['coupon'].length){
+                                    for(var b= 0; b < $scope.cart[i]['coupon'].length;b++){
+                                        couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
+                                    }
+                                }
+                                tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
                                 $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
                             }
                         }
@@ -402,7 +405,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 variants               : angular.copy($scope.variantstmp),
                                 promotion              : angular.copy($scope.datapromotion),
                                 attributes             : angular.copy($scope.productmodal['attributes']),
-                                coupon_for_this_product   : angular.copy($scope.productmodal['coupon_for_this_product']),
+                                coupon                 : angular.copy($scope.productmodal['coupon_for_this_product']),
                                 cartsummary            : angular.copy($scope.productmodal['cartsummary']),
                                 qty                    : $scope.productmodal['qty'] ? angular.copy($scope.productmodal['qty']) : 1,
                                 price                  : angular.copy($scope.productmodal['price']),
@@ -497,12 +500,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         case 't':
                             $scope.action  = 'cash';
                             $scope.cheader = 'PEMBAYARAN TUNAI';
-
                             $scope.isvirtual = true;
-                            /* event.preventDefault();
-                             $timeout(function(){
-                             angular.element('#tenderedcash').focus();
-                             },500);*/
                             //customer display
                             $scope.customerdispaly('TOTAL',$scope.cart.totalpay);
                             break;
@@ -525,17 +523,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.holdbtn  = true;
                                 }
                                 $scope.holdbtn = false;
+                                //wait driver until 50 seconds
                                 $timeout(function(){
                                     $scope.holdbtn = true;
                                  },50000);
                              });
-                            //wait driver until 45 seconds
-                            /*$timeout(function(){
-                                if(!$scope.hasaccepted) {
-                                    $scope.cheader  = 'TRANSAKSI GAGAL';
-                                    $scope.cardfile = true;
-                                }
-                            },10000);*/
 
                             break;
                         case 'd' :
@@ -776,9 +768,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                              discount += tmpdiscount;
                                         }
                                     }
-                                    angular.element("#modalscancart").modal('hide');
+
                                     $scope.inserttocartFn(true);
                                 }
+                                angular.element("#modalscancart").modal('hide');
                                 if(bool)  $scope.virtualFn(false);
                                 $scope.customerdispaly('Welcome',name.substr(0,20));
                                 //  $scope.scanproduct();
