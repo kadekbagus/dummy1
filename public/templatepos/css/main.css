@@ -11941,6 +11941,9 @@ body {
 .promotion{
     background-color:#009933;
 }
+.coupon{
+    background-color:#FEA000;
+}
 /*landscape*/
 @media(min-width:768px) and (max-width: 1100px){
     h1 {

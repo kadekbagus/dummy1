@@ -41,7 +41,7 @@
                         <tbody data-ng-repeat="(k,v) in cart">
                            <tr>
                                 <td style="max-width: 300px;word-wrap: break-word;" >
-                                    <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> </b></a> <br><% v.upc_code %>
+                                  <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> <% v.attributes.toString().replace(",", " "); %> </b></a> <br><% v.upc_code %>
                                 </td>
                                 <td style="width: 200px">
 
@@ -72,6 +72,12 @@
                                 <td></td>
                                 <td class="text-right"><% r.discount_value %></td>
                                 <td class="text-right">- <% r.afterpromotionprice %></td>
+                            </tr>
+                            <tr data-ng-repeat="(a,r) in v.coupon_for_this_product">
+                                <td><div class="foo coupon" style="margin-left: 23px;"></div><span style="margin-left: 5px;"><% r.issuedcoupon.promotion_name %></span></td>
+                                <td></td>
+                                <td class="text-right"><% r.discount_value %></td>
+                                <td class="text-right">- <% r.aftercouponprice %></td>
                             </tr>
                         </tbody>
                             <tr id="bottom">
@@ -110,7 +116,7 @@
                         </tr>
                         <tr>
                             <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>
-                            <td></td>
+                            <td><div class="foo coupon"><span style="margin-left: 23px;">Coupon</span></div></td>
                             <td></td>
                             <td></td>
                         </tr>
@@ -504,7 +510,7 @@
                             </div>
                             <div class="col-md-12">
                              <img data-ng-show="!cardfile" src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
-                             <img data-ng-show="cardfile" src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>
+                             <img data-ng-show="cardfile" src='{{ URL::asset('templatepos/images/rejected.gif') }}' style='width:300px;height:300px'>
                             </div>
                     </div>
                 </div>
