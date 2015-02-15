@@ -174,6 +174,20 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
+            // Check the device exist or not
+            if(!file_exists(Config::get('orbit.devices.barcode.params')))
+            {
+                $message = 'Scanner not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
+            // Check the driver exist or not
+            if(!file_exists(Config::get('orbit.devices.barcode.path')))
+            {
+                $message = 'Scanner driver not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
             $driver = Config::get('orbit.devices.barcode.path');
             $params = Config::get('orbit.devices.barcode.params');
             $cmd = 'sudo '.$driver.' '.$params;
@@ -1704,7 +1718,23 @@ class CashierAPIController extends ControllerAPI
             $barcode = OrbitInput::post('barcode');
 
             $retailer = $this->getRetailerInfo();
+
             if(empty($barcode)){
+                
+                // Check the device exist or not
+                if(!file_exists(Config::get('orbit.devices.barcode.params')))
+                {
+                    $message = 'Scanner not found'; 
+                    ACL::throwAccessForbidden($message);
+                }
+
+                // Check the driver exist or not
+                if(!file_exists(Config::get('orbit.devices.barcode.path')))
+                {
+                    $message = 'Scanner driver not found'; 
+                    ACL::throwAccessForbidden($message);
+                }
+
                 $driver = Config::get('orbit.devices.barcode.path');
                 $params = Config::get('orbit.devices.barcode.params');
                 $cmd = 'sudo '.$driver.' '.$params;
