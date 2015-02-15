@@ -442,6 +442,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 category_id3           : angular.copy($scope.productmodal['category_id3']),
                                 category_id4           : angular.copy($scope.productmodal['category_id4']),
                                 category_id5           : angular.copy($scope.productmodal['category_id5']),
+                                product_details        : angular.copy($scope.productmodal),
                                 hargatotal             : 0
                             });
                             $timeout(function(){
@@ -506,9 +507,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.cart                 = [];
                     $scope.searchproduct        = '';
                     $scope.applycartpromotion   = [];
+                    $scope.applycartcoupon      = [];
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants'][0]['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchants'][0]['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
@@ -572,7 +574,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         guest          : $scope.guests,
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
-                        cart           : $scope.cart
+                        cart           : $scope.cart,
+                        cart_promotion : $csope.applycartpromotion,
+                        cart_coupon    : $csope.applycartcoupon
                     };
                     serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
                         if(response.code == 0){
