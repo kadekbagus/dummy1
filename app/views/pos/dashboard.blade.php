@@ -91,16 +91,34 @@
                 <div class="table-responsive" data-ng-show="applycartpromotion.length > 1">
                     <table class="table  orbit-component table-noborder">
                         <thead>
-                            <tr style="background-color: #009933;">
+                            <tr class="promotion">
                                <th colspan="4" style="color: white"><h4>CART BASED PROMOTION</h4></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr data-ng-repeat="(k,v) in applycartpromotion" >
-                                <td colspan="2"><b data-ng-show="v.promotion_name == 'Subtotal'"><% v.promotion_name %></b><span data-ng-show="v.promotion_name != 'Subtotal'"><% v.promotion_name %></span></td>
+                            <tr data-ng-repeat="(e,o) in applycartpromotion" >
+                                <td colspan="2"><b data-ng-show="o.promotion_name == 'Subtotal'"><% o.promotion_name %></b><span data-ng-show="o.promotion_name != 'Subtotal'"><% o.promotion_name %></span></td>
 
-                                <td class="text-right"><% v.promotionrule.discount %></td>
-                                <td class="text-right"><% v.promotionrule.discount_value %></td>
+                                <td class="text-right"><% o.promotionrule.discount %></td>
+                                <td class="text-right"><% o.promotionrule.discount_value %></td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+                <div class="table-responsive" data-ng-show="applycartcoupon.length > 1">
+                    <table class="table  orbit-component table-noborder">
+                        <thead>
+                            <tr class="coupon">
+                               <th colspan="4" style="color: white"><h4>CART BASED COUPON</h4></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ng-repeat="(b,l) in applycartcoupon" >
+                                <td colspan="2"><% l.issuedcoupon.promotion_name %></td>
+
+                                <td class="text-right"><% l.issuedcoupon.discount %></td>
+                                <td class="text-right"><% l.issuedcoupon.discount_value %></td>
                             </tr>
                         </tbody>
 

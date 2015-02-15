@@ -352,13 +352,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
                             }
                         }
-
+                        var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
                         //check cart based promo
-                        if($scope.cartpromotions.length){
+                        var promotioncartbase          = 0;
+                        if($scope.cartpromotions){
                             $scope.applycartpromotion      = [];
                             $scope.tmpvallues = '';
-                            var promotioncartbase          = 0;
-                            var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
                             //add header subtotal before promotion
                             $scope.applycartpromotion.push({
                               promotion_name : 'Subtotal',
@@ -381,10 +380,28 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     }
                                 }
                             }
-                            $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase, "", 0, ",", ".");
+
                         };
                         //check coupon
-
+                        var couponcartbase          = 0;
+                        if($scope.cartcoupon){
+                            $scope.applycartcoupon      = [];
+                            $scope.tmpvallues = '';
+                            for(var m = 0; m < $scope.cartcoupon.length; m++){
+                                var coupon = $scope.cartcoupon[m]['issuedcoupon']['rule_type'] == 'cart_discount_by_percentage' ?  $scope.cartcoupon[m]['issuedcoupon']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartcoupon[m]['issuedcoupon']['discount_value']);
+                                couponcartbase += coupon;
+                                $scope.tmpvalluescoupon  = coupon;
+                                $scope.applycartcoupon.push(angular.copy($scope.cartcoupon[m]));
+                                var idxapply = $scope.applycartcoupon.length -1;
+                                if($scope.applycartcoupon[idxapply]['issuedcoupon']['rule_type'] == 'cart_discount_by_percentage'){
+                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount']       = $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] * 100 +' %';
+                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.tmpvalluescoupon, "", 0, ",", ".");
+                                }else{
+                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'], "", 0, ",", ".");
+                                }
+                            }
+                        }
+                        $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                         //todo:agung change hardcore for VAT
                         var vat  = 10;
                         var hvat = parseInt(accounting.unformat($scope.cart.subtotal) * vat / 100);
@@ -713,6 +730,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
                   //  $scope.cancelRequestService();
+                    $scope.cartcoupon = [];
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
@@ -722,6 +740,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.successscant = true;
                                 $scope.guests       = name;
                                 $scope.cart.user_id = response.data.cart.users.user_id;
+                                //cart coupon
+                                $scope.cartcoupon =  response.data.cartsummary['used_cart_coupons'];
                                 for(var i = 0; i < response.data.cartdetails.length; i++){
                                     $scope.productmodal                = response.data.cartdetails[i]['product'];
                                     $scope.productmodal['qty']         = response.data.cartdetails[i]['quantity'];
@@ -768,9 +788,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                              discount += tmpdiscount;
                                         }
                                     }
-
                                     $scope.inserttocartFn(true);
                                 }
+
+
                                 angular.element("#modalscancart").modal('hide');
                                 if(bool)  $scope.virtualFn(false);
                                 $scope.customerdispaly('Welcome',name.substr(0,20));
