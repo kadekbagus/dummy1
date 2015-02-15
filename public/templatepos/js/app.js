@@ -729,12 +729,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchant']['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
-                  //  $scope.cancelRequestService();
+                   $scope.cancelRequestService();
                     $scope.cartcoupon = [];
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
-                   if(bool) serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
+                 /*  if(bool)*/ serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
                                 var name = response.data.cart.users.user_firstname+' '+response.data.cart.users.user_lastname;
                                 $scope.successscant = true;
@@ -795,7 +795,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 angular.element("#modalscancart").modal('hide');
                                 if(bool)  $scope.virtualFn(false);
                                 $scope.customerdispaly('Welcome',name.substr(0,20));
-                                //  $scope.scanproduct();
+                                 $scope.scanproduct();
                                  $scope.errorscancart = '';
                                  $scope.manualscancart = '';
                             }else if(response.code == 13 ){
@@ -804,8 +804,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 //do something when error
                                 $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
                                 $scope.manualscancart = '';
-                              //  $scope.scancartFn();
-
+                                $scope.scancartFn();
                             }
                     });
 
