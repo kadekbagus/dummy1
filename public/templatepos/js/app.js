@@ -338,12 +338,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 //promotion
                                 var promotionprice = 0;
                                 var couponprice    = 0;
-                                if($scope.cart[i]['promotion'].length){
+                                if($scope.cart[i]['promotion']){
                                     for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
                                         promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
                                     }
                                 }
-                                if($scope.cart[i]['coupon'].length){
+                                if($scope.cart[i]['coupon']){
                                     for(var b= 0; b < $scope.cart[i]['coupon'].length;b++){
                                         couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
                                     }
@@ -575,8 +575,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         cashier_id     : $scope.datauser['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart,
-                        cart_promotion : $csope.applycartpromotion,
-                        cart_coupon    : $csope.applycartcoupon
+                        cart_promotion : $scope.applycartpromotion,
+                        cart_coupon    : $scope.applycartcoupon
                     };
                     serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
                         if(response.code == 0){
