@@ -265,30 +265,44 @@
 	{{ HTML::script('mobile-ci/scripts/jquery-ui.min.js') }}
 	{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
 	<script type="text/javascript">	
-    function num_format(num){
-      num = parseFloat(num).toFixed(2);
-      // console.log(num);
-      var partnum = num.toString().split('.');
-      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-      if(partnum[1] == '00'){
-        return part1;
-      } else {
-        var part2 = partnum[1];
-        return part1 + '.' + part2;
-      }
-    }
-    $('.formatted-num').each(function(index){
-      var num = parseFloat($(this).text()).toFixed(2);
-      var partnum = num.toString().split('.');
-      // console.log(partnum);
-      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-      if(partnum[1] == '00'){
-        $(this).text(part1);
-      } else {
-        var part2 = partnum[1];
-        $(this).text(part1 + '.' + part2);
-      }
-    });
+	    function num_format(num){
+	      // num = parseFloat(num).toFixed(2);
+	      // // console.log(num);
+	      // var partnum = num.toString().split('.');
+	      // var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+	      // if(partnum[1] == '00'){
+	      //   return part1;
+	      // } else {
+	      //   var part2 = partnum[1];
+	      //   return part1 + '.' + part2;
+	      // }
+	      var num = parseFloat(num).toFixed(0);
+	      var partnum = num.toString().split('.');
+	      // console.log(partnum);
+	      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+	      // if decimal place is accepted
+	      // if(partnum[1] == '00'){
+	      //   $(this).text(part1);
+	      // } else {
+	      //   var part2 = partnum[1];
+	      //   $(this).text(part1 + '.' + part2);
+	      // }
+	      return part1;
+	    }
+	    $('.formatted-num').each(function(index){
+	      var num = parseFloat($(this).text()).toFixed(0);
+	      var partnum = num.toString().split('.');
+	      // console.log(partnum);
+	      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+	      // if decimal place is accepted
+	      // if(partnum[1] == '00'){
+	      //   $(this).text(part1);
+	      // } else {
+	      //   var part2 = partnum[1];
+	      //   $(this).text(part1 + '.' + part2);
+	      // }
+	      $(this).text(part1);
+	    });
 		var indexOf = function(needle) {
 		    if(typeof Array.prototype.indexOf === 'function') {
 		        indexOf = Array.prototype.indexOf;

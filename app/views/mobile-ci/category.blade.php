@@ -189,17 +189,31 @@
 		        window.location.reload() 
 		    }
 		});
+		// $('.formatted-num').each(function(index){
+	 //      var num = parseFloat($(this).text()).toFixed(2);
+	 //      var partnum = num.toString().split('.');
+	 //      console.log(partnum);
+	 //      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+	 //      if(partnum[1] == '00'){
+	 //        $(this).text(part1);
+	 //      } else {
+	 //        var part2 = partnum[1];
+	 //        $(this).text(part1 + '.' + part2);
+	 //      }
+	 //    });
 		$('.formatted-num').each(function(index){
-	      var num = parseFloat($(this).text()).toFixed(2);
+	      var num = parseFloat($(this).text()).toFixed(0);
 	      var partnum = num.toString().split('.');
-	      console.log(partnum);
+	      // console.log(partnum);
 	      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-	      if(partnum[1] == '00'){
-	        $(this).text(part1);
-	      } else {
-	        var part2 = partnum[1];
-	        $(this).text(part1 + '.' + part2);
-	      }
+	      // if decimal place is accepted
+	      // if(partnum[1] == '00'){
+	      //   $(this).text(part1);
+	      // } else {
+	      //   var part2 = partnum[1];
+	      //   $(this).text(part1 + '.' + part2);
+	      // }
+	      $(this).text(part1);
 	    });
 		$(document).ready(function(){
 			if(window.location.hash){

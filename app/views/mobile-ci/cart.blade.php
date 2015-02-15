@@ -281,7 +281,7 @@
       </div>
     </div>
     @endif
-    {{--
+    
     @foreach($cartdata->cartsummary->taxes as $tax)
       @if(!empty($tax->total_tax))
       <div>
@@ -289,7 +289,10 @@
       </div>
       @endif
     @endforeach
-    --}}
+    <div>
+      <span>Subtotal wo tax : {{ $cartdata->cartsummary->subtotal_wo_tax }}</span>
+    </div>
+    
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
@@ -644,7 +647,7 @@
           top: tops + 24,
           left: lefts
         });
-        if(!num.val()){
+        if(!num.val() || num.val() == 0){
           num.val(lastnum);
         }else{
           lastnum = num.val();
@@ -659,7 +662,7 @@
           num.val('');
         }
         $('#n_keypad').hide();
-        if(!num.val()){
+        if(!num.val() || num.val() == 0){
           num.val(lastnum);
         }else{
           $.ajax({
