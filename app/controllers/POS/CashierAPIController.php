@@ -708,7 +708,21 @@ class CashierAPIController extends ControllerAPI
      */
     public function postSaveTransaction()
     {
+        $activity = Activity::POS()
+                            ->setActivityType('payment');
+        $user = null;
+        $customer = null;
+        $activity_payment = null;
+        $activity_payment_label = null;
+        $transaction = null;
         try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
             $retailer = $this->getRetailerInfo();
             $total_item       = trim(OrbitInput::post('total_item'));
             $subtotal         = trim(OrbitInput::post('subtotal'));
@@ -724,7 +738,23 @@ class CashierAPIController extends ControllerAPI
             $cart             = OrbitInput::post('cart'); //data of array
             $issued_coupon_id = OrbitInput::post('issued_coupon_id');  // data of array
 
-            //dd($retailer_id);
+            $activity_payment = 'payment_cash';
+            $activity_payment_label = 'Payment Cash';
+
+            //only payment cash
+            if ($payment_method == 'cash') {
+                self::postCashDrawer();
+            } else {
+                $activity_payment = 'payment_card';
+                $activity_payment_label = 'Payment Card';
+            }
+
+            if (empty($customer_id)){
+                $customer_id = 0;
+            } else {
+                $customer = User::excludeDeleted()->find($customer_id);
+            }
+            
 
             $validator = Validator::make(
                 array(
@@ -748,10 +778,10 @@ class CashierAPIController extends ControllerAPI
                     'tendered'         => 'required',
                     'change'           => 'required',
                     'cashier_id'       => 'required',
-                    'customer_id'      => 'required',
+                    // 'customer_id'      => 'required',
                     'payment_method'   => 'required',
                     'cart'             => 'required',
-                    'issued_coupon_id' => 'required',
+                    // 'issued_coupon_id' => 'required',
                 )
             );
 
@@ -817,7 +847,7 @@ class CashierAPIController extends ControllerAPI
                 // $transactiondetail->product_attribute_name3     = $cart_value['product_attribute_name3'];
                 // $transactiondetail->product_attribute_name4     = $cart_value['product_attribute_name4'];
                 // $transactiondetail->product_attribute_name5     = $cart_value['product_attribute_name5'];
-                $transactionDetails->save();
+                $transactiondetail->save();
             }
 
             // issue coupon redeemed
@@ -894,27 +924,67 @@ class CashierAPIController extends ControllerAPI
                 }
             }
 
-            //only payment cash
-            if($payment_method == 'cash') self::postCashDrawer();
 
             $this->response->data = $transaction;
             $this->commit();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Succes')
+                    ->setObject($transaction)
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         }
 
         return $this->render();
@@ -929,7 +999,22 @@ class CashierAPIController extends ControllerAPI
      */
     public function postPrintTicket()
     {
+        $activity = Activity::POS()
+                            ->setActivityType('payment');
+        $customer = null;
+        $user = null;
+        $activity_payment = 'print_ticket';
+        $activity_payment_label = 'Print Ticket';
+        $transaction = null;                    
         try {
+
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
             $retailer = $this->getRetailerInfo();
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
@@ -948,6 +1033,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             $this->response->data = $transaction;
+            $customer = $transaction->user;
 
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
@@ -1114,21 +1200,55 @@ class CashierAPIController extends ControllerAPI
 
             shell_exec($cut);
 
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Succes')
+                    ->setObject($transaction)
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         }
 
         return $this->render();
