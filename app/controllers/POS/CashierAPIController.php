@@ -827,6 +827,14 @@ class CashierAPIController extends ControllerAPI
 
             //insert to table transaction_details
             foreach($cart as $cart_key => $cart_value){
+                // echo "produk varian price ".$cart_value['product_details']['variants'][0]['price'];
+                // if(!empty($cart_value['variants'])){
+                // echo "attribute ".$cart_value['variants']['value1'];
+                // echo "attribute ".$cart_value['variants']['value2'];
+                // echo "attribute ".$cart_value['variants']['value3'];
+                // echo "attribute ".$cart_value['variants']['value4'];
+                // echo "attribute ".$cart_value['variants']['value5'];
+                // }
                 $transactiondetail = new \TransactionDetail();
                 $transactiondetail->transaction_id              = $transaction->transaction_id;
                 $transactiondetail->product_id                  = $cart_value['product_id'];
@@ -835,32 +843,35 @@ class CashierAPIController extends ControllerAPI
                 $transactiondetail->quantity                    = $cart_value['qty'];
                 $transactiondetail->upc                         = $cart_value['upc_code'];
                 $transactiondetail->price                       = str_replace( ',', '', $cart_value['price'] );
-                // $transactiondetail->variant_price               = $cart_value['variant_price'];
-                // $transactiondetail->variant_upc                 = $cart_value['variant_upc'];
-                // $transactiondetail->variant_sku                 = $cart_value['variant_sku'];
-                // $transactiondetail->variant_stock               = $cart_value['variant_stock'];
-                // $transactiondetail->product_attribute_value_id1 = $cart_value['product_attribute_value_id1'];
-                // $transactiondetail->product_attribute_value_id2 = $cart_value['product_attribute_value_id2'];
-                // $transactiondetail->product_attribute_value_id3 = $cart_value['product_attribute_value_id3'];
-                // $transactiondetail->product_attribute_value_id4 = $cart_value['product_attribute_value_id4'];
-                // $transactiondetail->product_attribute_value_id5 = $cart_value['product_attribute_value_id5'];
-                // $transactiondetail->product_attribute_value1    = $cart_value['product_attribute_value1'];
-                // $transactiondetail->product_attribute_value2    = $cart_value['product_attribute_value2'];
-                // $transactiondetail->product_attribute_value3    = $cart_value['product_attribute_value3'];
-                // $transactiondetail->product_attribute_value4    = $cart_value['product_attribute_value4'];
-                // $transactiondetail->product_attribute_value5    = $cart_value['product_attribute_value5'];
-                // $transactiondetail->merchant_tax_id1            = $cart_value['merchant_tax_id1'];
-                // $transactiondetail->merchant_tax_id2            = $cart_value['merchant_tax_id2'];
-                // $transactiondetail->attribute_id1               = $cart_value['attribute_id1'];
-                // $transactiondetail->attribute_id2               = $cart_value['attribute_id2'];
-                // $transactiondetail->attribute_id3               = $cart_value['attribute_id3'];
-                // $transactiondetail->attribute_id4               = $cart_value['attribute_id4'];
-                // $transactiondetail->attribute_id5               = $cart_value['attribute_id5'];
-                // $transactiondetail->product_attribute_name1     = $cart_value['product_attribute_name1'];
-                // $transactiondetail->product_attribute_name2     = $cart_value['product_attribute_name2'];
-                // $transactiondetail->product_attribute_name3     = $cart_value['product_attribute_name3'];
-                // $transactiondetail->product_attribute_name4     = $cart_value['product_attribute_name4'];
-                // $transactiondetail->product_attribute_name5     = $cart_value['product_attribute_name5'];
+                if(!empty($cart_value['variants'])){
+                $transactiondetail->variant_price               = $cart_value['variants']['price'];
+                $transactiondetail->variant_upc                 = $cart_value['variants']['upc'];
+                $transactiondetail->variant_sku                 = $cart_value['variants']['sku'];
+                // $transactiondetail->variant_stock               = $cart_value['variants']['stock'];
+                $transactiondetail->product_attribute_value_id1 = $cart_value['variants']['attr_val_id1'];
+                $transactiondetail->product_attribute_value_id2 = $cart_value['variants']['attr_val_id2'];
+                $transactiondetail->product_attribute_value_id3 = $cart_value['variants']['attr_val_id3'];
+                $transactiondetail->product_attribute_value_id4 = $cart_value['variants']['attr_val_id4'];
+                $transactiondetail->product_attribute_value_id5 = $cart_value['variants']['attr_val_id5'];
+                $transactiondetail->product_attribute_value1    = $cart_value['variants']['value1'];
+                $transactiondetail->product_attribute_value2    = $cart_value['variants']['value2'];
+                $transactiondetail->product_attribute_value3    = $cart_value['variants']['value3'];
+                $transactiondetail->product_attribute_value4    = $cart_value['variants']['value4'];
+                $transactiondetail->product_attribute_value5    = $cart_value['variants']['value5'];
+                $transactiondetail->product_attribute_name1     = $cart_value['variants']['attr1'];
+                $transactiondetail->product_attribute_name2     = $cart_value['variants']['attr2'];
+                $transactiondetail->product_attribute_name3     = $cart_value['variants']['attr3'];
+                $transactiondetail->product_attribute_name4     = $cart_value['variants']['attr4'];
+                $transactiondetail->product_attribute_name5     = $cart_value['variants']['attr5'];
+                }
+                $transactiondetail->merchant_tax_id1            = $cart_value['product_details']['merchant_tax_id1'];
+                $transactiondetail->merchant_tax_id2            = $cart_value['product_details']['merchant_tax_id2'];
+                $transactiondetail->attribute_id1               = $cart_value['product_details']['attribute_id1'];
+                $transactiondetail->attribute_id2               = $cart_value['product_details']['attribute_id2'];
+                $transactiondetail->attribute_id3               = $cart_value['product_details']['attribute_id3'];
+                $transactiondetail->attribute_id4               = $cart_value['product_details']['attribute_id4'];
+                $transactiondetail->attribute_id5               = $cart_value['product_details']['attribute_id5'];
+
                 $transactiondetail->save();
             }
 
