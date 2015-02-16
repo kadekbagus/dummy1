@@ -434,7 +434,7 @@
 			    window.history.back()
 			});
 
-			$('body').on('click', '#addToCartButton', function($event){
+			$('body').off('click', '#addToCartButton').on('click', '#addToCartButton', function($event){
 				// add to cart
 				$('#hasCouponModal .modal-body p').html('');
 				var prodid = itemReady[0].product_id;
@@ -479,6 +479,7 @@
 								}
 							}).done(function(data){
 								// animate cart
+								console.log('withoutcoupon');
 								anchor.show();
 								$('.cart-spinner').hide();
 								var imgclone = img.clone().offset({
@@ -542,7 +543,7 @@
 						}
 					});
 					
-					$('#hasCouponModal').on('click', '#applyCoupon', function($event){
+					$('#hasCouponModal').off('click', '#applyCoupon').on('click', '#applyCoupon', function($event){
 						$.ajax({
 							url: apiPath+'customer/addtocart',
 							method: 'POST',
@@ -555,6 +556,7 @@
 						}).done(function(data){
 							// animate cart
 							if(data.status == 'success'){
+								console.log('apply');
 								anchor.show();
 								$('.cart-spinner').hide();
 								if(data.data.available_coupons.length < 1){
@@ -608,7 +610,7 @@
 						});
 					});
 
-					$('#hasCouponModal').on('click', '#denyCoupon', function($event){
+					$('#hasCouponModal').off('click', '#denyCoupon').on('click', '#denyCoupon', function($event){
 						$.ajax({
 							url: apiPath+'customer/addtocart',
 							method: 'POST',
@@ -621,6 +623,7 @@
 						}).done(function(data){
 							// animate cart
 							if(data.status == 'success'){
+								console.log('danycoupon');
 								anchor.show();
 								$('.cart-spinner').hide();
 								if(data.data.available_coupons.length < 1){
@@ -684,6 +687,7 @@
 						}
 					}).done(function(data){
 						// animate cart
+						console.log('nocoupon');
 						anchor.show();
 						$('.cart-spinner').hide();
 						var imgclone = img.clone().offset({
