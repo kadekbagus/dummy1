@@ -751,6 +751,7 @@ class CashierAPIController extends ControllerAPI
             $payment_method   = trim(OrbitInput::post('payment_method'));
             $cart             = OrbitInput::post('cart'); //data of array
             $issued_coupon_id = OrbitInput::post('issued_coupon_id');  // data of array
+            $cart_promotion   = OrbitInput::post('cart_promotion'); // data of array
 
             $activity_payment = 'payment_cash';
             $activity_payment_label = 'Payment Cash';
@@ -873,6 +874,65 @@ class CashierAPIController extends ControllerAPI
                 $transactiondetail->attribute_id5               = $cart_value['product_details']['attribute_id5'];
 
                 $transactiondetail->save();
+
+                // product based promotion
+                if(!empty($cart_value['promotion'])){
+                    foreach ($cart_value['promotion'] as $key => $value) {
+                        if($value['promotion_name']!="Subtotal"){
+                            $transactiondetailpromotion = new \TransactionDetailPromotion();
+                            $transactiondetailpromotion->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                            $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
+                            $transactiondetailpromotion->promotion_id = $value['promotion_id'];
+                            $transactiondetailpromotion->promotion_name = $value['promotion_name'];
+                            $transactiondetailpromotion->promotion_type = $value['promotion_type'];
+                            $transactiondetailpromotion->rule_type = $value['rule_type'];
+                            $transactiondetailpromotion->rule_value = $value['rule_value'];
+                            $transactiondetailpromotion->discount_object_type = $value['discount_object_type'];
+                            $transactiondetailpromotion->discount_value = $value['oridiscount_value'];
+                            $transactiondetailpromotion->value_after_percentage = $value['tmpafterpromotionprice'];
+                            $transactiondetailpromotion->description = $value['description'];
+                            $transactiondetailpromotion->begin_date = $value['begin_date'];
+                            $transactiondetailpromotion->end_date = $value['end_date'];
+                            $transactiondetailpromotion->save();
+                        }
+                    }
+                }
+
+            }
+
+
+            // cart based promotion
+            if(!empty($cart_promotion)){
+                foreach ($cart_promotion as $key => $value) {
+                    if($value['promotion_name']!="Subtotal"){
+                        $transactiondetailpromotion = new \TransactionDetailPromotion();
+                        $transactiondetailpromotion->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                        $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
+                        $transactiondetailpromotion->promotion_id = $value['promotion_id'];
+                        $transactiondetailpromotion->promotion_name = $value['promotion_name'];
+                        $transactiondetailpromotion->promotion_type = $value['promotion_type'];
+                        $transactiondetailpromotion->rule_type = $value['promotionrule']['rule_type'];
+                        $transactiondetailpromotion->rule_value = $value['promotionrule']['rule_value'];
+                        $transactiondetailpromotion->discount_object_type = $value['promotionrule']['discount_object_type'];
+                        if($value['promotionrule']['rule_type']=="cart_discount_by_percentage"){
+                            $discount_percent = intval($value['promotionrule']['discount'])/100;
+                            $discount_value = $this->removeFormat($value['promotionrule']['discount_value']);
+                            $transactiondetailpromotion->discount_value = $discount_percent;
+                            $transactiondetailpromotion->value_after_percentage = $discount_value;
+                        }
+                        else{
+                            $discount_value = $this->removeFormat($value['promotionrule']['discount_value']);
+                            $transactiondetailpromotion->discount_value = $discount_value;
+                            $transactiondetailpromotion->value_after_percentage = $discount_value;
+                            // echo $value['promotionrule']['discount_value'];
+                            // echo $discount_value;
+                        }
+                        $transactiondetailpromotion->description = $value['description'];
+                        $transactiondetailpromotion->begin_date = $value['begin_date'];
+                        $transactiondetailpromotion->end_date = $value['end_date'];
+                        $transactiondetailpromotion->save();
+                    }
+                }
             }
 
             // issue coupon redeemed
@@ -1075,14 +1135,14 @@ class CashierAPIController extends ControllerAPI
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
                         //echo $detailcoupon_value['promotion_name']."<br/>";
-                        $product .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['discount_value']);
+                        $product .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
                     if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
                         //echo $detailpromotion_value['promotion_name']."<br/>";
-                        $product .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['discount_value']);
+                        $product .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['value_after_percentage']);
                     }
                 }
             }
@@ -1097,16 +1157,16 @@ class CashierAPIController extends ControllerAPI
                     if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='cart'){
                         if($x==0){
                             //echo "Cart Promotions <br/>";
-                            if(!$promo){
-                                $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
-                            }
-                            $cart_based_promo .= "Cart Promotions"." \n";
+                            // if(!$promo){
+                            //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
+                            // }
+                            $cart_based_promo = "Cart Promotions"." \n";
                             $promo = TRUE;
                         }
                         //echo $detailpromotion_value['promotion_name']."<br/>";
                         $x = $x+1;
                         $promo = TRUE;
-                        $cart_based_promo .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['discount_value']);
+                        $cart_based_promo .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['value_after_percentage']);
                     }
                 }
 
@@ -1118,16 +1178,16 @@ class CashierAPIController extends ControllerAPI
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
                         if($x==0){
                             //echo "Cart Promotions <br/>";
-                            if(!$promo){
-                                $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
-                            }
-                            $cart_based_promo .= "Cart Coupons"." \n";
+                            // if(!$promo){
+                            //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
+                            // }
+                            $cart_based_promo = "Cart Coupons"." \n";
                             $promo = TRUE;
                         }
                         //echo $detailcoupon_value['promotion_name']."<br/>";
                         $x = $x+1;
                         $promo = TRUE;
-                        $cart_based_promo .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['discount_value']);
+                        $cart_based_promo .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
@@ -2581,5 +2641,11 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
+    }
+
+    public function removeFormat($s)
+    {
+        $x =  explode("-", $s);
+        return trim(str_replace(',','',$x[1]));
     }
 }
