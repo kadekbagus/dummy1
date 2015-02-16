@@ -174,6 +174,20 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
+            // Check the device exist or not
+            if(!file_exists(Config::get('orbit.devices.barcode.params')))
+            {
+                $message = 'Scanner not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
+            // Check the driver exist or not
+            if(!file_exists(Config::get('orbit.devices.barcode.path')))
+            {
+                $message = 'Scanner driver not found'; 
+                ACL::throwAccessForbidden($message);
+            }
+
             $driver = Config::get('orbit.devices.barcode.path');
             $params = Config::get('orbit.devices.barcode.params');
             $cmd = 'sudo '.$driver.' '.$params;
@@ -708,7 +722,21 @@ class CashierAPIController extends ControllerAPI
      */
     public function postSaveTransaction()
     {
+        $activity = Activity::POS()
+                            ->setActivityType('payment');
+        $user = null;
+        $customer = null;
+        $activity_payment = null;
+        $activity_payment_label = null;
+        $transaction = null;
         try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
             $retailer = $this->getRetailerInfo();
             $total_item       = trim(OrbitInput::post('total_item'));
             $subtotal         = trim(OrbitInput::post('subtotal'));
@@ -724,7 +752,23 @@ class CashierAPIController extends ControllerAPI
             $cart             = OrbitInput::post('cart'); //data of array
             $issued_coupon_id = OrbitInput::post('issued_coupon_id');  // data of array
 
-            //dd($retailer_id);
+            $activity_payment = 'payment_cash';
+            $activity_payment_label = 'Payment Cash';
+
+            //only payment cash
+            if ($payment_method == 'cash') {
+                self::postCashDrawer();
+            } else {
+                $activity_payment = 'payment_card';
+                $activity_payment_label = 'Payment Card';
+            }
+
+            if (empty($customer_id)){
+                $customer_id = 0;
+            } else {
+                $customer = User::excludeDeleted()->find($customer_id);
+            }
+            
 
             $validator = Validator::make(
                 array(
@@ -748,10 +792,10 @@ class CashierAPIController extends ControllerAPI
                     'tendered'         => 'required',
                     'change'           => 'required',
                     'cashier_id'       => 'required',
-                    'customer_id'      => 'required',
+                    // 'customer_id'      => 'required',
                     'payment_method'   => 'required',
                     'cart'             => 'required',
-                    'issued_coupon_id' => 'required',
+                    // 'issued_coupon_id' => 'required',
                 )
             );
 
@@ -783,6 +827,14 @@ class CashierAPIController extends ControllerAPI
 
             //insert to table transaction_details
             foreach($cart as $cart_key => $cart_value){
+                // echo "produk varian price ".$cart_value['product_details']['variants'][0]['price'];
+                // if(!empty($cart_value['variants'])){
+                // echo "attribute ".$cart_value['variants']['value1'];
+                // echo "attribute ".$cart_value['variants']['value2'];
+                // echo "attribute ".$cart_value['variants']['value3'];
+                // echo "attribute ".$cart_value['variants']['value4'];
+                // echo "attribute ".$cart_value['variants']['value5'];
+                // }
                 $transactiondetail = new \TransactionDetail();
                 $transactiondetail->transaction_id              = $transaction->transaction_id;
                 $transactiondetail->product_id                  = $cart_value['product_id'];
@@ -791,33 +843,36 @@ class CashierAPIController extends ControllerAPI
                 $transactiondetail->quantity                    = $cart_value['qty'];
                 $transactiondetail->upc                         = $cart_value['upc_code'];
                 $transactiondetail->price                       = str_replace( ',', '', $cart_value['price'] );
-                // $transactiondetail->variant_price               = $cart_value['variant_price'];
-                // $transactiondetail->variant_upc                 = $cart_value['variant_upc'];
-                // $transactiondetail->variant_sku                 = $cart_value['variant_sku'];
-                // $transactiondetail->variant_stock               = $cart_value['variant_stock'];
-                // $transactiondetail->product_attribute_value_id1 = $cart_value['product_attribute_value_id1'];
-                // $transactiondetail->product_attribute_value_id2 = $cart_value['product_attribute_value_id2'];
-                // $transactiondetail->product_attribute_value_id3 = $cart_value['product_attribute_value_id3'];
-                // $transactiondetail->product_attribute_value_id4 = $cart_value['product_attribute_value_id4'];
-                // $transactiondetail->product_attribute_value_id5 = $cart_value['product_attribute_value_id5'];
-                // $transactiondetail->product_attribute_value1    = $cart_value['product_attribute_value1'];
-                // $transactiondetail->product_attribute_value2    = $cart_value['product_attribute_value2'];
-                // $transactiondetail->product_attribute_value3    = $cart_value['product_attribute_value3'];
-                // $transactiondetail->product_attribute_value4    = $cart_value['product_attribute_value4'];
-                // $transactiondetail->product_attribute_value5    = $cart_value['product_attribute_value5'];
-                // $transactiondetail->merchant_tax_id1            = $cart_value['merchant_tax_id1'];
-                // $transactiondetail->merchant_tax_id2            = $cart_value['merchant_tax_id2'];
-                // $transactiondetail->attribute_id1               = $cart_value['attribute_id1'];
-                // $transactiondetail->attribute_id2               = $cart_value['attribute_id2'];
-                // $transactiondetail->attribute_id3               = $cart_value['attribute_id3'];
-                // $transactiondetail->attribute_id4               = $cart_value['attribute_id4'];
-                // $transactiondetail->attribute_id5               = $cart_value['attribute_id5'];
-                // $transactiondetail->product_attribute_name1     = $cart_value['product_attribute_name1'];
-                // $transactiondetail->product_attribute_name2     = $cart_value['product_attribute_name2'];
-                // $transactiondetail->product_attribute_name3     = $cart_value['product_attribute_name3'];
-                // $transactiondetail->product_attribute_name4     = $cart_value['product_attribute_name4'];
-                // $transactiondetail->product_attribute_name5     = $cart_value['product_attribute_name5'];
-                $transactionDetails->save();
+                if(!empty($cart_value['variants'])){
+                $transactiondetail->variant_price               = $cart_value['variants']['price'];
+                $transactiondetail->variant_upc                 = $cart_value['variants']['upc'];
+                $transactiondetail->variant_sku                 = $cart_value['variants']['sku'];
+                // $transactiondetail->variant_stock               = $cart_value['variants']['stock'];
+                $transactiondetail->product_attribute_value_id1 = $cart_value['variants']['attr_val_id1'];
+                $transactiondetail->product_attribute_value_id2 = $cart_value['variants']['attr_val_id2'];
+                $transactiondetail->product_attribute_value_id3 = $cart_value['variants']['attr_val_id3'];
+                $transactiondetail->product_attribute_value_id4 = $cart_value['variants']['attr_val_id4'];
+                $transactiondetail->product_attribute_value_id5 = $cart_value['variants']['attr_val_id5'];
+                $transactiondetail->product_attribute_value1    = $cart_value['variants']['value1'];
+                $transactiondetail->product_attribute_value2    = $cart_value['variants']['value2'];
+                $transactiondetail->product_attribute_value3    = $cart_value['variants']['value3'];
+                $transactiondetail->product_attribute_value4    = $cart_value['variants']['value4'];
+                $transactiondetail->product_attribute_value5    = $cart_value['variants']['value5'];
+                $transactiondetail->product_attribute_name1     = $cart_value['variants']['attr1'];
+                $transactiondetail->product_attribute_name2     = $cart_value['variants']['attr2'];
+                $transactiondetail->product_attribute_name3     = $cart_value['variants']['attr3'];
+                $transactiondetail->product_attribute_name4     = $cart_value['variants']['attr4'];
+                $transactiondetail->product_attribute_name5     = $cart_value['variants']['attr5'];
+                }
+                $transactiondetail->merchant_tax_id1            = $cart_value['product_details']['merchant_tax_id1'];
+                $transactiondetail->merchant_tax_id2            = $cart_value['product_details']['merchant_tax_id2'];
+                $transactiondetail->attribute_id1               = $cart_value['product_details']['attribute_id1'];
+                $transactiondetail->attribute_id2               = $cart_value['product_details']['attribute_id2'];
+                $transactiondetail->attribute_id3               = $cart_value['product_details']['attribute_id3'];
+                $transactiondetail->attribute_id4               = $cart_value['product_details']['attribute_id4'];
+                $transactiondetail->attribute_id5               = $cart_value['product_details']['attribute_id5'];
+
+                $transactiondetail->save();
             }
 
             // issue coupon redeemed
@@ -894,27 +949,67 @@ class CashierAPIController extends ControllerAPI
                 }
             }
 
-            //only payment cash
-            if($payment_method == 'cash') self::postCashDrawer();
 
             $this->response->data = $transaction;
             $this->commit();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Succes')
+                    ->setObject($transaction)
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         }
 
         return $this->render();
@@ -929,7 +1024,22 @@ class CashierAPIController extends ControllerAPI
      */
     public function postPrintTicket()
     {
+        $activity = Activity::POS()
+                            ->setActivityType('payment');
+        $customer = null;
+        $user = null;
+        $activity_payment = 'print_ticket';
+        $activity_payment_label = 'Print Ticket';
+        $transaction = null;                    
         try {
+
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
             $retailer = $this->getRetailerInfo();
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
@@ -948,6 +1058,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             $this->response->data = $transaction;
+            $customer = $transaction->user;
 
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
@@ -1114,21 +1225,55 @@ class CashierAPIController extends ControllerAPI
 
             shell_exec($cut);
 
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Succes')
+                    ->setObject($transaction)
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $activity->setUser($customer)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Failed')
+                    ->setObject($transaction)
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
         }
 
         return $this->render();
@@ -1584,7 +1729,23 @@ class CashierAPIController extends ControllerAPI
             $barcode = OrbitInput::post('barcode');
 
             $retailer = $this->getRetailerInfo();
+
             if(empty($barcode)){
+                
+                // Check the device exist or not
+                if(!file_exists(Config::get('orbit.devices.barcode.params')))
+                {
+                    $message = 'Scanner not found'; 
+                    ACL::throwAccessForbidden($message);
+                }
+
+                // Check the driver exist or not
+                if(!file_exists(Config::get('orbit.devices.barcode.path')))
+                {
+                    $message = 'Scanner driver not found'; 
+                    ACL::throwAccessForbidden($message);
+                }
+
                 $driver = Config::get('orbit.devices.barcode.path');
                 $params = Config::get('orbit.devices.barcode.params');
                 $cmd = 'sudo '.$driver.' '.$params;
@@ -1593,6 +1754,11 @@ class CashierAPIController extends ControllerAPI
 
             $barcode = trim($barcode);
             $cart = \Cart::where('status', 'active')->where('cart_code', $barcode)->first();
+
+            if (! is_object($cart)) {
+                $message = \Lang::get('validation.orbit.empty.upc_code');
+                ACL::throwAccessForbidden($message);
+            }
 
             $user = $cart->users;
 
@@ -1753,7 +1919,7 @@ class CashierAPIController extends ControllerAPI
                         $promo_for_this_product = new \stdclass();
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
@@ -1762,6 +1928,7 @@ class CashierAPIController extends ControllerAPI
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
                         $promo_for_this_product->rule_type = $promo_filter->rule_type;
                         $promo_for_this_product->discount = $discount * $cartdetail->quantity;
+                        $promo_for_this_product->promotion_detail = $promo_filter;
                         $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
 
                         // $promo_wo_tax = $discount / (1 + $product_vat_value);

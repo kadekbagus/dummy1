@@ -117,7 +117,11 @@
                 Subtotal : 
               </div>
               <div class="subtotal-price text-right formatted-num">
-                {{ $cartdata->cartsummary->subtotal_before_cart_promo }}
+                @if($retailer->parent->vat_included == 'yes')
+                  {{ $cartdata->cartsummary->subtotal_before_cart_promo }}
+                @else 
+                  {{ $cartdata->cartsummary->subtotal_before_cart_promo_without_tax }}
+                @endif
               </div>
             </div>
           </div>
@@ -151,7 +155,13 @@
           <span class="promotion-name" data-promotion="{{ $promo_cart->promotion_id }}"><b>{{$promo_cart->promotion_name}}</b></span>
         </div>
         <div class="cart-sum-single-body-promo">
-          <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_before_cart_promo }}</span>
+          <span class="formatted-num">
+            @if($retailer->parent->vat_included == 'yes')
+              {{ $cartdata->cartsummary->subtotal_before_cart_promo }}
+            @else 
+              {{ $cartdata->cartsummary->subtotal_before_cart_promo_without_tax }}
+            @endif
+          </span>
         </div>
         <div class="cart-sum-single-body-promo">
           <span class="@if($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$promo_cart->disc_val_str}}</span>
@@ -189,7 +199,13 @@
             <span class="coupon-name" data-coupon="{{ $coupon_cart->issuedcoupon->promotion_id }}"><b>{{$coupon_cart->issuedcoupon->promotion_name}}</b></span>
           </div>
           <div class="cart-sum-single-body-promo">
-            <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_before_cart_promo }}</span>
+            <span class="formatted-num">
+              @if($retailer->parent->vat_included == 'yes')
+                {{ $cartdata->cartsummary->subtotal_before_cart_promo }}
+              @else 
+                {{ $cartdata->cartsummary->subtotal_before_cart_promo_without_tax }}
+              @endif
+            </span>
           </div>
           <div class="cart-sum-single-body-promo">
             <span class="@if($coupon_cart->issuedcoupon->rule_type == 'cart_discount_by_percentage') percentage-num @elseif($coupon_cart->issuedcoupon->rule_type == 'cart_discount_by_value') formatted-num @endif">{{$coupon_cart->disc_val_str}}</span>
@@ -270,7 +286,11 @@
           <span>{{ $cartdata->cart->total_item + 0 }}</span>
         </div>
         <div class="cart-sum-single-body">
-          <span class="formatted-num">{{ $cartdata->cartsummary->total_to_pay }}</span>
+          @if($retailer->parent->vat_included == 'yes')
+            <span class="formatted-num">{{ $cartdata->cartsummary->total_to_pay }}</span>
+          @else
+            <span class="formatted-num">{{ $cartdata->cartsummary->subtotal_wo_tax }}</span>
+          @endif
         </div>
         <div class="cart-sum-single-body">
           <span class="formatted-num">{{ $cartdata->cartsummary->vat + 0}}</span>
@@ -281,7 +301,7 @@
       </div>
     </div>
     @endif
-    {{--
+    
     @foreach($cartdata->cartsummary->taxes as $tax)
       @if(!empty($tax->total_tax))
       <div>
@@ -289,7 +309,10 @@
       </div>
       @endif
     @endforeach
-    --}}
+    <div>
+      <span>Subtotal wo tax : {{ $cartdata->cartsummary->subtotal_wo_tax }}</span>
+    </div>
+    
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
@@ -644,7 +667,7 @@
           top: tops + 24,
           left: lefts
         });
-        if(!num.val()){
+        if(!num.val() || num.val() == 0){
           num.val(lastnum);
         }else{
           lastnum = num.val();
@@ -659,7 +682,7 @@
           num.val('');
         }
         $('#n_keypad').hide();
-        if(!num.val()){
+        if(!num.val() || num.val() == 0){
           num.val(lastnum);
         }else{
           $.ajax({

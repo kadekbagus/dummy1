@@ -37,6 +37,7 @@ use \Cart;
 use \CartDetail;
 use \Exception;
 use \DB;
+use \Activity;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -146,6 +147,7 @@ class MobileCIAPIController extends ControllerAPI
         // return $this->render($response);
         try {
             $retailer = $this->getRetailerInfo();
+
             return View::make('mobile-ci.activation', array('retailer'=>$retailer));
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -191,6 +193,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getHomeView()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                            ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
@@ -313,9 +318,25 @@ class MobileCIAPIController extends ControllerAPI
                 $q->where('retailer_id', $retailer->merchant_id);
             })->orderBy('widget_order', 'ASC')->take(4)->get();
 
-            // dd($widgets);
+            $activityPageNotes = sprintf('Page viewed: %s', 'Home');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_home')
+                            ->setActivityNameLong('View (Home Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartitems' => $cartitems, 'coupons' => $coupons, 'events' => $events, 'widgets' => $widgets, 'event_families' => $event_families, 'event_family_url_param' => $event_family_url_param))->withCookie($event_store);
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Home');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_home')
+                            ->setActivityNameLong('View (Home Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -339,6 +360,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getCatalogueView()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
@@ -419,22 +443,44 @@ class MobileCIAPIController extends ControllerAPI
                     $lvl5 = $this->getProductListCatalogue($array_of_families_lvl5, 5, $family5, '');
                 }
             }
-            // dd($lvl3);
+            
+            $activityPageNotes = sprintf('Page viewed: %s', 'Catalogue');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_catalogue')
+                            ->setActivityNameLong('View (Cataloguge Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
 
             return View::make('mobile-ci.catalogue', array('page_title'=>Lang::get('mobileci.page_title.catalogue'), 'retailer' => $retailer, 'families' => $families, 'cartitems' => $cartitems, 'hasFamily' => $hasFamily, 'lvl1' => $lvl1, 'lvl2' => $lvl2, 'lvl3' => $lvl3, 'lvl4' => $lvl4, 'lvl5' => $lvl5));
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Catalogue');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_catalogue')
+                            ->setActivityNameLong('View (Cataloguge Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return $this->redirectIfNotLoggedIn($e);
         }
     }
 
     public function getSearchProduct()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
+
         try {
             // Require authentication
             $this->registerCustomValidation();
             $user = $this->getLoggedInUser();
 
             $sort_by = OrbitInput::get('sort_by');
+            $keyword = trim(OrbitInput::get('keyword'));
 
             $pagetitle = Lang::get('mobileci.page_title.searching');
 
@@ -695,9 +741,27 @@ class MobileCIAPIController extends ControllerAPI
             if(!empty(OrbitInput::get('coupon'))) {
                 $pagetitle = 'COUPONS';
             }
+
+            $activityPageNotes = sprintf('Page viewed: Search Page, keyword: %s', $keyword);
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_search')
+                            ->setActivityNameLong('View (Search Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view: Search Page, keyword: %s', $keyword);
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_search')
+                            ->setActivityNameLong('View (Search Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -706,6 +770,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getCategory()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             // Require authentication
             $this->registerCustomValidation();
@@ -1011,9 +1078,26 @@ class MobileCIAPIController extends ControllerAPI
                 $pagetitle = implode(' / ', $ttl);
             }
             
+            $activityPageNotes = sprintf('Page viewed: %s', 'Category');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_category')
+                            ->setActivityNameLong('View (Category Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.category', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Category');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_category')
+                            ->setActivityNameLong('View (Category Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -1021,6 +1105,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getSearchPromotion()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             // Require authentication
             $this->registerCustomValidation();
@@ -1243,10 +1330,26 @@ class MobileCIAPIController extends ControllerAPI
             if(!empty($promotions)) {
                 $pagetitle = 'PROMOTION : '.$promotions[0]->promotion_name;
             }
-            
+            $activityPageNotes = sprintf('Page viewed: Promotion Detail, Promotion Id: %s', $promoid);
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_promotion_detail')
+                            ->setActivityNameLong('View (Promotion Detail Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.promotions', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: Promotion Detail, Promotion Id: %s', $promoid);
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_promotion_detail')
+                            ->setActivityNameLong('View (Promotion Detail Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -1254,6 +1357,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getSearchCoupon()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             // Require authentication
             $this->registerCustomValidation();
@@ -1487,10 +1593,26 @@ class MobileCIAPIController extends ControllerAPI
             if(!empty($coupons)) {
                 $pagetitle = 'KUPON : '.$coupons[0]->promotion_name;
             }
-            
+            $activityPageNotes = sprintf('Page viewed: Coupon Detail, Issued Coupon Id: %s', $promoid);
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_coupon_detail')
+                            ->setActivityNameLong('View (Coupon Detail Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.coupons', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_coupon, 'coupons' => $coupons));
             
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: Coupon Detail, Issued Coupon Id: %s', $promoid);
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_coupon_detail')
+                            ->setActivityNameLong('View (Coupon Detail Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -1498,6 +1620,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getPromotionList()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
             $user = $this->getLoggedInUser();
@@ -1527,10 +1652,27 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $cartitems = $this->getCartForToolbar();
-            
+
+            $activityPageNotes = sprintf('Page viewed: %s', 'Promotion List Page');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_promotion_list')
+                            ->setActivityNameLong('View (Promotion List Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.promotion-list', array('page_title' => 'PROMOTIONS', 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Promotion List');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_promotion_list')
+                            ->setActivityNameLong('View (Promotion List) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             return $e->getMessage();
         }
     }
@@ -1573,15 +1715,35 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
             
+            $activityPageNotes = sprintf('Page viewed: %s', 'Coupon List Page');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_coupon_list')
+                            ->setActivityNameLong('View (Coupon List Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.coupon-list', array('page_title' => 'KUPON SAYA', 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Coupon List');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_coupon_list')
+                            ->setActivityNameLong('View (Coupon List) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             return $e->getMessage();
         }
     }
 
     public function getProductList()
     {
+        $user = null;
+        $activityCategory = Activity::mobileci()
+                            ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -1826,11 +1988,31 @@ class MobileCIAPIController extends ControllerAPI
             // }
 
             $cartitems = $this->getCartForToolbar();
+            
+            $activityfamily = Category::where('category_id', $family_id)->first();
+
+            $activityCategoryNotes = sprintf('Category viewed: %s', $activityfamily->category_name);
+            $activityCategory->setUser($user)
+                            ->setActivityName('view_category')
+                            ->setActivityNameLong('View Category ' . $activityfamily->category_name)
+                            ->setObject($activityfamily)
+                            ->setNotes($activityCategoryNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
             
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             // if($e->getMessage() === 'Invalid session data.') {
+                $activityCategoryNotes = sprintf('Category viewed: %s', $family_id);
+                $activityCategory->setUser($user)
+                                ->setActivityName('view_category')
+                                ->setActivityNameLong('View Category Not Found')
+                                ->setObject(null)
+                                ->setNotes($e->getMessage())
+                                ->responseFailed()
+                                ->save();
                 return $e->getMessage();
             // }
         }
@@ -1839,6 +2021,7 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getProductListCatalogue($families, $family_level, $family_id, $sort_by)
     {
+        $user = null;
         try {
             $user = $this->getLoggedInUser();
 
@@ -2079,6 +2262,10 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getProductView()
     {
+        $user = null;
+        $product_id = 0;
+        $activityProduct = Activity::mobileci()
+                                   ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -2087,6 +2274,9 @@ class MobileCIAPIController extends ControllerAPI
             $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                         })->excludeDeleted()->where('product_id', $product_id)->first();
+            if (empty($product)) {
+                throw new Exception('Product id ' . $product_id . ' not found');
+            }
 
             $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
@@ -2198,20 +2388,38 @@ class MobileCIAPIController extends ControllerAPI
             } else {
                 $product->on_coupons = false;
             }
+    
+            $activityProductNotes = sprintf('Product viewed: %s', $product->product_name);
+            $activityProduct->setUser($user)
+                            ->setActivityName('view_product')
+                            ->setActivityNameLong('View Product')
+                            ->setObject($product)
+                            ->setNotes($activityProductNotes)
+                            ->responseOK()
+                            ->save();
 
-            if (is_null($product)) {
-                return View::make('mobile-ci.404', array('page_title' => "Error 404", 'retailer' => $retailer, 'cartdata' => $cartdata));
-            } else {
-                return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
-            }
+            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
+        
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
+            $activityProductNotes = sprintf('Product viewed: %s', $product_id);
+            $activityProduct->setUser($user)
+                            ->setActivityName('view_product')
+                            ->setActivityNameLong('View Product Not Found')
+                            ->setObject(null)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed()
+                            ->save();
             return $e;
         }
     }
 
     public function postCartProductPopup()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
+
         try {
             $this->registerCustomValidation();
             $product_id = OrbitInput::post('detail');
@@ -2239,8 +2447,26 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $product;
 
+            $activityPageNotes = sprintf('Popup viewed: %s', 'Product');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_product')
+                            ->setActivityNameLong('View (Product Popup)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return $this->render();
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_product')
+                            ->setActivityNameLong('View (Product Popup) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
+
             return $this->redirectIfNotLoggedIn($e);
             // return $e->getMessage();
         }
@@ -2248,6 +2474,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postCartPromoPopup()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
             $promotion_id = OrbitInput::post('promotion_detail');
@@ -2275,8 +2504,25 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $promotion;
 
+            $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Promotion');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_cart_promo')
+                            ->setActivityNameLong('View (Cart Promotion Popup)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return $this->render();
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Promotion');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_cart_promo')
+                            ->setActivityNameLong('View (Cart Promotion Popup) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2284,6 +2530,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postCartCouponPopup()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
             $promotion_id = OrbitInput::post('promotion_detail');
@@ -2311,8 +2560,25 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $promotion;
 
+            $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Coupon');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_cart_coupon')
+                            ->setActivityNameLong('View (Cart Coupon Popup)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return $this->render();
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Coupon');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_cart_coupon')
+                            ->setActivityNameLong('View (Cart Coupon Popup) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2445,8 +2711,25 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $coupons;
             // dd($coupons);
+            $activityPageNotes = sprintf('Popup viewed: %s', 'Product Coupon');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_product_coupon')
+                            ->setActivityNameLong('View (Product Coupon Popup)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return $this->render();
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product Coupon');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_product_coupon')
+                            ->setActivityNameLong('View (Product Coupon Popup) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2454,6 +2737,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postCartProductCouponPopup()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
             $promotion_id = OrbitInput::post('promotion_detail');
@@ -2477,646 +2763,36 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $coupon;
 
+            $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Product Coupon');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup__cart_product_coupon')
+                            ->setActivityNameLong('View (Cart Product Coupon Popup)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
+
             return $this->render();
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Product Coupon');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_popup_cart_product_coupon')
+                            ->setActivityNameLong('View (Cart Product Coupon Popup) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
     }
 
-    // public function getCartView()
-    // {
-    //     try {
-    //         $user = $this->getLoggedInUser();
-
-    //         $retailer = $this->getRetailerInfo();
-            
-    //         $cartitems = $this->getCartForToolbar();
-
-    //         $cartdata = $this->getCartData();
-
-    //         $cartsummary = new stdclass();
-
-    //         $subtotal = 0;
-    //         $vat = 0;
-    //         $total = 0;
-    //         $total_discount = 0;
-
-    //         $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-    //             inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-    //             inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-    //             inner join ' . DB::getTablePrefix() . 'products prod on 
-    //             (
-    //                 (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-    //                 OR
-    //                 (
-    //                     (pr.discount_object_type="family") AND 
-    //                     ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-    //                     ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-    //                     ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-    //                     ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-    //                     ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-    //                 )
-    //             )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-
-    //         // check for cart based promotions
-    //         $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
-    //             {
-    //                 $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-    //             })
-    //             ->where(function($q) 
-    //             {
-    //                 $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-    //                 {
-    //                     $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
-    //                 });
-    //             })
-    //             ->get();
-
-    //         foreach ($cartdata->cartdetails as $cartdetail) {
-    //             $variant = \ProductVariant::where('product_variant_id', $cartdetail->product_variant_id)->excludeDeleted()->first();
-    //             $product = Product::with('tax1', 'tax2')->where('product_id', $variant->product_id)->excludeDeleted()->first();
-                
-    //             $filtered = array_filter($promo_products, function($v) use ($product) { return $v->product_id == $product->product_id; });
-
-    //             $discount = 0;
-    //             foreach($filtered as $promotion) {
-    //                 if($promotion->product_id == $product->product_id) {
-    //                     if($promotion->rule_type == 'product_discount_by_percentage') {
-    //                         $discount = $discount +  ( $variant->price * $promotion->discount_value);
-    //                     } elseif ($promotion->rule_type == 'product_discount_by_value') {
-    //                         $discount = $discount + $promotion->discount_value;
-    //                     }
-    //                 }
-    //             }
-                
-    //             $subtotal = $subtotal + (($variant->price - $discount) * $cartdetail->quantity);
-    //             $priceaftertax = ($variant->price - $discount) * $cartdetail->quantity;
-    //             if(!is_null($product->tax1)) {
-    //                 $vat1 = $product->tax1->tax_value * ($variant->price - $discount) * $cartdetail->quantity;
-    //                 $vat = $vat + $vat1;
-    //                 $priceaftertax = $priceaftertax + $vat1;
-    //             }
-    //             if(!is_null($product->tax2)) {
-    //                 $vat2 = $product->tax2->tax_value * ($variant->price - $discount) * $cartdetail->quantity;
-    //                 $vat = $vat + $vat2;
-    //                 $priceaftertax = $priceaftertax + $vat2;
-    //             }
-
-    //             $total_discount = $total_discount + ($discount * $cartdetail->quantity);
-
-    //             $attributes = array();
-    //             if($cartdetail->attributeValue1['value']) {
-    //                 $attributes[] = $cartdetail->attributeValue1['value'];
-    //             }
-    //             if($cartdetail->attributeValue2['value']) {
-    //                 $attributes[] = $cartdetail->attributeValue2['value'];
-    //             }
-    //             if($cartdetail->attributeValue3['value']) {
-    //                 $attributes[] = $cartdetail->attributeValue3['value'];
-    //             }
-    //             if($cartdetail->attributeValue4['value']) {
-    //                 $attributes[] = $cartdetail->attributeValue4['value'];
-    //             }
-    //             if($cartdetail->attributeValue5['value']) {
-    //                 $attributes[] = $cartdetail->attributeValue5['value'];
-    //             }
-
-    //             $cartdetail->promoforthisproducts = $filtered;
-    //             $cartdetail->attributes = $attributes;
-    //             $cartdetail->priceafterpromo = $variant->price - $discount;
-    //             $cartdetail->ammountbeforepromo = $variant->price * $cartdetail->quantity;
-    //             $cartdetail->ammountafterpromo = ($variant->price - $discount) * $cartdetail->quantity;
-    //             $cartdetail->ammountaftertax = $priceaftertax;
-    //         }
-
-    //         $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
-    //         {
-    //             $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
-    //         }, 'issuedcoupon' => function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id)
-    //             ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-    //             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-    //         }))->whereHas('issuedcoupon', function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id);
-    //         })->whereHas('cartdetail', function($q)
-    //         {
-    //             $q->where('cart_coupons.object_type', '=', 'cart_detail');
-    //         })->get();
-
-    //         // dd($used_product_coupons);
-
-    //         $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id)
-    //             ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-    //             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-    //         }))
-    //         ->whereHas('cart', function($q) use($cartdata)
-    //         {
-    //             $q->where('cart_coupons.object_type', '=', 'cart')
-    //             ->where('cart_coupons.object_id', '=', $cartdata->cart->cart_id);
-    //         })
-    //         ->where('cart_coupons.object_type', '=', 'cart')->get();
-    //         // dd($used_cart_coupons);
-
-    //         $subtotalbeforecartcartcoupon = $subtotal;
-            
-    //         foreach($used_product_coupons as $used_product_coupon) {
-    //             if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-    //                 $used_product_coupon->disc_val_str = '-'.($used_product_coupon->issuedcoupon->discount_value * 100).'%';
-    //                 $used_product_coupon->disc_val = '-'.($used_product_coupon->issuedcoupon->discount_value * $used_product_coupon->cartdetail->price);
-    //                 $subtotal = $subtotal - ($used_product_coupon->issuedcoupon->discount_value * $used_product_coupon->cartdetail->price);
-    //             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-    //                 $used_product_coupon->disc_val_str = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
-    //                 $used_product_coupon->disc_val = '-'.$used_product_coupon->issuedcoupon->discount_value + 0;
-    //                 $subtotal = $subtotal - $used_product_coupon->issuedcoupon->discount_value;
-    //             }
-    //         }
-
-    //         // check for available cart based coupons
-    //         $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
-    //         {
-    //             $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
-    //         })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-    //         {
-    //             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-    //         })
-    //         ->whereHas('issuedcoupons',function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-    //         })->with(array('issuedcoupons' => function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-    //         }))
-    //         ->where(function($q) 
-    //         {
-    //             $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-    //             {
-    //                 $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
-    //             });
-    //         })
-    //         ->get();
-    //         // dd($promo_carts);
-    //         $subtotalbeforecartpromo = $subtotal;
-
-    //         $cartdiscounts = 0;
-    //         $subtotalaftercartpromo = $subtotal;
-    //         $acquired_promo_carts = array();
-    //         foreach($promo_carts as $promo_cart) {
-    //             // dd($promo_cart->promotionrule->rule_value);
-    //             if($subtotal >= $promo_cart->promotionrule->rule_value) {
-    //                 if($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-    //                     $discount = $subtotal * $promo_cart->promotionrule->discount_value;
-    //                     $cartdiscounts = $cartdiscounts + $discount;
-    //                     $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-    //                     $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
-    //                 } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-    //                     $discount = $promo_cart->promotionrule->discount_value;
-    //                     $cartdiscounts = $cartdiscounts + $discount;
-    //                     $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-    //                     $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-    //                 }
-    //                 $subtotalaftercartpromo = $subtotalaftercartpromo - $discount;
-    //                 $acquired_promo_carts[] = $promo_cart;
-    //             }
-    //         }
-    //         $total_discount = $total_discount + $cartdiscounts;
-
-    //         $subtotalaftercartcoupon = $subtotal;
-
-    //         $cart_discount_by_percentage_counter = 0;
-
-    //         $total_cart_coupon_discount = 0;
-    //         $acquired_coupon_carts = array();
-    //         // dd($subtotalbeforecartpromo);
-    //         foreach($used_cart_coupons as $used_cart_coupon) {
-    //             // dd($used_cart_coupon);
-    //             // dd($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value);
-    //             if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-    //                 if($subtotalbeforecartpromo >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-    //                     if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-    //                         $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-    //                         $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
-    //                         $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
-    //                         $cart_discount_by_percentage_counter++;
-    //                     } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-    //                         $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-    //                         $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-    //                         $discount = $used_cart_coupon->issuedcoupon->discount_value;
-    //                     }
-    //                     $total_cart_coupon_discount = $total_cart_coupon_discount+$discount;
-    //                     $acquired_coupon_carts[] = $used_cart_coupon;
-    //                     // $used_cart_coupon->disc_val = 'asdasd';
-    //                 } else {
-    //                     $this->beginTransaction();
-    //                     $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-    //                     $issuedcoupon->makeActive();
-    //                     $issuedcoupon->save();
-    //                     $used_cart_coupon->delete(TRUE);
-    //                     $this->commit();
-    //                 }
-    //             }
-    //         }
-        
-    //         $available_coupon_carts = array();
-            
-    //         if(!empty($coupon_carts)) {
-    //             foreach($coupon_carts as $coupon_cart) {
-    //                 // dd($coupon_cart);
-    //                 if($subtotalbeforecartpromo >= $coupon_cart->coupon_redeem_rule_value) {
-    //                     if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-    //                         if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-    //                             $discount = $subtotal * $coupon_cart->discount_value;
-    //                             $cartdiscounts = $cartdiscounts + $discount;
-    //                             $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-    //                             $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
-    //                             $available_coupon_carts[] = $coupon_cart;
-    //                             // $used_cart_coupon->disc_val = 'asdasd';
-    //                         }
-    //                     } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-    //                         $discount = $coupon_cart->discount_value;
-    //                         $cartdiscounts = $cartdiscounts + $discount;
-    //                         $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-    //                         $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-    //                         $available_coupon_carts[] = $coupon_cart;
-    //                     }
-    //                     $subtotalaftercartcoupon = $subtotalaftercartcoupon - $discount;
-    //                 } else {
-    //                     $coupon_cart->disc_val = $coupon_cart->rule_value;
-    //                 }
-    //             }
-    //         }
-
-    //         $total_discount = $total_discount + $cartdiscounts;
-
-    //         // dd($coupon_carts);
-
-    //         if($retailer->parent->vat_included === 'yes') {
-    //             $total = $subtotalaftercartpromo - $total_cart_coupon_discount;
-    //         } else {
-    //             $total = $subtotalaftercartpromo - $total_cart_coupon_discount + $vat;
-    //         }
-
-    //         $cartsummary->subtotal = $subtotalaftercartpromo - $total_cart_coupon_discount;
-    //         $cartsummary->subtotalaftercartpromo = $subtotalaftercartpromo;
-    //         $cartsummary->subtotalaftercartcoupon = $subtotalaftercartcoupon;
-    //         $cartsummary->subtotalbeforecartpromo = $subtotalbeforecartpromo;
-    //         $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-    //         $cartsummary->vat = $vat;
-    //         $cartsummary->total_to_pay = $total;
-    //         $cartsummary->total_discount = $total_discount;
-
-    //         return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata, 'cartsummary' => $cartsummary, 'promotions' => $promo_products, 'promo_carts' => $promo_carts, 'coupon_carts' => $coupon_carts, 'used_product_coupons' => $used_product_coupons, 'used_cart_coupons' => $acquired_coupon_carts, 'available_coupon_carts' => $available_coupon_carts));
-    //     } catch (Exception $e) {
-    //         // return $this->redirectIfNotLoggedIn($e);
-    //         return $e;
-    //     }
-    // }
-
-    // public function getCartView()
-    // {
-    //     try {
-    //         $user = $this->getLoggedInUser();
-
-    //         $retailer = $this->getRetailerInfo();
-            
-    //         $cartitems = $this->getCartForToolbar();
-
-    //         $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-    //         if (is_null($cart)) {
-    //             $cart = new Cart;
-    //             $cart->customer_id = $user->user_id;
-    //             $cart->merchant_id = $retailer->parent_id;
-    //             $cart->retailer_id = $retailer->merchant_id;
-    //             $cart->status = 'active';
-    //             $cart->save();
-    //             $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
-    //             $cart->save();
-    //         }
-
-    //         $cartdetails = CartDetail::with(array('product' => function($q) {
-    //             $q->where('products.status','active');
-    //         }, 'variant' => function($q) {
-    //             $q->where('product_variants.status','active');
-    //         }), 'tax1', 'tax2')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
-    //         $cartdata = new stdclass();
-    //         $cartdata->cart = $cart;
-    //         $cartdata->cartdetails = $cartdetails;
-
-    //         $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-    //             inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-    //             inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-    //             inner join ' . DB::getTablePrefix() . 'products prod on 
-    //             (
-    //                 (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-    //                 OR
-    //                 (
-    //                     (pr.discount_object_type="family") AND 
-    //                     ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-    //                     ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-    //                     ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-    //                     ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-    //                     ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-    //                 )
-    //             )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-            
-    //         $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
-    //         {
-    //             $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
-    //         }, 'issuedcoupon' => function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id)
-    //             ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-    //             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-    //         }))->whereHas('issuedcoupon', function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id);
-    //         })->whereHas('cartdetail', function($q)
-    //         {
-    //             $q->where('cart_coupons.object_type', '=', 'cart_detail');
-    //         })->get();
-    //         // dd($used_product_coupons);
-
-    //         $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
-    //         {
-    //             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-    //         })
-    //         ->where(function($q) 
-    //         {
-    //             $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-    //             {
-    //                 $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
-    //             });
-    //         })->get();
-
-    //         $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
-    //         {
-    //             $q->where('issued_coupons.user_id', $user->user_id)
-    //             ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-    //             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-    //         }))
-    //         ->whereHas('cart', function($q) use($cartdata)
-    //         {
-    //             $q->where('cart_coupons.object_type', '=', 'cart')
-    //             ->where('cart_coupons.object_id', '=', $cartdata->cart->cart_id);
-    //         })
-    //         ->where('cart_coupons.object_type', '=', 'cart')->get();
-
-    //         $subtotal = 0;
-    //         $subtotal_wo_tax = 0;
-    //         $vat = 0;
-    //         $total = 0;
-            
-    //         $vat_included = $retailer->parent->vat_included;
-
-    //         if($vat_included === 'yes') {
-    //             foreach($cartdata->cartdetails as $cartdetail) {
-    //                 $attributes = array();
-    //                 $product_vat_value = 0;
-    //                 $original_price = $cartdetail->variant->price;
-    //                 $original_ammount = $original_price * $cartdetail->quantity;
-    //                 $ammount_after_promo = $original_ammount;
-    //                 $product_price_wo_tax = $original_price;
-
-    //                 if(!is_null($cartdetail->tax1)) {
-    //                     $product_vat_value =  $product_vat_value + $cartdetail->tax1->tax_value;
-    //                 }
-    //                 if(!is_null($cartdetail->tax2)) {
-    //                     $product_vat_value =  $product_vat_value + $cartdetail->tax2->tax_value;
-    //                 }
-
-    //                 $product_price_wo_tax = $original_price / (1 + $product_vat_value);
-    //                 $product_vat = ($original_price - $product_price_wo_tax) * $cartdetail->quantity;
-    //                 $vat = $vat + $product_vat;
-    //                 $product_price_wo_tax = $product_price_wo_tax * $cartdetail->quantity;
-    //                 $subtotal = $subtotal + $original_ammount;
-    //                 $subtotal_wo_tax = $subtotal_wo_tax + $product_price_wo_tax;
-
-    //                 $promo_for_this_product_array = array();
-    //                 $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-    //                 // dd($promo_filters);
-    //                 foreach($promo_filters as $promo_filter) {
-    //                     $promo_for_this_product = new stdclass();
-    //                     if($promo_filter->rule_type == 'product_discount_by_percentage') {
-    //                         $discount = $promo_filter->discount_value * $original_price;
-    //                         $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-    //                     } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-    //                         $discount = $promo_filter->discount_value;
-    //                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
-    //                     }
-    //                     $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
-    //                     $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
-    //                     $promo_for_this_product->rule_type = $promo_filter->rule_type;
-    //                     $promo_for_this_product->discount = $discount * $cartdetail->quantity;
-    //                     $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
-
-    //                     $promo_wo_tax = $discount / (1 + $product_vat_value);
-    //                     $promo_vat = ($discount - $promo_wo_tax) * $cartdetail->quantity;
-    //                     $vat = $vat - $promo_vat;
-    //                     $promo_wo_tax = $promo_wo_tax * $cartdetail->quantity;
-    //                     $subtotal = $subtotal - $promo_for_this_product->discount;
-    //                     $subtotal_wo_tax = $subtotal_wo_tax - $promo_wo_tax;
-    //                     $promo_for_this_product_array[] = $promo_for_this_product;
-    //                 }
-    //                 // var_dump($promo_for_this_product_array);
-    //                 $cartdetail->promo_for_this_product = $promo_for_this_product_array;
-
-    //                 $coupon_filter = array();
-    //                 foreach($used_product_coupons as $used_product_coupon) {
-    //                     // dd($used_product_coupon->cartdetail);
-    //                     if($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
-    //                         if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-    //                             $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-    //                             $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-    //                         } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-    //                             $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-    //                             $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-    //                         }
-    //                         $used_product_coupon->discount = $discount;
-    //                         $ammount_after_promo = $ammount_after_promo - $discount;
-    //                         $coupon_filter[] = $used_product_coupon;
-
-    //                         $coupon_wo_tax = $discount / (1 + $product_vat_value);
-    //                         $coupon_vat = ($discount - $coupon_wo_tax);
-    //                         $vat = $vat - $coupon_vat;
-    //                         $subtotal = $subtotal - $discount;
-    //                         $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
-    //                     }
-    //                 }
-    //                 $cartdetail->coupon_for_this_product = $coupon_filter;
-                    
-    //                 $cartdetail->original_price = $original_price;
-    //                 $cartdetail->original_ammount = $original_ammount;
-    //                 $cartdetail->ammount_after_promo = $ammount_after_promo;
-
-    //                 if($cartdetail->attributeValue1['value']) {
-    //                     $attributes[] = $cartdetail->attributeValue1['value'];
-    //                 }
-    //                 if($cartdetail->attributeValue2['value']) {
-    //                     $attributes[] = $cartdetail->attributeValue2['value'];
-    //                 }
-    //                 if($cartdetail->attributeValue3['value']) {
-    //                     $attributes[] = $cartdetail->attributeValue3['value'];
-    //                 }
-    //                 if($cartdetail->attributeValue4['value']) {
-    //                     $attributes[] = $cartdetail->attributeValue4['value'];
-    //                 }
-    //                 if($cartdetail->attributeValue5['value']) {
-    //                     $attributes[] = $cartdetail->attributeValue5['value'];
-    //                 }
-    //                 $cartdetail->attributes = $attributes;
-    //             }
-    //             if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
-    //                 $cart_vat = $vat / $subtotal_wo_tax;
-    //             }
-
-    //             $cartdiscounts = 0;
-    //             $acquired_promo_carts = array();
-    //             $discount_cart_promo = 0;
-    //             $discount_cart_promo_wo_tax = 0;
-    //             $discount_cart_coupon = 0;
-    //             $cart_promo_taxes = 0;
-    //             $subtotal_before_cart_promo = $subtotal;
-
-    //             if(!empty($promo_carts)) {
-    //                 foreach($promo_carts as $promo_cart) {
-    //                     if($subtotal >= $promo_cart->promotionrule->rule_value) {
-    //                         if($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-    //                             $discount = $subtotal * $promo_cart->promotionrule->discount_value;
-    //                             $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-    //                             $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
-    //                         } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-    //                             $discount = $promo_cart->promotionrule->discount_value;
-    //                             $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-    //                             $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-    //                         }
-
-    //                         $cart_promo_wo_tax = $discount / (1 + $cart_vat);
-    //                         $cart_promo_tax = $discount - $cart_promo_wo_tax;
-    //                         $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-    //                         $discount_cart_promo = $discount_cart_promo + $discount;
-    //                         $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
-    //                         $acquired_promo_carts[] = $promo_cart;
-    //                     }
-    //                 }
-                    
-    //             }
-
-    //             $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
-    //             {
-    //                 $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
-    //             })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-    //             {
-    //                 $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-    //             })
-    //             ->whereHas('issuedcoupons',function($q) use($user)
-    //             {
-    //                 $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-    //             })->with(array('issuedcoupons' => function($q) use($user)
-    //             {
-    //                 $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-    //             }))
-    //             ->get();
-
-    //             $available_coupon_carts = array();
-    //             $cart_discount_by_percentage_counter = 0;
-    //             $discount_cart_coupon = 0;
-    //             $discount_cart_coupon_wo_tax = 0;
-    //             $total_cart_coupon_discount = 0;
-    //             $cart_coupon_taxes = 0;
-    //             $acquired_coupon_carts = array();
-    //             if(!empty($used_cart_coupons)) {
-    //                 foreach($used_cart_coupons as $used_cart_coupon) {
-    //                     if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-    //                         if($subtotal >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-    //                             if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-    //                                 $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-    //                                 $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
-    //                                 $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
-    //                                 $cart_discount_by_percentage_counter++;
-    //                             } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-    //                                 $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-    //                                 $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-    //                                 $discount = $used_cart_coupon->issuedcoupon->discount_value;
-    //                             }
-    //                             $cart_coupon_wo_tax = $discount / (1 + $cart_vat);
-    //                             $cart_coupon_tax = $discount - $cart_coupon_wo_tax;
-    //                             $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
-    //                             $discount_cart_coupon = $discount_cart_coupon + $discount;
-    //                             $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
-
-    //                             $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
-    //                             $acquired_coupon_carts[] = $used_cart_coupon;
-    //                         } else {
-    //                             $this->beginTransaction();
-    //                             $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-    //                             $issuedcoupon->makeActive();
-    //                             $issuedcoupon->save();
-    //                             $used_cart_coupon->delete(TRUE);
-    //                             $this->commit();
-    //                         }
-    //                     }
-    //                 }
-    //             }
-
-    //             if(!empty($coupon_carts)) {
-    //                 foreach($coupon_carts as $coupon_cart) {
-    //                     if($subtotal >= $coupon_cart->coupon_redeem_rule_value) {
-    //                         if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-    //                             if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-    //                                 $discount = $subtotal * $coupon_cart->discount_value;
-    //                                 $cartdiscounts = $cartdiscounts + $discount;
-    //                                 $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-    //                                 $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
-    //                                 $available_coupon_carts[] = $coupon_cart;
-    //                                 $cart_discount_by_percentage_counter++;
-    //                             }
-    //                         } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-    //                             $discount = $coupon_cart->discount_value;
-    //                             $cartdiscounts = $cartdiscounts + $discount;
-    //                             $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-    //                             $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-    //                             $available_coupon_carts[] = $coupon_cart;
-    //                         }
-    //                     } else {
-    //                         $coupon_cart->disc_val = $coupon_cart->rule_value;
-    //                     }
-    //                 }
-    //             }
-
-    //             $subtotal = $subtotal - $discount_cart_promo - $discount_cart_coupon;
-    //             $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax - $discount_cart_coupon_wo_tax;
-    //             $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
-
-    //             $cartsummary = new stdclass();
-    //             $cartsummary->vat = $vat;
-    //             $cartsummary->total_to_pay = $subtotal;
-    //             $cartsummary->subtotal_wo_tax = $subtotal_wo_tax;
-    //             $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-    //             $cartsummary->used_cart_coupons = $acquired_coupon_carts;
-    //             $cartsummary->available_coupon_carts = $available_coupon_carts;
-    //             $cartsummary->subtotal_before_cart_promo = $subtotal_before_cart_promo;
-    //             $cartdata->cartsummary = $cartsummary;
-    //             // $cartdata->attributes = $attributes;
-    //         } else {
-
-    //         }
-
-            
-    //         // print_r($cartdata);
-
-    //         return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
-    //     } catch (Exception $e) {
-    //         // return $this->redirectIfNotLoggedIn($e);
-    //         return $e;
-    //     }
-    // }
-
     public function getCartView()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -3467,6 +3143,8 @@ class MobileCIAPIController extends ControllerAPI
                 }
                 if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
                     $cart_vat = $vat / $subtotal_wo_tax;
+                } else {
+                    $cart_vat = 0;
                 }
 
                 // dd($vat.' / '.$subtotal_wo_tax.' = '.$cart_vat);
@@ -3628,6 +3306,8 @@ class MobileCIAPIController extends ControllerAPI
                     $attributes = array();
                     $product_vat_value = 0;
                     $original_price = $cartdetail->variant->price;
+                    $subtotal_wo_tax = $subtotal_wo_tax + ($original_price * $cartdetail->quantity);
+                    $original_ammount = $original_price * $cartdetail->quantity;
 
                     if (!is_null($cartdetail->tax1)) {
                         $tax1 = $cartdetail->tax1->tax_value;
@@ -3659,7 +3339,6 @@ class MobileCIAPIController extends ControllerAPI
                         $tax2 = $cartdetail->tax2->tax_value;    
                         $tax2_value = $original_price * $tax2;
                         $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                        
                         foreach ($taxes as $tax) {
                             if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
                                 $tax->total_tax = $tax->total_tax + $tax2_total_value;
@@ -3710,11 +3389,11 @@ class MobileCIAPIController extends ControllerAPI
                             if(!is_null($cartdetail->tax2)) {
                                 $tax2 = $cartdetail->tax2->tax_value;
                                 if ($cartdetail->tax2->tax_type == 'service') {
-                                    $pwt = $original_price + ($original_price * $tax2) ;
+                                    $pwt = $discount + ($discount * $tax2) ;
                                     $tax1_value = $pwt * $tax1;
                                     $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                 } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax1_value = $original_price * $tax1;
+                                    $tax1_value = $discount * $tax1;
                                     $tax1_total_value = $tax1_value * $cartdetail->quantity;
                                 }
                             } else {
@@ -3736,8 +3415,8 @@ class MobileCIAPIController extends ControllerAPI
                             
                             foreach ($taxes as $tax) {
                                 if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax + $tax2_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
+                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
+                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
                                 }
                             }
                         }
@@ -3755,17 +3434,289 @@ class MobileCIAPIController extends ControllerAPI
                         $vat = $vat - $promo_vat;
                         $promo_with_tax = $promo_with_tax * $cartdetail->quantity;
                         $subtotal = $subtotal - $promo_with_tax;
-
+                        $subtotal_wo_tax = $subtotal_wo_tax - ($discount * $cartdetail->quantity);
                         $promo_for_this_product_array[] = $promo_for_this_product;
                     }
                     
+                    $cartdetail->promo_for_this_product = $promo_for_this_product_array;
+
+                    $coupon_filter = array();
+                    foreach($used_product_coupons as $used_product_coupon) {
+                        // dd($used_product_coupon->cartdetail);
+                        if($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
+                            if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            }
+                            $used_product_coupon->discount = $discount;
+                            $ammount_after_promo = $ammount_after_promo - $discount;
+                            $coupon_filter[] = $used_product_coupon;
+
+                            // $coupon_wo_tax = $discount / (1 + $product_vat_value);
+
+                            if(!is_null($cartdetail->tax1)) {
+                                $tax1 = $cartdetail->tax1->tax_value;
+                                if(!is_null($cartdetail->tax2)) {
+                                    $tax2 = $cartdetail->tax2->tax_value;
+                                    if ($cartdetail->tax2->tax_type == 'service') {
+                                        $pwt = $discount + ($discount * $tax2) ;
+                                        $tax1_value = $pwt * $tax1;
+                                        $tax1_total_value = $tax1_value;
+                                    } elseif ($cartdetail->tax2->tax_type == 'luxury') {
+                                        $tax1_value = $discount * $tax1;
+                                        $tax1_total_value = $tax1_value;
+                                    }
+                                } else {
+                                    $tax1_value = $discount * $tax1;
+                                    $tax1_total_value = $tax1_value;
+                                }
+                                foreach($taxes as $tax) {
+                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
+                                    }
+                                }
+                            }
+                            
+                            if(!is_null($cartdetail->tax2)) {
+                                $tax2 = $cartdetail->tax2->tax_value;    
+                                $tax2_value = $discount * $tax2;
+                                $tax2_total_value = $tax2_value;
+                                
+                                foreach ($taxes as $tax) {
+                                    if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
+                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
+                                    }
+                                }
+                            }
+
+                            if(!is_null($cartdetail->tax2)) {
+                                if($cartdetail->tax2->tax_type == 'service') {
+                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2);
+                                }
+                            } else {
+                                $coupon_with_tax = $discount * (1 + $tax1);
+                            }
+                            // $coupon_vat = ($discount - $coupon_wo_tax);
+                            // $vat = $vat - $coupon_vat;
+                            // $subtotal = $subtotal - $discount;
+                            // $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
+
+                            $coupon_vat = ($coupon_with_tax - $discount);
+                            $vat = $vat - $coupon_vat;
+                            $subtotal = $subtotal - $coupon_with_tax;
+                            $subtotal_wo_tax = $subtotal_wo_tax - $discount;
+                        }
+                    }
+                    $cartdetail->coupon_for_this_product = $coupon_filter;
+
+                    $cartdetail->original_price = $original_price;
+                    $cartdetail->original_ammount = $original_ammount;
+                    $cartdetail->ammount_after_promo = $ammount_after_promo;
+
+                    if($cartdetail->attributeValue1['value']) {
+                        $attributes[] = $cartdetail->attributeValue1['value'];
+                    }
+                    if($cartdetail->attributeValue2['value']) {
+                        $attributes[] = $cartdetail->attributeValue2['value'];
+                    }
+                    if($cartdetail->attributeValue3['value']) {
+                        $attributes[] = $cartdetail->attributeValue3['value'];
+                    }
+                    if($cartdetail->attributeValue4['value']) {
+                        $attributes[] = $cartdetail->attributeValue4['value'];
+                    }
+                    if($cartdetail->attributeValue5['value']) {
+                        $attributes[] = $cartdetail->attributeValue5['value'];
+                    }
+                    $cartdetail->attributes = $attributes;
                 }
+
+                if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
+                    $cart_vat = $vat / $subtotal_wo_tax;
+                } else {
+                    $cart_vat = 0;
+                }
+
+                $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
+                $vat_before_cart_promo = $vat;
+                $cartdiscounts = 0;
+                $acquired_promo_carts = array();
+                $discount_cart_promo = 0;
+                $discount_cart_promo_with_tax = 0;
+                $discount_cart_coupon = 0;
+                $cart_promo_taxes = 0;
+                $subtotal_before_cart_promo = $subtotal;
+
+                if (!empty($promo_carts)) {
+                    foreach ($promo_carts as $promo_cart) {
+                        if ($subtotal_before_cart_promo_without_tax >= $promo_cart->promotionrule->rule_value) {
+                            if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
+                                $discount = $subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value;
+                                $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
+                                $promo_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value);
+                            } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
+                                $discount = $promo_cart->promotionrule->discount_value;
+                                $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
+                                $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
+                            }
+
+                            $cart_promo_with_tax = $discount * (1 + $cart_vat);
+                            $cart_promo_tax = $cart_promo_with_tax - $discount;
+                            $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
+                            
+                            foreach ($taxes as $tax) {
+                                if (!empty($tax->total_tax)) {
+                                    $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
+                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
+                                }
+                            }
+
+                            $discount_cart_promo = $discount_cart_promo + $discount;
+                            $discount_cart_promo_with_tax = $discount_cart_promo_with_tax - $cart_promo_with_tax;
+                            $acquired_promo_carts[] = $promo_cart;
+                            // dd($cart_promo_with_tax);
+                        }
+                    }
+                    
+                }
+
+                $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal_before_cart_promo_without_tax)
+                {
+                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal_before_cart_promo_without_tax);
+                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->whereHas('issuedcoupons',function($q) use($user)
+                {
+                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+                })->with(array('issuedcoupons' => function($q) use($user)
+                {
+                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+                }))
+                ->get();
+
+                $available_coupon_carts = array();
+                $cart_discount_by_percentage_counter = 0;
+                $discount_cart_coupon = 0;
+                $discount_cart_coupon_with_tax = 0;
+                $total_cart_coupon_discount = 0;
+                $cart_coupon_taxes = 0;
+                $acquired_coupon_carts = array();
+                if(!empty($used_cart_coupons)) {
+                    foreach($used_cart_coupons as $used_cart_coupon) {
+                        if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
+                            if($subtotal_before_cart_promo_without_tax >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
+                                if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
+                                    $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
+                                    $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal_before_cart_promo_without_tax);
+                                    $discount = $subtotal_before_cart_promo_without_tax * $used_cart_coupon->issuedcoupon->discount_value;
+                                    $cart_discount_by_percentage_counter++;
+                                } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
+                                    $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                                    $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                                    $discount = $used_cart_coupon->issuedcoupon->discount_value;
+                                }
+
+                                $cart_coupon_with_tax = $discount * (1 + $cart_vat);
+                                $cart_coupon_tax = $cart_coupon_with_tax - $discount;
+                                $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
+
+                                foreach ($taxes as $tax) {
+                                    if (!empty($tax->total_tax)) {
+                                        $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
+                                        $tax->total_tax = $tax->total_tax - $tax_reduction;
+                                    }
+                                }
+                                
+                                $discount_cart_coupon = $discount_cart_coupon + $discount;
+                                $discount_cart_coupon_with_tax = $discount_cart_coupon_with_tax - $cart_coupon_with_tax;
+
+                                $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
+                                $acquired_coupon_carts[] = $used_cart_coupon;
+                            } else {
+                                $this->beginTransaction();
+                                $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
+                                $issuedcoupon->makeActive();
+                                $issuedcoupon->save();
+                                $used_cart_coupon->delete(TRUE);
+                                $this->commit();
+                            }
+                        }
+                    }
+                }
+                
+                if (!empty($coupon_carts)) {
+                    foreach ($coupon_carts as $coupon_cart) {
+                        if ($subtotal_before_cart_promo_without_tax >= $coupon_cart->coupon_redeem_rule_value) {
+                            if ($coupon_cart->rule_type == 'cart_discount_by_percentage') {
+                                if ($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
+                                    $discount = $subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value;
+                                    $cartdiscounts = $cartdiscounts + $discount;
+                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
+                                    $coupon_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value);
+                                    $available_coupon_carts[] = $coupon_cart;
+                                    $cart_discount_by_percentage_counter++;
+                                }
+                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
+                                $discount = $coupon_cart->discount_value;
+                                $cartdiscounts = $cartdiscounts + $discount;
+                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
+                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
+                                $available_coupon_carts[] = $coupon_cart;
+                            }
+                        } else {
+                            $coupon_cart->disc_val = $coupon_cart->rule_value;
+                        }
+                    }
+                }
+                // dd($discount_cart_coupon);
+                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo - $discount_cart_coupon;
+                $subtotal = $subtotal + $discount_cart_promo_with_tax + $discount_cart_coupon_with_tax;
+                $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
+                // dd($cart_coupon_taxes);
+                
+                $cartsummary = new stdclass();
+                $cartsummary->vat = $vat;
+                $cartsummary->total_to_pay = $subtotal;
+                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
+                $cartsummary->acquired_promo_carts = $acquired_promo_carts;
+                $cartsummary->used_cart_coupons = $acquired_coupon_carts;
+                $cartsummary->available_coupon_carts = $available_coupon_carts;
+                $cartsummary->subtotal_before_cart_promo = $subtotal_before_cart_promo;
+                $cartsummary->taxes = $taxes;
+                $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
+                $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
+                $cartdata->cartsummary = $cartsummary;
             }
-            dd($vat);
+            // dd($vat);
             // print_r($cartdata);
-            
+            $activityPageNotes = sprintf('Page viewed: %s', 'Cart');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_cart')
+                            ->setActivityNameLong('View (Cart Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Cart');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_cart')
+                            ->setActivityNameLong('View (Cart Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -3773,6 +3724,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getTransferCartView()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -3782,8 +3736,25 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartdata = $this->getCartData();
 
+            $activityPageNotes = sprintf('Page viewed: %s', 'Transfer Cart');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_transfer_cart')
+                            ->setActivityNameLong('View (Transfer Cart Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             return View::make('mobile-ci.transfer-cart', array('page_title'=>Lang::get('mobileci.page_title.transfercart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Transfer Cart');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_transfer_cart')
+                            ->setActivityNameLong('View (Transfer Cart Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             return $this->redirectIfNotLoggedIn($e);
         }
     }
@@ -3855,6 +3826,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postAddToCart()
     {
+        $user = null;
+        $activityCart = Activity::mobileci()
+                            ->setActivityType('cart');
         try {
             $this->registerCustomValidation();
 
@@ -3919,7 +3893,50 @@ class MobileCIAPIController extends ControllerAPI
                 $cartdetail->save();
             }
             
-            foreach($coupons as $coupon) {
+            $merchant_id = $retailer->parent_id;
+            $prefix = DB::getTablePrefix();
+            $retailer_id = $retailer->merchant_id;
+            $promo_products = Promotion::with('promotionrule')->select('promotions.*')
+                ->join('promotion_rules', function($join) use ($merchant_id, $prefix) {
+                    $join->on('promotion_rules.promotion_id', '=', 'promotions.promotion_id');
+                    $join->on('promotions.promotion_type', '=', DB::raw("'product'"));
+                    $join->on('promotions.status', '=', DB::raw("'active'"));
+                    $join->on('promotions.is_coupon', '=', DB::raw("'N'"));
+                    $join->on('promotions.merchant_id', '=', DB::raw($merchant_id));
+                    $join->on(DB::raw("(({$prefix}promotions.begin_date <= NOW() AND {$prefix}promotions.end_date >= NOW())"), 'OR', 
+                                      DB::raw("({$prefix}promotions.begin_date <= NOW() AND {$prefix}promotions.is_permanent = 'Y'))"));
+                })
+                ->join('promotion_retailer', function($join) use ($retailer_id) {
+                    $join->on('promotion_retailer.promotion_id', '=', 'promotions.promotion_id');
+                    $join->on('promotion_retailer.retailer_id', '=', DB::raw($retailer_id));
+                })
+                ->join('products', DB::raw("(({$prefix}promotion_rules.discount_object_type=\"product\" AND {$prefix}promotion_rules.discount_object_id1={$prefix}products.product_id)"),
+                       'OR',
+                       DB::raw("                    (
+                            ({$prefix}promotion_rules.discount_object_type=\"family\") AND 
+                            (({$prefix}promotion_rules.discount_object_id1 IS NULL) OR ({$prefix}promotion_rules.discount_object_id1={$prefix}products.category_id1)) AND 
+                            (({$prefix}promotion_rules.discount_object_id2 IS NULL) OR ({$prefix}promotion_rules.discount_object_id2={$prefix}products.category_id2)) AND
+                            (({$prefix}promotion_rules.discount_object_id3 IS NULL) OR ({$prefix}promotion_rules.discount_object_id3={$prefix}products.category_id3)) AND
+                            (({$prefix}promotion_rules.discount_object_id4 IS NULL) OR ({$prefix}promotion_rules.discount_object_id4={$prefix}products.category_id4)) AND
+                            (({$prefix}promotion_rules.discount_object_id5 IS NULL) OR ({$prefix}promotion_rules.discount_object_id5={$prefix}products.category_id5))
+                        ))"))->where('products.product_id', $product_id)->get();
+    
+            $variant_price = $product->variants->find($product_variant_id)->price;
+            $price_after_promo = $variant_price;
+
+            foreach ($promo_products as $promo) {
+                if($promo->promotionrule->rule_type == 'product_discount_by_percentage') {
+                    $discount = $promo->promotionrule->discount_value * $variant_price;
+                } elseif($promo->promotionrule->rule_type == 'product_discount_by_value') {
+                    $discount = $promo->promotionrule->discount_value;
+                }
+
+                $price_after_promo = $price_after_promo - $discount;
+            }
+
+            $activityCoupon = array();
+
+            foreach ($coupons as $coupon) {
                 $validator = \Validator::make(
                     array(
                         'coupon' => $coupon,
@@ -3938,13 +3955,24 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $coupon)->first();
-                $cartcoupon = new CartCoupon;
-                $cartcoupon->issued_coupon_id = $coupon;
-                $cartcoupon->object_type = 'cart_detail';
-                $cartcoupon->object_id = $cartdetail->cart_detail_id;
-                $cartcoupon->save();
-                $used_coupons->status = 'deleted';
-                $used_coupons->save();
+
+                if ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_percentage') {
+                    $discount = $used_coupons->coupon->couponrule->discount_value * $variant_price;
+                } elseif ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_value') {
+                    $discount = $used_coupons->coupon->couponrule->discount_value;
+                }
+                if($discount <= $price_after_promo) {
+                    $price_after_promo = $price_after_promo - $discount;
+                    $cartcoupon = new CartCoupon;
+                    $cartcoupon->issued_coupon_id = $coupon;
+                    $cartcoupon->object_type = 'cart_detail';
+                    $cartcoupon->object_id = $cartdetail->cart_detail_id;
+                    $cartcoupon->save();
+                    $used_coupons->status = 'deleted';
+                    $used_coupons->save();
+                    $activityCoupon[] = $used_coupons;
+                }
+                // dd($used_coupons->coupon->couponrule->discount_value);
             }
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
@@ -3971,10 +3999,45 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $cartdetail;
 
+            $activityCartNotes = sprintf('Add to cart: %s', $product->product_id);
+            $activityCart->setUser($user)
+                            ->setActivityName('add_to_cart')
+                            ->setActivityNameLong('Add To Cart ' . $product->product_name)
+                            ->setObject($product)
+                            ->setNotes($activityCartNotes)
+                            ->responseOK()
+                            ->save();
+            foreach ($promo_products as $promo) {
+                $activityChild = Activity::parent($activityCart)
+                                    ->setObject($promo)
+                                    ->setUser($user)
+                                    ->setNotes($promo->promotion_name)
+                                    ->responseOK()
+                                    ->save();
+            }
+
+            foreach ($activityCoupon as $_coupon) {
+                $activityChild = Activity::parent($activityCart)
+                                    ->setObject($_coupon)
+                                    ->setUser($user)
+                                    ->setNotes($_coupon->coupon->promotion_name)
+                                    ->responseOK()
+                                    ->save();
+            }
+
             $this->commit();
 
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
+            $activityCartNotes = sprintf('Add to cart: %s', $product->product_id);
+            $activityCart->setUser($user)
+                            ->setActivityName('add_to_cart')
+                            ->setActivityNameLong('Add To Cart Failed')
+                            ->setObject(null)
+                            ->setNotes($activityCartNotes)
+                            ->responseFailed()
+                            ->save();
+
             return $e;
         }
         
@@ -3983,6 +4046,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postAddCouponCartToCart()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
 
@@ -4033,9 +4099,27 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->response->message = 'success';
 
+            $activityPageNotes = sprintf('Added issued cart coupon id: %s', $couponid);
+            $activityPage->setUser($user)
+                            ->setActivityName('add_cart_coupon_to_cart')
+                            ->setActivityNameLong('Add Cart Coupon To Cart')
+                            ->setObject($used_coupons)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             $this->commit();
 
         } catch (Exception $e) {
+            $this->rollback();
+            $activityPageNotes = sprintf('Failed to add issued cart coupon id: %s', $couponid);
+            $activityPage->setUser($user)
+                            ->setActivityName('add_cart_coupon_to_cart')
+                            ->setActivityNameLong('Failed To Add Cart Coupon To Cart')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -4045,6 +4129,9 @@ class MobileCIAPIController extends ControllerAPI
     
     public function postDeleteFromCart()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
 
@@ -4098,11 +4185,28 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $cartdata;
 
+            $activityPageNotes = sprintf('Deleted cart item id: %s', $cartdetailid);
+            $activityPage->setUser($user)
+                            ->setActivityName('delete_item_from_cart')
+                            ->setActivityNameLong('Delete Item From Cart')
+                            ->setObject($cartdetail)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             $this->commit();
             return $this->render();
 
         } catch (Exception $e) {
             $this->rollback();
+            $activityPageNotes = sprintf('Failed to delete cart item id: %s', $cartdetailid);
+            $activityPage->setUser($user)
+                            ->setActivityName('delete_item_from_cart')
+                            ->setActivityNameLong('Failed To Delete Item From Cart')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -4110,6 +4214,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postDeleteCouponFromCart()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
 
@@ -4135,11 +4242,28 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->response->message = 'success';
 
+            $activityPageNotes = sprintf('Deleted issued cart coupon id: %s', $couponid);
+            $activityPage->setUser($user)
+                            ->setActivityName('delete_cart_coupon_from_cart')
+                            ->setActivityNameLong('Delete Cart Coupon From Cart')
+                            ->setObject($used_coupons)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             $this->commit();
             return $this->render();
 
         } catch (Exception $e) {
             $this->rollback();
+            $activityPageNotes = sprintf('Failed to delete issued cart coupon id: %s', $couponid);
+            $activityPage->setUser($user)
+                            ->setActivityName('delete_cart_coupon_from_cart')
+                            ->setActivityNameLong('Failed To Delete Cart Coupon From Cart')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -4147,6 +4271,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function postUpdateCart()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $this->registerCustomValidation();
 
@@ -4197,12 +4324,29 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $cartdata;
 
+            $activityPageNotes = sprintf('Updated cart item id: ' . $cartdetailid . ' quantity to %s', $quantity);
+            $activityPage->setUser($user)
+                            ->setActivityName('update_cart_item')
+                            ->setActivityNameLong('Update Cart Item')
+                            ->setObject($cartdetail)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
             $this->commit();
             return $this->render();
 
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             $this->rollback();
+            $activityPageNotes = sprintf('Failed to update cart item id: ' . $cartdetailid . ' quantity to %s', $quantity);
+            $activityPage->setUser($user)
+                            ->setActivityName('update_cart_item')
+                            ->setActivityNameLong('Failed To Update Cart Item')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             return $e;
         }
     }
