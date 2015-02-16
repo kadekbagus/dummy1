@@ -73,15 +73,12 @@ class MobileCIAPIController extends ControllerAPI
                         ->first();
 
             if (! is_object($user)) {
-                // $message = \Lang::get('validation.orbit.access.loginfailed');
-                // ACL::throwAccessForbidden($message);
                 $response = \LoginAPIController::create('raw')->postRegisterUserInShop();
-                if ($response->code === 0)
+                if ($response->code !== 0)
                 {
-                    $user = $response->data;
+                    throw new Exception($response->message, $response->code);
                 }
-
-                // return $this->render($response);
+                $user = $response->data;
             }
 
             $retailer = $this->getRetailerInfo();
@@ -471,6 +468,7 @@ class MobileCIAPIController extends ControllerAPI
     public function getSearchProduct()
     {
         $user = null;
+        $keyword = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
 
@@ -1106,6 +1104,7 @@ class MobileCIAPIController extends ControllerAPI
     public function getSearchPromotion()
     {
         $user = null;
+        $promoid = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
@@ -1358,6 +1357,7 @@ class MobileCIAPIController extends ControllerAPI
     public function getSearchCoupon()
     {
         $user = null;
+        $promoid = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
@@ -1742,6 +1742,7 @@ class MobileCIAPIController extends ControllerAPI
     public function getProductList()
     {
         $user = null;
+        $family_id = null;
         $activityCategory = Activity::mobileci()
                             ->setActivityType('view');
         try {
@@ -3827,6 +3828,7 @@ class MobileCIAPIController extends ControllerAPI
     public function postAddToCart()
     {
         $user = null;
+        $product_id = null;
         $activityCart = Activity::mobileci()
                             ->setActivityType('cart');
         try {
@@ -4029,7 +4031,7 @@ class MobileCIAPIController extends ControllerAPI
 
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
-            $activityCartNotes = sprintf('Add to cart: %s', $product->product_id);
+            $activityCartNotes = sprintf('Add to cart: %s', $product_id);
             $activityCart->setUser($user)
                             ->setActivityName('add_to_cart')
                             ->setActivityNameLong('Add To Cart Failed')
@@ -4047,6 +4049,7 @@ class MobileCIAPIController extends ControllerAPI
     public function postAddCouponCartToCart()
     {
         $user = null;
+        $couponid = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
@@ -4130,6 +4133,7 @@ class MobileCIAPIController extends ControllerAPI
     public function postDeleteFromCart()
     {
         $user = null;
+        $cartdetailid = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
@@ -4215,6 +4219,7 @@ class MobileCIAPIController extends ControllerAPI
     public function postDeleteCouponFromCart()
     {
         $user = null;
+        $couponid = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
@@ -4272,6 +4277,8 @@ class MobileCIAPIController extends ControllerAPI
     public function postUpdateCart()
     {
         $user = null;
+        $quantity = 0;
+        $cartdetailid = 0;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
