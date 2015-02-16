@@ -4324,10 +4324,10 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $cartdata;
 
-            $activityPageNotes = sprintf('Updated cart item id: %s', $cartdetailid);
+            $activityPageNotes = sprintf('Updated cart item id: ' . $cartdetailid . ' quantity to %s', $quantity);
             $activityPage->setUser($user)
                             ->setActivityName('update_cart_item')
-                            ->setActivityNameLong('Update Cart Item Id: ' . $cartdetailid . ' Quantity To: ' . $quantity )
+                            ->setActivityNameLong('Update Cart Item')
                             ->setObject($cartdetail)
                             ->setNotes($activityPageNotes)
                             ->responseOK()
@@ -4339,10 +4339,10 @@ class MobileCIAPIController extends ControllerAPI
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             $this->rollback();
-            $activityPageNotes = sprintf('Failed to update cart item id: %s', $cartdetailid);
+            $activityPageNotes = sprintf('Failed to update cart item id: ' . $cartdetailid . ' quantity to %s', $quantity);
             $activityPage->setUser($user)
                             ->setActivityName('update_cart_item')
-                            ->setActivityNameLong('Failed To Update Cart Item Id: ' . $cartdetailid . ' Quantity To: ' . $quantity )
+                            ->setActivityNameLong('Failed To Update Cart Item')
                             ->setObject(null)
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
