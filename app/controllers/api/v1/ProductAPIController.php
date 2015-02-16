@@ -2002,11 +2002,6 @@ class ProductAPIController extends ControllerAPI
                 $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-
-            if ($product->product_id == 3) {
-                $x = DB::getQueryLog();
-                print_r(end($x));
-            }
         }
 
         return $values;
