@@ -196,6 +196,34 @@ class Session
     }
 
     /**
+     * Update the session using raw SessionData object
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param SessionData $sessionData - Instance of SessionData object
+     * @return Session
+     */
+    public function rawUpdate(SessionData $sessionData)
+    {
+        $this->driver->update($sessionData);
+
+        return $this;
+    }
+
+    /**
+     * Manually set the session id.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $sid - Session ID
+     * @return Session
+     */
+    public function setSessionId($sid)
+    {
+        $this->sessionId = $sid;
+
+        return $this;
+    }
+
+    /**
      * Set a data on session.
      *
      * @author Rio Astamal <me@rioastamal.net>

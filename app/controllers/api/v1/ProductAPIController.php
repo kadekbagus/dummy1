@@ -596,7 +596,6 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
 
             // Rollback the changes
             $this->rollBack();
@@ -614,8 +613,7 @@ class ProductAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            //$this->response->data = null;
-            $httpCode = 400;
+            $this->response->data = null;
 
             // Rollback the changes
             $this->rollBack();
@@ -640,7 +638,6 @@ class ProductAPIController extends ControllerAPI
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
             $this->response->data = null;
-            $httpCode = 500;
 
             // Rollback the changes
             $this->rollBack();
@@ -1438,7 +1435,6 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
 
             // Rollback the changes
             $this->rollBack();
@@ -1457,7 +1453,6 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
 
             // Rollback the changes
             $this->rollBack();
@@ -1482,7 +1477,6 @@ class ProductAPIController extends ControllerAPI
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
             $this->response->data = null;
-            $httpCode = 500;
 
             // Rollback the changes
             $this->rollBack();

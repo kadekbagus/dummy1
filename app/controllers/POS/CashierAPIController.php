@@ -905,15 +905,22 @@ class CashierAPIController extends ControllerAPI
 
                             if(!empty($value['promotion_type'])){
                                 $transactiondetailpromotion->promotion_type = $value['promotion_type'];
+                            } else {
+                                $transactiondetailpromotion->promotion_type = $value['promotion_detail']['promotion_type'];
                             }
                             
                             $transactiondetailpromotion->rule_type = $value['rule_type'];
 
                             if(!empty($value['rule_value'])){
                                 $transactiondetailpromotion->rule_value = $value['rule_value'];
+                            } else {
+                                $transactiondetailpromotion->rule_value = $value['promotion_detail']['rule_value'];
                             }
+
                             if(!empty($value['discount_object_type'])){
                                 $transactiondetailpromotion->discount_object_type = $value['discount_object_type'];
+                            } else {
+                                $transactiondetailpromotion->discount_object_type = $value['promotion_detail']['discount_object_type'];
                             }
 
                             $transactiondetailpromotion->discount_value = $value['oridiscount_value'];
@@ -921,60 +928,57 @@ class CashierAPIController extends ControllerAPI
 
                             if(!empty($value['description'])){
                                 $transactiondetailpromotion->description = $value['description'];
+                            } else {
+                                $transactiondetailpromotion->description = $value['promotion_detail']['description'];
                             }
 
                             if(!empty($value['begin_date'])){
                                 $transactiondetailpromotion->begin_date = $value['begin_date'];
+                            } else {
+                                $transactiondetailpromotion->begin_date = $value['promotion_detail']['begin_date'];
                             }
 
                             if(!empty($value['end_date'])){
                                 $transactiondetailpromotion->end_date = $value['end_date'];
+                            } else {
+                                $transactiondetailpromotion->end_date = $value['promotion_detail']['end_date'];
                             }
+
                             $transactiondetailpromotion->save();
                         }
                     }
                 }
 
-
+//['coupon_for_this_product']['issuedcoupon']
                 // product based coupon
-                if(!empty($cart_value['product_details']['coupon_for_this_product']['issuedcoupon'])){
+                if(!empty($cart_value['product_details']['coupon_for_this_product'])){
                     foreach ($cart_value['product_details']['coupon_for_this_product'] as $key => $value) {
-                        $transactiondetailcoupon = new \TransactionDetailCoupon();
-                        $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
-                        $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
-                        $transactiondetailcoupon->promotion_id = $value['issuedcoupon']['issued_coupon_id'];
-                        $transactiondetailcoupon->promotion_name = $value['issuedcoupon']['promotion_name'];
-                        $transactiondetailcoupon->promotion_type = $value['issuedcoupon']['promotion_type'];
-                        $transactiondetailcoupon->rule_type = $value['issuedcoupon']['rule_type'];
-                        $transactiondetailcoupon->rule_value = $value['issuedcoupon']['rule_value'];
-                        $transactiondetailcoupon->category_id1 = $value['issuedcoupon']['rule_object_id1'];
-                        $transactiondetailcoupon->category_id2 = $value['issuedcoupon']['rule_object_id2'];
-                        $transactiondetailcoupon->category_id3 = $value['issuedcoupon']['rule_object_id3'];
-                        $transactiondetailcoupon->category_id4 = $value['issuedcoupon']['rule_object_id4'];
-                        $transactiondetailcoupon->category_id5 = $value['issuedcoupon']['rule_object_id5'];
-                        $transactiondetailcoupon->category_name1 = $value['issuedcoupon']['discount_object_id1'];
-                        $transactiondetailcoupon->category_name2 = $value['issuedcoupon']['discount_object_id2'];
-                        $transactiondetailcoupon->category_name3 = $value['issuedcoupon']['discount_object_id3'];
-                        $transactiondetailcoupon->category_name4 = $value['issuedcoupon']['discount_object_id4'];
-                        $transactiondetailcoupon->category_name5 = $value['issuedcoupon']['discount_object_id5'];
-                        $transactiondetailcoupon->discount_object_type = $value['issuedcoupon']['discount_object_type'];
-                        if($value['issuedcoupon']['rule_type']=="cart_discount_by_percentage"){
-                            $discount_percent = intval($value['issuedcoupon']['discount'])/100;
-                            $discount_value = $this->removeFormat($value['issuedcoupon']['discount_value']);
-                            $transactiondetailcoupon->discount_value = $discount_percent;
-                            $transactiondetailcoupon->value_after_percentage = $discount_value;
-                        } else {
-                            $discount_value = $this->removeFormat($value['issuedcoupon']['discount_value']);
-                            $transactiondetailcoupon->discount_value = $discount_percent;
-                            $transactiondetailcoupon->value_after_percentage = $discount_value;
-                        }
-                        $transactiondetailcoupon->discount_value = $value['issuedcoupon']['discount_value'];
-                        $transactiondetailcoupon->value_after_percentage = ;
-                        $transactiondetailcoupon->coupon_redeem_rule_value = $value['issuedcoupon']['coupon_redeem_rule_value'];
-                        $transactiondetailcoupon->description = $value['issuedcoupon']['description'];
-                        $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
-                        $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
-                        $transactiondetailcoupon->save();
+                            $transactiondetailcoupon = new \TransactionDetailCoupon();
+                            $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                            $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
+                            $transactiondetailcoupon->promotion_id = $value['issuedcoupon']['issued_coupon_id'];
+                            $transactiondetailcoupon->promotion_name = $value['issuedcoupon']['promotion_name'];
+                            $transactiondetailcoupon->promotion_type = $value['issuedcoupon']['promotion_type'];
+                            $transactiondetailcoupon->rule_type = $value['issuedcoupon']['rule_type'];
+                            $transactiondetailcoupon->rule_value = $value['issuedcoupon']['rule_value'];
+                            $transactiondetailcoupon->category_id1 = $value['issuedcoupon']['rule_object_id1'];
+                            $transactiondetailcoupon->category_id2 = $value['issuedcoupon']['rule_object_id2'];
+                            $transactiondetailcoupon->category_id3 = $value['issuedcoupon']['rule_object_id3'];
+                            $transactiondetailcoupon->category_id4 = $value['issuedcoupon']['rule_object_id4'];
+                            $transactiondetailcoupon->category_id5 = $value['issuedcoupon']['rule_object_id5'];
+                            $transactiondetailcoupon->category_name1 = $value['issuedcoupon']['discount_object_id1'];
+                            $transactiondetailcoupon->category_name2 = $value['issuedcoupon']['discount_object_id2'];
+                            $transactiondetailcoupon->category_name3 = $value['issuedcoupon']['discount_object_id3'];
+                            $transactiondetailcoupon->category_name4 = $value['issuedcoupon']['discount_object_id4'];
+                            $transactiondetailcoupon->category_name5 = $value['issuedcoupon']['discount_object_id5'];
+                            $transactiondetailcoupon->discount_object_type = $value['issuedcoupon']['discount_object_type'];
+                            $transactiondetailcoupon->discount_value = $value['oridiscount_value'];
+                            $transactiondetailcoupon->value_after_percentage = $value['tmpafterpromotionprice'];
+                            $transactiondetailcoupon->coupon_redeem_rule_value = $value['issuedcoupon']['coupon_redeem_rule_value'];
+                            $transactiondetailcoupon->description = $value['issuedcoupon']['description'];
+                            $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
+                            $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
+                            $transactiondetailcoupon->save();
                     }
                 }
 
@@ -1049,8 +1053,6 @@ class CashierAPIController extends ControllerAPI
                             $transactiondetailcoupon->discount_value = $discount_percent;
                             $transactiondetailcoupon->value_after_percentage = $discount_value;
                         }
-                        $transactiondetailcoupon->discount_value = $value['issuedcoupon']['discount_value'];
-                        $transactiondetailcoupon->value_after_percentage = ;
                         $transactiondetailcoupon->coupon_redeem_rule_value = $value['issuedcoupon']['coupon_redeem_rule_value'];
                         $transactiondetailcoupon->description = $value['issuedcoupon']['description'];
                         $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
@@ -1059,6 +1061,15 @@ class CashierAPIController extends ControllerAPI
                     }
                 }
             }
+
+            // transaction detail taxes
+            // $transactiondetailtax = new \TransactionDetailTax();
+            // $transactiondetailtax->transaction_detail_id = ;
+            // $transactiondetailtax->transaction_id = ;
+            // $transactiondetailtax->tax_name = ;
+            // $transactiondetailtax->tax_value = ;
+            // $transactiondetailtax->tax_order = ;
+            // $transactiondetailtax->save();
 
             // issue coupon redeemed
             // foreach($issue_coupon_id as $issued_coupon_id_key => $issued_coupon_id_value){
@@ -1251,23 +1262,23 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0,25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0,25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                 }
                 //echo $details_key." ".$details_value['product_name']."<br/>";
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
                         //echo $detailcoupon_value['promotion_name']."<br/>";
-                        $product .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['value_after_percentage']);
+                        $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
                     if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
                         //echo $detailpromotion_value['promotion_name']."<br/>";
-                        $product .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['value_after_percentage']);
+                        $product .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 25), $detailpromotion_value['value_after_percentage']);
                     }
                 }
             }
@@ -1291,7 +1302,7 @@ class CashierAPIController extends ControllerAPI
                         //echo $detailpromotion_value['promotion_name']."<br/>";
                         $x = $x+1;
                         $promo = TRUE;
-                        $cart_based_promo .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['value_after_percentage']);
+                        $cart_based_promo .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 23), $detailpromotion_value['value_after_percentage']);
                     }
                 }
 
@@ -1302,17 +1313,22 @@ class CashierAPIController extends ControllerAPI
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
                         if($x==0){
-                            //echo "Cart Promotions <br/>";
+                            //echo "Cart Coupons <br/>";
                             // if(!$promo){
                             //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
                             // }
-                            $cart_based_promo = "Cart Coupons"." \n";
-                            $promo = TRUE;
+                            if(!$promo){
+                                $cart_based_promo = "Cart Coupons"." \n";
+                                $promo = TRUE;
+                            } else {
+                                $cart_based_promo .= "Cart Coupons"." \n";
+                            }
+
                         }
                         //echo $detailcoupon_value['promotion_name']."<br/>";
                         $x = $x+1;
                         $promo = TRUE;
-                        $cart_based_promo .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['value_after_percentage']);
+                        $cart_based_promo .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 23), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
@@ -2566,7 +2582,7 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = \Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->first();
 
-            $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
+            $product = Product::with('tax1', 'tax2', 'variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
                        $query->where('retailer_id', $retailer->merchant_id);
                       })->excludeDeleted()->where('product_id', $product_id)->first();
 
