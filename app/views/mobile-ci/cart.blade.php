@@ -110,11 +110,13 @@
             </div>
             @endforeach
 
-            <div class="single-item-bodies @if($x % 2 == 0) even-line @endif" style="background:#ffac41; color:#623D0C; padding:4px;">
+            @if(!empty($cartdetail->available_product_coupons))
+            <div class="use-coupon single-item-bodies @if($x % 2 == 0) even-line @endif" style="background:#ffac41; color:#623D0C; padding:4px; cursor:pointer;" data-product-variant="{{$cartdetail->product_variant_id}}" data-product="{{$cartdetail->product_id}}">
               <div class="col-xs-12 text-center">
-                <span><i class="fa fa-plus-circle"></i> Use coupon for this item (1)</span>
+                <span><i class="fa fa-plus-circle"></i> Gunakan kupon untuk item ini ({{$cartdetail->available_product_coupons}})</span>
               </div>
             </div>
+            @endif
 
         <?php $x++;?>
         @endforeach
@@ -443,6 +445,35 @@
     </div>
   </div>
 
+  <div class="modal fade" id="hasCouponModal" tabindex="-1" role="dialog" aria-labelledby="hasCouponLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="hasCouponLabel">Kupon Saya</h4>
+        </div>
+        <div class="modal-body">
+          <div class="row ">
+            <div class="col-xs-12 vertically-spaced">
+              <p></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+            <div class="row">
+              <input type="hidden" name="detail" id="detail" value="">
+              <div class="col-xs-6">
+                <button type="button" id="applyCoupon" class="btn btn-success btn-block">Gunakan</button>
+              </div>
+              <div class="col-xs-6">
+                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">Lain Kali</button>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <table class="ui-bar-a" id="n_keypad" style="display: none; -khtml-user-select: none;">
     <tr>
        <td class="num numero"><a data-role="button" data-theme="b" >7</a></td>
@@ -487,18 +518,76 @@
   // console.log((123456789.12345).formatMoney(2, '.', ','));
 
   $(document).ready(function(){
+    $('body').off('click', '.use-coupon').on('click', '.use-coupon', function($event){
+      $('#hasCouponModal .modal-body p').html('');
+      var used_coupons = [];
+      var anchor = $(this);
+      var prodid = anchor.data('product');
+      var prodvarid = anchor.data('product-variant');
+
+      $.ajax({
+        url: apiPath+'customer/productcouponpopup',
+        method: 'POST',
+        data: {
+          productid: prodid,
+          productvariantid: prodvarid
+        }
+      }).done(function(data){
+        if(data.data.length > 0){
+          if(data.status == 'success'){
+                for(var i = 0; i < data.data.length; i++){
+                  var disc_val;
+                  if(data.data[i].rule_type == 'product_discount_by_percentage') disc_val = '-' + (data.data[i].discount_value * 100) + '% off';
+                  else if(data.data[i].rule_type == 'product_discount_by_value') disc_val = '- {{ $retailer->parent->currency }} ' + parseFloat(data.data[i].discount_value) +' off';
+                  $('#hasCouponModal .modal-body p').html($('#hasCouponModal .modal-body p').html() + '<div class="row vertically-spaced"><div class="col-xs-2"><input type="checkbox" class="used_coupons" name="used_coupons" value="'+ data.data[i].issued_coupon_id +'"></div><div class="col-xs-4"><img style="width:64px;" class="img-responsive" src="'+ data.data[i].promo_image +'"></div><div class="col-xs-6">'+data.data[i].promotion_name+'<br>'+ disc_val +'</div></div>');
+                }
+                $('#hasCouponModal').modal();
+              }else{
+                  // console.log(data);
+              }
+          }
+      });
+      
+      $('#hasCouponModal').on('change', '.used_coupons', function($event){
+        var coupon = $(this).val();
+        if($(this).is(':checked')){
+          used_coupons.push(coupon);
+        }else{
+          used_coupons = $.grep(used_coupons, function(val){
+            return val != coupon;
+          });
+        }
+      });
+
+      $('#hasCouponModal').off('click', '#applyCoupon').on('click', '#applyCoupon', function($event){
+        $.ajax({
+          url: apiPath+'customer/addcouponproducttocart',
+          method: 'POST',
+          data: {
+            productid: prodid,
+            productvariantid: prodvarid,
+            qty:1,
+            coupons : used_coupons
+          }
+        }).done(function(data){
+          // animate cart
+          if(data.status == 'success'){
+            $('#hasCouponModal').modal('hide');
+            if(prodid){
+                window.location.reload();
+            }
+          }
+        });
+      });
+
+      $('#hasCouponModal').off('click', '#denyCoupon').on('click', '#denyCoupon', function($event){
+        $('#hasCouponModal').modal('hide');
+      });
+    });
     $('.formatted-num').each(function(index){
       var num = parseFloat($(this).text()).toFixed(0);
       var partnum = num.toString().split('.');
-      // console.log(partnum);
       var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-      // if decimal place is accepted
-      // if(partnum[1] == '00'){
-      //   $(this).text(part1);
-      // } else {
-      //   var part2 = partnum[1];
-      //   $(this).text(part1 + '.' + part2);
-      // }
       $(this).text(part1);
     });
     $('.percentage-num').each(function(index){

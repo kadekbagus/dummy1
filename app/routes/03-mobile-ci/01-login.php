@@ -166,3 +166,9 @@ Route::get('/customer/category', function()
 {
     return MobileCI\MobileCIAPIController::create()->getCategory();
 });
+
+// add product based coupon to cart
+Route::post('/app/v1/customer/addcouponproducttocart', function()
+{
+    return MobileCI\MobileCIAPIController::create()->postAddProductCouponToCart();
+});
