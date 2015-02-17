@@ -67,7 +67,7 @@
         return pattern.test(emailAddress);
       };
       if(typeof $.cookie('orbit_email') === 'undefined') {
-        $.cookie('orbit_email', '-', { expires: 5 * 365 });
+        $.cookie('orbit_email', '-', { expires: 5 * 365, path: '/' });
         $('#signedIn').hide();
         $('#signIn').show();
       }
@@ -82,7 +82,7 @@
       }
       
       $('#notMe').click(function(){
-        $.cookie('orbit_email', '-', { expires: 5 * 365 });
+        $.cookie('orbit_email', '-', { expires: 5 * 365, path: '/' });
         window.location.replace(homePath);
       });
 
@@ -121,7 +121,7 @@
               }
               if(data.data){
                 // console.log(data.data);
-                $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365 });
+                $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365, path: '/' });
                 window.location.replace(homePath);
               }
             }).fail(function(data){
