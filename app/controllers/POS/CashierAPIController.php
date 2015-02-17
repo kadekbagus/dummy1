@@ -1262,23 +1262,23 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0,25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0,25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                 }
                 //echo $details_key." ".$details_value['product_name']."<br/>";
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
                         //echo $detailcoupon_value['promotion_name']."<br/>";
-                        $product .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['value_after_percentage']);
+                        $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
                     if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
                         //echo $detailpromotion_value['promotion_name']."<br/>";
-                        $product .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['value_after_percentage']);
+                        $product .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 25), $detailpromotion_value['value_after_percentage']);
                     }
                 }
             }
@@ -1302,7 +1302,7 @@ class CashierAPIController extends ControllerAPI
                         //echo $detailpromotion_value['promotion_name']."<br/>";
                         $x = $x+1;
                         $promo = TRUE;
-                        $cart_based_promo .= $this->discountListFormat($detailpromotion_value['promotion_name'], $detailpromotion_value['value_after_percentage']);
+                        $cart_based_promo .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 23), $detailpromotion_value['value_after_percentage']);
                     }
                 }
 
@@ -1313,17 +1313,22 @@ class CashierAPIController extends ControllerAPI
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
                         if($x==0){
-                            //echo "Cart Promotions <br/>";
+                            //echo "Cart Coupons <br/>";
                             // if(!$promo){
                             //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
                             // }
-                            $cart_based_promo = "Cart Coupons"." \n";
-                            $promo = TRUE;
+                            if(!$promo){
+                                $cart_based_promo = "Cart Coupons"." \n";
+                                $promo = TRUE;
+                            } else {
+                                $cart_based_promo .= "Cart Coupons"." \n";
+                            }
+
                         }
                         //echo $detailcoupon_value['promotion_name']."<br/>";
                         $x = $x+1;
                         $promo = TRUE;
-                        $cart_based_promo .= $this->discountListFormat($detailcoupon_value['promotion_name'], $detailcoupon_value['value_after_percentage']);
+                        $cart_based_promo .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 23), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
