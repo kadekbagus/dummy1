@@ -63,14 +63,16 @@
       <div class="col-xs-12 text-center welcome-user">
         <h3>Selamat Datang, <br><span class="signedUser"></span></h3>
       </div>
-      <form name="loginForm" id="loginSignedForm" action="{{ url('customer/login') }}" method="post">
-        <div class="form-group">
-          <input type="hidden" class="form-control" name="email" id="emailSigned" />
-        </div>
-        <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">Mulai Belanja</button>
-        </div>
-      </form>
+      <div class="col-xs-12 text-center">
+        <form name="loginForm" id="loginSignedForm" action="{{ url('customer/login') }}" method="post">
+          <div class="form-group">
+            <input type="hidden" class="form-control" name="email" id="emailSigned" />
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-info btn-block">Mulai Belanja</button>
+          </div>
+        </form>
+      </div>
     </div>
     <div class="col-xs-12 text-center vertically-spaced">
       <a id="notMe">Bukan <span class="signedUser"></span>, klik disini.</a>
