@@ -71,7 +71,7 @@ function get(n) {
  */
 window.onload = function() {
     var session_id = get('loadsession');
-    var create_session_url = orbitGetBaseUrl() + '/customer';
+    var create_session_url = '{{ URL::Route("captive-portal") }}';
 
     // Form object
     var frm = document.createElement('form');

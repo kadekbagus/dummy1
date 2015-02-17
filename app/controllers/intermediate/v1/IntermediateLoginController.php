@@ -300,19 +300,10 @@ class IntermediateLoginController extends IntermediateBaseController
     public function getCaptive()
     {
         /**
-         * Handle the ?loadsession=SESSION_ID action
+         * Handle the ?loadsession=SESSION_ID action. Basically it just showing
+         * a loading page. The actual session creation on '?createsession'
          */
         if (isset($_GET['loadsession'])) {
-            $cookieName = Config::get('orbit.session.session_origin.cookie.name');
-            $expire = Config::get('orbit.session.session_origin.cookie.expire');
-            $sessionId = $_GET['loadsession'];
-
-            // Send cookie containing our Session ID, so the new browser launched
-            // by the captive recognize user who loggged before
-            setcookie($cookieName, $sessionId, time() + $expire, '/', NULL, FALSE, TRUE);
-
-            $_COOKIE['orbit_sessionx'] = $sessionId;
-
             // Needed to show some information on the view
             try {
                 $retailer_id = Config::get('orbit.shop.id');
@@ -328,6 +319,31 @@ class IntermediateLoginController extends IntermediateBaseController
             return View::make('mobile-ci/captive-loading', ['retailer' => $retailer]);
         }
 
+        if (isset($_GET['createsession'])) {
+            $cookieName = Config::get('orbit.session.session_origin.cookie.name');
+            $expireTime = Config::get('orbit.session.session_origin.cookie.expire');
+
+            $sessionId = $_GET['createsession'];
+
+            // Send cookie so our app have an idea about the session
+            setcookie($cookieName, $sessionId, time() + $expireTime, '/', NULL, FALSE, TRUE);
+
+            // Used for internal session object since sending cookie above
+            // only affects on next request
+            $_COOKIE[$cookieName] = $sessionId;
+
+            $this->session->setSessionId($sessionId);
+            $oldData = $this->session->getSession();
+
+            $sessData = clone $oldData;
+            $sessData->userAgent = $_SERVER['HTTP_USER_AGENT'];
+            $this->session->rawUpdate($sessData);
+            $newData = $this->session->getSession();
+
+            return Redirect::to('/customer');
+        }
+
+        // Catch all
         $response = new ResponseProvider();
         return $this->render($response);
     }
