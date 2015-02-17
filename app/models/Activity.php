@@ -50,8 +50,8 @@ class Activity extends Eloquent
     {
         $this->ip_address = static::getIPAddress();
         $this->user_agent = static::getUserAgent();
-        $this->http_method = $_SERVER['REQUEST_METHOD'];
-        $this->request_uri = $_SERVER['REQUEST_URI'];
+        $this->http_method = static::getRequestMethod();
+        $this->request_uri = static::getRequestUri();
 
         if (isset($_POST) && ! empty($_POST)) {
             $post = $_POST;
@@ -479,5 +479,27 @@ class Activity extends Eloquent
     protected static function getUserAgent()
     {
         return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Unknown-UA/?';
+    }
+
+    /**
+     * Detect request method.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    protected static function getRequestMethod()
+    {
+        return isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'UNKNOWN';
+    }
+
+    /**
+     * Detect request Uri.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return string
+     */
+    protected static function getRequestUri()
+    {
+        return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'Activity: Unknown request Uri';
     }
 }
