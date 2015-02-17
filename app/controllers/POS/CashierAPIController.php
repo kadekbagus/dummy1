@@ -2577,7 +2577,7 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = \Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->first();
 
-            $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
+            $product = Product::with('tax1', 'tax2', 'variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
                        $query->where('retailer_id', $retailer->merchant_id);
                       })->excludeDeleted()->where('product_id', $product_id)->first();
 
