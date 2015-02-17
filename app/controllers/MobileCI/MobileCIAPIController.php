@@ -334,8 +334,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -347,10 +347,11 @@ class MobileCIAPIController extends ControllerAPI
             return \Redirect::to('/customer/welcome');
         } catch (Exception $e) {
             $retailer = $this->getRetailerInfo();
+            $user_email = '';
             if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.' || $e->getMessage() === 'IP address miss match.' || $e->getMessage() === 'User agent miss match.') {
-                return View::make('mobile-ci.signin', array('retailer'=>$retailer));
+                return View::make('mobile-ci.signin', array('retailer' => $retailer, 'user_email' => $user_email));
             } else {
-                return View::make('mobile-ci.signin', array('retailer'=>$retailer));
+                return View::make('mobile-ci.signin', array('retailer' => $retailer, 'user_email' => $user_email));
             }
         }
     }
@@ -3881,8 +3882,8 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
             $cartdata = $this->getCartForToolbar();
-
-            return View::make('mobile-ci.welcome', array('retailer'=>$retailer, 'user'=>$user, 'cartdata' => $cartdata));
+            $user_email = $user->user_email;
+            return View::make('mobile-ci.welcome', array('retailer'=>$retailer, 'user'=>$user, 'cartdata' => $cartdata, 'user_email' => $user_email));
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
         }
@@ -4723,7 +4724,7 @@ class MobileCIAPIController extends ControllerAPI
         if($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.' || $e->getMessage() === 'IP address miss match.' || $e->getMessage() === 'Session has ben expires.' || $e->getMessage() === 'User agent miss match.') {
             return \Redirect::to('/customer');
         } else {
-            return \Redirect::to('/customer/welcome');
+            return \Redirect::to('/customer/logout');
         }
     }
 
