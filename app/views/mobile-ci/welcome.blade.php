@@ -18,7 +18,31 @@
 @stop
 
 @section('content')
-
+  <div class="row top-space" id="signIn">
+    <div class="col-xs-12">
+      <header>
+        <div class="row vertically-spaced">
+          <div class="col-xs-12 text-center">
+            <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
+          </div>
+        </div>
+        <div class="row vertically-spaced">
+          <div class="col-xs-12 text-center">
+            <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
+          </div>
+        </div>
+      </header>
+      <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
+        <div class="form-group">
+          <input type="text" class="form-control" name="email" id="email" placeholder="Harap masukan alamat email Anda" />
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-info btn-block">Masuk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
   <div class="row top-space" id="signedIn">
     <div class="col-xs-12">
       <header>
