@@ -118,6 +118,42 @@
 @section('ext_script_bot')
   {{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
   <script type="text/javascript">
+    /**
+     * Get Query String from the URL
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string n - Name of the parameter
+     */
+    function get(n) {
+        var half = location.search.split(n + '=')[1];
+        return half !== undefined ? decodeURIComponent(half.split('&')[0]) : null;
+    }
+
+    /**
+     * Function to handle after loction process which used to trick the
+     * CaptivePortal Login Window such as in iPhone/iPad to open real browser.
+     *
+     * @author Rio Astamal <me@rioastamal>
+     * @param XMLHttpRequest|jqXHR xhr
+     * @return void
+     */
+    function afterLogin(xhr) {
+        // Get Session which returned by the Orbit backend named
+        // 'Set-X-Orbit-Session: SESSION_ID
+        var session_id = xhr.getResponseHeader('Set-X-Orbit-Session');
+        console.log('Session ID: ' + session_id);
+
+        // We will pass this session id to the application inside real browser
+        // so the it can recreate the session information and able to recognize
+        // the user.
+        var create_session_url = '{{ URL::Route("captive-portal") }}';
+        console.log('Create session URL: ' + create_session_url);
+
+        window.location = create_session_url + '?loadsession=' + session_id;
+
+        return;
+    }
+
     $(document).ready(function(){
       var em;
       var user_em = '{{ $user_email }}';
@@ -137,7 +173,7 @@
           // $.cookie('orbit_email', '-', { expires: 5 * 365, path: '/' });
           $('#signedIn').hide();
           $('#signIn').show();
-          
+
         } else {
           if($.cookie('orbit_email')){
             $('#signedIn').show();
@@ -152,15 +188,15 @@
           }
         }
       }
-      
+
       $('#notMe').click(function(){
         $.removeCookie('orbit_email', { path: '/' });
         window.location.replace('/customer/logout');
       });
       $('form[name="loginForm"]').submit(function(event){
-        
+
         $('.signedUser').text(em);
-        
+
         $('#signup').css('display','none');
         $('#errorModalText').text('');
         $('#emailSignUp').val('');
@@ -179,14 +215,21 @@
               data:{
                 email: em
               }
-            }).done(function(data){
+            }).done(function(data, status, xhr){
               if(data.status==='error'){
                 console.log(data);
               }
               if(data.data){
                 // console.log(data.data);
                 $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365, path: '/' });
-                window.location.replace(homePath);
+
+                // Check if we are redirected from captive portal
+                // The query string 'from_captive' are from apache configuration
+                if (get('from_captive') == 'yes') {
+                    afterLogin(xhr);
+                } else {
+                    window.location.replace(homePath);
+                }
               }
             }).fail(function(data){
               $('#errorModalText').text(data.responseJSON.message);
