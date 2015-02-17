@@ -290,4 +290,45 @@ class IntermediateLoginController extends IntermediateBaseController
         // Redirect back to /customer
         return Redirect::to('/customer');
     }
+
+    /**
+     * Captive Portal related tricks.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return mixed
+     */
+    public function getCaptive()
+    {
+        /**
+         * Handle the ?loadsession=SESSION_ID action
+         */
+        if (isset($_GET['loadsession'])) {
+            $cookieName = Config::get('orbit.session.session_origin.cookie.name');
+            $expire = Config::get('orbit.session.session_origin.cookie.expire');
+            $sessionId = $_GET['loadsession'];
+
+            // Send cookie containing our Session ID, so the new browser launched
+            // by the captive recognize user who loggged before
+            setcookie($cookieName, $sessionId, time() + $expire, '/', NULL, FALSE, TRUE);
+
+            $_COOKIE['orbit_sessionx'] = $sessionId;
+
+            // Needed to show some information on the view
+            try {
+                $retailer_id = Config::get('orbit.shop.id');
+                $retailer = Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+            } catch (Exception $e) {
+                $retailer = new stdClass();
+                // Fake some properties
+                $retailer->parent = new stdClass();
+                $retailer->parent->logo = '';
+            }
+
+            // Display a view which showing that page is loading
+            return View::make('mobile-ci/captive-loading', ['retailer' => $retailer]);
+        }
+
+        $response = new ResponseProvider();
+        return $this->render($response);
+    }
 }
