@@ -428,6 +428,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.adddelenadis($scope.productmodal['product_id'],'add');
                         if($scope.checkcart($scope.productmodal)){
                             $scope.cart.push({
+                                cart_id                : angular.copy($scope.productmodal['cart_id']),
                                 product_name           : angular.copy($scope.productmodal['product_name']),
                                 variants               : angular.copy($scope.variantstmp),
                                 promotion              : angular.copy($scope.datapromotion),
@@ -763,6 +764,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.productmodal['cartsummary'] = response.data.cartsummary;
                                     $scope.variantstmp                 = response.data.cartdetails[i]['variant'];
                                     $scope.productmodal['variants']    = response.data.cartdetails[i]['variant'];
+
                                     $scope.productmodal['idx']         = i;
 
                                     //promotion
@@ -789,6 +791,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                         $scope.productmodal.price    = accounting.formatMoney(price, "", 0, ",", ".");
                                         $scope.productmodal.afterpromotionprice = 0;
                                     }
+
                                     //coupon
                                     $scope.productmodal['coupon_for_this_product']  = response.data.cartdetails[i]['coupon_for_this_product'];
                                     if($scope.productmodal['coupon_for_this_product']){
@@ -802,6 +805,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                              discount += tmpdiscount;
                                         }
                                     }
+                                    $scope.productmodal['cart_id']     = response.data.cart.cart_id;
                                     $scope.inserttocartFn(true);
                                 }
 
