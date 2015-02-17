@@ -92,7 +92,7 @@
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr class="promotion">
-                               <th colspan="4" style="color: white"><h4>CART BASED PROMOTION</h4></th>
+                               <th colspan="4" style="color: white"><h4>CART BASED PROMOTIONS</h4></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -110,7 +110,7 @@
                     <table class="table  orbit-component table-noborder">
                         <thead>
                             <tr class="coupon">
-                               <th colspan="4" style="color: white"><h4>CART BASED COUPON</h4></th>
+                               <th colspan="4" style="color: white"><h4>CART BASED COUPONS</h4></th>
                             </tr>
                         </thead>
                         <tbody>

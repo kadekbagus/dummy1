@@ -358,16 +358,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.cartpromotions){
                             $scope.applycartpromotion      = [];
                             $scope.tmpvallues = '';
-                           
-                            for(var j = 0; j < $scope.cartpromotions.length;j++){
-                                if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
-                                    //add header subtotal before promotion
-                                    $scope.applycartpromotion.push({
+
+                            $scope.applycartpromotion.push({
                                       promotion_name : 'Subtotal',
                                       promotionrule : {
                                           discount_value :  $scope.cart.subtotal
                                       }
-                                    });
+                            });
+                            for(var j = 0; j < $scope.cartpromotions.length;j++){
+                                if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
+                                    //add header subtotal before promotion
+                                    
                                     var promotion = $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
                                     promotioncartbase += promotion;
                                     $scope.tmpvallues  = promotion;
@@ -387,6 +388,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         var couponcartbase          = 0;
                         if($scope.cartcoupon){
                             $scope.applycartcoupon      = [];
+
+                            $scope.applycartcoupon.push(
+                                {
+                                    issuedcoupon :{
+                                      promotion_name : 'Subtotal',
+                                      discount_value : $scope.cart.subtotal
+                                      }
+                           });
                             $scope.tmpvallues = '';
                             for(var m = 0; m < $scope.cartcoupon.length; m++){
                                 var coupon = $scope.cartcoupon[m]['issuedcoupon']['rule_type'] == 'cart_discount_by_percentage' ?  $scope.cartcoupon[m]['issuedcoupon']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartcoupon[m]['issuedcoupon']['discount_value']);
@@ -804,7 +813,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                  $scope.errorscancart = '';
                                  $scope.manualscancart = '';
                             }else if(response.code == 13 ){
-                                $scope.logoutfn();
+                                if(response.message == 'You have to login to view this page.'){
+                                    $scope.logoutfn();
+                                }
                             } else{
                                 //do something when error
                                 $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';

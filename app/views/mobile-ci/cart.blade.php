@@ -109,7 +109,13 @@
               </div>
             </div>
             @endforeach
-          
+
+            <div class="single-item-bodies @if($x % 2 == 0) even-line @endif" style="background:#ffac41; color:#623D0C; padding:4px;">
+              <div class="col-xs-12 text-center">
+                <span><i class="fa fa-plus-circle"></i> Use coupon for this item (1)</span>
+              </div>
+            </div>
+
         <?php $x++;?>
         @endforeach
             <div class="subtotal">
@@ -302,6 +308,7 @@
     </div>
     @endif
     
+    {{--
     @foreach($cartdata->cartsummary->taxes as $tax)
       @if(!empty($tax->total_tax))
       <div>
@@ -312,6 +319,7 @@
     <div>
       <span>Subtotal wo tax : {{ $cartdata->cartsummary->subtotal_wo_tax }}</span>
     </div>
+    --}}
     
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>

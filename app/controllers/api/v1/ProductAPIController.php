@@ -1269,7 +1269,6 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
@@ -1293,7 +1292,6 @@ class ProductAPIController extends ControllerAPI
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
             $this->response->data = null;
-            $httpCode = 500;
 
             // Rollback the changes
             $this->rollBack();
