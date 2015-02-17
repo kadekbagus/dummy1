@@ -710,7 +710,7 @@
 				
 			});
 			// add to cart
-			$('.family-list').on('click', 'a.product-add-to-cart', function(event){
+			$('.family-list').off('click', 'a.product-add-to-cart').on('click', 'a.product-add-to-cart', function(event){
 				$('#hasCouponModal .modal-body p').html('');
 				var cc = 0;
 				var used_coupons = [];
@@ -756,7 +756,7 @@
 							}
 						});
 						
-						$('#hasCouponModal').on('click', '#applyCoupon', function($event){
+						$('#hasCouponModal').off('click', '#applyCoupon').on('click', '#applyCoupon', function($event){
 							if(cc == 0) {
 								cc++;
 								$.ajax({
@@ -830,7 +830,7 @@
 							$('.cart-spinner').hide();
 						});
 
-						$('#hasCouponModal').on('click', '#denyCoupon', function($event){
+						$('#hasCouponModal').off('click', '#denyCoupon').on('click', '#denyCoupon', function($event){
 							if(cc == 0) {
 								cc++;
 								$.ajax({
