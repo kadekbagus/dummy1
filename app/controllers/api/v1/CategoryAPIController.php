@@ -31,6 +31,11 @@ class CategoryAPIController extends ControllerAPI
      */
     public function postNewCategory()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newcategory = NULL;
         try {
             $httpCode = 200;
 
@@ -108,6 +113,15 @@ class CategoryAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Category Created: %s', $newcategory->category_name);
+            $activity->setUser($user)
+                    ->setActivityName('create_category')
+                    ->setActivityNameLong('Create Category OK')
+                    ->setObject($newcategory)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.category.postnewcategory.after.commit', array($this, $newcategory));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.category.postnewcategory.access.forbidden', array($this, $e));
@@ -120,6 +134,13 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_category')
+                    ->setActivityNameLong('Create Category Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.category.postnewcategory.invalid.arguments', array($this, $e));
 
@@ -131,6 +152,13 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_category')
+                    ->setActivityNameLong('Create Category Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.category.postnewcategory.query.error', array($this, $e));
 
@@ -148,6 +176,13 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_category')
+                    ->setActivityNameLong('Create Category Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.category.postnewcategory.general.exception', array($this, $e));
 
@@ -158,7 +193,17 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_category')
+                    ->setActivityNameLong('Create Category Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -183,6 +228,11 @@ class CategoryAPIController extends ControllerAPI
      */
     public function postUpdateCategory()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updatedcategory = NULL;
         try {
             $httpCode=200;
 
@@ -286,6 +336,15 @@ class CategoryAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Category updated: %s', $updatedcategory->category_name);
+            $activity->setUser($user)
+                    ->setActivityName('update_category')
+                    ->setActivityNameLong('Update Category OK')
+                    ->setObject($updatedcategory)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.category.postupdatecategory.after.commit', array($this, $updatedcategory));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.category.postupdatecategory.access.forbidden', array($this, $e));
@@ -298,6 +357,14 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_category')
+                    ->setActivityNameLong('Update Category Failed')
+                    ->setObject($updatedcategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.category.postupdatecategory.invalid.arguments', array($this, $e));
 
@@ -309,6 +376,14 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_category')
+                    ->setActivityNameLong('Update Category Failed')
+                    ->setObject($updatedcategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.category.postupdatecategory.query.error', array($this, $e));
 
@@ -326,6 +401,14 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_category')
+                    ->setActivityNameLong('Update Category Failed')
+                    ->setObject($updatedcategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.category.postupdatecategory.general.exception', array($this, $e));
 
@@ -336,7 +419,18 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_category')
+                    ->setActivityNameLong('Update Category Failed')
+                    ->setObject($updatedcategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
 
@@ -355,6 +449,11 @@ class CategoryAPIController extends ControllerAPI
      */
     public function postDeleteCategory()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deletecategory = NULL;
         try {
             $httpCode = 200;
 
@@ -418,6 +517,15 @@ class CategoryAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Category Deleted: %s', $deletecategory->category_name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_category')
+                    ->setActivityNameLong('Delete Category OK')
+                    ->setObject($deletecategory)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.category.postdeletecategory.after.commit', array($this, $deletecategory));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.category.postdeletecategory.access.forbidden', array($this, $e));
@@ -430,6 +538,14 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_category')
+                    ->setActivityNameLong('Delete Category Failed')
+                    ->setObject($deletecategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.category.postdeletecategory.invalid.arguments', array($this, $e));
 
@@ -441,6 +557,14 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_category')
+                    ->setActivityNameLong('Delete Category Failed')
+                    ->setObject($deletecategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.category.postdeletecategory.query.error', array($this, $e));
 
@@ -458,6 +582,14 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_category')
+                    ->setActivityNameLong('Delete Category Failed')
+                    ->setObject($deletecategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.category.postdeletecategory.general.exception', array($this, $e));
 
@@ -468,10 +600,21 @@ class CategoryAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_category')
+                    ->setActivityNameLong('Delete Category Failed')
+                    ->setObject($deletecategory)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
         Event::fire('orbit.category.postdeletecategory.before.render', array($this, $output));
+
+        // Save the activity
+        $activity->save();
 
         return $output;
     }
