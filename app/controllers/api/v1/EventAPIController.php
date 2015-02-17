@@ -41,6 +41,11 @@ class EventAPIController extends ControllerAPI
      */
     public function postNewEvent()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newevent = NULL;
         try {
             $httpCode = 200;
 
@@ -184,6 +189,15 @@ class EventAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Event Created: %s', $newevent->event_name);
+            $activity->setUser($user)
+                    ->setActivityName('create_event')
+                    ->setActivityNameLong('Create Event OK')
+                    ->setObject($newevent)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.event.postnewevent.after.commit', array($this, $newevent));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.event.postnewevent.access.forbidden', array($this, $e));
@@ -196,6 +210,13 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_event')
+                    ->setActivityNameLong('Create Event Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.event.postnewevent.invalid.arguments', array($this, $e));
 
@@ -207,6 +228,13 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_event')
+                    ->setActivityNameLong('Create Event Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.event.postnewevent.query.error', array($this, $e));
 
@@ -224,6 +252,13 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_event')
+                    ->setActivityNameLong('Create Event Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.event.postnewevent.general.exception', array($this, $e));
 
@@ -234,7 +269,17 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_event')
+                    ->setActivityNameLong('Create Event Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -270,6 +315,11 @@ class EventAPIController extends ControllerAPI
      */
     public function postUpdateEvent()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updatedevent = NULL;
         try {
             $httpCode=200;
 
@@ -491,6 +541,15 @@ class EventAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Event updated: %s', $updatedevent->event_name);
+            $activity->setUser($user)
+                    ->setActivityName('update_event')
+                    ->setActivityNameLong('Update Event OK')
+                    ->setObject($updatedevent)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.event.postupdateevent.after.commit', array($this, $updatedevent));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.event.postupdateevent.access.forbidden', array($this, $e));
@@ -503,6 +562,14 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_event')
+                    ->setActivityNameLong('Update Event Failed')
+                    ->setObject($updatedevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.event.postupdateevent.invalid.arguments', array($this, $e));
 
@@ -514,6 +581,14 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_event')
+                    ->setActivityNameLong('Update Event Failed')
+                    ->setObject($updatedevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.event.postupdateevent.query.error', array($this, $e));
 
@@ -531,6 +606,14 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_event')
+                    ->setActivityNameLong('Update Event Failed')
+                    ->setObject($updatedevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.event.postupdateevent.general.exception', array($this, $e));
 
@@ -541,7 +624,18 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_event')
+                    ->setActivityNameLong('Update Event Failed')
+                    ->setObject($updatedevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
 
@@ -560,6 +654,11 @@ class EventAPIController extends ControllerAPI
      */
     public function postDeleteEvent()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deleteevent = NULL;
         try {
             $httpCode = 200;
 
@@ -629,6 +728,15 @@ class EventAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Event Deleted: %s', $deleteevent->event_name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_event')
+                    ->setActivityNameLong('Delete Event OK')
+                    ->setObject($deleteevent)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.event.postdeleteevent.after.commit', array($this, $deleteevent));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.event.postdeleteevent.access.forbidden', array($this, $e));
@@ -641,6 +749,14 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_event')
+                    ->setActivityNameLong('Delete Event Failed')
+                    ->setObject($deleteevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.event.postdeleteevent.invalid.arguments', array($this, $e));
 
@@ -652,6 +768,14 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_event')
+                    ->setActivityNameLong('Delete Event Failed')
+                    ->setObject($deleteevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.event.postdeleteevent.query.error', array($this, $e));
 
@@ -669,6 +793,14 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_event')
+                    ->setActivityNameLong('Delete Event Failed')
+                    ->setObject($deleteevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.event.postdeleteevent.general.exception', array($this, $e));
 
@@ -679,9 +811,21 @@ class EventAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_event')
+                    ->setActivityNameLong('Delete Event Failed')
+                    ->setObject($deleteevent)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
+
+        // Save the activity
+        $activity->save();
+
         return $output;
     }
 
