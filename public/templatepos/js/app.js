@@ -804,7 +804,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                  $scope.errorscancart = '';
                                  $scope.manualscancart = '';
                             }else if(response.code == 13 ){
-                                $scope.logoutfn();
+                                if(response.message == 'You have to login to view this page.'){
+                                    $scope.logoutfn();
+                                }
                             } else{
                                 //do something when error
                                 $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';

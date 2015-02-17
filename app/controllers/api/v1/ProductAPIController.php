@@ -602,12 +602,8 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Failed Update
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('update_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('update_product')
                             ->setActivityNameLong('Update Product Failed')
                             ->setObject($updatedproduct)
                             ->setNotes($e->getMessage())
@@ -625,12 +621,8 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Failed Update
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('update_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('update_product')
                             ->setActivityNameLong('Update Product Failed')
                             ->setObject($updatedproduct)
                             ->setNotes($e->getMessage())
@@ -654,12 +646,8 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Failed Update
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('update_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('update_product')
                             ->setActivityNameLong('Update Product Failed')
                             ->setObject($updatedproduct)
                             ->setNotes($e->getMessage())
@@ -681,12 +669,8 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Failed Update
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('update_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('update_product')
                             ->setActivityNameLong('Update Product Failed')
                             ->setObject($updatedproduct)
                             ->setNotes($e->getMessage())
@@ -1273,12 +1257,8 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Creation failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('create_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('create_product')
                             ->setActivityNameLong('Create Product Failed')
                             ->setNotes($e->getMessage())
                             ->responseFailed();
@@ -1289,18 +1269,13 @@ class ProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
 
             // Creation failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('create_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('create_product')
                             ->setActivityNameLong('Create Product Failed')
                             ->setNotes($e->getMessage())
                             ->responseFailed();
@@ -1317,18 +1292,13 @@ class ProductAPIController extends ControllerAPI
                 $this->response->message = Lang::get('validation.orbit.queryerror');
             }
             $this->response->data = null;
-            $httpCode = 500;
 
             // Rollback the changes
             $this->rollBack();
 
             // Creation failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('create_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('create_product')
                             ->setActivityNameLong('Create Product Failed')
                             ->setNotes($e->getMessage())
                             ->responseFailed();
@@ -1349,12 +1319,8 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Creation failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('create_product')
+            $activityProduct->setUser($user)
+                            ->setActivityName('create_product')
                             ->setActivityNameLong('Create Product Failed')
                             ->setNotes($e->getMessage())
                             ->responseFailed();
@@ -1380,10 +1346,10 @@ class ProductAPIController extends ControllerAPI
     public function postDeleteProduct()
     {
         $activityProduct = Activity::portal()
-                                   ->setActivityType('create');
+                                   ->setActivityType('delete');
 
         $user = NULL;
-        $deletedproduct = NULL;
+        $deleteproduct = NULL;
 
         try {
             $httpCode = 200;
@@ -1456,11 +1422,11 @@ class ProductAPIController extends ControllerAPI
             $this->commit();
 
             // Successfull Creation
-            $activityProductNotes = sprintf('Product Deleted: %s', $newproduct->product_name);
+            $activityProductNotes = sprintf('Product Deleted: %s', $deleteproduct->product_name);
             $activityProduct->setUser($user)
                             ->setActivityName('delete_product')
                             ->setActivityNameLong('Delete Product OK')
-                            ->setObject($deletedproduct)
+                            ->setObject($deleteproduct)
                             ->setNotes($activityProductNotes)
                             ->responseOK();
 
@@ -1478,18 +1444,11 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Deletion failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('delete_product')
-                            ->setActivityNameLong('Delete Product Failed');
-
-            if (is_object($deletedproduct)) {
-                $activityProduct->setObject($deletedproduct);
-            }
-            $activityProduct->setNotes($e->getMessage())
+            $activityProduct->setUser($user)
+                            ->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed')
+                            ->setObject($deleteproduct)
+                            ->setNotes($e->getMessage())
                             ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postdeleteproduct.invalid.arguments', array($this, $e));
@@ -1504,18 +1463,11 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Deletion failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('delete_product')
-                            ->setActivityNameLong('Delete Product Failed');
-
-            if (is_object($deletedproduct)) {
-                $activityProduct->setObject($deletedproduct);
-            }
-            $activityProduct->setNotes($e->getMessage())
+            $activityProduct->setUser($user)
+                            ->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed')
+                            ->setObject($deleteproduct)
+                            ->setNotes($e->getMessage())
                             ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postdeleteproduct.query.error', array($this, $e));
@@ -1536,18 +1488,11 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Deletion failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('delete_product')
-                            ->setActivityNameLong('Delete Product Failed');
-
-            if (is_object($deletedproduct)) {
-                $activityProduct->setObject($deletedproduct);
-            }
-            $activityProduct->setNotes($e->getMessage())
+            $activityProduct->setUser($user)
+                            ->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed')
+                            ->setObject($deleteproduct)
+                            ->setNotes($e->getMessage())
                             ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postdeleteproduct.general.exception', array($this, $e));
@@ -1561,33 +1506,11 @@ class ProductAPIController extends ControllerAPI
             $this->rollBack();
 
             // Deletion failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('delete_product')
-                            ->setActivityNameLong('Delete Product Failed');
-
-            if (is_object($deletedproduct)) {
-                $activityProduct->setObject($deletedproduct);
-            }
-            $activityProduct->setNotes($e->getMessage())
-                            ->responseFailed();
-
-            // Deletion failed Activity log
-            if (is_object($user)) {
-                $activityProduct->setUser($user);
-            } else {
-                $activityProduct->setUser('guest');
-            }
-            $activityProduct->setActivityName('delete_product')
-                            ->setActivityNameLong('Delete Product Failed');
-
-            if (is_object($deletedproduct)) {
-                $activityProduct->setObject($deletedproduct);
-            }
-            $activityProduct->setNotes($e->getMessage())
+            $activityProduct->setUser($user)
+                            ->setActivityName('delete_product')
+                            ->setActivityNameLong('Delete Product Failed')
+                            ->setObject($deleteproduct)
+                            ->setNotes($e->getMessage())
                             ->responseFailed();
         }
 
@@ -2001,11 +1924,6 @@ class ProductAPIController extends ControllerAPI
             if (! empty($variantProduct->first())) {
                 $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-
-            if ($product->product_id == 3) {
-                $x = DB::getQueryLog();
-                print_r(end($x));
             }
         }
 
