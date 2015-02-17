@@ -31,6 +31,7 @@ use Activity;
 use \CartDetail;
 use \Promotion;
 use \Coupon;
+use \IssuedCoupon;
 
 class CashierAPIController extends ControllerAPI
 {
@@ -750,9 +751,9 @@ class CashierAPIController extends ControllerAPI
             $customer_id      = trim(OrbitInput::post('customer_id'));
             $payment_method   = trim(OrbitInput::post('payment_method'));
             $cart             = OrbitInput::post('cart'); //data of array
-            $issued_coupon_id = OrbitInput::post('issued_coupon_id');  // data of array
             $cart_promotion   = OrbitInput::post('cart_promotion'); // data of array
             $cart_coupon      = OrbitInput::post('cart_coupon'); // data of array
+            $cart_id = null;
 
             $activity_payment = 'payment_cash';
             $activity_payment_label = 'Payment Cash';
@@ -771,6 +772,7 @@ class CashierAPIController extends ControllerAPI
                 $customer = User::excludeDeleted()->find($customer_id);
             }
             
+            dd($cart[0]['cart_id']);
 
             $validator = Validator::make(
                 array(
@@ -781,10 +783,8 @@ class CashierAPIController extends ControllerAPI
                     'tendered'         => $tendered,
                     'change'           => $change,
                     'cashier_id'       => $cashier_id,
-                    'customer_id'      => $customer_id,
                     'payment_method'   => $payment_method,
                     'cart'             => $cart,
-                    'issued_coupon_id' => $issued_coupon_id,
                 ),
                 array(
                     'total_item'       => 'required',
@@ -794,10 +794,8 @@ class CashierAPIController extends ControllerAPI
                     'tendered'         => 'required',
                     'change'           => 'required',
                     'cashier_id'       => 'required',
-                    // 'customer_id'      => 'required',
                     'payment_method'   => 'required',
                     'cart'             => 'required',
-                    // 'issued_coupon_id' => 'required',
                 )
             );
 
@@ -829,7 +827,7 @@ class CashierAPIController extends ControllerAPI
 
             //insert to table transaction_details
             foreach($cart as $cart_key => $cart_value){
-
+                $cart_id = $cart_value['cart_id'];
                 $transactiondetail = new \TransactionDetail();
                 $transactiondetail->transaction_id              = $transaction->transaction_id;
                 $transactiondetail->product_id                  = $cart_value['product_id'];
@@ -949,7 +947,7 @@ class CashierAPIController extends ControllerAPI
                     }
                 }
 
-//['coupon_for_this_product']['issuedcoupon']
+
                 // product based coupon
                 if(!empty($cart_value['product_details']['coupon_for_this_product'])){
                     foreach ($cart_value['product_details']['coupon_for_this_product'] as $key => $value) {
@@ -1008,8 +1006,6 @@ class CashierAPIController extends ControllerAPI
                             $discount_value = $this->removeFormat($value['promotionrule']['discount_value']);
                             $transactiondetailpromotion->discount_value = $discount_value;
                             $transactiondetailpromotion->value_after_percentage = $discount_value;
-                            // echo $value['promotionrule']['discount_value'];
-                            // echo $discount_value;
                         }
                         $transactiondetailpromotion->description = $value['description'];
                         $transactiondetailpromotion->begin_date = $value['begin_date'];
@@ -1073,78 +1069,89 @@ class CashierAPIController extends ControllerAPI
 
             // issue coupon redeemed
             // foreach($issue_coupon_id as $issued_coupon_id_key => $issued_coupon_id_value){
-            //     $issue_coupon = IssuedCoupon::->excludeDeleted()->where('issued_coupon_id', $issued_coupon_id_value)->first();
+            //     $issue_coupon = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $issued_coupon_id_value)->first();
             //     $issue_coupon->status = "redeemed";
             //     $issue_coupon->save();
             // }
 
-
             // issue product based coupons (if any)
-            // if($customer_id!=0 ||$customer_id!=NULL){
-            //     foreach($cart as $k => $v){
-            //         $product_id = $v['product_id'];
-            //         $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-            //         inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
-            //         inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-            //         inner join ' . DB::getTablePrefix() . 'products prod on
-            //         (
-            //             (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-            //             OR
-            //             (
-            //                 (pr.discount_object_type="family") AND 
-            //                 ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-            //                 ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-            //                 ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-            //                 ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-            //                 ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-            //             )
-            //         )
-            //         WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
-            //         if($coupons!=NULL){
-            //             foreach($coupons as $k => $v){
-            //                 $issue_coupon = new \IssuedCoupon();
-            //                 $issue_coupon->promotion_id = $v['promotion_id'];
-            //                 $issue_coupon->issued_coupon_code = '';
-            //                 $issue_coupon->user_id = $customer_id;
-            //                 $issue_coupon->expired_date = Carbon::now()->addDays($v['coupon_validity_in_days']);
-            //                 $issue_coupon->issued_date = Carbon::now();
-            //                 $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-            //                 $issue_coupon->status = 'active';
-            //                 $issue_coupon->save();
-            //                 $issue_coupon->issued_coupon_code = $this->ISSUE_COUPON_INCREMENT+$issue_coupon->issue_coupon_id;
-            //                 $issue_coupon->save(); 
-            //             }  
-            //         }
-            //     }
-            // }
+            if($customer_id!=0 ||$customer_id!=NULL){
+                foreach($cart as $k => $v){
+                    $product_id = $v['product_id'];
+                    
+                    $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                    inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                    inner join ' . DB::getTablePrefix() . 'products prod on
+                    (
+                        (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                        OR
+                        (
+                            (pr.rule_object_type="family") AND 
+                            ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
+                            ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
+                            ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
+                            ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
+                            ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                        )
+                    )
+                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
 
-
+                    // dd($coupons);
+                    if($coupons!=NULL){
+                        foreach($coupons as $c){
+                            $issue_coupon = new IssuedCoupon;
+                            $issue_coupon->promotion_id = $c->promotion_id;
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                            $issue_coupon->save(); 
+                        }  
+                    }
+                }
+            }
 
             // issue cart based coupons (if any)
-            // if($customer_id!=0 ||$customer_id!=NULL){
-            //     $coupons = Coupon::with('couponrule')->excludeDeleted()
-            //     ->where('merchant_id',$retailer->parent_id)
-            //     ->where('promotion_type','cart')->get()->toArray();
-                
-            //     if(is_array($coupons)){
-            //         foreach($coupons as $kupon){
-            //             if($total_to_pay >= $kupon['couponrule']['rule_value']){
-            //                 $issue_coupon = new \IssuedCoupon();
-            //                 $issue_coupon->promotion_id = $kupon['promotion_id'];
-            //                 $issue_coupon->issued_coupon_code = '';
-            //                 $issue_coupon->user_id = $customer_id;
-            //                 $issue_coupon->expired_date = Carbon::now()->addDays($kupon['coupon_validity_in_days']);
-            //                 $issue_coupon->issued_date = Carbon::now();
-            //                 $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-            //                 $issue_coupon->status = 'active';
-            //                 $issue_coupon->save();
-            //                 $issue_coupon->issued_coupon_code = $this->ISSUE_COUPON_INCREMENT+$issue_coupon->issue_coupon_id;
-            //                 $issue_coupon->save();
-            //             }
-            //         }
-            //     }
-            // }
+            if($customer_id!=0 ||$customer_id!=NULL){
+                $coupon_carts = Coupon::join('promotion_rules', function($q) use($total_to_pay)
+                {
+                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.rule_value', '<=', $total_to_pay);
+                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->get();
+                // dd($coupon_carts);
+                if(!empty($coupon_carts)){
+                    foreach($coupon_carts as $kupon){
+                        $issue_coupon = new IssuedCoupon;
+                        $issue_coupon->promotion_id = $kupon->promotion_id;
+                        $issue_coupon->issued_coupon_code = '';
+                        $issue_coupon->user_id = $customer_id;
+                        $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                        $issue_coupon->issued_date = Carbon::now();
+                        $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                        $issue_coupon->status = 'active';
+                        $issue_coupon->save();
+                        $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                        $issue_coupon->save();
+                    }
+                }
+            }
 
+            // delete the cart
+            if($cart_id!=NULL){
+                $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+                $cart_delete->status = "deleted";
+                $cart_delete->save();
+                $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            }
+            
 
             $this->response->data = $transaction;
             $this->commit();
