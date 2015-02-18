@@ -772,7 +772,6 @@ class CashierAPIController extends ControllerAPI
                 $customer = User::excludeDeleted()->find($customer_id);
             }
             
-            dd($cart[0]['cart_id']);
 
             $validator = Validator::make(
                 array(
@@ -977,6 +976,13 @@ class CashierAPIController extends ControllerAPI
                             $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
                             $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
                             $transactiondetailcoupon->save();
+
+                            // coupon redeemed
+                            if(!empty($value['issuedcoupon']['issued_coupon_id'])){
+                                $coupon_id = intval($value['issuedcoupon']['issued_coupon_id']);
+                                //echo $coupon_id."<br/>";
+                                $coupon_redeemed = IssuedCoupon::where('status', 'active')->where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
+                            }
                     }
                 }
 
@@ -1054,6 +1060,13 @@ class CashierAPIController extends ControllerAPI
                         $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
                         $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
                         $transactiondetailcoupon->save();
+
+                        // coupon redeemed
+                        if(!empty($value['issuedcoupon']['issued_coupon_id'])){
+                            $coupon_id = intval($value['issuedcoupon']['issued_coupon_id']);
+                            //echo $coupon_id."<br/>";
+                            $coupon_redeemed = IssuedCoupon::where('status', 'active')->where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
+                        }
                     }
                 }
             }
@@ -1067,12 +1080,6 @@ class CashierAPIController extends ControllerAPI
             // $transactiondetailtax->tax_order = ;
             // $transactiondetailtax->save();
 
-            // issue coupon redeemed
-            // foreach($issue_coupon_id as $issued_coupon_id_key => $issued_coupon_id_value){
-            //     $issue_coupon = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $issued_coupon_id_value)->first();
-            //     $issue_coupon->status = "redeemed";
-            //     $issue_coupon->save();
-            // }
 
             // issue product based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
@@ -1145,12 +1152,12 @@ class CashierAPIController extends ControllerAPI
             }
 
             // delete the cart
-            if($cart_id!=NULL){
-                $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
-                $cart_delete->status = "deleted";
-                $cart_delete->save();
-                $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
-            }
+            // if($cart_id!=NULL){
+            //     $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+            //     $cart_delete->status = "deleted";
+            //     $cart_delete->save();
+            //     $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            // }
             
 
             $this->response->data = $transaction;
