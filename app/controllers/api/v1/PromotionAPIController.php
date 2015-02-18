@@ -43,6 +43,11 @@ class PromotionAPIController extends ControllerAPI
      */
     public function postNewPromotion()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newpromotion = NULL;
         try {
             $httpCode = 200;
 
@@ -200,6 +205,15 @@ class PromotionAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Promotion Created: %s', $newpromotion->promotion_name);
+            $activity->setUser($user)
+                    ->setActivityName('create_promotion')
+                    ->setActivityNameLong('Create Promotion OK')
+                    ->setObject($newpromotion)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.promotion.postnewpromotion.after.commit', array($this, $newpromotion));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.promotion.postnewpromotion.access.forbidden', array($this, $e));
@@ -212,6 +226,13 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_promotion')
+                    ->setActivityNameLong('Create Promotion Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.promotion.postnewpromotion.invalid.arguments', array($this, $e));
 
@@ -223,6 +244,13 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_promotion')
+                    ->setActivityNameLong('Create Promotion Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.promotion.postnewpromotion.query.error', array($this, $e));
 
@@ -240,6 +268,13 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_promotion')
+                    ->setActivityNameLong('Create Promotion Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.promotion.postnewpromotion.general.exception', array($this, $e));
 
@@ -250,7 +285,17 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_promotion')
+                    ->setActivityNameLong('Create Promotion Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -288,6 +333,11 @@ class PromotionAPIController extends ControllerAPI
      */
     public function postUpdatePromotion()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updatedpromotion = NULL;
         try {
             $httpCode=200;
 
@@ -532,6 +582,15 @@ class PromotionAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Promotion updated: %s', $updatedpromotion->promotion_name);
+            $activity->setUser($user)
+                    ->setActivityName('update_promotion')
+                    ->setActivityNameLong('Update Promotion OK')
+                    ->setObject($updatedpromotion)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.promotion.postupdatepromotion.after.commit', array($this, $updatedpromotion));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.promotion.postupdatepromotion.access.forbidden', array($this, $e));
@@ -544,6 +603,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_promotion')
+                    ->setActivityNameLong('Update Promotion Failed')
+                    ->setObject($updatedpromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.promotion.postupdatepromotion.invalid.arguments', array($this, $e));
 
@@ -555,6 +622,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_promotion')
+                    ->setActivityNameLong('Update Promotion Failed')
+                    ->setObject($updatedpromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.promotion.postupdatepromotion.query.error', array($this, $e));
 
@@ -572,6 +647,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_promotion')
+                    ->setActivityNameLong('Update Promotion Failed')
+                    ->setObject($updatedpromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.promotion.postupdatepromotion.general.exception', array($this, $e));
 
@@ -582,7 +665,18 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_promotion')
+                    ->setActivityNameLong('Update Promotion Failed')
+                    ->setObject($updatedpromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
 
@@ -601,6 +695,11 @@ class PromotionAPIController extends ControllerAPI
      */
     public function postDeletePromotion()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deletepromotion = NULL;
         try {
             $httpCode = 200;
 
@@ -670,6 +769,15 @@ class PromotionAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Promotion Deleted: %s', $deletepromotion->promotion_name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_promotion')
+                    ->setActivityNameLong('Delete Promotion OK')
+                    ->setObject($deletepromotion)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.promotion.postdeletepromotion.after.commit', array($this, $deletepromotion));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.promotion.postdeletepromotion.access.forbidden', array($this, $e));
@@ -682,6 +790,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_promotion')
+                    ->setActivityNameLong('Delete Promotion Failed')
+                    ->setObject($deletepromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.promotion.postdeletepromotion.invalid.arguments', array($this, $e));
 
@@ -693,6 +809,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_promotion')
+                    ->setActivityNameLong('Delete Promotion Failed')
+                    ->setObject($deletepromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.promotion.postdeletepromotion.query.error', array($this, $e));
 
@@ -710,6 +834,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_promotion')
+                    ->setActivityNameLong('Delete Promotion Failed')
+                    ->setObject($deletepromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.promotion.postdeletepromotion.general.exception', array($this, $e));
 
@@ -720,9 +852,21 @@ class PromotionAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_promotion')
+                    ->setActivityNameLong('Delete Promotion Failed')
+                    ->setObject($deletepromotion)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
+
+        // Save the activity
+        $activity->save();
+
         return $output;
     }
 

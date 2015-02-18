@@ -24,6 +24,11 @@ class RetailerAPIController extends ControllerAPI
      */
     public function postDeleteRetailer()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deleteretailer = NULL;
         try {
             $httpCode = 200;
 
@@ -91,6 +96,15 @@ class RetailerAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Retailer Deleted: %s', $deleteretailer->name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_retailer')
+                    ->setActivityNameLong('Delete Retailer OK')
+                    ->setObject($deleteretailer)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.retailer.postdeleteretailer.after.commit', array($this, $deleteretailer));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.retailer.postdeleteretailer.access.forbidden', array($this, $e));
@@ -103,6 +117,14 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_retailer')
+                    ->setActivityNameLong('Delete Retailer Failed')
+                    ->setObject($deleteretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.retailer.postdeleteretailer.invalid.arguments', array($this, $e));
 
@@ -114,6 +136,14 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_retailer')
+                    ->setActivityNameLong('Delete Retailer Failed')
+                    ->setObject($deleteretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.retailer.postdeleteretailer.query.error', array($this, $e));
 
@@ -131,6 +161,14 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_retailer')
+                    ->setActivityNameLong('Delete Retailer Failed')
+                    ->setObject($deleteretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postdeleteretailer.general.exception', array($this, $e));
 
@@ -141,10 +179,21 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_retailer')
+                    ->setActivityNameLong('Delete Retailer Failed')
+                    ->setObject($deleteretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
         Event::fire('orbit.retailer.postdeleteretailer.before.render', array($this, $output));
+
+        // Save the activity
+        $activity->save();
 
         return $output;
     }
@@ -199,6 +248,11 @@ class RetailerAPIController extends ControllerAPI
      */
     public function postNewRetailer()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newretailer = NULL;
         try {
             $httpCode = 200;
 
@@ -346,6 +400,15 @@ class RetailerAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Retailer Created: %s', $newretailer->name);
+            $activity->setUser($user)
+                    ->setActivityName('create_retailer')
+                    ->setActivityNameLong('Create Retailer OK')
+                    ->setObject($newretailer)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.retailer.postnewretailer.after.commit', array($this, $newretailer));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.retailer.postnewretailer.access.forbidden', array($this, $e));
@@ -358,6 +421,13 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_retailer')
+                    ->setActivityNameLong('Create Retailer Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.retailer.postnewretailer.invalid.arguments', array($this, $e));
 
@@ -369,6 +439,13 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_retailer')
+                    ->setActivityNameLong('Create Retailer Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.retailer.postnewretailer.query.error', array($this, $e));
 
@@ -386,6 +463,13 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_retailer')
+                    ->setActivityNameLong('Create Retailer Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postnewretailer.general.exception', array($this, $e));
 
@@ -396,7 +480,17 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_retailer')
+                    ->setActivityNameLong('Create Retailer Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -448,6 +542,11 @@ class RetailerAPIController extends ControllerAPI
      */
     public function postUpdateRetailer()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updatedretailer = NULL;
         try {
             $httpCode=200;
 
@@ -678,6 +777,15 @@ class RetailerAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Retailer updated: %s', $updatedretailer->name);
+            $activity->setUser($user)
+                    ->setActivityName('update_retailer')
+                    ->setActivityNameLong('Update Retailer OK')
+                    ->setObject($updatedretailer)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.retailer.postupdateretailer.after.commit', array($this, $updatedretailer));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.retailer.postupdateretailer.access.forbidden', array($this, $e));
@@ -690,6 +798,14 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_retailer')
+                    ->setActivityNameLong('Update Retailer Failed')
+                    ->setObject($updatedretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.retailer.postupdateretailer.invalid.arguments', array($this, $e));
 
@@ -701,6 +817,14 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_retailer')
+                    ->setActivityNameLong('Update Retailer Failed')
+                    ->setObject($updatedretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.retailer.postupdateretailer.query.error', array($this, $e));
 
@@ -718,6 +842,14 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_retailer')
+                    ->setActivityNameLong('Update Retailer Failed')
+                    ->setObject($updatedretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postupdateretailer.general.exception', array($this, $e));
 
@@ -728,7 +860,18 @@ class RetailerAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_retailer')
+                    ->setActivityNameLong('Update Retailer Failed')
+                    ->setObject($updatedretailer)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
 
