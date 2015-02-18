@@ -1,6 +1,6 @@
 /**
  * Created with JetBrains PhpStorm.
- * User: julisman
+ * User: julisman and ahmad
  * Date: 1/12/14
  * Time: 3:18 PM
  * http://blog.julisman.com
@@ -333,52 +333,172 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.cart.vat        = 0;
                         var tmphargatotal      = 0;
                         var tmpvattotal        = 0;
-
+                        var tmphargatotalwotax = 0;
+                        var tmphargatotaltax   = 0;
+                        var taxpromo=0;
                         for(var i = 0; i < $scope.cart.length ; i++){
                             if($scope.cart[i]['qty'] > 0){
                                 var vat             = 0;
                                 var tmpvat          = 0;
                                 var service         = 0;
                                 var tmpservice      = 0;
-                                
-                                $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] *  accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
+                                var pricewotax      = 0;
+                                var pricetax        = 0;
+                                $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] * accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
                                 //promotion
                                 var promotionprice = 0;
                                 var couponprice    = 0;
-                                if($scope.cart[i]['promotion']){
-                                    for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
-                                        promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
-                                    }
-                                }
-                                if($scope.cart[i]['coupon']){
-                                    for(var b= 0; b < $scope.cart[i]['coupon'].length;b++){
-                                        couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
-                                    }
-                                }
-                                tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
-                                $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+                                // if($scope.cart[i]['promotion']){
+                                //     for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
+                                //         promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
+                                //     }
+                                // }                             
 
                                 if($scope.vat_included == 'yes'){                                    
                                     if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
                                         tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
                                         vat        = accounting.unformat($scope.cart[i]['hargatotal']) - tmpvat;  
                                         tmpservice = tmpvat / (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));     
-                                        service    = tmpvat - tmpservice;   
+                                        service    = tmpvat - tmpservice;
+                                        pricewotax = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']) + (parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']))); 
                                     }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
                                         tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
                                         vat        = tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
                                         service    = tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                        pricewotax = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
                                     } 
-                                     
-                                     tmpvattotal += (vat + service);  
-                                } 
+                                    tmphargatotalwotax += pricewotax; 
+                                    tmpvattotal += (vat + service);  
+                                    var promo_tmpvat, promo_vat, promo_tmpservice, promo_service;
+                                    if($scope.cart[i]['promotion']){
+                                        for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
+                                            promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
+                                            var promo = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
+                                            var promo_valuewotax;
+                                            if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                                promo_tmpvat     = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
+                                                promo_vat        = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) - promo_tmpvat;  
+                                                promo_tmpservice = promo_tmpvat / (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));     
+                                                promo_service    = promo_tmpvat - promo_tmpservice;   
+                                                promo_valuewotax = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']) + (parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']))); 
+                                            }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                                promo_tmpvat     = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                                promo_vat        = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                                promo_service    = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                                promo_valuewotax = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
+                                            }
+                                            tmphargatotalwotax -= promo_valuewotax;
+                                            tmpvattotal -= (promo_vat + promo_service);
+                                        }
+                                    }
+                                    if($scope.cart[i]['coupon']){
+                                        for(var b= 0; b < $scope.cart[i]['coupon'].length;b++){
+                                            couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
+                                            var promo = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
+                                            var promo_valuewotax;
+                                            if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                                promo_tmpvat     = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
+                                                promo_vat        = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) - promo_tmpvat;  
+                                                promo_tmpservice = promo_tmpvat / (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));     
+                                                promo_service    = promo_tmpvat - promo_tmpservice;   
+                                                promo_valuewotax = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']) + (parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']))); 
+                                            }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                                promo_tmpvat     = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                                promo_vat        = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                                promo_service    = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                                promo_valuewotax = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
+                                            }
+                                            tmphargatotalwotax -= promo_valuewotax;
+                                            tmpvattotal -= (promo_vat + promo_service);
+                                        }
+                                    }
+                                } else {
+                                    if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                        tmpservice     = accounting.unformat($scope.cart[i]['hargatotal']) * (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                        service        = tmpservice - accounting.unformat($scope.cart[i]['hargatotal']);  
+                                        tmpvat         = tmpservice * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));     
+                                        vat            = tmpvat - tmpservice;
+                                        pricetax       = accounting.unformat($scope.cart[i]['hargatotal']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']) + (parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']))); 
+                                    }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                        vat        = accounting.unformat($scope.cart[i]['hargatotal']) * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                        service    = accounting.unformat($scope.cart[i]['hargatotal']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                        pricetax   = accounting.unformat($scope.cart[i]['hargatotal']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
+                                    } 
+                                    
+                                    tmphargatotaltax += pricetax; 
+                                    tmpvattotal += (vat + service);
+                                    taxpromo += pricetax;
+                                    console.log(taxpromo);
+                                    var promo_tmpvat, promo_vat, promo_tmpservice, promo_service;
+                                    if($scope.cart[i]['promotion']){
+                                        for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
+                                            promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
+                                            var promo = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
+                                            var promo_valuetax;
+                                            if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                                promo_tmpservice     = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                                promo_service        = promo_tmpservice - accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);  
+                                                promo_tmpvat = promo_tmpservice * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));     
+                                                promo_vat    = promo_tmpvat - promo_tmpservice;
+                                                promo_valuetax = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']) + (parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']))); 
+                                            }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                                promo_tmpservice     = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                                promo_service        = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                                promo_service    = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                                promo_valuetax = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
+                                            }
+                                            
+                                            tmphargatotaltax -= promo_valuetax;
+                                            tmpvattotal -= (promo_vat + promo_service);
+                                        }
+                                    }
+                                    
+                                    if($scope.cart[i]['coupon']){
+                                        for(var b= 0; b < $scope.cart[i]['coupon'].length;b++){
+                                            couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
+                                            var promo = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
+                                            var promo_valuetax;
+                                            if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                                promo_tmpservice     = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                                promo_service        = promo_tmpservice - accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);  
+                                                promo_tmpvat = promo_tmpservice * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));     
+                                                promo_vat    = promo_tmpvat - promo_tmpservice;
+                                                promo_valuetax = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']) + (parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']))); 
+                                            }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                                promo_tmpservice     = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                                promo_service        = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                                promo_service    = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                                promo_valuetax = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) * (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
+                                            }
+
+                                            tmphargatotaltax -= promo_valuetax;
+                                            tmpvattotal -= (promo_vat + promo_service);
+                                        }
+                                    }
+                                }
+                                tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
+
+                                $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", "."); 
                             }
                         }
+
                         var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
+                        var cart_tax_factor = 0;
+                        if($scope.vat_included == 'yes'){
+                            if(tmphargatotalwotax !== 0){
+                                cart_tax_factor = tmpvattotal / tmphargatotalwotax;
+                            }
+                        } else {
+                            if (tmphargatotal !== 0){
+                                cart_tax_factor = tmpvattotal / tmphargatotal;
+                            }
+                        }
                         //check cart based promo
                         var promotioncartbase          = 0;
+                        var taxpromotioncartbase       = 0;
+                        var taxcouponcartbase       = 0;
                         if($scope.cartpromotions){
                             $scope.applycartpromotion      = [];
                             $scope.tmpvallues = '';
@@ -389,6 +509,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                           discount_value :  $scope.cart.subtotal
                                       }
                             });
+                            var cart_promo_tmpvat, cart_promo_tmpvat_wo_tax, cart_promo_tmpvat_tax;
                             for(var j = 0; j < $scope.cartpromotions.length;j++){
                                 if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
                                     //add header subtotal before promotion
@@ -404,9 +525,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     }else{
                                         $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartpromotion[idxapply]['promotionrule']['discount_value'], "", 0, ",", ".");
                                     }
+                                    if($scope.vat_included == 'yes'){
+                                        cart_promo_tmpvat_wo_tax = promotion / (1 + cart_tax_factor);
+                                        cart_promo_tmpvat = promotion - cart_promo_tmpvat_wo_tax;
+                                        taxpromotioncartbase += cart_promo_tmpvat;
+                                    } else {
+                                        cart_promo_tmpvat_tax = promotion * (1 + cart_tax_factor);
+                                        cart_promo_tmpvat = cart_promo_tmpvat_tax - promotion;
+                                        taxpromotioncartbase += cart_promo_tmpvat;
+                                    }
                                 }
                             }
-
+                            tmpvattotal -= taxpromotioncartbase;
                         };
                         //check coupon
                         var couponcartbase          = 0;
@@ -421,6 +551,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                       }
                            });
                             $scope.tmpvallues = '';
+                            var cart_promo_tmpvat, cart_promo_tmpvat_wo_tax, cart_promo_tmpvat_tax;
                             for(var m = 0; m < $scope.cartcoupon.length; m++){
                                 var coupon = $scope.cartcoupon[m]['issuedcoupon']['rule_type'] == 'cart_discount_by_percentage' ?  $scope.cartcoupon[m]['issuedcoupon']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartcoupon[m]['issuedcoupon']['discount_value']);
                                 couponcartbase += coupon;
@@ -433,11 +564,25 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }else{
                                     $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'], "", 0, ",", ".");
                                 }
+                                if($scope.vat_included == 'yes'){
+                                    cart_promo_tmpvat_wo_tax = coupon / (1 + cart_tax_factor);
+                                    cart_promo_tmpvat = coupon - cart_promo_tmpvat_wo_tax;
+                                    taxcouponcartbase += cart_promo_tmpvat;
+                                } else {
+                                    cart_promo_tmpvat_tax = coupon * (1 + cart_tax_factor);
+                                    cart_promo_tmpvat = cart_promo_tmpvat_tax - coupon;
+                                    taxcouponcartbase += cart_promo_tmpvat;
+                                }
                             }
+                            tmpvattotal -= taxcouponcartbase;
                         }
                         if($scope.vat_included == 'yes'){
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                              $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase - parseInt(tmpvattotal), "", 0, ",", ".");
+                             $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
+                        } else {
+                             $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", 0, ",", ".");
+                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                              $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
                         }        
                     
@@ -797,7 +942,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.productmodal['cartsummary'] = response.data.cartsummary;
                                     $scope.variantstmp                 = response.data.cartdetails[i]['variant'];
                                     $scope.productmodal['variants']    = response.data.cartdetails[i]['variant'];
-
+                                    $scope.productmodal['tax1'] = response.data.cartdetails[i]['tax1'];
+                                    $scope.productmodal['tax2'] = response.data.cartdetails[i]['tax2'];
                                     $scope.productmodal['idx']         = i;
 
                                     //promotion
