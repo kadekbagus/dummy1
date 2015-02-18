@@ -360,11 +360,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
                                 $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
 
-                                if($scope.vat_included == 'yes'){
-                                     tmpvat     = tmphargatotal / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
-                                     vat        = tmphargatotal - tmpvat;  
-                                     tmpservice = tmpvat / (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));  
-                                     service    = tmpvat - tmpservice;
+                                if($scope.vat_included == 'yes'){                                    
+                                    if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                        tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
+                                        vat        = accounting.unformat($scope.cart[i]['hargatotal']) - tmpvat;  
+                                        tmpservice = tmpvat / (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));     
+                                        service    = tmpvat - tmpservice;   
+                                    }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                        tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                        vat        = tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                        service    = tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                    } 
+                                     
                                      tmpvattotal += (vat + service);  
                                 } 
                             }
