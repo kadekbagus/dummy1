@@ -249,6 +249,11 @@ class ProductAttributeAPIController extends ControllerAPI
      */
     public function postNewAttribute()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $attribute = NULL;
         try {
             $httpCode = 200;
 
@@ -349,6 +354,15 @@ class ProductAttributeAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Attribute Created: %s', $attribute->product_attribute_name);
+            $activity->setUser($user)
+                    ->setActivityName('create_attribute')
+                    ->setActivityNameLong('Create Attribute OK')
+                    ->setObject($attribute)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.product.postnewattribute.after.commit', array($this, $attribute));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postnewattribute.access.forbidden', array($this, $e));
@@ -361,6 +375,13 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_attribute')
+                    ->setActivityNameLong('Create Attribute Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postnewattribute.invalid.arguments', array($this, $e));
 
@@ -372,6 +393,13 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_attribute')
+                    ->setActivityNameLong('Create Attribute Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postnewattribute.query.error', array($this, $e));
 
@@ -389,6 +417,13 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_attribute')
+                    ->setActivityNameLong('Create Attribute Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postnewattribute.general.exception', array($this, $e));
 
@@ -399,7 +434,17 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_attribute')
+                    ->setActivityNameLong('Create Attribute Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -421,6 +466,11 @@ class ProductAttributeAPIController extends ControllerAPI
      */
     public function postUpdateAttribute()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $attribute = NULL;
         try {
             $httpCode = 200;
 
@@ -634,6 +684,15 @@ class ProductAttributeAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Attribute updated: %s', $attribute->product_attribute_name);
+            $activity->setUser($user)
+                    ->setActivityName('update_attribute')
+                    ->setActivityNameLong('Update Attribute OK')
+                    ->setObject($attribute)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.product.postupdateattribute.after.commit', array($this, $attribute));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postupdateattribute.access.forbidden', array($this, $e));
@@ -646,6 +705,14 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_attribute')
+                    ->setActivityNameLong('Update Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postupdateattribute.invalid.arguments', array($this, $e));
 
@@ -657,6 +724,14 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_attribute')
+                    ->setActivityNameLong('Update Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postupdateattribute.query.error', array($this, $e));
 
@@ -674,6 +749,14 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_attribute')
+                    ->setActivityNameLong('Update Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postupdateattribute.general.exception', array($this, $e));
 
@@ -689,7 +772,18 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_attribute')
+                    ->setActivityNameLong('Update Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -706,6 +800,11 @@ class ProductAttributeAPIController extends ControllerAPI
      */
     public function postDeleteAttribute()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $attribute = NULL;
         try {
             $httpCode = 200;
 
@@ -770,6 +869,15 @@ class ProductAttributeAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Attribute Deleted: %s', $attribute->product_attribute_name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_attribute')
+                    ->setActivityNameLong('Delete Attribute OK')
+                    ->setObject($attribute)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.product.postdeleteattribute.after.commit', array($this, $attribute));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postdeleteattribute.access.forbidden', array($this, $e));
@@ -782,6 +890,14 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_attribute')
+                    ->setActivityNameLong('Delete Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postdeleteattribute.invalid.arguments', array($this, $e));
 
@@ -793,6 +909,14 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_attribute')
+                    ->setActivityNameLong('Delete Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postdeleteattribute.query.error', array($this, $e));
 
@@ -810,6 +934,14 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_attribute')
+                    ->setActivityNameLong('Delete Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postdeleteattribute.general.exception', array($this, $e));
 
@@ -820,7 +952,18 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_attribute')
+                    ->setActivityNameLong('Delete Attribute Failed')
+                    ->setObject($attribute)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
