@@ -290,4 +290,61 @@ class IntermediateLoginController extends IntermediateBaseController
         // Redirect back to /customer
         return Redirect::to('/customer');
     }
+
+    /**
+     * Captive Portal related tricks.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return mixed
+     */
+    public function getCaptive()
+    {
+        /**
+         * Handle the ?loadsession=SESSION_ID action. Basically it just showing
+         * a loading page. The actual session creation on '?createsession'
+         */
+        if (isset($_GET['loadsession'])) {
+            // Needed to show some information on the view
+            try {
+                $retailer_id = Config::get('orbit.shop.id');
+                $retailer = Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+            } catch (Exception $e) {
+                $retailer = new stdClass();
+                // Fake some properties
+                $retailer->parent = new stdClass();
+                $retailer->parent->logo = '';
+            }
+
+            // Display a view which showing that page is loading
+            return View::make('mobile-ci/captive-loading', ['retailer' => $retailer]);
+        }
+
+        if (isset($_GET['createsession'])) {
+            $cookieName = Config::get('orbit.session.session_origin.cookie.name');
+            $expireTime = Config::get('orbit.session.session_origin.cookie.expire');
+
+            $sessionId = $_GET['createsession'];
+
+            // Send cookie so our app have an idea about the session
+            setcookie($cookieName, $sessionId, time() + $expireTime, '/', NULL, FALSE, TRUE);
+
+            // Used for internal session object since sending cookie above
+            // only affects on next request
+            $_COOKIE[$cookieName] = $sessionId;
+
+            $this->session->setSessionId($sessionId);
+            $oldData = $this->session->getSession();
+
+            $sessData = clone $oldData;
+            $sessData->userAgent = $_SERVER['HTTP_USER_AGENT'];
+            $this->session->rawUpdate($sessData);
+            $newData = $this->session->getSession();
+
+            return Redirect::to('/customer');
+        }
+
+        // Catch all
+        $response = new ResponseProvider();
+        return $this->render($response);
+    }
 }

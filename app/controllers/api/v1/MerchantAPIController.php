@@ -28,6 +28,11 @@ class MerchantAPIController extends ControllerAPI
      */
     public function postDeleteMerchant()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deletemerchant = NULL;
         try {
             $httpCode = 200;
 
@@ -94,6 +99,15 @@ class MerchantAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Merchant Deleted: %s', $deletemerchant->name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_merchant')
+                    ->setActivityNameLong('Delete Merchant OK')
+                    ->setObject($deletemerchant)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.merchant.postdeletemerchant.after.commit', array($this, $deletemerchant));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.merchant.postdeletemerchant.access.forbidden', array($this, $e));
@@ -106,6 +120,14 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_merchant')
+                    ->setActivityNameLong('Delete Merchant Failed')
+                    ->setObject($deletemerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.merchant.postdeletemerchant.invalid.arguments', array($this, $e));
 
@@ -117,6 +139,14 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_merchant')
+                    ->setActivityNameLong('Delete Merchant Failed')
+                    ->setObject($deletemerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.merchant.postdeletemerchant.query.error', array($this, $e));
 
@@ -134,6 +164,14 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_merchant')
+                    ->setActivityNameLong('Delete Merchant Failed')
+                    ->setObject($deletemerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.merchant.postdeletemerchant.general.exception', array($this, $e));
 
@@ -144,10 +182,21 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_merchant')
+                    ->setActivityNameLong('Delete Merchant Failed')
+                    ->setObject($deletemerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
         Event::fire('orbit.merchant.postdeletemerchant.before.render', array($this, $output));
+
+        // Save the activity
+        $activity->save();
 
         return $output;
     }
@@ -201,6 +250,11 @@ class MerchantAPIController extends ControllerAPI
      */
     public function postNewMerchant()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newmerchant = NULL;
         try {
             $httpCode = 200;
 
@@ -348,6 +402,15 @@ class MerchantAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Merchant Created: %s', $newmerchant->name);
+            $activity->setUser($user)
+                    ->setActivityName('create_merchant')
+                    ->setActivityNameLong('Create Merchant OK')
+                    ->setObject($newmerchant)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.merchant.postnewmerchant.after.commit', array($this, $newmerchant));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.merchant.postnewmerchant.access.forbidden', array($this, $e));
@@ -360,6 +423,13 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_merchant')
+                    ->setActivityNameLong('Create Merchant Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.merchant.postnewmerchant.invalid.arguments', array($this, $e));
 
@@ -371,6 +441,13 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_merchant')
+                    ->setActivityNameLong('Create Merchant Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.merchant.postnewmerchant.query.error', array($this, $e));
 
@@ -388,6 +465,13 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_merchant')
+                    ->setActivityNameLong('Create Merchant Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.merchant.postnewmerchant.general.exception', array($this, $e));
 
@@ -398,7 +482,17 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_merchant')
+                    ->setActivityNameLong('Create Merchant Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -919,6 +1013,11 @@ class MerchantAPIController extends ControllerAPI
      */
     public function postUpdateMerchant()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updatedmerchant = NULL;
         try {
             $httpCode=200;
 
@@ -1232,6 +1331,15 @@ class MerchantAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Merchant updated: %s', $updatedmerchant->name);
+            $activity->setUser($user)
+                    ->setActivityName('update_merchant')
+                    ->setActivityNameLong('Update Merchant OK')
+                    ->setObject($updatedmerchant)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.merchant.postupdatemerchant.after.commit', array($this, $updatedmerchant));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.merchant.postupdatemerchant.access.forbidden', array($this, $e));
@@ -1244,6 +1352,14 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_merchant')
+                    ->setActivityNameLong('Update Merchant Failed')
+                    ->setObject($updatedmerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.merchant.postupdatemerchant.invalid.arguments', array($this, $e));
 
@@ -1255,6 +1371,14 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_merchant')
+                    ->setActivityNameLong('Update Merchant Failed')
+                    ->setObject($updatedmerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.merchant.postupdatemerchant.query.error', array($this, $e));
 
@@ -1272,6 +1396,14 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_merchant')
+                    ->setActivityNameLong('Update Merchant Failed')
+                    ->setObject($updatedmerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.merchant.postupdatemerchant.general.exception', array($this, $e));
 
@@ -1282,7 +1414,18 @@ class MerchantAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_merchant')
+                    ->setActivityNameLong('Update Merchant Failed')
+                    ->setObject($updatedmerchant)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
     }

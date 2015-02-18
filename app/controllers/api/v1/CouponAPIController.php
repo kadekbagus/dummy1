@@ -57,6 +57,11 @@ class CouponAPIController extends ControllerAPI
      */
     public function postNewCoupon()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newcoupon = NULL;
         try {
             $httpCode = 200;
 
@@ -285,6 +290,15 @@ class CouponAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Coupon Created: %s', $newcoupon->promotion_name);
+            $activity->setUser($user)
+                    ->setActivityName('create_coupon')
+                    ->setActivityNameLong('Create Coupon OK')
+                    ->setObject($newcoupon)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.coupon.postnewcoupon.after.commit', array($this, $newcoupon));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.coupon.postnewcoupon.access.forbidden', array($this, $e));
@@ -297,6 +311,13 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_coupon')
+                    ->setActivityNameLong('Create Coupon Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.coupon.postnewcoupon.invalid.arguments', array($this, $e));
 
@@ -308,6 +329,13 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_coupon')
+                    ->setActivityNameLong('Create Coupon Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.coupon.postnewcoupon.query.error', array($this, $e));
 
@@ -325,6 +353,13 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_coupon')
+                    ->setActivityNameLong('Create Coupon Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.coupon.postnewcoupon.general.exception', array($this, $e));
 
@@ -335,7 +370,17 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_coupon')
+                    ->setActivityNameLong('Create Coupon Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -387,6 +432,11 @@ class CouponAPIController extends ControllerAPI
      */
     public function postUpdateCoupon()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updatedcoupon = NULL;
         try {
             $httpCode=200;
 
@@ -749,6 +799,15 @@ class CouponAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Coupon updated: %s', $updatedcoupon->promotion_name);
+            $activity->setUser($user)
+                    ->setActivityName('update_coupon')
+                    ->setActivityNameLong('Update Coupon OK')
+                    ->setObject($updatedcoupon)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.coupon.postupdatecoupon.after.commit', array($this, $updatedcoupon));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.coupon.postupdatecoupon.access.forbidden', array($this, $e));
@@ -761,6 +820,14 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_coupon')
+                    ->setActivityNameLong('Update Coupon Failed')
+                    ->setObject($updatedcoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.coupon.postupdatecoupon.invalid.arguments', array($this, $e));
 
@@ -772,6 +839,14 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_coupon')
+                    ->setActivityNameLong('Update Coupon Failed')
+                    ->setObject($updatedcoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.coupon.postupdatecoupon.query.error', array($this, $e));
 
@@ -789,6 +864,14 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_coupon')
+                    ->setActivityNameLong('Update Coupon Failed')
+                    ->setObject($updatedcoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.coupon.postupdatecoupon.general.exception', array($this, $e));
 
@@ -799,7 +882,18 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_coupon')
+                    ->setActivityNameLong('Update Coupon Failed')
+                    ->setObject($updatedcoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
 
@@ -818,6 +912,11 @@ class CouponAPIController extends ControllerAPI
      */
     public function postDeleteCoupon()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deletecoupon = NULL;
         try {
             $httpCode = 200;
 
@@ -893,6 +992,15 @@ class CouponAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Coupon Deleted: %s', $deletecoupon->promotion_name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_coupon')
+                    ->setActivityNameLong('Delete Coupon OK')
+                    ->setObject($deletecoupon)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.coupon.postdeletecoupon.after.commit', array($this, $deletecoupon));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.coupon.postdeletecoupon.access.forbidden', array($this, $e));
@@ -905,6 +1013,14 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_coupon')
+                    ->setActivityNameLong('Delete Coupon Failed')
+                    ->setObject($deletecoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.coupon.postdeletecoupon.invalid.arguments', array($this, $e));
 
@@ -916,6 +1032,14 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_coupon')
+                    ->setActivityNameLong('Delete Coupon Failed')
+                    ->setObject($deletecoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.coupon.postdeletecoupon.query.error', array($this, $e));
 
@@ -933,6 +1057,14 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_coupon')
+                    ->setActivityNameLong('Delete Coupon Failed')
+                    ->setObject($deletecoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.coupon.postdeletecoupon.general.exception', array($this, $e));
 
@@ -943,9 +1075,21 @@ class CouponAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_coupon')
+                    ->setActivityNameLong('Delete Coupon Failed')
+                    ->setObject($deletecoupon)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
+
+        // Save the activity
+        $activity->save();
+
         return $output;
     }
 
