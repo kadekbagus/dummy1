@@ -32,6 +32,11 @@ class WidgetAPIController extends ControllerAPI
      */
     public function postNewWidget()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $widget = NULL;
         try {
             $httpCode = 200;
 
@@ -125,6 +130,15 @@ class WidgetAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Widget Created: %s', $widget->widget_slogan);
+            $activity->setUser($user)
+                    ->setActivityName('create_widget')
+                    ->setActivityNameLong('Create Widget OK')
+                    ->setObject($widget)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.widget.postnewwidget.after.commit', array($this, $widget));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.widget.postnewwidget.access.forbidden', array($this, $e));
@@ -137,6 +151,13 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_widget')
+                    ->setActivityNameLong('Create Widget Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.widget.postnewwidget.invalid.arguments', array($this, $e));
 
@@ -148,6 +169,13 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_widget')
+                    ->setActivityNameLong('Create Widget Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.widget.postnewwidget.query.error', array($this, $e));
 
@@ -165,6 +193,13 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_widget')
+                    ->setActivityNameLong('Create Widget Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.widget.postnewwidget.general.exception', array($this, $e));
 
@@ -180,7 +215,17 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_widget')
+                    ->setActivityNameLong('Create Widget Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -205,6 +250,11 @@ class WidgetAPIController extends ControllerAPI
      */
     public function postUpdateWidget()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $widget = NULL;
         try {
             $httpCode = 200;
 
@@ -322,6 +372,15 @@ class WidgetAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Widget updated: %s', $widget->widget_slogan);
+            $activity->setUser($user)
+                    ->setActivityName('update_widget')
+                    ->setActivityNameLong('Update Widget OK')
+                    ->setObject($widget)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.widget.postupdatewidget.after.commit', array($this, $widget));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.widget.postupdatewidget.access.forbidden', array($this, $e));
@@ -334,6 +393,14 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_widget')
+                    ->setActivityNameLong('Update Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.widget.postupdatewidget.invalid.arguments', array($this, $e));
 
@@ -345,6 +412,14 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_widget')
+                    ->setActivityNameLong('Update Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.widget.postupdatewidget.query.error', array($this, $e));
 
@@ -362,6 +437,14 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_widget')
+                    ->setActivityNameLong('Update Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.widget.postupdatewidget.general.exception', array($this, $e));
 
@@ -377,7 +460,18 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_widget')
+                    ->setActivityNameLong('Update Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -394,6 +488,11 @@ class WidgetAPIController extends ControllerAPI
      */
     public function postDeleteWidget()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $widget = NULL;
         try {
             $httpCode = 200;
 
@@ -454,6 +553,15 @@ class WidgetAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Widget Deleted: %s', $widget->widget_slogan);
+            $activity->setUser($user)
+                    ->setActivityName('delete_widget')
+                    ->setActivityNameLong('Delete Widget OK')
+                    ->setObject($widget)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.widget.postdeletewiget.after.commit', array($this, $widget));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.widget.postdeletewiget.access.forbidden', array($this, $e));
@@ -466,6 +574,14 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_widget')
+                    ->setActivityNameLong('Delete Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.widget.postdeletewiget.invalid.arguments', array($this, $e));
 
@@ -477,6 +593,14 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_widget')
+                    ->setActivityNameLong('Delete Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.widget.postdeletewiget.query.error', array($this, $e));
 
@@ -494,6 +618,14 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_widget')
+                    ->setActivityNameLong('Delete Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.widget.postdeletewiget.general.exception', array($this, $e));
 
@@ -509,7 +641,18 @@ class WidgetAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_widget')
+                    ->setActivityNameLong('Delete Widget Failed')
+                    ->setObject($widget)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
