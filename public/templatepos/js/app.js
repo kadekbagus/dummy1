@@ -70,7 +70,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
-
+        $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
+        console.log($scope.vat_included);
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -326,6 +327,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 //function count cart
                 $scope.countcart = function(){
                     if($scope.cart.length > 0){
+
                         $scope.cart.totalitem  = 0;
                         $scope.cart.subtotal   = 0;
                         var tmphargatotal      = 0;
