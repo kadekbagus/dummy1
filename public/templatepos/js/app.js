@@ -71,7 +71,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
         $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
-        console.log($scope.vat_included);
+       
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -330,10 +330,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                         $scope.cart.totalitem  = 0;
                         $scope.cart.subtotal   = 0;
+                        $scope.cart.vat        = 0;
                         var tmphargatotal      = 0;
+                        var tmpvattotal        = 0;
 
                         for(var i = 0; i < $scope.cart.length ; i++){
                             if($scope.cart[i]['qty'] > 0){
+                                var vat             = 0;
+                                var tmpvat          = 0;
+                                var service         = 0;
+                                var tmpservice      = 0;
+                                
                                 $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] *  accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
@@ -352,6 +359,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }
                                 tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
                                 $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+
+                                if($scope.vat_included == 'yes'){                                    
+                                    if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
+                                        tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
+                                        vat        = accounting.unformat($scope.cart[i]['hargatotal']) - tmpvat;  
+                                        tmpservice = tmpvat / (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));     
+                                        service    = tmpvat - tmpservice;   
+                                    }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
+                                        tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
+                                        vat        = tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                        service    = tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
+                                    } 
+                                     
+                                     tmpvattotal += (vat + service);  
+                                } 
                             }
                         }
                         var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
@@ -413,12 +435,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }
                             }
                         }
-                        $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
+                        if($scope.vat_included == 'yes'){
+                             $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
+                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase - parseInt(tmpvattotal), "", 0, ",", ".");
+                             $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
+                        }        
+                    
                         //todo:agung change hardcore for VAT
-                        var vat  = 10;
+                      /*  var vat  = 10;
                         var hvat = parseInt(accounting.unformat($scope.cart.subtotal) * vat / 100);
                         $scope.cart.vat        =  accounting.formatMoney(hvat, "", 0, ",", ".");
                         $scope.cart.totalpay   =  accounting.formatMoney((hvat + accounting.unformat($scope.cart.subtotal)), "", 0, ",", ".");
+                     */    //vat include    
+                        /*if($scope.vat_included == 'yes'){
+                                $scope.cart.totalpay = $scope.cart.subtotal;
+                        } */ 
                     }
                 };
                 //insert to cart

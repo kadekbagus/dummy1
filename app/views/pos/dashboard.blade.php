@@ -129,7 +129,7 @@
                         <tr>
                             <td class="text-center"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></td>
                             <td class="text-center"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></td>
-                            <td class="text-center"><b><h5>VAT<br><% cart.vat %></b></h5> </td>
+                            <td class="text-center"><b><h5>TAXES<br><% cart.vat %></b></h5> </td>
                             <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
                         </tr>
                         <tr>
