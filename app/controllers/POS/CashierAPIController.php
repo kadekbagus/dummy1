@@ -772,7 +772,6 @@ class CashierAPIController extends ControllerAPI
                 $customer = User::excludeDeleted()->find($customer_id);
             }
             
-
             $validator = Validator::make(
                 array(
                     'total_item'       => $total_item,
@@ -986,6 +985,19 @@ class CashierAPIController extends ControllerAPI
                     }
                 }
 
+
+                // transaction detail taxes
+                if(!empty($cart_value['product_details']['cartsummary']['taxes'])){
+                    foreach ($cart_value['product_details']['cartsummary']['taxes'] as $key => $value) {
+                        $transactiondetailtax = new \TransactionDetailTax();
+                        $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                        $transactiondetailtax->transaction_id = $transaction->transaction_id;
+                        $transactiondetailtax->tax_name = $value['tax_name'];
+                        $transactiondetailtax->tax_value = $value['tax_value'];
+                        $transactiondetailtax->tax_order = $value['tax_order'];
+                        $transactiondetailtax->save();
+                    }
+                }
             }
 
 
@@ -1071,14 +1083,7 @@ class CashierAPIController extends ControllerAPI
                 }
             }
 
-            // transaction detail taxes
-            // $transactiondetailtax = new \TransactionDetailTax();
-            // $transactiondetailtax->transaction_detail_id = ;
-            // $transactiondetailtax->transaction_id = ;
-            // $transactiondetailtax->tax_name = ;
-            // $transactiondetailtax->tax_value = ;
-            // $transactiondetailtax->tax_order = ;
-            // $transactiondetailtax->save();
+
 
 
             // issue product based coupons (if any)
@@ -1152,12 +1157,12 @@ class CashierAPIController extends ControllerAPI
             }
 
             // delete the cart
-            // if($cart_id!=NULL){
-            //     $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
-            //     $cart_delete->status = "deleted";
-            //     $cart_delete->save();
-            //     $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
-            // }
+            if($cart_id!=NULL){
+                $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+                $cart_delete->status = "deleted";
+                $cart_delete->save();
+                $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            }
             
 
             $this->response->data = $transaction;
