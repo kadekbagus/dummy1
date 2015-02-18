@@ -60,14 +60,14 @@
             </div>
         </div>
         <div class="form-group pull-right">
-            <button type="button" class="btn btn-success btn-block">Submit</button>
+            <a href="{{ url('customer/thankyou') }}" class="btn btn-success btn-block">Submit</a>
           </div>
       </form>
     </div>
   </div>
   <div class="row">
     <div class="col-xs-12 text-center"> 
-      <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
+      <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" style="margin: 0 auto;" />
     </div>
   </div>
 </div>
