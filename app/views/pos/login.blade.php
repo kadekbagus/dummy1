@@ -6,8 +6,8 @@
     <div class="signin-header">
       <section class="logo text-center">
         <h4>ORBIT KASIR</h4>
-       <img src="{{ URL::asset('templatepos/images/orbit-logo.png') }}"   data-ng-init="showloader = false" data-ng-if="!showloader" alt="Orbit Logo" />
-       <img src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   data-ng-if="showloader" style="height: 60px; width: 60px; " alt="Orbit Logo" />
+       <img ng-src="{{ URL::asset('templatepos/images/orbit-logo.png') }}"   data-ng-init="showloader = false" data-ng-if="!showloader" alt="Orbit Logo" />
+       <img ng-src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   data-ng-if="showloader" style="height: 60px; width: 60px; " alt="Orbit Logo" />
       </section>
     </div>
 
