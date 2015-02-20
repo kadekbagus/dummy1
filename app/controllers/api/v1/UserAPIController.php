@@ -30,6 +30,11 @@ class UserAPIController extends ControllerAPI
      */
     public function postNewUser()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newuser = NULL;
         try {
             $httpCode = 200;
 
@@ -122,6 +127,15 @@ class UserAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('User Created: %s', $newuser->username);
+            $activity->setUser($user)
+                    ->setActivityName('create_user')
+                    ->setActivityNameLong('Create User OK')
+                    ->setObject($newuser)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.user.postnewuser.after.commit', array($this, $newuser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.user.postnewuser.access.forbidden', array($this, $e));
@@ -134,6 +148,13 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_user')
+                    ->setActivityNameLong('Create User Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.user.postnewuser.invalid.arguments', array($this, $e));
 
@@ -145,6 +166,13 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_user')
+                    ->setActivityNameLong('Create User Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.user.postnewuser.query.error', array($this, $e));
 
@@ -162,6 +190,13 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_user')
+                    ->setActivityNameLong('Create User Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.user.postnewuser.general.exception', array($this, $e));
 
@@ -172,7 +207,17 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_user')
+                    ->setActivityNameLong('Create User Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -189,6 +234,11 @@ class UserAPIController extends ControllerAPI
      */
     public function postDeleteUser()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $deleteuser = NULL;
         try {
             $httpCode = 200;
 
@@ -264,6 +314,15 @@ class UserAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('User Deleted: %s', $deleteuser->username);
+            $activity->setUser($user)
+                    ->setActivityName('delete_user')
+                    ->setActivityNameLong('Delete User OK')
+                    ->setObject($deleteuser)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.user.postdeleteuser.after.commit', array($this, $deleteuser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.user.postdeleteuser.access.forbidden', array($this, $e));
@@ -276,6 +335,14 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_user')
+                    ->setActivityNameLong('Delete User Failed')
+                    ->setObject($deleteuser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.user.postdeleteuser.invalid.arguments', array($this, $e));
 
@@ -287,6 +354,14 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_user')
+                    ->setActivityNameLong('Delete User Failed')
+                    ->setObject($deleteuser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.user.postdeleteuser.query.error', array($this, $e));
 
@@ -304,6 +379,14 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_user')
+                    ->setActivityNameLong('Delete User Failed')
+                    ->setObject($deleteuser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.user.postdeleteuser.general.exception', array($this, $e));
 
@@ -314,10 +397,21 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_user')
+                    ->setActivityNameLong('Delete User Failed')
+                    ->setObject($deleteuser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
 
         $output = $this->render($httpCode);
         Event::fire('orbit.user.postdeleteuser.before.render', array($this, $output));
+
+        // Save the activity
+        $activity->save();
 
         return $output;
     }
@@ -341,6 +435,11 @@ class UserAPIController extends ControllerAPI
      */
     public function postUpdateUser()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $updateduser = NULL;
         try {
             $httpCode=200;
 
@@ -633,6 +732,15 @@ class UserAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('User updated: %s', $updateduser->username);
+            $activity->setUser($user)
+                    ->setActivityName('update_user')
+                    ->setActivityNameLong('Update User OK')
+                    ->setObject($updateduser)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.user.postupdateuser.after.commit', array($this, $updateduser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.user.postupdateuser.access.forbidden', array($this, $e));
@@ -645,6 +753,14 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_user')
+                    ->setActivityNameLong('Update User Failed')
+                    ->setObject($updateduser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.user.postupdateuser.invalid.arguments', array($this, $e));
 
@@ -656,6 +772,14 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_user')
+                    ->setActivityNameLong('Update User Failed')
+                    ->setObject($updateduser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.user.postupdateuser.query.error', array($this, $e));
 
@@ -673,6 +797,14 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_user')
+                    ->setActivityNameLong('Update User Failed')
+                    ->setObject($updateduser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.user.postupdateuser.general.exception', array($this, $e));
 
@@ -689,7 +821,18 @@ class UserAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_user')
+                    ->setActivityNameLong('Update User Failed')
+                    ->setObject($updateduser)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
