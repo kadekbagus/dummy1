@@ -21,6 +21,7 @@ class ProductAttributeAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
+     * @param array         `id`                    (optional) - List of Ids
      * @param string        `sort_by`               (optional) - column order by
      * @param string        `sort_mode`             (optional) - asc or desc
      * @param string        `attribute_name`        (optional) - attribute name
@@ -92,13 +93,14 @@ class ProductAttributeAPIController extends ControllerAPI
                 }
             }
 
-            // Builder object
-            $attributes = ProductAttribute::excludeDeleted();
-
             // Include other relationship
-            OrbitInput::get('with', function($with) use ($attributes) {
-                $attributes->with($with);
+            $with = ['values'];
+            OrbitInput::get('with', function($_with) use (&$with) {
+                $with = array_merge($_with, $with);
             });
+
+            // Builder object
+            $attributes = ProductAttribute::with($with)->excludeDeleted();
 
             // Filter by ids
             OrbitInput::get('id', function($productIds) use ($attributes) {
