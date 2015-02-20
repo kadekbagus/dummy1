@@ -27,6 +27,11 @@ class PosQuickProductAPIController extends ControllerAPI
      */
     public function postNewPosQuickProduct()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $posQuickProduct = NULL;
         try {
             $httpCode = 200;
 
@@ -104,6 +109,15 @@ class PosQuickProductAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Pos Quick Product Created: %s', $posQuickProduct->product->product_name);
+            $activity->setUser($user)
+                    ->setActivityName('create_pos_quick_product')
+                    ->setActivityNameLong('Create Pos Quick Product OK')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.product.postnewposquickproduct.after.commit', array($this, $posQuickProduct));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postnewposquickproduct.access.forbidden', array($this, $e));
@@ -116,6 +130,13 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_pos_quick_product')
+                    ->setActivityNameLong('Create Pos Quick Product Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postnewposquickproduct.invalid.arguments', array($this, $e));
 
@@ -127,6 +148,13 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_pos_quick_product')
+                    ->setActivityNameLong('Create Pos Quick Product Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postnewposquickproduct.query.error', array($this, $e));
 
@@ -144,6 +172,13 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_pos_quick_product')
+                    ->setActivityNameLong('Create Pos Quick Product Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postnewposquickproduct.general.exception', array($this, $e));
 
@@ -159,7 +194,17 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_pos_quick_product')
+                    ->setActivityNameLong('Create Pos Quick Product Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -178,6 +223,11 @@ class PosQuickProductAPIController extends ControllerAPI
      */
     public function postUpdatePosQuickProduct()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $posQuickProduct = NULL;
         try {
             $httpCode = 200;
 
@@ -255,6 +305,15 @@ class PosQuickProductAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Pos Quick Product updated: %s', $posQuickProduct->product->product_name);
+            $activity->setUser($user)
+                    ->setActivityName('update_pos_quick_product')
+                    ->setActivityNameLong('Update Pos Quick Product OK')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.product.postupdateposquickproduct.after.commit', array($this, $posQuickProduct));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postupdateposquickproduct.access.forbidden', array($this, $e));
@@ -267,6 +326,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_pos_quick_product')
+                    ->setActivityNameLong('Update Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postupdateposquickproduct.invalid.arguments', array($this, $e));
 
@@ -278,6 +345,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_pos_quick_product')
+                    ->setActivityNameLong('Update Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postupdateposquickproduct.query.error', array($this, $e));
 
@@ -295,6 +370,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_pos_quick_product')
+                    ->setActivityNameLong('Update Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postupdateposquickproduct.general.exception', array($this, $e));
 
@@ -310,7 +393,18 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_pos_quick_product')
+                    ->setActivityNameLong('Update Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -328,6 +422,11 @@ class PosQuickProductAPIController extends ControllerAPI
      */
     public function postDeletePosQuickProduct()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $posQuickProduct = NULL;
         try {
             $httpCode = 200;
 
@@ -400,6 +499,15 @@ class PosQuickProductAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Pos Quick Product Deleted: %s', $posQuickProduct->product->product_name);
+            $activity->setUser($user)
+                    ->setActivityName('delete_pos_quick_product')
+                    ->setActivityNameLong('Delete Pos Quick Product OK')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.product.postupdateposquickproduct.after.commit', array($this, $posQuickProduct));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.product.postupdateposquickproduct.access.forbidden', array($this, $e));
@@ -412,6 +520,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_pos_quick_product')
+                    ->setActivityNameLong('Delete Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.product.postupdateposquickproduct.invalid.arguments', array($this, $e));
 
@@ -423,6 +539,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_pos_quick_product')
+                    ->setActivityNameLong('Delete Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.product.postupdateposquickproduct.query.error', array($this, $e));
 
@@ -440,6 +564,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_pos_quick_product')
+                    ->setActivityNameLong('Delete Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.product.postupdateposquickproduct.general.exception', array($this, $e));
 
@@ -455,7 +587,18 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_pos_quick_product')
+                    ->setActivityNameLong('Delete Pos Quick Product Failed')
+                    ->setObject($posQuickProduct)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
