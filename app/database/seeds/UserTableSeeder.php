@@ -25,7 +25,7 @@ class UserTableSeeder extends Seeder
         $superAdminData = [
             'user_id'           => 1,
             'username'          => 'orbitadmin',
-            'user_email'        => 'orbitadmin@localhost.org',
+            'user_email'        => 'orbitadmin@myorbit.com',
             'user_password'     => Hash::make($password),
             'user_firstname'    => 'Orbit',
             'user_lastname'     => 'Admin',
@@ -43,6 +43,8 @@ class UserTableSeeder extends Seeder
             'user_detail_id'    => 1,
             'user_id'           => 1
         ];
+        UserDetail::unguard();
+        UserDetail::create($superAdminDetail);
         $this->command->info('    Create Super Admin record on user_details.');
 
         // Record for apikeys table
