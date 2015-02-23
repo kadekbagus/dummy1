@@ -71,6 +71,22 @@ App::down(function()
 
 /*
 |--------------------------------------------------------------------------
+| Orbit Initial Setting
+|--------------------------------------------------------------------------
+|
+| We will load orbit global setting which comes from table `settings`. We
+| load the setting as Singleton IoC so the DB calls only called once.
+|
+*/
+use Orbit\Setting as OrbitSetting;
+
+App::singleton('orbitSetting', function()
+{
+	return OrbitSetting::create();
+});
+
+/*
+|--------------------------------------------------------------------------
 | Require The Filters File
 |--------------------------------------------------------------------------
 |
@@ -79,5 +95,6 @@ App::down(function()
 | definitions instead of putting them all in the main routes file.
 |
 */
+
 
 require app_path().'/filters.php';
