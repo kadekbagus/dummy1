@@ -912,7 +912,7 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             if (empty(OrbitInput::get('role_id'))) {
-                $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant-owner', 'guest'];
+                $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant owner', 'retailer owner', 'guest'];
                 $roles = Role::whereIn('role_name', $invalidRoles)->get();
 
                 $ids = array();
@@ -1126,7 +1126,7 @@ class EmployeeAPIController extends ControllerAPI
         });
 
         Validator::extend('orbit.empty.employee.role', function ($attribute, $value, $parameters) {
-            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer', 'merchant-owner');
+            $invalidRoles = array('super admin', 'administrator', 'consumer', 'customer', 'merchant owner', 'retailer owner');
             if (in_array(strtolower($value), $invalidRoles)) {
                 return FALSE;
             }
@@ -1143,7 +1143,7 @@ class EmployeeAPIController extends ControllerAPI
         });
 
         Validator::extend('orbit.employee.role.limited', function ($attribute, $value, $parameters) {
-            $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant-owner', 'guest'];
+            $invalidRoles = ['super admin', 'administrator', 'consumer', 'customer', 'merchant owner', 'retailer owner', 'guest'];
             $roles = Role::whereIn('role_name', $invalidRoles)->get();
 
             if ($roles) {
