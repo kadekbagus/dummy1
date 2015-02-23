@@ -185,7 +185,7 @@ return array(
        'merchant'  => array(
             'logo' => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
@@ -255,7 +255,7 @@ return array(
         'retailer'  => array(
             'logo'  => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
@@ -328,7 +328,7 @@ return array(
         'product'  => array(
             'main' => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
@@ -401,7 +401,7 @@ return array(
         'promotion'  => array(
             'main' => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
@@ -474,7 +474,7 @@ return array(
        'user'  => array(
             'profile_picture' => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
@@ -551,7 +551,7 @@ return array(
         'coupon'  => array(
             'main' => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),
@@ -624,7 +624,7 @@ return array(
         'event'  => array(
             'main' => array(
                 // Allowed Extension
-                'file_type'     => array('jpg', 'png'),
+                'file_type'     => array('jpg', 'png', 'jpeg'),
 
                 // Allowed Mimetype
                 'mime_type'     => array('image/jpeg', 'image/png'),

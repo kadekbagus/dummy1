@@ -62,21 +62,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     }]);
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
-        //init
-        $scope.cart               = [];
-        $scope.product            = [];
-        $scope.productidenabled   = [];
-        $scope.configs            = config;
-        $scope.datadisplay        = {};
-        $scope.manualscancart     = '';
-        $scope.holdbtn            = true;
-        $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
-       
+
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
                 window.location.assign("signin");
             }else{
+                //init
+                $scope.cart               = [];
+                $scope.product            = [];
+                $scope.productidenabled   = [];
+                $scope.configs            = config;
+                $scope.datadisplay        = {};
+                $scope.manualscancart     = '';
+                $scope.holdbtn            = true;
+                $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,attr1){
                     //set loading
@@ -347,15 +347,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] * accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
-                                //promotion
+
                                 var promotionprice = 0;
                                 var couponprice    = 0;
-                                // if($scope.cart[i]['promotion']){
-                                //     for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
-                                //         promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
-                                //     }
-                                // }                             
-
                                 if($scope.vat_included == 'yes'){                                    
                                     if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
                                         tmpvat     = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
@@ -370,7 +364,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                         pricewotax = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
                                     } 
                                     tmphargatotalwotax += pricewotax; 
-                                    tmpvattotal += (vat + service);  
+                                    tmpvattotal += (vat + service);
+                                    //promotion
                                     var promo_tmpvat, promo_vat, promo_tmpservice, promo_service;
                                     if($scope.cart[i]['promotion']){
                                         for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
@@ -430,7 +425,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     tmphargatotaltax += pricetax; 
                                     tmpvattotal += (vat + service);
                                     taxpromo += pricetax;
-                                    console.log(taxpromo);
                                     var promo_tmpvat, promo_vat, promo_tmpservice, promo_service;
                                     if($scope.cart[i]['promotion']){
                                         for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
@@ -480,7 +474,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }
                                 tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
 
-                                $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", "."); 
+                                $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+                                $scope.tmpsubtotal     = $scope.cart.subtotal;
                             }
                         }
 
@@ -502,18 +497,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.cartpromotions){
                             $scope.applycartpromotion      = [];
                             $scope.tmpvallues = '';
-
-                            $scope.applycartpromotion.push({
+                            //add header subtotal before promotion
+                           /* $scope.applycartpromotion.push({
                                       promotion_name : 'Subtotal',
                                       promotionrule : {
                                           discount_value :  $scope.cart.subtotal
                                       }
-                            });
+                            });*/
                             var cart_promo_tmpvat, cart_promo_tmpvat_wo_tax, cart_promo_tmpvat_tax;
                             for(var j = 0; j < $scope.cartpromotions.length;j++){
                                 if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
-                                    //add header subtotal before promotion
-                                    
                                     var promotion = $scope.cartpromotions[j]['promotionrule']['rule_type'] == 'cart_discount_by_percentage' ? $scope.cartpromotions[j]['promotionrule']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartpromotions[j]['promotionrule']['discount_value']);
                                     promotioncartbase += promotion;
                                     $scope.tmpvallues  = promotion;
@@ -542,14 +535,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         var couponcartbase          = 0;
                         if($scope.cartcoupon){
                             $scope.applycartcoupon      = [];
-
-                            $scope.applycartcoupon.push(
-                                {
-                                    issuedcoupon :{
-                                      promotion_name : 'Subtotal',
-                                      discount_value : $scope.cart.subtotal
-                                      }
-                           });
                             $scope.tmpvallues = '';
                             var cart_promo_tmpvat, cart_promo_tmpvat_wo_tax, cart_promo_tmpvat_tax;
                             for(var m = 0; m < $scope.cartcoupon.length; m++){
@@ -584,17 +569,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", 0, ",", ".");
                              $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                              $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
-                        }        
-                    
-                        //todo:agung change hardcore for VAT
-                      /*  var vat  = 10;
-                        var hvat = parseInt(accounting.unformat($scope.cart.subtotal) * vat / 100);
-                        $scope.cart.vat        =  accounting.formatMoney(hvat, "", 0, ",", ".");
-                        $scope.cart.totalpay   =  accounting.formatMoney((hvat + accounting.unformat($scope.cart.subtotal)), "", 0, ",", ".");
-                     */    //vat include    
-                        /*if($scope.vat_included == 'yes'){
-                                $scope.cart.totalpay = $scope.cart.subtotal;
-                        } */ 
+                        }
                     }
                 };
                 //insert to cart
@@ -795,7 +770,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else{
                         //do something
                     }
-
                 };
                 //watch amount on page cash
                 $scope.$watch("cart.amount", function(newvalue,oldvalue){
@@ -851,7 +825,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else{
                         $scope.manualscancart =  $scope.manualscancart+idx;
                     }
-
                 };
                 //binding keypad cash
                 $scope.keypadFn = function(idx){
@@ -865,7 +838,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else{
                         $scope.cart.amount =  $scope.cart.amount == 0 ? idx : $scope.cart.amount+idx;
                     }
-
                 };
                 //binding keypad qty
                 $scope.keypaqtydFn = function(idx){
@@ -895,7 +867,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.isvirtualqty = bool;
                     if(!bool) {
                         $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
-
                     }
                     $scope.indexactiveqty = idx;
                     $scope.isqty  = true;
@@ -912,7 +883,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.datadisplay.line2 = line2;
                     serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
                         if(response.code == 0){
-
+                             //do something
                         }else {
                             //do something
                         }
@@ -927,7 +898,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
-                 /*  if(bool)*/ serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
+                     serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
                                 var name = response.data.cart.users.user_firstname+' '+response.data.cart.users.user_lastname;
                                 $scope.successscant = true;
@@ -988,7 +959,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.inserttocartFn(true);
                                 }
 
-
                                 angular.element("#modalscancart").modal('hide');
                                 if(bool)  $scope.virtualFn(false);
                                 $scope.customerdispaly('Welcome',name.substr(0,20));
@@ -1006,8 +976,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.scancartFn();
                             }
                     });
-
-
                 };
             }
         });
@@ -1052,7 +1020,5 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
             }
         };
     });
-
-
     return app;
 });
