@@ -3,19 +3,19 @@
   <div class="modal-dialog orbit-modal">
     <div class="modal-content">
       <div class="modal-header orbit-modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="SearchProduct">Cari Produk</h4>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+        <h4 class="modal-title" id="SearchProduct">{{ Lang::get('mobileci.modals.search_title') }}</h4>
       </div>
       <div class="modal-body">
         <form method="GET" name="searchForm" id="searchForm" action="{{ url('/customer/search') }}">
           <div class="form-group">
-          	<label for="keyword">Cari berdasarkan : Nama Produk, Kode atau Deskripsi</label>
-      		  <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Input keyword(s)">
+          	<label for="keyword">{{ Lang::get('mobileci.modals.search_label') }}</label>
+      		  <input type="text" class="form-control" name="keyword" id="keyword" placeholder="{{ Lang::get('mobileci.modals.search_placeholder') }}">
           </div>
         </form>
       </div>
       <div class="modal-footer">
-          <button type="button" class="btn btn-info" id="searchProductBtn">Cari</button>
+          <button type="button" class="btn btn-info" id="searchProductBtn">{{ Lang::get('mobileci.modals.search_button') }}</button>
       </div>
     </div>
   </div>
