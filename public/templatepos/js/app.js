@@ -672,6 +672,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.searchproduct        = '';
                     $scope.applycartpromotion   = [];
                     $scope.applycartcoupon      = [];
+                    $scope.tmpsubtotal          = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
                     $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchants'][0]['name'].substr(0,20));
