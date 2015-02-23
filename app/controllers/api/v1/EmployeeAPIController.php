@@ -34,6 +34,11 @@ class EmployeeAPIController extends ControllerAPI
      */
     public function postNewEmployee()
     {
+        $activity = Activity::portal()
+                            ->setActivityType('create');
+
+        $user = NULL;
+        $newEmployee = NULL;
         try {
             $httpCode = 200;
 
@@ -176,6 +181,15 @@ class EmployeeAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Employee Created: %s', $newUser->username);
+            $activity->setUser($user)
+                    ->setActivityName('create_employee')
+                    ->setActivityNameLong('Create Employee OK')
+                    ->setObject($newEmployee)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.employee.postnewemployee.after.commit', array($this, $newUser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.employee.postnewemployee.access.forbidden', array($this, $e));
@@ -188,6 +202,13 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_employee')
+                    ->setActivityNameLong('Create Employee Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.employee.postnewemployee.invalid.arguments', array($this, $e));
 
@@ -199,6 +220,13 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_employee')
+                    ->setActivityNameLong('Create Employee Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.employee.postnewemployee.query.error', array($this, $e));
 
@@ -216,6 +244,13 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_employee')
+                    ->setActivityNameLong('Create Employee Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.employee.postnewemployee.general.exception', array($this, $e));
 
@@ -231,7 +266,17 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Creation failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('create_employee')
+                    ->setActivityNameLong('Create Employee Failed')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -258,6 +303,11 @@ class EmployeeAPIController extends ControllerAPI
      */
     public function postUpdateEmployee()
     {
+        $activity = Activity::portal()
+                           ->setActivityType('update');
+
+        $user = NULL;
+        $employee = NULL;
         try {
             $httpCode = 200;
 
@@ -396,6 +446,15 @@ class EmployeeAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Update
+            $activityNotes = sprintf('Employee updated: %s', $updatedUser->username);
+            $activity->setUser($user)
+                    ->setActivityName('update_employee')
+                    ->setActivityNameLong('Update Employee OK')
+                    ->setObject($employee)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.employee.postupdateemployee.after.commit', array($this, $updatedUser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.employee.postupdateemployee.access.forbidden', array($this, $e));
@@ -408,6 +467,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_employee')
+                    ->setActivityNameLong('Update Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.employee.postupdateemployee.invalid.arguments', array($this, $e));
 
@@ -419,6 +486,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_employee')
+                    ->setActivityNameLong('Update Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.employee.postupdateemployee.query.error', array($this, $e));
 
@@ -436,6 +511,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_employee')
+                    ->setActivityNameLong('Update Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.employee.postupdateemployee.general.exception', array($this, $e));
 
@@ -451,7 +534,18 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Failed Update
+            $activity->setUser($user)
+                    ->setActivityName('update_employee')
+                    ->setActivityNameLong('Update Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
@@ -468,6 +562,11 @@ class EmployeeAPIController extends ControllerAPI
      */
     public function postDeleteEmployee()
     {
+        $activity = Activity::portal()
+                          ->setActivityType('delete');
+
+        $user = NULL;
+        $employee = NULL;
         try {
             $httpCode = 200;
 
@@ -537,6 +636,15 @@ class EmployeeAPIController extends ControllerAPI
             // Commit the changes
             $this->commit();
 
+            // Successfull Creation
+            $activityNotes = sprintf('Employee Deleted: %s', $deletedUser->username);
+            $activity->setUser($user)
+                    ->setActivityName('delete_employee')
+                    ->setActivityNameLong('Delete Employee OK')
+                    ->setObject($employee)
+                    ->setNotes($activityNotes)
+                    ->responseOK();
+
             Event::fire('orbit.employee.postdeleteemployee.after.commit', array($this, $deletedUser));
         } catch (ACLForbiddenException $e) {
             Event::fire('orbit.employee.postdeleteemployee.access.forbidden', array($this, $e));
@@ -549,6 +657,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_employee')
+                    ->setActivityNameLong('Delete Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.employee.postdeleteemployee.invalid.arguments', array($this, $e));
 
@@ -560,6 +676,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_employee')
+                    ->setActivityNameLong('Delete Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (QueryException $e) {
             Event::fire('orbit.employee.postdeleteemployee.query.error', array($this, $e));
 
@@ -577,6 +701,14 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_employee')
+                    ->setActivityNameLong('Delete Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         } catch (Exception $e) {
             Event::fire('orbit.employee.postdeleteemployee.general.exception', array($this, $e));
 
@@ -592,7 +724,18 @@ class EmployeeAPIController extends ControllerAPI
 
             // Rollback the changes
             $this->rollBack();
+
+            // Deletion failed Activity log
+            $activity->setUser($user)
+                    ->setActivityName('delete_employee')
+                    ->setActivityNameLong('Delete Employee Failed')
+                    ->setObject($employee)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed();
         }
+
+        // Save the activity
+        $activity->save();
 
         return $this->render($httpCode);
     }
