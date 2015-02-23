@@ -1,43 +1,6 @@
 @extends('pos.layouts.default')
 @section('content')
-<style type="text/css">
-    table {
-        width: 100%;
-    }
 
-    thead, tbody, tr, td, th { display: block; }
-
-    tr:after {
-        content: ' ';
-        display: block;
-        visibility: hidden;
-        clear: both;
-    }
-
-    thead th {
-        height: 30px;
-
-        /*text-align: left;*/
-    }
-
-    tbody {
-        height: 280px;
-        overflow-y: auto;
-    }
-
-    thead {
-        /* fallback */
-    }
-
-
-    tbody td, thead th {
-        width: 20%;
-        float: left;
-    }
-    .bcgrey {
-        background-color: #E6E6E6;
-    }
-</style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
@@ -65,16 +28,16 @@
                     </div>
 
                 </div>
-                <div ng-class="table-responsive" >
+
+                <div ng-class="table-responsive"  id="tablecart" style="overflow: auto;height: 280px" >
                     <table class="table">
-                    <thead>
                      <tr>
-                                                <th class="text-center">NAMA + UPC</th>
-                                                <th class="text-center">JUMLAH</th>
-                                                <th class="text-center">UNIT PRICE</th>
-                                                <th class="text-center">HARGA TOTAL</th>
-                                            </tr>
-                    </thead>
+                              <th class="text-center">NAMA + UPC</th>
+                              <th class="text-center">JUMLAH</th>
+                              <th class="text-center">UNIT PRICE</th>
+                              <th class="text-center">HARGA TOTAL</th>
+                     </tr>
+
 
                         <tbody data-ng-repeat="(k,v) in cart"  id="tablecart" class="tes" >
                            <tr>
