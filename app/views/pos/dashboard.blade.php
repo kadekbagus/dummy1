@@ -1,6 +1,43 @@
 @extends('pos.layouts.default')
 @section('content')
+<style type="text/css">
+    table {
+        width: 100%;
+    }
 
+    thead, tbody, tr, td, th { display: block; }
+
+    tr:after {
+        content: ' ';
+        display: block;
+        visibility: hidden;
+        clear: both;
+    }
+
+    thead th {
+        height: 30px;
+
+        /*text-align: left;*/
+    }
+
+    tbody {
+        height: 280px;
+        overflow-y: auto;
+    }
+
+    thead {
+        /* fallback */
+    }
+
+
+    tbody td, thead th {
+        width: 20%;
+        float: left;
+    }
+    .bcgrey {
+        background-color: #E6E6E6;
+    }
+</style>
 <div class="ng-cloak" ng-controller="dashboardCtrl">
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
@@ -28,17 +65,18 @@
                     </div>
 
                 </div>
-
-                <div ng-class="table-responsive"  id="tablecart" style="overflow: auto;height: 280px" >
+                <div ng-class="table-responsive" >
                     <table class="table">
+                    <thead>
+                     <tr>
+                                                <th class="text-center">NAMA + UPC</th>
+                                                <th class="text-center">JUMLAH</th>
+                                                <th class="text-center">UNIT PRICE</th>
+                                                <th class="text-center">HARGA TOTAL</th>
+                                            </tr>
+                    </thead>
 
-                        <tr>
-                            <th class="text-center">NAMA + UPC</th>
-                            <th class="text-center">JUMLAH</th>
-                            <th class="text-center">UNIT PRICE</th>
-                            <th class="text-center">HARGA TOTAL</th>
-                        </tr>
-                        <tbody data-ng-repeat="(k,v) in cart">
+                        <tbody data-ng-repeat="(k,v) in cart"  id="tablecart" class="tes" >
                            <tr>
                                 <td style="max-width: 300px;word-wrap: break-word;" >
                                   <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> <% v.attributes.toString().replace(",", " "); %> </b></a> <br><% v.upc_code %>
@@ -88,6 +126,17 @@
 
                     </table>
                 </div>
+                <div class="table-responsive" data-ng-show="tmpsubtotal">
+                    <table class="table  orbit-component table-noborder">
+                        <tbody>
+                            <tr>
+                                <td colspan="2"><b>Subtotal</b></td>
+                                <td class="text-right"></td>
+                                <td class="text-right"><b><% tmpsubtotal %></b></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="table-responsive" data-ng-show="applycartpromotion.length > 1">
                     <table class="table  orbit-component table-noborder">
                         <thead>
@@ -97,8 +146,7 @@
                         </thead>
                         <tbody>
                             <tr data-ng-repeat="(e,o) in applycartpromotion" >
-                                <td colspan="2"><b data-ng-show="o.promotion_name == 'Subtotal'"><% o.promotion_name %></b><span data-ng-show="o.promotion_name != 'Subtotal'"><% o.promotion_name %></span></td>
-
+                                <td colspan="2"><% o.promotion_name %></td>
                                 <td class="text-right"><% o.promotionrule.discount %></td>
                                 <td class="text-right"><% o.promotionrule.discount_value %></td>
                             </tr>
