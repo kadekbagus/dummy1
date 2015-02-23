@@ -693,9 +693,13 @@ class CategoryAPIController extends ControllerAPI
             Event::fire('orbit.category.getsearchcategory.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.product_category.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
             }
 
             // Builder object
@@ -759,15 +763,17 @@ class CategoryAPIController extends ControllerAPI
 
             // Get the take args
             $take = $maxRecord;
-            OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-            {
-                if ($_take == 0) {
-                    $_take = Category::count();
-                } elseif ($_take > $maxRecord) {
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+                
+                if ((int)$take === 0) {
+                    $take = $maxRecord;
+                }
             });
+
             $categories->take($take);
 
             $skip = 0;

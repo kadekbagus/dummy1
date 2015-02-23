@@ -34,6 +34,11 @@ return array(
         'product_attribute' => array(
             'max_record' => 500,
         ),
+
+        // Product Category
+        'product_category' => array(
+            'max_record' => 100,
+        ),
     ),
 
     'registration' => array(
