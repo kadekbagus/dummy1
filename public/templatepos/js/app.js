@@ -62,21 +62,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     }]);
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
-        //init
-        $scope.cart               = [];
-        $scope.product            = [];
-        $scope.productidenabled   = [];
-        $scope.configs            = config;
-        $scope.datadisplay        = {};
-        $scope.manualscancart     = '';
-        $scope.holdbtn            = true;
-        $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
-       
+
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
                 window.location.assign("signin");
             }else{
+                //init
+                $scope.cart               = [];
+                $scope.product            = [];
+                $scope.productidenabled   = [];
+                $scope.configs            = config;
+                $scope.datadisplay        = {};
+                $scope.manualscancart     = '';
+                $scope.holdbtn            = true;
+                $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,attr1){
                     //set loading
