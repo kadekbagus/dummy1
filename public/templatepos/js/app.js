@@ -62,20 +62,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     }]);
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
-
+        //init
+        $scope.cart               = [];
+        $scope.product            = [];
+        $scope.productidenabled   = [];
+        $scope.configs            = config;
+        $scope.datadisplay        = {};
+        $scope.manualscancart     = '';
+        $scope.holdbtn            = true;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
                 window.location.assign("signin");
             }else{
-                //init
-                $scope.cart               = [];
-                $scope.product            = [];
-                $scope.productidenabled   = [];
-                $scope.configs            = config;
-                $scope.datadisplay        = {};
-                $scope.manualscancart     = '';
-                $scope.holdbtn            = true;
+
                 $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,attr1){
@@ -563,7 +563,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                         if($scope.vat_included == 'yes'){
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
-                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase - parseInt(tmpvattotal), "", 0, ",", ".");
+                             $scope.cart.subtotal = $scope.cart.totalpay;
                              $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
                         } else {
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", 0, ",", ".");
@@ -900,7 +900,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     };
                      serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
-                                var name = response.data.cart.users.user_firstname+' '+response.data.cart.users.user_lastname;
+                                var name = response.data.cart.users.user_firstname == null ? response.data.cart.users.user_email : response.data.cart.users.user_firstname+' '+response.data.cart.users.user_lastname;
                                 $scope.successscant = true;
                                 $scope.guests       = name;
                                 $scope.cart.user_id = response.data.cart.users.user_id;

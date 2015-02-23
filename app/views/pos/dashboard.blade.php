@@ -29,17 +29,17 @@
 
                 </div>
 
-                <div ng-class="table-responsive"  id="tablecart" style="overflow: auto;height: 280px" >
+                <div ng-class="table-responsive"  id="tablecart" style="overflow: auto;height: 350px" >
                     <table class="table">
-                     <tr>
-                              <th class="text-center">NAMA + UPC</th>
-                              <th class="text-center">JUMLAH</th>
-                              <th class="text-center">UNIT PRICE</th>
-                              <th class="text-center">HARGA TOTAL</th>
-                     </tr>
-
-
-                        <tbody data-ng-repeat="(k,v) in cart"  id="tablecart" class="tes" >
+                         <thead>
+                           <tr>
+                                <th class="text-center">NAMA + UPC</th>
+                                <th class="text-center">JUMLAH</th>
+                                <th class="text-center">UNIT PRICE</th>
+                                <th class="text-center">HARGA TOTAL</th>
+                           </tr>
+                         </thead>
+                        <tbody data-ng-repeat="(k,v) in cart"  id="tablecart">
                            <tr>
                                 <td style="max-width: 300px;word-wrap: break-word;" >
                                   <a href="" data-toggle="modal" data-backdrop="static" data-target="#myModal" data-ng-click="showdetailFn(v.product_id,'fc')"><b> <% v.product_name %> <% v.variants.value1 %> <% v.variants.value2 %> <% v.variants.value3 %> <% v.attributes.toString().replace(",", " "); %> </b></a> <br><% v.upc_code %>
@@ -80,68 +80,49 @@
                                 <td class="text-right"><% r.discount_value %></td>
                                 <td class="text-right">- <% r.aftercouponprice %></td>
                             </tr>
+
                         </tbody>
+                            <tr data-ng-if="tmpsubtotal">
+                                <td colspan="2"><b>Subtotal</b></td>
+                                <td class="text-right"></td>
+                                <td class="text-right"><b><% tmpsubtotal %></b></td>
+                            </tr>
                             <tr id="bottom">
                                 <!-- <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td>
                                  <td class="tdnoborder"></td> -->
                             </tr>
-
                     </table>
-                </div>
-                <div class="table-responsive" data-ng-show="tmpsubtotal">
-                    <table class="table  orbit-component table-noborder">
-                        <tbody>
-                            <tr>
-                                <td colspan="2"><b>Subtotal</b></td>
-                                <td class="text-right"></td>
-                                <td class="text-right"><b><% tmpsubtotal %></b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="table-responsive" data-ng-show="applycartpromotion.length > 1">
-                    <table class="table  orbit-component table-noborder">
-                        <thead>
-                            <tr class="promotion">
-                               <th colspan="4" style="color: white"><h4>CART BASED PROMOTIONS</h4></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr data-ng-repeat="(e,o) in applycartpromotion" >
-                                <td colspan="2"><% o.promotion_name %></td>
-                                <td class="text-right"><% o.promotionrule.discount %></td>
-                                <td class="text-right"><% o.promotionrule.discount_value %></td>
-                            </tr>
-                        </tbody>
+                      <table class="table  orbit-component table-noborder" >
+                                <tr class="promotion" data-ng-if="applycartpromotion.length > 1">
+                                   <th colspan="4" style="color: white;padding-top: 2px;padding-bottom: 2px"><h5>CART BASED PROMOTIONS</h5></th>
+                                </tr>
 
-                    </table>
+                                <tr data-ng-repeat="(e,o) in applycartpromotion" data-ng-if="applycartpromotion.length > 1">
+                                    <td ><% o.promotion_name %></td>
+                                    <td></td>
+                                    <td class="text-right"><% o.promotionrule.discount %></td>
+                                    <td class="text-right"><% o.promotionrule.discount_value %></td>
+                                </tr>
+                                 <tr class="coupon" data-ng-if="applycartcoupon.length > 1">
+                                    <th colspan="4" style="color: white;padding-top: 2px;padding-bottom: 2px"><h5>CART BASED COUPONS</h5></th>
+                                 </tr>
+                                 <tr data-ng-repeat="(b,l) in applycartcoupon" data-ng-if="applycartcoupon.length > 1">
+                                      <td><% l.issuedcoupon.promotion_name %></td>
+                                       <td></td>
+                                      <td class="text-right"><% l.issuedcoupon.discount %></td>
+                                      <td class="text-right"><% l.issuedcoupon.discount_value %></td>
+                                  </tr>
+                       </table>
                 </div>
-                <div class="table-responsive" data-ng-show="applycartcoupon.length > 1">
-                    <table class="table  orbit-component table-noborder">
-                        <thead>
-                            <tr class="coupon">
-                               <th colspan="4" style="color: white"><h4>CART BASED COUPONS</h4></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr data-ng-repeat="(b,l) in applycartcoupon" >
-                                <td colspan="2"><% l.issuedcoupon.promotion_name %></td>
 
-                                <td class="text-right"><% l.issuedcoupon.discount %></td>
-                                <td class="text-right"><% l.issuedcoupon.discount_value %></td>
-                            </tr>
-                        </tbody>
-
-                    </table>
-                </div>
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h5>TOTAL ITEMS<br><% cart.totalitem %></b></h5></td>
-                            <td class="text-center"><b><h5>SUBTOTAL<br><% cart.subtotal %></b></h5></td>
-                            <td class="text-center"><b><h5>TAXES<br><% cart.vat %></b></h5> </td>
-                            <td class="text-center"><b><h5>TOTAL TO PAY<br><% cart.totalpay %></b></h5></td>
+                            <td class="text-center"><b><h5>TOTAL ITEMS</b><br><% cart.totalitem %></h5></td>
+                            <td class="text-center"><b><h5>SUBTOTAL</b><br><% cart.subtotal %></h5></td>
+                            <td class="text-center"><b><h5>TAXES<br></b><% cart.vat %></h5> </td>
+                            <td class="text-center"><b><h5>TOTAL TO PAY</b><br><% cart.totalpay %></h5></td>
                         </tr>
                         <tr>
                             <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>
