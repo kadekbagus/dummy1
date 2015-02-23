@@ -13,7 +13,15 @@
 
 App::before(function($request)
 {
-	//
+	$browser_lang = substr(Request::server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
+	// dd($browser_lang);
+	if(!empty($browser_lang) AND in_array($browser_lang, Config::get('orbit.languages')))
+    {
+        // Set Browser Lang
+        App::setLocale($browser_lang);
+    } else {
+    	App::setLocale('en');
+    }
 });
 
 

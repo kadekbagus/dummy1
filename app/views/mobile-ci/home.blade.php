@@ -137,8 +137,8 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Tutup</span></button>
-          <h4 class="modal-title" id="promoModalLabel">Events</h4>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="promoModalLabel">{{ Lang::get('mobileci.modals.event_title') }}</h4>
         </div>
         <div class="modal-body">
           <p id="promoModalText">
@@ -211,7 +211,7 @@
           </p>
         </div>
         <div class="modal-footer">
-          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button></div>
+          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button></div>
         </div>
       </div>
     </div>
@@ -221,14 +221,14 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Tutup</span></button>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
           <h4 class="modal-title" id="noModalLabel"></h4>
         </div>
         <div class="modal-body">
           <p id="noModalText"></p>
         </div>
         <div class="modal-footer">
-          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button></div>
+          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button></div>
         </div>
       </div>
     </div>
@@ -243,18 +243,18 @@
           $('#promoModal').modal();
         @endif
         $('#emptyCoupon').click(function(){
-          $('#noModalLabel').text('Info');
-          $('#noModalText').text('Maaf, Anda belum memiliki kupon.');
+          $('#noModalLabel').text('{{ Lang::get('mobileci.modals.info_title') }}');
+          $('#noModalText').text('{{ Lang::get('mobileci.modals.message_no_coupon') }}');
           $('#noModal').modal();
         });
         $('#emptyNew').click(function(){
-          $('#noModalLabel').text('Info');
-          $('#noModalText').text('Maaf, tidak ada produk baru untuk saat ini.');
+          $('#noModalLabel').text('{{ Lang::get('mobileci.modals.info_title') }}');
+          $('#noModalText').text('{{ Lang::get('mobileci.modals.message_no_new_product') }}');
           $('#noModal').modal();
         });
         $('#emptyPromo').click(function(){
-          $('#noModalLabel').text('Info');
-          $('#noModalText').text('Maaf, tidak ada promosi untuk saat ini.');
+          $('#noModalLabel').text('{{ Lang::get('mobileci.modals.info_title') }}');
+          $('#noModalText').text('{{ Lang::get('mobileci.modals.message_no_promotion') }}');
           $('#noModal').modal();
         });
         $("#slider1").responsiveSlides({

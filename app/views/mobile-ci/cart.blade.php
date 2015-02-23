@@ -6,19 +6,19 @@
       <div class="single-box">
         <div class="color-box box-one">
         </div>
-        <span class="box-text">PROMO</span>
+        <span class="box-text">{{ Lang::get('mobileci.cart.promo') }}</span>
       </div>
       <div class="single-box">
         <div class="color-box box-two">
         </div>
-        <span class="box-text">KUPON</span>
+        <span class="box-text">{{ Lang::get('mobileci.cart.coupon') }}</span>
       </div>
     </div>
     <div class="cart-page the-cart">
       @if(count($cartdata->cartdetails) < 1)
         <div class="row">
           <div class="col-xs-12">
-            <p><i>Tidak ada item dalam keranjang.</i></p>
+            <p><i>{{ Lang::get('mobileci.cart.no_item') }}</i></p>
           </div>
         </div>
       @else
@@ -26,16 +26,16 @@
           <div class="single-item">
             <div class="single-item-headers">
               <div class="single-header unique-column">
-                <span class="header-text">Item</span>
+                <span class="header-text">{{ Lang::get('mobileci.cart.item_label') }}</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">Qty</span>
+                <span class="header-text">{{ Lang::get('mobileci.cart.qty_label') }}</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
+                <span class="header-text">{{ Lang::get('mobileci.cart.price_label') }} ({{ $retailer->parent->currency_symbol }})</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
+                <span class="header-text">{{ Lang::get('mobileci.cart.total_label') }} ({{ $retailer->parent->currency_symbol }})</span>
               </div>
             </div>
         {{-- product listing --}}
@@ -113,7 +113,7 @@
             @if(!empty($cartdetail->available_product_coupons))
             <div class="use-coupon single-item-bodies @if($x % 2 == 0) even-line @endif" style="background:#ffac41; color:#623D0C; padding:4px; cursor:pointer;" data-product-variant="{{$cartdetail->product_variant_id}}" data-product="{{$cartdetail->product_id}}">
               <div class="col-xs-12 text-center">
-                <span><i class="fa fa-plus-circle"></i> Gunakan kupon untuk item ini ({{$cartdetail->available_product_coupons}})</span>
+                <span><i class="fa fa-plus-circle"></i> {{ Lang::get('mobileci.cart.use_product_coupon') }} ({{$cartdetail->available_product_coupons}})</span>
               </div>
             </div>
             @endif
@@ -122,7 +122,7 @@
         @endforeach
             <div class="subtotal">
               <div class="subtotal-title text-right">
-                Subtotal : 
+                {{ Lang::get('mobileci.cart.subtotal_label') }} : 
               </div>
               <div class="subtotal-price text-right formatted-num">
                 @if($retailer->parent->vat_included == 'yes')
@@ -141,19 +141,19 @@
     {{-- cart-based promotions --}}
     @if(count($cartdata->cartsummary->acquired_promo_carts) > 0)
     <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Cart Based Promotions</span>
+      <span class="cart-sum-title">{{ Lang::get('mobileci.cart.cart_based_promotion_label') }}</span>
       <div class="cart-sum-headers">
         <div class="cart-promo-single-header">
-          <span>Promotion</span>
+          <span>{{ Lang::get('mobileci.cart.promotion_label') }}</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Value</span>
+          <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
 
@@ -185,19 +185,19 @@
     {{-- cart-based coupons --}}
     @if(count($cartdata->cartsummary->used_cart_coupons) > 0)
     <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Cart Based Coupons</span>
+      <span class="cart-sum-title">{{ Lang::get('mobileci.cart.cart_based_coupon_label') }}</span>
       <div class="cart-sum-headers">
         <div class="cart-coupon-single-header">
-          <span>Coupon</span>
+          <span>{{ Lang::get('mobileci.cart.coupon_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>Value</span>
+          <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
       @foreach($cartdata->cartsummary->used_cart_coupons as $coupon_cart)
@@ -235,16 +235,16 @@
     {{-- cart-based coupon --}}
     @if(count($cartdata->cartsummary->available_coupon_carts) > 0)
     <div class="cart-page cart-sum">
-      <span class="cart-sum-title">Available Cart Based Coupons</span>
+      <span class="cart-sum-title">{{ Lang::get('mobileci.cart.available_cart_based_coupon_label') }}</span>
       <div class="cart-sum-headers">
         <div class="cart-coupon-single-header">
-          <span>Coupon</span>
+          <span>{{ Lang::get('mobileci.cart.coupon_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>Value</span>
+          <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>Discount({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-coupon-single-header">
           <span>&nbsp;</span>
@@ -263,7 +263,7 @@
             <span class="formatted-num">{{$available_coupon_cart->disc_val}}</span>
           </div>
           <div class="cart-sum-single-body-promo">
-            <span><a class="btn btn-info useCouponBtn" data-coupon="{{ $issuedcoupon->issued_coupon_id }}">Pakai</a></span>
+            <span><a class="btn btn-info useCouponBtn" data-coupon="{{ $issuedcoupon->issued_coupon_id }}">{{ Lang::get('mobileci.cart.use') }}</a></span>
           </div>
         </div>
         @endforeach
@@ -277,16 +277,16 @@
       <span class="cart-sum-title">Total</span>
       <div class="cart-sum-headers">
         <div class="cart-sum-single-header">
-          <span>Item</span>
+          <span>{{ Lang::get('mobileci.cart.item_label') }}</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Taxes ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.taxes_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>Total ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.total_label') }} ({{ $retailer->parent->currency_symbol }})</span>
         </div>
       </div>
       <div class="cart-sum-bodies">
@@ -310,22 +310,9 @@
     </div>
     @endif
     
-    {{--
-    @foreach($cartdata->cartsummary->taxes as $tax)
-      @if(!empty($tax->total_tax))
-      <div>
-        <span>{{ $tax->tax_name }}</span> : <span>{{ $tax->total_tax }}</span>
-      </div>
-      @endif
-    @endforeach
-    <div>
-      <span>Subtotal wo tax : {{ $cartdata->cartsummary->subtotal_wo_tax }}</span>
-    </div>
-    --}}
-    
     <div class="cart-page button-group text-center">
-      <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>Check Out</button>
-      <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">Continue Shopping</a>
+      <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>{{ Lang::get('mobileci.cart.checkout_button') }}</button>
+      <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">{{ Lang::get('mobileci.cart.continue_button') }}</a>
       <img class="img-responsive img-center" src="{{ asset($retailer->parent->logo) }}" />
     </div>
   </div>
@@ -337,8 +324,8 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="checkOutLabel">Checkout</h4>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="checkOutLabel">{{ Lang::get('mobileci.modals.checkout_title') }}</h4>
         </div>
         <div class="modal-body">
           <!-- <div class="row ">
@@ -351,16 +338,16 @@
           </div> -->
           <div class="row ">
             <div class="col-xs-12 col-sm-6 vertically-spaced">
-              <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">Cash</a>
+              <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.cash_button') }}</a>
             </div>
             <div class="col-xs-12 col-sm-6 vertically-spaced">
-              <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">Credit Card</a>
+              <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.credit_button') }}</a>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-            <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel') }}</button>
           </form>
         </div>
       </div>
@@ -371,7 +358,7 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
           <h4 class="modal-title" id="deleteLabel"></h4>
         </div>
         <div class="modal-body">
@@ -387,10 +374,10 @@
               <input type="hidden" name="detail" id="detail" value="">
               <input type="hidden" name="obj" id="obj" value="">
               <div class="col-xs-6">
-                <button type="button" id="cartDeleteBtn" class="btn btn-success btn-block">Ya</button>
+                <button type="button" id="cartDeleteBtn" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.yes_button') }}</button>
               </div>
               <div class="col-xs-6">
-                <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel') }}</button>
               </div>
             </div>
           </form>
@@ -404,7 +391,7 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
           <h4 class="modal-title" id="previewLabel"></h4>
         </div>
         <div class="modal-body">
@@ -417,7 +404,7 @@
         <div class="modal-footer">
             <div class="row">
               <div class="col-xs-6 pull-right">
-                <button type="button" class="btn btn-default btn-block" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-default btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button>
               </div>
             </div>
         </div>
@@ -430,16 +417,16 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="transferFunctionModalLabel"><i class="fa fa-lightbulb-o"></i> Tip</h4>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="transferFunctionModalLabel"><i class="fa fa-lightbulb-o"></i> {{ Lang::get('mobileci.modals.tip_title') }}</h4>
         </div>
         <div class="modal-body">
-          <p id="errorModalText">Untuk menyelesaikan transfer keranjang, gunakan <i>Transfer Cart</i> pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.</p>
+          <p id="errorModalText">{{ Lang::get('mobileci.modals.message_transfer_cart') }}</p>
           <img src="{{ url('mobile-ci/images/transfer_cart_tip.gif') }}" class="img-responsive">
         </div>
         <div class="modal-footer">
-          <div class="pull-left"><input type="checkbox" id="dismiss" name="dismiss" value="0"> Jangan tunjukkan pesan ini lagi</div>
-          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+          <div class="pull-left"><input type="checkbox" id="dismiss" name="dismiss" value="0"> {{ Lang::get('mobileci.modals.do_not_show_label') }}</div>
+          <div class="pull-right"><button type="button" class="btn btn-default" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button></div>
         </div>
       </div>
     </div>
@@ -449,8 +436,8 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="hasCouponLabel">Kupon Saya</h4>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="hasCouponLabel">{{ Lang::get('mobileci.modals.coupon_title') }}</h4>
         </div>
         <div class="modal-body">
           <div class="row ">
@@ -463,10 +450,10 @@
             <div class="row">
               <input type="hidden" name="detail" id="detail" value="">
               <div class="col-xs-6">
-                <button type="button" id="applyCoupon" class="btn btn-success btn-block">Gunakan</button>
+                <button type="button" id="applyCoupon" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.coupon_use') }}</button>
               </div>
               <div class="col-xs-6">
-                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">Lain Kali</button>
+                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">{{ Lang::get('mobileci.modals.coupon_ignore') }}</button>
               </div>
             </div>
         </div>
@@ -615,16 +602,16 @@
     $('.item-remover').click(function(){
       $('#detail').val($(this).data('detail'));
       $('#obj').val('item');
-      $('#deleteModal #deleteLabel').text('Hapus Item');
-      $('#deleteModal .modal-body p').text('Apakah Anda yakin akan menghapus item ini dari keranjang belanja?');
+      $('#deleteModal #deleteLabel').text("{{ Lang::get('mobileci.modals.delete_item_title') }}");
+      $('#deleteModal .modal-body p').text("{{ Lang::get('mobileci.modals.message_delete_item') }}");
       $('#deleteModal').modal();
     });
 
     $('.coupon-remover').click(function(){
       $('#detail').val($(this).data('detail'));
       $('#obj').val('coupon');
-      $('#deleteModal #deleteLabel').text('Hapus Kupon');
-      $('#deleteModal .modal-body p').text('Apakah Anda yakin akan menghapus kupon ini dari keranjang belanja? Kupon yang Anda hapus masih dapat digunakan lain kali.');
+      $('#deleteModal #deleteLabel').text('{{ Lang::get('mobileci.modals.delete_coupon_title') }}');
+      $('#deleteModal .modal-body p').text('{{ Lang::get('mobileci.modals.message_delete_coupon') }}');
       $('#deleteModal').modal();
     });
 
