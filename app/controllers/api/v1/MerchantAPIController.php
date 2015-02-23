@@ -244,7 +244,8 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `masterbox_number`        (optional) - Masterbox number
      * @param string     `slavebox_number`         (optional) - Slavebox number
      * @param string     `mobile_default_language` (optional) - Mobile default language
-     * @param file       `images`                   (optional) - Merchant logo
+     * @param string     `pos_language`            (optional) - POS language
+     * @param file       `images`                  (optional) - Merchant logo
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -318,6 +319,7 @@ class MerchantAPIController extends ControllerAPI
             $masterbox_number = OrbitInput::post('masterbox_number');
             $slavebox_number = OrbitInput::post('slavebox_number');
             $mobile_default_language = OrbitInput::post('mobile_default_language');
+            $pos_language = OrbitInput::post('pos_language');
 
             $validator = Validator::make(
                 array(
@@ -386,6 +388,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->masterbox_number = $masterbox_number;
             $newmerchant->slavebox_number = $slavebox_number;
             $newmerchant->mobile_default_language = $mobile_default_language;
+            $newmerchant->pos_language = $pos_language;
             $newmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
@@ -548,12 +551,12 @@ class MerchantAPIController extends ControllerAPI
      * @param string            `masterbox_number`              (optional) - Masterbox number
      * @param string            `slavebox_number`               (optional) - Slavebox number
      * @param string            `mobile_default_language`       (optional) - Mobile default language
+     * @param string            `pos_language`                  (optional) - POS language
      * @param string|array      `with`                          (optional) - Relation which need to be included
      * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      *
      * @return Illuminate\Support\Facades\Response
      */
-
     public function getSearchMerchant()
     {
         try {
@@ -812,6 +815,11 @@ class MerchantAPIController extends ControllerAPI
                 $merchants->whereIn('merchants.mobile_default_language', $mobile_default_language);
             });
 
+            // Filter merchant by pos_language
+            OrbitInput::get('pos_language', function ($pos_language) use ($merchants) {
+                $merchants->whereIn('merchants.pos_language', $pos_language);
+            });
+
             // Add new relation based on request
             OrbitInput::get('with', function ($with) use ($merchants) {
                 $with = (array) $with;
@@ -1000,6 +1008,7 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `parent_id`                (optional) - The merchant id
      * @param file       `images`                   (optional) - Merchant logo
      * @param string     `mobile_default_language`  (optional) - Mobile default language
+     * @param string     `pos_language`             (optional) - POS language
      * @param array      `merchant_taxes`           (optional) - Merchant taxes array
      *            @param integer   `merchant_tax_id`         (optional) - Merchant Tax ID
      *            @param string    `tax_name`                (optional) - Tax name
@@ -1242,6 +1251,13 @@ class MerchantAPIController extends ControllerAPI
 
             OrbitInput::post('mobile_default_language', function($mobile_default_language) use ($updatedmerchant) {
                 $updatedmerchant->mobile_default_language = $mobile_default_language;
+            });
+
+            OrbitInput::post('pos_language', function($pos_language) use ($updatedmerchant) {
+                if (trim($pos_language) === '') {
+                    $pos_language = NULL;
+                }
+                $updatedmerchant->pos_language = $pos_language;
             });
 
             OrbitInput::post('ticket_header', function($ticket_header) use ($updatedmerchant) {
