@@ -30,7 +30,7 @@ class Setting
      *
      * @var array
      */
-    public static $settings = [];
+    protected $settings = [];
 
     /**
      * Flag for determined whether the global db call has been made.
@@ -130,8 +130,10 @@ class Setting
         if ($currentRetailer) {
             // There is already config for setting current merchant via Config object.
             // Make sure all the codes does not break by overriding the value
-            Config::set('orbit.shop', $currentRetailer);
+            Config::set('orbit.shop.id', $currentRetailer);
         }
+
+        return $this;
     }
 
     protected function loadSettingsFromDB()
@@ -146,7 +148,7 @@ class Setting
         })->active()->orderBy('created_at', 'desc')->get();
 
         foreach ($settings as $setting) {
-            static::$settings[$setting->setting_name] = $setting->setting_value;
+            $this->settings[$setting->setting_name] = $setting->setting_value;
         }
 
         // Set the flag to true
@@ -163,8 +165,8 @@ class Setting
      */
     public function getSetting($configName, $default=NULL)
     {
-        if (isset(static::$settings[$configName])) {
-            $default = static::$settings[$configName];
+        if (isset($this->settings[$configName])) {
+            $default = $this->settings[$configName];
         }
 
         return $default;
