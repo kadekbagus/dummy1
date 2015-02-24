@@ -8,8 +8,10 @@
 'use strict';
 
 define([
-    'config'
-], function (config) {
+    'config',
+    'i18n/id',
+    'i18n/en',
+], function (config,id,en) {
 
 var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngTouch'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -70,6 +72,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
+
+
+        $scope.language = $scope.datauser['userdetail']['merchant']['pos_language'] == 'id' ? id : en;
+        $scope.language = id;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -103,6 +109,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.adddelenadis($scope.cart[id]['product_id'],'del');
                         $scope.cart.splice(id ,1);
                         $scope.tmpsubtotal = '';
+                        $scope.applycartpromotion   = [];
+                        $scope.applycartcoupon      = [];
                     };
 
                     if(action == 'p'){//add
