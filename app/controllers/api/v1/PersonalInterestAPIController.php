@@ -148,7 +148,7 @@ class PersonalInterestAPIController extends ControllerAPI
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'id'            => 'personal_interests.personal_interest_id',
-                    'name'          => 'personal_interests.personal_interests',
+                    'name'          => 'personal_interests.personal_interest_name',
                     'created'       => 'personal_interests.created_at'
                 );
 
