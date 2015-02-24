@@ -82,7 +82,8 @@ use Orbit\Setting as OrbitSetting;
 
 App::singleton('orbitSetting', function()
 {
-	return OrbitSetting::create();
+	$setting = OrbitSetting::create()->init();
+	return $setting;
 });
 
 /*
