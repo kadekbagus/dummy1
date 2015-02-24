@@ -47,7 +47,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.issuedcoupon.postnewissuedcoupon.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('new_issuedcoupon')) {
+            if (! ACL::create($user)->isAllowed('new_issued_coupon')) {
                 Event::fire('orbit.issuedcoupon.postnewissuedcoupon.authz.notallowed', array($this, $user));
                 $createIssuedCouponLang = Lang::get('validation.orbit.actionlist.new_issuedcoupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createIssuedCouponLang));
@@ -208,7 +208,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.issuedcoupon.postupdateissuedcoupon.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('update_issuedcoupon')) {
+            if (! ACL::create($user)->isAllowed('update_issued_coupon')) {
                 Event::fire('orbit.issuedcoupon.postupdateissuedcoupon.authz.notallowed', array($this, $user));
                 $updateIssuedCouponLang = Lang::get('validation.orbit.actionlist.update_issuedcoupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $updateIssuedCouponLang));
@@ -388,7 +388,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.issuedcoupon.postdeleteissuedcoupon.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('delete_issuedcoupon')) {
+            if (! ACL::create($user)->isAllowed('delete_issued_coupon')) {
                 Event::fire('orbit.issuedcoupon.postdeleteissuedcoupon.authz.notallowed', array($this, $user));
                 $deleteIssuedCouponLang = Lang::get('validation.orbit.actionlist.delete_issuedcoupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $deleteIssuedCouponLang));
@@ -528,7 +528,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.issuedcoupon.getsearchissuedcoupon.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_issuedcoupon')) {
+            if (! ACL::create($user)->isAllowed('view_issued_coupon')) {
                 Event::fire('orbit.issuedcoupon.getsearchissuedcoupon.authz.notallowed', array($this, $user));
                 $viewIssuedCouponLang = Lang::get('validation.orbit.actionlist.view_issuedcoupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewIssuedCouponLang));
@@ -775,7 +775,7 @@ class IssuedCouponAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_issuedcoupon')) {
+            if (! ACL::create($user)->isAllowed('view_issued_coupon')) {
                 Event::fire('orbit.issuedcoupon.getsearchissuedcouponbyredeemretailer.authz.notallowed', array($this, $user));
                 $viewIssuedCouponLang = Lang::get('validation.orbit.actionlist.view_issuedcoupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewIssuedCouponLang));
