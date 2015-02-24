@@ -35,6 +35,7 @@ class PermissionTableSeeder extends Seeder
         // 16. Activity*
         // 17. Transaction History*
         // 18. Password*
+        // 19. Tax
         $permissionsSource = [
             'Role'      => [
                 'name'  => 'role',
@@ -123,8 +124,18 @@ class PermissionTableSeeder extends Seeder
             ],
             'Password'  => [
                 'name'  => 'password',
-                'order' => 17,
+                'order' => 18,
                 'perm'  => ['change']
+            ],
+            'Tax'  => [
+                'name'  => 'tax',
+                'order' => 19,
+                'perm'  => ['view']
+            ],
+            'Setting'  => [
+                'name'  => 'setting',
+                'order' => 20,
+                'perm'  => ['create', 'view', 'update', 'delete']
             ],
         ];
 
