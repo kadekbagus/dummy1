@@ -34,10 +34,10 @@
       </header>
       <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
         <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" placeholder="Harap masukan alamat email Anda" />
+          <input type="text" class="form-control" name="email" id="email" placeholder="{{ Lang::get('mobileci.signin.email_placeholder') }}" />
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">Masuk</button>
+          <button type="submit" class="btn btn-info btn-block">{{ Lang::get('mobileci.signin.login_button') }}</button>
         </div>
       </form>
     </div>
@@ -53,7 +53,7 @@
         </div>
       </header>
       <div class="col-xs-12 text-center welcome-user">
-        <h3>Selamat Datang, <br><span class="signedUser"></span></h3>
+        <h3>{{ Lang::get('mobileci.greetings.welcome') }}, <br><span class="signedUser"></span></h3>
       </div>
       <div class="col-xs-12 text-center">
         <form name="loginForm" id="loginSignedForm" action="{{ url('customer/login') }}" method="post">
@@ -61,13 +61,13 @@
             <input type="hidden" class="form-control" name="email" id="emailSigned" />
           </div>
           <div class="form-group">
-            <button type="submit" class="btn btn-info btn-block">Mulai Belanja</button>
+            <button type="submit" class="btn btn-info btn-block">{{ Lang::get('mobileci.signin.start_button') }}</button>
           </div>
         </form>
       </div>
     </div>
     <div class="col-xs-12 text-center vertically-spaced">
-      <a id="notMe">Bukan <span class="signedUser"></span>, klik disini.</a>
+      <a id="notMe">{{ Lang::get('mobileci.signin.not') }} <span class="signedUser"></span>, {{ Lang::get('mobileci.signin.click_here') }}.</a>
     </div>
   </div>
 
@@ -137,7 +137,7 @@
           em = $('#email').val();
         }
         if(!em) {
-          $('#errorModalText').text('Harap isi email terlebih dahulu.');
+          $('#errorModalText').text('{{ Lang::get('mobileci.modals.email_error') }}');
           $('#errorModal').modal();
         }else{
           if(isValidEmailAddress(em)){

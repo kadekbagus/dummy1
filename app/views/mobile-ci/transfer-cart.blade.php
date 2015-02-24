@@ -4,7 +4,7 @@
   <div class="container mobile-ci account-page">
     <div class="row">
       <div class="col-xs-12 text-center">
-        <p><b>Untuk menyelesaikan transfer keranjang, perlihatkan barcode berikut ini kepada kasir.</b></p>
+        <p><b>{{ Lang::get('mobileci.transfer_cart.transfer_message') }}</b></p>
       </div>
     </div>
     <div class="row">
@@ -12,10 +12,10 @@
         <div id="cartcode" data-cart="{{ $cartdata->cart->cart_code }}"></div>
       </div>
       <div class="col-xs-6 text-center">
-        <a id="doneBtn" class="btn btn-success">Selesai</a>
+        <a id="doneBtn" class="btn btn-success">{{ Lang::get('mobileci.transfer_cart.done_button') }}</a>
       </div>
       <div class="col-xs-6 text-center">
-        <a href="{{ url('customer/cart') }}" class="btn btn-info">Kembali</a>
+        <a href="{{ url('customer/cart') }}" class="btn btn-info">{{ Lang::get('mobileci.transfer_cart.back_button') }}</a>
       </div>
     </div>
   </div>
@@ -27,20 +27,20 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="doneLabel">Tutup Keranjang</h4>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="doneLabel">{{ Lang::get('mobileci.modals.close_cart_title') }}</h4>
         </div>
         <div class="modal-body">
           <div class="row ">
             <div class="col-xs-12 vertically-spaced">
-              <p>Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.</p>
+              <p>{{ Lang::get('mobileci.modals.message_close_cart') }}</p>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <div class="row">
             <div class="col-xs-6 pull-right">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button>
             </div>
           </div>
         </div>

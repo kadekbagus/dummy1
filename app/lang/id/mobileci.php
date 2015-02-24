@@ -42,6 +42,7 @@ return array(
         'tip_title'             => 'Tip',
         'delete_item_title'     => 'Hapus Item',
         'delete_coupon_title'   => 'Hapus Kupon',
+        'close_cart_title'      => 'Tutup Keranjang',
 
         'message_no_coupon'     => 'Maaf, Anda belum memiliki kupon.',
         'message_no_new_product'=> 'Maaf, tidak ada produk baru untuk saat ini.',
@@ -50,6 +51,7 @@ return array(
         'message_delete_item'   => 'Apakah Anda yakin akan menghapus item ini dari keranjang belanja?',
         'message_delete_coupon' => 'Apakah Anda yakin akan menghapus kupon ini dari keranjang belanja? Kupon yang Anda hapus masih dapat digunakan lain kali.',
         'message_transfer_cart' => 'Untuk menyelesaikan transfer keranjang, gunakan Transfer Cart pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.',
+        'message_close_cart'    => 'Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.',
         
         'coupon_use'            => 'Gunakan',
         'coupon_ignore'         => 'Lain Kali',
@@ -146,6 +148,12 @@ return array(
         'dont_forget_message' => 'Jangan lupa kunjungi',
         'promo_message' => 'untuk dapatkan info promo menarik lainya.',
         'shop_again_button' => 'Belanja Lagi',
+    ),
+
+    'transfer_cart'         => array(
+        'transfer_message'  => 'Untuk menyelesaikan transfer keranjang, perlihatkan barcode berikut ini kepada kasir.',
+        'done_button'       => 'Selesai',
+        'back_button'       => 'Kembali',
     ),
     
 );
