@@ -313,7 +313,7 @@
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>{{ Lang::get('mobileci.cart.checkout_button') }}</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">{{ Lang::get('mobileci.cart.continue_button') }}</a>
-      <img class="img-responsive img-center" src="{{ asset($retailer->parent->logo) }}" />
+      <img class="img-responsive img-center img-logo" src="{{ asset($retailer->parent->logo) }}" />
     </div>
   </div>
 @stop
