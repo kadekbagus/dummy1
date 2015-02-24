@@ -95,7 +95,7 @@
                     </table>
                       <table class="table  orbit-component table-noborder" >
                                 <tr class="promotion" data-ng-if="applycartpromotion.length > 1">
-                                   <th colspan="4" style="color: white;padding-top: 2px;padding-bottom: 2px"><h5>CART BASED PROMOTIONS</h5></th>
+                                   <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px">CART BASED PROMOTIONS</th>
                                 </tr>
 
                                 <tr data-ng-repeat="(e,o) in applycartpromotion" data-ng-if="applycartpromotion.length > 1">
@@ -105,7 +105,7 @@
                                     <td class="text-right"><% o.promotionrule.discount_value %></td>
                                 </tr>
                                  <tr class="coupon" data-ng-if="applycartcoupon.length > 1">
-                                    <th colspan="4" style="color: white;padding-top: 2px;padding-bottom: 2px"><h5>CART BASED COUPONS</h5></th>
+                                    <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px">CART BASED COUPONS</th>
                                  </tr>
                                  <tr data-ng-repeat="(b,l) in applycartcoupon" data-ng-if="applycartcoupon.length > 1">
                                       <td><% l.issuedcoupon.promotion_name %></td>
@@ -119,10 +119,10 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h5>TOTAL ITEMS</b><br><% cart.totalitem %></h5></td>
-                            <td class="text-center"><b><h5>SUBTOTAL</b><br><% cart.subtotal %></h5></td>
-                            <td class="text-center"><b><h5>TAXES<br></b><% cart.vat %></h5> </td>
-                            <td class="text-center"><b><h5>TOTAL TO PAY</b><br><% cart.totalpay %></h5></td>
+                            <td class="text-center"><b>TOTAL ITEMS</b><br><% cart.totalitem %></td>
+                            <td class="text-center"><b>SUBTOTAL</b><br><% cart.subtotal %></td>
+                            <td class="text-center"><b>TAXES<br></b><% cart.vat %></td>
+                            <td class="text-center"><b>TOTAL TO PAY</b><br><% cart.totalpay %></td>
                         </tr>
                         <tr>
                             <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>
