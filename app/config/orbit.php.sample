@@ -3,6 +3,10 @@
  * Orbit specific configuraiton.
  */
 return array(
+
+    // Languages that supported by orbit app
+    'languages' => array('en','id'),
+    
     'api' => array(
         'signature' => array(
                 // How long signature should expires in seconds

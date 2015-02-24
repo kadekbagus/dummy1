@@ -1835,7 +1835,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
-                    $q->where('category_id' . $i, NULL);
+                    $q->where('category_id' . $i, NULL)->orWhere('category_id' . $i, 0);
                 }
             });
 
@@ -2089,7 +2089,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
-                    $q->where('category_id' . $i, NULL);
+                    $q->where('category_id' . $i, NULL)->orWhere('category_id' . $i, 0);
                 }
             });
 
