@@ -9,24 +9,29 @@ return array(
 
     "page_title"        => array(
         "home"          => "HOME",
-        "catalogue"     => "KATALOG",
+        "catalogue"     => "CATALOG",
         "cart"          => "CART",
-        "my_account"    => "AKUN SAYA",
+        "my_account"    => "MY ACCOUNT",
         "transfercart"  => "TRANSFER CART",
         "customer_id"   => "CUSTOMER ID",
         "logout"        => "LOGOUT",
-        "payment"       => "PEMBAYARAN",
-        "searching"       => "PENCARIAN",
+        "payment"       => "PAYMENT",
+        "searching"     => "SEARCH",
     ),
 
     "widgets"           => array(
-        "catalogue"     => "KATALOG",
-        "new_product"   => "PRODUK TERBARU",
-        "promotion"     => "PROMOSI",
-        "coupon"        => "KUPON",
+        "catalogue"     => "CATALOG",
+        "new_product"   => "NEW PRODUCT",
+        "promotion"     => "PROMOTIONS",
+        "coupon"        => "MY COUPONS",
     ),
 
     "greetings"         => array(
-        "welcome"       => "Selamat Datang!"
+        "welcome"       => "Welcome!"
+    ),
+
+    // page specific lang
+    "signin"         => array(
+        'email_placeholder' => 'Inser your email address',
     ),
 );

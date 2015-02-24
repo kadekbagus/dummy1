@@ -47,25 +47,25 @@
 											<?php $x = 1;?>
 											@if($product->on_promo)
 											<div class="ribbon-wrapper-green ribbon{{$x}}">
-												<div class="ribbon-green">Promo</div>
+												<div class="ribbon-green">{{ Lang::get('mobileci.catalogue.promo_ribbon') }}</div>
 											</div>
 											<?php $x++;?>
 											@endif
 											@if($product->is_new)
 											<div class="ribbon-wrapper-red ribbon{{$x}}">
-												<div class="ribbon-red">New</div>
+												<div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
 											</div>
 											<?php $x++;?>
 											@endif
 											@if($product->on_coupons)
 											<div class="ribbon-wrapper-yellow ribbon{{$x}}">
-												<div class="ribbon-yellow">Coupon</div>
+												<div class="ribbon-yellow">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 											</div>
 											<?php $x++;?>
 											@endif
 											@if($product->on_couponstocatch)
 											<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
-												<div class="ribbon-yellow-dash">Coupon</div>
+												<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 											</div>
 											<?php $x++;?>
 											@endif
@@ -81,11 +81,11 @@
 												<h3>{{ $product->product_name }}</h3>
 											</div>
 											<div class="col-xs-12">
-												<h4>Code : {{ $product->upc_code }}</h4>
+												<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product->upc_code }}</h4>
 											</div>
 											<div class="col-xs-12 price">
 												@if(count($product->variants) > 1)
-												<small>Starting From</small>
+												<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
 												@endif
 												@if($product->on_promo)
 													<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product->min_price }}</span></h3>
@@ -140,25 +140,25 @@
 																<?php $x2 = 1;?>
 																@if($product2->on_promo)
 																<div class="ribbon-wrapper-green ribbon{{$x2}}">
-																	<div class="ribbon-green">Promo</div>
+																	<div class="ribbon-green">{{ Lang::get('mobileci.catalogue.promo_ribbon') }}</div>
 																</div>
 																<?php $x2++;?>
 																@endif
 																@if($product2->is_new)
 																<div class="ribbon-wrapper-red ribbon{{$x2}}">
-																	<div class="ribbon-red">New</div>
+																	<div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
 																</div>
 																<?php $x2++;?>
 																@endif
 																@if($product2->on_coupons)
 																<div class="ribbon-wrapper-yellow ribbon{{$x2}}">
-																	<div class="ribbon-yellow">Coupon</div>
+																	<div class="ribbon-yellow">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																</div>
 																<?php $x2++;?>
 																@endif
 																@if($product2->on_couponstocatch)
 																<div class="ribbon-wrapper-yellow-dash ribbon{{$x2}}">
-																	<div class="ribbon-yellow-dash">Coupon</div>
+																	<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																</div>
 																<?php $x2++;?>
 																@endif
@@ -174,11 +174,11 @@
 																	<h3>{{ $product2->product_name }}</h3>
 																</div>
 																<div class="col-xs-12">
-																	<h4>Code : {{ $product2->upc_code }}</h4>
+																	<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product2->upc_code }}</h4>
 																</div>
 																<div class="col-xs-12 price">
 																	@if(count($product2->variants) > 1)
-																	<small>Starting From</small>
+																	<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
 																	@endif
 																	@if($product2->on_promo)
 																		<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product2->min_price }}</span></h3>
@@ -233,25 +233,25 @@
 																					<?php $x3 = 1;?>
 																					@if($product3->on_promo)
 																					<div class="ribbon-wrapper-green ribbon{{$x3}}">
-																						<div class="ribbon-green">Promo</div>
+																						<div class="ribbon-green">{{ Lang::get('mobileci.catalogue.promo_ribbon') }}</div>
 																					</div>
 																					<?php $x3++;?>
 																					@endif
 																					@if($product3->is_new)
 																					<div class="ribbon-wrapper-red ribbon{{$x3}}">
-																						<div class="ribbon-red">New</div>
+																						<div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
 																					</div>
 																					<?php $x3++;?>
 																					@endif
 																					@if($product3->on_coupons)
 																					<div class="ribbon-wrapper-yellow ribbon{{$x3}}">
-																						<div class="ribbon-yellow">Coupon</div>
+																						<div class="ribbon-yellow">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																					</div>
 																					<?php $x3++;?>
 																					@endif
 																					@if($product3->on_couponstocatch)
 																					<div class="ribbon-wrapper-yellow-dash ribbon{{$x3}}">
-																						<div class="ribbon-yellow-dash">Coupon</div>
+																						<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																					</div>
 																					<?php $x3++;?>
 																					@endif
@@ -267,11 +267,11 @@
 																						<h3>{{ $product3->product_name }}</h3>
 																					</div>
 																					<div class="col-xs-12">
-																						<h4>Code : {{ $product3->upc_code }}</h4>
+																						<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product3->upc_code }}</h4>
 																					</div>
 																					<div class="col-xs-12 price">
 																						@if(count($product3->variants) > 1)
-																						<small>Starting From</small>
+																						<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
 																						@endif
 																						@if($product3->on_promo)
 																							<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product3->min_price }}</span></h3>
@@ -326,25 +326,25 @@
 																										<?php $x4 = 1;?>
 																										@if($product4->on_promo)
 																										<div class="ribbon-wrapper-green ribbon{{$x4}}">
-																											<div class="ribbon-green">Promo</div>
+																											<div class="ribbon-green">{{ Lang::get('mobileci.catalogue.promo_ribbon') }}</div>
 																										</div>
 																										<?php $x4++;?>
 																										@endif
 																										@if($product4->is_new)
 																										<div class="ribbon-wrapper-red ribbon{{$x4}}">
-																											<div class="ribbon-red">New</div>
+																											<div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
 																										</div>
 																										<?php $x4++;?>
 																										@endif
 																										@if($product4->on_coupons)
 																										<div class="ribbon-wrapper-yellow ribbon{{$x4}}">
-																											<div class="ribbon-yellow">Coupon</div>
+																											<div class="ribbon-yellow">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																										</div>
 																										<?php $x4++;?>
 																										@endif
 																										@if($product4->on_couponstocatch)
 																										<div class="ribbon-wrapper-yellow-dash ribbon{{$x4}}">
-																											<div class="ribbon-yellow-dash">Coupon</div>
+																											<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																										</div>
 																										<?php $x4++;?>
 																										@endif
@@ -360,11 +360,11 @@
 																											<h3>{{ $product4->product_name }}</h3>
 																										</div>
 																										<div class="col-xs-12">
-																											<h4>Code : {{ $product4->upc_code }}</h4>
+																											<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product4->upc_code }}</h4>
 																										</div>
 																										<div class="col-xs-12 price">
 																											@if(count($product4->variants) > 1)
-																											<small>Starting From</small>
+																											<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
 																											@endif
 																											@if($product4->on_promo)
 																												<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product4->min_price }}</span></h3>
@@ -419,25 +419,25 @@
 																															<?php $x5 = 1;?>
 																															@if($product5->on_promo)
 																															<div class="ribbon-wrapper-green ribbon{{$x5}}">
-																																<div class="ribbon-green">Promo</div>
+																																<div class="ribbon-green">{{ Lang::get('mobileci.catalogue.promo_ribbon') }}</div>
 																															</div>
 																															<?php $x5++;?>
 																															@endif
 																															@if($product5->is_new)
 																															<div class="ribbon-wrapper-red ribbon{{$x5}}">
-																																<div class="ribbon-red">New</div>
+																																<div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
 																															</div>
 																															<?php $x5++;?>
 																															@endif
 																															@if($product5->on_coupons)
 																															<div class="ribbon-wrapper-yellow ribbon{{$x5}}">
-																																<div class="ribbon-yellow">Coupon</div>
+																																<div class="ribbon-yellow">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																															</div>
 																															<?php $x5++;?>
 																															@endif
 																															@if($product5->on_couponstocatch)
 																															<div class="ribbon-wrapper-yellow-dash ribbon{{$x5}}">
-																																<div class="ribbon-yellow-dash">Coupon</div>
+																																<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 																															</div>
 																															<?php $x5++;?>
 																															@endif
@@ -453,11 +453,11 @@
 																																<h3>{{ $product5->product_name }}</h3>
 																															</div>
 																															<div class="col-xs-12">
-																																<h4>Code : {{ $product5->upc_code }}</h4>
+																																<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product5->upc_code }}</h4>
 																															</div>
 																															<div class="col-xs-12 price">
 																																@if(count($product5->variants) > 1)
-																																<small>Starting From</small>
+																																<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
 																																@endif
 																																@if($product5->on_promo)
 																																	<h3 class="currency currency-promo"><small>{{ $retailer->parent->currency_symbol }}</small> <span class="strike formatted-num">{{ $product5->min_price }}</span></h3>
@@ -540,8 +540,8 @@
     <div class="modal-dialog orbit-modal">
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="hasCouponLabel">Kupon Saya</h4>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="hasCouponLabel">{{ Lang::get('mobileci.modals.coupon_title') }}</h4>
         </div>
         <div class="modal-body">
           <div class="row ">
@@ -554,10 +554,10 @@
             <div class="row">
               <input type="hidden" name="detail" id="detail" value="">
               <div class="col-xs-6">
-                <button type="button" id="applyCoupon" class="btn btn-success btn-block">Gunakan</button>
+                <button type="button" id="applyCoupon" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.coupon_use') }}</button>
               </div>
               <div class="col-xs-6">
-                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">Lain Kali</button>
+                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">{{ Lang::get('mobileci.modals.coupon_ignore') }}</button>
               </div>
             </div>
         </div>

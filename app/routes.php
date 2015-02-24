@@ -7,24 +7,6 @@ if (! defined('DS')) {
 
 /*
 |--------------------------------------------------------------------------
-| Orbit API Class Map
-|--------------------------------------------------------------------------
-|
-| Add additional class map that are not covered by composer autoloader.
-| This class map might change very often so it is best to put it here
-| instead.
-|
-*/
-$orbitAdditionalClassMap = array(
-    __DIR__ . DS . 'controllers' . DS . 'api' . DS . 'v1',
-    __DIR__ . DS . 'controllers' . DS . 'intermediate' . DS . 'v1',
-    __DIR__ . DS . '..' . DS . 'vendor' . DS . 'eventviva' . DS . 'php-image-resize' . DS . 'src'
-);
-ClassLoader::addDirectories($orbitAdditionalClassMap);
-ClassLoader::register();
-
-/*
-|--------------------------------------------------------------------------
 | Orbit API Event lists
 |--------------------------------------------------------------------------
 |

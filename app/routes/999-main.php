@@ -9,11 +9,11 @@
 | and give it the Closure to execute when that URI is requested.
 |
 */
-Route::get('/', function()
+Route::get('/', ['before' => 'init.mobile-ci', function()
 {
     // Default to Mobile-CI login page
     return MobileCI\MobileCIAPIController::create()->getSignInView();
-});
+}]);
 
 /*
 |--------------------------------------------------------------------------
