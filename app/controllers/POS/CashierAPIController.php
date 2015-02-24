@@ -70,7 +70,7 @@ class CashierAPIController extends ControllerAPI
                         ->where('user_role_id', $role->role_id)
                         ->first();
 
-            $merchant = \Merchant::where('merchant_id', $retailer->parent->merchant_id)->first();
+            $merchant = $retailer->parent;
 
             if (is_object($user)) {
                 if (! Hash::check($password, $user->user_password)) {
