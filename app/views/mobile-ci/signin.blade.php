@@ -95,11 +95,7 @@
           <p id="errorModalText"></p>
         </div>
         <div class="modal-footer">
-          <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-            <input type="hidden" name="emailSignUp" id="emailSignUp" value="">
-            <button type="submit" class="btn btn-success" id="signup">Daftar</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button>
-          </form>
         </div>
       </div>
     </div>
