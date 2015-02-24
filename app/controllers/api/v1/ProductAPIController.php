@@ -689,7 +689,7 @@ class ProductAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string     `with`                     (optional) - Valid value: family.
-     * @param array    `product_id`               (optional) - ID of the product
+     * @param array      `product_id`               (optional) - ID of the product
      * @param string     `product_code`             (optional)
      * @param string     `product_name`             (optional)
      * @param string     `short_description`        (optional)
@@ -699,6 +699,8 @@ class ProductAPIController extends ControllerAPI
      * @param string     `long_description_like`    (optional)
      * @param integer    `merchant_id`              (optional)
      * @param integer    `status`                   (optional)
+     * @param array      `merchant_tax_id1`         (optional)
+     * @param array      `merchant_tax_id2`         (optional)
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -812,6 +814,16 @@ class ProductAPIController extends ControllerAPI
             // Filter product by status
             OrbitInput::get('status', function ($status) use ($products) {
                 $products->whereIn('products.status', $status);
+            });
+
+            // Filter product by merchant_tax_id1
+            OrbitInput::get('merchant_tax_id1', function ($merchant_tax_id1) use ($products) {
+                $products->whereIn('products.merchant_tax_id1', $merchant_tax_id1);
+            });
+
+            // Filter product by merchant_tax_id2
+            OrbitInput::get('merchant_tax_id2', function ($merchant_tax_id2) use ($products) {
+                $products->whereIn('products.merchant_tax_id2', $merchant_tax_id2);
             });
 
             // Add new relation based on request
