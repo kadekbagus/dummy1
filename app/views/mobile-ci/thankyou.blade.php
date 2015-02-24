@@ -13,7 +13,7 @@
 <div class="container thankyou">
   <div class="row top-space">
     <div class="col-xs-12 text-center">
-      <h2>Transaksi berhasil</h2>
+      <h2>{{ Lang::get('mobileci.thank_you.thank_you') }}</h2>
       <div id="receipt" class="receipt">
             <div class="row vertically-spaced">
               <div class="col-xs-12 text-center">
@@ -30,7 +30,7 @@
               @if(count($cartdata->cartdetails) < 1)
                 <div class="row">
                   <div class="col-xs-12">
-                    <p><i>Tidak ada item dalam keranjang.</i></p>
+                    <p><i>{{ Lang::get('mobileci.cart.no_item') }}</i></p>
                   </div>
                 </div>
               @else
@@ -39,16 +39,16 @@
                   <div class="single-item">
                     <div class="single-item-headers">
                       <div class="single-header unique-column">
-                        <span class="header-text">Item</span>
+                        <span class="header-text">{{ Lang::get('mobileci.cart.item_label') }}</span>
                       </div>
                       <div class="single-header unique-column">
-                        <span class="header-text">Qty</span>
+                        <span class="header-text">{{ Lang::get('mobileci.cart.qty_label') }}</span>
                       </div>
                       <div class="single-header unique-column">
-                        <span class="header-text">Unit Price ({{ $retailer->parent->currency_symbol }})</span>
+                        <span class="header-text">{{ Lang::get('mobileci.cart.price_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                       </div>
                       <div class="single-header unique-column">
-                        <span class="header-text">Total ({{ $retailer->parent->currency_symbol }})</span>
+                        <span class="header-text">{{ Lang::get('mobileci.cart.total_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                       </div>
                     </div>
                 {{-- product listing --}}
@@ -120,7 +120,7 @@
                 @endforeach
                     <div class="subtotal">
                       <div class="subtotal-title text-right">
-                        Subtotal : 
+                        {{ Lang::get('mobileci.cart.subtotal_label') }} : 
                       </div>
                       <div class="subtotal-price text-right formatted-num">
                         @if($retailer->parent->vat_included == 'yes')
@@ -138,19 +138,19 @@
             {{-- cart-based promotions --}}
             @if(count($cartdata->cartsummary->acquired_promo_carts) > 0)
             <div class="cart-page cart-sum">
-              <h4 class="cart-sum-title">Cart Based Promotions</h4>
+              <h4 class="cart-sum-title">{{ Lang::get('mobileci.cart.cart_based_promotion_label') }}</h4>
               <div class="cart-sum-headers cart-sum-headers-promotion">
                 <div class="cart-promo-single-header">
-                  <span>Promotion</span>
+                  <span>{{ Lang::get('mobileci.cart.promotion_label') }}</span>
                 </div>
                 <div class="cart-promo-single-header">
-                  <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+                  <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                 </div>
                 <div class="cart-promo-single-header">
-                  <span>Value</span>
+                  <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
                 </div>
                 <div class="cart-promo-single-header">
-                  <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+                  <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                 </div>
               </div>
 
@@ -182,19 +182,19 @@
             {{-- cart-based coupons --}}
             @if(count($cartdata->cartsummary->used_cart_coupons) > 0)
             <div class="cart-page cart-sum">
-              <h4 class="cart-sum-title">Cart Based Coupons</h4>
+              <h4 class="cart-sum-title">{{ Lang::get('mobileci.cart.cart_based_coupon_label') }}</h4>
               <div class="cart-sum-headers cart-sum-headers-coupon">
                 <div class="cart-coupon-single-header">
-                  <span>Coupon</span>
+                  <span>{{ Lang::get('mobileci.cart.coupon_label') }}</span>
                 </div>
                 <div class="cart-coupon-single-header">
-                  <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+                  <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                 </div>
                 <div class="cart-coupon-single-header">
-                  <span>Value</span>
+                  <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
                 </div>
                 <div class="cart-coupon-single-header">
-                  <span>Discount ({{ $retailer->parent->currency_symbol }})</span>
+                  <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                 </div>
               </div>
               @foreach($cartdata->cartsummary->used_cart_coupons as $coupon_cart)
@@ -227,14 +227,14 @@
             {{-- cart summary --}}
             @if(count($cartdata->cartdetails) > 0)
             <div class="receipt-summary text-left">
-              <h4 class="receipt-summary title-text text-center">Total</h4>
+              <h4 class="receipt-summary title-text text-center">{{ Lang::get('mobileci.cart.total_label') }}</h4>
               <div class="cart-sum-headers">
                 <div class="cart-sum-single-header">
-                  <span>Item</span>
+                  <span>{{ Lang::get('mobileci.cart.item_label') }}</span>
                   <span class="right-total-value pull-right">{{ $cartdata->cart->total_item + 0 }}</span>
                 </div>
                 <div class="cart-sum-single-header">
-                  <span>Subtotal ({{ $retailer->parent->currency_symbol }})</span>
+                  <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                   @if($retailer->parent->vat_included == 'yes')
                     <span class="formatted-num right-total-value pull-right">{{ $cartdata->cartsummary->total_to_pay }}</span>
                   @else
@@ -257,7 +257,7 @@
                   
                 </div>
                 <div class="cart-sum-single-header">
-                  <span>Total ({{ $retailer->parent->currency_symbol }})</span>
+                  <span>{{ Lang::get('mobileci.cart.total_label') }} ({{ $retailer->parent->currency_symbol }})</span>
                   <span class="formatted-num right-total-value pull-right"><b>{{ $cartdata->cartsummary->total_to_pay }}</b></span>
                 </div>
               </div>
@@ -269,14 +269,16 @@
               </div>
             </div>
       </div>
-      <a class="btn btn-info" id="saveTicketBtn" download="receipt_{{\Carbon\Carbon::now()}}.png">Simpan Struk Belanja</a>
-      <h3>Terima kasih atas kunjungan Anda</h3>
-      <h5>Jangan lupa kunjungi</h5>
+      <a class="btn btn-info" id="saveTicketBtn" download="receipt_{{\Carbon\Carbon::now()}}.png">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
+      <h3>{{ Lang::get('mobileci.thank_you.thank_you_message') }}</h3>
+      @if(!empty($retailer->parent->url))
+      <h5>{{ Lang::get('mobileci.thank_you.dont_forget_message') }}</h5>
       <a href="{{ $retailer->parent->url }}">{{ $retailer->parent->url }}</a>
-      <h5>untuk dapatkan info promo menarik lainya.</h5>
+      <h5>{{ Lang::get('mobileci.thank_you.promo_message') }}</h5>
+      @endif
     </div>
     <div class="col-xs-12 text-center vertically-spaced">
-      <a href="{{ url('/customer/logout') }}" class="btn btn-info">Belanja Lagi</a>
+      <a href="{{ url('/customer/logout') }}" class="btn btn-info">{{ Lang::get('mobileci.thank_you.shop_again_button') }}</a>
     </div>
   </div>
 </div>
