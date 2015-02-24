@@ -13,25 +13,25 @@
 			<?php $x=1; ?>
 			@if(count($promotions)>0)
 			<div class="ribbon-wrapper-green ribbon{{$x}}">
-				<div class="ribbon-green">Promo</div>
+				<div class="ribbon-green">{{ Lang::get('mobileci.catalogue.promo_ribbon') }}</div>
 			</div>
 			<?php $x++;?>
 			@endif
 			@if($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now())
 			<div class="ribbon-wrapper-red ribbon{{$x}}">
-				<div class="ribbon-red">New</div>
+				<div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
 			</div>
 			<?php $x++;?>
 			@endif
 			@if(count($coupons)>0)
 			<div class="ribbon-wrapper-yellow ribbon{{$x}}">
-				<div class="ribbon-yellow">Coupon</div>
+				<div class="ribbon-yellow">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 			</div>
 			<?php $x++;?>
 			@endif
 			@if(count($couponstocatchs)>0)
 			<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
-				<div class="ribbon-yellow-dash">Coupon</div>
+				<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 			</div>
 			<?php $x++;?>
 			@endif
@@ -52,7 +52,7 @@
 		</div>
 		@if(count($promotions)>0)
 		<div class="col-xs-12">
-			<h3>Promotion Discount</h3>
+			<h3>{{ Lang::get('mobileci.product_detail.promo_discount') }}</h3>
 		</div>
 		@foreach($promotions as $promotion)
 		<div class="additional-detail">
@@ -73,7 +73,7 @@
 				<div class="col-xs-12 col-sm-12">
 					<p>
 					{{ date('j M Y', strtotime($promotion->begin_date)) }}
-					to
+					{{ Lang::get('mobileci.product_detail.to') }}
 					{{ date('j M Y', strtotime($promotion->end_date)) }}
 					</p>
 				</div>
@@ -89,7 +89,7 @@
 
 		@if(count($couponstocatchs)>0)
 		<div class="col-xs-12">
-			<h3>Dapatkan Kupon</h3>
+			<h3>{{ Lang::get('mobileci.product_detail.get_coupon') }}</h3>
 		</div>
 		@foreach($couponstocatchs as $couponstocatch)
 		<div class="additional-detail">
@@ -110,7 +110,7 @@
 				<div class="col-xs-12 col-sm-12">
 					<p>
 					{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
-					to
+					{{ Lang::get('mobileci.product_detail.to') }}
 					{{ date('j M Y', strtotime($couponstocatch->end_date)) }}
 					</p>
 				</div>
@@ -190,10 +190,10 @@
 	<div class="col-xs-12 product-bottom main-theme ">
 		<div class="row">
 			<div class="col-xs-6">
-				<h4>Code : {{ $product->upc_code }}</h4>
+				<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product->upc_code }}</h4>
 			</div>
 			<div class="col-xs-6 text-right" id="starting-from">
-				<h4><small>Starting from :</small></h4>
+				<h4><small>{{ Lang::get('mobileci.catalogue.starting_from') }} :</small></h4>
 			</div>
 		</div>
 		<div class="row price-tags">
@@ -236,7 +236,7 @@
       <div class="modal-content">
         <div class="modal-header orbit-modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="hasCouponLabel">Kupon Saya</h4>
+          <h4 class="modal-title" id="hasCouponLabel">{{ Lang::get('mobileci.modals.coupon_title') }}</h4>
         </div>
         <div class="modal-body">
           <div class="row ">
@@ -249,10 +249,10 @@
             <div class="row">
               <input type="hidden" name="detail" id="detail" value="">
               <div class="col-xs-6">
-                <button type="button" id="applyCoupon" class="btn btn-success btn-block">Gunakan</button>
+                <button type="button" id="applyCoupon" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.coupon_use') }}</button>
               </div>
               <div class="col-xs-6">
-                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">Lain Kali</button>
+                <button type="button" id="denyCoupon" class="btn btn-danger btn-block">{{ Lang::get('mobileci.modals.coupon_ignore') }}</button>
               </div>
             </div>
         </div>

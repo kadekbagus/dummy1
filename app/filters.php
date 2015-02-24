@@ -13,13 +13,13 @@
 
 App::before(function($request)
 {
-	//
+    //
 });
 
 
 App::after(function($request, $response)
 {
-	//
+    //
 });
 
 /*
@@ -35,17 +35,17 @@ App::after(function($request, $response)
 
 Route::filter('auth', function()
 {
-	if (Auth::guest())
-	{
-		if (Request::ajax())
-		{
-			return Response::make('Unauthorized', 401);
-		}
-		else
-		{
-			return Redirect::guest('login');
-		}
-	}
+    if (Auth::guest())
+    {
+        if (Request::ajax())
+        {
+            return Response::make('Unauthorized', 401);
+        }
+        else
+        {
+            return Redirect::guest('login');
+        }
+    }
 });
 
 Route::filter('authCustomer', function()
@@ -55,7 +55,7 @@ Route::filter('authCustomer', function()
 
 Route::filter('auth.basic', function()
 {
-	return Auth::basic();
+    return Auth::basic();
 });
 
 /*
@@ -71,7 +71,7 @@ Route::filter('auth.basic', function()
 
 Route::filter('guest', function()
 {
-	if (Auth::check()) return Redirect::to('/');
+    if (Auth::check()) return Redirect::to('/');
 });
 
 /*
@@ -87,8 +87,34 @@ Route::filter('guest', function()
 
 Route::filter('csrf', function()
 {
-	if (Session::token() !== Input::get('_token'))
-	{
-		throw new Illuminate\Session\TokenMismatchException;
-	}
+    if (Session::token() !== Input::get('_token'))
+    {
+        throw new Illuminate\Session\TokenMismatchException;
+    }
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile-CI Filter
+|--------------------------------------------------------------------------
+|
+| The CSRF filter is responsible for protecting your application against
+| cross-site request forgery attacks. If this special token in a user
+| session does not match the one given in this request, we'll bail.
+|
+*/
+Route::filter('init.mobile-ci', function()
+{
+    $browserLang = substr(Request::server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
+
+    if(! empty($browserLang) AND in_array($browserLang, Config::get('orbit.languages', ['en']))) {
+        // Set Browser Lang
+        App::setLocale($browserLang);
+    } else {
+        App::setLocale('en');
+    }
+
+    if (! App::make('orbitSetting')->getSetting('current_retailer')) {
+        throw new Exception ('You have to setup current retailer first on Admin Portal.');
+    }
 });

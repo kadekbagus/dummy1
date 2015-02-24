@@ -12,7 +12,7 @@ return array(
 
     'shop' => array(
         // Id of the retailer
-        'id'    => 93
+        'id'    => NULL
     ),
 
     // General contact data
@@ -33,6 +33,11 @@ return array(
         // Product attribute
         'product_attribute' => array(
             'max_record' => 500,
+        ),
+
+        // Product Category
+        'product_category' => array(
+            'max_record' => 100,
         ),
     ),
 

@@ -17,7 +17,9 @@ ClassLoader::addDirectories(array(
 	app_path().'/controllers',
 	app_path().'/models',
 	app_path().'/database/seeds',
-
+	app_path().'/controllers/api/v1',
+	app_path().'/controllers/intermediate/v1',
+	app_path().'/../vendor/eventviva/php-image-resize/src'
 ));
 
 /*
@@ -69,6 +71,23 @@ App::down(function()
 
 /*
 |--------------------------------------------------------------------------
+| Orbit Initial Setting
+|--------------------------------------------------------------------------
+|
+| We will load orbit global setting which comes from table `settings`. We
+| load the setting as Singleton IoC so the DB calls only called once.
+|
+*/
+use Orbit\Setting as OrbitSetting;
+
+App::singleton('orbitSetting', function()
+{
+	$setting = OrbitSetting::create()->init();
+	return $setting;
+});
+
+/*
+|--------------------------------------------------------------------------
 | Require The Filters File
 |--------------------------------------------------------------------------
 |
@@ -77,5 +96,6 @@ App::down(function()
 | definitions instead of putting them all in the main routes file.
 |
 */
+
 
 require app_path().'/filters.php';
