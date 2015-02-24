@@ -42,14 +42,15 @@ return array(
         'tip_title'             => 'Tip',
         'delete_item_title'     => 'Hapus Item',
         'delete_coupon_title'   => 'Hapus Kupon',
+        'close_cart_title'      => 'Tutup Keranjang',
 
         'message_no_coupon'     => 'Maaf, Anda belum memiliki kupon.',
         'message_no_new_product'=> 'Maaf, tidak ada produk baru untuk saat ini.',
         'message_no_promotion'  => 'Maaf, tidak ada promosi untuk saat ini.',
-        'message_no_promotion'  => 'Maaf, tidak ada promosi untuk saat ini.',
         'message_delete_item'   => 'Apakah Anda yakin akan menghapus item ini dari keranjang belanja?',
         'message_delete_coupon' => 'Apakah Anda yakin akan menghapus kupon ini dari keranjang belanja? Kupon yang Anda hapus masih dapat digunakan lain kali.',
         'message_transfer_cart' => 'Untuk menyelesaikan transfer keranjang, gunakan Transfer Cart pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.',
+        'message_close_cart'    => 'Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.',
         
         'coupon_use'            => 'Gunakan',
         'coupon_ignore'         => 'Lain Kali',
@@ -57,7 +58,7 @@ return array(
         'search_placeholder'    => 'Input kata kunci',
         'search_button'         => 'Cari',
         'cancel_button'         => 'Batal',
-        'cash_button'           => 'Cash',
+        'cash_button'           => 'Tunai',
         'credit_button'         => 'Kartu Kredit',
         'yes_button'            => 'Ya',
         'do_not_show_label'     => 'Jangan tunjukkan pesan ini lagi',
@@ -131,7 +132,7 @@ return array(
         'exp_coupon'           => 'Anda tidak memiliki kupon ini.',
         'back_label'          => 'Kembali',
         'coupon_code_label'   => 'Kode kupon',
-        'validity_label'      => 'Valid hingga',
+        'validity_label'      => 'Berlaku hingga',
     ),
 
     'search'                => array(
@@ -146,6 +147,12 @@ return array(
         'dont_forget_message' => 'Jangan lupa kunjungi',
         'promo_message' => 'untuk dapatkan info promo menarik lainya.',
         'shop_again_button' => 'Belanja Lagi',
+    ),
+
+    'transfer_cart'         => array(
+        'transfer_message'  => 'Untuk menyelesaikan transfer keranjang, perlihatkan barcode berikut ini kepada kasir.',
+        'done_button'       => 'Selesai',
+        'back_button'       => 'Kembali',
     ),
     
 );

@@ -106,7 +106,7 @@ class ActivityAPIController extends ControllerAPI
             }
 
             // Builder object
-            $with = array('user', 'retailer', 'promotion', 'coupon', 'product', 'productVariant');
+            $with = array('user', 'retailer', 'promotion', 'coupon', 'product', 'productVariant', 'children');
             // Include other relationship
             OrbitInput::get('with', function($_with) use (&$with) {
                 $with = array_merge($with, $_with);

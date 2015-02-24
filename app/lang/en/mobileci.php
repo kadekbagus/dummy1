@@ -30,8 +30,128 @@ return array(
         "welcome"       => "Welcome!"
     ),
 
+    // modal specific lang
+    'modals'                    => array(
+        'close'                 => 'Close',
+        'email_error'           => 'Please enter your email first.',
+        'event_title'           => 'Events',
+        'info_title'            => 'Info',
+        'coupon_title'          => 'My Coupon',
+        'search_title'          => 'Search Product',
+        'checkout_title'        => 'Checkout',
+        'tip_title'             => 'Tip',
+        'delete_item_title'     => 'Delete Item',
+        'delete_coupon_title'   => 'Delete Kupon',
+        'close_cart_title'      => 'Close Cart',
+
+        'message_no_coupon'     => 'Sorry, you do not have any coupon yet.',
+        'message_no_new_product'=> 'Sorry, there are no new products for today.',
+        'message_no_promotion'  => 'Sorry, there are no promotions for today.',
+        'message_delete_item'   => 'Are you sure to remove this item from your cart?',
+        'message_delete_coupon' => 'Are you sure to remove this coupon from your cart? Removed coupon could be used next time.',
+        'message_transfer_cart' => 'To complete the transfer cart, use the Transfer Cart on the settings menu and please show your smartphone to the cashier.',
+        'message_close_cart'    => 'Your cart is not transferred to the cashier. Please show the following barcode to the cashier.',
+        
+        'coupon_use'            => 'Use',
+        'coupon_ignore'         => 'Later',
+        'search_label'          => 'Search by Product Name, Code or Description',
+        'search_placeholder'    => 'Insert keyword(s)',
+        'search_button'         => 'Search',
+        'cancel_button'         => 'Cancel',
+        'cash_button'           => 'Cash',
+        'credit_button'         => 'Credit Card',
+        'yes_button'            => 'Yes',
+        'do_not_show_label'     => 'Do not show this message again',
+
+    ),
+
     // page specific lang
-    "signin"         => array(
-        'email_placeholder' => 'Inser your email address',
+    'signin'         => array(
+        'email_placeholder' => 'Insert your email address',
+        'login_button'      => 'Enter',
+        'start_button'      => 'Start Shopping',
+        'not'               => 'Not',
+        'click_here'        => 'click here',
+    ),
+
+    'catalogue'         => array(
+        'starting_from'     => 'Starting from',
+        'promo_ribbon'      => 'Promo',
+        'coupon_ribbon'     => 'Coupon',
+        'new_ribbon'        => 'New',
+        'code'              => 'Code',
+    ),
+
+    'product_detail'         => array(
+        'get_coupon'         => 'Get Coupon',
+        'promo_discount'     => 'Promotion Discount',
+        'to'                 => 'to',
+    ),
+
+    'cart'         => array(
+        'promo'              => 'PROMO',
+        'coupon'             => 'COUPON',
+        'no_item'            => 'No items in cart.',
+        'item_label'         => 'Item',
+        'qty_label'          => 'Qty',
+        'price_label'        => 'Unit Price',
+        'subtotal_label'     => 'Subtotal',
+        'total_label'        => 'Total',
+        'use_product_coupon' => 'Use coupon for this item',
+        'cart_based_promotion_label' => 'Cart Based Promotions',
+        'cart_based_coupon_label' => 'Cart Based Coupons',
+        'available_cart_based_coupon_label' => 'Available Cart Based Coupons',
+        'promotion_label'    => 'Promotion',
+        'coupon_label'       => 'Coupon',
+        'value_label'        => 'Value',
+        'discount_label'     => 'Discount',
+        'use'                => 'Use',
+        'taxes_label'        => 'Taxes',
+        'checkout_button'    => 'Checkout',
+        'continue_button'    => 'Continue Shopping',
+    ),
+
+    'promotion_list'         => array(
+        'no_promo'           => 'There are no promotions for today.',
+        'product_label'      => 'Product',
+        'category_label'     => 'Category',
+    ),
+
+    'promotion_detail'         => array(
+        'exp_promo'           => 'Promotion is not exist or is already expired.',
+        'back_label'          => 'Back',
+    ),
+
+    'coupon_list'         => array(
+        'no_coupon'          => 'You do not have any coupons.',
+        'product_label'      => 'Produk',
+        'category_label'     => 'Category',
+    ),
+
+    'coupon_detail'         => array(
+        'exp_coupon'           => 'You do not have this coupon.',
+        'back_label'          => 'Back',
+        'coupon_code_label'   => 'Coupon code',
+        'validity_label'      => 'Valid until',
+    ),
+
+    'search'                => array(
+        'no_item'           => 'There are no products match the criteria.',
+        'too_much_items'     => 'Search result is too broad, please narrow it down.',
+    ),
+
+    'thank_you'             => array(
+        'thank_you'         => 'Thank You',
+        'save_ticket_button'=> 'Save Ticket',
+        'thank_you_message' => 'Thank you for visiting us.',
+        'dont_forget_message' => "Don't forget to visit",
+        'promo_message' => 'for next best deals.',
+        'shop_again_button' => 'Shop Again',
+    ),
+
+    'transfer_cart'         => array(
+        'transfer_message'  => 'To complete the transfer cart, show the following barcode to the cashier.',
+        'done_button'       => 'Done',
+        'back_button'       => 'Back',
     ),
 );

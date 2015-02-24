@@ -1820,7 +1820,10 @@ class MobileCIAPIController extends ControllerAPI
                     }
 
                     $q  ->where('products.category_id'.$family_level, $family_id)
-                        ->where('products.category_id'.$nextfamily, '<>', 'NULL')
+                        ->where(function($query) use($nextfamily)
+                            {
+                                $query->whereNotNull('products.category_id'.$nextfamily)->orWhere('products.category_id'.$nextfamily, '<>', 0);
+                            })
                         ->where('products.status', 'active');
                 })->get();
             } else {
@@ -1835,7 +1838,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
-                    $q->where('category_id' . $i, NULL)->orWhere('category_id' . $i, 0);
+                    $q->where(function($q2) use($i)
+                        {
+                            $q2->whereNull('category_id' . $i)->orWhere('category_id' . $i, 0);
+                        });
                 }
             });
 
@@ -2074,12 +2080,16 @@ class MobileCIAPIController extends ControllerAPI
                     }
 
                     $q  ->where('products.category_id'.$family_level, $family_id)
-                        ->where('products.category_id'.$nextfamily, '<>', 'NULL')
+                        ->where(function($query) use($nextfamily)
+                            {
+                                $query->whereNotNull('products.category_id'.$nextfamily)->orWhere('products.category_id'.$nextfamily, '<>', 0);
+                            })
                         ->where('products.status', 'active');
                 })->get();
             } else {
                 $subfamilies = NULL;
             }
+            
 
             $products = Product::with('variants')->whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
@@ -2089,7 +2099,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
                 $q->where('category_id' . $family_level, $family_id);
                 for($i = $family_level + 1; $i <= 5; $i++) {
-                    $q->where('category_id' . $i, NULL)->orWhere('category_id' . $i, 0);
+                    $q->where(function($q2) use($i)
+                        {
+                            $q2->whereNull('category_id' . $i)->orWhere('category_id' . $i, 0);
+                        });
                 }
             });
 
