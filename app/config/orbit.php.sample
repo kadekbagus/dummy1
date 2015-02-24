@@ -6,7 +6,7 @@ return array(
 
     // Languages that supported by orbit app
     'languages' => array('en','id'),
-    
+
     'api' => array(
         'signature' => array(
                 // How long signature should expires in seconds
@@ -36,11 +36,16 @@ return array(
 
         // Product attribute
         'product_attribute' => array(
-            'max_record' => 500,
+            'max_record' => 100,
         ),
 
         // Product Category
         'product_category' => array(
+            'max_record' => 100,
+        ),
+
+        // Personal Interests
+        'personal_interest' => array(
             'max_record' => 100,
         ),
     ),
