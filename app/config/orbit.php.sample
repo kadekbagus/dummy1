@@ -32,21 +32,25 @@ return array(
 
     // Default Pagination
     'pagination' => array(
-        'max_record' => 50,
+        'per_page'      => 25,
+        'max_record'    => 50,
 
         // Product attribute
         'product_attribute' => array(
-            'max_record' => 100,
+            'per_page'      => 50,
+            'max_record'    => 100,
         ),
 
         // Product Category
         'product_category' => array(
-            'max_record' => 100,
+            'per_page'      => 50,
+            'max_record'    => 100,
         ),
 
         // Personal Interests
         'personal_interest' => array(
-            'max_record' => 100,
+            'per_page'      => 50,
+            'max_record'    => 100,
         ),
     ),
 
