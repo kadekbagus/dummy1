@@ -74,7 +74,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.holdbtn            = true;
 
 
-        $scope.language = $scope.datauser['userdetail']['merchant']['pos_language'] == 'id' ? id : en;
+        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
         $scope.language = id;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
@@ -82,7 +82,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 window.location.assign("signin");
             }else{
 
-                $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
+                $scope.vat_included       = $scope.datauser['merchant']['vat_included'];
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,attr1){
                     //set loading
@@ -677,7 +677,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.tmpsubtotal          = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchants'][0]['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants']['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
@@ -736,10 +736,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         total_to_pay   : accounting.unformat($scope.cart.totalpay),
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
-                        merchant_id    : $scope.datauser['userdetail']['merchant_id'],
+                        merchant_id    : $scope.datauser['merchant']['merchant_id'],
                         customer_id    : $scope.cart.user_id,
                         guest          : $scope.guests,
-                        cashier_id     : $scope.datauser['user_id'],
+                        cashier_id     : $scope.datauser['user']['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart,
                         cart_promotion : $scope.applycartpromotion,
@@ -893,7 +893,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     });
                 };
                 //init customer display
-                $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchant']['name'].substr(0,20));
+                $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
                    $scope.cancelRequestService();
