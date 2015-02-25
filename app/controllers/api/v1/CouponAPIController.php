@@ -1190,11 +1190,12 @@ class CouponAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
+            $table_prefix = DB::getTablePrefix();
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
                 ->excludeDeleted()
-                ->select(DB::raw("orbs_promotions.*,
+                ->select(DB::raw($table_prefix . "promotions.*,
                     CASE rule_type
                         WHEN 'cart_discount_by_percentage' THEN 'percentage'
                         WHEN 'product_discount_by_percentage' THEN 'percentage'
