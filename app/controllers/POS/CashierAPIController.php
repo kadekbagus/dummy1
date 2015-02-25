@@ -1551,17 +1551,30 @@ class CashierAPIController extends ControllerAPI
 
             $driver = Config::get('orbit.devices.edc.path');
             $params = Config::get('orbit.devices.edc.params');
-            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
+            //$cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;  //verifone
+            $cmd = 'sudo '.$driver.' --d '.$params.' --A '.$amount.' --s';   //ict220
             $card = shell_exec($cmd);
 
             $card = trim($card);
 
-            if($card=='Failed'){
+            $x = explode('--------~>', $card);  //ict220
+            $z = explode('<----------', $x[1]); //ict220
+            $output = trim($z[0]);              //ict220
+
+            // if($card=='Failed'){
+            //     $message = 'Payment Failed';
+            //     ACL::throwAccessForbidden($message);
+            // }
+
+            if($output=='Failed'){
+
                 $message = 'Payment Failed';
                 ACL::throwAccessForbidden($message);
             }
 
-            $this->response->data = $card;
+            //$this->response->data = $card;
+
+            $this->response->data = $output;
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
