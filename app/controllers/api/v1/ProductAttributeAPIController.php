@@ -168,8 +168,8 @@ class ProductAttributeAPIController extends ControllerAPI
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $attributes->orderBy($sortBy, $sortMode);
@@ -587,39 +587,36 @@ class ProductAttributeAPIController extends ControllerAPI
                     $oldValueArray[$newValue->value_id] = $newValue->attribute_value;
                 }
 
-                // Does the new attribute value already exists
-                foreach ($attribute->values as $attrValue) {
-                    foreach ($oldValueArray as $valueId=>$newValue) {
-                        // Make sure we only save the attribute value id which
-                        // already on database
-                        $attrId = (string)$attrValue->product_attribute_value_id;
-                        if ((string)$valueId !== $attrId) {
-                            continue;
-                        }
+                foreach ($oldValueArray as $valueId=>$newValue) {
+                    $otherAttributeValue = ProductAttributeValue::where('value', $newValue)
+                                                                ->where('product_attribute_id', $attribute->product_attribute_id)
+                                                                ->where('product_attribute_value_id', '!=', $valueId)
+                                                                ->excludeDeleted()
+                                                                ->first();
 
-                        // Only insert into the existence when the value is not
-                        // same, means there's a changes.
-                        $_newValue = strtolower($newValue);
-                        $oldValue = strtolower($attrValue->value);
-
-                        if ($oldValue !== $_newValue) {
-                            $existence[$attrId] = $newValue;
-                        }
-                    }
-                }
-
-                foreach ($existence as $valueId=>$value) {
-                    $attrValue = ProductAttributeValue::excludeDeleted()->find($valueId);
-
-                    if (empty($attrValue)) {
-                        continue;   // Skip saving
+                    if (! empty($otherAttributeValue)) {
+                        // Throw an error since the value are same
+                        $errorMessage = Lang::get('validation.orbit.exists.product.attribute.value.unique', ['value' => $otherAttributeValue->value]);
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
 
-                    $attrValue->value = $value;
-                    $attrValue->modified_by = $user->user_id;
-                    $attrValue->save();
+                    // Make sure the product exists
+                    $updatedAttributeValue = ProductAttributeValue::where('product_attribute_value_id', $valueId)
+                                                                ->where('product_attribute_id', $attribute->product_attribute_id)
+                                                                ->excludeDeleted()
+                                                                ->first();
 
-                    $updatedValues[] = $attrValue;
+                    if (empty($updatedAttributeValue)) {
+                        // Throw an error since the value are same
+                        $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', ['id' => htmlentities($valueId)]);
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    $updatedAttributeValue->value = $newValue;
+                    $updatedAttributeValue->modified_by = $user->user_id;
+                    $updatedAttributeValue->save();
+
+                    $updatedValues[] = $updatedAttributeValue;
                 }
             });
 
@@ -640,10 +637,14 @@ class ProductAttributeAPIController extends ControllerAPI
                 // Does the new attribute value already exists
                 foreach ($attribute->values as $attrValue) {
                     foreach ($newValueArray as $newValue) {
-                        $_newValue = strtolower($newValue);
-                        $oldValue = strtolower($attrValue->value);
+                        $_newValue = trim(strtolower($newValue));
+                        $oldValue = trim(strtolower($attrValue->value));
 
                         if ($oldValue === $_newValue) {
+                            // Throw an error since the value are same
+                            $errorMessage = Lang::get('validation.orbit.exists.product.attribute.value.unique', ['value' => htmlentities($attrValue->value)]);
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+
                             $existence[] = $newValue;
                         }
                     }

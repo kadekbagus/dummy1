@@ -106,7 +106,8 @@ return array(
                 'attribute'         => array(
                     'unique'        => 'The attribute name \':attrname\' already exists.',
                     'value'         => array(
-                        'transaction'   => 'The attribute combination has one or more transactions linked to it, so it can not be edited or deleted.'
+                        'transaction'   => 'The attribute combination has one or more transactions linked to it, so it can not be edited or deleted.',
+                        'unique'        => 'The attaribute value \':value\' already exists.'
                     ),
                 ),
                 'variant'           => array(

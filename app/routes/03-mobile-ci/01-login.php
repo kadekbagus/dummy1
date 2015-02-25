@@ -1,6 +1,6 @@
 <?php
 
-Route::group(array('before' => 'init.mobile-ci'), function()
+Route::group(array('before' => 'orbit-settings'), function()
 {
     Route::get('/customer', function()
     {
