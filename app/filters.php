@@ -103,7 +103,7 @@ Route::filter('csrf', function()
 | session does not match the one given in this request, we'll bail.
 |
 */
-Route::filter('init.mobile-ci', function()
+Route::filter('orbit-settings', function()
 {
     if (! App::make('orbitSetting')->getSetting('current_retailer')) {
         throw new Exception ('You have to setup current retailer first on Admin Portal.');
@@ -118,7 +118,7 @@ Route::filter('init.mobile-ci', function()
         // Set Merchant Setting Lang
         $merchantLang = Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->excludeDeleted()->first()->parent->mobile_default_language;
         if(! empty($merchantLang)) {
-            App::setLocale($merchantLang);   
+            App::setLocale($merchantLang);
         } else {
             // Fallback to 'en'
             App::setLocale('en');
