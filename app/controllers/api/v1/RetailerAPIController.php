@@ -268,7 +268,7 @@ class RetailerAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.retailer.postnewretailer.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('add_retailer')) {
+            if (! ACL::create($user)->isAllowed('create_retailer')) {
                 Event::fire('orbit.retailer.postnewretailer.authz.notallowed', array($this, $user));
                 $createRetailerLang = Lang::get('validation.orbit.actionlist.new_retailer');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createRetailerLang));
