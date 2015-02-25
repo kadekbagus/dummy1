@@ -316,7 +316,7 @@ class postNewRetailerTest extends OrbitTestCase
         // Add new permission name 'add_retailer'
         $chuck = User::find(3);
         $permission = new Permission();
-        $permission->permission_name = 'add_retailer';
+        $permission->permission_name = 'create_retailer';
         $permission->save();
 
         $chuck->permissions()->attach($permission->permission_id, array('allowed' => 'yes'));
