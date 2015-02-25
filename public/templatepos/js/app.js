@@ -379,18 +379,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     } else {
                                         vat        = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value'])) * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
                                         pricetax   = vat;
+                                        pricewotax = accounting.unformat($scope.cart[i]['hargatotal']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value'])); 
+                                        console.log(vat);
                                     }
 
                                     tmphargatotalwotax += pricewotax; 
                                     tmpvattotal += (vat + service);
                                     //promotion
-                                    var promo_tmpvat, promo_vat, promo_tmpservice, promo_service;
+                                    var promo_tmpvat = 0, promo_vat = 0, promo_tmpservice = 0, promo_service = 0;
                                     if($scope.cart[i]['promotion']){
                                         for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
                                             promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
                                             var promo = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
                                             var promo_valuewotax;
-                                             if($scope.cart[i]['product_details']['tax2'] != null){
+                                            if($scope.cart[i]['product_details']['tax2'] != null){
                                                 if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
                                                     promo_tmpvat     = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
                                                     promo_vat        = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) - promo_tmpvat;  
@@ -403,6 +405,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                     promo_service    = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
                                                     promo_valuewotax = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
                                                 }
+                                            } else {
+                                                promo_tmpvat     = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
+                                                promo_vat        = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                                promo_valuewotax = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value'])); 
                                             }
                                             tmphargatotalwotax -= promo_valuewotax;
                                             tmpvattotal -= (promo_vat + promo_service);
@@ -426,13 +432,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                     promo_service    = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']);
                                                     promo_valuewotax = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']) + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value'])); 
                                                 }
+                                            } else {
+                                                promo_tmpvat     = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']));
+                                                promo_vat        = promo_tmpvat * parseFloat($scope.cart[i]['product_details']['tax1']['tax_value']);
+                                                promo_valuewotax = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']) / (1 + parseFloat($scope.cart[i]['product_details']['tax1']['tax_value'])); 
                                             }
                                             tmphargatotalwotax -= promo_valuewotax;
                                             tmpvattotal -= (promo_vat + promo_service);
                                         }
                                     }
+                                    console.log(tmpvattotal);
                                 } else {
-                                    if($scope.cart[i]['product_details']['tax2'] != 'null' || $scope.cart[i]['product_details']['tax2'] != 0 ){
+                                    if($scope.cart[i]['product_details']['tax2'] != null){
                                         if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'service'){
                                             tmpservice     = accounting.unformat($scope.cart[i]['hargatotal']) * (1 + parseFloat($scope.cart[i]['product_details']['tax2']['tax_value']));
                                             service        = tmpservice - accounting.unformat($scope.cart[i]['hargatotal']);  
@@ -452,7 +463,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     tmphargatotaltax += pricetax; 
                                     tmpvattotal += (vat + service);
                                     taxpromo += pricetax;
-                                    var promo_tmpvat, promo_vat, promo_tmpservice, promo_service;
+                                    var promo_tmpvat = 0, promo_vat = 0, promo_tmpservice = 0, promo_service = 0;
                                     if($scope.cart[i]['promotion']){
                                         for(var a = 0; a < $scope.cart[i]['promotion'].length;a++){
                                             promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
