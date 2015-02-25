@@ -864,9 +864,9 @@ class MerchantAPIController extends ControllerAPI
             $merchants->skip($skip);
 
             // Default sort by
-            $sortBy = 'merchants.created_at';
+            $sortBy = 'merchants.name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
@@ -895,8 +895,8 @@ class MerchantAPIController extends ControllerAPI
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $merchants->orderBy($sortBy, $sortMode);
