@@ -75,7 +75,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
 
         $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
-        $scope.language = id;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -220,14 +219,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
                             //TODO: agung :Refactor this, and try with dfferent data
-                            if($scope.productdetail.attributes.length)for(var a=0; a < $scope.productdetail.attributes.length;a++){
-
-                                $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue3[a] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue4[a] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue5[a] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.tmpattr[a] = angular.copy($scope.productdetail.attributes[a]);
+                            if($scope.productdetail.attributes.length)for(var a=1; a < $scope.productdetail.attributes.length;a++){
+                                $scope.dataattrvalue1[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue2[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue3[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue4[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue5[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.tmpattr[a-1] = angular.copy($scope.productdetail.attributes[a]);
                             }
 
                             for(var i = 0; i < $scope.dataattrvalue1.length;i++){
@@ -235,6 +233,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                    if(i != a) {
                                        if($scope.dataattrvalue1[i]['attr_val_id1'] == $scope.dataattrvalue1[a]['attr_val_id1']){
                                             $scope.dataattrvalue1.splice(i,1);
+                                            i=0;a=0;
                                        }
                                    }
                                 }
@@ -244,6 +243,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                    if(i != a) {
                                        if($scope.dataattrvalue2[i]['attr_val_id1'] == $scope.dataattrvalue2[a]['attr_val_id1'] && $scope.dataattrvalue2[i]['attr_val_id2'] == $scope.dataattrvalue2[a]['attr_val_id2']){
                                             $scope.dataattrvalue2.splice(i,1);
+                                            i=0;a=0;
                                        }
                                    }
                                 }
@@ -253,6 +253,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                    if(i != a) {
                                        if($scope.dataattrvalue3[i]['attr_val_id1'] == $scope.dataattrvalue3[a]['attr_val_id1'] && $scope.dataattrvalue3[i]['attr_val_id2'] == $scope.dataattrvalue3[a]['attr_val_id2'] && $scope.dataattrvalue3[i]['attr_val_id3'] == $scope.dataattrvalue3[a]['attr_val_id3']){
                                             $scope.dataattrvalue3.splice(i,1);
+                                            i=0;a=0;
                                        }
                                    }
                                 }
@@ -262,6 +263,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                    if(i != a) {
                                        if($scope.dataattrvalue4[i]['attr_val_id1'] == $scope.dataattrvalue4[a]['attr_val_id1'] && $scope.dataattrvalue4[i]['attr_val_id2'] == $scope.dataattrvalue4[a]['attr_val_id2'] && $scope.dataattrvalue4[i]['attr_val_id3'] == $scope.dataattrvalue4[a]['attr_val_id3'] && $scope.dataattrvalue4[i]['attr_val_id4'] == $scope.dataattrvalue4[a]['attr_val_id4']){
                                             $scope.dataattrvalue4.splice(i,1);
+                                            i=0;a=0;
                                        }
                                    }
                                 }
@@ -271,6 +273,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                    if(i != a) {
                                        if($scope.dataattrvalue5[i]['attr_val_id1'] == $scope.dataattrvalue5[a]['attr_val_id1'] && $scope.dataattrvalue5[i]['attr_val_id2'] == $scope.dataattrvalue5[a]['attr_val_id2'] && $scope.dataattrvalue5[i]['attr_val_id3'] == $scope.dataattrvalue5[a]['attr_val_id3'] && $scope.dataattrvalue5[i]['attr_val_id4'] == $scope.dataattrvalue5[a]['attr_val_id4'] && $scope.dataattrvalue5[i]['attr_val_id5'] == $scope.dataattrvalue5[a]['attr_val_id5']){
                                             $scope.dataattrvalue5.splice(i,1);
+                                            i=0;a=0;
                                        }
                                    }
                                 }
