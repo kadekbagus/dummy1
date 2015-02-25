@@ -266,7 +266,7 @@
                 </div>
                 <div class="col-md-12" data-ng-if="!hiddenbtn">
 
-                    <div class="product-attributes" style="overflow: auto;height: 150px">
+                    <div class="col-xs-12 product-attributes" style="overflow: auto;height: 150px">
                     		<div class="row">
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute1">
                     				<div class="radio-container">
@@ -289,7 +289,7 @@
                           </div>
                         </div>
                     </div>
-                    <div class="product-attributes" data-ng-show="productdetail.product.attribute4 || productdetail.product.attribute5">
+                    <div class="col-xs-12  product-attributes" data-ng-show="productdetail.product.attribute4 || productdetail.product.attribute5">
                     		<div class="row">
                     			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute4">
                     				<div class="radio-container">
