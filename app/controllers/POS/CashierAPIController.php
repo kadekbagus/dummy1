@@ -54,6 +54,8 @@ class CashierAPIController extends ControllerAPI
             $username = OrbitInput::post('username');
             $password = OrbitInput::post('password');
 
+            $retailer = $this->getRetailerInfo();
+
             $role = Role::where('role_name', 'cashier')->first();
             if (empty($role)) {
                 $message = Lang::get('validation.orbit.empty.employee.role',
@@ -67,6 +69,8 @@ class CashierAPIController extends ControllerAPI
                         ->where('username', $username)
                         ->where('user_role_id', $role->role_id)
                         ->first();
+
+            $merchant = $retailer->parent;
 
             if (is_object($user)) {
                 if (! Hash::check($password, $user->user_password)) {
@@ -95,7 +99,10 @@ class CashierAPIController extends ControllerAPI
 
             $user->setHidden(array('user_password', 'apikey'));
 
-            $this->response->data = $user;
+            $result['user'] = $user;
+            $result['merchant'] = $merchant;
+
+            $this->response->data = $result;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';

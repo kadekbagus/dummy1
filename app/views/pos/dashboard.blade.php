@@ -5,10 +5,10 @@
 
     <div class="container-fluid" style="border-bottom:1px solid #c0c0c0">
             <div class="header">
-                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['userdetail']['merchant']['logo'] %>" class="img" style="height: 64px">
-                <h1><% datauser['userdetail']['merchant']['name'] %></h1>
+                <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchant']['logo'] %>" class="img" style="height: 64px">
+                <h1><% datauser['merchant']['name'] %></h1>
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
-                     <% $parent.datauser.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
+                     <% $parent.datauser.user.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
                         <li> <a href="#" data-ng-click="logoutfn()">Keluar</a></li>
                       </ul>
@@ -23,7 +23,7 @@
             <div class="col-md-7" style="margin-left: -8px">
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
-                         <div class="col-md-6" style="margin-top: 6px"><h4>KERANJANG BELANJA</h4></div>
+                         <div class="col-md-6" style="margin-top: 6px"><h4><% language.keranjangbelanja %></h4></div>
                          <div class="col-md-6 text-right"> <button class="btn btn-primary" data-ng-disabled="successscant" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit">SCAN KERANJANG BELANJA</button></div>
                     </div>
 
@@ -95,7 +95,7 @@
                     </table>
                       <table class="table  orbit-component table-noborder" >
                                 <tr class="promotion" data-ng-if="applycartpromotion.length > 1">
-                                   <th colspan="4" style="color: white;padding-top: 2px;padding-bottom: 2px"><h5>CART BASED PROMOTIONS</h5></th>
+                                   <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px">CART BASED PROMOTIONS</th>
                                 </tr>
 
                                 <tr data-ng-repeat="(e,o) in applycartpromotion" data-ng-if="applycartpromotion.length > 1">
@@ -105,7 +105,7 @@
                                     <td class="text-right"><% o.promotionrule.discount_value %></td>
                                 </tr>
                                  <tr class="coupon" data-ng-if="applycartcoupon.length > 1">
-                                    <th colspan="4" style="color: white;padding-top: 2px;padding-bottom: 2px"><h5>CART BASED COUPONS</h5></th>
+                                    <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px">CART BASED COUPONS</th>
                                  </tr>
                                  <tr data-ng-repeat="(b,l) in applycartcoupon" data-ng-if="applycartcoupon.length > 1">
                                       <td><% l.issuedcoupon.promotion_name %></td>
@@ -119,10 +119,10 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b><h5>TOTAL ITEMS</b><br><% cart.totalitem %></h5></td>
-                            <td class="text-center"><b><h5>SUBTOTAL</b><br><% cart.subtotal %></h5></td>
-                            <td class="text-center"><b><h5>TAXES<br></b><% cart.vat %></h5> </td>
-                            <td class="text-center"><b><h5>TOTAL TO PAY</b><br><% cart.totalpay %></h5></td>
+                            <td class="text-center"><b>TOTAL ITEMS</b><br><% cart.totalitem %></td>
+                            <td class="text-center"><b>SUBTOTAL</b><br><% cart.subtotal %></td>
+                            <td class="text-center"><b>TAXES<br></b><% cart.vat %></td>
+                            <td class="text-center"><b>TOTAL TO PAY</b><br><% cart.totalpay %></td>
                         </tr>
                         <tr>
                             <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>

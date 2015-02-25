@@ -75,12 +75,21 @@ class PersonalInterestAPIController extends ControllerAPI
             Event::fire('orbit.personalinterest.getpersonalinterest.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.widget.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.personal_interest.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
                 if ($maxRecord <= 0) {
                     $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.personal_interest.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
                 }
             }
 
@@ -107,12 +116,16 @@ class PersonalInterestAPIController extends ControllerAPI
             $_interests = clone $interests;
 
             // Get the take args
-            $take = $maxRecord;
+            $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $interests->take($take);
 
@@ -135,7 +148,7 @@ class PersonalInterestAPIController extends ControllerAPI
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'id'            => 'personal_interests.personal_interest_id',
-                    'name'          => 'personal_interests.personal_interests',
+                    'name'          => 'personal_interests.personal_interest_name',
                     'created'       => 'personal_interests.created_at'
                 );
 

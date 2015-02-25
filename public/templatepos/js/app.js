@@ -8,8 +8,10 @@
 'use strict';
 
 define([
-    'config'
-], function (config) {
+    'config',
+    'i18n/id',
+    'i18n/en',
+], function (config,id,en) {
 
 var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngTouch'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -70,13 +72,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
+
+
+        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
+        $scope.language = id;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
                 window.location.assign("signin");
             }else{
 
-                $scope.vat_included       = $scope.datauser['userdetail']['merchant']['vat_included'];
+                $scope.vat_included       = $scope.datauser['merchant']['vat_included'];
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,attr1){
                     //set loading
@@ -102,6 +108,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.product[$scope.cart[id]['idx']]) $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
                         $scope.adddelenadis($scope.cart[id]['product_id'],'del');
                         $scope.cart.splice(id ,1);
+                        $scope.tmpsubtotal = '';
+                        $scope.applycartpromotion   = [];
+                        $scope.applycartcoupon      = [];
                     };
 
                     if(action == 'p'){//add
@@ -497,13 +506,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.cartpromotions){
                             $scope.applycartpromotion      = [];
                             $scope.tmpvallues = '';
-                            //add header subtotal before promotion
-                           /* $scope.applycartpromotion.push({
-                                      promotion_name : 'Subtotal',
-                                      promotionrule : {
-                                          discount_value :  $scope.cart.subtotal
-                                      }
-                            });*/
                             var cart_promo_tmpvat, cart_promo_tmpvat_wo_tax, cart_promo_tmpvat_tax;
                             for(var j = 0; j < $scope.cartpromotions.length;j++){
                                 if (tmpcartsubtotalpromotion >= accounting.unformat($scope.cartpromotions[j]['promotionrule']['rule_value'])){
@@ -675,7 +677,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.tmpsubtotal          = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchants'][0]['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants']['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
@@ -734,10 +736,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         total_to_pay   : accounting.unformat($scope.cart.totalpay),
                         tendered       : accounting.unformat($scope.cart.amount),
                         change         : accounting.unformat($scope.cart.change),
-                        merchant_id    : $scope.datauser['userdetail']['merchant_id'],
+                        merchant_id    : $scope.datauser['merchant']['merchant_id'],
                         customer_id    : $scope.cart.user_id,
                         guest          : $scope.guests,
-                        cashier_id     : $scope.datauser['user_id'],
+                        cashier_id     : $scope.datauser['user']['user_id'],
                         payment_method : $scope.action,
                         cart           : $scope.cart,
                         cart_promotion : $scope.applycartpromotion,
@@ -891,7 +893,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     });
                 };
                 //init customer display
-                $scope.customerdispaly('Welcome to ',$scope.datauser['userdetail']['merchant']['name'].substr(0,20));
+                $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
                 //scan cart automatic and manually
                 $scope.scancartFn = function(bool){
                    $scope.cancelRequestService();
@@ -921,17 +923,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     //promotion
                                     $scope.datapromotion  = response.data.cartdetails[i]['promo_for_this_product'];
                                     var price             = response.data.cartdetails[i]['variant']['price'];
-                                    if($scope.datapromotion) {
-                                        var discount    = 0;
-                                        var tmpdiscount = 0;
+                                    var discount    = 0;
+                                    var tmpdiscount = 0;
 
+                                    if($scope.datapromotion) {
                                         for(var a =0; a < $scope.datapromotion.length; a++){
                                            $scope.datapromotion[a]['oridiscount_value'] = $scope.datapromotion[a]['promotion_detail']['discount_value'];
                                            $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['promotion_detail']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['promotion_detail']['discount_value'], "", 0, ",", ".");
 
-                                            tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * price : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']);
-                                            $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
-                                            $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount;
+                                            tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];                                            $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                            $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount / response.data.cartdetails[i]['quantity'];
                                             discount += tmpdiscount;
                                         }
 
