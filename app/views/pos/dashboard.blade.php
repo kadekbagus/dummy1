@@ -24,7 +24,7 @@
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
                          <div class="col-md-6" style="margin-top: 6px"><h4><% language.keranjangbelanja %></h4></div>
-                         <div class="col-md-6 text-right"> <button class="btn btn-primary" data-ng-disabled="successscant" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit">SCAN KERANJANG BELANJA</button></div>
+                         <div class="col-md-6 text-right"> <button class="btn btn-primary" data-ng-disabled="successscant" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit"><% language.scankeranjang %></button></div>
                     </div>
 
                 </div>
@@ -33,10 +33,10 @@
                     <table class="table">
                          <thead>
                            <tr>
-                                <th class="text-center">NAMA + UPC</th>
-                                <th class="text-center">JUMLAH</th>
-                                <th class="text-center">UNIT PRICE</th>
-                                <th class="text-center">HARGA TOTAL</th>
+                                <th class="text-center"><% language.nama %> + <% language.upc %></th>
+                                <th class="text-center"><% language.jumlah %></th>
+                                <th class="text-center"><% language.hargasatuan %></th>
+                                <th class="text-center"><% language.hargatotal %></th>
                            </tr>
                          </thead>
                         <tbody data-ng-repeat="(k,v) in cart"  id="tablecart">
@@ -95,7 +95,7 @@
                     </table>
                       <table class="table  orbit-component table-noborder" >
                                 <tr class="promotion" data-ng-if="applycartpromotion.length > 1">
-                                   <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px">CART BASED PROMOTIONS</th>
+                                   <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px"><% language.promosibelanja %></th>
                                 </tr>
 
                                 <tr data-ng-repeat="(e,o) in applycartpromotion" data-ng-if="applycartpromotion.length > 1">
@@ -105,7 +105,7 @@
                                     <td class="text-right"><% o.promotionrule.discount_value %></td>
                                 </tr>
                                  <tr class="coupon" data-ng-if="applycartcoupon.length > 1">
-                                    <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px">CART BASED COUPONS</th>
+                                    <th colspan="4" style="color: white;padding-top: 0px;padding-bottom: 0px"><% language.kuponbelanja %></th>
                                  </tr>
                                  <tr data-ng-repeat="(b,l) in applycartcoupon" data-ng-if="applycartcoupon.length > 1">
                                       <td><% l.issuedcoupon.promotion_name %></td>
@@ -119,14 +119,14 @@
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
-                            <td class="text-center"><b>TOTAL ITEMS</b><br><% cart.totalitem %></td>
-                            <td class="text-center"><b>SUBTOTAL</b><br><% cart.subtotal %></td>
-                            <td class="text-center"><b>TAXES<br></b><% cart.vat %></td>
-                            <td class="text-center"><b>TOTAL TO PAY</b><br><% cart.totalpay %></td>
+                            <td class="text-center"><b><% language.totalbarang %></b><br><% cart.totalitem %></td>
+                            <td class="text-center"><b><% language.subtotal %></b><br><% cart.subtotal %></td>
+                            <td class="text-center"><b><% language.pajak %><br></b><% cart.vat %></td>
+                            <td class="text-center"><b><% language.totalbayar %></b><br><% cart.totalpay %></td>
                         </tr>
                         <tr>
-                            <td><div class="foo promotion"><span style="margin-left: 23px;">Promotion</span></div></td>
-                            <td><div class="foo coupon"><span style="margin-left: 23px;">Coupon</span></div></td>
+                            <td><div class="foo promotion"><span style="margin-left: 23px;"><% language.promosi %></span></div></td>
+                            <td><div class="foo coupon"><span style="margin-left: 23px;"><% language.kupon %></span></div></td>
                             <td></td>
                             <td></td>
                         </tr>
@@ -135,8 +135,8 @@
                 <div class="table-responsive">
                     <table class="table  orbit-component table-noborder">
                         <tr>
-                            <td colspan="3"> <button class="btn btn-danger" data-ng-disabled="cart.length == 0" data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit">KERANJANG BELANJA BARU</button> &nbsp; <button class="btn btn-primary" data-ng-disabled="cart.length == 0" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit">HAPUS KERANJANG BELANJA</button></td>
-                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" type="submit">BAYAR</button></td>
+                            <td colspan="3"> <button class="btn btn-danger" data-ng-disabled="cart.length == 0" data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit"><% language.keranjangbelanjabaru %></button> &nbsp; <button class="btn btn-primary" data-ng-disabled="cart.length == 0" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit"><% language.hapuskeranjangbelanja %></button></td>
+                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" type="submit"><% language.bayar %></button></td>
                        </tr>
                     </table>
                 </div>
@@ -152,10 +152,10 @@
                                <button data-ng-click="keypaqtydFn('2')">2</button>
                                <button data-ng-click="keypaqtydFn('3')">3</button>
 
-                               <button data-ng-click="keypaqtydFn('c')" class="smaller">Clear</button>
+                               <button data-ng-click="keypaqtydFn('c')" class="smaller"><% language.bersihkan %></button>
                                <button data-ng-click="keypaqtydFn('0')">0</button>
                                <button data-ng-click="keypaqtydFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                               <button data-ng-click="virtualqtyFn(false)" class="button-wide smaller">Done</button>
+                               <button data-ng-click="virtualqtyFn(false)" class="button-wide smaller"><% language.selesai %></button>
                          </div>
 
                 </div>
@@ -163,7 +163,7 @@
             <div class="col-md-5" style="padding-left: 0px;padding-right: 0px;margin-right: -50px">
                 <div class="orbit-component table-attribute-top" >
                       <div class="row">
-                          <div class="col-md-12"><h4 class="text-center">KATALOG PRODUK</h4><br>
+                          <div class="col-md-12"><h4 class="text-center"><% language.katalogproduk %></h4><br>
                               <div class="input-group" id="loadingsearch">
                                    <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
                                         <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
@@ -175,19 +175,19 @@
                 <div class="orbit-component table-attribute-top" style="background-color: #B3B3B3;overflow: auto;height: 495px;overflow-x: hidden; padding-top: 1px" id="loading" >
                       <div class="row">
                       <div data-ng-if="productnotfound">
-                           <p class="text-center" style="padding-top: 20px; font-size: 16px"> Produk yang dicari tidak ditemukan </p>
+                           <p class="text-center" style="padding-top: 20px; font-size: 16px"><% language.produktidakditemukan %></p>
                       </div>
                           <div class="col-md-6" data-ng-repeat="(k,v) in product">
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-ng-click="showdetailFn(v.product_id,false,v.attribute_id1)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
-                                             	<div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
+                                              <div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
                                            </div>
                                            <div class="col-xs-6">
-                                           	   <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">
-                                           	    <h5><b class="colorbold"><% v.product_name.substr(0,12) %></b><br><b style="font-size: 10px"><% v.upc_code.substr(0,12) %></b></h5>
-                                           	   </div>
-                                           	   <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
+                                               <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">
+                                                <h5><b class="colorbold"><% v.product_name.substr(0,12) %></b><br><b style="font-size: 10px"><% v.upc_code.substr(0,12) %></b></h5>
+                                               </div>
+                                               <div class="col-xs-12 text-right"><h6 style="margin-top:1px"><% v.price %></h6></div>
                                            </div>
                                        </div>
                                 </button>
@@ -214,95 +214,95 @@
             <div class="row">
                 <div class="col-md-12">
                 <div class="ribbon-wrapper-green ribbon2nd">
-                				<div class="ribbon-green" data-ng-show="datapromotion.length">Promo</div>
-                			</div>
+                        <div class="ribbon-green" data-ng-show="datapromotion.length">Promo</div>
+                      </div>
                     <p class="text-center"><img ng-src="<% configs.baseUrlServerPublic %>/<% productmodal.image %>"  class="img product" style="width: 200px; height: 200px;" ></p>
                 </div>
                 <div class="col-md-12 main-theme" >
                     <div class="row">
-                    	<div class="col-xs-12">
-                    				<h4> <span class="orbit-component word-wrap"><% productmodal.product_name %></span></h4>
-                    			</div>
-                    	<div class="col-xs-12">
-                    				<p><% productmodal.short_description %></p>
-                    			</div>
+                      <div class="col-xs-12">
+                            <h4> <span class="orbit-component word-wrap"><% productmodal.product_name %></span></h4>
+                          </div>
+                      <div class="col-xs-12">
+                            <p><% productmodal.short_description %></p>
+                          </div>
                     </div>
                      <div class="additional-detail">
                      <h4 data-ng-show="datapromotion.length">Promo</h4>
                      <div data-ng-show="datapromotion.length" data-ng-repeat="(k,v) in datapromotion">
                         <div class="row" >
-                                          				<div class="col-xs-9">
+                                                  <div class="col-xs-9">
                                                            <h5><% v.promotion_name %></h5>
                                                         </div>
-                                          				<div class="col-xs-3 ">
-                                          					<h5><% v.discount_value  %></h5>
-                                          				</div>
+                                                  <div class="col-xs-3 ">
+                                                    <h5><% v.discount_value  %></h5>
+                                                  </div>
 
                         </div>
                         <div class="row" data-ng-show="v.is_permanent !='Y'">
-                                          				<div class="col-xs-5 col-xs-height">
-                                          					<p><% v.begin_date  %></p>
-                                          				</div>
-                                          				<div class="col-xs-2 col-xs-height">
-                                          					<p>s/d</p>
-                                          				</div>
-                                          				<div class="col-xs-5 col-xs-height">
-                                          					<p><% v.end_date  %></p>
-                                          				</div>
+                                                  <div class="col-xs-5 col-xs-height">
+                                                    <p><% v.begin_date  %></p>
+                                                  </div>
+                                                  <div class="col-xs-2 col-xs-height">
+                                                    <p>s/d</p>
+                                                  </div>
+                                                  <div class="col-xs-5 col-xs-height">
+                                                    <p><% v.end_date  %></p>
+                                                  </div>
                         </div>
                      </div>
 
 
-                     	<div class="row" data-ng-if="hiddenbtn">
-                     		   <div class="col-xs-12" data-ng-show="datapromotion.length">
+                      <div class="row" data-ng-if="hiddenbtn">
+                           <div class="col-xs-12" data-ng-show="datapromotion.length">
                                     <p><h5><del><% productmodal.price %></del></h5></p>
                                     <p><h4>IDR : <% productmodal.afterpromotionprice %> </h4></p>
                                </div>
-                     		   <div class="col-xs-12" data-ng-show="!datapromotion.length">
+                           <div class="col-xs-12" data-ng-show="!datapromotion.length">
                                      <p><h4>IDR : <% productmodal.price %></h4></p>
                                </div>
-                     	</div>
+                      </div>
                      </div>
                 </div>
                 <div class="col-md-12" data-ng-if="!hiddenbtn">
                     <div class="col-xs-12 product-attributes">
-                    		<div class="row">
-                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute1">
-                    				<div class="radio-container">
-                    					<h5><% productdetail.product.attribute1.product_attribute_name %></h5>
-                    				        <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue1"><input name="checkbox1" type="radio" data-ng-model="chooseattr[0]" data-ng-click="changeattr(0,k)" value="<% v.value1  %>" ><span><% v.value1  %></span></label>
-                    				</div>
-                    			</div>
-                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute2">
-                    				<div class="radio-container">
-                    					<h5><% productdetail.product.attribute2.product_attribute_name %></h5>
-                    				       <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue2" data-ng-if="v.value1 == chooseattr[0]"><input name="checkbox2" data-ng-click="changeattr(1,k)" data-ng-model="chooseattr[1]" type="radio" value="<% v.value2  %>" ><span><% v.value2 %></span></label>
-                    				</div>
-                    			</div>
-                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute3">
-                    				<div class="radio-container">
-                    					<h5><% productdetail.product.attribute3.product_attribute_name %></h5>
-                    				    <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue3" data-ng-if="v.value2 == chooseattr[1]"><input name="checkbox3"  data-ng-click="changeattr(2,k)" data-ng-model="chooseattr[2]" type="radio" value="<% v.value3  %>" ><span><% v.value3  %></span></label>
+                        <div class="row">
+                          <div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute1">
+                            <div class="radio-container">
+                              <h5><% productdetail.product.attribute1.product_attribute_name %></h5>
+                                    <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue1"><input name="checkbox1" type="radio" data-ng-model="chooseattr[0]" data-ng-click="changeattr(0,k)" value="<% v.value1  %>" ><span><% v.value1  %></span></label>
+                            </div>
+                          </div>
+                          <div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute2">
+                            <div class="radio-container">
+                              <h5><% productdetail.product.attribute2.product_attribute_name %></h5>
+                                   <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue2" data-ng-if="v.value1 == chooseattr[0]"><input name="checkbox2" data-ng-click="changeattr(1,k)" data-ng-model="chooseattr[1]" type="radio" value="<% v.value2  %>" ><span><% v.value2 %></span></label>
+                            </div>
+                          </div>
+                          <div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute3">
+                            <div class="radio-container">
+                              <h5><% productdetail.product.attribute3.product_attribute_name %></h5>
+                                <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue3" data-ng-if="v.value2 == chooseattr[1]"><input name="checkbox3"  data-ng-click="changeattr(2,k)" data-ng-model="chooseattr[2]" type="radio" value="<% v.value3  %>" ><span><% v.value3  %></span></label>
                                     </div>
-                    			</div>
-                    		</div>
+                          </div>
+                        </div>
                     </div>
                     <div class="col-xs-12 product-attributes" data-ng-show="productdetail.product.attribute4 || productdetail.product.attribute5">
-                    		<div class="row">
-                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute4">
-                    				<div class="radio-container">
-                    					<h5><% productdetail.product.attribute4.product_attribute_name %></h5>
-                    		              <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue4" data-ng-if="v.value3 == chooseattr[2]"><input name="checkbox4" data-ng-change="changeattr(3,k)" data-ng-model="chooseattr[3]"  type="radio" value="<% v.value4  %>"  ><span><% v.value4  %></span></label>
-                    				</div>
-                    			</div>
-                    			<div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute5">
-                    				<div class="radio-container">
-                    					<h5><% productdetail.product.attribute5.product_attribute_name %></h5>
-                               		       <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue5" data-ng-if="v.value4 == chooseattr[3]"><input name="checkbox5" data-ng-change="changeattr(4,k)"  data-ng-model="chooseattr[4]" type="radio" value="<% v.value5  %>" ><span><% v.value5  %></span></label>
-                    				</div>
-                    			</div>
+                        <div class="row">
+                          <div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute4">
+                            <div class="radio-container">
+                              <h5><% productdetail.product.attribute4.product_attribute_name %></h5>
+                                      <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue4" data-ng-if="v.value3 == chooseattr[2]"><input name="checkbox4" data-ng-change="changeattr(3,k)" data-ng-model="chooseattr[3]"  type="radio" value="<% v.value4  %>"  ><span><% v.value4  %></span></label>
+                            </div>
+                          </div>
+                          <div class="col-xs-4 main-theme-text" data-ng-show="productdetail.product.attribute5">
+                            <div class="radio-container">
+                              <h5><% productdetail.product.attribute5.product_attribute_name %></h5>
+                                         <label class="ui-radio" data-ng-repeat="(k,v) in dataattrvalue5" data-ng-if="v.value4 == chooseattr[3]"><input name="checkbox5" data-ng-change="changeattr(4,k)"  data-ng-model="chooseattr[4]" type="radio" value="<% v.value5  %>" ><span><% v.value5  %></span></label>
+                            </div>
+                          </div>
 
-                    		</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-12  main-theme" data-ng-if="!hiddenbtn">
@@ -354,14 +354,14 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><% language.tutup %></span></button>
             <h4 class="modal-title" id="myModalLabel">&nbsp;</h4>
           </div>
           <div class="modal-body">
-                  <p class="text-center"><b>Produk tidak ditemukan</b></p>
+                  <p class="text-center"><b><% language.produktidakditemukan %></b></p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal" >Close</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" ><% language.tutup %></button>
           </div>
         </div>
       </div>
@@ -371,17 +371,17 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel"><b>Keranjang Belanja Baru</b></h4>
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><% language.tutup %></span></button>
+            <h4 class="modal-title" id="myModalLabel"><b><% language.keranjangbelanjabaru %></b></h4>
           </div>
           <div class="modal-body">
-                  <p><b>Anda yakin akan ingin membuat keranjang belanja baru ?</b></p>
-                  <p>Setelah anda memilih "Ya", maka keranjang belanja baru akan menggantikan keranjang belanja sebelumnya </p>
+                  <p><b><% language.andayakin1 %></b></p>
+                  <p><% language.andayakin1teks %></p>
 
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newdeletecartFn(true)">Ya</button>
-            <button type="button" class="btn btn-danger" data-dismiss="modal" >Tidak</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newdeletecartFn(true)"><% language.ya %></button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" ><% language.tidak %></button>
           </div>
         </div>
       </div>
@@ -391,16 +391,16 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel"><b>Hapus Keranjang Belanja</b></h4>
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><% language.tutup %></span></button>
+            <h4 class="modal-title" id="myModalLabel"><b><% language.hapuskeranjangbelanja %></b></h4>
           </div>
           <div class="modal-body">
-              <p><b>Anda yakin akan ingin menghapus keranjang belanja ?</b></p>
-              <p>Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus</p>
+              <p><b><% language.andayakin2 %></b></p>
+              <p><% language.andayakin2teks %></p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newdeletecartFn()">Ya</button>
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Tidak</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" style="background-color:#56BDF1;color:#2C71A3" data-ng-click="newdeletecartFn()"><% language.ya %></button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal"><% language.tidak %></button>
           </div>
         </div>
       </div>
@@ -410,15 +410,15 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel"><b>Scan keranjang belanja</b></h4>
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><% language.tutup %></span></button>
+            <h4 class="modal-title" id="myModalLabel"><b><% language.scankeranjang %></b></h4>
           </div>
           <div class="modal-body">
               <div  data-ng-show="errorscancart" class="alert alert-danger alert-dismissible fade in" role="alert">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
                 <h4><% errorscancart %></h4>
               </div>
-              <p class="text-center"><b>Scan keranjang belanja sekarang!</b></p>
+              <p class="text-center"><b><% language.scankeranjangsekarang %></b></p>
               <p>
                 <div class="input-group" >
                        <div type="text" class="form-control"  data-ng-model="manualscancart" id="exampleInputEmail2" placeholder="Input Manual"><% manualscancart %></div>
@@ -428,7 +428,7 @@
 
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal" data-ng-click="cancelCart()">Cancel</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" data-ng-click="cancelCart()"><% language.batal %></button>
           </div>
 
         </div>
@@ -444,10 +444,10 @@
                                                                              <button data-ng-click="keypadscantFn('2')">2</button>
                                                                              <button data-ng-click="keypadscantFn('3')">3</button>
 
-                                                                             <button data-ng-click="keypadscantFn('c')" class="smaller">Clear</button>
+                                                                             <button data-ng-click="keypadscantFn('c')" class="smaller"><% language.bersihkan %></button>
                                                                              <button data-ng-click="keypadscantFn('0')">0</button>
                                                                              <button data-ng-click="keypadscantFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                                                                             <button data-ng-click="keypadscantFn('d')" class="button-wide smaller">Done</button>
+                                                                             <button data-ng-click="keypadscantFn('d')" class="button-wide smaller"><% language.selesai %></button>
                                                                        </div>
 
                                                               </div>
@@ -467,25 +467,25 @@
           <div class="modal-body text-center">
 
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
-                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')">TUNAI</button></p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')">TERMINAL 1</button> </p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')">TERMINAL 2</button> </p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')">TERMINAL 3</button> </p>
-                          <p data-ng-show="!holdbtn">Terminal is not ready</p>
+                          <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')"><% language.tunai %></button></p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')"><% language.terminal1 %></button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')"><% language.terminal2 %></button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')"><% language.terminal3 %></button> </p>
+                          <p data-ng-show="!holdbtn"><% language.terminalbelumdisiapkan %></p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
 
                                <div class="form" style="padding-left: 20px;padding-right: 20px;">
                                          <div class="form-group text-left" >
-                                             <label for="exampleInputEmail1">Total bayar</label>
+                                             <label for="exampleInputEmail1"><% language.totalbayar %></label>
                                              <input type="text" class="form-control text-right"  id="exampleInputEmail1" style="cursor: default; color:#030000" disabled data-ng-model="cart.totalpay" placeholder="Total bayar">
                                          </div>
                                          <div data-ng-class="change < 0 ? 'form-group text-left has-error' : 'form-group text-left'">
-                                             <label for="exampleInputEmail1">Nominal Tunai</label>
+                                             <label for="exampleInputEmail1"><% language.nominaltunai %></label>
                                              <div class="form-control text-right" id="tenderedcash"  data-ng-click="virtualFn(true)" pattern="[0-9]*"  autofocus="autofocus" tabindex="1"  numbers-only="numbers-only"  data-ng-model="cart.amount" placeholder="Nominal Tunai"><% cart.amount %></div>
                                          </div>
                                          <div class="form-group text-left">
-                                             <label for="exampleInputEmail1">Kembalian</label>
+                                             <label for="exampleInputEmail1"><% language.kembalian %></label>
                                              <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="Kembalian">
                                           </div>
                                </div>
@@ -502,10 +502,10 @@
                                          <button data-ng-click="keypadFn('3')">3</button>
 
 
-                                         <button data-ng-click="keypadFn('c')" class="smaller">Clear</button>
+                                         <button data-ng-click="keypadFn('c')" class="smaller"><% language.bersihkan %></button>
                                          <button data-ng-click="keypadFn('0')">0</button>
                                          <button data-ng-click="keypadFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                                          <button data-ng-click="virtualFn(false)" class="button-wide smaller">Done</button>
+                                          <button data-ng-click="virtualFn(false)" class="button-wide smaller"><% language.selesai %></button>
 
                                       </div>
 
@@ -525,14 +525,14 @@
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
-                         <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" data-ng-click="ticketprint()">CETAK STRUK</button></p>
-                         <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal"  style="background-color: #009933; padding-left: 53px; padding-right: 53px"   data-ng-click="checkoutFn('d')">DONE</button> </p>
+                         <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" data-ng-click="ticketprint()"><% language.cetakstruk %></button></p>
+                         <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal"  style="background-color: #009933; padding-left: 53px; padding-right: 53px"   data-ng-click="checkoutFn('d')"><% language.selesai %></button> </p>
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
-                     <button type="button"  data-ng-if="cardfile && action != 'done' && cheader == 'PEMBAYARAN KARTU DEBIT/KREDIT'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')">RETRY</button>
-                     <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()">Cancel</button>
-                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;">Continue</button>
+                     <button type="button"  data-ng-if="cardfile && action != 'done' && cheader == 'PEMBAYARAN KARTU DEBIT/KREDIT'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')"><% language.ulangi %></button>
+                     <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()"><% language.batal %></button>
+                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;"><% language.lanjutkan %></button>
            </div>
         </div>
 
