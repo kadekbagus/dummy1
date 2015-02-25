@@ -60,7 +60,7 @@ class EventAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.event.postnewevent.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('new_event')) {
+            if (! ACL::create($user)->isAllowed('create_event')) {
                 Event::fire('orbit.event.postnewevent.authz.notallowed', array($this, $user));
                 $createEventLang = Lang::get('validation.orbit.actionlist.new_event');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createEventLang));

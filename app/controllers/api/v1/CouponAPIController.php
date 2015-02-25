@@ -76,7 +76,7 @@ class CouponAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.coupon.postnewcoupon.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('new_coupon')) {
+            if (! ACL::create($user)->isAllowed('create_coupon')) {
                 Event::fire('orbit.coupon.postnewcoupon.authz.notallowed', array($this, $user));
                 $createCouponLang = Lang::get('validation.orbit.actionlist.new_coupon');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $createCouponLang));
