@@ -206,6 +206,7 @@ return array(
                 'role'             => 'The role ":role" is not found.',
             ),
             'setting_status'       => 'The setting status you specified is not found.',
+            'setting_sortby'       => 'The sort by argument you specified is not valid, the valid values are: registered_date, setting_name, status.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(
@@ -296,6 +297,7 @@ return array(
             'delete_event'              => 'delete event',
             'view_event'                => 'view event',
             'update_setting'            => 'update setting',
+            'view_setting'              => 'view setting',
         ),
     ),
 
