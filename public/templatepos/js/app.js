@@ -988,6 +988,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                         for(var a =0; a < $scope.datapromotion.length; a++){
                                            $scope.datapromotion[a]['oridiscount_value'] = $scope.datapromotion[a]['promotion_detail']['discount_value'];
                                            $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['promotion_detail']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['promotion_detail']['discount_value'], "", 0, ",", ".");
+
                                             if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage'){
                                                 tmpdiscount = $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']);
                                             }else if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_value'){
@@ -1018,7 +1019,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                             $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'];
                                             $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", 0, ",", ".");
 
-                                             tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ?  $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price : accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
+                                           if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage'){
+                                                tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price;
+                                           }else if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_value'){
+                                               tmpdiscount = accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
+                                           }else if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'new_product_price'){
+                                               tmpdiscount = price - accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
+                                           }else{
+                                               tmpdiscount = 0;
+                                           }
+                                           //  tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ?  $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price : accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
                                              $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
                                              $scope.productmodal['coupon_for_this_product'][b]['tmpafterpromotionprice'] = tmpdiscount;
                                              discount += tmpdiscount;
