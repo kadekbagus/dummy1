@@ -140,7 +140,7 @@ class Session
                 // Does the session already expire?
                 $expireAt = $sessionData->expireAt;
                 if ($expireAt < $now) {
-                    throw new Exception ('Session has ben expires.', static::ERR_SESS_EXPIRE);
+                    throw new Exception ('Session has been expires.', static::ERR_SESS_EXPIRE);
                 }
 
                 $this->driver->update($sessionData);
