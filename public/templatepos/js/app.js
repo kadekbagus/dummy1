@@ -996,11 +996,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tmpdiscount = accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];
                                             }else if($scope.datapromotion[a]['rule_type'] == 'new_product_price'){
                                                 tmpdiscount = (price * response.data.cartdetails[i]['quantity']) - (accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity']);
-                                            }else{
-                                                tmpdiscount = 0;
                                             }
-                                           // tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];                                            $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
-
+                                          //  tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];
+                                            $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
                                             $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount / response.data.cartdetails[i]['quantity'];
                                             tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
                                             discount += tmpdiscount;
