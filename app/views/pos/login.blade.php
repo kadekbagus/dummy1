@@ -5,7 +5,7 @@
   <div class="page-signin"  >
     <div class="signin-header">
       <section class="logo text-center">
-        <h4>ORBIT KASIR</h4>
+        <h4><% language.orbitkasir %></h4>
        <img ng-src="{{ URL::asset('templatepos/images/orbit-logo.png') }}"   data-ng-init="showloader = false" data-ng-if="!showloader" alt="Orbit Logo" />
        <img ng-src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   data-ng-if="showloader" style="height: 60px; width: 60px; " alt="Orbit Logo" />
       </section>
@@ -29,7 +29,7 @@
                                    <input type="password" name="password" class="orbit-component form-control input-lg input-round text-center" placeholder="Password" ng-model="login.password" required />
                                </div>
                                <div class="form-group">
-                                   <button ng-disabled="signform.$invalid" class="btn btn-primary btn-lg btn-round btn-block text-center" data-ng-click="loginFn()" type="submit">Masuk</button>
+                                   <button ng-disabled="signform.$invalid" class="btn btn-primary btn-lg btn-round btn-block text-center" data-ng-click="loginFn()" type="submit"><% language.masuk %></button>
                                </div>
                            </fieldset>
                        </form>
