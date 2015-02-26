@@ -310,10 +310,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            $widgets = Widget::with('media')->excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->whereHas('retailers', function($q) use($retailer)
-            {
-                $q->where('retailer_id', $retailer->merchant_id);
-            })->orderBy('widget_order', 'ASC')->take(4)->get();
+            $widgets = Widget::with('media')->excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->orderBy('widget_order', 'ASC')->take(4)->get();
 
             $activityPageNotes = sprintf('Page viewed: %s', 'Home');
             $activityPage->setUser($user)
