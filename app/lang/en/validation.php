@@ -206,6 +206,7 @@ return array(
             'employee'             => array(
                 'role'             => 'The role ":role" is not found.',
             ),
+            'setting_status'       => 'The setting status you specified is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(
@@ -295,6 +296,7 @@ return array(
             'update_event'              => 'update event',
             'delete_event'              => 'delete event',
             'view_event'                => 'view event',
+            'update_setting'            => 'update setting',
         ),
     ),
 
