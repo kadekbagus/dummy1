@@ -1398,7 +1398,7 @@ class CashierAPIController extends ControllerAPI
 
             //$pay   = '----------------------------------------'." \n";
             $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
-            $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
+            $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
