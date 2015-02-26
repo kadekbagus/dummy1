@@ -712,7 +712,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.tmpsubtotal          = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants']['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
