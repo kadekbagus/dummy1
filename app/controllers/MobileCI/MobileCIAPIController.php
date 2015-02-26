@@ -3026,12 +3026,21 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_for_this_product = new stdclass();
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                            $discount = $promo_filter->discount_value;
+                            $discount = $original_price - $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
@@ -3122,7 +3131,7 @@ class MobileCIAPIController extends ControllerAPI
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
                             } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
                                 if ($temp_price < $discount) {
                                     $discount = $temp_price;
                                 }
@@ -3477,12 +3486,21 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_for_this_product = new stdclass();
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                            $discount = $promo_filter->discount_value;
+                            $discount = $original_price - $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
@@ -3572,7 +3590,7 @@ class MobileCIAPIController extends ControllerAPI
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
                             } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
                                 if ($temp_price < $discount) {
                                     $discount = $temp_price;
                                 }
