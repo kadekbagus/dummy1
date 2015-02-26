@@ -65,6 +65,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
+        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
         $scope.cart               = [];
         $scope.product            = [];
         $scope.productidenabled   = [];
@@ -72,9 +73,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
-
-
-        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
+        $scope.cheader            = $scope.language.pilihcarapembayaran;
+        $scope.gesek              = $scope.language.gesekkartusekarang;
+      
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -140,12 +141,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    serviceAjax.getDataFromServer('/pos/productsearch?take=12').then(function(response){
+                    serviceAjax.getDataFromServer('/pos/quickproduct').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
-                                response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                                response.data.records[i]['product']['price'] = accounting.formatMoney(response.data.records[i]['product']['price'], "", 0, ",", ".");
+                                $scope.product[i] = response.data.records[i]['product'];
                             }
-                            $scope.product = response.data.records;
+                            //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
                             $scope.logoutfn();
@@ -720,7 +722,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     switch(act){
                         case 't':
                             $scope.action  = 'cash';
-                            $scope.cheader = 'PEMBAYARAN TUNAI';
+                            $scope.cheader = $scope.language.pembayarantunai;
                             $scope.isvirtual = true;
                             //customer display
                             $scope.customerdispaly('TOTAL',$scope.cart.totalpay);
@@ -731,7 +733,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                           
                             //terminal 1
                             $scope.action = 'card';
-                            $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
+                            $scope.cheader = $scope.language.pembayarankartu;
                             $scope.hasaccepted = false;
                             //case success
                             serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
@@ -739,7 +741,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.savetransactions();
                                     $scope.hasaccepted = true;
                                 }else{
-                                    $scope.cheader  = 'TRANSAKSI GAGAL';
+                                    $scope.cheader  = $scope.language.transaksigagal;
                                     $scope.cardfile = true;
                                     $scope.holdbtn  = true;
                                 }

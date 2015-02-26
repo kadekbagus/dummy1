@@ -44,6 +44,14 @@ Route::group(array('before' => 'orbit-settings'), function()
     Route::get('/app/v1/pos/productsearch', 'IntermediateAuthController@POS\Cashier_getSearchProductPOS');
 
 
+    // pos quick product
+    Route::get('/api/v1/pos/quickproduct', function () {
+        return POS\CashierAPIController::create()->getPosQuickProduct();
+    });
+
+    Route::get('/app/v1/pos/quickproduct', 'IntermediateAuthController@POS\Cashier_getPosQuickProduct');
+
+
     // save transaction
     Route::post('/api/v1/pos/savetransaction', function () {
         return POS\CashierAPIController::create()->postSaveTransaction();
