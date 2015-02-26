@@ -29,6 +29,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     }]);
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
+         //get merchant info
+        $scope.infomerchant = [];
+         serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
+                if(response.code == 0){
+                    $scope.infomerchant = response.data;
+                }
+         });
+
+         $scope.language = $scope.infomerchant['pos_language'] == 'id' ? id : en;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data) {
             if (data.code != 0 && !$scope.datauser) {
@@ -36,7 +45,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.login  = {};
                 $scope.signin = {};
 
-                $scope.signin.alerts = [{ text: "Maaf, ID atau password yang Anda masukkan salah",active: false} ];
+                $scope.signin.alerts = [{ text: $scope.language.loginerror,active: false} ];
                 $scope.signin.alertDismisser = function(index) {
                     $scope.signin.alerts[index].active = false;
                 };
@@ -65,6 +74,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
+        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
         $scope.cart               = [];
         $scope.product            = [];
         $scope.productidenabled   = [];
@@ -72,9 +82,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
-
-
-        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
+        $scope.cheader            = $scope.language.pilihcarapembayaran;
+        $scope.gesek              = $scope.language.gesekkartusekarang;
+      
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -140,12 +150,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    serviceAjax.getDataFromServer('/pos/productsearch?take=12').then(function(response){
+                    serviceAjax.getDataFromServer('/pos/quickproduct').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
-                                response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                                response.data.records[i]['product']['price'] = accounting.formatMoney(response.data.records[i]['product']['price'], "", 0, ",", ".");
+                                $scope.product[i] = response.data.records[i]['product'];
                             }
-                            $scope.product = response.data.records;
+                            //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
                             $scope.logoutfn();
@@ -712,7 +723,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.tmpsubtotal          = '';
                     $scope.getproduct();
                     if(act) $scope.getguest();
-                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchants']['name'].substr(0,20));
+                    $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
                 };
                 //checkout
                 $scope.checkoutFn = function(act,term){
@@ -720,7 +731,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     switch(act){
                         case 't':
                             $scope.action  = 'cash';
-                            $scope.cheader = 'PEMBAYARAN TUNAI';
+                            $scope.cheader = $scope.language.pembayarantunai;
                             $scope.isvirtual = true;
                             //customer display
                             $scope.customerdispaly('TOTAL',$scope.cart.totalpay);
@@ -731,7 +742,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                           
                             //terminal 1
                             $scope.action = 'card';
-                            $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
+                            $scope.cheader = $scope.language.pembayarankartu;
                             $scope.hasaccepted = false;
                             //case success
                             serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
@@ -739,7 +750,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.savetransactions();
                                     $scope.hasaccepted = true;
                                 }else{
-                                    $scope.cheader  = 'TRANSAKSI GAGAL';
+                                    $scope.cheader  = $scope.language.transaksigagal;
                                     $scope.cardfile = true;
                                     $scope.holdbtn  = true;
                                 }

@@ -712,8 +712,8 @@ return array(
         ),
 
         'edc'        => array(
-            'path'   => '/home/dominopos1/drivers/64bits/edcbz_v41',
-            'params' => '/dev/domino/terminal'
+            'path'   => '/home/dominopos1/drivers/edc_ict220_V102/ict220',
+            'params' => '/dev/ttyUSB0'
         ),
 
         'cdisplay'   => array(

@@ -44,6 +44,14 @@ Route::group(array('before' => 'orbit-settings'), function()
     Route::get('/app/v1/pos/productsearch', 'IntermediateAuthController@POS\Cashier_getSearchProductPOS');
 
 
+    // pos quick product
+    Route::get('/api/v1/pos/quickproduct', function () {
+        return POS\CashierAPIController::create()->getPosQuickProduct();
+    });
+
+    Route::get('/app/v1/pos/quickproduct', 'IntermediateAuthController@POS\Cashier_getPosQuickProduct');
+
+
     // save transaction
     Route::post('/api/v1/pos/savetransaction', function () {
         return POS\CashierAPIController::create()->postSaveTransaction();
@@ -107,6 +115,11 @@ Route::group(array('before' => 'orbit-settings'), function()
 
     Route::post('/app/v1/pos/cartbasedpromotion', 'IntermediateAuthController@POS\Cashier_postCartBasedPromotion');
 
+    // 
+    Route::get('/app/v1/pos/getmerchantinfo', function()
+    {
+        return POS\CashierAPIController::create()->getMerchantInfo();
+    });
 
     Route::get('/pos', function () {
         return Redirect::to('/pos/signin');

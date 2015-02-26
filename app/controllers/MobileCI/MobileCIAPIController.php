@@ -231,7 +231,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -310,10 +310,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            $widgets = Widget::with('media')->excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->whereHas('retailers', function($q) use($retailer)
-            {
-                $q->where('retailer_id', $retailer->merchant_id);
-            })->orderBy('widget_order', 'ASC')->take(4)->get();
+            $widgets = Widget::with('media')->excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->orderBy('widget_order', 'ASC')->take(4)->get();
 
             $activityPageNotes = sprintf('Page viewed: %s', 'Home');
             $activityPage->setUser($user)
@@ -631,7 +628,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -972,7 +969,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -1243,7 +1240,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -1911,7 +1908,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -2172,7 +2169,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -2333,7 +2330,7 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
             
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -2702,7 +2699,7 @@ class MobileCIAPIController extends ControllerAPI
             // }
 
             $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (
@@ -2927,7 +2924,7 @@ class MobileCIAPIController extends ControllerAPI
                     $product_price_wo_tax = $original_price;
 
                     $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                             inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                             inner join ' . DB::getTablePrefix() . 'products prod on
                             (
@@ -3026,9 +3023,21 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_for_this_product = new stdclass();
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
@@ -3114,6 +3123,12 @@ class MobileCIAPIController extends ControllerAPI
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
                             } elseif ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
                                 if ($temp_price < $discount) {
                                     $discount = $temp_price;
                                 }
@@ -3376,7 +3391,7 @@ class MobileCIAPIController extends ControllerAPI
                     $original_ammount = $original_price * $cartdetail->quantity;
 
                     $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                             inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                             inner join ' . DB::getTablePrefix() . 'products prod on
                             (
@@ -3468,9 +3483,21 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_for_this_product = new stdclass();
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
@@ -3555,6 +3582,12 @@ class MobileCIAPIController extends ControllerAPI
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
                             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
                                 if ($temp_price < $discount) {
                                     $discount = $temp_price;
                                 }
@@ -4000,7 +4033,7 @@ class MobileCIAPIController extends ControllerAPI
                     $product_price_wo_tax = $original_price;
 
                     $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                             inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                             inner join ' . DB::getTablePrefix() . 'products prod on
                             (
@@ -4097,10 +4130,13 @@ class MobileCIAPIController extends ControllerAPI
                     // dd($promo_filters);
                     foreach($promo_filters as $promo_filter) {
                         $promo_for_this_product = new stdclass();
-                        if($promo_filter->rule_type == 'product_discount_by_percentage') {
+                        if ($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $original_price;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                        } elseif($promo_filter->rule_type == 'product_discount_by_value') {
+                        } elseif ($promo_filter->rule_type == 'product_discount_by_value') {
+                            $discount = $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         }
@@ -4186,6 +4222,12 @@ class MobileCIAPIController extends ControllerAPI
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
                             } elseif ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
                                 if ($temp_price < $discount) {
                                     $discount = $temp_price;
@@ -4449,7 +4491,7 @@ class MobileCIAPIController extends ControllerAPI
                     $original_ammount = $original_price * $cartdetail->quantity;
 
                     $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                             inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                             inner join ' . DB::getTablePrefix() . 'products prod on
                             (
@@ -4545,6 +4587,9 @@ class MobileCIAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                            $discount = $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -4627,6 +4672,12 @@ class MobileCIAPIController extends ControllerAPI
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
                             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
                                 if ($temp_price < $discount) {
                                     $discount = $temp_price;
@@ -5081,7 +5132,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 inner join ' . DB::getTablePrefix() . 'products prod on
                 (

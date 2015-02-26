@@ -263,7 +263,7 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
-            $this->registerCustomValidation();
+            // $this->registerCustomValidation();
 
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
@@ -505,7 +505,7 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
-            $this->registerCustomValidation();
+            // $this->registerCustomValidation();
 
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
@@ -1398,7 +1398,7 @@ class CashierAPIController extends ControllerAPI
 
             //$pay   = '----------------------------------------'." \n";
             $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
-            $pay  .= $this->leftAndRight('VAT (10%)', number_format($transaction['vat'], 2));
+            $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
@@ -1551,17 +1551,30 @@ class CashierAPIController extends ControllerAPI
 
             $driver = Config::get('orbit.devices.edc.path');
             $params = Config::get('orbit.devices.edc.params');
-            $cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;
+            //$cmd = 'sudo '.$driver.' --device '.$params.' --words '.$amount;  //verifone
+            $cmd = 'sudo '.$driver.' --d '.$params.' --A '.$amount.' --s';   //ict220
             $card = shell_exec($cmd);
 
             $card = trim($card);
 
-            if($card=='Failed'){
+            $x = explode('--------~>', $card);  //ict220
+            $z = explode('<----------', $x[1]); //ict220
+            $output = trim($z[0]);              //ict220
+
+            // if($card=='Failed'){
+            //     $message = 'Payment Failed';
+            //     ACL::throwAccessForbidden($message);
+            // }
+
+            if($output=='Failed'){
+
                 $message = 'Payment Failed';
                 ACL::throwAccessForbidden($message);
             }
 
-            $this->response->data = $card;
+            //$this->response->data = $card;
+
+            $this->response->data = $output;
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -3158,6 +3171,227 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
+        return $this->render();
+    }
+
+
+    /**
+     * GET - List of POS Quick Product
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param array         `product_ids`           (optional) - IDs of the product
+     * @param array         `merchant_ids`          (optional) - IDs of the merchant
+     * @param array         `retailer_ids`          (optional) - IDs of the
+     * @param string        `sort_by`               (optional) - column order by
+     * @param string        `sort_mode`             (optional) - asc or desc
+     * @param integer       `take`                  (optional) - limit
+     * @param integer       `skip`                  (optional) - limit offset
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getPosQuickProduct()
+    {
+        try {
+            $httpCode = 200;
+
+            // Require authentication
+            $this->checkAuth();
+            
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            
+            // $this->registerCustomValidation();
+            
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                ),
+                array(
+                    'sort_by' => 'in:id,price,name,product_order',
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.posquickproduct_sortby'),
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.product_attribute.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            
+            // Builder object
+            $posQuickProducts = \PosQuickProduct::joinRetailer()
+                                               ->excludeDeleted('pos_quick_products')
+                                               ->with('product');
+
+            // Filter by ids
+            OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
+                $posQuickProducts->whereIn('pos_quick_products.pos_quick_product_id', $posQuickIds);
+            });
+
+            // Filter by merchant ids
+            OrbitInput::get('merchant_ids', function($merchantIds) use ($posQuickProducts) {
+                $posQuickProducts->whereIn('pos_quick_products.merchant_id', $merchantIds);
+            });
+
+            // Filter by retailer ids
+            OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
+                $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_posQuickProducts = clone $posQuickProducts;
+
+            // Get the take args
+            $take = $maxRecord;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+            });
+            $posQuickProducts->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $posQuickProducts) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            
+            $posQuickProducts->skip($skip);
+
+            // Default sort by
+            $sortBy = 'pos_quick_products.product_order';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'id'            => 'pos_quick_products.pos_quick_product_id',
+                    'name'          => 'products.product_name',
+                    'product_order' => 'pos_quick_products.product_prder',
+                    'price'         => 'products.price',
+                    'created'       => 'pos_quick_products.created_at',
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $posQuickProducts->orderBy($sortBy, $sortMode);
+
+            $totalPosQuickProducts = $_posQuickProducts->count();
+            $listOfPosQuickProducts = $posQuickProducts->get();
+
+            $data = new \stdclass();
+            $data->total_records = $totalPosQuickProducts;
+            $data->returned_records = count($listOfPosQuickProducts);
+            $data->records = $listOfPosQuickProducts;
+
+            if ($listOfPosQuickProducts === 0) {
+                $data->records = null;
+                $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+
+        return $output;
+    }
+
+
+    /**
+     * GET - Merchant info without login
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getMerchantInfo()
+    {
+        try {
+                $retailer = $this->getRetailerInfo();
+                $merchant = $retailer->parent;
+                // $this->response->status = 'success';
+                // $this->response->message = 'success';
+                $this->response->data = $merchant;
+            } catch (ACLForbiddenException $e) {
+                $this->response->code = $e->getCode();
+                $this->response->status = 'error';
+                $this->response->message = $e->getMessage();
+                $this->response->data = null;
+            } catch (InvalidArgsException $e) {
+                $this->response->code = $e->getCode();
+                $this->response->status = 'error';
+                $this->response->message = $e->getMessage();
+                $this->response->data = null;
+            } catch (Exception $e) {
+                $this->response->code = $e->getCode();
+                $this->response->status = 'error';
+                $this->response->message = $e->getMessage();
+                $this->response->data = null;
+            }
         return $this->render();
     }
 
