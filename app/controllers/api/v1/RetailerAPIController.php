@@ -925,6 +925,7 @@ class RetailerAPIController extends ControllerAPI
      * @param string            `url`                           (optional) - Url
      * @param string            `masterbox_number`              (optional) - Masterbox number
      * @param string            `slavebox_number`               (optional) - Slavebox number
+     * @param integer           `parent_id`                     (optional) - Merchant id for the retailer
      * @param string|array      `with`                          (optional) - Relation which need to be included
      * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      * @return Illuminate\Support\Facades\Response
@@ -1200,6 +1201,12 @@ class RetailerAPIController extends ControllerAPI
             // Filter retailer by slavebox_number
             OrbitInput::get('slavebox_number', function ($slavebox_number) use ($retailers) {
                 $retailers->whereIn('merchants.slavebox_number', $slavebox_number);
+            });
+
+            // Filter retailer by parent_id
+            OrbitInput::get('parent_id', function($parentIds) use ($retailers)
+            {
+                $retailers->whereIn('merchants.parent_id', $parentIds);
             });
 
             // Add new relation based on request
