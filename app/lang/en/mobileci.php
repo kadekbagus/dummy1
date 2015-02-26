@@ -60,6 +60,7 @@ return array(
         'cancel_button'         => 'Cancel',
         'cash_button'           => 'Cash',
         'credit_button'         => 'Credit Card',
+        'online_payment_button' => 'Online Payment',
         'yes_button'            => 'Yes',
         'do_not_show_label'     => 'Do not show this message again',
 

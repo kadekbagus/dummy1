@@ -4,7 +4,7 @@
 <div class="container vertically-spaced">
   <div class="row">
     <div class="col-xs-12">
-      <form role="form">
+      <form role="form" name="paymentForm" method="POST" action="{{ url('/app/v1/customer/savetransaction') }}">
         <div class="form-group">
           <label for="exampleInputEmail1">Name</label>
           <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Enter Name">
@@ -60,8 +60,8 @@
             </div>
         </div>
         <div class="form-group pull-right">
-            <a href="{{ url('customer/thankyou') }}" class="btn btn-success btn-block">Submit</a>
-          </div>
+            <button type="submit" class="btn btn-success btn-block">Submit</button>
+        </div>
       </form>
     </div>
   </div>

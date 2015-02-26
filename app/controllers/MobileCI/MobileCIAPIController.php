@@ -38,6 +38,11 @@ use \CartDetail;
 use \Exception;
 use \DB;
 use \Activity;
+use \Transaction;
+use \TransactionDetail;
+use \TransactionDetailPromotion;
+use \TransactionDetailCoupon;
+use \TransactionDetailTax;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -2825,1025 +2830,7 @@ class MobileCIAPIController extends ControllerAPI
             
             $cartitems = $this->getCartForToolbar();
 
-            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-            if (is_null($cart)) {
-                $cart = new Cart;
-                $cart->customer_id = $user->user_id;
-                $cart->merchant_id = $retailer->parent_id;
-                $cart->retailer_id = $retailer->merchant_id;
-                $cart->status = 'active';
-                $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
-                $cart->save();
-            }
-
-            $cartdetails = CartDetail::with(array('product' => function($q) {
-                $q->where('products.status','active');
-            }, 'variant' => function($q) {
-                $q->where('product_variants.status','active');
-            }), 'tax1', 'tax2')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
-            $cartdata = new stdclass();
-            $cartdata->cart = $cart;
-            $cartdata->cartdetails = $cartdetails;
-
-            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on 
-                (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                    OR
-                    (
-                        (pr.discount_object_type="family") AND 
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                    )
-                )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-            
-            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
-            {
-                $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
-            }, 'issuedcoupon' => function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id)
-                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            }))->whereHas('issuedcoupon', function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id);
-            })->whereHas('cartdetail', function($q)
-            {
-                $q->where('cart_coupons.object_type', '=', 'cart_detail');
-            })->get();
-            // dd($used_product_coupons);
-
-            $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
-            {
-                $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-            })
-            ->where(function($q) 
-            {
-                $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-                {
-                    $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
-                });
-            })->get();
-
-            $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id)
-                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            }))
-            ->whereHas('cart', function($q) use($cartdata)
-            {
-                $q->where('cart_coupons.object_type', '=', 'cart')
-                ->where('cart_coupons.object_id', '=', $cartdata->cart->cart_id);
-            })
-            ->where('cart_coupons.object_type', '=', 'cart')->get();
-
-            $subtotal = 0;
-            $subtotal_wo_tax = 0;
-            $vat = 0;
-            $total = 0;
-
-            $taxes = \MerchantTax::excludeDeleted()->where('merchant_id', $retailer->parent_id)->get();
-            
-            $vat_included = $retailer->parent->vat_included;
-
-            if($vat_included === 'yes') {
-                foreach($cartdata->cartdetails as $cartdetail) {
-                    $attributes = array();
-                    $product_vat_value = 0;
-                    $original_price = $cartdetail->variant->price;
-                    $original_ammount = $original_price * $cartdetail->quantity;
-                    $ammount_after_promo = $original_ammount;
-                    $product_price_wo_tax = $original_price;
-
-                    $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
-                            inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                            inner join ' . DB::getTablePrefix() . 'products prod on
-                            (
-                                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                                OR
-                                (
-                                    (pr.discount_object_type="family") AND 
-                                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                                    ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                                    ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                                    ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                                    ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                                )
-                            )
-                            inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                            WHERE 
-                                ic.expired_date >= NOW() 
-                                AND p.merchant_id = :merchantid 
-                                AND prr.retailer_id = :retailerid 
-                                AND ic.user_id = :userid 
-                                AND prod.product_id = :productid 
-                                
-                            '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
- 
-                    $cartdetail->available_product_coupons = count($available_product_coupons);
-
-                    if(!is_null($cartdetail->tax1)) {
-                        $tax1 = $cartdetail->tax1->tax_value;
-                        if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $pwot  = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
-                                $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                        } else {
-                            $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
-                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                        }
-                        foreach($taxes as $tax) {
-                            if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax1_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax1_total_value;
-                            }
-                        }
-                    } else {
-                        $tax1 = 0;
-                    }
-                    
-                    if(!is_null($cartdetail->tax2)) {
-                        $tax2 = $cartdetail->tax2->tax_value;
-                        if(!is_null($cartdetail->tax1)) {
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
-                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
-                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            }
-                        }
-                        foreach($taxes as $tax) {
-                            if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax2_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
-                            }
-                        }
-                    } else {
-                        $tax2 = 0;
-                    }
-
-                    // $product_price_wo_tax = $original_price / (1 + $product_vat_value);
-                    if(!is_null($cartdetail->tax2)) {
-                        if($cartdetail->tax2->tax_type == 'service') {
-                            $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                            $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2);
-                        }
-                    } else {
-                        $product_price_wo_tax = $original_price / (1 + $tax1);
-                    }
-                    // dd($product_price_wo_tax);
-                    $product_vat = ($original_price - $product_price_wo_tax) * $cartdetail->quantity;
-                    $vat = $vat + $product_vat;
-                    $product_price_wo_tax = $product_price_wo_tax * $cartdetail->quantity;
-                    $subtotal = $subtotal + $original_ammount;
-                    $subtotal_wo_tax = $subtotal_wo_tax + $product_price_wo_tax;
-
-                    $temp_price = $original_ammount;
-                    $promo_for_this_product_array = array();
-                    $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                    // dd($promo_filters);
-                    foreach($promo_filters as $promo_filter) {
-                        $promo_for_this_product = new stdclass();
-                        if($promo_filter->rule_type == 'product_discount_by_percentage') {
-                            $discount = $promo_filter->discount_value * $original_price;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                        } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-                            $discount = $promo_filter->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                            $discount = $original_price - $promo_filter->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        }
-                        $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
-                        $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
-                        $promo_for_this_product->rule_type = $promo_filter->rule_type;
-                        $promo_for_this_product->discount = $discount * $cartdetail->quantity;
-                        $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
-                        $temp_price = $temp_price - $promo_for_this_product->discount;
-
-                        // $promo_wo_tax = $discount / (1 + $product_vat_value);
-                        if(!is_null($cartdetail->tax1)) {
-                            $tax1 = $cartdetail->tax1->tax_value;
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $pwot  = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
-                                    $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                }
-                            } else {
-                                $tax1_value = ($discount / (1 + $tax1)) * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                            foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                }
-                            }
-                        }
-                        
-                        if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;
-                            if(!is_null($cartdetail->tax1)) {
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
-                                    $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
-                                    $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                                }
-                            }
-                            foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                }
-                            }
-                        }
-
-                        if(!is_null($cartdetail->tax2)) {
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $promo_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $promo_wo_tax = $discount / (1 + $tax1 + $tax2);
-                            }
-                        } else {
-                            $promo_wo_tax = $discount / (1 + $tax1);
-                        }
-
-                        $promo_vat = ($discount - $promo_wo_tax) * $cartdetail->quantity;
-                        $vat = $vat - $promo_vat;
-                        $promo_wo_tax = $promo_wo_tax * $cartdetail->quantity;
-                        $subtotal = $subtotal - $promo_for_this_product->discount;
-                        $subtotal_wo_tax = $subtotal_wo_tax - $promo_wo_tax;
-                        $promo_for_this_product_array[] = $promo_for_this_product;
-                    }
-                    // var_dump($promo_for_this_product_array);
-                    $cartdetail->promo_for_this_product = $promo_for_this_product_array;
-
-                    $coupon_filter = array();
-                    foreach ($used_product_coupons as $used_product_coupon) {
-                        // dd($used_product_coupon->cartdetail);
-                        if ($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
-                            if ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            }
-                            $temp_price = $temp_price - $discount;
-                            $used_product_coupon->discount = $discount;
-                            $ammount_after_promo = $ammount_after_promo - $discount;
-
-                            // $coupon_wo_tax = $discount / (1 + $product_vat_value);
-
-                            if(!is_null($cartdetail->tax1)) {
-                                $tax1 = $cartdetail->tax1->tax_value;
-                                if(!is_null($cartdetail->tax2)) {
-                                    $tax2 = $cartdetail->tax2->tax_value;
-                                    if($cartdetail->tax2->tax_type == 'service') {
-                                        $pwot  = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
-                                        $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    }
-                                } else {
-                                    $tax1_value = ($discount / (1 + $tax1)) * $tax1;
-                                    $tax1_total_value = $tax1_value;
-                                }
-                                foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                    }
-                                }
-                            }
-                            
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;
-                                if(!is_null($cartdetail->tax1)) {
-                                    if($cartdetail->tax2->tax_type == 'service') {
-                                        $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
-                                        $tax2_total_value = $tax2_value;
-                                    } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
-                                        $tax2_total_value = $tax2_value;
-                                    }
-                                }
-                                foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                    }
-                                }
-                            }
-
-                            if(!is_null($cartdetail->tax2)) {
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $coupon_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $coupon_wo_tax = $discount / (1 + $tax1 + $tax2);
-                                }
-                            } else {
-                                $coupon_wo_tax = $discount / (1 + $tax1);
-                            }
-                            $coupon_vat = ($discount - $coupon_wo_tax);
-                            $vat = $vat - $coupon_vat;
-                            $subtotal = $subtotal - $discount;
-                            $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
-                            $coupon_filter[] = $used_product_coupon;
-                        }
-                    }
-                    // dd($temp_price);
-                    $cartdetail->coupon_for_this_product = $coupon_filter;
-                    $cartdetail->original_price = $original_price;
-                    $cartdetail->original_ammount = $original_ammount;
-                    $cartdetail->ammount_after_promo = $ammount_after_promo;
-
-                    if($cartdetail->attributeValue1['value']) {
-                        $attributes[] = $cartdetail->attributeValue1['value'];
-                    }
-                    if($cartdetail->attributeValue2['value']) {
-                        $attributes[] = $cartdetail->attributeValue2['value'];
-                    }
-                    if($cartdetail->attributeValue3['value']) {
-                        $attributes[] = $cartdetail->attributeValue3['value'];
-                    }
-                    if($cartdetail->attributeValue4['value']) {
-                        $attributes[] = $cartdetail->attributeValue4['value'];
-                    }
-                    if($cartdetail->attributeValue5['value']) {
-                        $attributes[] = $cartdetail->attributeValue5['value'];
-                    }
-                    $cartdetail->attributes = $attributes;
-                }
-                if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
-                    $cart_vat = $vat / $subtotal_wo_tax;
-                } else {
-                    $cart_vat = 0;
-                }
-
-                // dd($vat.' / '.$subtotal_wo_tax.' = '.$cart_vat);
-
-                $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
-                $vat_before_cart_promo = $vat;
-                $cartdiscounts = 0;
-                $acquired_promo_carts = array();
-                $discount_cart_promo = 0;
-                $discount_cart_promo_wo_tax = 0;
-                $discount_cart_coupon = 0;
-                $cart_promo_taxes = 0;
-                $subtotal_before_cart_promo = $subtotal;
-
-                if (!empty($promo_carts)) {
-                    foreach ($promo_carts as $promo_cart) {
-                        if ($subtotal >= $promo_cart->promotionrule->rule_value) {
-                            if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-                                $discount = $subtotal * $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-                                $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
-                            } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-                                $discount = $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-                                $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-                            }
-
-                            $cart_promo_wo_tax = $discount / (1 + $cart_vat);
-                            $cart_promo_tax = $discount - $cart_promo_wo_tax;
-                            $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-                            
-                            foreach ($taxes as $tax) {
-                                if (!empty($tax->total_tax)) {
-                                    $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
-                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                }
-                            }
-
-                            $discount_cart_promo = $discount_cart_promo + $discount;
-                            $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
-                            $acquired_promo_carts[] = $promo_cart;
-
-                        }
-                    }
-                    
-                }
-
-                $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
-                {
-                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
-                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-                {
-                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                })
-                ->whereHas('issuedcoupons',function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                })->with(array('issuedcoupons' => function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                }))
-                ->get();
-
-                $available_coupon_carts = array();
-                $cart_discount_by_percentage_counter = 0;
-                $discount_cart_coupon = 0;
-                $discount_cart_coupon_wo_tax = 0;
-                $total_cart_coupon_discount = 0;
-                $cart_coupon_taxes = 0;
-                $acquired_coupon_carts = array();
-                if(!empty($used_cart_coupons)) {
-                    foreach($used_cart_coupons as $used_cart_coupon) {
-                        if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-                            if($subtotal >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-                                if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-                                    $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-                                    $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
-                                    $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
-                                    $cart_discount_by_percentage_counter++;
-                                } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-                                    $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $discount = $used_cart_coupon->issuedcoupon->discount_value;
-                                }
-
-                                $cart_coupon_wo_tax = $discount / (1 + $cart_vat);
-                                $cart_coupon_tax = $discount - $cart_coupon_wo_tax;
-
-                                foreach ($taxes as $tax) {
-                                    if (!empty($tax->total_tax)) {
-                                        $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
-                                        $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                    }
-                                }
-                                
-                                $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
-                                $discount_cart_coupon = $discount_cart_coupon + $discount;
-                                $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
-
-                                $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
-                                $acquired_coupon_carts[] = $used_cart_coupon;
-                            } else {
-                                $this->beginTransaction();
-                                $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-                                $issuedcoupon->makeActive();
-                                $issuedcoupon->save();
-                                $used_cart_coupon->delete(TRUE);
-                                $this->commit();
-                            }
-                        }
-                    }
-                }
-
-                if(!empty($coupon_carts)) {
-                    foreach($coupon_carts as $coupon_cart) {
-                        if($subtotal >= $coupon_cart->coupon_redeem_rule_value) {
-                            if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-                                if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-                                    $discount = $subtotal * $coupon_cart->discount_value;
-                                    $cartdiscounts = $cartdiscounts + $discount;
-                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-                                    $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
-                                    $available_coupon_carts[] = $coupon_cart;
-                                    $cart_discount_by_percentage_counter++;
-                                }
-                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-                                $discount = $coupon_cart->discount_value;
-                                $cartdiscounts = $cartdiscounts + $discount;
-                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-                                $available_coupon_carts[] = $coupon_cart;
-                            }
-                        } else {
-                            $coupon_cart->disc_val = $coupon_cart->rule_value;
-                        }
-                    }
-                }
-
-                $subtotal = $subtotal - $discount_cart_promo - $discount_cart_coupon;
-                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax - $discount_cart_coupon_wo_tax;
-                $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
-                // dd($cart_coupon_taxes);
-
-                $cartsummary = new stdclass();
-                $cartsummary->vat = round($vat, 2);
-                $cartsummary->total_to_pay = round($subtotal, 2);
-                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
-                $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-                $cartsummary->used_cart_coupons = $acquired_coupon_carts;
-                $cartsummary->available_coupon_carts = $available_coupon_carts;
-                $cartsummary->subtotal_before_cart_promo = round($subtotal_before_cart_promo, 2);
-                $cartsummary->taxes = $taxes;
-                $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
-                $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
-                $cartdata->cartsummary = $cartsummary;
-                // $cartdata->attributes = $attributes;
-            } else {
-                foreach ($cartdata->cartdetails as $cartdetail) {
-                    $attributes = array();
-                    $product_vat_value = 0;
-                    $original_price = $cartdetail->variant->price;
-                    $subtotal_wo_tax = $subtotal_wo_tax + ($original_price * $cartdetail->quantity);
-                    $original_ammount = $original_price * $cartdetail->quantity;
-
-                    $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
-                            inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                            inner join ' . DB::getTablePrefix() . 'products prod on
-                            (
-                                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                                OR
-                                (
-                                    (pr.discount_object_type="family") AND 
-                                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                                    ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                                    ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                                    ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                                    ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                                )
-                            )
-                            inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                            WHERE 
-                                ic.expired_date >= NOW() 
-                                AND p.merchant_id = :merchantid 
-                                AND prr.retailer_id = :retailerid 
-                                AND ic.user_id = :userid 
-                                AND prod.product_id = :productid 
-                                
-                            '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
- 
-                    $cartdetail->available_product_coupons = count($available_product_coupons);
-
-                    if (!is_null($cartdetail->tax1)) {
-                        $tax1 = $cartdetail->tax1->tax_value;
-                        if (!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;
-                            if ($cartdetail->tax2->tax_type == 'service') {
-                                $pwt = $original_price + ($original_price * $tax2) ;
-                                $tax1_value = $pwt * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                $tax1_value = $original_price * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                        } else {
-                            $tax1_value = $original_price * $tax1;
-                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                        }
-                        foreach ($taxes as $tax) {
-                            if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax1_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax1_total_value;
-                            }
-                        }
-                    } else {
-                        $tax1 = 0;
-                    }
-
-                    if (!is_null($cartdetail->tax2)) {
-                        $tax2 = $cartdetail->tax2->tax_value;    
-                        $tax2_value = $original_price * $tax2;
-                        $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                        foreach ($taxes as $tax) {
-                            if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax2_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
-                            }
-                        }
-                    } else {
-                        $tax2 = 0;
-                    }
-
-                    if(!is_null($cartdetail->tax2)) {
-                        if($cartdetail->tax2->tax_type == 'service') {
-                            $product_price_with_tax = $original_price * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                            $product_price_with_tax = $original_price * (1 + $tax1 + $tax2);
-                        }
-                    } else {
-                        $product_price_with_tax = $original_price * (1 + $tax1);
-                    }
-
-                    $product_vat = ($product_price_with_tax - $original_price) * $cartdetail->quantity;
-                    $vat = $vat + $product_vat;
-                    
-                    $product_price_with_tax = $product_price_with_tax * $cartdetail->quantity;
-                    $ammount_after_promo = $product_price_with_tax;
-                    $subtotal = $subtotal + $product_price_with_tax;
-                    $temp_price = $original_ammount;
-
-                    $promo_for_this_product_array = array();
-                    $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                    // dd($promo_filters);
-                    foreach($promo_filters as $promo_filter) {
-                        $promo_for_this_product = new stdclass();
-                        if($promo_filter->rule_type == 'product_discount_by_percentage') {
-                            $discount = $promo_filter->discount_value * $original_price;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                        } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-                            $discount = $promo_filter->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                            $discount = $original_price - $promo_filter->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        }
-                        $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
-                        $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
-                        $promo_for_this_product->rule_type = $promo_filter->rule_type;
-                        $promo_for_this_product->discount = $discount * $cartdetail->quantity;
-                        $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
-                        $temp_price = $temp_price - $promo_for_this_product->discount;
-
-                        $promo_wo_tax = $discount / (1 + $product_vat_value);
-                        if(!is_null($cartdetail->tax1)) {
-                            $tax1 = $cartdetail->tax1->tax_value;
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;
-                                if ($cartdetail->tax2->tax_type == 'service') {
-                                    $pwt = $discount;
-                                    $tax1_value = $pwt * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax1_value = $discount * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                }
-                            } else {
-                                $tax1_value = $discount * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                            foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                }
-                            }
-                        }
-                        
-                        if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;    
-                            $tax2_value = $discount * $tax2;
-                            $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            
-                            foreach ($taxes as $tax) {
-                                if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                }
-                            }
-                        }
-
-                        if(!is_null($cartdetail->tax2)) {
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $promo_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $promo_with_tax = $discount * (1 + $tax1 + $tax2);
-                            }
-                        } else {
-                            $promo_with_tax = $discount * (1 + $tax1);
-                        }
-
-
-
-                        $promo_vat = ($promo_with_tax - $discount) * $cartdetail->quantity;
-                        // $promo_vat = ($discount * $cartdetail->quantity);
-                        
-                        
-                        $vat = $vat - $promo_vat;
-                        $promo_with_tax = $promo_with_tax * $cartdetail->quantity;
-                        $subtotal = $subtotal - $promo_with_tax;
-                        $subtotal_wo_tax = $subtotal_wo_tax - ($discount * $cartdetail->quantity);
-                        $promo_for_this_product_array[] = $promo_for_this_product;
-                    }
-                    
-                    $cartdetail->promo_for_this_product = $promo_for_this_product_array;
-
-                    $coupon_filter = array();
-                    foreach($used_product_coupons as $used_product_coupon) {
-                        // dd($used_product_coupon->cartdetail);
-                        if($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
-                            if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            }
-                            $temp_price = $temp_price - $discount;
-                            $used_product_coupon->discount = $discount;
-                            $ammount_after_promo = $ammount_after_promo - $discount;
-                            // $coupon_wo_tax = $discount / (1 + $product_vat_value);
-
-                            if(!is_null($cartdetail->tax1)) {
-                                $tax1 = $cartdetail->tax1->tax_value;
-                                if(!is_null($cartdetail->tax2)) {
-                                    $tax2 = $cartdetail->tax2->tax_value;
-                                    if ($cartdetail->tax2->tax_type == 'service') {
-                                        $pwt = $discount + ($discount * $tax2) ;
-                                        $tax1_value = $pwt * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax1_value = $discount * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    }
-                                } else {
-                                    $tax1_value = $discount * $tax1;
-                                    $tax1_total_value = $tax1_value;
-                                }
-                                foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                    }
-                                }
-                            }
-                            
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;    
-                                $tax2_value = $discount * $tax2;
-                                $tax2_total_value = $tax2_value;
-                                
-                                foreach ($taxes as $tax) {
-                                    if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                    }
-                                }
-                            }
-
-                            if(!is_null($cartdetail->tax2)) {
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2);
-                                }
-                            } else {
-                                $coupon_with_tax = $discount * (1 + $tax1);
-                            }
-                            // $coupon_vat = ($discount - $coupon_wo_tax);
-                            // $vat = $vat - $coupon_vat;
-                            // $subtotal = $subtotal - $discount;
-                            // $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
-                            $coupon_vat = ($coupon_with_tax - $discount);
-                            $vat = $vat - $coupon_vat;
-                            $subtotal = $subtotal - $coupon_with_tax;
-                            $subtotal_wo_tax = $subtotal_wo_tax - $discount;
-                            $coupon_filter[] = $used_product_coupon;
-                        }
-                    }
-                    // dd($coupon_filter[1]);
-                    $cartdetail->coupon_for_this_product = $coupon_filter;
-
-                    $cartdetail->original_price = $original_price;
-                    $cartdetail->original_ammount = $original_ammount;
-                    $cartdetail->ammount_after_promo = $ammount_after_promo;
-
-                    if($cartdetail->attributeValue1['value']) {
-                        $attributes[] = $cartdetail->attributeValue1['value'];
-                    }
-                    if($cartdetail->attributeValue2['value']) {
-                        $attributes[] = $cartdetail->attributeValue2['value'];
-                    }
-                    if($cartdetail->attributeValue3['value']) {
-                        $attributes[] = $cartdetail->attributeValue3['value'];
-                    }
-                    if($cartdetail->attributeValue4['value']) {
-                        $attributes[] = $cartdetail->attributeValue4['value'];
-                    }
-                    if($cartdetail->attributeValue5['value']) {
-                        $attributes[] = $cartdetail->attributeValue5['value'];
-                    }
-                    $cartdetail->attributes = $attributes;
-                }
-
-                if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
-                    $cart_vat = $vat / $subtotal_wo_tax;
-                } else {
-                    $cart_vat = 0;
-                }
-
-
-                $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
-                $vat_before_cart_promo = $vat;
-                $cartdiscounts = 0;
-                $acquired_promo_carts = array();
-                $discount_cart_promo = 0;
-                $discount_cart_promo_with_tax = 0;
-                $discount_cart_coupon = 0;
-                $cart_promo_taxes = 0;
-                $subtotal_before_cart_promo = $subtotal;
-
-                if (!empty($promo_carts)) {
-                    foreach ($promo_carts as $promo_cart) {
-                        if ($subtotal_before_cart_promo_without_tax >= $promo_cart->promotionrule->rule_value) {
-                            if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-                                $discount = $subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-                                $promo_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value);
-                            } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-                                $discount = $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-                                $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-                            }
-
-                            $cart_promo_with_tax = $discount * (1 + $cart_vat);
-                            
-                            // $cart_promo_tax = $cart_promo_with_tax - $discount;
-                            
-                            $cart_promo_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
-                            $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-                            
-                            foreach ($taxes as $tax) {
-                                if (!empty($tax->total_tax)) {
-                                    // $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
-                                    $tax_reduction = ($discount / $subtotal_wo_tax) * $cart_promo_tax;
-                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                }
-                            }
-
-                            $discount_cart_promo = $discount_cart_promo + $discount;
-                            $discount_cart_promo_with_tax = $discount_cart_promo_with_tax - $cart_promo_with_tax;
-                            $acquired_promo_carts[] = $promo_cart;
-                            // dd($cart_promo_with_tax);
-                        }
-                    }
-                    
-                }
-
-                $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal_before_cart_promo_without_tax)
-                {
-                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal_before_cart_promo_without_tax);
-                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-                {
-                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                })
-                ->whereHas('issuedcoupons',function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                })->with(array('issuedcoupons' => function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                }))
-                ->get();
-
-                $available_coupon_carts = array();
-                $cart_discount_by_percentage_counter = 0;
-                $discount_cart_coupon = 0;
-                $discount_cart_coupon_with_tax = 0;
-                $total_cart_coupon_discount = 0;
-                $cart_coupon_taxes = 0;
-                $acquired_coupon_carts = array();
-                if(!empty($used_cart_coupons)) {
-                    foreach($used_cart_coupons as $used_cart_coupon) {
-                        if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-                            if($subtotal_before_cart_promo_without_tax >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-                                if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-                                    $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-                                    $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal_before_cart_promo_without_tax);
-                                    $discount = $subtotal_before_cart_promo_without_tax * $used_cart_coupon->issuedcoupon->discount_value;
-                                    $cart_discount_by_percentage_counter++;
-                                } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-                                    $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $discount = $used_cart_coupon->issuedcoupon->discount_value;
-                                }
-
-                                $cart_coupon_with_tax = $discount * (1 + $cart_vat);
-                                // $cart_coupon_tax = $cart_coupon_with_tax - $discount;
-                                $cart_coupon_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
-                                $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
-
-                                foreach ($taxes as $tax) {
-                                    if (!empty($tax->total_tax)) {
-                                        $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
-                                        $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                    }
-                                }
-                                
-                                $discount_cart_coupon = $discount_cart_coupon + $discount;
-                                $discount_cart_coupon_with_tax = $discount_cart_coupon_with_tax - $cart_coupon_with_tax;
-
-                                $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
-                                $acquired_coupon_carts[] = $used_cart_coupon;
-                            } else {
-                                $this->beginTransaction();
-                                $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-                                $issuedcoupon->makeActive();
-                                $issuedcoupon->save();
-                                $used_cart_coupon->delete(TRUE);
-                                $this->commit();
-                            }
-                        }
-                    }
-                }
-                
-                if (!empty($coupon_carts)) {
-                    foreach ($coupon_carts as $coupon_cart) {
-                        if ($subtotal_before_cart_promo_without_tax >= $coupon_cart->coupon_redeem_rule_value) {
-                            if ($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-                                if ($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-                                    $discount = $subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value;
-                                    $cartdiscounts = $cartdiscounts + $discount;
-                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-                                    $coupon_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value);
-                                    $available_coupon_carts[] = $coupon_cart;
-                                    $cart_discount_by_percentage_counter++;
-                                }
-                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-                                $discount = $coupon_cart->discount_value;
-                                $cartdiscounts = $cartdiscounts + $discount;
-                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-                                $available_coupon_carts[] = $coupon_cart;
-                            }
-                        } else {
-                            $coupon_cart->disc_val = $coupon_cart->rule_value;
-                        }
-                    }
-                }
-                // dd($discount_cart_coupon);
-                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo - $discount_cart_coupon;
-                $subtotal = $subtotal + $discount_cart_promo_with_tax + $discount_cart_coupon_with_tax;
-                $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
-                // dd($cart_coupon_taxes);
-                
-                $cartsummary = new stdclass();
-                $cartsummary->vat = round($vat, 2);
-                $cartsummary->total_to_pay = round($subtotal, 2);
-                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
-                $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-                $cartsummary->used_cart_coupons = $acquired_coupon_carts;
-                $cartsummary->available_coupon_carts = $available_coupon_carts;
-                $cartsummary->subtotal_before_cart_promo = round($subtotal_before_cart_promo, 2);
-                $cartsummary->taxes = $taxes;
-                $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
-                $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
-                $cartdata->cartsummary = $cartsummary;
-            }
+            $cartdata = $this->cartCalc($user, $retailer);
             // dd($vat);
             // print_r($cartdata);
             $activityPageNotes = sprintf('Page viewed: %s', 'Cart');
@@ -3934,1007 +2921,7 @@ class MobileCIAPIController extends ControllerAPI
             
             $cartitems = $this->getCartForToolbar();
 
-            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-            if (is_null($cart)) {
-                $cart = new Cart;
-                $cart->customer_id = $user->user_id;
-                $cart->merchant_id = $retailer->parent_id;
-                $cart->retailer_id = $retailer->merchant_id;
-                $cart->status = 'active';
-                $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
-                $cart->save();
-            }
-
-            $cartdetails = CartDetail::with(array('product' => function($q) {
-                $q->where('products.status','active');
-            }, 'variant' => function($q) {
-                $q->where('product_variants.status','active');
-            }), 'tax1', 'tax2')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
-            $cartdata = new stdclass();
-            $cartdata->cart = $cart;
-            $cartdata->cartdetails = $cartdetails;
-
-            $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on 
-                (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                    OR
-                    (
-                        (pr.discount_object_type="family") AND 
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                    )
-                )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-            
-            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
-            {
-                $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
-            }, 'issuedcoupon' => function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id)
-                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            }))->whereHas('issuedcoupon', function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id);
-            })->whereHas('cartdetail', function($q)
-            {
-                $q->where('cart_coupons.object_type', '=', 'cart_detail');
-            })->get();
-            // dd($used_product_coupons);
-
-            $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
-            {
-                $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-            })
-            ->where(function($q) 
-            {
-                $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-                {
-                    $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
-                });
-            })->get();
-
-            $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
-            {
-                $q->where('issued_coupons.user_id', $user->user_id)
-                ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            }))
-            ->whereHas('cart', function($q) use($cartdata)
-            {
-                $q->where('cart_coupons.object_type', '=', 'cart')
-                ->where('cart_coupons.object_id', '=', $cartdata->cart->cart_id);
-            })
-            ->where('cart_coupons.object_type', '=', 'cart')->get();
-
-            $subtotal = 0;
-            $subtotal_wo_tax = 0;
-            $vat = 0;
-            $total = 0;
-
-            $taxes = \MerchantTax::excludeDeleted()->where('merchant_id', $retailer->parent_id)->get();
-            
-            $vat_included = $retailer->parent->vat_included;
-
-            if($vat_included === 'yes') {
-                foreach($cartdata->cartdetails as $cartdetail) {
-                    $attributes = array();
-                    $product_vat_value = 0;
-                    $original_price = $cartdetail->variant->price;
-                    $original_ammount = $original_price * $cartdetail->quantity;
-                    $ammount_after_promo = $original_ammount;
-                    $product_price_wo_tax = $original_price;
-
-                    $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
-                            inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                            inner join ' . DB::getTablePrefix() . 'products prod on
-                            (
-                                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                                OR
-                                (
-                                    (pr.discount_object_type="family") AND 
-                                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                                    ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                                    ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                                    ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                                    ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                                )
-                            )
-                            inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                            WHERE 
-                                ic.expired_date >= NOW() 
-                                AND p.merchant_id = :merchantid 
-                                AND prr.retailer_id = :retailerid 
-                                AND ic.user_id = :userid 
-                                AND prod.product_id = :productid 
-                                
-                            '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
- 
-                    $cartdetail->available_product_coupons = count($available_product_coupons);
-
-                    if(!is_null($cartdetail->tax1)) {
-                        $tax1 = $cartdetail->tax1->tax_value;
-                        if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $pwot  = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
-                                $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                        } else {
-                            $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
-                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                        }
-                        foreach($taxes as $tax) {
-                            if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax1_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax1_total_value;
-                            }
-                        }
-                    } else {
-                        $tax1 = 0;
-                    }
-                    
-                    if(!is_null($cartdetail->tax2)) {
-                        $tax2 = $cartdetail->tax2->tax_value;
-                        if(!is_null($cartdetail->tax1)) {
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
-                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
-                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            }
-                        }
-                        foreach($taxes as $tax) {
-                            if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax2_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
-                            }
-                        }
-                    } else {
-                        $tax2 = 0;
-                    }
-
-                    // $product_price_wo_tax = $original_price / (1 + $product_vat_value);
-                    if(!is_null($cartdetail->tax2)) {
-                        if($cartdetail->tax2->tax_type == 'service') {
-                            $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                            $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2);
-                        }
-                    } else {
-                        $product_price_wo_tax = $original_price / (1 + $tax1);
-                    }
-                    // dd($product_price_wo_tax);
-                    $product_vat = ($original_price - $product_price_wo_tax) * $cartdetail->quantity;
-                    $vat = $vat + $product_vat;
-                    $product_price_wo_tax = $product_price_wo_tax * $cartdetail->quantity;
-                    $subtotal = $subtotal + $original_ammount;
-                    $subtotal_wo_tax = $subtotal_wo_tax + $product_price_wo_tax;
-
-                    $temp_price = $original_ammount;
-                    $promo_for_this_product_array = array();
-                    $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                    // dd($promo_filters);
-                    foreach($promo_filters as $promo_filter) {
-                        $promo_for_this_product = new stdclass();
-                        if ($promo_filter->rule_type == 'product_discount_by_percentage') {
-                            $discount = $promo_filter->discount_value * $original_price;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                        } elseif ($promo_filter->rule_type == 'product_discount_by_value') {
-                            $discount = $promo_filter->discount_value;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                            $discount = $promo_filter->discount_value;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        }
-                        $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
-                        $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
-                        $promo_for_this_product->rule_type = $promo_filter->rule_type;
-                        $promo_for_this_product->discount = $discount * $cartdetail->quantity;
-                        $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
-                        $temp_price = $temp_price - $promo_for_this_product->discount;
-
-                        // $promo_wo_tax = $discount / (1 + $product_vat_value);
-                        if(!is_null($cartdetail->tax1)) {
-                            $tax1 = $cartdetail->tax1->tax_value;
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $pwot  = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
-                                    $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                }
-                            } else {
-                                $tax1_value = ($discount / (1 + $tax1)) * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                            foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                }
-                            }
-                        }
-                        
-                        if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;
-                            if(!is_null($cartdetail->tax1)) {
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
-                                    $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
-                                    $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                                }
-                            }
-                            foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                }
-                            }
-                        }
-
-                        if(!is_null($cartdetail->tax2)) {
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $promo_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $promo_wo_tax = $discount / (1 + $tax1 + $tax2);
-                            }
-                        } else {
-                            $promo_wo_tax = $discount / (1 + $tax1);
-                        }
-
-                        $promo_vat = ($discount - $promo_wo_tax) * $cartdetail->quantity;
-                        $vat = $vat - $promo_vat;
-                        $promo_wo_tax = $promo_wo_tax * $cartdetail->quantity;
-                        $subtotal = $subtotal - $promo_for_this_product->discount;
-                        $subtotal_wo_tax = $subtotal_wo_tax - $promo_wo_tax;
-                        $promo_for_this_product_array[] = $promo_for_this_product;
-                    }
-                    // var_dump($promo_for_this_product_array);
-                    $cartdetail->promo_for_this_product = $promo_for_this_product_array;
-
-                    $coupon_filter = array();
-                    foreach ($used_product_coupons as $used_product_coupon) {
-                        // dd($used_product_coupon->cartdetail);
-                        if ($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
-                            if ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            }
-                            $temp_price = $temp_price - $discount;
-                            $used_product_coupon->discount = $discount;
-                            $ammount_after_promo = $ammount_after_promo - $discount;
-
-                            // $coupon_wo_tax = $discount / (1 + $product_vat_value);
-
-                            if(!is_null($cartdetail->tax1)) {
-                                $tax1 = $cartdetail->tax1->tax_value;
-                                if(!is_null($cartdetail->tax2)) {
-                                    $tax2 = $cartdetail->tax2->tax_value;
-                                    if($cartdetail->tax2->tax_type == 'service') {
-                                        $pwot  = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
-                                        $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    }
-                                } else {
-                                    $tax1_value = ($discount / (1 + $tax1)) * $tax1;
-                                    $tax1_total_value = $tax1_value;
-                                }
-                                foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                    }
-                                }
-                            }
-                            
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;
-                                if(!is_null($cartdetail->tax1)) {
-                                    if($cartdetail->tax2->tax_type == 'service') {
-                                        $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
-                                        $tax2_total_value = $tax2_value;
-                                    } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
-                                        $tax2_total_value = $tax2_value;
-                                    }
-                                }
-                                foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                    }
-                                }
-                            }
-
-                            if(!is_null($cartdetail->tax2)) {
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $coupon_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $coupon_wo_tax = $discount / (1 + $tax1 + $tax2);
-                                }
-                            } else {
-                                $coupon_wo_tax = $discount / (1 + $tax1);
-                            }
-                            $coupon_vat = ($discount - $coupon_wo_tax);
-                            $vat = $vat - $coupon_vat;
-                            $subtotal = $subtotal - $discount;
-                            $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
-                            $coupon_filter[] = $used_product_coupon;
-                        }
-                    }
-                    // dd($temp_price);
-                    $cartdetail->coupon_for_this_product = $coupon_filter;
-                    $cartdetail->original_price = $original_price;
-                    $cartdetail->original_ammount = $original_ammount;
-                    $cartdetail->ammount_after_promo = $ammount_after_promo;
-
-                    if($cartdetail->attributeValue1['value']) {
-                        $attributes[] = $cartdetail->attributeValue1['value'];
-                    }
-                    if($cartdetail->attributeValue2['value']) {
-                        $attributes[] = $cartdetail->attributeValue2['value'];
-                    }
-                    if($cartdetail->attributeValue3['value']) {
-                        $attributes[] = $cartdetail->attributeValue3['value'];
-                    }
-                    if($cartdetail->attributeValue4['value']) {
-                        $attributes[] = $cartdetail->attributeValue4['value'];
-                    }
-                    if($cartdetail->attributeValue5['value']) {
-                        $attributes[] = $cartdetail->attributeValue5['value'];
-                    }
-                    $cartdetail->attributes = $attributes;
-                }
-                if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
-                    $cart_vat = $vat / $subtotal_wo_tax;
-                } else {
-                    $cart_vat = 0;
-                }
-
-                // dd($vat.' / '.$subtotal_wo_tax.' = '.$cart_vat);
-
-                $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
-                $vat_before_cart_promo = $vat;
-                $cartdiscounts = 0;
-                $acquired_promo_carts = array();
-                $discount_cart_promo = 0;
-                $discount_cart_promo_wo_tax = 0;
-                $discount_cart_coupon = 0;
-                $cart_promo_taxes = 0;
-                $subtotal_before_cart_promo = $subtotal;
-
-                if (!empty($promo_carts)) {
-                    foreach ($promo_carts as $promo_cart) {
-                        if ($subtotal >= $promo_cart->promotionrule->rule_value) {
-                            if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-                                $discount = $subtotal * $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-                                $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
-                            } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-                                $discount = $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-                                $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-                            }
-
-                            $cart_promo_wo_tax = $discount / (1 + $cart_vat);
-                            $cart_promo_tax = $discount - $cart_promo_wo_tax;
-                            $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-                            
-                            foreach ($taxes as $tax) {
-                                if (!empty($tax->total_tax)) {
-                                    $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
-                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                }
-                            }
-
-                            $discount_cart_promo = $discount_cart_promo + $discount;
-                            $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
-                            $acquired_promo_carts[] = $promo_cart;
-
-                        }
-                    }
-                    
-                }
-
-                $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
-                {
-                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
-                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-                {
-                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                })
-                ->whereHas('issuedcoupons',function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                })->with(array('issuedcoupons' => function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                }))
-                ->get();
-
-                $available_coupon_carts = array();
-                $cart_discount_by_percentage_counter = 0;
-                $discount_cart_coupon = 0;
-                $discount_cart_coupon_wo_tax = 0;
-                $total_cart_coupon_discount = 0;
-                $cart_coupon_taxes = 0;
-                $acquired_coupon_carts = array();
-                if(!empty($used_cart_coupons)) {
-                    foreach($used_cart_coupons as $used_cart_coupon) {
-                        if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-                            if($subtotal >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-                                if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-                                    $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-                                    $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
-                                    $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
-                                    $cart_discount_by_percentage_counter++;
-                                } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-                                    $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $discount = $used_cart_coupon->issuedcoupon->discount_value;
-                                }
-
-                                $cart_coupon_wo_tax = $discount / (1 + $cart_vat);
-                                $cart_coupon_tax = $discount - $cart_coupon_wo_tax;
-
-                                foreach ($taxes as $tax) {
-                                    if (!empty($tax->total_tax)) {
-                                        $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
-                                        $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                    }
-                                }
-                                
-                                $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
-                                $discount_cart_coupon = $discount_cart_coupon + $discount;
-                                $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
-
-                                $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
-                                $acquired_coupon_carts[] = $used_cart_coupon;
-                            } else {
-                                $this->beginTransaction();
-                                $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-                                $issuedcoupon->makeActive();
-                                $issuedcoupon->save();
-                                $used_cart_coupon->delete(TRUE);
-                                $this->commit();
-                            }
-                        }
-                    }
-                }
-
-                if(!empty($coupon_carts)) {
-                    foreach($coupon_carts as $coupon_cart) {
-                        if($subtotal >= $coupon_cart->coupon_redeem_rule_value) {
-                            if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-                                if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-                                    $discount = $subtotal * $coupon_cart->discount_value;
-                                    $cartdiscounts = $cartdiscounts + $discount;
-                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-                                    $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
-                                    $available_coupon_carts[] = $coupon_cart;
-                                    $cart_discount_by_percentage_counter++;
-                                }
-                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-                                $discount = $coupon_cart->discount_value;
-                                $cartdiscounts = $cartdiscounts + $discount;
-                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-                                $available_coupon_carts[] = $coupon_cart;
-                            }
-                        } else {
-                            $coupon_cart->disc_val = $coupon_cart->rule_value;
-                        }
-                    }
-                }
-
-                $subtotal = $subtotal - $discount_cart_promo - $discount_cart_coupon;
-                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax - $discount_cart_coupon_wo_tax;
-                $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
-                // dd($cart_coupon_taxes);
-
-                $cartsummary = new stdclass();
-                $cartsummary->vat = round($vat, 2);
-                $cartsummary->total_to_pay = round($subtotal, 2);
-                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
-                $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-                $cartsummary->used_cart_coupons = $acquired_coupon_carts;
-                $cartsummary->available_coupon_carts = $available_coupon_carts;
-                $cartsummary->subtotal_before_cart_promo = round($subtotal_before_cart_promo, 2);
-                $cartsummary->taxes = $taxes;
-                $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
-                $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
-                $cartdata->cartsummary = $cartsummary;
-                // $cartdata->attributes = $attributes;
-            } else {
-                foreach ($cartdata->cartdetails as $cartdetail) {
-                    $attributes = array();
-                    $product_vat_value = 0;
-                    $original_price = $cartdetail->variant->price;
-                    $subtotal_wo_tax = $subtotal_wo_tax + ($original_price * $cartdetail->quantity);
-                    $original_ammount = $original_price * $cartdetail->quantity;
-
-                    $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
-                            inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                            inner join ' . DB::getTablePrefix() . 'products prod on
-                            (
-                                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-                                OR
-                                (
-                                    (pr.discount_object_type="family") AND 
-                                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-                                    ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                                    ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                                    ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                                    ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                                )
-                            )
-                            inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                            WHERE 
-                                ic.expired_date >= NOW() 
-                                AND p.merchant_id = :merchantid 
-                                AND prr.retailer_id = :retailerid 
-                                AND ic.user_id = :userid 
-                                AND prod.product_id = :productid 
-                                
-                            '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
- 
-                    $cartdetail->available_product_coupons = count($available_product_coupons);
-
-                    if (!is_null($cartdetail->tax1)) {
-                        $tax1 = $cartdetail->tax1->tax_value;
-                        if (!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;
-                            if ($cartdetail->tax2->tax_type == 'service') {
-                                $pwt = $original_price + ($original_price * $tax2) ;
-                                $tax1_value = $pwt * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                $tax1_value = $original_price * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                        } else {
-                            $tax1_value = $original_price * $tax1;
-                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                        }
-                        foreach ($taxes as $tax) {
-                            if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax1_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax1_total_value;
-                            }
-                        }
-                    } else {
-                        $tax1 = 0;
-                    }
-
-                    if (!is_null($cartdetail->tax2)) {
-                        $tax2 = $cartdetail->tax2->tax_value;    
-                        $tax2_value = $original_price * $tax2;
-                        $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                        foreach ($taxes as $tax) {
-                            if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                $tax->total_tax = $tax->total_tax + $tax2_total_value;
-                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
-                            }
-                        }
-                    } else {
-                        $tax2 = 0;
-                    }
-
-                    if(!is_null($cartdetail->tax2)) {
-                        if($cartdetail->tax2->tax_type == 'service') {
-                            $product_price_with_tax = $original_price * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                            $product_price_with_tax = $original_price * (1 + $tax1 + $tax2);
-                        }
-                    } else {
-                        $product_price_with_tax = $original_price * (1 + $tax1);
-                    }
-
-                    $product_vat = ($product_price_with_tax - $original_price) * $cartdetail->quantity;
-                    $vat = $vat + $product_vat;
-                    
-                    $product_price_with_tax = $product_price_with_tax * $cartdetail->quantity;
-                    $ammount_after_promo = $product_price_with_tax;
-                    $subtotal = $subtotal + $product_price_with_tax;
-                    $temp_price = $original_ammount;
-
-                    $promo_for_this_product_array = array();
-                    $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                    // dd($promo_filters);
-                    foreach($promo_filters as $promo_filter) {
-                        $promo_for_this_product = new stdclass();
-                        if($promo_filter->rule_type == 'product_discount_by_percentage') {
-                            $discount = $promo_filter->discount_value * $original_price;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                        } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-                            $discount = $promo_filter->discount_value;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                            $discount = $promo_filter->discount_value;
-                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                        }
-                        $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
-                        $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
-                        $promo_for_this_product->rule_type = $promo_filter->rule_type;
-                        $promo_for_this_product->discount = $discount * $cartdetail->quantity;
-                        $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
-                        $temp_price = $temp_price - $promo_for_this_product->discount;
-
-                        $promo_wo_tax = $discount / (1 + $product_vat_value);
-                        if(!is_null($cartdetail->tax1)) {
-                            $tax1 = $cartdetail->tax1->tax_value;
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;
-                                if ($cartdetail->tax2->tax_type == 'service') {
-                                    $pwt = $discount;
-                                    $tax1_value = $pwt * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                    $tax1_value = $discount * $tax1;
-                                    $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                                }
-                            } else {
-                                $tax1_value = $discount * $tax1;
-                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
-                            }
-                            foreach($taxes as $tax) {
-                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                }
-                            }
-                        }
-                        
-                        if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;    
-                            $tax2_value = $discount * $tax2;
-                            $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            
-                            foreach ($taxes as $tax) {
-                                if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                }
-                            }
-                        }
-
-                        if(!is_null($cartdetail->tax2)) {
-                            if($cartdetail->tax2->tax_type == 'service') {
-                                $promo_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                $promo_with_tax = $discount * (1 + $tax1 + $tax2);
-                            }
-                        } else {
-                            $promo_with_tax = $discount * (1 + $tax1);
-                        }
-
-
-
-                        $promo_vat = ($promo_with_tax - $discount) * $cartdetail->quantity;
-                        // $promo_vat = ($discount * $cartdetail->quantity);
-                        
-                        
-                        $vat = $vat - $promo_vat;
-                        $promo_with_tax = $promo_with_tax * $cartdetail->quantity;
-                        $subtotal = $subtotal - $promo_with_tax;
-                        $subtotal_wo_tax = $subtotal_wo_tax - ($discount * $cartdetail->quantity);
-                        $promo_for_this_product_array[] = $promo_for_this_product;
-                    }
-                    
-                    $cartdetail->promo_for_this_product = $promo_for_this_product_array;
-
-                    $coupon_filter = array();
-                    foreach($used_product_coupons as $used_product_coupon) {
-                        // dd($used_product_coupon->cartdetail);
-                        if($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
-                            if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                                $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-                                if ($temp_price < $discount) {
-                                    $discount = $temp_price;
-                                }
-                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-                            }
-                            $temp_price = $temp_price - $discount;
-                            $used_product_coupon->discount = $discount;
-                            $ammount_after_promo = $ammount_after_promo - $discount;
-                            // $coupon_wo_tax = $discount / (1 + $product_vat_value);
-
-                            if(!is_null($cartdetail->tax1)) {
-                                $tax1 = $cartdetail->tax1->tax_value;
-                                if(!is_null($cartdetail->tax2)) {
-                                    $tax2 = $cartdetail->tax2->tax_value;
-                                    if ($cartdetail->tax2->tax_type == 'service') {
-                                        $pwt = $discount + ($discount * $tax2) ;
-                                        $tax1_value = $pwt * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    } elseif ($cartdetail->tax2->tax_type == 'luxury') {
-                                        $tax1_value = $discount * $tax1;
-                                        $tax1_total_value = $tax1_value;
-                                    }
-                                } else {
-                                    $tax1_value = $discount * $tax1;
-                                    $tax1_total_value = $tax1_value;
-                                }
-                                foreach($taxes as $tax) {
-                                    if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax1_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
-                                    }
-                                }
-                            }
-                            
-                            if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;    
-                                $tax2_value = $discount * $tax2;
-                                $tax2_total_value = $tax2_value;
-                                
-                                foreach ($taxes as $tax) {
-                                    if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
-                                        $tax->total_tax = $tax->total_tax - $tax2_total_value;
-                                        $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
-                                    }
-                                }
-                            }
-
-                            if(!is_null($cartdetail->tax2)) {
-                                if($cartdetail->tax2->tax_type == 'service') {
-                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
-                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
-                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2);
-                                }
-                            } else {
-                                $coupon_with_tax = $discount * (1 + $tax1);
-                            }
-                            // $coupon_vat = ($discount - $coupon_wo_tax);
-                            // $vat = $vat - $coupon_vat;
-                            // $subtotal = $subtotal - $discount;
-                            // $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
-                            $coupon_vat = ($coupon_with_tax - $discount);
-                            $vat = $vat - $coupon_vat;
-                            $subtotal = $subtotal - $coupon_with_tax;
-                            $subtotal_wo_tax = $subtotal_wo_tax - $discount;
-                            $coupon_filter[] = $used_product_coupon;
-                        }
-                    }
-                    // dd($coupon_filter[1]);
-                    $cartdetail->coupon_for_this_product = $coupon_filter;
-
-                    $cartdetail->original_price = $original_price;
-                    $cartdetail->original_ammount = $original_ammount;
-                    $cartdetail->ammount_after_promo = $ammount_after_promo;
-
-                    if($cartdetail->attributeValue1['value']) {
-                        $attributes[] = $cartdetail->attributeValue1['value'];
-                    }
-                    if($cartdetail->attributeValue2['value']) {
-                        $attributes[] = $cartdetail->attributeValue2['value'];
-                    }
-                    if($cartdetail->attributeValue3['value']) {
-                        $attributes[] = $cartdetail->attributeValue3['value'];
-                    }
-                    if($cartdetail->attributeValue4['value']) {
-                        $attributes[] = $cartdetail->attributeValue4['value'];
-                    }
-                    if($cartdetail->attributeValue5['value']) {
-                        $attributes[] = $cartdetail->attributeValue5['value'];
-                    }
-                    $cartdetail->attributes = $attributes;
-                }
-
-                if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
-                    $cart_vat = $vat / $subtotal_wo_tax;
-                } else {
-                    $cart_vat = 0;
-                }
-
-
-                $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
-                $vat_before_cart_promo = $vat;
-                $cartdiscounts = 0;
-                $acquired_promo_carts = array();
-                $discount_cart_promo = 0;
-                $discount_cart_promo_with_tax = 0;
-                $discount_cart_coupon = 0;
-                $cart_promo_taxes = 0;
-                $subtotal_before_cart_promo = $subtotal;
-
-                if (!empty($promo_carts)) {
-                    foreach ($promo_carts as $promo_cart) {
-                        if ($subtotal_before_cart_promo_without_tax >= $promo_cart->promotionrule->rule_value) {
-                            if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-                                $discount = $subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-                                $promo_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value);
-                            } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-                                $discount = $promo_cart->promotionrule->discount_value;
-                                $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-                                $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-                            }
-
-                            $cart_promo_with_tax = $discount * (1 + $cart_vat);
-                            
-                            // $cart_promo_tax = $cart_promo_with_tax - $discount;
-                            
-                            $cart_promo_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
-                            $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-                            
-                            foreach ($taxes as $tax) {
-                                if (!empty($tax->total_tax)) {
-                                    // $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
-                                    $tax_reduction = ($discount / $subtotal_wo_tax) * $cart_promo_tax;
-                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                }
-                            }
-
-                            $discount_cart_promo = $discount_cart_promo + $discount;
-                            $discount_cart_promo_with_tax = $discount_cart_promo_with_tax - $cart_promo_with_tax;
-                            $acquired_promo_carts[] = $promo_cart;
-                            // dd($cart_promo_with_tax);
-                        }
-                    }
-                    
-                }
-
-                $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal_before_cart_promo_without_tax)
-                {
-                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal_before_cart_promo_without_tax);
-                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-                {
-                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                })
-                ->whereHas('issuedcoupons',function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                })->with(array('issuedcoupons' => function($q) use($user)
-                {
-                    $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-                }))
-                ->get();
-
-                $available_coupon_carts = array();
-                $cart_discount_by_percentage_counter = 0;
-                $discount_cart_coupon = 0;
-                $discount_cart_coupon_with_tax = 0;
-                $total_cart_coupon_discount = 0;
-                $cart_coupon_taxes = 0;
-                $acquired_coupon_carts = array();
-                if(!empty($used_cart_coupons)) {
-                    foreach($used_cart_coupons as $used_cart_coupon) {
-                        if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-                            if($subtotal_before_cart_promo_without_tax >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-                                if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-                                    $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-                                    $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal_before_cart_promo_without_tax);
-                                    $discount = $subtotal_before_cart_promo_without_tax * $used_cart_coupon->issuedcoupon->discount_value;
-                                    $cart_discount_by_percentage_counter++;
-                                } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-                                    $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-                                    $discount = $used_cart_coupon->issuedcoupon->discount_value;
-                                }
-
-                                $cart_coupon_with_tax = $discount * (1 + $cart_vat);
-                                // $cart_coupon_tax = $cart_coupon_with_tax - $discount;
-                                $cart_coupon_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
-                                $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
-
-                                foreach ($taxes as $tax) {
-                                    if (!empty($tax->total_tax)) {
-                                        $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
-                                        $tax->total_tax = $tax->total_tax - $tax_reduction;
-                                    }
-                                }
-                                
-                                $discount_cart_coupon = $discount_cart_coupon + $discount;
-                                $discount_cart_coupon_with_tax = $discount_cart_coupon_with_tax - $cart_coupon_with_tax;
-
-                                $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
-                                $acquired_coupon_carts[] = $used_cart_coupon;
-                            } else {
-                                $this->beginTransaction();
-                                $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-                                $issuedcoupon->makeActive();
-                                $issuedcoupon->save();
-                                $used_cart_coupon->delete(TRUE);
-                                $this->commit();
-                            }
-                        }
-                    }
-                }
-                
-                if (!empty($coupon_carts)) {
-                    foreach ($coupon_carts as $coupon_cart) {
-                        if ($subtotal_before_cart_promo_without_tax >= $coupon_cart->coupon_redeem_rule_value) {
-                            if ($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-                                if ($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-                                    $discount = $subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value;
-                                    $cartdiscounts = $cartdiscounts + $discount;
-                                    $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-                                    $coupon_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value);
-                                    $available_coupon_carts[] = $coupon_cart;
-                                    $cart_discount_by_percentage_counter++;
-                                }
-                            } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-                                $discount = $coupon_cart->discount_value;
-                                $cartdiscounts = $cartdiscounts + $discount;
-                                $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-                                $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-                                $available_coupon_carts[] = $coupon_cart;
-                            }
-                        } else {
-                            $coupon_cart->disc_val = $coupon_cart->rule_value;
-                        }
-                    }
-                }
-                // dd($discount_cart_coupon);
-                $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo - $discount_cart_coupon;
-                $subtotal = $subtotal + $discount_cart_promo_with_tax + $discount_cart_coupon_with_tax;
-                $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
-                // dd($cart_coupon_taxes);
-                
-                $cartsummary = new stdclass();
-                $cartsummary->vat = round($vat, 2);
-                $cartsummary->total_to_pay = round($subtotal, 2);
-                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
-                $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-                $cartsummary->used_cart_coupons = $acquired_coupon_carts;
-                $cartsummary->available_coupon_carts = $available_coupon_carts;
-                $cartsummary->subtotal_before_cart_promo = round($subtotal_before_cart_promo, 2);
-                $cartsummary->taxes = $taxes;
-                $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
-                $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
-                $cartdata->cartsummary = $cartsummary;
-            }
+            $cartdata = $this->cartCalc($user, $retailer);
 
             return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
         } catch (Exception $e) {
@@ -5634,6 +3621,455 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function postSaveTransaction()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('payment');
+        $user = null;
+        $activity_payment = null;
+        $activity_payment_label = null;
+        $transaction = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartdata = $this->cartCalc($user, $retailer);
+
+            // $total_item = trim(OrbitInput::post('total_item'));
+            // $subtotal = trim(OrbitInput::post('subtotal'));
+            // $vat = trim(OrbitInput::post('vat'));
+            $total_to_pay = $cartdata->cartsummary->total_to_pay;
+            // $tendered         = trim(OrbitInput::post('tendered'));
+            // $change           = trim(OrbitInput::post('change'));
+            $merchant_id = $retailer->parent->merchant_id;
+            $retailer_id = $retailer->merchant_id;
+            // $cashier_id       = trim(OrbitInput::post('cashier_id'));
+            $customer_id = $user->user_id;
+            $payment_method = 'online_payment';
+            $cart = $cartdata->cart; //data of array
+            $cartdetails = $cartdata->cartdetails; //data of array
+
+            // $cart_promotion   = OrbitInput::post('cart_promotion'); // data of array
+            // $cart_coupon      = OrbitInput::post('cart_coupon'); // data of array
+            $cart_id = null;
+
+            $activity_payment = 'payment_online';
+            $activity_payment_label = 'Payment Online';
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            //insert to table transaction
+            $transaction = new Transaction();
+            $transaction->total_item     = $cartdata->cart->total_item;
+            if ($retailer->parent->vat_included == 'yes') {
+                $transaction->subtotal = $cartdata->cartsummary->total_to_pay;
+            } else {
+                $transaction->subtotal = $cartdata->cartsummary->subtotal_wo_tax;
+            }
+            $transaction->vat            = $cartdata->cartsummary->vat;
+            $transaction->total_to_pay   = $cartdata->cartsummary->total_to_pay;
+            $transaction->tendered       = $cartdata->cartsummary->total_to_pay;
+            $transaction->change         = 0;
+            $transaction->merchant_id    = $merchant_id;
+            $transaction->retailer_id    = $retailer_id;
+            $transaction->cashier_id     = NULL;
+            $transaction->customer_id    = $customer_id;
+            $transaction->payment_method = $payment_method;
+            $transaction->status         = 'paid';
+
+            $transaction->save();
+
+            //insert to table transaction_details
+            foreach($cartdetails as $cart_value){
+                $cart_id = $cart_value->cart->cart_id;
+                $transactiondetail = new TransactionDetail;
+                $transactiondetail->transaction_id              = $transaction->transaction_id;
+                $transactiondetail->product_id                  = $cart_value->product_id;
+                $transactiondetail->product_name                = $cart_value->product->product_name;
+                $transactiondetail->product_code                = $cart_value->product->product_code;
+                $transactiondetail->quantity                    = $cart_value->quantity;
+                $transactiondetail->upc                         = $cart_value->product->upc;
+                $transactiondetail->price                       = $cart_value->product->price;
+                // dd($cart_value);
+                if(!empty($cart_value->variant)){
+                    $transactiondetail->variant_price               = $cart_value->variant->price;
+                    $transactiondetail->variant_upc                 = $cart_value->variant->upc;
+                    $transactiondetail->variant_sku                 = $cart_value->variant->sku;
+
+                    if (!empty($cart_value->variant->product_attribute_value_id1)) {
+                        $transactiondetail->product_attribute_value_id1 = $cart_value->variant->product_attribute_value_id1;
+                    }
+                    if(!empty($cart_value->variant->product_attribute_value_id2)) {
+                        $transactiondetail->product_attribute_value_id2 = $cart_value->variant->product_attribute_value_id2;
+                    }
+                    if(!empty($cart_value->variant->product_attribute_value_id3)) {
+                        $transactiondetail->product_attribute_value_id3 = $cart_value->variant->product_attribute_value_id3;
+                    }
+                    if(!empty($cart_value->variant->product_attribute_value_id4)) {
+                        $transactiondetail->product_attribute_value_id4 = $cart_value->variant->product_attribute_value_id4;
+                    }
+                    if(!empty($cart_value->variant->product_attribute_value_id5)) {
+                        $transactiondetail->product_attribute_value_id5 = $cart_value->variant->product_attribute_value_id5;
+                    }
+
+                    if(!empty($cart_value->variant->attributeValue1->value)) {
+                        $transactiondetail->product_attribute_value1 = $cart_value->variant->attributeValue1->value;
+                    }
+                    if(!empty($cart_value->variant->attributeValue2->value)) {
+                        $transactiondetail->product_attribute_value2 = $cart_value->variant->attributeValue2->value;
+                    }
+                    if(!empty($cart_value->variant->attributeValue3->value)) {
+                        $transactiondetail->product_attribute_value3 = $cart_value->variant->attributeValue3->value;
+                    }
+                    if(!empty($cart_value->variant->attributeValue4->value)) {
+                        $transactiondetail->product_attribute_value4 = $cart_value->variant->attributeValue4->value;
+                    }
+                    if(!empty($cart_value->variant->attributeValue5->value)) {
+                        $transactiondetail->product_attribute_value5 = $cart_value->variant->attributeValue5->value;
+                    }
+
+                    if(!empty($cart_value->variant->attributeValue1->attribute->product_attribute_name)) {
+                         $transactiondetail->product_attribute_name1 = $cart_value->variant->attributeValue1->attribute->product_attribute_name;
+                    }
+                    if(!empty($cart_value->variant->attributeValue2->attribute->product_attribute_name)) {
+                         $transactiondetail->product_attribute_name2 = $cart_value->variant->attributeValue2->attribute->product_attribute_name;
+                    }
+                    if(!empty($cart_value->variant->attributeValue3->attribute->product_attribute_name)) {
+                         $transactiondetail->product_attribute_name3 = $cart_value->variant->attributeValue3->attribute->product_attribute_name;
+                    }
+                    if(!empty($cart_value->variant->attributeValue4->attribute->product_attribute_name)) {
+                         $transactiondetail->product_attribute_name4 = $cart_value->variant->attributeValue4->attribute->product_attribute_name;
+                    }
+                    if(!empty($cart_value->variant->attributeValue5->attribute->product_attribute_name)) {
+                         $transactiondetail->product_attribute_name5 = $cart_value->variant->attributeValue5->attribute->product_attribute_name;
+                    }
+                }
+
+                if(!empty($cart_value->tax1->merchant_tax_id)) {
+                    $transactiondetail->merchant_tax_id1 = $cart_value->tax1->merchant_tax_id;
+                }
+                if(!empty($cart_value->tax2->merchant_tax_id)) {
+                    $transactiondetail->merchant_tax_id2 = $cart_value->tax2->merchant_tax_id;
+                }
+
+                // dd($cart_value->product->attribute1->product_attribute_id);
+                if(!empty($cart_value->product->attribute1)) {
+                    $transactiondetail->attribute_id1 = $cart_value->product->attribute1->product_attribute_id;
+                }
+                if(!empty($cart_value->product->attribute2)) {
+                    $transactiondetail->attribute_id2 = $cart_value->product->attribute2->product_attribute_id;
+                }
+                if(!empty($cart_value->product->attribute3)) {
+                    $transactiondetail->attribute_id3 = $cart_value->product->attribute3->product_attribute_id;
+                }
+                if(!empty($cart_value->product->attribute4)) {
+                    $transactiondetail->attribute_id4 = $cart_value->product->attribute4->product_attribute_id;
+                }
+                if(!empty($cart_value->product->attribute5)) {
+                    $transactiondetail->attribute_id5 = $cart_value->product->attribute5->product_attribute_id;
+                }
+
+                $transactiondetail->save();
+
+                // product based promotion
+                if(!empty($cart_value->promo_for_this_product)){
+                    foreach ($cart_value->promo_for_this_product as $value) {
+                        // dd($value);
+                        $transactiondetailpromotion = new TransactionDetailPromotion;
+                        $transactiondetailpromotion->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                        $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
+                        $transactiondetailpromotion->promotion_id = $value->promotion_id;
+                        $transactiondetailpromotion->promotion_name = $value->promotion_name;
+
+                        if(!empty($value->promotion_type)){
+                            $transactiondetailpromotion->promotion_type = $value->promotion_type;
+                        } else {
+                            // $transactiondetailpromotion->promotion_type = $value->promotion_detail->promotion_type;
+                        }
+                        
+                        $transactiondetailpromotion->rule_type = $value->rule_type;
+
+                        if(!empty($value->rule_value)){
+                            $transactiondetailpromotion->rule_value = $value->rule_value;
+                        } else {
+                            // $transactiondetailpromotion->rule_value = $value->promotion_detail->rule_value;
+                        }
+
+                        if(!empty($value->discount_object_type)){
+                            $transactiondetailpromotion->discount_object_type = $value->discount_object_type;
+                        } else {
+                            // $transactiondetailpromotion->discount_object_type = $value->promotion_detail->discount_object_type;
+                        }
+
+                        $transactiondetailpromotion->discount_value = $value->discount_value;
+                        $transactiondetailpromotion->value_after_percentage = $value->discount;
+
+                        if(!empty($value->description)){
+                            $transactiondetailpromotion->description = $value->description;
+                        } else {
+                            // $transactiondetailpromotion->description = $value->promotion_detail->description;
+                        }
+
+                        if(!empty($value->begin_date)){
+                            $transactiondetailpromotion->begin_date = $value->begin_date;
+                        } else {
+                            // $transactiondetailpromotion->begin_date = $value->promotion_detail->begin_date;
+                        }
+
+                        if(!empty($value->end_date)){
+                            $transactiondetailpromotion->end_date = $value->end_date;
+                        } else {
+                            // $transactiondetailpromotion->end_date = $value->promotion_detail->end_date;
+                        }
+
+                        $transactiondetailpromotion->save();
+                        
+                    }
+                }
+
+
+                // product based coupon
+                if(!empty($cart_value->coupon_for_this_product)){
+                    foreach ($cart_value->coupon_for_this_product as $value) {
+                            $transactiondetailcoupon = new TransactionDetailCoupon;
+                            $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                            $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
+                            $transactiondetailcoupon->promotion_id = $value->issuedcoupon->issued_coupon_id;
+                            $transactiondetailcoupon->promotion_name = $value->issuedcoupon->coupon->promotion_name;
+                            $transactiondetailcoupon->promotion_type = $value->issuedcoupon->coupon->promotion_type;
+                            $transactiondetailcoupon->rule_type = $value->issuedcoupon->rule_type;
+                            $transactiondetailcoupon->rule_value = $value->issuedcoupon->rule_value;
+                            $transactiondetailcoupon->category_id1 = $value->issuedcoupon->rule_object_id1;
+                            $transactiondetailcoupon->category_id2 = $value->issuedcoupon->rule_object_id2;
+                            $transactiondetailcoupon->category_id3 = $value->issuedcoupon->rule_object_id3;
+                            $transactiondetailcoupon->category_id4 = $value->issuedcoupon->rule_object_id4;
+                            $transactiondetailcoupon->category_id5 = $value->issuedcoupon->rule_object_id5;
+                            $transactiondetailcoupon->category_name1 = $value->issuedcoupon->discount_object_id1;
+                            $transactiondetailcoupon->category_name2 = $value->issuedcoupon->discount_object_id2;
+                            $transactiondetailcoupon->category_name3 = $value->issuedcoupon->discount_object_id3;
+                            $transactiondetailcoupon->category_name4 = $value->issuedcoupon->discount_object_id4;
+                            $transactiondetailcoupon->category_name5 = $value->issuedcoupon->discount_object_id5;
+                            $transactiondetailcoupon->discount_object_type = $value->issuedcoupon->discount_object_type;
+                            $transactiondetailcoupon->discount_value = $value->discount_value;
+                            $transactiondetailcoupon->value_after_percentage = $value->discount;
+                            $transactiondetailcoupon->coupon_redeem_rule_value = $value->issuedcoupon->coupon_redeem_rule_value;
+                            $transactiondetailcoupon->description = $value->issuedcoupon->description;
+                            $transactiondetailcoupon->begin_date = $value->issuedcoupon->begin_date;
+                            $transactiondetailcoupon->end_date = $value->issuedcoupon->end_date;
+                            $transactiondetailcoupon->save();
+
+                            // coupon redeemed
+                            if(!empty($value->issuedcoupon->issued_coupon_id)){
+                                $coupon_id = intval($value->issuedcoupon->issued_coupon_id);
+                                $coupon_redeemed = IssuedCoupon::where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
+                            }
+                    }
+                }
+
+                // transaction detail taxes
+                if(!empty($cartdata->cartsummary->taxes)){
+                    foreach ($cartdata->cartsummary->taxes as $value) {
+                        $transactiondetailtax = new TransactionDetailTax;
+                        $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                        $transactiondetailtax->transaction_id = $transaction->transaction_id;
+                        $transactiondetailtax->tax_name = $value->tax_name;
+                        $transactiondetailtax->tax_value = $value->tax_value;
+                        $transactiondetailtax->tax_order = $value->tax_order;
+                        $transactiondetailtax->save();
+                    }
+                }
+            }
+
+
+            // cart based promotion
+            if(!empty($cart_promotion)){
+                foreach ($cart_promotion as $value) {    
+                    $transactiondetailpromotion = new TransactionDetailPromotion;
+                    $transactiondetailpromotion->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                    $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
+                    $transactiondetailpromotion->promotion_id = $value->promotion_id;
+                    $transactiondetailpromotion->promotion_name = $value->promotion_name;
+                    $transactiondetailpromotion->promotion_type = $value->promotion_type;
+                    $transactiondetailpromotion->rule_type = $value->promotionrule->rule_type;
+                    $transactiondetailpromotion->rule_value = $value->promotionrule->rule_value;
+                    $transactiondetailpromotion->discount_object_type = $value->promotionrule->discount_object_type;
+                    if ($value->promotionrule->rule_type=="cart_discount_by_percentage") {
+                        $discount_percent = intval($value->promotionrule->discount)/100;
+                        $discount_value = $this->removeFormat($value->promotionrule->discount_value);
+                        $transactiondetailpromotion->discount_value = $discount_percent;
+                        $transactiondetailpromotion->value_after_percentage = $discount_value;
+                    } elseif ($value->promotionrule->rule_type=="cart_discount_by_value") {
+                        $discount_value = $this->removeFormat($value->promotionrule->discount_value);
+                        $transactiondetailpromotion->discount_value = $discount_value;
+                        $transactiondetailpromotion->value_after_percentage = $discount_value;
+                    }
+                    $transactiondetailpromotion->description = $value->description;
+                    $transactiondetailpromotion->begin_date = $value->begin_date;
+                    $transactiondetailpromotion->end_date = $value->end_date;
+                    $transactiondetailpromotion->save();
+                
+                }
+            }
+
+
+            // cart based coupon
+            if(!empty($cart_coupon)){
+                foreach ($cart_coupon as $value) {
+                    
+                    $transactiondetailcoupon = new TransactionDetailCoupon();
+                    $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                    $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
+                    $transactiondetailcoupon->promotion_id = $value->issuedcoupon->issued_coupon_id;
+                    $transactiondetailcoupon->promotion_name = $value->issuedcoupon->promotion_name;
+                    $transactiondetailcoupon->promotion_type = $value->issuedcoupon->promotion_type;
+                    $transactiondetailcoupon->rule_type = $value->issuedcoupon->rule_type;
+                    $transactiondetailcoupon->rule_value = $value->issuedcoupon->rule_value;
+                    $transactiondetailcoupon->category_id1 = $value->issuedcoupon->rule_object_id1;
+                    $transactiondetailcoupon->category_id2 = $value->issuedcoupon->rule_object_id2;
+                    $transactiondetailcoupon->category_id3 = $value->issuedcoupon->rule_object_id3;
+                    $transactiondetailcoupon->category_id4 = $value->issuedcoupon->rule_object_id4;
+                    $transactiondetailcoupon->category_id5 = $value->issuedcoupon->rule_object_id5;
+                    $transactiondetailcoupon->category_name1 = $value->issuedcoupon->discount_object_id1;
+                    $transactiondetailcoupon->category_name2 = $value->issuedcoupon->discount_object_id2;
+                    $transactiondetailcoupon->category_name3 = $value->issuedcoupon->discount_object_id3;
+                    $transactiondetailcoupon->category_name4 = $value->issuedcoupon->discount_object_id4;
+                    $transactiondetailcoupon->category_name5 = $value->issuedcoupon->discount_object_id5;
+                    $transactiondetailcoupon->discount_object_type = $value->issuedcoupon->discount_object_type;
+                    if($value->issuedcoupon->rule_type=="cart_discount_by_percentage"){
+                        $discount_percent = intval($value->issuedcoupon->discount)/100;
+                        $discount_value = $this->removeFormat($value->issuedcoupon->discount_value);
+                        $transactiondetailcoupon->discount_value = $discount_percent;
+                        $transactiondetailcoupon->value_after_percentage = $discount_value;
+                    } else {
+                        $discount_value = $this->removeFormat($value->issuedcoupon->discount_value);
+                        $transactiondetailcoupon->discount_value = $discount_percent;
+                        $transactiondetailcoupon->value_after_percentage = $discount_value;
+                    }
+                    $transactiondetailcoupon->coupon_redeem_rule_value = $value->issuedcoupon->coupon_redeem_rule_value;
+                    $transactiondetailcoupon->description = $value->issuedcoupon->description;
+                    $transactiondetailcoupon->begin_date = $value->issuedcoupon->begin_date;
+                    $transactiondetailcoupon->end_date = $value->issuedcoupon->end_date;
+                    $transactiondetailcoupon->save();
+
+                    // coupon redeemed
+                    if(!empty($value->issuedcoupon->issued_coupon_id)){
+                        $coupon_id = intval($value->issuedcoupon->issued_coupon_id);
+                        $coupon_redeemed = IssuedCoupon::where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
+                    }
+                
+                }
+            }
+
+            // issue product based coupons (if any)
+            if (! empty($customer_id)) {
+                foreach ($cartdetails as $v) {
+                    $product_id = $v->product_id;
+                    
+                    $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                    inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                    inner join ' . DB::getTablePrefix() . 'products prod on
+                    (
+                        (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                        OR
+                        (
+                            (pr.rule_object_type="family") AND 
+                            ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
+                            ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
+                            ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
+                            ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
+                            ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                        )
+                    )
+                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
+
+                    // dd($coupons);
+                    if($coupons!=NULL){
+                        foreach($coupons as $c){
+                            $issue_coupon = new IssuedCoupon;
+                            $issue_coupon->promotion_id = $c->promotion_id;
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                            $issue_coupon->save(); 
+                        }  
+                    }
+                }
+            }
+
+            // issue cart based coupons (if any)
+            if(! empty($customer_id)){
+                $coupon_carts = Coupon::join('promotion_rules', function($q) use($total_to_pay)
+                {
+                    $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.rule_value', '<=', $total_to_pay);
+                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+                {
+                    $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->get();
+                // dd($coupon_carts);
+                if(!empty($coupon_carts)){
+                    foreach($coupon_carts as $kupon){
+                        $issue_coupon = new IssuedCoupon;
+                        $issue_coupon->promotion_id = $kupon->promotion_id;
+                        $issue_coupon->issued_coupon_code = '';
+                        $issue_coupon->user_id = $customer_id;
+                        $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                        $issue_coupon->issued_date = Carbon::now();
+                        $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                        $issue_coupon->status = 'active';
+                        $issue_coupon->save();
+                        $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                        $issue_coupon->save();
+                    }
+                }
+            }
+
+            // delete the cart
+            if(! empty($cart_id)){
+                $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+                $cart_delete->delete();
+                $cart_delete->save();
+                $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            }
+            
+
+            $this->response->data = $transaction;
+            $this->commit();
+
+            $activityPageNotes = sprintf('Transaction Success. Cart Id : %s', $cartdata->cart->cart_id);
+            $activity->setUser($user)
+                    ->setActivityName($activity_payment)
+                    ->setActivityNameLong($activity_payment_label . ' Success')
+                    ->setObject($transaction)
+                    ->setNotes($activityPageNotes)
+                    ->responseOK()
+                    ->save();
+
+            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata));
+
+        } catch (Exception $e) {
+            // $activityPageNotes = sprintf('Failed to view Page: %s', 'Category');
+            $this->rollback();
+            $activity->setUser($user)
+                            ->setActivityName($activity_payment)
+                            ->setActivityNameLong($activity_payment . ' Failed')
+                            ->setObject(null)
+                            ->setNotes($e->getMessage())
+                            ->responseFailed()
+                            ->save();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
@@ -5900,5 +4336,1029 @@ class MobileCIAPIController extends ControllerAPI
             // return $this->redirectIfNotLoggedIn($e);
             return $e->getMessage();
         }
+    }
+
+    protected function cartCalc($user, $retailer)
+    {
+        $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+        if (is_null($cart)) {
+            $cart = new Cart;
+            $cart->customer_id = $user->user_id;
+            $cart->merchant_id = $retailer->parent_id;
+            $cart->retailer_id = $retailer->merchant_id;
+            $cart->status = 'active';
+            $cart->save();
+            $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+            $cart->save();
+        }
+
+        $cartdetails = CartDetail::with(array('product' => function($q) {
+            $q->where('products.status','active');
+        }, 'variant' => function($q) {
+            $q->where('product_variants.status','active');
+        }), 'tax1', 'tax2')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+        $cartdata = new stdclass();
+        $cartdata->cart = $cart;
+        $cartdata->cartdetails = $cartdetails;
+
+        $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+            inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+            inner join ' . DB::getTablePrefix() . 'products prod on 
+            (
+                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                OR
+                (
+                    (pr.discount_object_type="family") AND 
+                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                    ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                    ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                    ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                    ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                )
+            )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
+        
+        $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
+        {
+            $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
+        }, 'issuedcoupon' => function($q) use($user)
+        {
+            $q->where('issued_coupons.user_id', $user->user_id)
+            ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+            ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+        }))->whereHas('issuedcoupon', function($q) use($user)
+        {
+            $q->where('issued_coupons.user_id', $user->user_id);
+        })->whereHas('cartdetail', function($q)
+        {
+            $q->where('cart_coupons.object_type', '=', 'cart_detail');
+        })->get();
+        // dd($used_product_coupons);
+
+        $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
+        {
+            $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+        })
+        ->where(function($q) 
+        {
+            $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
+            {
+                $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
+            });
+        })->get();
+
+        $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
+        {
+            $q->where('issued_coupons.user_id', $user->user_id)
+            ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
+            ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+        }))
+        ->whereHas('cart', function($q) use($cartdata)
+        {
+            $q->where('cart_coupons.object_type', '=', 'cart')
+            ->where('cart_coupons.object_id', '=', $cartdata->cart->cart_id);
+        })
+        ->where('cart_coupons.object_type', '=', 'cart')->get();
+
+        $subtotal = 0;
+        $subtotal_wo_tax = 0;
+        $vat = 0;
+        $total = 0;
+
+        $taxes = \MerchantTax::excludeDeleted()->where('merchant_id', $retailer->parent_id)->get();
+        
+        $vat_included = $retailer->parent->vat_included;
+
+        if($vat_included === 'yes') {
+            foreach($cartdata->cartdetails as $cartdetail) {
+                $attributes = array();
+                $product_vat_value = 0;
+                $original_price = $cartdetail->variant->price;
+                $original_ammount = $original_price * $cartdetail->quantity;
+                $ammount_after_promo = $original_ammount;
+                $product_price_wo_tax = $original_price;
+
+                $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                        inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
+                        inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                        inner join ' . DB::getTablePrefix() . 'products prod on
+                        (
+                            (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                            OR
+                            (
+                                (pr.discount_object_type="family") AND 
+                                ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                                ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                                ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                                ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                                ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                            )
+                        )
+                        inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                        WHERE 
+                            ic.expired_date >= NOW() 
+                            AND p.merchant_id = :merchantid 
+                            AND prr.retailer_id = :retailerid 
+                            AND ic.user_id = :userid 
+                            AND prod.product_id = :productid 
+                            
+                        '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
+
+                $cartdetail->available_product_coupons = count($available_product_coupons);
+
+                if(!is_null($cartdetail->tax1)) {
+                    $tax1 = $cartdetail->tax1->tax_value;
+                    if(!is_null($cartdetail->tax2)) {
+                        $tax2 = $cartdetail->tax2->tax_value;
+                        if($cartdetail->tax2->tax_type == 'service') {
+                            $pwot  = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
+                            $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
+                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                            $tax1_value = ($original_price / (1 + $tax1 + $tax2)) * $tax1;
+                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                        }
+                    } else {
+                        $tax1_value = ($original_price / (1 + $tax1)) * $tax1;
+                        $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                    }
+                    foreach($taxes as $tax) {
+                        if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                            $tax->total_tax = $tax->total_tax + $tax1_total_value;
+                            $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax1_total_value;
+                        }
+                    }
+                } else {
+                    $tax1 = 0;
+                }
+                
+                if(!is_null($cartdetail->tax2)) {
+                    $tax2 = $cartdetail->tax2->tax_value;
+                    if(!is_null($cartdetail->tax1)) {
+                        if($cartdetail->tax2->tax_type == 'service') {
+                            $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                            $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                            $tax2_value = ($original_price / (1 + $tax1 + $tax2)) * $tax2;
+                            $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                        }
+                    }
+                    foreach($taxes as $tax) {
+                        if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                            $tax->total_tax = $tax->total_tax + $tax2_total_value;
+                            $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
+                        }
+                    }
+                } else {
+                    $tax2 = 0;
+                }
+
+                // $product_price_wo_tax = $original_price / (1 + $product_vat_value);
+                if(!is_null($cartdetail->tax2)) {
+                    if($cartdetail->tax2->tax_type == 'service') {
+                        $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                    } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                        $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2);
+                    }
+                } else {
+                    $product_price_wo_tax = $original_price / (1 + $tax1);
+                }
+                // dd($product_price_wo_tax);
+                $product_vat = ($original_price - $product_price_wo_tax) * $cartdetail->quantity;
+                $vat = $vat + $product_vat;
+                $product_price_wo_tax = $product_price_wo_tax * $cartdetail->quantity;
+                $subtotal = $subtotal + $original_ammount;
+                $subtotal_wo_tax = $subtotal_wo_tax + $product_price_wo_tax;
+
+                $temp_price = $original_ammount;
+                $promo_for_this_product_array = array();
+                $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
+                // dd($promo_filters);
+                foreach($promo_filters as $promo_filter) {
+                    $promo_for_this_product = new stdclass();
+                    $promo_for_this_product = clone $promo_filter;
+                    if($promo_filter->rule_type == 'product_discount_by_percentage') {
+                        $discount = $promo_filter->discount_value * $original_price;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
+                    } elseif($promo_filter->rule_type == 'product_discount_by_value') {
+                        $discount = $promo_filter->discount_value;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                    } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                        $discount = $original_price - $promo_filter->discount_value;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                    }
+                    $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
+                    $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
+                    $promo_for_this_product->rule_type = $promo_filter->rule_type;
+                    $promo_for_this_product->discount = $discount * $cartdetail->quantity;
+                    $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
+                    $temp_price = $temp_price - $promo_for_this_product->discount;
+
+                    // $promo_wo_tax = $discount / (1 + $product_vat_value);
+                    if(!is_null($cartdetail->tax1)) {
+                        $tax1 = $cartdetail->tax1->tax_value;
+                        if(!is_null($cartdetail->tax2)) {
+                            $tax2 = $cartdetail->tax2->tax_value;
+                            if($cartdetail->tax2->tax_type == 'service') {
+                                $pwot  = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
+                                $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
+                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
+                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                            }
+                        } else {
+                            $tax1_value = ($discount / (1 + $tax1)) * $tax1;
+                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                        }
+                        foreach($taxes as $tax) {
+                            if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                                $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
+                            }
+                        }
+                    }
+                    
+                    if(!is_null($cartdetail->tax2)) {
+                        $tax2 = $cartdetail->tax2->tax_value;
+                        if(!is_null($cartdetail->tax1)) {
+                            if($cartdetail->tax2->tax_type == 'service') {
+                                $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
+                                $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                            }
+                        }
+                        foreach($taxes as $tax) {
+                            if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                $tax->total_tax = $tax->total_tax - $tax2_total_value;
+                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
+                            }
+                        }
+                    }
+
+                    if(!is_null($cartdetail->tax2)) {
+                        if($cartdetail->tax2->tax_type == 'service') {
+                            $promo_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                            $promo_wo_tax = $discount / (1 + $tax1 + $tax2);
+                        }
+                    } else {
+                        $promo_wo_tax = $discount / (1 + $tax1);
+                    }
+
+                    $promo_vat = ($discount - $promo_wo_tax) * $cartdetail->quantity;
+                    $vat = $vat - $promo_vat;
+                    $promo_wo_tax = $promo_wo_tax * $cartdetail->quantity;
+                    $subtotal = $subtotal - $promo_for_this_product->discount;
+                    $subtotal_wo_tax = $subtotal_wo_tax - $promo_wo_tax;
+                    $promo_for_this_product_array[] = $promo_for_this_product;
+                }
+                // var_dump($promo_for_this_product_array);
+                $cartdetail->promo_for_this_product = $promo_for_this_product_array;
+
+                $coupon_filter = array();
+                foreach ($used_product_coupons as $used_product_coupon) {
+                    // dd($used_product_coupon->cartdetail);
+                    if ($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
+                        if ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                            $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                            $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                            $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                        }
+                        $temp_price = $temp_price - $discount;
+                        $used_product_coupon->discount = $discount;
+                        $ammount_after_promo = $ammount_after_promo - $discount;
+
+                        // $coupon_wo_tax = $discount / (1 + $product_vat_value);
+
+                        if(!is_null($cartdetail->tax1)) {
+                            $tax1 = $cartdetail->tax1->tax_value;
+                            if(!is_null($cartdetail->tax2)) {
+                                $tax2 = $cartdetail->tax2->tax_value;
+                                if($cartdetail->tax2->tax_type == 'service') {
+                                    $pwot  = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
+                                    $tax1_value = ($pwot + ($pwot * $tax2)) * $tax1;
+                                    $tax1_total_value = $tax1_value;
+                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                    $tax1_value = ($discount / (1 + $tax1 + $tax2)) * $tax1;
+                                    $tax1_total_value = $tax1_value;
+                                }
+                            } else {
+                                $tax1_value = ($discount / (1 + $tax1)) * $tax1;
+                                $tax1_total_value = $tax1_value;
+                            }
+                            foreach($taxes as $tax) {
+                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
+                                }
+                            }
+                        }
+                        
+                        if(!is_null($cartdetail->tax2)) {
+                            $tax2 = $cartdetail->tax2->tax_value;
+                            if(!is_null($cartdetail->tax1)) {
+                                if($cartdetail->tax2->tax_type == 'service') {
+                                    $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
+                                    $tax2_total_value = $tax2_value;
+                                } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                    $tax2_value = ($discount / (1 + $tax1 + $tax2)) * $tax2;
+                                    $tax2_total_value = $tax2_value;
+                                }
+                            }
+                            foreach($taxes as $tax) {
+                                if($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
+                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
+                                }
+                            }
+                        }
+
+                        if(!is_null($cartdetail->tax2)) {
+                            if($cartdetail->tax2->tax_type == 'service') {
+                                $coupon_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                $coupon_wo_tax = $discount / (1 + $tax1 + $tax2);
+                            }
+                        } else {
+                            $coupon_wo_tax = $discount / (1 + $tax1);
+                        }
+                        $coupon_vat = ($discount - $coupon_wo_tax);
+                        $vat = $vat - $coupon_vat;
+                        $subtotal = $subtotal - $discount;
+                        $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
+                        $coupon_filter[] = $used_product_coupon;
+                    }
+                }
+                // dd($temp_price);
+                $cartdetail->coupon_for_this_product = $coupon_filter;
+                $cartdetail->original_price = $original_price;
+                $cartdetail->original_ammount = $original_ammount;
+                $cartdetail->ammount_after_promo = $ammount_after_promo;
+
+                if($cartdetail->attributeValue1['value']) {
+                    $attributes[] = $cartdetail->attributeValue1['value'];
+                }
+                if($cartdetail->attributeValue2['value']) {
+                    $attributes[] = $cartdetail->attributeValue2['value'];
+                }
+                if($cartdetail->attributeValue3['value']) {
+                    $attributes[] = $cartdetail->attributeValue3['value'];
+                }
+                if($cartdetail->attributeValue4['value']) {
+                    $attributes[] = $cartdetail->attributeValue4['value'];
+                }
+                if($cartdetail->attributeValue5['value']) {
+                    $attributes[] = $cartdetail->attributeValue5['value'];
+                }
+                $cartdetail->attributes = $attributes;
+            }
+            if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
+                $cart_vat = $vat / $subtotal_wo_tax;
+            } else {
+                $cart_vat = 0;
+            }
+
+            // dd($vat.' / '.$subtotal_wo_tax.' = '.$cart_vat);
+
+            $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
+            $vat_before_cart_promo = $vat;
+            $cartdiscounts = 0;
+            $acquired_promo_carts = array();
+            $discount_cart_promo = 0;
+            $discount_cart_promo_wo_tax = 0;
+            $discount_cart_coupon = 0;
+            $cart_promo_taxes = 0;
+            $subtotal_before_cart_promo = $subtotal;
+
+            if (!empty($promo_carts)) {
+                foreach ($promo_carts as $promo_cart) {
+                    if ($subtotal >= $promo_cart->promotionrule->rule_value) {
+                        if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
+                            $discount = $subtotal * $promo_cart->promotionrule->discount_value;
+                            $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
+                            $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
+                        } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
+                            $discount = $promo_cart->promotionrule->discount_value;
+                            $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
+                            $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
+                        }
+
+                        $cart_promo_wo_tax = $discount / (1 + $cart_vat);
+                        $cart_promo_tax = $discount - $cart_promo_wo_tax;
+                        $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
+                        
+                        foreach ($taxes as $tax) {
+                            if (!empty($tax->total_tax)) {
+                                $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
+                                $tax->total_tax = $tax->total_tax - $tax_reduction;
+                            }
+                        }
+
+                        $discount_cart_promo = $discount_cart_promo + $discount;
+                        $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
+                        $acquired_promo_carts[] = $promo_cart;
+
+                    }
+                }
+                
+            }
+
+            $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
+            {
+                $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
+            })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+            {
+                $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+            })
+            ->whereHas('issuedcoupons',function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+            })->with(array('issuedcoupons' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+            }))
+            ->get();
+
+            $available_coupon_carts = array();
+            $cart_discount_by_percentage_counter = 0;
+            $discount_cart_coupon = 0;
+            $discount_cart_coupon_wo_tax = 0;
+            $total_cart_coupon_discount = 0;
+            $cart_coupon_taxes = 0;
+            $acquired_coupon_carts = array();
+            if(!empty($used_cart_coupons)) {
+                foreach($used_cart_coupons as $used_cart_coupon) {
+                    if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
+                        if($subtotal >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
+                            if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
+                                $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
+                                $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
+                                $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
+                                $cart_discount_by_percentage_counter++;
+                            } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
+                                $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                                $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                                $discount = $used_cart_coupon->issuedcoupon->discount_value;
+                            }
+
+                            $cart_coupon_wo_tax = $discount / (1 + $cart_vat);
+                            $cart_coupon_tax = $discount - $cart_coupon_wo_tax;
+
+                            foreach ($taxes as $tax) {
+                                if (!empty($tax->total_tax)) {
+                                    $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
+                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
+                                }
+                            }
+                            
+                            $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
+                            $discount_cart_coupon = $discount_cart_coupon + $discount;
+                            $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
+
+                            $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
+                            $acquired_coupon_carts[] = $used_cart_coupon;
+                        } else {
+                            $this->beginTransaction();
+                            $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
+                            $issuedcoupon->makeActive();
+                            $issuedcoupon->save();
+                            $used_cart_coupon->delete(TRUE);
+                            $this->commit();
+                        }
+                    }
+                }
+            }
+
+            if(!empty($coupon_carts)) {
+                foreach($coupon_carts as $coupon_cart) {
+                    if($subtotal >= $coupon_cart->coupon_redeem_rule_value) {
+                        if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
+                            if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
+                                $discount = $subtotal * $coupon_cart->discount_value;
+                                $cartdiscounts = $cartdiscounts + $discount;
+                                $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
+                                $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
+                                $available_coupon_carts[] = $coupon_cart;
+                                $cart_discount_by_percentage_counter++;
+                            }
+                        } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
+                            $discount = $coupon_cart->discount_value;
+                            $cartdiscounts = $cartdiscounts + $discount;
+                            $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
+                            $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
+                            $available_coupon_carts[] = $coupon_cart;
+                        }
+                    } else {
+                        $coupon_cart->disc_val = $coupon_cart->rule_value;
+                    }
+                }
+            }
+
+            $subtotal = $subtotal - $discount_cart_promo - $discount_cart_coupon;
+            $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax - $discount_cart_coupon_wo_tax;
+            $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
+            // dd($cart_coupon_taxes);
+
+            $cartsummary = new stdclass();
+            $cartsummary->vat = round($vat, 2);
+            $cartsummary->total_to_pay = round($subtotal, 2);
+            $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
+            $cartsummary->acquired_promo_carts = $acquired_promo_carts;
+            $cartsummary->used_cart_coupons = $acquired_coupon_carts;
+            $cartsummary->available_coupon_carts = $available_coupon_carts;
+            $cartsummary->subtotal_before_cart_promo = round($subtotal_before_cart_promo, 2);
+            $cartsummary->taxes = $taxes;
+            $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
+            $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
+            $cartdata->cartsummary = $cartsummary;
+            // $cartdata->attributes = $attributes;
+        } else {
+            foreach ($cartdata->cartdetails as $cartdetail) {
+                $attributes = array();
+                $product_vat_value = 0;
+                $original_price = $cartdetail->variant->price;
+                $subtotal_wo_tax = $subtotal_wo_tax + ($original_price * $cartdetail->quantity);
+                $original_ammount = $original_price * $cartdetail->quantity;
+
+                $available_product_coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                        inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.is_coupon = "Y" and p.status = "active"
+                        inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                        inner join ' . DB::getTablePrefix() . 'products prod on
+                        (
+                            (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                            OR
+                            (
+                                (pr.discount_object_type="family") AND 
+                                ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                                ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                                ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                                ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                                ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                            )
+                        )
+                        inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                        WHERE 
+                            ic.expired_date >= NOW() 
+                            AND p.merchant_id = :merchantid 
+                            AND prr.retailer_id = :retailerid 
+                            AND ic.user_id = :userid 
+                            AND prod.product_id = :productid 
+                            
+                        '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
+
+                $cartdetail->available_product_coupons = count($available_product_coupons);
+
+                if (!is_null($cartdetail->tax1)) {
+                    $tax1 = $cartdetail->tax1->tax_value;
+                    if (!is_null($cartdetail->tax2)) {
+                        $tax2 = $cartdetail->tax2->tax_value;
+                        if ($cartdetail->tax2->tax_type == 'service') {
+                            $pwt = $original_price + ($original_price * $tax2) ;
+                            $tax1_value = $pwt * $tax1;
+                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                        } elseif ($cartdetail->tax2->tax_type == 'luxury') {
+                            $tax1_value = $original_price * $tax1;
+                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                        }
+                    } else {
+                        $tax1_value = $original_price * $tax1;
+                        $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                    }
+                    foreach ($taxes as $tax) {
+                        if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                            $tax->total_tax = $tax->total_tax + $tax1_total_value;
+                            $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax1_total_value;
+                        }
+                    }
+                } else {
+                    $tax1 = 0;
+                }
+
+                if (!is_null($cartdetail->tax2)) {
+                    $tax2 = $cartdetail->tax2->tax_value;    
+                    $tax2_value = $original_price * $tax2;
+                    $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                    foreach ($taxes as $tax) {
+                        if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                            $tax->total_tax = $tax->total_tax + $tax2_total_value;
+                            $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo + $tax2_total_value;
+                        }
+                    }
+                } else {
+                    $tax2 = 0;
+                }
+
+                if(!is_null($cartdetail->tax2)) {
+                    if($cartdetail->tax2->tax_type == 'service') {
+                        $product_price_with_tax = $original_price * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                    } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                        $product_price_with_tax = $original_price * (1 + $tax1 + $tax2);
+                    }
+                } else {
+                    $product_price_with_tax = $original_price * (1 + $tax1);
+                }
+
+                $product_vat = ($product_price_with_tax - $original_price) * $cartdetail->quantity;
+                $vat = $vat + $product_vat;
+                
+                $product_price_with_tax = $product_price_with_tax * $cartdetail->quantity;
+                $ammount_after_promo = $product_price_with_tax;
+                $subtotal = $subtotal + $product_price_with_tax;
+                $temp_price = $original_ammount;
+
+                $promo_for_this_product_array = array();
+                $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
+                // dd($promo_filters);
+                foreach($promo_filters as $promo_filter) {
+                    $promo_for_this_product = new stdclass();
+                    $promo_for_this_product = clone $promo_filter;
+                    if($promo_filter->rule_type == 'product_discount_by_percentage') {
+                        $discount = $promo_filter->discount_value * $original_price;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
+                    } elseif($promo_filter->rule_type == 'product_discount_by_value') {
+                        $discount = $promo_filter->discount_value;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                    } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                        $discount = $original_price - $promo_filter->discount_value;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                    }
+                    $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
+                    $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
+                    $promo_for_this_product->rule_type = $promo_filter->rule_type;
+                    $promo_for_this_product->discount = $discount * $cartdetail->quantity;
+                    $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
+                    $temp_price = $temp_price - $promo_for_this_product->discount;
+
+                    $promo_wo_tax = $discount / (1 + $product_vat_value);
+                    if(!is_null($cartdetail->tax1)) {
+                        $tax1 = $cartdetail->tax1->tax_value;
+                        if(!is_null($cartdetail->tax2)) {
+                            $tax2 = $cartdetail->tax2->tax_value;
+                            if ($cartdetail->tax2->tax_type == 'service') {
+                                $pwt = $discount;
+                                $tax1_value = $pwt * $tax1;
+                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                            } elseif ($cartdetail->tax2->tax_type == 'luxury') {
+                                $tax1_value = $discount * $tax1;
+                                $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                            }
+                        } else {
+                            $tax1_value = $discount * $tax1;
+                            $tax1_total_value = $tax1_value * $cartdetail->quantity;
+                        }
+                        foreach($taxes as $tax) {
+                            if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                                $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
+                            }
+                        }
+                    }
+                    
+                    if(!is_null($cartdetail->tax2)) {
+                        $tax2 = $cartdetail->tax2->tax_value;    
+                        $tax2_value = $discount * $tax2;
+                        $tax2_total_value = $tax2_value * $cartdetail->quantity;
+                        
+                        foreach ($taxes as $tax) {
+                            if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                $tax->total_tax = $tax->total_tax - $tax2_total_value;
+                                $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
+                            }
+                        }
+                    }
+
+                    if(!is_null($cartdetail->tax2)) {
+                        if($cartdetail->tax2->tax_type == 'service') {
+                            $promo_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                        } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                            $promo_with_tax = $discount * (1 + $tax1 + $tax2);
+                        }
+                    } else {
+                        $promo_with_tax = $discount * (1 + $tax1);
+                    }
+
+                    $promo_vat = ($promo_with_tax - $discount) * $cartdetail->quantity;
+                    // $promo_vat = ($discount * $cartdetail->quantity);
+                    
+                    $vat = $vat - $promo_vat;
+                    $promo_with_tax = $promo_with_tax * $cartdetail->quantity;
+                    $subtotal = $subtotal - $promo_with_tax;
+                    $subtotal_wo_tax = $subtotal_wo_tax - ($discount * $cartdetail->quantity);
+                    $promo_for_this_product_array[] = $promo_for_this_product;
+                }
+                
+                $cartdetail->promo_for_this_product = $promo_for_this_product_array;
+
+                $coupon_filter = array();
+                foreach($used_product_coupons as $used_product_coupon) {
+                    // dd($used_product_coupon->cartdetail);
+                    if($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
+                        if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
+                            $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
+                        } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
+                            $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                        } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                            $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                        }
+                        $temp_price = $temp_price - $discount;
+                        $used_product_coupon->discount = $discount;
+                        $ammount_after_promo = $ammount_after_promo - $discount;
+                        // $coupon_wo_tax = $discount / (1 + $product_vat_value);
+
+                        if(!is_null($cartdetail->tax1)) {
+                            $tax1 = $cartdetail->tax1->tax_value;
+                            if(!is_null($cartdetail->tax2)) {
+                                $tax2 = $cartdetail->tax2->tax_value;
+                                if ($cartdetail->tax2->tax_type == 'service') {
+                                    $pwt = $discount + ($discount * $tax2) ;
+                                    $tax1_value = $pwt * $tax1;
+                                    $tax1_total_value = $tax1_value;
+                                } elseif ($cartdetail->tax2->tax_type == 'luxury') {
+                                    $tax1_value = $discount * $tax1;
+                                    $tax1_total_value = $tax1_value;
+                                }
+                            } else {
+                                $tax1_value = $discount * $tax1;
+                                $tax1_total_value = $tax1_value;
+                            }
+                            foreach($taxes as $tax) {
+                                if($tax->merchant_tax_id == $cartdetail->tax1->merchant_tax_id) {
+                                    $tax->total_tax = $tax->total_tax - $tax1_total_value;
+                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax1_total_value;
+                                }
+                            }
+                        }
+                        
+                        if(!is_null($cartdetail->tax2)) {
+                            $tax2 = $cartdetail->tax2->tax_value;    
+                            $tax2_value = $discount * $tax2;
+                            $tax2_total_value = $tax2_value;
+                            
+                            foreach ($taxes as $tax) {
+                                if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
+                                    $tax->total_tax = $tax->total_tax - $tax2_total_value;
+                                    $tax->total_tax_before_cart_promo = $tax->total_tax_before_cart_promo - $tax2_total_value;
+                                }
+                            }
+                        }
+
+                        if(!is_null($cartdetail->tax2)) {
+                            if($cartdetail->tax2->tax_type == 'service') {
+                                $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                            } elseif($cartdetail->tax2->tax_type == 'luxury') {
+                                $coupon_with_tax = $discount * (1 + $tax1 + $tax2);
+                            }
+                        } else {
+                            $coupon_with_tax = $discount * (1 + $tax1);
+                        }
+                        // $coupon_vat = ($discount - $coupon_wo_tax);
+                        // $vat = $vat - $coupon_vat;
+                        // $subtotal = $subtotal - $discount;
+                        // $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
+                        $coupon_vat = ($coupon_with_tax - $discount);
+                        $vat = $vat - $coupon_vat;
+                        $subtotal = $subtotal - $coupon_with_tax;
+                        $subtotal_wo_tax = $subtotal_wo_tax - $discount;
+                        $coupon_filter[] = $used_product_coupon;
+                    }
+                }
+                // dd($coupon_filter[1]);
+                $cartdetail->coupon_for_this_product = $coupon_filter;
+
+                $cartdetail->original_price = $original_price;
+                $cartdetail->original_ammount = $original_ammount;
+                $cartdetail->ammount_after_promo = $ammount_after_promo;
+
+                if($cartdetail->attributeValue1['value']) {
+                    $attributes[] = $cartdetail->attributeValue1['value'];
+                }
+                if($cartdetail->attributeValue2['value']) {
+                    $attributes[] = $cartdetail->attributeValue2['value'];
+                }
+                if($cartdetail->attributeValue3['value']) {
+                    $attributes[] = $cartdetail->attributeValue3['value'];
+                }
+                if($cartdetail->attributeValue4['value']) {
+                    $attributes[] = $cartdetail->attributeValue4['value'];
+                }
+                if($cartdetail->attributeValue5['value']) {
+                    $attributes[] = $cartdetail->attributeValue5['value'];
+                }
+                $cartdetail->attributes = $attributes;
+            }
+
+            if (count($cartdata->cartdetails) > 0 && $subtotal_wo_tax > 0) {
+                $cart_vat = $vat / $subtotal_wo_tax;
+            } else {
+                $cart_vat = 0;
+            }
+
+
+            $subtotal_before_cart_promo_without_tax = $subtotal_wo_tax;
+            $vat_before_cart_promo = $vat;
+            $cartdiscounts = 0;
+            $acquired_promo_carts = array();
+            $discount_cart_promo = 0;
+            $discount_cart_promo_with_tax = 0;
+            $discount_cart_coupon = 0;
+            $cart_promo_taxes = 0;
+            $subtotal_before_cart_promo = $subtotal;
+
+            if (!empty($promo_carts)) {
+                foreach ($promo_carts as $promo_cart) {
+                    if ($subtotal_before_cart_promo_without_tax >= $promo_cart->promotionrule->rule_value) {
+                        if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
+                            $discount = $subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value;
+                            $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
+                            $promo_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value);
+                        } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
+                            $discount = $promo_cart->promotionrule->discount_value;
+                            $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
+                            $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
+                        }
+
+                        $cart_promo_with_tax = $discount * (1 + $cart_vat);
+                        
+                        // $cart_promo_tax = $cart_promo_with_tax - $discount;
+                        
+                        $cart_promo_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
+                        $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
+                        
+                        foreach ($taxes as $tax) {
+                            if (!empty($tax->total_tax)) {
+                                // $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
+                                $tax_reduction = ($discount / $subtotal_wo_tax) * $cart_promo_tax;
+                                $tax->total_tax = $tax->total_tax - $tax_reduction;
+                            }
+                        }
+
+                        $discount_cart_promo = $discount_cart_promo + $discount;
+                        $discount_cart_promo_with_tax = $discount_cart_promo_with_tax - $cart_promo_with_tax;
+                        $acquired_promo_carts[] = $promo_cart;
+                        // dd($cart_promo_with_tax);
+                    }
+                }
+                
+            }
+
+            $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal_before_cart_promo_without_tax)
+            {
+                $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal_before_cart_promo_without_tax);
+            })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+            {
+                $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+            })
+            ->whereHas('issuedcoupons',function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+            })->with(array('issuedcoupons' => function($q) use($user)
+            {
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+            }))
+            ->get();
+
+            $available_coupon_carts = array();
+            $cart_discount_by_percentage_counter = 0;
+            $discount_cart_coupon = 0;
+            $discount_cart_coupon_with_tax = 0;
+            $total_cart_coupon_discount = 0;
+            $cart_coupon_taxes = 0;
+            $acquired_coupon_carts = array();
+            if(!empty($used_cart_coupons)) {
+                foreach($used_cart_coupons as $used_cart_coupon) {
+                    if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
+                        if($subtotal_before_cart_promo_without_tax >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
+                            if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
+                                $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
+                                $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal_before_cart_promo_without_tax);
+                                $discount = $subtotal_before_cart_promo_without_tax * $used_cart_coupon->issuedcoupon->discount_value;
+                                $cart_discount_by_percentage_counter++;
+                            } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
+                                $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                                $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
+                                $discount = $used_cart_coupon->issuedcoupon->discount_value;
+                            }
+
+                            $cart_coupon_with_tax = $discount * (1 + $cart_vat);
+                            // $cart_coupon_tax = $cart_coupon_with_tax - $discount;
+                            $cart_coupon_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
+                            $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
+
+                            foreach ($taxes as $tax) {
+                                if (!empty($tax->total_tax)) {
+                                    $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_coupon_tax;
+                                    $tax->total_tax = $tax->total_tax - $tax_reduction;
+                                }
+                            }
+                            
+                            $discount_cart_coupon = $discount_cart_coupon + $discount;
+                            $discount_cart_coupon_with_tax = $discount_cart_coupon_with_tax - $cart_coupon_with_tax;
+
+                            $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
+                            $acquired_coupon_carts[] = $used_cart_coupon;
+                        } else {
+                            $this->beginTransaction();
+                            $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
+                            $issuedcoupon->makeActive();
+                            $issuedcoupon->save();
+                            $used_cart_coupon->delete(TRUE);
+                            $this->commit();
+                        }
+                    }
+                }
+            }
+            
+            if (!empty($coupon_carts)) {
+                foreach ($coupon_carts as $coupon_cart) {
+                    if ($subtotal_before_cart_promo_without_tax >= $coupon_cart->coupon_redeem_rule_value) {
+                        if ($coupon_cart->rule_type == 'cart_discount_by_percentage') {
+                            if ($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
+                                $discount = $subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value;
+                                $cartdiscounts = $cartdiscounts + $discount;
+                                $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
+                                $coupon_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value);
+                                $available_coupon_carts[] = $coupon_cart;
+                                $cart_discount_by_percentage_counter++;
+                            }
+                        } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
+                            $discount = $coupon_cart->discount_value;
+                            $cartdiscounts = $cartdiscounts + $discount;
+                            $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
+                            $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
+                            $available_coupon_carts[] = $coupon_cart;
+                        }
+                    } else {
+                        $coupon_cart->disc_val = $coupon_cart->rule_value;
+                    }
+                }
+            }
+            // dd($discount_cart_coupon);
+            $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo - $discount_cart_coupon;
+            $subtotal = $subtotal + $discount_cart_promo_with_tax + $discount_cart_coupon_with_tax;
+            $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
+            // dd($cart_coupon_taxes);
+            
+            $cartsummary = new stdclass();
+            $cartsummary->vat = round($vat, 2);
+            $cartsummary->total_to_pay = round($subtotal, 2);
+            $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
+            $cartsummary->acquired_promo_carts = $acquired_promo_carts;
+            $cartsummary->used_cart_coupons = $acquired_coupon_carts;
+            $cartsummary->available_coupon_carts = $available_coupon_carts;
+            $cartsummary->subtotal_before_cart_promo = round($subtotal_before_cart_promo, 2);
+            $cartsummary->taxes = $taxes;
+            $cartsummary->subtotal_before_cart_promo_without_tax = $subtotal_before_cart_promo_without_tax;
+            $cartsummary->vat_before_cart_promo = $vat_before_cart_promo;
+            $cartdata->cartsummary = $cartsummary;
+        }
+
+        return $cartdata;
     }
 }
