@@ -489,7 +489,7 @@
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1"><% language.kembalian %></label>
-                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="Kembalian">
+                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="<% language.kembalian %>">
                                           </div>
                                </div>
                                <div data-ng-show="isvirtual"  class="numpad">

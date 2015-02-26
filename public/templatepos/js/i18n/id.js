@@ -53,6 +53,10 @@ define(function(){
         'andayakin2teks'        : 'Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus',
         'pembayarankartu'       : 'PEMBAYARAN KARTU DEBIT/KREDIT',
         'gagal'                 : 'GAGAL',
-        'keluar'                : 'Keluar'
+        'keluar'                : 'Keluar',
+        'orbitkasir'            : 'ORBIT KASIR',
+        'loginerror'            : 'Maaf, ID atau password tidak cocok',
+        'userid'                : 'USER ID',
+        'masuk'                 : 'MASUK'
     };
 });

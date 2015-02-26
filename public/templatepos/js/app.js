@@ -29,6 +29,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     }]);
 
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
+         //get merchant info
+        $scope.infomerchant = [];
+         serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
+                if(response.code == 0){
+                    $scope.infomerchant = response.data;
+                }
+         });
+
+         $scope.language = $scope.infomerchant['pos_language'] == 'id' ? id : en;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data) {
             if (data.code != 0 && !$scope.datauser) {
@@ -36,7 +45,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.login  = {};
                 $scope.signin = {};
 
-                $scope.signin.alerts = [{ text: "Maaf, ID atau password yang Anda masukkan salah",active: false} ];
+                $scope.signin.alerts = [{ text: $scope.language.loginerror,active: false} ];
                 $scope.signin.alertDismisser = function(index) {
                     $scope.signin.alerts[index].active = false;
                 };

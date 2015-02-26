@@ -115,6 +115,11 @@ Route::group(array('before' => 'orbit-settings'), function()
 
     Route::post('/app/v1/pos/cartbasedpromotion', 'IntermediateAuthController@POS\Cashier_postCartBasedPromotion');
 
+    // 
+    Route::get('/app/v1/pos/getmerchantinfo', function()
+    {
+        return POS\CashierAPIController::create()->getMerchantInfo();
+    });
 
     Route::get('/pos', function () {
         return Redirect::to('/pos/signin');

@@ -53,6 +53,10 @@ define(function(){
         'andayakin2teks'        : 'After clicking "Yes", all items in the cart will be deleted',
         'pembayarankartu'       : 'DEBIT/CREDIT CARD PAYMENT',
         'gagal'                 : 'FAILED',
-        'keluar'                : 'Logout'
+        'keluar'                : 'Logout',
+        'orbitkasir'            : 'ORBIT CASHIER',
+        'loginerror'            : 'Sorry, the ID or password you entered do not match',
+        'userid'                : 'USER ID',
+        'masuk'                 : 'LOGIN'
     };
 });

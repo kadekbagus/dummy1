@@ -3358,6 +3358,43 @@ class CashierAPIController extends ControllerAPI
         return $output;
     }
 
+
+    /**
+     * GET - Merchant info without login
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getMerchantInfo()
+    {
+        try {
+                $retailer = $this->getRetailerInfo();
+                $merchant = $retailer->parent;
+                // $this->response->status = 'success';
+                // $this->response->message = 'success';
+                $this->response->data = $merchant;
+            } catch (ACLForbiddenException $e) {
+                $this->response->code = $e->getCode();
+                $this->response->status = 'error';
+                $this->response->message = $e->getMessage();
+                $this->response->data = null;
+            } catch (InvalidArgsException $e) {
+                $this->response->code = $e->getCode();
+                $this->response->status = 'error';
+                $this->response->message = $e->getMessage();
+                $this->response->data = null;
+            } catch (Exception $e) {
+                $this->response->code = $e->getCode();
+                $this->response->status = 'error';
+                $this->response->message = $e->getMessage();
+                $this->response->data = null;
+            }
+        return $this->render();
+    }
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
