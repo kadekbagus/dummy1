@@ -50,6 +50,9 @@ define(function(){
         'andayakin1'            : 'Anda yakin akan ingin membuat keranjang belanja baru?',
         'andayakin1teks'        : 'Setelah anda memilih "Ya", maka keranjang belanja baru akan menggantikan keranjang belanja sebelumnya',
         'andayakin2'            : 'Anda yakin akan ingin menghapus keranjang belanja ?',
-        'andayakin2teks'        : 'Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus'
+        'andayakin2teks'        : 'Setelah anda memilih "Ya", maka semua produk dalam keranjang belanja ini akan dihapus',
+        'pembayarankartu'       : 'PEMBAYARAN KARTU DEBIT/KREDIT',
+        'gagal'                 : 'GAGAL',
+        'keluar'                : 'Keluar'
     };
 });

@@ -50,6 +50,9 @@ define(function(){
         'andayakin1'            : 'Are you sure you want to start new cart?',
         'andayakin1teks'        : 'After clicking "Yes", the previous cart will be replaced by new cart',
         'andayakin2'            : 'Are you sure you want to clear cart?',
-        'andayakin2teks'        : 'After clicking "Yes", all items in the cart will be deleted'
+        'andayakin2teks'        : 'After clicking "Yes", all items in the cart will be deleted',
+        'pembayarankartu'       : 'DEBIT/CREDIT CARD PAYMENT',
+        'gagal'                 : 'FAILED',
+        'keluar'                : 'Logout'
     };
 });

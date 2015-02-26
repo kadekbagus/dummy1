@@ -65,6 +65,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
+        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
         $scope.cart               = [];
         $scope.product            = [];
         $scope.productidenabled   = [];
@@ -72,9 +73,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
-
-
-        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
+        $scope.cheader            = $scope.language.pilihcarapembayaran;
+        $scope.gesek              = $scope.language.gesekkartusekarang;
+      
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
             if(data.code != 0 && !$scope.datauser){
@@ -721,7 +722,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     switch(act){
                         case 't':
                             $scope.action  = 'cash';
-                            $scope.cheader = 'PEMBAYARAN TUNAI';
+                            $scope.cheader = $scope.language.pembayarantunai;
                             $scope.isvirtual = true;
                             //customer display
                             $scope.customerdispaly('TOTAL',$scope.cart.totalpay);
@@ -732,7 +733,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                           
                             //terminal 1
                             $scope.action = 'card';
-                            $scope.cheader = 'PEMBAYARAN KARTU DEBIT/KREDIT';
+                            $scope.cheader = $scope.language.pembayarankartu;
                             $scope.hasaccepted = false;
                             //case success
                             serviceAjax.posDataToServer('/pos/cardpayment ',{amount : accounting.unformat($scope.cart.totalpay)}).then(function(response){
@@ -740,7 +741,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.savetransactions();
                                     $scope.hasaccepted = true;
                                 }else{
-                                    $scope.cheader  = 'TRANSAKSI GAGAL';
+                                    $scope.cheader  = $scope.language.transaksigagal;
                                     $scope.cardfile = true;
                                     $scope.holdbtn  = true;
                                 }
