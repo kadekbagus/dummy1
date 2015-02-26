@@ -166,7 +166,7 @@
                           <div class="col-md-12"><h4 class="text-center"><% language.katalogproduk %></h4><br>
                               <div class="input-group" id="loadingsearch">
                                    <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
-                                        <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
+                                        <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="<% language.cariproduk %>">
                                    <div class="input-group-addon" style="background-color : #D60000; border: none;cursor:pointer" data-ng-click="resetsearch()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></div>
                               </div>
                            </div>
