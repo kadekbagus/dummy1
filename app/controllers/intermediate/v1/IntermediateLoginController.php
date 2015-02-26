@@ -229,6 +229,9 @@ class IntermediateLoginController extends IntermediateBaseController
                 'logged_in' => TRUE,
                 'user_id'   => $user->user_id,
             );
+            $this->session->getSessionConfig()->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
+            $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
+            $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
             $this->session->enableForceNew()->start($data);
 
             // Send the session id via HTTP header
