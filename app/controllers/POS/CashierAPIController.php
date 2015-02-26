@@ -1584,8 +1584,7 @@ class CashierAPIController extends ControllerAPI
             //     ACL::throwAccessForbidden($message);
             // }
 
-            if($output=='Failed'){
-
+            if($output=='FAILED' || $output=='Failed'){
                 $message = 'Payment Failed';
                 ACL::throwAccessForbidden($message);
             }
