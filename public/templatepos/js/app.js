@@ -140,12 +140,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
                 //get product
                 $scope.getproduct = function(){
-                    serviceAjax.getDataFromServer('/pos/productsearch?take=12').then(function(response){
+                    serviceAjax.getDataFromServer('/pos/quickproduct').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
-                                response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                                response.data.records[i]['product']['price'] = accounting.formatMoney(response.data.records[i]['product']['price'], "", 0, ",", ".");
+                                $scope.product[i] = response.data.records[i]['product'];
                             }
-                            $scope.product = response.data.records;
+                            //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
                             $scope.logoutfn();
