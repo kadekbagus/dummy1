@@ -830,6 +830,14 @@ class CashierAPIController extends ControllerAPI
 
             $transaction->save();
 
+            if($customer_id!=0 ||$customer_id!=NULL){
+                $update_user_detail = \UserDetail::where('user_id', $customer_id)->first();
+                $update_user_detail->last_spent_any_shop = $total_to_pay;
+                $update_user_detail->last_spent_shop_id = $retailer_id;
+                $update_user_detail->save();
+            }
+
+
             //insert to table transaction_details
             foreach($cart as $cart_key => $cart_value){
                 $cart_id = $cart_value['cart_id'];
@@ -917,13 +925,17 @@ class CashierAPIController extends ControllerAPI
                             if(!empty($value['rule_value'])){
                                 $transactiondetailpromotion->rule_value = $value['rule_value'];
                             } else {
-                                $transactiondetailpromotion->rule_value = $value['promotion_detail']['rule_value'];
+                                if(!empty($value['promotion_detail'])){
+                                    $transactiondetailpromotion->rule_value = $value['promotion_detail']['rule_value'];
+                                }
                             }
 
                             if(!empty($value['discount_object_type'])){
                                 $transactiondetailpromotion->discount_object_type = $value['discount_object_type'];
                             } else {
-                                $transactiondetailpromotion->discount_object_type = $value['promotion_detail']['discount_object_type'];
+                                if(!empty($value['promotion_detail'])){
+                                    $transactiondetailpromotion->discount_object_type = $value['promotion_detail']['discount_object_type'];
+                                }
                             }
 
                             $transactiondetailpromotion->discount_value = $value['oridiscount_value'];
@@ -932,19 +944,25 @@ class CashierAPIController extends ControllerAPI
                             if(!empty($value['description'])){
                                 $transactiondetailpromotion->description = $value['description'];
                             } else {
-                                $transactiondetailpromotion->description = $value['promotion_detail']['description'];
+                                if(!empty($value['promotion_detail'])){
+                                    $transactiondetailpromotion->description = $value['promotion_detail']['description'];
+                                }
                             }
 
                             if(!empty($value['begin_date'])){
                                 $transactiondetailpromotion->begin_date = $value['begin_date'];
                             } else {
-                                $transactiondetailpromotion->begin_date = $value['promotion_detail']['begin_date'];
+                                if(!empty($value['promotion_detail'])){
+                                    $transactiondetailpromotion->begin_date = $value['promotion_detail']['begin_date'];
+                                }
                             }
 
                             if(!empty($value['end_date'])){
                                 $transactiondetailpromotion->end_date = $value['end_date'];
                             } else {
-                                $transactiondetailpromotion->end_date = $value['promotion_detail']['end_date'];
+                                if(!empty($value['promotion_detail'])){
+                                    $transactiondetailpromotion->end_date = $value['promotion_detail']['end_date'];
+                                }
                             }
 
                             $transactiondetailpromotion->save();
@@ -1166,7 +1184,7 @@ class CashierAPIController extends ControllerAPI
             // delete the cart
             if($cart_id!=NULL){
                 $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
-                $cart_delete->status = "deleted";
+                $cart_delete->delete();
                 $cart_delete->save();
                 $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
             }
