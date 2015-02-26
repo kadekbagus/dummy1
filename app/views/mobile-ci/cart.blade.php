@@ -347,7 +347,7 @@
         </div>
         <div class="modal-footer">
           <form name="signUp" id="signUp" method="post" action="{{ url('/customer/signup') }}">
-            <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel') }}</button>
+            <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel_button') }}</button>
           </form>
         </div>
       </div>
@@ -377,7 +377,7 @@
                 <button type="button" id="cartDeleteBtn" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.yes_button') }}</button>
               </div>
               <div class="col-xs-6">
-                <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel') }}</button>
+                <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel_button') }}</button>
               </div>
             </div>
           </form>

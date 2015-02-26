@@ -24,7 +24,10 @@
                 @if($widget->widget_type == 'catalogue')
                   <div class="single-widget-container col-xs-6 col-sm-6">
                     <header class="widget-title">
-                      <span>{{ Lang::get('mobileci.widgets.catalogue') }}</span>
+                      <div><strong>{{ Lang::get('mobileci.widgets.catalogue') }}</strong></div>
+                    </header>
+                    <header class="widget-title widget-subtitle">
+                      <div>{{$widget->widget_slogan}}</div>
                     </header>
                     <section class="widget-single">
                       <ul class="rslides">
@@ -45,7 +48,10 @@
                 @if($widget->widget_type == 'new_product')
                   <div class="single-widget-container col-xs-6 col-sm-6">
                     <header class="widget-title">
-                      <span>{{ Lang::get('mobileci.widgets.new_product') }}</span>
+                      <div>{{ Lang::get('mobileci.widgets.new_product') }}</div>
+                    </header>
+                    <header class="widget-title widget-subtitle">
+                      <div>{{$widget->widget_slogan}}</div>
                     </header>
                     <section class="widget-single">
                       <!-- Slideshow 4 -->
@@ -77,7 +83,10 @@
                 @if($widget->widget_type == 'promotion')
                 <div class="single-widget-container col-xs-6 col-sm-6">
                   <header class="widget-title">
-                    <span>{{ Lang::get('mobileci.widgets.promotion') }}</span>
+                    <div>{{ Lang::get('mobileci.widgets.promotion') }}</div>
+                  </header>
+                  <header class="widget-title widget-subtitle">
+                    <div>{{$widget->widget_slogan}}</div>
                   </header>
                   <section class="widget-single">
                     <ul class="rslides" id="slider2">
@@ -108,7 +117,10 @@
                 @if($widget->widget_type == 'coupon')
                 <div class="single-widget-container col-xs-6 col-sm-6">
                   <header class="widget-title">
-                    <span>{{ Lang::get('mobileci.widgets.coupon') }}</span>
+                    <div>{{ Lang::get('mobileci.widgets.coupon') }}</div>
+                  </header>
+                  <header class="widget-title widget-subtitle">
+                    <div>{{$widget->widget_slogan}}</div>
                   </header>
                   <section class="widget-single">
                     <ul class="rslides" id="slider2">
