@@ -31,12 +31,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
          //get merchant info
         $scope.infomerchant = [];
+        $scope.language     = en;
          serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
                 if(response.code == 0){
-                    $scope.infomerchant = response.data;
+                    $scope.language = response.data.pos_language == 'id' ? id : en;
                 }
          });
-        $scope.language = $scope.infomerchant['pos_language'] == 'id' ? id : en;
         if(localStorageService.get('user')){
             window.location.assign("dashboard");
         }
