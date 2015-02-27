@@ -37,10 +37,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
          });
 
+         $scope.datauser  = localStorageService.get('user');
          $scope.language = $scope.infomerchant['pos_language'] == 'id' ? id : en;
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data) {
-            if (data.code != 0 && !$scope.datauser) {
+            if (data.code != 0 || !$scope.datauser) {
                 //init object
                 $scope.login  = {};
                 $scope.signin = {};
@@ -74,7 +75,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location) {
         //init
-        $scope.language = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
         $scope.cart               = [];
         $scope.product            = [];
         $scope.productidenabled   = [];
@@ -82,15 +82,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.datadisplay        = {};
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
-        $scope.cheader            = $scope.language.pilihcarapembayaran;
-        $scope.gesek              = $scope.language.gesekkartusekarang;
+
       
         //check session
         serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
-            if(data.code != 0 && !$scope.datauser){
+            if(data.code != 0 || !$scope.datauser){
                 window.location.assign("signin");
             }else{
-
+                $scope.language           = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
+                $scope.cheader            = $scope.language.pilihcarapembayaran;
+                $scope.gesek              = $scope.language.gesekkartusekarang;
                 $scope.vat_included       = $scope.datauser['merchant']['vat_included'];
                 //show modal product detail
                 $scope.showdetailFn = function(id,act,attr1){
