@@ -3211,6 +3211,8 @@ class CashierAPIController extends ControllerAPI
     public function getPosQuickProduct()
     {
         try {
+            $retailer = $this->getRetailerInfo();
+            
             $httpCode = 200;
 
             // Require authentication
@@ -3254,7 +3256,8 @@ class CashierAPIController extends ControllerAPI
             // Builder object
             $posQuickProducts = \PosQuickProduct::joinRetailer()
                                                ->excludeDeleted('pos_quick_products')
-                                               ->with('product');
+                                               ->with('product')
+                                               ->where('product_retailer.retailer_id',$retailer->merchant_id);
 
             // Filter by ids
             OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
