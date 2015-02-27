@@ -43,6 +43,15 @@ class CountryAPIController extends ControllerAPI
                     $maxRecord = 20;
                 }
             }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.country.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
 
             // Builder object
             $countries = Country::with(array());
@@ -67,12 +76,16 @@ class CountryAPIController extends ControllerAPI
             $_countries = clone $countries;
 
             // Get the take args
-            $take = $maxRecord;
+            $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord || (int)$_take === 0) {
+                if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $countries->take($take);
 
@@ -117,7 +130,7 @@ class CountryAPIController extends ControllerAPI
 
             if ($totalCountry === 0) {
                 $data->records = null;
-                $this->response->message = Lang::get('statuses.orbit.nodata.personalinterest');
+                $this->response->message = Lang::get('statuses.orbit.nodata.country');
             }
 
             $this->response->data = $data;
