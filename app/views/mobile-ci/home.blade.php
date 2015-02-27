@@ -158,50 +158,50 @@
                 @if($events->event_type == 'link')
                   @if($events->link_object_type == 'product')
                     @if(! empty($events->image)) 
-                    <a href="{{ url('customer/product?id='.$events->link_object_id1) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset($events->image) }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @else
-                    <a href="{{ url('customer/product?id='.$events->link_object_id1) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @endif
                   @elseif($events->link_object_type == 'family')
                     @if(! empty($events->image))
-                    <a href="{{ url('customer/category?'.$event_family_url_param) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/category?'.$event_family_url_param) }}">
                       <img class="img-responsive" src="{{ asset($events->image) }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/category?'.$event_family_url_param) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/category?'.$event_family_url_param) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @else
-                    <a href="{{ url('customer/category?'.$event_family_url_param) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/category?'.$event_family_url_param) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/category?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/category?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @endif
                   @elseif($events->link_object_type == 'promotion')
                     @if(! empty($events->image)) 
-                    <a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset($events->image) }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @else
-                    <a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
-                    <b><a href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ $events->description }}
                     @endif
                   @endif
@@ -269,16 +269,21 @@
           $('#noModalText').text('{{ Lang::get('mobileci.modals.message_no_promotion') }}');
           $('#noModal').modal();
         });
-        $('a').click(function (event){ 
-            var c = $(this).attr('href');
-             event.preventDefault(); 
-             $.ajax({
-                url: c
-                ,success: function(response) {
-                    window.location.assign(c)
-                }
-             })
-             return false; //for good measure
+        $('#promoModal a').click(function (event){ 
+            var link = $(this).attr('href');
+            var eventdata = $(this).data('event');
+
+            event.preventDefault(); 
+            $.ajax({
+              data: {
+                eventdata: eventdata
+              },
+              method: 'POST',
+              url:apiPath+'customer/eventpopupactivity'
+            }).always(function(data){
+              window.location.assign(link);
+            });
+            return false; //for good measure
         });
         $("#slider1").responsiveSlides({
           auto: true,
