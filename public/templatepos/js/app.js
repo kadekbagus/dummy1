@@ -36,40 +36,32 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.infomerchant = response.data;
                 }
          });
-
-         $scope.datauser  = localStorageService.get('user');
-         $scope.language = $scope.infomerchant['pos_language'] == 'id' ? id : en;
-        //check session
-        serviceAjax.getDataFromServer('/session',$scope.login).then(function(data) {
-            if (data.code != 0 || !$scope.datauser) {
-                //init object
-                $scope.login  = {};
-                $scope.signin = {};
-
-                $scope.signin.alerts = [{ text: $scope.language.loginerror,active: false} ];
-                $scope.signin.alertDismisser = function(index) {
-                    $scope.signin.alerts[index].active = false;
-                };
-
-                $scope.loginFn = function(){
-                    $scope.showloader = true;
-                    if(progressJs) progressJs().start().autoIncrease(4, 500);
-                    serviceAjax.posDataToServer('/pos/logincashier',$scope.login).then(function(data){
-                        if(data.code == 0){
-                            $scope.shownall = false;
-                            localStorageService.add('user',data.data);
-                            window.location.assign("dashboard");
-                        }else{
-                            $scope.signin.alerts[0].active = true;
-                        }
-                        $scope.showloader = false;
-                        if(progressJs) progressJs().end();
-                    });
-                };
-            }else{
-                window.location.assign("dashboard");
-            }
-        });
+        $scope.language = $scope.infomerchant['pos_language'] == 'id' ? id : en;
+        if(localStorageService.get('user')){
+            window.location.assign("dashboard");
+        }
+        //init object
+        $scope.login  = {};
+        $scope.signin = {};
+        $scope.signin.alerts = [{ text: $scope.language.loginerror,active: false} ];
+        $scope.signin.alertDismisser = function(index) {
+            $scope.signin.alerts[index].active = false;
+        };
+        $scope.loginFn = function(){
+            $scope.showloader = true;
+            if(progressJs) progressJs().start().autoIncrease(4, 500);
+            serviceAjax.posDataToServer('/pos/logincashier',$scope.login).then(function(data){
+                if(data.code == 0){
+                    $scope.shownall = false;
+                    localStorageService.add('user',data.data);
+                    window.location.assign("dashboard");
+                }else{
+                    $scope.signin.alerts[0].active = true;
+                }
+                $scope.showloader = false;
+                if(progressJs) progressJs().end();
+            });
+        };
 
     }]);
 
@@ -83,18 +75,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
 
-      
-        //check session
-        serviceAjax.getDataFromServer('/session',$scope.login).then(function(data){
-            if(data.code != 0 || !$scope.datauser){
-                window.location.assign("signin");
-            }else{
-                $scope.language           = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
-                $scope.cheader            = $scope.language.pilihcarapembayaran;
-                $scope.gesek              = $scope.language.gesekkartusekarang;
-                $scope.vat_included       = $scope.datauser['merchant']['vat_included'];
+
+
+        if(!$scope.datauser){
+             window.location.assign("signin");
+        }else{
+             $scope.language           = $scope.datauser['merchant']['pos_language'] == 'id' ? id : en;
+             $scope.cheader            = $scope.language.pilihcarapembayaran;
+             $scope.gesek              = $scope.language.gesekkartusekarang;
+             $scope.vat_included       = $scope.datauser['merchant']['vat_included'];
                 //show modal product detail
-                $scope.showdetailFn = function(id,act,attr1){
+             $scope.showdetailFn = function(id,act,attr1){
                     //set loading
                     if(attr1 != null) angular.element('#myModal').modal('show');
                     $scope.loadproductdetail = true;
@@ -104,16 +95,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.getpromotion(id,act,attr1);
                     $scope.hiddenbtn = act ? true : false;
                 };
-                //canceler request
-                $scope.cancelRequestService = function(){
+             //canceler request
+             $scope.cancelRequestService = function(){
                     serviceAjax.cancelRequest();
                 };
-                //get unix guestid
-                ($scope.getguest = function(){
+             //get unix guestid
+             ($scope.getguest = function(){
                     $scope.guests = 'Guest-'+moment().format('DD-MM-YYYY-HH-mm-ss');
                 })();
-                //function -+ wish list
-                $scope.qaFn = function(id,action){
+             //function -+ wish list
+             $scope.qaFn = function(id,action){
                     var fndelete = function(){
                         if($scope.product[$scope.cart[id]['idx']]) $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
                         $scope.adddelenadis($scope.cart[id]['product_id'],'del');
@@ -141,16 +132,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                     $scope.countcart();
                 };
-                //watch qty promotion
-                $scope.watchqtypromotion = function(id){
+             //watch qty promotion
+             $scope.watchqtypromotion = function(id){
                     if($scope.cart[id]['promotion'].length){
                         for(var i = 0; i < $scope.cart[id]['promotion'].length;i++){
                             $scope.cart[id]['promotion'][i]['afterpromotionprice'] = accounting.formatMoney($scope.cart[id]['promotion'][i]['tmpafterpromotionprice'] * $scope.cart[id]['qty'], "", 0, ",", ".");
                         }
                     }
                 };
-                //get product
-                $scope.getproduct = function(){
+             //get product
+             $scope.getproduct = function(){
                     serviceAjax.getDataFromServer('/pos/quickproduct').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
@@ -166,8 +157,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 };
-                //watch search
-                $scope.$watch("searchproduct", function(newvalue){
+             //watch search
+             $scope.$watch("searchproduct", function(newvalue){
                     $scope.productnotfound = false;
                     if(newvalue){
                         if(newvalue && newvalue.length > 2) {
@@ -194,8 +185,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.getproduct();
                     }
                 });
-                //get product based promotion TODO:
-                $scope.getpromotion = function(productid,act,attr1){
+             //get product based promotion TODO:
+             $scope.getpromotion = function(productid,act,attr1){
                     $scope.datapromotion = [];
                    if(productid) serviceAjax.posDataToServer('/pos/productdetail', {product_id :productid}).then(function (response) {
                         if (response.code == 0 ) {
@@ -306,16 +297,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     })
                 };
-                //get  cart based promotion
-                ($scope.getcartpromotion = function(){
+             //get  cart based promotion
+             ($scope.getcartpromotion = function(){
                     serviceAjax.posDataToServer('/pos/cartbasedpromotion').then(function (response) {
                         if (response.code == 0 ) {
                             $scope.cartpromotions = response.data;
                         }
                     })
                 })();
-                // when choose last the attribute
-                $scope.changeattr = function(id,idx){
+             // when choose last the attribute
+             $scope.changeattr = function(id,idx){
                     $scope.showprice = false;
                     for(var i = id+1; i < $scope.chooseattr.length; i++ ){
                        $scope.chooseattr[i] = '';
@@ -354,12 +345,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
 
                 };
-                //reset search
-                $scope.resetsearch = function(){
+             //reset search
+             $scope.resetsearch = function(){
                     $scope.searchproduct = '';
                 };
-                //function count cart
-                $scope.countcart = function(){
+             //function count cart
+             $scope.countcart = function(){
                     if($scope.cart.length > 0){
 
                         $scope.cart.totalitem  = 0;
@@ -634,8 +625,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     }
                 };
-                //insert to cart
-                $scope.inserttocartFn = function(bool){
+             //insert to cart
+             $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
                         if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
 
@@ -679,8 +670,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.countcart();
                     }
                 };
-                //enabled disabled
-                $scope.enadis = function(){
+             //enabled disabled
+             $scope.enadis = function(){
                     for(var i = 0; i < $scope.product.length;i++){
                         for(var a = 0; a < $scope.productidenabled.length; a++){
                             if($scope.product[i]['product_id'] == $scope.productidenabled[a] ){
@@ -689,8 +680,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     }
                 };
-                //delete array product id enable
-                $scope.adddelenadis = function(id,act){
+             //delete array product id enable
+             $scope.adddelenadis = function(id,act){
                     var check = false;
                     for(var a = 0; a < $scope.productidenabled.length; a++){
                         if(id == $scope.productidenabled[a] ){
@@ -706,8 +697,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.enadis();
                     }
                 };
-                //checkcart
-                $scope.checkcart = function(product){
+             //checkcart
+             $scope.checkcart = function(product){
                     var check = true;
                     for(var i = 0; i < $scope.cart.length; i++){
                         if($scope.cart[i]['variants'] == '' || $scope.cart[i]['variants'] == undefined || product['variants'].length == 1){
@@ -726,8 +717,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                     return check;
                 };
-                //delete cart && new cart
-                $scope.newdeletecartFn = function(act){
+             //delete cart && new cart
+             $scope.newdeletecartFn = function(act){
                     $scope.successscant         = false;
                     $scope.productidenabled     = [];
                     $scope.cart                 = [];
@@ -739,8 +730,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if(act) $scope.getguest();
                     $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
                 };
-                //checkout
-                $scope.checkoutFn = function(act,term){
+             //checkout
+             $scope.checkoutFn = function(act,term){
                     $scope.cardfile  = true;
                     switch(act){
                         case 't':
@@ -787,8 +778,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             break;
                     }
                 };
-                //save transaction
-                $scope.savetransactions = function(){
+             //save transaction
+             $scope.savetransactions = function(){
                     $scope.sendcart = {
                         total_item     : accounting.unformat($scope.cart.totalitem),
                         subtotal       : accounting.unformat($scope.cart.subtotal),
@@ -820,8 +811,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 };
-                //Ticket Print
-                $scope.ticketprint = function(){
+             //Ticket Print
+             $scope.ticketprint = function(){
                     if($scope.transaction_id){
                         serviceAjax.posDataToServer('/pos/ticketprint',{transaction_id : $scope.transaction_id}).then(function(response){
                             if(response.code == 0){
@@ -834,8 +825,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         //do something
                     }
                 };
-                //watch amount on page cash
-                $scope.$watch("cart.amount", function(newvalue,oldvalue){
+             //watch amount on page cash
+             $scope.$watch("cart.amount", function(newvalue,oldvalue){
                     if(newvalue) {
                         oldvalue = accounting.unformat(oldvalue);
                         newvalue = accounting.unformat(newvalue);
@@ -848,21 +839,21 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     }
                 });
-                //go to main
-                $scope.gotomain = function(){
+             //go to main
+             $scope.gotomain = function(){
                     $scope.resetpayment();
                     $scope.cheader = 'PILIH CARA PEMBAYARAN';
                     $scope.action  = 'main';
                 };
-                //reset payment
-                $scope.resetpayment  = function(){
+             //reset payment
+             $scope.resetpayment  = function(){
                     $scope.change         = 0;
                     $scope.cart['amount'] = '';
                     $scope.cart['change'] = '';
                     $scope.changetf       = false;
                 };
-                //scan product only run on linux
-                ($scope.scanproduct = function(){
+             //scan product only run on linux
+             ($scope.scanproduct = function(){
                     serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
@@ -876,8 +867,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 })();
-                //binding keypad scant
-                $scope.keypadscantFn = function(idx){
+             //binding keypad scant
+             $scope.keypadscantFn = function(idx){
                     if(idx == 'c'){
                         $scope.manualscancart    = '';
                         $scope.isvirtualscancart = false;
@@ -889,8 +880,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.manualscancart =  $scope.manualscancart+idx;
                     }
                 };
-                //binding keypad cash
-                $scope.keypadFn = function(idx){
+             //binding keypad cash
+             $scope.keypadFn = function(idx){
                     if(idx == 'c'){
                         $scope.cart.amount = '';
                         $scope.cart.change = '';
@@ -902,8 +893,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.cart.amount =  $scope.cart.amount == 0 ? idx : $scope.cart.amount+idx;
                     }
                 };
-                //binding keypad qty
-                $scope.keypaqtydFn = function(idx){
+             //binding keypad qty
+             $scope.keypaqtydFn = function(idx){
                     if(idx == 'c'){
                         $scope.cart[$scope.indexactiveqty]['qty'] = 0;
                     }else if(idx =='d'){
@@ -921,12 +912,12 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }
                     $scope.countcart();
                 };
-                //show virtual
-                $scope.virtualFn = function(bool){
+             //show virtual
+             $scope.virtualFn = function(bool){
                     $scope.isvirtual = bool;
                 };
-                //show virtual qty
-                $scope.virtualqtyFn = function(bool,idx){
+             //show virtual qty
+             $scope.virtualqtyFn = function(bool,idx){
                     $scope.isvirtualqty = bool;
                     if(!bool) {
                         $scope.cart[$scope.indexactiveqty]['qty'] = $scope.cart[$scope.indexactiveqty]['qty'] == 0 ? 1 : $scope.cart[$scope.indexactiveqty]['qty'];
@@ -935,13 +926,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.isqty  = true;
                     $scope.countcart();
                 };
-                //show virtual scant cart manual
-                $scope.virtualscancartFn = function(bool){
+             //show virtual scant cart manual
+             $scope.virtualscancartFn = function(bool){
                     $scope.isvirtualscancart = bool;
                     $scope.btnsearch = true;
                 };
-                //customer display
-                $scope.customerdispaly = function(line1,line2){
+             //customer display
+             $scope.customerdispaly = function(line1,line2){
                     $scope.datadisplay.line1 = line1.substr(0,20);
                     $scope.datadisplay.line2 = line2;
                     serviceAjax.posDataToServer('/pos/customerdisplay',$scope.datadisplay).then(function(response){
@@ -952,10 +943,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 };
-                //init customer display
-                $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
-                //scan cart automatic and manually
-                $scope.scancartFn = function(bool){
+             //init customer display
+             $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
+             //scan cart automatic and manually
+             $scope.scancartFn = function(bool){
                    $scope.cancelRequestService();
                     $scope.cartcoupon = [];
                     var data = {
@@ -1057,8 +1048,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             }
                     });
                 };
-            }
-        });
+        }
+
 
         //cancel cart
         $scope.cancelCart = function(){
