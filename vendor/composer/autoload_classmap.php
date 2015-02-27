@@ -31,6 +31,7 @@ return array(
     'AlterRolesAddRoleOrderColumn' => $baseDir . '/app/database/migrations/2014_10_23_111801_alter_roles_add_role_order_column.php',
     'AlterSettingsAddStatusField' => $baseDir . '/app/database/migrations/2015_02_23_033835_alter_settings_add_status_field.php',
     'AlterTableActivitiesAddActivityNameLong' => $baseDir . '/app/database/migrations/2015_01_26_065737_alter_table_activities_add_activity_name_long.php',
+    'AlterTableActivitiesAddGenderAndCashierName' => $baseDir . '/app/database/migrations/2015_02_27_100024_alter_table_activities_add_gender_and_cashier_name.php',
     'AlterTableActivitiesAddHttpMethodPostDataUrl' => $baseDir . '/app/database/migrations/2015_02_10_023215_alter_table_activities_add_http_method_post_data_url.php',
     'AlterTableActivitiesAddModuleName' => $baseDir . '/app/database/migrations/2015_02_27_093101_alter_table_activities_add_module_name.php',
     'AlterTableActivitiesAddParentId' => $baseDir . '/app/database/migrations/2015_02_13_112353_alter_table_activities_add_parent_id.php',
