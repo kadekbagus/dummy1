@@ -4098,6 +4098,43 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function postEventPopUpActivity()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('view');
+        $user = null;
+        $event_id = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+            
+            $event_id = OrbitInput::post('eventdata');
+            $event = EventModel::excludeDeleted()->where('event_id', $event_id)->first();
+
+            $activityNotes = sprintf('Event Click. Event Id : %s', $event_id);
+            $activity->setUser($user)
+                    ->setActivityName('event_click')
+                    ->setActivityNameLong('Event Click')
+                    ->setObject($event)
+                    ->setNotes($activityNotes)
+                    ->responseOK()
+                    ->save();
+        } catch (Exception $e) {
+            $this->rollback();
+            $activityNotes = sprintf('Event Click Failed. Event Id : %s', $event_id);
+            $activity->setUser($user)
+                    ->setActivityName('event_click')
+                    ->setActivityNameLong('Event Click Failed')
+                    ->setObject(null)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed()
+                    ->save();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
     protected function registerCustomValidation()
     {
         // Check user email address, it should not exists
