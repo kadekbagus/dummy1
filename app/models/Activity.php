@@ -376,6 +376,14 @@ class Activity extends Eloquent
     }
 
     /**
+     * An activity could belongs to an Event
+     */
+    public function event()
+    {
+        return $this->belongsToObject('Event', 'object_id', 'event_id');
+    }
+
+    /**
      * Activity has many children.
      *
      */
