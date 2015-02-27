@@ -313,7 +313,7 @@ class Activity extends Eloquent
         if (is_object($object)) {
             $primaryKey = $object->getKeyName();
             $this->product_id = $object->$primaryKey;
-            $this->product_name = $object->
+            $this->product_name = $object->product_name;
 
             $this->metadata_object = $object->toJSON();
         }
