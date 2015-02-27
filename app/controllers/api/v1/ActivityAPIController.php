@@ -28,12 +28,17 @@ class ActivityAPIController extends ControllerAPI
      * @param array     `groups`                (optional) - Name of the group, e.g: 'portal', 'mobile-ci', 'pos'
      * @param array     `role_ids`              (optional) - IDs of user role
      * @param array     `object_ids`            (optional) - IDs of the object, could be the IDs of promotion, coupon, etc
-     * @param array     `object_names`          (optional) - Name of the object, could be 'promotion', 'coupon', etc
+     * @param array     `object_names`          (optional) - Name of the object
+     * @param array     `product_names`         (optional) - Name of the product
+     * @param array     `coupon_names`          (optional) - Name of the coupon
+     * @param array     `promotion_names`       (optional) - Name of the promotion
+     * @param array     `event_names`           (optional) - Name of the event
      * @param array     `retailer_ids`          (optional) - IDs of retailer
      * @param array     `merchant_ids`          (optional) - IDs of merchant
      * @param array     `ip_address`            (optional) - List of IP Address
      * @param string    `ip_address_like`       (optional) - Pattern of the IP address. e.g: '192.168' or '220.'
      * @param string    `user_agent_like`       (optional) - User agent like
+     * @param string    `fullname_like`         (optional) - Full name like
      * @param array     `staff_ids`             (optional) - User IDs of Cashier
      * @param array     `response_statuses`     (optional) - Response status, e.g: 'OK' or 'Failed'
      * @param string    `sort_by`               (optional) - column order by, e.g: 'id', 'created', 'activity_name', 'ip_address'
@@ -86,7 +91,7 @@ class ActivityAPIController extends ControllerAPI
                     'end_date'      => $end_date
                 ),
                 array(
-                    'sort_by'       => 'in:id,created,activity_name,activity_type,ip_address',
+                    'sort_by'       => 'in:id,ip_address,created,registered_at,email,full_name,object_name,product_name,coupon_name,promotion_name,event_name,action_name,action_name_long,activity_type,gender,staff_name',
                     'merchant_ids'  => 'orbit.check.merchants',
                     'start_date'    => 'date_format:Y-m-d|before:' . $tomorrow,
                     'end_date'      => 'date_format:Y-m-d|before:' . $tomorrow,
@@ -195,6 +200,22 @@ class ActivityAPIController extends ControllerAPI
                 $activities->whereIn('activities.object_name', $names);
             });
 
+            OrbitInput::get('product_names', function($names) use ($activities) {
+                $activities->whereIn('activities.product_name', $names);
+            });
+
+            OrbitInput::get('promotion_names', function($names) use ($activities) {
+                $activities->whereIn('activities.promotion_name', $names);
+            });
+
+            OrbitInput::get('coupon_names', function($names) use ($activities) {
+                $activities->whereIn('activities.coupon_name', $names);
+            });
+
+            OrbitInput::get('event_names', function($names) use ($activities) {
+                $activities->whereIn('activities.event_name', $names);
+            });
+
             // Filter by staff Ids
             OrbitInput::get('staff_ids', function($staff) use ($activities) {
                 $activities->whereIn('activities.staff_id', $staff);
@@ -203,6 +224,19 @@ class ActivityAPIController extends ControllerAPI
             // Filter by status
             OrbitInput::get('status', function ($status) use ($activities) {
                 $activities->whereIn('activities.status', $status);
+            });
+
+            // Filter by status
+            OrbitInput::get('ip_address_like', function ($ip) use ($activities) {
+                $activities->where('activities.ip_address', 'like', "%{$ip}%");
+            });
+
+            OrbitInput::get('user_agent_like', function ($ua) use ($activities) {
+                $activities->where('activities.user_agent', 'like', "%{$ua}%");
+            });
+
+            OrbitInput::get('full_name_like', function ($name) use ($activities) {
+                $activities->where('activities.full_name', 'like', "%{$name}%");
             });
 
             if (! empty($_GET['response_statuses'])) {
@@ -283,13 +317,27 @@ class ActivityAPIController extends ControllerAPI
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'id'            => 'activities.activity_id',
-                    'ip_address'    => 'activities.ip_address',
-                    'created'       => 'activities.created_at',
-                    'registered_at' => 'activities.created_at',
+                    'id'                => 'activities.activity_id',
+                    'ip_address'        => 'activities.ip_address',
+                    'created'           => 'activities.created_at',
+                    'registered_at'     => 'activities.created_at',
+                    'email'             => 'activities.user_email',
+                    'full_name'         => 'activities.full_name',
+                    'object_name'       => 'activities.object_name',
+                    'product_name'      => 'activities.product_name',
+                    'coupon_name'       => 'activities.coupon_name',
+                    'promotion_name'    => 'activities.promotion_name',
+                    'event_name'        => 'activities.event_name',
+                    'action_name'       => 'activities.action_name',
+                    'action_name_long'  => 'activities.action_name_long',
+                    'activity_type'     => 'activities.activity_type',
+                    'staff_name'        => 'activities.staff_name',
+                    'gender'            => 'activities.gender',
                 );
 
-                $sortBy = $sortByMapping[$_sortBy];
+                if (array_key_exists($_sortBy, $sortByMapping)) {
+                    $sortBy = $sortByMapping[$_sortBy];
+                }
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
