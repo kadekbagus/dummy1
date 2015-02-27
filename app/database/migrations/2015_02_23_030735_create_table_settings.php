@@ -18,13 +18,12 @@ class CreateTableSettings extends Migration
             $table->string('setting_name', 100);
             $table->text('seting_value');
             $table->bigInteger('object_id')->nullable()->default(0);
-            $table->string('object_type')->nullable()->default(NULL);
+            $table->string('object_type', 100)->nullable()->default(NULL);
             $table->timestamps();
 
             $table->index(array('setting_name'), 'setting_name_idx');
             $table->index(array('object_id'), 'objectid_idx');
             $table->index(array('object_type'), 'object_type_idx');
-            $table->index(array('setting_name', 'object_id', 'object_type'), 'objectid_type_settingname_idx');
         });
     }
 
