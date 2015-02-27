@@ -257,12 +257,12 @@ class CashierAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            // // Require authentication
-            // $this->checkAuth();
+            // Require authentication
+            $this->checkAuth();
 
             // // Try to check access control list, does this product allowed to
             // // perform this action
-            // $user = $this->api->user;
+            $user = $this->api->user;
 
             // // $this->registerCustomValidation();
             // $retailer = $this->getRetailerInfo();
@@ -458,7 +458,7 @@ class CashierAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted();
+                        })->where('merchant_id', $retailer->parent_id)->where('status', 'active');
 
 
             // Filter product by name pattern
@@ -517,9 +517,21 @@ class CashierAPIController extends ControllerAPI
                 }
             });
             $products->orderBy($sortBy, $sortMode);
+
+            $totalRec = RecordCounter::create($_products)->count();
             $listOfProduct = $products->get();
 
-            $this->response->data = $listOfProduct;
+            $data = new \stdClass();
+            $data->total_records = $totalRec;
+            $data->returned_records = count($listOfProduct);
+            $data->records = $listOfProduct;
+
+            if ($totalRec === 0) {
+                $data->records = null;
+                $this->response->message = \Lang::get('statuses.orbit.nodata.product');
+            }
+
+            $this->response->data = $data;
 
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -555,10 +567,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
-        // $this->response->code = 0;
-        // $this->response->status = 'succes';
-        // $this->response->message = 'succes';
-        // $httpCode =200;
+
         $output = $this->render($httpCode);
         return $output;
     }
