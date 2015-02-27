@@ -2927,7 +2927,7 @@ class MobileCIAPIController extends ControllerAPI
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
             $activityPage->setUser($user)
                             ->setActivityName('view_page_online_payment')
-                            ->setActivityNameLong('View (Online Payment Page) Failed')
+                            ->setActivityNameLong('View () Failed')
                             ->setObject(null)
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
@@ -4294,6 +4294,9 @@ class MobileCIAPIController extends ControllerAPI
         if (! is_object($this->session)) {
             // This user assumed are Consumer, which has been checked at login process
             $config = new SessionConfig(Config::get('orbit.session'));
+            $config->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
+            $config->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
+            $config->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
             $this->session = new Session($config);
             $this->session->start();
         }

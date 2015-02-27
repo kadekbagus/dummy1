@@ -293,7 +293,7 @@ class PermissionRoleTableSeeder extends Seeder
                     'create'    => 'yes',
                     'view'      => 'yes',
                     'update'    => 'yes',
-                    'delete'    => 'no'
+                    'delete'    => 'yes'
                 ],
                 // 6
                 'category'  => [
@@ -899,6 +899,7 @@ class PermissionRoleTableSeeder extends Seeder
         }
 
         $this->command->info('Seeding permission_role table...');
+        DB::table('permission_role')->truncate();
         foreach ($permissionRoles as $rolePerm=>$permissionRole) {
             PermissionRole::unguard();
             PermissionRole::create($permissionRole);

@@ -10,7 +10,7 @@
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
                      <% $parent.datauser.user.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
-                        <li> <a href="#" data-ng-click="logoutfn()">Keluar</a></li>
+                        <li> <a href="#" data-ng-click="logoutfn()"><% language.keluar %></a></li>
                       </ul>
                 </div>
                 <p  style="float: right; padding-top: 40px;color:#030000" ><% guests %> | <% $parent.datetime %></p>
@@ -83,7 +83,7 @@
 
                         </tbody>
                             <tr data-ng-if="tmpsubtotal">
-                                <td colspan="2"><b>Subtotal</b></td>
+                                <td colspan="2"><b><% language.subtotal %></b></td>
                                 <td class="text-right"></td>
                                 <td class="text-right"><b><% tmpsubtotal %></b></td>
                             </tr>
@@ -166,7 +166,7 @@
                           <div class="col-md-12"><h4 class="text-center"><% language.katalogproduk %></h4><br>
                               <div class="input-group" id="loadingsearch">
                                    <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
-                                        <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="Cari Produk">
+                                        <input type="text" class="form-control"  data-ng-model="searchproduct" id="exampleInputEmail2" placeholder="<% language.cariproduk %>">
                                    <div class="input-group-addon" style="background-color : #D60000; border: none;cursor:pointer" data-ng-click="resetsearch()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></div>
                               </div>
                            </div>
@@ -465,15 +465,15 @@
              <button class="btn  close closemodal" data-ng-if="action != 'done' && cardfile" data-dismiss="modal" data-ng-click="gotomain()"type="button">
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
              </button>
-            <h4 class="modal-title text-center" id="myModalLabel"><b data-ng-init="cheader = 'PILIH CARA PEMBAYARAN'"> <% cheader %></b></h4>
+            <h4 class="modal-title text-center" id="myModalLabel"><b> <% cheader %></b></h4>
           </div>
           <div class="modal-body text-center">
 
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')"><% language.tunai %></button></p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 1')"><% language.terminal1 %></button> </p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 2')"><% language.terminal2 %></button> </p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k','Terminal 3')"><% language.terminal3 %></button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal1)"><% language.terminal1 %></button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal2)"><% language.terminal2 %></button> </p>
+                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal3)"><% language.terminal3 %></button> </p>
                           <p data-ng-show="!holdbtn"><% language.terminalbelumdisiapkan %></p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">
@@ -489,7 +489,7 @@
                                          </div>
                                          <div class="form-group text-left">
                                              <label for="exampleInputEmail1"><% language.kembalian %></label>
-                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="Kembalian">
+                                             <input type="text" class="form-control text-right" id="exampleInputEmail1" style="cursor: default;color:#030000" disabled data-ng-model="cart.change" placeholder="<% language.kembalian %>">
                                           </div>
                                </div>
                                <div data-ng-show="isvirtual"  class="numpad">
@@ -519,7 +519,7 @@
 
                     <div class="row">
                             <div class="col-md-12">
-                              <span  class="text-center"><% cardfile ? headrcard+' failed':'Gesek Kartu Sekarang' %> </span>
+                              <span  class="text-center"><% cardfile ? headrcard+' '+language.gagal : gesek %> </span>
                             </div>
                             <div class="col-md-12">
                              <img data-ng-show="!cardfile" src='{{ URL::asset('templatepos/images/swipe.gif') }}' style='width:300px;height:300px'>

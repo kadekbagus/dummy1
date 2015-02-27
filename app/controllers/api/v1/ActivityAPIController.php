@@ -40,6 +40,8 @@ class ActivityAPIController extends ControllerAPI
      * @param string    `sort_mode`             (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
+     * @param date      `start_date`            (optional) - Filter by start date
+     * @param date      `end_date`              (optional) - Filter by end date
      * @return Illuminate\Support\Facades\Response
      */
     public function getSearchActivity()
@@ -72,14 +74,22 @@ class ActivityAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $sort_by = OrbitInput::get('sortby');
+            $start_date = OrbitInput::get('start_date');
+            $end_date = OrbitInput::get('end_date');
+
+            $tomorrow = date('Y-m-d', strtotime('tomorrow'));
             $validator = Validator::make(
                 array(
                     'sort_by'       => $sort_by,
-                    'merchant_ids'  => OrbitInput::get('merchant_ids')
+                    'merchant_ids'  => OrbitInput::get('merchant_ids'),
+                    'start_date'     => $start_date,
+                    'end_date'      => $end_date
                 ),
                 array(
                     'sort_by'       => 'in:id,created,activity_name,activity_type,ip_address',
-                    'merchant_ids'  => 'orbit.check.merchants'
+                    'merchant_ids'  => 'orbit.check.merchants',
+                    'start_date'    => 'date_format:Y-m-d|before:' . $tomorrow,
+                    'end_date'      => 'date_format:Y-m-d|before:' . $tomorrow,
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.attribute_sortby'),
@@ -104,9 +114,18 @@ class ActivityAPIController extends ControllerAPI
                     $maxRecord = 20;
                 }
             }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.activity.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
 
             // Builder object
-            $with = array('user', 'retailer', 'promotion', 'coupon', 'product', 'productVariant', 'children');
+            $with = array('user', 'retailer', 'promotion', 'coupon', 'product', 'productVariant', 'children', 'staff');
             // Include other relationship
             OrbitInput::get('with', function($_with) use (&$with) {
                 $with = array_merge($with, $_with);
@@ -124,9 +143,13 @@ class ActivityAPIController extends ControllerAPI
             });
 
             // Filter by activity name
-            OrbitInput::get('activity_names', function($names) use ($activities) {
-                $activities->whereIn('activities.activity_name', $names);
-            });
+            if (! empty($_GET['activity_names'])) {
+                OrbitInput::get('activity_names', function($names) use ($activities) {
+                    $activities->whereIn('activities.activity_name', $names);
+                });
+            } else {
+                $activities->whereNotNull('activities.activity_name');
+            }
 
             // Filter by activity name long
             OrbitInput::get('activity_name_longs', function($nameLongs) use ($activities) {
@@ -143,20 +166,19 @@ class ActivityAPIController extends ControllerAPI
                 $activities->whereIn('activities.location_id', $retailerIds);
             });
 
-            // Filter by user ids
-            OrbitInput::get('user_ids', function($userIds) use ($activities) {
-                $activities->whereIn('activities.user_id', $userIds);
-            });
-
             // Filter by user emails
             OrbitInput::get('user_emails', function($emails) use ($activities) {
                 $activities->whereIn('activities.user_email', $emails);
             });
 
             // Filter by groups
-            OrbitInput::get('groups', function($groups) use ($activities) {
-                $activities->whereIn('activities.group', $groups);
-            });
+            if (! empty($_GET['groups'])) {
+                OrbitInput::get('groups', function($groups) use ($activities) {
+                    $activities->whereIn('activities.group', $groups);
+                });
+            } else {
+                $activities->whereIn('activities.group', ['mobile-ci', 'pos']);
+            }
 
             // Filter by role_ids
             OrbitInput::get('role_ids', function($roleIds) use ($activities) {
@@ -183,22 +205,63 @@ class ActivityAPIController extends ControllerAPI
                 $activities->whereIn('activities.status', $status);
             });
 
-            // Filter user by response status
-            OrbitInput::get('response_statuses', function ($status) use ($activities) {
-                $activities->whereIn('activities.response_status', $status);
+            if (! empty($_GET['response_statuses'])) {
+                // Filter by response status
+                OrbitInput::get('response_statuses', function ($status) use ($activities) {
+                    $activities->whereIn('activities.response_status', $status);
+                });
+            } else {
+                $activities->whereIn('activities.response_status', ['OK']);
+            }
+
+            // Filter by start date
+            OrbitInput::get('start_date', function($_start) use ($activities) {
+                $activities->where('activities.created_at', '>=', $_start);
             });
+
+            // Filter by end date
+            OrbitInput::get('end_date', function($_end) use ($activities, $user) {
+                $activities->where('activities.created_at', '<=', $_end);
+            });
+
+            // Only shows activities which belongs to this merchant
+            if ($user->isSuperAdmin() !== TRUE) {
+                $locationIds = $user->getMyRetailerIds();
+
+                if (empty($locationIds)) {
+                    // Just to make sure it query the wrong one.
+                    $locationIds = [-1];
+                }
+
+                // Filter by user location id
+                $activities->whereIn('activities.location_id', $locationIds);
+            } else {
+                // Filter by user ids, Super Admin could filter all
+                OrbitInput::get('user_ids', function($userIds) use ($activities) {
+                    $activities->whereIn('activities.user_id', $userIds);
+                });
+
+                // Filter by user location id
+                OrbitInput::get('location_ids', function($locationIds) use ($activities) {
+                    $activities->whereIn('activities.location_id', $locationIds);
+                });
+            }
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
             $_activities = clone $activities;
 
             // Get the take args
-            $take = $maxRecord;
+            $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $activities->take($take);
 

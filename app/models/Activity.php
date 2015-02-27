@@ -19,7 +19,7 @@ class Activity extends Eloquent
     const ACTIVITY_REPONSE_OK = 'OK';
     const ACTIVITY_RESPONSE_FAILED = 'Failed';
 
-    protected $hidden = ['http_method', 'request_uri', 'post_data'];
+    protected $hidden = ['http_method', 'request_uri', 'post_data', 'metadata_user', 'metadata_staff', 'metadata_object', 'metadata_location'];
 
     /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
@@ -219,7 +219,7 @@ class Activity extends Eloquent
             $this->role_id = $user->role->role_id;
             $this->role = $user->role->role_name;
 
-            $this->metadata_user = serialize($user->toJSON());
+            $this->metadata_user = $user->toJSON();
         }
 
         if ($user === 'guest' || is_null($user)) {
@@ -245,7 +245,7 @@ class Activity extends Eloquent
             $user->employee;
 
             $this->staff_id = $user->user_id;
-            $this->metadata_staff = serialize($user->toJSON());
+            $this->metadata_staff = $user->toJSON();
         }
 
         return $this;
@@ -267,7 +267,7 @@ class Activity extends Eloquent
 
             $this->location_id = $location->merchant_id;
             $this->location_name = $location->name;
-            $this->metadata_location = serialize($location->toJSON());
+            $this->metadata_location = $location->toJSON();
         }
 
         return $this;
@@ -287,7 +287,7 @@ class Activity extends Eloquent
             $this->object_id = $object->$primaryKey;
             $this->object_name = get_class($object);
 
-            $this->metadata_object = serialize($object->toJSON());
+            $this->metadata_object = $object->toJSON();
         }
 
         return $this;
@@ -373,6 +373,14 @@ class Activity extends Eloquent
     public function coupon()
     {
         return $this->belongsToObject('Coupon', 'object_id', 'promotion_id');
+    }
+
+    /**
+     * An activity could belongs to an Event
+     */
+    public function event()
+    {
+        return $this->belongsToObject('Event', 'object_id', 'event_id');
     }
 
     /**

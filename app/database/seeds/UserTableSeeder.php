@@ -34,6 +34,8 @@ class UserTableSeeder extends Seeder
         ];
 
         $this->command->info('Seeding users, user_details, and apikeys table...');
+        DB::table('users')->truncate();
+        DB::table('user_details')->truncate();
         User::unguard();
         $superAdmin = User::create($superAdminData);
         $this->command->info(sprintf('    Create Super Admin record username: %s.', $superAdminData['username']));
