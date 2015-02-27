@@ -43,7 +43,7 @@ trait UserRoleTrait
     public function scopeMerchantOwners($query)
     {
         return $query->whereHas('role', function($q){
-            $q->where('role_name', '=', 'merchant-owner');
+            $q->where('role_name', '=', 'merchant owner');
         });
     }
 
@@ -227,5 +227,46 @@ trait UserRoleTrait
         }
 
         return $query->where('emplolyees.employee_id_char', 'like', "%$pattern%");
+    }
+
+    /**
+     * Super admin check.
+     *
+     * @Todo: Prevent query.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return boolean
+     */
+    public function isSuperAdmin()
+    {
+        $superAdmin = 'super admin';
+
+        return strtolower($this->role->role_name) === $superAdmin;
+    }
+
+    /**
+     * Get list of retailer ids owned by this user. This is f*cking wrong,
+     * normally I hate doing loop on query.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return array
+     */
+    public function getMyRetailerIds()
+    {
+        $merchants = $this->merchants;
+
+        $merchantIds = [];
+        foreach ($merchants as $merchant) {
+            $merchantIds[] = $merchant->merchant_id;
+        }
+
+        if (empty($merchantIds)) {
+            return [];
+        }
+
+        $retailerIds = DB::table('merchants')->whereIn('parent_id', $merchantIds)
+                       ->lists('merchant_id');
+
+        return $retailerIds;
     }
 }

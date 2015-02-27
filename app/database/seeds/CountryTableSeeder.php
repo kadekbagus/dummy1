@@ -253,6 +253,7 @@ COUNTRY;
         $countries = explode("\n", $sources);
 
         $this->command->info('Seeding countries table...');
+        DB::table('countries')->truncate();
         foreach ($countries as $country) {
             list($code, $name) = explode(';', $country);
 

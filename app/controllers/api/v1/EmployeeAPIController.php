@@ -75,7 +75,7 @@ class EmployeeAPIController extends ControllerAPI
             $firstName = OrbitInput::post('firstname');
             $lastName = OrbitInput::post('lastname');
             $employeeRole = OrbitInput::post('employee_role');
-            $retailerIds = OrbitInput::post('retailer_ids');
+            $retailerIds = OrbitInput::post('retailer_ids', []);
 
             $errorMessage = [
                 'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
@@ -170,6 +170,9 @@ class EmployeeAPIController extends ControllerAPI
             $newEmployee = $newUser->employee()->save($newEmployee);
 
             $newUser->setRelation('employee', $newEmployee);
+
+            $myRetailerIds = $user->getMyRetailerIds();
+            $retailerIds = array_merge($retailerIds, $myRetailerIds);
 
             if ($retailerIds) {
                 $newEmployee->retailers()->sync($retailerIds);
@@ -343,13 +346,14 @@ class EmployeeAPIController extends ControllerAPI
             $position = OrbitInput::post('position');
             $employeeId = OrbitInput::post('employee_id_char');
             $employeeRole = OrbitInput::post('employee_role');
-            $retailerIds = OrbitInput::post('retailer_ids');
+            $retailerIds = OrbitInput::post('retailer_ids', []);
             $status = OrbitInput::post('status');
 
             $errorMessage = [
-                'orbit.empty.employee.role' => Lang::get('validation.orbit.empty.employee.role', array(
+                'orbit.empty.employee.role'         => Lang::get('validation.orbit.empty.employee.role', array(
                     'role' => $employeeRole
-                ))
+                )),
+                'orbit.exists.employeeid_but_me'    => 'The employee ID is not available.'
             ];
             $dateOfBirthLimit = date('Y-m-d', strtotime('yesterday'));
             $validator = Validator::make(
@@ -373,7 +377,8 @@ class EmployeeAPIController extends ControllerAPI
                     'status'                => 'orbit.empty.user_status',
                 ),
                 array(
-                    'orbit.empty.employee.role' => $errorMessage['orbit.empty.employee.role']
+                    'orbit.empty.employee.role'         => $errorMessage['orbit.empty.employee.role'],
+                    'orbit.exists.employeeid_but_me'    => $errorMessage['orbit.exists.employeeid_but_me']
                 )
             );
 
@@ -435,6 +440,9 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             $userDetail->save();
+
+            $myRetailerIds = $user->getMyRetailerIds();
+            $retailerIds = array_merge($retailerIds, $myRetailerIds);
 
             if ($retailerIds) {
                 $employee->retailers()->sync($retailerIds);
@@ -947,9 +955,9 @@ class EmployeeAPIController extends ControllerAPI
             $users->skip($skip);
 
             // Default sort by
-            $sortBy = 'users.created_at';
+            $sortBy = 'users.user_firstname';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy, $users, $joined) {
                 if ($_sortBy === 'employee_id_char' || $_sortBy === 'position') {
@@ -972,8 +980,8 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $users->orderBy($sortBy, $sortMode);

@@ -33,6 +33,7 @@ class MerchantDataSeeder extends Seeder
 
         // ------- MERCHANT USER
         $this->command->info('Seeding merchant and retailer data...');
+        DB::table('merchants')->truncate();
         User::unguard();
 
         $merchantUser = User::create($merchantUserData);

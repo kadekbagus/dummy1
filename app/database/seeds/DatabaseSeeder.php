@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
         $this->call('PermissionRoleTableSeeder');
         $this->call('UserTableSeeder');
         $this->call('MerchantDataSeeder');
+        $this->call('CountryTableSeeder');
+        $this->call('PersonalInterestTableSeeder');
+        $this->call('SettingTableSeeder');
 
         DB::connection()->getPdo()->commit();
     }
