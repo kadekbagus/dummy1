@@ -156,9 +156,12 @@ class ProductAPIController extends ControllerAPI
             }
 
             OrbitInput::post('product_name', function($product_name) use ($updatedproduct, $productHasTransaction) {
-                if ($productHasTransaction) {
-                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                // This is sucks, why we need check it? The frontend should not send it to us!
+                if ((string)$updatedproduct->product_name !== (string)$product_name) {
+                    if ($productHasTransaction) {
+                        $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
                 }
                 $updatedproduct->product_name = $product_name;
             });
@@ -168,17 +171,23 @@ class ProductAPIController extends ControllerAPI
             });
 
             OrbitInput::post('product_code', function($code) use ($updatedproduct, $productHasTransaction) {
-                if ($productHasTransaction) {
-                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                // This is sucks, why we need check it? The frontend should not send it to us!
+                if ((string)$updatedproduct->product_code !== (string)$code) {
+                    if ($productHasTransaction) {
+                        $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
                 }
                 $updatedproduct->product_code = $code;
             });
 
             OrbitInput::post('upc_code', function($code) use ($updatedproduct, $productHasTransaction) {
-                if ($productHasTransaction) {
-                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                // This is sucks, why we need check it? The frontend should not send it to us!
+                if ((string)$updatedproduct->upc_code !== (string)$code) {
+                    if ($productHasTransaction) {
+                        $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
                 }
                 $updatedproduct->upc_code = $code;
             });
@@ -216,18 +225,17 @@ class ProductAPIController extends ControllerAPI
             });
 
             OrbitInput::post('merchant_tax_id1', function($merchant_tax_id1) use ($updatedproduct, $productHasTransaction) {
-                if ($productHasTransaction) {
-                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                // This is sucks, why we need check it? The frontend should not send it to us!
+                if ((string)$merchant_tax_id1 !== (string)$updatedproduct->merchant_tax_id1) {
+                    if ($productHasTransaction) {
+                        $errorMessage = Lang::get('validation.orbit.exists.product.transactionx', ['name' => $updatedproduct->product_name]);
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
                 }
                 $updatedproduct->merchant_tax_id1 = $merchant_tax_id1;
             });
 
             OrbitInput::post('merchant_tax_id2', function($merchant_tax_id2) use ($updatedproduct, $productHasTransaction) {
-                if ($productHasTransaction) {
-                    $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
-                }
                 $updatedproduct->merchant_tax_id2 = $merchant_tax_id2;
             });
 

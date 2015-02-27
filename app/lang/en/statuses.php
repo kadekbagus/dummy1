@@ -41,7 +41,8 @@ return array(
             'attribute'     => 'There is no product attribute found that matches your criteria.',
             'widget'        => 'There is no widget found that matches your criteria.',
             'city'          => 'There is no city found that matched your criteria.',
-            'setting'       => 'There is no setting found that matched your criteria.'
+            'setting'       => 'There is no setting found that matched your criteria.',
+            'country'       => 'There is no country found that matched your criteria.'
         ),
         'uploaded'  => array(
             'merchant' => array(
