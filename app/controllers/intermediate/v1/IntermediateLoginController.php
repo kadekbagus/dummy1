@@ -291,11 +291,13 @@ class IntermediateLoginController extends IntermediateBaseController
                 }
                 throw new Exception ($deRegisterMac['message'], $exitCode);
             }
+            $cookie = \Cookie::forget('event');
+
         } catch (Exception $e) {
         }
 
         // Redirect back to /customer
-        return Redirect::to('/customer');
+        return Redirect::to('/customer')->withCookie($cookie);
     }
 
     /**
