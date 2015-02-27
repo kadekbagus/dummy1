@@ -58,7 +58,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 break;
 
             case 'pos':
-                $activity = Activity::portal()
+                $activity = Activity::pos()
                                     ->setActivityType('logout');
                 break;
 
