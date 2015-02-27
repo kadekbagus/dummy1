@@ -17,6 +17,9 @@ return array(
         'logout'        => 'LOGOUT',
         'payment'       => 'PEMBAYARAN',
         'searching'     => 'PENCARIAN',
+        'new_products'  => 'PRODUK BARU',
+        'promotions'    => 'PROMOSI',
+        'coupons'       => 'KUPON',
     ),
 
     'widgets'           => array(
@@ -148,6 +151,9 @@ return array(
         'dont_forget_message' => 'Jangan lupa kunjungi',
         'promo_message' => 'untuk dapatkan info promo menarik lainya.',
         'shop_again_button' => 'Belanja Lagi',
+        'transfer_cart_successful' => 'Transfer Cart Berhasil!',
+        'transfer_cart_message' => 'transaksi Anda akan diselesaikan oleh kasir',
+        'thank_you_for_shopping' => 'Terima kasih telah berbelanja bersama kami',
     ),
 
     'transfer_cart'         => array(
