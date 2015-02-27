@@ -67,6 +67,7 @@ class MobileCIAPIController extends ControllerAPI
                 $errorMessage = \Lang::get('validation.required', array('attribute' => 'email'));
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+            $retailer = $this->getRetailerInfo();
 
             $user = User::with('apikey', 'userdetail', 'role')
                         ->active()
@@ -85,8 +86,12 @@ class MobileCIAPIController extends ControllerAPI
                 }
                 $user = $response->data;
             }
+            
+            $user_detail = UserDetail::where('user_id', $user->user_id)->first();
+            $user_detail->last_visit_shop_id = $retailer->merchant_id;
+            $user_detail->last_visit_any_shop = Carbon::now();
+            $user_detail->save();
 
-            $retailer = $this->getRetailerInfo();
             $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
             if (is_null($cart)) {
                 $cart = new Cart;
