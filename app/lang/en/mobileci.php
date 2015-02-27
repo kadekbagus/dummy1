@@ -155,4 +155,17 @@ return array(
         'done_button'       => 'Done',
         'back_button'       => 'Back',
     ),
+
+    'payment'               => array(
+        'total_to_pay_label'=> 'Total',
+        'name_label'        => 'Name',
+        'name_placeholder'  => 'Enter your name',
+        'card_type_label'   => 'Card Type',
+        'card_number_label' => 'Card Number',
+        'card_number_placeholder' => 'Enter your card number',
+        'expire_label'      => 'Expired on',
+        'ccv_label'         => 'CCV',
+        'ccv_placeholder'   => 'Enter CCV',
+        'submit_button'     => 'Submit',
+    ),
 );

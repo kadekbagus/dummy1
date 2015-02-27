@@ -156,4 +156,16 @@ return array(
         'back_button'       => 'Kembali',
     ),
     
+    'payment'               => array(
+        'total_to_pay_label'=> 'Total',
+        'name_label'        => 'Nama',
+        'name_placeholder'  => 'Inputkan nama Anda',
+        'card_type_label'   => 'Tipe Kartu Kredit',
+        'card_number_label' => 'Nomor Kartu Kredit',
+        'card_number_placeholder' => 'Inputkan nomor kartu Anda',
+        'expire_label'      => 'Kadaluarsa pada',
+        'ccv_label'         => 'CCV',
+        'ccv_placeholder'   => 'Inputkan CCV',
+        'submit_button'     => 'Submit',
+    ),
 );

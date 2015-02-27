@@ -269,6 +269,17 @@
           $('#noModalText').text('{{ Lang::get('mobileci.modals.message_no_promotion') }}');
           $('#noModal').modal();
         });
+        $('a').click(function (event){ 
+            var c = $(this).attr('href');
+             event.preventDefault(); 
+             $.ajax({
+                url: c
+                ,success: function(response) {
+                    window.location.assign(c)
+                }
+             })
+             return false; //for good measure
+        });
         $("#slider1").responsiveSlides({
           auto: true,
           pager: false,

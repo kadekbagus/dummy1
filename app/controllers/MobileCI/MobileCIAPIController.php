@@ -2896,6 +2896,9 @@ class MobileCIAPIController extends ControllerAPI
 
     public function getPaymentView()
     {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
         try {
             $user = $this->getLoggedInUser();
 
@@ -2903,8 +2906,32 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            return View::make('mobile-ci.payment', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
+            $cartdata = $this->cartCalc($user, $retailer);
+
+            if (! empty($cartitems)) {
+                return View::make('mobile-ci.payment', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            } else {
+                return \Redirect::to('/customer/home');
+            }
+
+            $activityPageNotes = sprintf('Page viewed: %s', 'Online Payment');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_online_payment')
+                            ->setActivityNameLong('View (Online Payment Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_online_payment')
+                            ->setActivityNameLong('View (Online Payment Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
             return $this->redirectIfNotLoggedIn($e);
         }
     }
@@ -3690,10 +3717,11 @@ class MobileCIAPIController extends ControllerAPI
                 $transactiondetail->product_name                = $cart_value->product->product_name;
                 $transactiondetail->product_code                = $cart_value->product->product_code;
                 $transactiondetail->quantity                    = $cart_value->quantity;
-                $transactiondetail->upc                         = $cart_value->product->upc;
+                $transactiondetail->upc                         = $cart_value->product->upc_code;
                 $transactiondetail->price                       = $cart_value->product->price;
-                // dd($cart_value);
+                
                 if(!empty($cart_value->variant)){
+                    $transactiondetail->product_variant_id          = $cart_value->variant->product_variant_id;
                     $transactiondetail->variant_price               = $cart_value->variant->price;
                     $transactiondetail->variant_upc                 = $cart_value->variant->upc;
                     $transactiondetail->variant_sku                 = $cart_value->variant->sku;
@@ -3754,20 +3782,20 @@ class MobileCIAPIController extends ControllerAPI
                     $transactiondetail->merchant_tax_id2 = $cart_value->tax2->merchant_tax_id;
                 }
 
-                // dd($cart_value->product->attribute1->product_attribute_id);
-                if(!empty($cart_value->product->attribute1)) {
+                // dd($cart_value->product->attribute4);
+                if(! is_null($cart_value->product->attribute1)) {
                     $transactiondetail->attribute_id1 = $cart_value->product->attribute1->product_attribute_id;
                 }
-                if(!empty($cart_value->product->attribute2)) {
+                if(! is_null($cart_value->product->attribute2)) {
                     $transactiondetail->attribute_id2 = $cart_value->product->attribute2->product_attribute_id;
                 }
-                if(!empty($cart_value->product->attribute3)) {
+                if(! is_null($cart_value->product->attribute3)) {
                     $transactiondetail->attribute_id3 = $cart_value->product->attribute3->product_attribute_id;
                 }
-                if(!empty($cart_value->product->attribute4)) {
+                if(! is_null($cart_value->product->attribute4)) {
                     $transactiondetail->attribute_id4 = $cart_value->product->attribute4->product_attribute_id;
                 }
-                if(!empty($cart_value->product->attribute5)) {
+                if(! is_null($cart_value->product->attribute5)) {
                     $transactiondetail->attribute_id5 = $cart_value->product->attribute5->product_attribute_id;
                 }
 
