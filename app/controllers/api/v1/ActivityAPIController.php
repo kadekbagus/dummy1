@@ -45,8 +45,8 @@ class ActivityAPIController extends ControllerAPI
      * @param string    `sort_mode`             (optional) - asc or desc
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
-     * @param date      `start_date`            (optional) - Filter by start date
-     * @param date      `end_date`              (optional) - Filter by end date
+     * @param date      `start_date`            (optional) - Filter by start date, format 'Y-m-d'
+     * @param date      `end_date`              (optional) - Filter by end date, format 'Y-m-d'
      * @return Illuminate\Support\Facades\Response
      */
     public function getSearchActivity()
