@@ -704,12 +704,22 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.cart[i]['variants'] == '' || $scope.cart[i]['variants'] == undefined || product['variants'].length == 1){
                             if($scope.cart[i]['product_id'] == product['product_id']){
                                 $scope.cart[i]['qty']++;
+                                if($scope.cart[i]['promotion']){
+                                    for(var a = 0;a < $scope.cart[i]['promotion'].length;a++){
+                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney(accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) * $scope.cart[i]['qty'], "", 0, ",", ".");
+                                    }
+                                }
                                 check = false;
                                 break;
                             }
                         }else{
                             if($scope.cart[i]['variants']['product_variant_id'] == $scope.variantstmp['product_variant_id']){
                                 $scope.cart[i]['qty']++;
+                                if($scope.cart[i]['promotion']){
+                                    for(var a = 0;a < $scope.cart[i]['promotion'].length;a++){
+                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] =  accounting.formatMoney(accounting.unformat( $scope.cart[i]['promotion'][a]['afterpromotionprice']) * $scope.cart[i]['qty'], "", 0, ",", ".");
+                                    }
+                                }
                                 check = false;
                                 break;
                             }
