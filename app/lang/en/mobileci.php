@@ -17,6 +17,9 @@ return array(
         "logout"        => "LOGOUT",
         "payment"       => "PAYMENT",
         "searching"     => "SEARCH",
+        'new_products'  => 'NEW PRODUCTS',
+        'promotions'    => 'PROMOTIONS',
+        'coupons'       => 'COUPONS',
     ),
 
     "widgets"           => array(
@@ -148,6 +151,9 @@ return array(
         'dont_forget_message' => "Don't forget to visit",
         'promo_message' => 'for next best deals.',
         'shop_again_button' => 'Shop Again',
+        'transfer_cart_successful' => 'Transfer Cart Successful!',
+        'transfer_cart_message' => 'your transaction will be completed by the cashier',
+        'thank_you_for_shopping' => 'Thank you for shopping with us',
     ),
 
     'transfer_cart'         => array(

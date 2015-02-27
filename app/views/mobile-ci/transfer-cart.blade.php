@@ -77,6 +77,9 @@
 
       $('#doneBtn').click(function(){
         $.ajax({
+          data: {
+            cartcode: $('#cartcode').data('cart')
+          },
           url: apiPath+'customer/closecart',
           method: 'POST'
         }).done(function(data){

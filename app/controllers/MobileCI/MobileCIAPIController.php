@@ -734,13 +734,13 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             if(!empty(OrbitInput::get('new'))) {
-                $pagetitle = 'NEW PRODUCTS';
+                $pagetitle = Lang::get('mobileci.page_title.new_products');
             }
             if(!empty(OrbitInput::get('promo'))) {
-                $pagetitle = 'PROMOTIONS';
+                $pagetitle = Lang::get('mobileci.page_title.promotions');
             }
             if(!empty(OrbitInput::get('coupon'))) {
-                $pagetitle = 'COUPONS';
+                $pagetitle = Lang::get('mobileci.page_title.coupons');
             }
 
             $activityPageNotes = sprintf('Page viewed: Search Page, keyword: %s', $keyword);
@@ -2607,9 +2607,11 @@ class MobileCIAPIController extends ControllerAPI
     public function postCloseCart()
     {
         try {
-            $cartdata = $this->getCartData();
+            $cartcode = OrbitInput::post('cartcode');
+            // $cartdata = $this->getCartData();
+            $cart = Cart::where('cart_code', $cartcode)->first();
 
-            if($cartdata->cart->moved_to_pos === 'Y') {
+            if($cart->status === 'cashier') {
                 $this->response->message = 'moved';
             } else {
                 $this->response->message = 'notmoved';
@@ -2927,7 +2929,7 @@ class MobileCIAPIController extends ControllerAPI
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
             $activityPage->setUser($user)
                             ->setActivityName('view_page_online_payment')
-                            ->setActivityNameLong('View () Failed')
+                            ->setActivityNameLong('View (Online Payment) Failed')
                             ->setObject(null)
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
@@ -2936,6 +2938,7 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    // thank you from transfer cart
     public function getThankYouView()
     {
         $user = null;
@@ -2945,13 +2948,27 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
 
             $retailer = $this->getRetailerInfo();
-            
-            $cartitems = $this->getCartForToolbar();
 
-            $cartdata = $this->cartCalc($user, $retailer);
+            $activityPageNotes = sprintf('Page viewed: %s', 'Thank You Page');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_thank_you')
+                            ->setActivityNameLong('View (Thank You Page)')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
 
-            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            return View::make('mobile-ci.thankyoucart', array('retailer' => $retailer));
         } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Thank You Page');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_thank_you')
+                            ->setActivityNameLong('View (Thank You Page) Failed')
+                            ->setObject(null)
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
+
             return $this->redirectIfNotLoggedIn($e);
         }
     }
@@ -4108,7 +4125,7 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
 
             $retailer = $this->getRetailerInfo();
-            
+
             $event_id = OrbitInput::post('eventdata');
             $event = EventModel::excludeDeleted()->where('event_id', $event_id)->first();
 
