@@ -68,6 +68,7 @@ class RoleTableSeeder extends Seeder
         ];
 
         $this->command->info('Seeding roles table...');
+        DB::table('roles')->truncate();
         foreach ($roles as $role) {
             Role::unguard();
             Role::create($role);
