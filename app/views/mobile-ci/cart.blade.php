@@ -328,20 +328,17 @@
           <h4 class="modal-title" id="checkOutLabel">{{ Lang::get('mobileci.modals.checkout_title') }}</h4>
         </div>
         <div class="modal-body">
-          <!-- <div class="row ">
-            <div class="col-xs-12 col-sm-6 vertically-spaced">
-              <button ng-click="paymentOptionsCtrl.goTo('creditCard')" type="button" class="btn btn-success btn-block" ng-click="">Credit Card</button>
-            </div>
-            <div class="col-xs-12 col-sm-6 vertically-spaced">
-              <button type="button" class="btn btn-success btn-block" ng-click="">PayPal</button>
-            </div>
-          </div> -->
           <div class="row ">
             <div class="col-xs-12 col-sm-6 vertically-spaced">
               <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.cash_button') }}</a>
             </div>
             <div class="col-xs-12 col-sm-6 vertically-spaced">
               <a href="{{ url('customer/transfer') }}" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.credit_button') }}</a>
+            </div>
+          </div>
+          <div class="row ">
+            <div class="col-xs-12 col-sm-12 vertically-spaced">
+              <a href="{{ url('customer/payment') }}"  class="btn btn-success btn-block" >{{ Lang::get('mobileci.modals.online_payment_button') }}</a>
             </div>
           </div>
         </div>
