@@ -175,8 +175,16 @@ Route::group(array('before' => 'orbit-settings'), function()
         return MobileCI\MobileCIAPIController::create()->postAddProductCouponToCart();
     });
 
+    // save transaction and show ticket
     Route::post('/customer/savetransaction', function()
     {
         return MobileCI\MobileCIAPIController::create()->postSaveTransaction();
     });
+
+    // track event popup click activity
+    Route::post('/app/v1/customer/eventpopupactivity', function()
+    {
+        return MobileCI\MobileCIAPIController::create()->postEventPopUpActivity();
+    });
+
 });
