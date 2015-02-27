@@ -164,11 +164,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if(newvalue && newvalue.length > 2) {
                             if(progressJs) progressJs("#loadingsearch").start().autoIncrease(4, 500);
                             serviceAjax.getDataFromServer('/pos/productsearch?keyword=' + newvalue).then(function (response) {
-                                if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data != null) {
-                                    for (var i = 0; i < response.data.length; i++) {
-                                        response.data[i]['price'] = accounting.formatMoney(response.data[i]['price'], "", 0, ",", ".");
+                                if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
+                                    for (var i = 0; i < response.data.records.length; i++) {
+                                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
                                     }
-                                    $scope.product = response.data;
+                                    $scope.product = response.data.records;
 
                                     $scope.enadis();
                                 } else {
