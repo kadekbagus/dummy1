@@ -24,7 +24,7 @@ class AlterSettingsAddStatusField extends Migration
 
             $table->index(array('status'), 'status_idx');
             $table->index(array('modified_by'), 'modified_by_idx');
-            $table->index(array('setting_name', 'object_id', 'object_type', 'status'), 'objectid_type_settingname_status_idx');
+            $table->index(array('setting_name', 'object_id', 'object_type', 'status'), 'objectid_settingname_idx');
         });
     }
 
@@ -43,7 +43,7 @@ class AlterSettingsAddStatusField extends Migration
         {
             $table->dropIndex('status_idx');
             $table->dropIndex('modified_by_idx');
-            $table->dropIndex('objectid_type_settingname_status_idx');
+            $table->dropIndex('objectid_settingname_idx');
             $table->dropColumn('status');
             $table->dropColumn('modified_by');
         });
