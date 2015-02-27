@@ -216,6 +216,7 @@ class Activity extends Eloquent
         if (is_object($user)) {
             $this->user_id = $user->user_id;
             $this->user_email = $user->user_email;
+            $this->full_name = $user->getFullName();
             $this->role_id = $user->role->role_id;
             $this->role = $user->role->role_name;
 
@@ -289,6 +290,100 @@ class Activity extends Eloquent
 
             $this->metadata_object = $object->toJSON();
         }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `product_id`, `product_name`, and `metadata_object`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Object $object
+     * @return Activity
+     */
+    public function setProduct($object)
+    {
+        if (is_object($object)) {
+            $primaryKey = $object->getKeyName();
+            $this->product_id = $object->$primaryKey;
+            $this->product_name = $object->
+
+            $this->metadata_object = $object->toJSON();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `promotion_id`, `promotion_name`, and `metadata_object`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Object $object
+     * @return Activity
+     */
+    public function setPromotion($object)
+    {
+        if (is_object($object)) {
+            $primaryKey = $object->getKeyName();
+            $this->promotion_id = $object->$primaryKey;
+            $this->promotion_name = $object->promotion_name;
+
+            $this->metadata_object = $object->toJSON();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `coupon_id`, `coupon_name`, and `metadata_object`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Object $object
+     * @return Activity
+     */
+    public function setCoupon($object)
+    {
+        if (is_object($object)) {
+            $primaryKey = $object->getKeyName();
+            $this->coupon_id = $object->$primaryKey;
+            $this->coupon_name = $object->promotion_name;
+
+            $this->metadata_object = $object->toJSON();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of `event_id`, `event_name`, and `metadata_object`.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param Object $object
+     * @return Activity
+     */
+    public function setEvent($object)
+    {
+        if (is_object($object)) {
+            $primaryKey = $object->getKeyName();
+            $this->event_id = $object->$primaryKey;
+            $this->event_name = $object->event_name;
+
+            $this->metadata_object = $object->toJSON();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of module name.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $name
+     * @return Activity
+     */
+    public function setModuleName($name)
+    {
+        $this->module_name = $name;
 
         return $this;
     }
@@ -463,6 +558,23 @@ class Activity extends Eloquent
         if (App::environment() === 'testing') {
             // Skip saving
             return 1;
+        }
+
+        if (empty($this->module_name)) {
+            $this->module_name = $this->object_name;
+
+            if (! empty($this->product_name)) {
+                $this->module_name = $this->product_name;
+            }
+            if (! empty($this->coupon_name)) {
+                $this->module_name = $this->coupon_name;
+            }
+            if (! empty($this->promotion_name)) {
+                $this->module_name = $this->promotion_name;
+            }
+            if (! empty($this->event_name)) {
+                $this->module_name = $this->event_name;
+            }
         }
         return parent::save($options);
     }
