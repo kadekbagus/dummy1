@@ -706,7 +706,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.cart[i]['qty']++;
                                 if($scope.cart[i]['promotion']){
                                     for(var a = 0;a < $scope.cart[i]['promotion'].length;a++){
-                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney(accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) * $scope.cart[i]['qty'], "", 0, ",", ".");
+                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney((accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) /  ($scope.cart[i]['qty'] -1))* $scope.cart[i]['qty'], "", 0, ",", ".");
                                     }
                                 }
                                 check = false;
@@ -717,7 +717,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.cart[i]['qty']++;
                                 if($scope.cart[i]['promotion']){
                                     for(var a = 0;a < $scope.cart[i]['promotion'].length;a++){
-                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] =  accounting.formatMoney(accounting.unformat( $scope.cart[i]['promotion'][a]['afterpromotionprice']) * $scope.cart[i]['qty'], "", 0, ",", ".");
+                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] =  accounting.formatMoney((accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / ($scope.cart[i]['qty'] -1)) * $scope.cart[i]['qty'], "", 0, ",", ".");
                                     }
                                 }
                                 check = false;
