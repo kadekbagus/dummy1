@@ -219,6 +219,11 @@ class Activity extends Eloquent
             $this->full_name = $user->getFullName();
             $this->role_id = $user->role->role_id;
             $this->role = $user->role->role_name;
+            try {
+                $this->gender = $user->userdetail->gender;
+            } catch (Exception $e) {
+                $this->gender = NULL;
+            }
 
             $this->metadata_user = $user->toJSON();
         }
@@ -228,6 +233,7 @@ class Activity extends Eloquent
             $this->user_email = 'guest';
             $this->role_id = 0;
             $this->role = 'Guest';
+            $this->full_name = 'Guest User';
         }
 
         return $this;
@@ -246,6 +252,7 @@ class Activity extends Eloquent
             $user->employee;
 
             $this->staff_id = $user->user_id;
+            $this->staff_name = $user->getFullName();
             $this->metadata_staff = $user->toJSON();
         }
 
