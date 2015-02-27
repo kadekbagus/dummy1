@@ -69,7 +69,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $user = User::with('apikey', 'userdetail', 'role')
-                        ->excludeDeleted()
+                        ->active()
                         ->where('user_email', $email)
                         ->whereHas('role', function($query)
                             {
@@ -204,7 +204,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $new_products = Product::with('media')->where('new_from','<=', Carbon::now())->where('new_until', '>=', Carbon::now())->get();
             
-            $promotion = Promotion::excludeDeleted()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
+            $promotion = Promotion::active()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
                 {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
                 })
@@ -263,7 +263,7 @@ class MobileCIAPIController extends ControllerAPI
                 $event_store = \Cookie::get('event');
             }
 
-            $events = EventModel::excludeDeleted()->whereHas('retailers', function($q) use($retailer)
+            $events = EventModel::active()->whereHas('retailers', function($q) use($retailer)
                 {
                     $q->where('event_retailer.retailer_id', $retailer->merchant_id);
                 })->where('merchant_id', $retailer->parent->merchant_id);
@@ -280,19 +280,19 @@ class MobileCIAPIController extends ControllerAPI
             if(!empty($events)) {
                 if($events->link_object_type == 'family') {
                     if(!empty($events->link_object_id1)) {
-                        $event_families[] = Category::where('category_id', $events->link_object_id1)->excludeDeleted()->first();
+                        $event_families[] = Category::where('category_id', $events->link_object_id1)->active()->first();
                     }
                     if(!empty($events->link_object_id2)) {
-                        $event_families[] = Category::where('category_id', $events->link_object_id2)->excludeDeleted()->first();
+                        $event_families[] = Category::where('category_id', $events->link_object_id2)->active()->first();
                     }
                     if(!empty($events->link_object_id3)) {
-                        $event_families[] = Category::where('category_id', $events->link_object_id3)->excludeDeleted()->first();
+                        $event_families[] = Category::where('category_id', $events->link_object_id3)->active()->first();
                     }
                     if(!empty($events->link_object_id4)) {
-                        $event_families[] = Category::where('category_id', $events->link_object_id4)->excludeDeleted()->first();
+                        $event_families[] = Category::where('category_id', $events->link_object_id4)->active()->first();
                     }
                     if(!empty($events->link_object_id5)) {
-                        $event_families[] = Category::where('category_id', $events->link_object_id5)->excludeDeleted()->first();
+                        $event_families[] = Category::where('category_id', $events->link_object_id5)->active()->first();
                     }
                 }
             }
@@ -315,7 +315,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            $widgets = Widget::with('media')->excludeDeleted()->where('merchant_id', $retailer->parent->merchant_id)->orderBy('widget_order', 'ASC')->take(4)->get();
+            $widgets = Widget::with('media')->active()->where('merchant_id', $retailer->parent->merchant_id)->orderBy('widget_order', 'ASC')->take(4)->get();
 
             $activityPageNotes = sprintf('Page viewed: %s', 'Home');
             $activityPage->setUser($user)
@@ -366,7 +366,7 @@ class MobileCIAPIController extends ControllerAPI
         try {
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
-            $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->excludeDeleted()->get();
+            $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->active()->get();
             // dd($families);
             $cartitems = $this->getCartForToolbar();
 
@@ -511,7 +511,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted();
+                        })->where('merchant_id', $retailer->parent_id)->active();
 
             // Filter product by name pattern
             OrbitInput::get('keyword', function ($name) use ($products) {
@@ -809,7 +809,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted();
+                        })->where('merchant_id', $retailer->parent_id)->active();
 
             // Filter product by name pattern
             OrbitInput::get('keyword', function ($name) use ($products) {
@@ -1149,7 +1149,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted();
+                        })->where('merchant_id', $retailer->parent_id)->active();
 
             $_products = clone $products;
 
@@ -1403,7 +1403,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->where('merchant_id', $retailer->parent_id)->excludeDeleted();
+                        })->where('merchant_id', $retailer->parent_id)->active();
 
             $_products = clone $products;
 
@@ -1632,7 +1632,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $promotions = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
+            $promotions = Promotion::with('promotionrule')->active()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
                 {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
                 })
@@ -1813,7 +1813,7 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $nextfamily = $family_level + 1;
 
-            $subfamilies = Category::excludeDeleted();
+            $subfamilies = Category::active();
             if($nextfamily < 6) {
                 $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function($q) use ($family_id, $family_level, $families) {
                     $nextfamily = $family_level + 1;
@@ -1834,7 +1834,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::with('variants')->whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
-            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
+            })->where('merchant_id', $retailer->parent_id)->active()->where(function($q) use ($family_level, $family_id, $families) {
                 for($i = 1; $i < count($families); $i++) {
                     $q->where('category_id'.$i, $families[$i-1]);
                 }
@@ -2095,7 +2095,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $products = Product::with('variants')->whereHas('retailers', function($query) use ($retailer) {
                 $query->where('retailer_id', $retailer->merchant_id);
-            })->where('merchant_id', $retailer->parent_id)->excludeDeleted()->where(function($q) use ($family_level, $family_id, $families) {
+            })->where('merchant_id', $retailer->parent_id)->active()->where(function($q) use ($family_level, $family_id, $families) {
                 for($i = 1; $i < count($families); $i++) {
                     $q->where('category_id'.$i, $families[$i-1]);
                 }
@@ -2293,7 +2293,7 @@ class MobileCIAPIController extends ControllerAPI
             $product_id = trim(OrbitInput::get('id'));
             $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
-                        })->excludeDeleted()->where('product_id', $product_id)->first();
+                        })->active()->where('product_id', $product_id)->first();
             if (empty($product)) {
                 throw new Exception('Product id ' . $product_id . ' not found');
             }
@@ -2462,7 +2462,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $product = Product::excludeDeleted()->where('product_id', $product_id)->first();
+            $product = Product::active()->where('product_id', $product_id)->first();
 
             $this->response->message = 'success';
             $this->response->data = $product;
@@ -2519,7 +2519,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $promotion = Promotion::excludeDeleted()->where('promotion_id', $promotion_id)->first();
+            $promotion = Promotion::active()->where('promotion_id', $promotion_id)->first();
 
             $this->response->message = 'success';
             $this->response->data = $promotion;
@@ -2575,7 +2575,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $promotion = Coupon::excludeDeleted()->where('promotion_id', $promotion_id)->first();
+            $promotion = Coupon::active()->where('promotion_id', $promotion_id)->first();
 
             $this->response->message = 'success';
             $this->response->data = $promotion;
@@ -2733,12 +2733,12 @@ class MobileCIAPIController extends ControllerAPI
 
             // $promotion = C oupon::whereHas('issuedcoupons', function($q) use($user)
             //     {
-            //         $q->excludeDeleted()->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now());
+            //         $q->active()->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now());
             //     })
             //     ->whereHas('redeemretailers', function($q) use($retailer)
             //     {
             //         $q->where('promotion_retailer_redeem', $retailer->merchant_id);
-            //     })->excludeDeleted()->where('promotion_type', 'product')->first();
+            //     })->active()->where('promotion_type', 'product')->first();
 
             $this->response->message = 'success';
             $this->response->data = $coupons;
@@ -2790,7 +2790,7 @@ class MobileCIAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $coupon = Coupon::excludeDeleted()->where('promotion_id', $promotion_id)->first();
+            $coupon = Coupon::active()->where('promotion_id', $promotion_id)->first();
 
             $this->response->message = 'success';
             $this->response->data = $coupon;
@@ -3066,7 +3066,7 @@ class MobileCIAPIController extends ControllerAPI
             
             $cart->save();
 
-            $cartdetail = CartDetail::excludeDeleted()->where('product_id', $product_id)->where('product_variant_id', $product_variant_id)->where('cart_id', $cart->cart_id)->first();
+            $cartdetail = CartDetail::active()->where('product_id', $product_id)->where('product_variant_id', $product_variant_id)->where('cart_id', $cart->cart_id)->first();
             if (empty($cartdetail)) {
                 $cartdetail = new CartDetail;
                 $cartdetail->cart_id = $cart->cart_id;
@@ -3141,7 +3141,7 @@ class MobileCIAPIController extends ControllerAPI
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
 
-                $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $coupon)->first();
+                $used_coupons = IssuedCoupon::active()->where('issued_coupon_id', $coupon)->first();
 
                 // if ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_percentage') {
                 //     $discount = $used_coupons->coupon->couponrule->discount_value * $variant_price;
@@ -3280,7 +3280,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $product = Product::with('tax1', 'tax2')->where('product_id', $product_id)->first();
 
-            $cartdetail = CartDetail::excludeDeleted()->where('product_id', $product_id)->where('product_variant_id', $product_variant_id)->where('cart_id', $cart->cart_id)->first();
+            $cartdetail = CartDetail::active()->where('product_id', $product_id)->where('product_variant_id', $product_variant_id)->where('cart_id', $cart->cart_id)->first();
             
             if(!empty($cartdetail)){
             
@@ -3304,7 +3304,7 @@ class MobileCIAPIController extends ControllerAPI
                         OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
 
-                    $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $coupon)->first();
+                    $used_coupons = IssuedCoupon::active()->where('issued_coupon_id', $coupon)->first();
 
                     $cartcoupon = new CartCoupon;
                     $cartcoupon->issued_coupon_id = $coupon;
@@ -3396,7 +3396,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cart->save();
             }
 
-            $used_coupons = IssuedCoupon::excludeDeleted()->where('issued_coupon_id', $couponid)->first();
+            $used_coupons = IssuedCoupon::active()->where('issued_coupon_id', $couponid)->first();
             
             $cartcoupon = new CartCoupon;
             $cartcoupon->issued_coupon_id = $couponid;
@@ -3468,7 +3468,7 @@ class MobileCIAPIController extends ControllerAPI
             
             $this->beginTransaction();
             
-            $cartdetail = CartDetail::where('cart_detail_id', $cartdetailid)->excludeDeleted()->first();
+            $cartdetail = CartDetail::where('cart_detail_id', $cartdetailid)->active()->first();
             
             $cartcoupons = CartCoupon::where('object_type', 'cart_detail')->where('object_id', $cartdetail->cart_detail_id)->get();
 
@@ -3482,7 +3482,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
             }
 
-            $cart = Cart::where('cart_id', $cartdetail->cart_id)->excludeDeleted()->first();
+            $cart = Cart::where('cart_id', $cartdetail->cart_id)->active()->first();
 
             $quantity = $cartdetail->quantity;
             $cart->total_item = $cart->total_item - $quantity;
@@ -3617,7 +3617,7 @@ class MobileCIAPIController extends ControllerAPI
             $this->beginTransaction();
             
             $cartdetail = CartDetail::where('cart_detail_id', $cartdetailid)->first();
-            $cart = Cart::where('cart_id', $cartdetail->cart_id)->excludeDeleted()->first();
+            $cart = Cart::where('cart_id', $cartdetail->cart_id)->active()->first();
 
             $product = Product::with('tax1', 'tax2')->where('product_id', $cartdetail->product_id)->first();
 
@@ -4054,7 +4054,7 @@ class MobileCIAPIController extends ControllerAPI
                 $coupon_carts = Coupon::join('promotion_rules', function($q) use($total_to_pay)
                 {
                     $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.rule_value', '<=', $total_to_pay);
-                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+                })->active()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
                 {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
                 })
@@ -4127,7 +4127,7 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             $event_id = OrbitInput::post('eventdata');
-            $event = EventModel::excludeDeleted()->where('event_id', $event_id)->first();
+            $event = EventModel::active()->where('event_id', $event_id)->first();
 
             $activityNotes = sprintf('Event Click. Event Id : %s', $event_id);
             $activity->setUser($user)
@@ -4156,7 +4156,7 @@ class MobileCIAPIController extends ControllerAPI
     {
         // Check user email address, it should not exists
         Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
-            $user = User::excludeDeleted()
+            $user = User::active()
                         ->where('user_email', $value)
                         ->first();
 
@@ -4171,7 +4171,7 @@ class MobileCIAPIController extends ControllerAPI
 
         // Check category, it should exists
         Validator::extend('orbit.exists.category', function ($attribute, $value, $parameters) {
-            $category = Category::excludeDeleted()
+            $category = Category::active()
                         ->where('category_id', $value)
                         ->first();
 
@@ -4186,7 +4186,7 @@ class MobileCIAPIController extends ControllerAPI
 
         // Check product, it should exists
         Validator::extend('orbit.exists.product', function ($attribute, $value, $parameters) {
-            $product = Product::excludeDeleted()
+            $product = Product::active()
                         ->where('product_id', $value)
                         ->first();
 
@@ -4206,7 +4206,7 @@ class MobileCIAPIController extends ControllerAPI
             $promotion = Promotion::with(array('retailers' => function($q) use($retailer) 
                 {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                }))->excludeDeleted()
+                }))->active()
                 ->where('promotion_id', $value)
                 ->first();
 
@@ -4226,7 +4226,7 @@ class MobileCIAPIController extends ControllerAPI
             $coupon = Coupon::with(array('issueretailers' => function($q) use($retailer) 
                 {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                }))->excludeDeleted()
+                }))->active()
                 ->where('promotion_id', $value)
                 ->first();
 
@@ -4241,7 +4241,7 @@ class MobileCIAPIController extends ControllerAPI
 
         // Check product variant, it should exists
         Validator::extend('orbit.exists.productvariant', function ($attribute, $value, $parameters) {
-            $product = \ProductVariant::excludeDeleted()
+            $product = \ProductVariant::active()
                         ->where('product_variant_id', $value)
                         ->first();
 
@@ -4268,7 +4268,7 @@ class MobileCIAPIController extends ControllerAPI
                 {
                     $q->where('promotion_retailer_redeem.retailer_id', $retailer->merchant_id);
                 })
-                ->excludeDeleted()
+                ->active()
                 ->first();
 
             if (empty($coupon)) {
@@ -4289,7 +4289,7 @@ class MobileCIAPIController extends ControllerAPI
             $cartdetail = CartDetail::whereHas('cart', function($q) use ($user, $retailer)
             {
                 $q->where('carts.customer_id', $user->user_id)->where('carts.retailer_id', $retailer->merchant_id);
-            })->excludeDeleted()
+            })->active()
                         ->where('cart_detail_id', $value)
                         ->first();
 
@@ -4480,7 +4480,7 @@ class MobileCIAPIController extends ControllerAPI
         })->get();
         // dd($used_product_coupons);
 
-        $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
+        $promo_carts = Promotion::with('promotionrule')->active()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
         {
             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
         })
@@ -4510,7 +4510,7 @@ class MobileCIAPIController extends ControllerAPI
         $vat = 0;
         $total = 0;
 
-        $taxes = \MerchantTax::excludeDeleted()->where('merchant_id', $retailer->parent_id)->get();
+        $taxes = \MerchantTax::active()->where('merchant_id', $retailer->parent_id)->get();
         
         $vat_included = $retailer->parent->vat_included;
 
@@ -4877,16 +4877,16 @@ class MobileCIAPIController extends ControllerAPI
             $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
             {
                 $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
-            })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+            })->active()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
             {
                 $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
             })
             ->whereHas('issuedcoupons',function($q) use($user)
             {
-                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->active();
             })->with(array('issuedcoupons' => function($q) use($user)
             {
-                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->active();
             }))
             ->get();
 
@@ -5336,16 +5336,16 @@ class MobileCIAPIController extends ControllerAPI
             $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal_before_cart_promo_without_tax)
             {
                 $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal_before_cart_promo_without_tax);
-            })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
+            })->active()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
             {
                 $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
             })
             ->whereHas('issuedcoupons',function($q) use($user)
             {
-                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->active();
             })->with(array('issuedcoupons' => function($q) use($user)
             {
-                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->active();
             }))
             ->get();
 
