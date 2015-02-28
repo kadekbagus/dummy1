@@ -269,7 +269,7 @@
               </div>
             </div>
       </div>
-      <a class="btn btn-info" id="saveTicketBtn" download="receipt_{{\Carbon\Carbon::now()}}.png">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
+      <a class="btn btn-info" id="saveTicketBtn" data-transaction="{{ $transaction_id }}" download="receipt_{{\Carbon\Carbon::now()}}.png">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
       <h3>{{ Lang::get('mobileci.thank_you.thank_you_message') }}</h3>
       @if(!empty($retailer->parent->url))
       <h5>{{ Lang::get('mobileci.thank_you.dont_forget_message') }}</h5>
@@ -308,8 +308,24 @@
           var canvas = document.getElementById('receipt-img');
           var dataURL = canvas.toDataURL('image/png');
           button.href = dataURL;
+
+          var transactiondata = $(this).data('transaction');
+
+          $.ajax({
+            url: '{{ route('click-save-receipt-activity') }}',
+            data: {
+              transactiondata: transactiondata
+            },
+            method: 'POST'
+          });
+
       });
     });
+
+    $('a.widget-link').click(function(){
+          
+        });
+
     $(window).bind("load", function() {
       $(".receipt").css('font-family', 'Inconsolata')
       html2canvas($(".receipt"), {

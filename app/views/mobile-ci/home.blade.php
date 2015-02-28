@@ -32,7 +32,7 @@
                     <section class="widget-single">
                       <ul class="rslides">
                         <li>
-                          <a href="{{ url('customer/catalogue') }}">
+                          <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
                             @if(!empty($widget->media->path))
                               <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
                             @else
@@ -60,7 +60,7 @@
                           @if(count($new_products) > 0)
                             @foreach($new_products as $new_product)
                               <li>
-                                <a href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
+                                <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
                                 @if(!is_null($new_product->image))
                                   <img class="img-responsive" src="{{ asset($new_product->image) }}"/>
                                 @else
@@ -94,7 +94,7 @@
                         @foreach($promo_products as $promo_product)
                           @if($promo_product->promotion_type == 'product')
                           <li>
-                            <a href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
+                            <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
                             @if(!is_null($promo_product->image))
                               <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
                             @else
@@ -125,7 +125,7 @@
                   <section class="widget-single">
                     <ul class="rslides" id="slider2">
                       <li>
-                        <a @if(!empty($coupons)) href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
+                        <a class="widget-link" data-widget="{{ $widget->widget_id }}" @if(!empty($coupons)) href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
                           <img class="img-responsive text-center" src="{{ asset('uploads/coupon.jpg') }}" />
                         </a>
                       </li>
@@ -253,6 +253,13 @@
     $(document).ready(function(){
         @if(! is_null($events))
           $('#promoModal').modal();
+          $.ajax({
+            url: '{{ route('display-event-popup-activity') }}',
+            data: {
+              eventdata: {{$events->event_id}}
+            },
+            method: 'POST'
+          });
         @endif
         $('#emptyCoupon').click(function(){
           $('#noModalLabel').text('{{ Lang::get('mobileci.modals.info_title') }}');
@@ -300,6 +307,22 @@
           prevText: '<i class="fa fa-chevron-left"></i>',
           nextText: '<i class="fa fa-chevron-right"></i>',
           speed: 500
+        });
+        $('a.widget-link').click(function(){
+          var link = $(this).attr('href');
+          var widgetdata = $(this).data('widget');
+          event.preventDefault(); 
+
+          $.ajax({
+            url: '{{ route('click-widget-activity') }}',
+            data: {
+              widgetdata: widgetdata
+            },
+            method: 'POST'
+          }).always(function(){
+            window.location.assign(link);
+          });
+          return false; //for good measure
         });
     });
   </script>

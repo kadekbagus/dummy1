@@ -187,4 +187,39 @@ Route::group(array('before' => 'orbit-settings'), function()
         return MobileCI\MobileCIAPIController::create()->postEventPopUpActivity();
     });
 
+    // track event popup display activity
+    Route::post('/app/v1/customer/displayeventpopupactivity', array(
+        'as' => 'display-event-popup-activity', 
+        function()
+        {
+            return MobileCI\MobileCIAPIController::create()->postDisplayEventPopUpActivity();
+        })
+    );
+
+    // track widget click activity
+    Route::post('/app/v1/customer/widgetclickactivity', array(
+        'as' => 'click-widget-activity', 
+        function()
+        {
+            return MobileCI\MobileCIAPIController::create()->postClickWidgetActivity();
+        })
+    );
+
+    // track save receipt click activity
+    Route::post('/app/v1/customer/savereceiptclickactivity', array(
+        'as' => 'click-save-receipt-activity', 
+        function()
+        {
+            return MobileCI\MobileCIAPIController::create()->postClickSaveReceiptActivity();
+        })
+    );
+
+    // track checkout button click activity
+    Route::post('/app/v1/customer/checkoutclickactivity', array(
+        'as' => 'click-checkout-activity', 
+        function()
+        {
+            return MobileCI\MobileCIAPIController::create()->postClickCheckoutActivity();
+        })
+    );
 });

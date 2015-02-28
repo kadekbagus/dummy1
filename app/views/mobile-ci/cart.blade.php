@@ -558,7 +558,7 @@
           if(data.status == 'success'){
             $('#hasCouponModal').modal('hide');
             if(prodid){
-                window.location.reload();
+                window.location.assign(window.location.origin + window.location.pathname + '?from=update_cart');
             }
           }
         });
@@ -698,7 +698,7 @@
         }
       }).done(function(data){
         if(data.message == 'success'){
-          location.reload();
+          window.location.assign(window.location.origin + window.location.pathname + '?from=update_cart');
         }else{
           console.log(data);
         }
@@ -719,7 +719,7 @@
         }
       }).done(function(data){
         if(data.message == 'success'){
-          location.reload();
+          window.location.assign(window.location.origin + window.location.pathname + '?from=update_cart');
         }else{
           console.log(data);
         }
@@ -727,6 +727,10 @@
     });
 
     $('#checkOutBtn').click(function(){
+      $.ajax({
+        url: '{{ route('click-checkout-activity') }}',
+        method: 'POST'
+      });
       $('#checkOutModal').modal();
     });
     var num;
@@ -755,6 +759,7 @@
           detail = num.data('detail');
         }
     });
+    
     $('.done').click(function(){
         if(is_open) {
           is_open = false;
@@ -775,7 +780,7 @@
             }
           }).done(function(data){
             if(data.status == 'success'){
-              location.reload();
+              window.location.assign(window.location.origin + window.location.pathname + '?from=update_cart');
             }else{
               console.log(data);
             }

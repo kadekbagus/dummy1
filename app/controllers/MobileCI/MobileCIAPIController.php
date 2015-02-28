@@ -328,6 +328,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityNameLong('View (Home Page)')
                             ->setObject(null)
                             ->setNotes($activityPageNotes)
+                            ->setModuleName('Widget')
                             ->responseOK()
                             ->save();
 
@@ -434,26 +435,33 @@ class MobileCIAPIController extends ControllerAPI
             if($hasFamily == 'yes') {
                 if(!empty($family1)) {
                     $lvl1 = $this->getProductListCatalogue($array_of_families_lvl1, 1, $family1, '');
+                    $activityfamilyid = $family1;
                 }
                 if(!empty($family2)) {
                     $lvl2 = $this->getProductListCatalogue($array_of_families_lvl2, 2, $family2, '');
+                    $activityfamilyid = $family2;
                 }
                 if(!empty($family3)) {
                     $lvl3 = $this->getProductListCatalogue($array_of_families_lvl3, 3, $family3, '');
+                    $activityfamilyid = $family3;
                 }
                 if(!empty($family4)) {
                     $lvl4 = $this->getProductListCatalogue($array_of_families_lvl4, 4, $family4, '');
+                    $activityfamilyid = $family4;
                 }
                 if(!empty($family5)) {
                     $lvl5 = $this->getProductListCatalogue($array_of_families_lvl5, 5, $family5, '');
+                    $activityfamilyid = $family5;
                 }
             }
-            
+
+            $activityfamily = Category::where('category_id', $activityfamilyid)->first();
             $activityPageNotes = sprintf('Page viewed: %s', 'Catalogue');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_catalogue')
-                            ->setActivityNameLong('View (Cataloguge Page)')
-                            ->setObject(null)
+                            ->setActivityName('view_catalogue')
+                            ->setActivityNameLong('View Cataloguge ' . $activityfamily->category_name)
+                            ->setObject($activityfamily)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -462,14 +470,16 @@ class MobileCIAPIController extends ControllerAPI
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Catalogue');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_catalogue')
-                            ->setActivityNameLong('View (Cataloguge Page) Failed')
+                            ->setActivityName('view_catalogue')
+                            ->setActivityNameLong('View Cataloguge Failed')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
 
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
         }
     }
 
@@ -740,22 +750,34 @@ class MobileCIAPIController extends ControllerAPI
 
             if(!empty(OrbitInput::get('new'))) {
                 $pagetitle = Lang::get('mobileci.page_title.new_products');
+                $activityPageNotes = sprintf('Page viewed: New Product Page, keyword: %s', $keyword);
+                $activityPage->setUser($user)
+                                ->setActivityName('view_new_product')
+                                ->setActivityNameLong('View (New Product Page)')
+                                ->setObject(null)
+                                ->setModuleName('New Product')
+                                ->setNotes($activityPageNotes)
+                                ->responseOK()
+                                ->save();
+            } else {
+                $activityPageNotes = sprintf('Page viewed: Search Page, keyword: %s', $keyword);
+                $activityPage->setUser($user)
+                                ->setActivityName('view_search')
+                                ->setActivityNameLong('View (Search Page)')
+                                ->setObject(null)
+                                ->setModuleName('Product')
+                                ->setNotes($activityPageNotes)
+                                ->responseOK()
+                                ->save();
             }
-            if(!empty(OrbitInput::get('promo'))) {
-                $pagetitle = Lang::get('mobileci.page_title.promotions');
-            }
-            if(!empty(OrbitInput::get('coupon'))) {
-                $pagetitle = Lang::get('mobileci.page_title.coupons');
-            }
+            // if(!empty(OrbitInput::get('promo'))) {
+            //     $pagetitle = Lang::get('mobileci.page_title.promotions');
+            // }
+            // if(!empty(OrbitInput::get('coupon'))) {
+            //     $pagetitle = Lang::get('mobileci.page_title.coupons');
+            // }
 
-            $activityPageNotes = sprintf('Page viewed: Search Page, keyword: %s', $keyword);
-            $activityPage->setUser($user)
-                            ->setActivityName('view_page_search')
-                            ->setActivityNameLong('View (Search Page)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            
 
             return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
             
@@ -765,6 +787,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_search')
                             ->setActivityNameLong('View (Search Page)')
                             ->setObject(null)
+                            ->setModuleName('Product')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -2011,9 +2034,10 @@ class MobileCIAPIController extends ControllerAPI
 
             $activityCategoryNotes = sprintf('Category viewed: %s', $activityfamily->category_name);
             $activityCategory->setUser($user)
-                            ->setActivityName('view_category')
-                            ->setActivityNameLong('View Category ' . $activityfamily->category_name)
+                            ->setActivityName('view_catalogue')
+                            ->setActivityNameLong('View Catalogue ' . $activityfamily->category_name)
                             ->setObject($activityfamily)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityCategoryNotes)
                             ->responseOK()
                             ->save();
@@ -2025,9 +2049,10 @@ class MobileCIAPIController extends ControllerAPI
             // if($e->getMessage() === 'Invalid session data.') {
                 $activityCategoryNotes = sprintf('Category viewed: %s', $family_id);
                 $activityCategory->setUser($user)
-                                ->setActivityName('view_category')
-                                ->setActivityNameLong('View Category Not Found')
+                                ->setActivityName('view_catalogue')
+                                ->setActivityNameLong('View Catalogue Failed')
                                 ->setObject(null)
+                                ->setModuleName('Catalogue')
                                 ->setNotes($e->getMessage())
                                 ->responseFailed()
                                 ->save();
@@ -2419,6 +2444,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_product')
                             ->setActivityNameLong('View Product')
                             ->setObject($product)
+                            ->setProduct($product)
+                            ->setModuleName('Product')
                             ->setNotes($activityProductNotes)
                             ->responseOK()
                             ->save();
@@ -2432,6 +2459,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_product')
                             ->setActivityNameLong('View Product Not Found')
                             ->setObject(null)
+                            ->setProduct($product)
+                            ->setModuleName('Product')
                             ->setNotes($e->getMessage())
                             ->responseFailed()
                             ->save();
@@ -2472,25 +2501,25 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $product;
 
-            $activityPageNotes = sprintf('Popup viewed: %s', 'Product');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_product')
-                            ->setActivityNameLong('View (Product Popup)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            // $activityPageNotes = sprintf('Popup viewed: %s', 'Product');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_product')
+            //                 ->setActivityNameLong('View (Product Popup)')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseOK()
+            //                 ->save();
 
             return $this->render();
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_product')
-                            ->setActivityNameLong('View (Product Popup) Failed')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseFailed()
-                            ->save();
+            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_product')
+            //                 ->setActivityNameLong('View (Product Popup) Failed')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseFailed()
+            //                 ->save();
 
             return $this->redirectIfNotLoggedIn($e);
             // return $e->getMessage();
@@ -2529,25 +2558,25 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $promotion;
 
-            $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Promotion');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_cart_promo')
-                            ->setActivityNameLong('View (Cart Promotion Popup)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            // $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Promotion');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_cart_promo')
+            //                 ->setActivityNameLong('View (Cart Promotion Popup)')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseOK()
+            //                 ->save();
 
             return $this->render();
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Promotion');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_cart_promo')
-                            ->setActivityNameLong('View (Cart Promotion Popup) Failed')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseFailed()
-                            ->save();
+            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Promotion');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_cart_promo')
+            //                 ->setActivityNameLong('View (Cart Promotion Popup) Failed')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseFailed()
+            //                 ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2585,25 +2614,25 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $promotion;
 
-            $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Coupon');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_cart_coupon')
-                            ->setActivityNameLong('View (Cart Coupon Popup)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            // $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Coupon');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_cart_coupon')
+            //                 ->setActivityNameLong('View (Cart Coupon Popup)')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseOK()
+            //                 ->save();
 
             return $this->render();
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Coupon');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_cart_coupon')
-                            ->setActivityNameLong('View (Cart Coupon Popup) Failed')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseFailed()
-                            ->save();
+            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Coupon');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_cart_coupon')
+            //                 ->setActivityNameLong('View (Cart Coupon Popup) Failed')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseFailed()
+            //                 ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2748,25 +2777,27 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $coupons;
             // dd($coupons);
-            $activityPageNotes = sprintf('Popup viewed: %s', 'Product Coupon');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_product_coupon')
-                            ->setActivityNameLong('View (Product Coupon Popup)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            // $activityPageNotes = sprintf('Popup viewed: %s', 'Product Coupon');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_product_coupon')
+            //                 ->setActivityNameLong('View (Product Coupon Popup)')
+            //                 ->setObject(null)
+            //                 ->setModuleName('Coupon')
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseOK()
+            //                 ->save();
 
             return $this->render();
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product Coupon');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_product_coupon')
-                            ->setActivityNameLong('View (Product Coupon Popup) Failed')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseFailed()
-                            ->save();
+            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product Coupon');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_product_coupon')
+            //                 ->setActivityNameLong('View (Product Coupon Popup) Failed')
+            //                 ->setObject(null)
+            //                 ->setModuleName('Coupon')
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseFailed()
+            //                 ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2800,26 +2831,26 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $coupon;
 
-            $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Product Coupon');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup__cart_product_coupon')
-                            ->setActivityNameLong('View (Cart Product Coupon Popup)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            // $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Product Coupon');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup__cart_product_coupon')
+            //                 ->setActivityNameLong('View (Cart Product Coupon Popup)')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseOK()
+            //                 ->save();
 
 
             return $this->render();
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Product Coupon');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_popup_cart_product_coupon')
-                            ->setActivityNameLong('View (Cart Product Coupon Popup) Failed')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseFailed()
-                            ->save();
+            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Product Coupon');
+            // $activityPage->setUser($user)
+            //                 ->setActivityName('view_popup_cart_product_coupon')
+            //                 ->setActivityNameLong('View (Cart Product Coupon Popup) Failed')
+            //                 ->setObject(null)
+            //                 ->setNotes($activityPageNotes)
+            //                 ->responseFailed()
+            //                 ->save();
             // return $this->redirectIfNotLoggedIn($e);
             return $e;
         }
@@ -2831,6 +2862,7 @@ class MobileCIAPIController extends ControllerAPI
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
         try {
+
             $user = $this->getLoggedInUser();
 
             $retailer = $this->getRetailerInfo();
@@ -2840,21 +2872,24 @@ class MobileCIAPIController extends ControllerAPI
             $cartdata = $this->cartCalc($user, $retailer);
             // dd($vat);
             // print_r($cartdata);
-            $activityPageNotes = sprintf('Page viewed: %s', 'Cart');
-            $activityPage->setUser($user)
-                            ->setActivityName('view_page_cart')
-                            ->setActivityNameLong('View (Cart Page)')
-                            ->setObject(null)
-                            ->setNotes($activityPageNotes)
-                            ->responseOK()
-                            ->save();
+            $from = OrbitInput::get('from', null);
+            if (empty($from)) {
+                $activityPageNotes = sprintf('Page viewed : %s', 'Cart');
+                $activityPage->setUser($user)
+                                ->setActivityName('view_cart')
+                                ->setActivityNameLong('View Cart')
+                                ->setObject(null)
+                                ->setNotes($activityPageNotes)
+                                ->responseOK()
+                                ->save();
+            }
 
             return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Page: %s', 'Cart');
+            $activityPageNotes = sprintf('Failed to view : %s', 'Cart');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_cart')
-                            ->setActivityNameLong('View (Cart Page) Failed')
+                            ->setActivityName('view_cart')
+                            ->setActivityNameLong('View Cart Failed')
                             ->setObject(null)
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
@@ -2880,20 +2915,22 @@ class MobileCIAPIController extends ControllerAPI
 
             $activityPageNotes = sprintf('Page viewed: %s', 'Transfer Cart');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_transfer_cart')
-                            ->setActivityNameLong('View (Transfer Cart Page)')
-                            ->setObject(null)
+                            ->setActivityName('view_transfer_cart')
+                            ->setActivityNameLong('View Transfer Cart')
+                            ->setObject($cartdata->cart)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
 
             return View::make('mobile-ci.transfer-cart', array('page_title'=>Lang::get('mobileci.page_title.transfercart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Page: %s', 'Transfer Cart');
+            $activityPageNotes = sprintf('Failed to view: %s', 'Transfer Cart');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_transfer_cart')
-                            ->setActivityNameLong('View (Transfer Cart Page) Failed')
+                            ->setActivityName('view_transfer_cart')
+                            ->setActivityNameLong('View Transfer Cart Failed')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -3020,7 +3057,7 @@ class MobileCIAPIController extends ControllerAPI
         $user = null;
         $product_id = null;
         $activityCart = Activity::mobileci()
-                            ->setActivityType('cart');
+                            ->setActivityType('add');
         try {
             $this->registerCustomValidation();
 
@@ -3116,17 +3153,19 @@ class MobileCIAPIController extends ControllerAPI
             $variant_price = $product->variants->find($product_variant_id)->price;
             $price_after_promo = $variant_price;
 
+            $activityPromoObj = null;
             foreach ($promo_products as $promo) {
                 if($promo->promotionrule->rule_type == 'product_discount_by_percentage') {
                     $discount = $promo->promotionrule->discount_value * $variant_price;
                 } elseif($promo->promotionrule->rule_type == 'product_discount_by_value') {
                     $discount = $promo->promotionrule->discount_value;
                 }
-
+                $activityPromoObj = $promo;
                 $price_after_promo = $price_after_promo - $discount;
             }
 
             $activityCoupon = array();
+            $activityCouponObj = null;
 
             foreach ($coupons as $coupon) {
                 $validator = \Validator::make(
@@ -3147,7 +3186,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 $used_coupons = IssuedCoupon::active()->where('issued_coupon_id', $coupon)->first();
-
+                $activityCouponObj = $used_coupons->coupon;
                 // if ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_percentage') {
                 //     $discount = $used_coupons->coupon->couponrule->discount_value * $variant_price;
                 // } elseif ($used_coupons->coupon->couponrule->rule_type == 'product_discount_by_value') {
@@ -3196,13 +3235,21 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('add_to_cart')
                             ->setActivityNameLong('Add To Cart ' . $product->product_name)
                             ->setObject($product)
+                            ->setProduct($product)
+                            ->setPromotion($activityPromoObj)
+                            ->setCoupon($activityCouponObj)
+                            ->setModuleName('Cart')
                             ->setNotes($activityCartNotes)
                             ->responseOK()
                             ->save();
+
             foreach ($promo_products as $promo) {
                 $activityChild = Activity::parent($activityCart)
                                     ->setObject($promo)
+                                    ->setPromotion($promo)
+                                    ->setCoupon(null)
                                     ->setUser($user)
+                                    ->setEvent(null)
                                     ->setNotes($promo->promotion_name)
                                     ->responseOK()
                                     ->save();
@@ -3210,7 +3257,10 @@ class MobileCIAPIController extends ControllerAPI
 
             foreach ($activityCoupon as $_coupon) {
                 $activityChild = Activity::parent($activityCart)
-                                    ->setObject($_coupon)
+                                    ->setObject($_coupon->coupon)
+                                    ->setCoupon($_coupon->coupon)
+                                    ->setPromotion(null)
+                                    ->setEvent(null)
                                     ->setUser($user)
                                     ->setNotes($_coupon->coupon->promotion_name)
                                     ->responseOK()
@@ -3226,6 +3276,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('add_to_cart')
                             ->setActivityNameLong('Add To Cart Failed')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityCartNotes)
                             ->responseFailed()
                             ->save();
@@ -3240,8 +3291,9 @@ class MobileCIAPIController extends ControllerAPI
     {
         $user = null;
         $product_id = null;
+        $used_coupon_id = null;
         $activityCart = Activity::mobileci()
-                            ->setActivityType('cart');
+                            ->setActivityType('add');
         try {
             $this->registerCustomValidation();
 
@@ -3318,19 +3370,22 @@ class MobileCIAPIController extends ControllerAPI
                     $cartcoupon->save();
                     $used_coupons->status = 'deleted';
                     $used_coupons->save();
-                    $activityCoupon[] = $used_coupons;
+                    $activityCoupon[] = $used_coupons->coupon;
                 }
                 
                 $this->response->message = 'success';
                 $this->response->data = $cartdetail;
                 
                 foreach ($activityCoupon as $_coupon) {
-                    $activityCartNotes = sprintf('Add coupon to cart: %s', $product->product_id);
+                    $used_coupon_id = $used_coupons->promotion_id;
+                    $activityCartNotes = sprintf('Use Coupon : %s', $used_coupon_id);
                     $activityCart->setUser($user)
-                                    ->setActivityName('add_coupons_to_cart')
-                                    ->setActivityNameLong('Add Coupons To Cart ' . $product->product_name)
+                                    ->setActivityName('use_coupon')
+                                    ->setActivityNameLong('Use Coupon')
                                     ->setObject($_coupon)
-                                    ->setNotes($_coupon->coupon->promotion_name)
+                                    ->setCoupon($_coupon)
+                                    ->setModuleName('Coupon')
+                                    ->setNotes($activityCartNotes)
                                     ->responseOK()
                                     ->save();
                 }
@@ -3343,11 +3398,12 @@ class MobileCIAPIController extends ControllerAPI
         } catch (Exception $e) {
             $this->rollback();
             // return $this->redirectIfNotLoggedIn($e);
-            $activityCartNotes = sprintf('Add coupon to cart: %s', $product_id);
+            $activityCartNotes = sprintf('Use Coupon Failed : %s', $used_coupon_id);
             $activityCart->setUser($user)
-                            ->setActivityName('add_coupon_to_cart')
+                            ->setActivityName('use_coupon')
                             ->setActivityNameLong('Add Coupon To Cart Failed')
                             ->setObject(null)
+                            ->setModuleName('Coupon')
                             ->setNotes($activityCartNotes)
                             ->responseFailed()
                             ->save();
@@ -3446,8 +3502,9 @@ class MobileCIAPIController extends ControllerAPI
     {
         $user = null;
         $cartdetailid = null;
+        $productid = null;
         $activityPage = Activity::mobileci()
-                        ->setActivityType('view');
+                        ->setActivityType('delete');
         try {
             $this->registerCustomValidation();
 
@@ -3500,12 +3557,14 @@ class MobileCIAPIController extends ControllerAPI
             $cartdata->cart = $cart;
             $this->response->message = 'success';
             $this->response->data = $cartdata;
-
-            $activityPageNotes = sprintf('Deleted cart item id: %s', $cartdetailid);
+            $productid = $cartdetail->product->product_id;
+            $activityPageNotes = sprintf('Deleted product from cart. Product id: %s', $productid);
             $activityPage->setUser($user)
-                            ->setActivityName('delete_item_from_cart')
-                            ->setActivityNameLong('Delete Item From Cart')
+                            ->setActivityName('delete_cart')
+                            ->setActivityNameLong('Delete Product From Cart')
                             ->setObject($cartdetail)
+                            ->setProduct($cartdetail->product)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -3515,11 +3574,12 @@ class MobileCIAPIController extends ControllerAPI
 
         } catch (Exception $e) {
             $this->rollback();
-            $activityPageNotes = sprintf('Failed to delete cart item id: %s', $cartdetailid);
+            $activityPageNotes = sprintf('Failed to delete from cart. Product id: %s', $productid);
             $activityPage->setUser($user)
-                            ->setActivityName('delete_item_from_cart')
-                            ->setActivityNameLong('Failed To Delete Item From Cart')
+                            ->setActivityName('delete_cart')
+                            ->setActivityNameLong('Failed To Delete From Cart')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -3533,7 +3593,7 @@ class MobileCIAPIController extends ControllerAPI
         $user = null;
         $couponid = null;
         $activityPage = Activity::mobileci()
-                        ->setActivityType('view');
+                        ->setActivityType('delete');
         try {
             $this->registerCustomValidation();
 
@@ -3541,29 +3601,32 @@ class MobileCIAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $couponid = OrbitInput::post('detail');
+            $issuedcouponid = OrbitInput::post('detail');
 
             $this->beginTransaction();
             
-            $cartcoupon = CartCoupon::whereHas('issuedcoupon', function($q) use($user, $couponid)
+            $cartcoupon = CartCoupon::whereHas('issuedcoupon', function($q) use($user, $issuedcouponid)
             {
-                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.issued_coupon_id', $couponid);
+                $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.issued_coupon_id', $issuedcouponid);
             })->first();
 
             if(!empty($cartcoupon)) {
                 $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $cartcoupon->issued_coupon_id)->first();
                 $issuedcoupon->makeActive();
                 $issuedcoupon->save();
+                $couponid = $issuedcoupon->coupon->promotion_id;
                 $cartcoupon->delete(TRUE);
             }
 
             $this->response->message = 'success';
 
-            $activityPageNotes = sprintf('Deleted issued cart coupon id: %s', $couponid);
+            $activityPageNotes = sprintf('Delete Coupon From Cart. Coupon Id: %s', $couponid);
             $activityPage->setUser($user)
-                            ->setActivityName('delete_cart_coupon_from_cart')
-                            ->setActivityNameLong('Delete Cart Coupon From Cart')
-                            ->setObject($issuedcoupon)
+                            ->setActivityName('delete_cart')
+                            ->setActivityNameLong('Delete Coupon From Cart')
+                            ->setObject($issuedcoupon->coupon)
+                            ->setCoupon($issuedcoupon->coupon)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -3573,11 +3636,12 @@ class MobileCIAPIController extends ControllerAPI
 
         } catch (Exception $e) {
             $this->rollback();
-            $activityPageNotes = sprintf('Failed to delete issued cart coupon id: %s', $couponid);
+            $activityPageNotes = sprintf('Failed To Delete Coupon From Cart. Coupon Id: %s', $couponid);
             $activityPage->setUser($user)
-                            ->setActivityName('delete_cart_coupon_from_cart')
-                            ->setActivityNameLong('Failed To Delete Cart Coupon From Cart')
+                            ->setActivityName('delete_cart')
+                            ->setActivityNameLong('Failed To Delete Coupon From Cart')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -3592,7 +3656,7 @@ class MobileCIAPIController extends ControllerAPI
         $quantity = 0;
         $cartdetailid = 0;
         $activityPage = Activity::mobileci()
-                        ->setActivityType('view');
+                        ->setActivityType('update');
         try {
             $this->registerCustomValidation();
 
@@ -3645,9 +3709,11 @@ class MobileCIAPIController extends ControllerAPI
 
             $activityPageNotes = sprintf('Updated cart item id: ' . $cartdetailid . ' quantity to %s', $quantity);
             $activityPage->setUser($user)
-                            ->setActivityName('update_cart_item')
-                            ->setActivityNameLong('Update Cart Item')
+                            ->setActivityName('update_cart')
+                            ->setActivityNameLong('Update Cart')
                             ->setObject($cartdetail)
+                            ->setProduct($product)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -3663,6 +3729,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('update_cart_item')
                             ->setActivityNameLong('Failed To Update Cart Item')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -4099,11 +4166,12 @@ class MobileCIAPIController extends ControllerAPI
                     ->setActivityName($activity_payment)
                     ->setActivityNameLong($activity_payment_label . ' Success')
                     ->setObject($transaction)
+                    ->setModuleName('Cart')
                     ->setNotes($activityPageNotes)
                     ->responseOK()
                     ->save();
 
-            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata));
+            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction_id' => $transaction->transaction_id));
 
         } catch (Exception $e) {
             // $activityPageNotes = sprintf('Failed to view Page: %s', 'Category');
@@ -4112,6 +4180,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName($activity_payment)
                             ->setActivityNameLong($activity_payment . ' Failed')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($e->getMessage())
                             ->responseFailed()
                             ->save();
@@ -4123,9 +4192,10 @@ class MobileCIAPIController extends ControllerAPI
     public function postEventPopUpActivity()
     {
         $activity = Activity::mobileci()
-                            ->setActivityType('view');
+                            ->setActivityType('click');
         $user = null;
         $event_id = null;
+        $event = null;
         try {
             $user = $this->getLoggedInUser();
 
@@ -4139,6 +4209,8 @@ class MobileCIAPIController extends ControllerAPI
                     ->setActivityName('event_click')
                     ->setActivityNameLong('Event Click')
                     ->setObject($event)
+                    ->setModuleName('Event')
+                    ->setEvent($event)
                     ->setNotes($activityNotes)
                     ->responseOK()
                     ->save();
@@ -4149,6 +4221,173 @@ class MobileCIAPIController extends ControllerAPI
                     ->setActivityName('event_click')
                     ->setActivityNameLong('Event Click Failed')
                     ->setObject(null)
+                    ->setModuleName('Event')
+                    ->setEvent($event)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed()
+                    ->save();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postDisplayEventPopUpActivity()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('view');
+        $user = null;
+        $event_id = null;
+        $event = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $event_id = OrbitInput::post('eventdata');
+            $event = EventModel::active()->where('event_id', $event_id)->first();
+
+            $activityNotes = sprintf('Event View. Event Id : %s', $event_id);
+            $activity->setUser($user)
+                    ->setActivityName('event_view')
+                    ->setActivityNameLong('Event View (Pop Up)')
+                    ->setObject($event)
+                    ->setModuleName('Event')
+                    ->setEvent($event)
+                    ->setNotes($activityNotes)
+                    ->responseOK()
+                    ->save();
+        } catch (Exception $e) {
+            $this->rollback();
+            $activityNotes = sprintf('Event Click Failed. Event Id : %s', $event_id);
+            $activity->setUser($user)
+                    ->setActivityName('event_click')
+                    ->setActivityNameLong('Event Click Failed')
+                    ->setObject(null)
+                    ->setModuleName('Event')
+                    ->setEvent($event)
+                    ->setNotes($e->getMessage())
+                    ->responseFailed()
+                    ->save();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postClickWidgetActivity()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('click');
+        $user = null;
+        $widget_id = null;
+        $widget = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $widget_id = OrbitInput::post('widgetdata');
+            $widget = Widget::active()->where('widget_id', $widget_id)->first();
+
+            $activityNotes = sprintf('Widget Click. Widget Id : %s', $widget_id);
+            $activity->setUser($user)
+                    ->setActivityName('widget_click')
+                    ->setActivityNameLong('Widget Click ' . ucwords(str_replace('_', ' ', $widget->widget_type)))
+                    ->setObject($widget)
+                    ->setModuleName('Widget')
+                    ->setNotes($activityNotes)
+                    ->responseOK()
+                    ->save();
+        } catch (Exception $e) {
+            
+            $activityNotes = sprintf('Widget Click Failed. Widget Id : %s', $widget_id);
+            $activity->setUser($user)
+                    ->setActivityName('widget_click')
+                    ->setActivityNameLong('Widget Click Failed')
+                    ->setObject(null)
+                    ->setModuleName('Widget')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed()
+                    ->save();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postClickSaveReceiptActivity()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('click');
+        $user = null;
+        $transaction_id = null;
+        $transaction = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $transaction_id = OrbitInput::post('transactiondata');
+            $transaction = Transaction::where('transaction_id', $transaction_id)
+                ->where('customer_id', $user->user_id)
+                ->where('status', 'paid')
+                ->first();
+            
+            $activityNotes = sprintf('Save Receipt Click. Transaction Id : %s', $transaction_id);
+            $activity->setUser($user)
+                    ->setActivityName('save_receipt_click')
+                    ->setActivityNameLong('Save Receipt Click')
+                    ->setObject($transaction)
+                    ->setModuleName('Cart')
+                    ->setNotes($activityNotes)
+                    ->responseOK()
+                    ->save();
+        } catch (Exception $e) {
+            
+            $activityNotes = sprintf('Save Receipt Click Failed. Transaction Id : %s', $transaction_id);
+            $activity->setUser($user)
+                    ->setActivityName('save_receipt_click')
+                    ->setActivityNameLong('Save Receipt Click Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->responseFailed()
+                    ->save();
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postClickCheckoutActivity()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('click');
+        $user = null;
+        $cart_id = null;
+        $cart = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartdata = $this->getCartData();
+            $cart = $cartdata->cart;
+            $cart_id = $cart->cart_id;
+
+            $activityNotes = sprintf('Checkout. Cart Id : %s', $cart_id);
+            $activity->setUser($user)
+                    ->setActivityName('checkout')
+                    ->setActivityNameLong('Checkout')
+                    ->setObject($cart)
+                    ->setModuleName('Cart')
+                    ->setNotes($activityNotes)
+                    ->responseOK()
+                    ->save();
+        } catch (Exception $e) {
+            $activityNotes = sprintf('Checkout Failed. Cart Id : %s', $cart_id);
+            $activity->setUser($user)
+                    ->setActivityName('checkout')
+                    ->setActivityNameLong('Checkout Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
                     ->setNotes($e->getMessage())
                     ->responseFailed()
                     ->save();
