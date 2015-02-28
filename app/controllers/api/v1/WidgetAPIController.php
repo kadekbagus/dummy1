@@ -71,6 +71,7 @@ class WidgetAPIController extends ControllerAPI
             $slogan = OrbitInput::post('slogan');
             $animation = OrbitInput::post('animation');
             $widgetOrder = OrbitInput::post('widget_order');
+            $images = OrbitInput::files('images');
 
             $validator = Validator::make(
                 array(
@@ -80,7 +81,8 @@ class WidgetAPIController extends ControllerAPI
                     'retailer_ids'          => $retailerIds,
                     'slogan'                => $slogan,
                     'animation'             => $animation,
-                    'widget_order'          => $widgetOrder
+                    'widget_order'          => $widgetOrder,
+                    'images'                => $images
                 ),
                 array(
                     'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon',
@@ -89,7 +91,8 @@ class WidgetAPIController extends ControllerAPI
                     'slogan'                => 'required',
                     'animation'             => 'required|in:none,horizontal,vertical',
                     'widget_order'          => 'required|numeric',
-                    'retailer_ids'          => 'array|orbit.empty.retailer',
+                    'images'                => 'required_if:animation,none',
+                    'retailer_ids'          => 'array|orbit.empty.retailer'
                 )
             );
 
@@ -165,7 +168,7 @@ class WidgetAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
-            $httpCode = 403;
+            $httpCode = 400;
 
             // Rollback the changes
             $this->rollBack();
@@ -290,6 +293,7 @@ class WidgetAPIController extends ControllerAPI
             $slogan = OrbitInput::post('slogan');
             $animation = OrbitInput::post('animation');
             $widgetOrder = OrbitInput::post('widget_order');
+            $images = OrbitInput::files('images');
 
             $validator = Validator::make(
                 array(
@@ -300,7 +304,8 @@ class WidgetAPIController extends ControllerAPI
                     'retailer_ids'          => $retailerIds,
                     'slogan'                => $slogan,
                     'animation'             => $animation,
-                    'widget_order'          => $widgetOrder
+                    'widget_order'          => $widgetOrder,
+                    'images'                => $images
                 ),
                 array(
                     'widget_id'             => 'required|numeric|orbit.empty.widget',
@@ -308,6 +313,7 @@ class WidgetAPIController extends ControllerAPI
                     'object_id'             => 'numeric',
                     'merchant_id'           => 'numeric|orbit.empty.merchant',
                     'animation'             => 'in:none,horizontal,vertical',
+                    'images'                => 'required_if:animation,none',
                     'widget_order'          => 'numeric',
                     'retailer_ids'          => 'array|orbit.empty.retailer',
                 )
