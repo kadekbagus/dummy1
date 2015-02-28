@@ -336,6 +336,11 @@ class Activity extends Eloquent
             $this->promotion_name = $object->promotion_name;
 
             $this->metadata_object = $object->toJSON();
+        } else {
+            $this->promotion_id = null;
+            $this->promotion_name = null;
+
+            $this->metadata_object = null;
         }
 
         return $this;
@@ -356,6 +361,11 @@ class Activity extends Eloquent
             $this->coupon_name = $object->promotion_name;
 
             $this->metadata_object = $object->toJSON();
+        } else {
+            $this->coupon_id = null;
+            $this->coupon_name = null;
+
+            $this->metadata_object = null;
         }
 
         return $this;
@@ -376,6 +386,11 @@ class Activity extends Eloquent
             $this->event_name = $object->event_name;
 
             $this->metadata_object = $object->toJSON();
+        } else {
+            $this->event_id = null;
+            $this->event_name = null;
+
+            $this->metadata_object = null;
         }
 
         return $this;
