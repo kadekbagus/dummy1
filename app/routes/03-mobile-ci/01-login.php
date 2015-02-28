@@ -222,4 +222,13 @@ Route::group(array('before' => 'orbit-settings'), function()
             return MobileCI\MobileCIAPIController::create()->postClickCheckoutActivity();
         })
     );
+
+    // send ticket to email
+    Route::post('/app/v1/customer/sendticket', array(
+        'as' => 'send-ticket', 
+        function()
+        {
+            return MobileCI\MobileCIAPIController::create()->postSendTicket();
+        })
+    );
 });

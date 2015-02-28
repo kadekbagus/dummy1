@@ -43,6 +43,7 @@ use \TransactionDetail;
 use \TransactionDetailPromotion;
 use \TransactionDetailCoupon;
 use \TransactionDetailTax;
+use Swift_Attachment;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -320,7 +321,16 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartitems = $this->getCartForToolbar();
 
-            $widgets = Widget::with('media')->active()->where('merchant_id', $retailer->parent->merchant_id)->orderBy('widget_order', 'ASC')->take(4)->get();
+            $widgets = Widget::with('media')
+                ->active()
+                ->where('merchant_id', $retailer->parent->merchant_id)
+                ->whereHas('retailers', function($q) use($retailer) 
+                {
+                    $q->where('retailer_id', $retailer->merchant_id);
+                })
+                ->orderBy('widget_order', 'ASC')
+                ->take(4)
+                ->get();
 
             $activityPageNotes = sprintf('Page viewed: %s', 'Home');
             $activityPage->setUser($user)
@@ -342,8 +352,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            return $this->redirectIfNotLoggedIn($e);
-            // return $e;
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
         }
     }
 
@@ -3419,7 +3429,7 @@ class MobileCIAPIController extends ControllerAPI
         $user = null;
         $couponid = null;
         $activityPage = Activity::mobileci()
-                        ->setActivityType('view');
+                        ->setActivityType('add');
         try {
             $this->registerCustomValidation();
 
@@ -3470,11 +3480,13 @@ class MobileCIAPIController extends ControllerAPI
 
             $this->response->message = 'success';
 
-            $activityPageNotes = sprintf('Added issued cart coupon id: %s', $couponid);
+            $activityPageNotes = sprintf('Use Coupon : %s', $couponid);
             $activityPage->setUser($user)
-                            ->setActivityName('add_cart_coupon_to_cart')
-                            ->setActivityNameLong('Add Cart Coupon To Cart')
-                            ->setObject($used_coupons)
+                            ->setActivityName('use_coupon')
+                            ->setActivityNameLong('Use Coupon')
+                            ->setObject($used_coupons->coupon)
+                            ->setCoupon($used_coupons->coupon)
+                            ->setModuleName('Coupon')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -3488,6 +3500,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('add_cart_coupon_to_cart')
                             ->setActivityNameLong('Failed To Add Cart Coupon To Cart')
                             ->setObject(null)
+                            ->setModuleName('Coupon')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -4171,7 +4184,7 @@ class MobileCIAPIController extends ControllerAPI
                     ->responseOK()
                     ->save();
 
-            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction_id' => $transaction->transaction_id));
+            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction' => $transaction));
 
         } catch (Exception $e) {
             // $activityPageNotes = sprintf('Failed to view Page: %s', 'Category');
@@ -4392,6 +4405,41 @@ class MobileCIAPIController extends ControllerAPI
                     ->responseFailed()
                     ->save();
             // return $this->redirectIfNotLoggedIn($e);
+            return $e;
+        }
+    }
+
+    public function postSendTicket() 
+    {
+        try {
+            $user = $this->getLoggedInUser();
+
+            $ticketdata = OrbitInput::post('ticketdata');
+            $transactionid = OrbitInput::post('transactionid');
+
+            $transaction = Transaction::where('transaction_id', $transactionid)->where('customer_id', $user->user_id)->first();
+
+            $ticketdata = str_replace('data:image/png;base64,', '', $ticketdata);
+
+            $image = base64_decode($ticketdata);
+
+            $date = str_replace(' ', '_', $transaction->created_at);
+
+            $filename = 'receipt-' . $date . '.png';
+            // $ticketAttachment = Swift_Attachment::newInstance($image, $filename, 'image/png');
+
+            $mailviews = array(
+                'html' => 'emails.receipt.receipt-html',
+                'text' => 'emails.receipt.receipt-text'
+            );
+
+            \Mail::send($mailviews, array('name' => $user->getFullName()), function($message) use($user, $image, $filename)
+            {
+                $message->to('sembarang@vm.orbit-shop.rio', $user->getFullName())->subject('Orbit Receipt');
+                $message->attachData($image, $filename, array('mime' => 'image/png'));    
+            });
+            
+        } catch (Exception $e) {
             return $e;
         }
     }

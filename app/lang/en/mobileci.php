@@ -44,7 +44,7 @@ return array(
         'checkout_title'        => 'Checkout',
         'tip_title'             => 'Tip',
         'delete_item_title'     => 'Delete Item',
-        'delete_coupon_title'   => 'Delete Kupon',
+        'delete_coupon_title'   => 'Delete Coupon',
         'close_cart_title'      => 'Close Cart',
 
         'message_no_coupon'     => 'Sorry, you do not have any coupon yet.',
@@ -113,6 +113,8 @@ return array(
         'taxes_label'        => 'Taxes',
         'checkout_button'    => 'Checkout',
         'continue_button'    => 'Continue Shopping',
+        'transaction_id_label' => 'Transaction ID',
+        'date_label'         => 'Date',
     ),
 
     'promotion_list'         => array(

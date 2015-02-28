@@ -113,6 +113,8 @@ return array(
         'taxes_label'        => 'Pajak',
         'checkout_button'    => 'Checkout',
         'continue_button'    => 'Lanjut Belanja',
+        'transaction_id_label' => 'ID Transaksi',
+        'date_label'         => 'Tanggal',
     ),
 
     'promotion_list'         => array(
