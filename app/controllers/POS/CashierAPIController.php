@@ -2746,6 +2746,16 @@ class CashierAPIController extends ControllerAPI
                 $cartdata->cartsummary = $cartsummary;
             }
 
+
+            //update cart and cart_detail status to 'cashier'
+            if(!empty($cart)){
+                $cart_update = \Cart::where('status', 'active')->where('cart_id', $cart->cart_id)->first();
+                $cart_update->status = 'cashier';
+                $cart_update->save();
+                $cart_detail_update = \CartDetail::where('status', 'active')->where('cart_id', $cart->cart_id)->update(array('status' => 'cashier'));
+            }
+
+
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
                     ->setActivityNameLong($activity_transfer_label . ' Succes')
