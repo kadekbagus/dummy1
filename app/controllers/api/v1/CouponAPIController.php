@@ -1101,7 +1101,7 @@ class CouponAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string   `with`                  (optional) - Valid value: retailers, product, family.
-     * @param string   `sortby`                (optional) - Column order by. Valid value: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status, discount_object_type, display_discount_value.
+     * @param string   `sortby`                (optional) - Column order by. Valid value: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status, rule_type, display_discount_value.
      * @param string   `sortmode`              (optional) - ASC or DESC
      * @param integer  `take`                  (optional) - Limit
      * @param integer  `skip`                  (optional) - Limit offset
@@ -1168,7 +1168,7 @@ class CouponAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status,discount_object_type,display_discount_value',
+                    'sort_by' => 'in:registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status,rule_type,display_discount_value',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.coupon_sortby'),
@@ -1450,7 +1450,7 @@ class CouponAPIController extends ControllerAPI
                     'end_date'                 => 'promotions.end_date',
                     'is_permanent'             => 'promotions.is_permanent',
                     'status'                   => 'promotions.status',
-                    'discount_object_type'     => 'discount_object_type',
+                    'rule_type'                => 'rule_type',
                     'display_discount_value'   => 'display_discount_value' // only to avoid error 'Undefined index'
                 );
 
