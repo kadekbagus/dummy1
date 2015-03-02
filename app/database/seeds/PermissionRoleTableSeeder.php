@@ -899,7 +899,11 @@ class PermissionRoleTableSeeder extends Seeder
         }
 
         $this->command->info('Seeding permission_role table...');
-        DB::table('permission_role')->truncate();
+
+        try {
+            DB::table('permission_role')->truncate();
+        } catch (Illuminate\Database\QueryException $e) {
+        }
         foreach ($permissionRoles as $rolePerm=>$permissionRole) {
             PermissionRole::unguard();
             PermissionRole::create($permissionRole);

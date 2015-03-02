@@ -95,7 +95,11 @@ COUNTRY;
         sort($interests, SORT_STRING);
 
         $this->command->info('Seeding personal_interests table...');
-        DB::table('personal_interests')->truncate();
+
+        try {
+            DB::table('personal_interests')->truncate();
+        } catch (Illuminate\Database\QueryException $e) {
+        }
 
         foreach ($interests as $interest) {
             $interest = trim($interest);
