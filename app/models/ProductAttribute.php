@@ -29,6 +29,7 @@ class ProductAttribute extends Eloquent
     public function values()
     {
         return $this->hasMany('ProductAttributeValue')
+                    ->orderBy('value', 'asc')
                     ->excludeDeleted();
     }
 
