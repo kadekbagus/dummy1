@@ -605,7 +605,7 @@ class postUpdateMerchantTest extends OrbitTestCase
         $this->assertSame(0, (int)$response->code);
         $this->assertSame('success', $response->status);
         $this->assertSame('Request OK', $response->message);
-        $this->assertSame('2', (string)$response->data->user_id);
+        $this->assertSame('3', (string)$response->data->user_id);
         $this->assertSame('test@merchant.update', $response->data->email);
         $this->assertSame('test request ok: merchant update', $response->data->name);
         $this->assertSame('pending', $response->data->status);
