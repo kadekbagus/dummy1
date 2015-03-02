@@ -1,7 +1,7 @@
 @extends('mobile-ci.layout-headless')
 
 @section('ext_style')
-  <link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+  
   <style type="text/css">
   body{
     font-family: 'Arial';
@@ -16,7 +16,7 @@
       <h2>{{ Lang::get('mobileci.thank_you.thank_you') }}</h2>
       <div id="receipt" class="receipt">
             <div class="row vertically-spaced">
-              <div class="col-xs-12 text-center">
+              <div class="col-xs-12 text-center vertically-spaced">
                 <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" style="margin:0 auto;"/>
               </div>
               <div class="col-xs-12 text-center vertically-spaced">
@@ -24,6 +24,11 @@
               </div>
               <div class="col-xs-12 text-center vertically-spaced">
                 {{ nl2br($retailer->parent->ticket_header) }}
+              </div>
+              <div class="col-xs-12 text-left vertically-spaced">
+                {{ Lang::get('mobileci.cart.transaction_id_label') }}: {{ str_pad($transaction->transaction_id, 10, '0', STR_PAD_LEFT) }}
+                <br>
+                {{ Lang::get('mobileci.cart.date_label') }}: {{ date('r', strtotime($transaction->created_at)) }}
               </div>
             </div>
             <div class="cart-page the-cart">
@@ -269,7 +274,7 @@
               </div>
             </div>
       </div>
-      <a class="btn btn-info" id="saveTicketBtn" download="receipt_{{\Carbon\Carbon::now()}}.png">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
+      <a class="btn btn-info" id="saveTicketBtn" data-transaction="{{ $transaction->transaction_id }}" download="receipt_{{\Carbon\Carbon::now()}}.png">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
       <h3>{{ Lang::get('mobileci.thank_you.thank_you_message') }}</h3>
       @if(!empty($retailer->parent->url))
       <h5>{{ Lang::get('mobileci.thank_you.dont_forget_message') }}</h5>
@@ -308,10 +313,22 @@
           var canvas = document.getElementById('receipt-img');
           var dataURL = canvas.toDataURL('image/png');
           button.href = dataURL;
+
+          var transactiondata = $(this).data('transaction');
+
+          $.ajax({
+            url: '{{ route('click-save-receipt-activity') }}',
+            data: {
+              transactiondata: transactiondata
+            },
+            method: 'POST'
+          });
+
       });
     });
+
     $(window).bind("load", function() {
-      $(".receipt").css('font-family', 'Inconsolata')
+      $(".receipt").css('font-family', '"Courier New", Courier, monospace');
       html2canvas($(".receipt"), {
           onrendered: function(canvas) {
               theCanvas = canvas;
@@ -319,10 +336,18 @@
               // document.getElementById('receipt').appendChild(canvas);
               $('#receipt').after(canvas);
 
+              $.ajax({
+                url: '{{ route('send-ticket') }}',
+                data: {
+                  ticketdata: canvas.toDataURL('image/png'),
+                  transactionid: '{{ $transaction->transaction_id }}'
+                },
+                method: 'POST'
+              });
               // Convert and download as image 
-              Canvas2Image.saveAsPNG(canvas); 
-              $("#img-out").append(canvas);
-              cnv = canvas;
+              // Canvas2Image.saveAsPNG(canvas); 
+              // $("#img-out").append(canvas);
+              // cnv = canvas;
               // Clean up 
               //document.body.removeChild(canvas);
           }

@@ -2137,7 +2137,7 @@ class UploadAPIController extends ControllerAPI
             };
 
             // Load the orbit configuration for user profile picture
-            $uploadImageConfig = Config::get('orbit.upload.widget.default');
+            $uploadImageConfig = Config::get('orbit.upload.widget.main');
 
             $message = new UploaderMessage([]);
             $config = new UploaderConfig($uploadImageConfig);

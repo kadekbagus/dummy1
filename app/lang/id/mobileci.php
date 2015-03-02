@@ -17,6 +17,9 @@ return array(
         'logout'        => 'LOGOUT',
         'payment'       => 'PEMBAYARAN',
         'searching'     => 'PENCARIAN',
+        'new_products'  => 'PRODUK BARU',
+        'promotions'    => 'PROMOSI',
+        'coupons'       => 'KUPON',
     ),
 
     'widgets'           => array(
@@ -60,6 +63,7 @@ return array(
         'cancel_button'         => 'Batal',
         'cash_button'           => 'Tunai',
         'credit_button'         => 'Kartu Kredit',
+        'online_payment_button' => 'Pembayaran Online',
         'yes_button'            => 'Ya',
         'do_not_show_label'     => 'Jangan tunjukkan pesan ini lagi',
 
@@ -109,6 +113,8 @@ return array(
         'taxes_label'        => 'Pajak',
         'checkout_button'    => 'Checkout',
         'continue_button'    => 'Lanjut Belanja',
+        'transaction_id_label' => 'ID Transaksi',
+        'date_label'         => 'Tanggal',
     ),
 
     'promotion_list'         => array(
@@ -147,6 +153,9 @@ return array(
         'dont_forget_message' => 'Jangan lupa kunjungi',
         'promo_message' => 'untuk dapatkan info promo menarik lainya.',
         'shop_again_button' => 'Belanja Lagi',
+        'transfer_cart_successful' => 'Transfer Cart Berhasil!',
+        'transfer_cart_message' => 'transaksi Anda akan diselesaikan oleh kasir',
+        'thank_you_for_shopping' => 'Terima kasih telah berbelanja bersama kami',
     ),
 
     'transfer_cart'         => array(
@@ -155,4 +164,16 @@ return array(
         'back_button'       => 'Kembali',
     ),
     
+    'payment'               => array(
+        'total_to_pay_label'=> 'Total',
+        'name_label'        => 'Nama',
+        'name_placeholder'  => 'Inputkan nama Anda',
+        'card_type_label'   => 'Tipe Kartu Kredit',
+        'card_number_label' => 'Nomor Kartu Kredit',
+        'card_number_placeholder' => 'Inputkan nomor kartu Anda',
+        'expire_label'      => 'Kadaluarsa pada',
+        'ccv_label'         => 'CCV',
+        'ccv_placeholder'   => 'Inputkan CCV',
+        'submit_button'     => 'Submit',
+    ),
 );

@@ -53,5 +53,12 @@ class UserTableSeeder extends Seeder
         $superAdmin->createApiKey();
         $this->command->info('    Create Api Key record for Super Admin.');
         $this->command->info('users, user_details, and apikeys table seeded.');
+
+        $this->command->info('Deleting password file...');
+        if (! @unlink($passwordFile)) {
+            $this->command->info('Failed to delete password file.');
+        } else {
+            $this->command->info('Password file has been deleted.');
+        }
     }
 }

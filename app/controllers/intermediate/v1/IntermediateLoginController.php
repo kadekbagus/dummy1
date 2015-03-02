@@ -58,7 +58,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 break;
 
             case 'pos':
-                $activity = Activity::portal()
+                $activity = Activity::pos()
                                     ->setActivityType('logout');
                 break;
 
@@ -271,6 +271,10 @@ class IntermediateLoginController extends IntermediateBaseController
     {
         // This Query String trigger how activity would be logged
         $_GET['_orbit_logout_from'] = 'mobile-ci';
+        
+        $this->session->getSessionConfig()->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
+        $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
+        $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
 
         $response = json_decode($this->getLogout()->getContent());
         try {
@@ -287,11 +291,13 @@ class IntermediateLoginController extends IntermediateBaseController
                 }
                 throw new Exception ($deRegisterMac['message'], $exitCode);
             }
+            $cookie = \Cookie::forget('event');
+
         } catch (Exception $e) {
         }
 
         // Redirect back to /customer
-        return Redirect::to('/customer');
+        return Redirect::to('/customer')->withCookie($cookie);
     }
 
     /**

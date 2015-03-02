@@ -205,6 +205,7 @@ class MerchantAPIController extends ControllerAPI
      * POST - Add new merchant
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -281,9 +282,9 @@ class MerchantAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-            $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
+            $password = OrbitInput::post('password');
             $description = OrbitInput::post('description');
             $address_line1 = OrbitInput::post('address_line1');
             $address_line2 = OrbitInput::post('address_line2');
@@ -323,16 +324,16 @@ class MerchantAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'user_id'   => $user_id,
-                    'email'     => $email,
-                    'name'      => $name,
-                    'status'    => $status,
+                    'email'         => $email,
+                    'name'          => $name,
+                    'status'        => $status,
+                    'country'       => $country
                 ),
                 array(
-                    'user_id'   => 'required|numeric|orbit.empty.user',
-                    'email'     => 'required|email|orbit.exists.email',
-                    'name'      => 'required',
-                    'status'    => 'required|orbit.empty.merchant_status',
+                    'email'         => 'required|email|orbit.exists.email',
+                    'name'          => 'required',
+                    'status'        => 'required|orbit.empty.merchant_status',
+                    'country'       => 'required|numeric'
                 )
             );
 
@@ -348,8 +349,34 @@ class MerchantAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
+            $roleMerchant = Role::where('role_name', 'merchant owner')->first();
+            if (empty($roleMerchant)) {
+                OrbitShopAPI::throwInvalidArgument('Could not find role named "Merchant Owner".');
+            }
+
+            $newuser = new User();
+            $newuser->username = $email;
+            $newuser->user_email = $email;
+            $newuser->user_password = Hash::make($password);
+            $newuser->status = 'active';
+            $newuser->user_role_id = $roleMerchant->role_id;
+            $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
+            $newuser->modified_by = $user->user_id;
+            $newuser->save();
+
+            $newuser->createAPiKey();
+
+            $userdetail = new UserDetail();
+            $userdetail = $newuser->userdetail()->save($userdetail);
+
+            $countryName = '';
+            $countryObject = Country::find($country);
+            if (is_object($countryObject)) {
+                $countryName = $countryObject->name;
+            }
+
             $newmerchant = new Merchant();
-            $newmerchant->user_id = $user_id;
+            $newmerchant->user_id = $newuser->user_id;
             $newmerchant->orid = '';
             $newmerchant->email = $email;
             $newmerchant->name = $name;
@@ -360,8 +387,8 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->postal_code = $postal_code;
             $newmerchant->city_id = $city_id;
             $newmerchant->city = $city;
-            $newmerchant->country_id = $country_id;
-            $newmerchant->country = $country;
+            $newmerchant->country_id = $country;
+            $newmerchant->country = $countryName;
             $newmerchant->phone = $phone;
             $newmerchant->fax = $fax;
             $newmerchant->start_date_activity = $start_date_activity;
@@ -969,6 +996,7 @@ class MerchantAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -1010,11 +1038,11 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `mobile_default_language`  (optional) - Mobile default language
      * @param string     `pos_language`             (optional) - POS language
      * @param array      `merchant_taxes`           (optional) - Merchant taxes array
-     *            @param integer   `merchant_tax_id`         (optional) - Merchant Tax ID
-     *            @param string    `tax_name`                (optional) - Tax name
-     *            @param string    `tax_type`                (optional) - Tax type. Valid value: government, service, luxury.
-     *            @param decimal   `tax_value`               (optional) - Tax value
-     *            @param string    `is_delete`               (optional) - Soft delete flag. Valid value: Y.
+     * @param integer    `merchant_tax_id`          (optional) - Merchant Tax ID
+     * @param string     `tax_name`                 (optional) - Tax name
+     * @param string     `tax_type`                 (optional) - Tax type. Valid value: government, service, luxury.
+     * @param decimal    `tax_value`                (optional) - Tax value
+     * @param string     `is_delete`                (optional) - Soft delete flag. Valid value: Y.
      * @param string     `ticket_header`            (optional) - Ticket header
      * @param string     `ticket_footer`            (optional) - Ticket footer
      *
@@ -1106,7 +1134,9 @@ class MerchantAPIController extends ControllerAPI
             });
 
             OrbitInput::post('user_id', function($user_id) use ($updatedmerchant) {
-                $updatedmerchant->user_id = $user_id;
+                // Right know the interface does not provide a way to change
+                // the user so it's better to skip it.
+                // $updatedmerchant->user_id = $user_id;
             });
 
             OrbitInput::post('email', function($email) use ($updatedmerchant) {
@@ -1145,12 +1175,15 @@ class MerchantAPIController extends ControllerAPI
                 $updatedmerchant->city = $city;
             });
 
-            OrbitInput::post('country_id', function($country_id) use ($updatedmerchant) {
-                $updatedmerchant->country_id = $country_id;
-            });
+            OrbitInput::post('country', function($country_id) use ($updatedmerchant) {
+                $countryName = '';
+                $countryObject = Country::find($country_id);
+                if (is_object($countryObject)) {
+                    $countryName = $countryObject->name;
+                }
 
-            OrbitInput::post('country', function($country) use ($updatedmerchant) {
-                $updatedmerchant->country = $country;
+                $updatedmerchant->country_id = $country_id;
+                $updatedmerchant->country = $countryName;
             });
 
             OrbitInput::post('phone', function($phone) use ($updatedmerchant) {

@@ -32,6 +32,7 @@ use \CartDetail;
 use \Promotion;
 use \Coupon;
 use \IssuedCoupon;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class CashierAPIController extends ControllerAPI
 {
@@ -259,104 +260,218 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this product allowed to
-            // perform this action
+            // // Try to check access control list, does this product allowed to
+            // // perform this action
             $user = $this->api->user;
 
-            // $this->registerCustomValidation();
+            // // $this->registerCustomValidation();
+            // $retailer = $this->getRetailerInfo();
 
-            $sort_by = OrbitInput::get('sortby');
-            $validator = Validator::make(
-                array(
-                    'sort_by' => $sort_by,
-                ),
-                array(
-                    'sort_by' => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_retailer_id,product_merchant_id,product_status',
-                ),
-                array(
-                    'in' => Lang::get('validation.orbit.empty.user_sortby'),
-                )
-            );
+            // $sort_by = OrbitInput::get('sortby');
+            // $validator = Validator::make(
+            //     array(
+            //         'sort_by' => $sort_by,
+            //     ),
+            //     array(
+            //         'sort_by' => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_retailer_id,product_merchant_id,product_status',
+            //     ),
+            //     array(
+            //         'in' => Lang::get('validation.orbit.empty.user_sortby'),
+            //     )
+            // );
 
-            // Run the validation
-            if ($validator->fails()) {
-                $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
+            // // Run the validation
+            // if ($validator->fails()) {
+            //     $errorMessage = $validator->messages()->first();
+            //     OrbitShopAPI::throwInvalidArgument($errorMessage);
+            // }
+
+            // // Get the maximum record
+            // $maxRecord = (int) \Config::get('orbit.pagination.max_record');
+            // if ($maxRecord <= 0) {
+            //     $maxRecord = 20;
+            // }
+
+            // $products = Product::joinRetailer()->excludeDeleted('products')
+            //                                    // ->where('merchants.merchant_id', $retailer->merchant_id)
+            //                                    ->active();
+
+            // // Filter product by Ids
+            // OrbitInput::get('product_id', function ($productIds) use ($products) {
+            //     $products->whereIn('products.product_id', $productIds);
+            // });
+
+            // // Filter product by merchant Ids
+            // OrbitInput::get('merchant_id', function ($merchantIds) use ($products) {
+            //     $products->whereIn('products.merchant_id', $merchantIds);
+            // });
+
+            // // Filter product by name
+            // OrbitInput::get('product_name', function ($name) use ($products) {
+            //     $products->whereIn('products.product_name', $name);
+            // });
+
+            // // Filter product by name pattern
+            // OrbitInput::get('product_name_like', function ($name) use ($products) {
+            //     $products->where('products.product_name', 'like', "%$name%");
+            // });
+
+            // // Filter product by product code
+            // OrbitInput::get('product_code', function ($product_code) use ($products) {
+            //     $products->whereIn('products.product_code', $product_code);
+            // });
+
+            // // Filter product by product code pattern
+            // OrbitInput::get('product_code_like', function ($product_code) use ($products) {
+            //     $products->orwhere('products.product_code', 'like', "%$product_code%");
+            // });
+
+            // // Filter product by upc code
+            // OrbitInput::get('upc_code', function ($upc_code) use ($products) {
+            //     $products->whereIn('products.upc_code', $upc_code);
+            // });
+
+            // // Filter product by upc code pattern
+            // OrbitInput::get('upc_code_like', function ($upc_code) use ($products) {
+            //     $products->orwhere('products.upc_code', 'like', "%$upc_code%");
+            // });
+
+            // // Filter product by short description
+            // OrbitInput::get('short_description', function ($short_description) use ($products) {
+            //     $products->whereIn('products.short_description', $short_description);
+            // });
+
+            // // Filter product by short description pattern
+            // OrbitInput::get('short_description_like', function ($short_description) use ($products) {
+            //     $products->where('products.short_description', 'like', "%$short_description%");
+            // });
+
+            // // Filter product by long description
+            // OrbitInput::get('long_description', function ($long_description) use ($products) {
+            //     $products->whereIn('products.long_description', $long_description);
+            // });
+
+            // // Filter product by long description pattern
+            // OrbitInput::get('long_description_like', function ($long_description) use ($products) {
+            //     $products->where('products.long_description', 'like', "%$long_description%");
+            // });
+
+            // // Filter product by status
+            // OrbitInput::get('status', function ($status) use ($products) {
+            //     $products->whereIn('products.status', $status);
+            // });
+
+            // $_products = clone $products;
+
+            // // Get the take args
+            // $take = $maxRecord;
+            // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+            //     if ($_take > $maxRecord) {
+            //         $_take = $maxRecord;
+            //     }
+            //     $take = $_take;
+            // });
+            // $products->take($take);
+
+            // $skip = 0;
+            // OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
+            //     if ($_skip < 0) {
+            //         $_skip = 0;
+            //     }
+
+            //     $skip = $_skip;
+            // });
+            // $products->skip($skip);
+
+            // // Default sort by
+            // $sortBy = 'products.created_at';
+            // // Default sort mode
+            // $sortMode = 'desc';
+
+            // OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+            //     // Map the sortby request to the real column name
+            //     $sortByMapping = array(
+            //         'registered_date'           => 'products.created_at',
+            //         'product_id'                => 'products.product_id',
+            //         'product_name'              => 'products.product_name',
+            //         'product_code'              => 'products.product_code',
+            //         'product_price'             => 'products.price',
+            //         'product_tax_code'          => 'products.tax_code',
+            //         'product_short_description' => 'products.short_description',
+            //         'product_long_description'  => 'products.long_description',
+            //         'product_is_new'            => 'products.is_new',
+            //         'product_new_until'         => 'products.new_until',
+            //         'product_merchant_id'       => 'products.merchant_id',
+            //         'product_status'            => 'products.status',
+            //     );
+
+            //     $sortBy = $sortByMapping[$_sortBy];
+            // });
+
+            // OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+            //     if (strtolower($_sortMode) !== 'desc') {
+            //         $sortMode = 'asc';
+            //     }
+            // });
+            // $products->orderBy($sortBy, $sortMode);
+
+            // $totalRec = RecordCounter::create($_products)->count();
+
+            // $listOfRec = $products->get();
+
+            // $data = new \stdClass();
+            // $data->total_records = $totalRec;
+            // $data->returned_records = count($listOfRec);
+            // $data->records = $listOfRec;
+
+            // if ($totalRec === 0) {
+            //     $data->records = null;
+            //     $this->response->message = \Lang::get('statuses.orbit.nodata.product');
+            // }
+
+            // $sort_by = OrbitInput::get('sort_by');
+            // $keyword = trim(OrbitInput::get('keyword'));
+
+            // $validator = Validator::make(
+            //     array(
+            //         'sort_by' => $sort_by,
+            //     ),
+            //     array(
+            //         'sort_by' => 'in:product_name,price',
+            //     ),
+            //     array(
+            //         'in' => Lang::get('validation.orbit.empty.user_sortby'),
+            //     )
+            // );
+            // // Run the validation
+            // if ($validator->fails()) {
+            //     $errorMessage = $validator->messages()->first();
+            // }
 
             // Get the maximum record
-            $maxRecord = (int) \Config::get('orbit.pagination.max_record');
-            if ($maxRecord <= 0) {
-                $maxRecord = 20;
-            }
+            // $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            // if ($maxRecord <= 0) {
+                $maxRecord = 300;
+            // }
 
-            $products = Product::with('retailers')->excludeDeleted();
+            $retailer = $this->getRetailerInfo();
 
-            // Filter product by Ids
-            OrbitInput::get('product_id', function ($productIds) use ($products) {
-                $products->whereIn('products.product_id', $productIds);
-            });
+            $products = Product::whereHas('retailers', function($query) use ($retailer) {
+                            $query->where('retailer_id', $retailer->merchant_id);
+                        })->where('merchant_id', $retailer->parent_id)->where('status', 'active');
 
-            // Filter product by merchant Ids
-            OrbitInput::get('merchant_id', function ($merchantIds) use ($products) {
-                $products->whereIn('products.merchant_id', $merchantIds);
-            });
-
-            // Filter product by name
-            OrbitInput::get('product_name', function ($name) use ($products) {
-                $products->whereIn('products.product_name', $name);
-            });
 
             // Filter product by name pattern
-            OrbitInput::get('product_name_like', function ($name) use ($products) {
-                $products->where('products.product_name', 'like', "%$name%");
+            OrbitInput::get('keyword', function ($name) use ($products) {
+                $products->where(function($q) use ($name) {
+                    $q  ->where('products.product_name', 'like', "%$name%")
+                        ->orWhere('products.upc_code', 'like', "%$name%")
+                        ->orWhere('products.product_code', 'like', "%$name%")
+                        ->orWhere('products.long_description', 'like', "%$name%")
+                        ->orWhere('products.short_description', 'like', "%$name%");       
+                });
             });
-
-            // Filter product by product code
-            OrbitInput::get('product_code', function ($product_code) use ($products) {
-                $products->whereIn('products.product_code', $product_code);
-            });
-
-            // Filter product by product code pattern
-            OrbitInput::get('product_code_like', function ($product_code) use ($products) {
-                $products->orwhere('products.product_code', 'like', "%$product_code%");
-            });
-
-            // Filter product by upc code
-            OrbitInput::get('upc_code', function ($upc_code) use ($products) {
-                $products->whereIn('products.upc_code', $upc_code);
-            });
-
-            // Filter product by upc code pattern
-            OrbitInput::get('upc_code_like', function ($upc_code) use ($products) {
-                $products->orwhere('products.upc_code', 'like', "%$upc_code%");
-            });
-
-            // Filter product by short description
-            OrbitInput::get('short_description', function ($short_description) use ($products) {
-                $products->whereIn('products.short_description', $short_description);
-            });
-
-            // Filter product by short description pattern
-            OrbitInput::get('short_description_like', function ($short_description) use ($products) {
-                $products->where('products.short_description', 'like', "%$short_description%");
-            });
-
-            // Filter product by long description
-            OrbitInput::get('long_description', function ($long_description) use ($products) {
-                $products->whereIn('products.long_description', $long_description);
-            });
-
-            // Filter product by long description pattern
-            OrbitInput::get('long_description_like', function ($long_description) use ($products) {
-                $products->where('products.long_description', 'like', "%$long_description%");
-            });
-
-            // Filter product by status
-            OrbitInput::get('status', function ($status) use ($products) {
-                $products->whereIn('products.status', $status);
-            });
-
+            
             $_products = clone $products;
 
             // Get the take args
@@ -380,44 +495,36 @@ class CashierAPIController extends ControllerAPI
             $products->skip($skip);
 
             // Default sort by
-            $sortBy = 'products.created_at';
+            $sortBy = 'products.product_name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+            OrbitInput::get('sort_by', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'registered_date'           => 'products.created_at',
-                    'product_id'                => 'products.product_id',
-                    'product_name'              => 'products.product_name',
-                    'product_code'              => 'products.product_code',
-                    'product_price'             => 'products.price',
-                    'product_tax_code'          => 'products.tax_code',
-                    'product_short_description' => 'products.short_description',
-                    'product_long_description'  => 'products.long_description',
-                    'product_is_new'            => 'products.is_new',
-                    'product_new_until'         => 'products.new_until',
-                    'product_merchant_id'       => 'products.merchant_id',
-                    'product_status'            => 'products.status',
+                    'product_name'      => 'products.product_name',
+                    'price'             => 'products.price',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
             });
 
-            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+            OrbitInput::get('sort_mode', function ($_sortMode) use (&$sortMode) {
                 if (strtolower($_sortMode) !== 'desc') {
                     $sortMode = 'asc';
+                }else{
+                    $sortMode = 'desc';
                 }
             });
             $products->orderBy($sortBy, $sortMode);
 
-            $totalRec = $_products->count();
-            $listOfRec = $products->get();
+            $totalRec = RecordCounter::create($_products)->count();
+            $listOfProduct = $products->get();
 
             $data = new \stdClass();
             $data->total_records = $totalRec;
-            $data->returned_records = count($listOfRec);
-            $data->records = $listOfRec;
+            $data->returned_records = count($listOfProduct);
+            $data->records = $listOfProduct;
 
             if ($totalRec === 0) {
                 $data->records = null;
@@ -460,10 +567,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
-        $this->response->code = 0;
-        $this->response->status = 'succes';
-        $this->response->message = 'succes';
-        $httpCode =200;
+
         $output = $this->render($httpCode);
         return $output;
     }
@@ -1197,6 +1301,7 @@ class CashierAPIController extends ControllerAPI
                     ->setActivityName($activity_payment)
                     ->setActivityNameLong($activity_payment_label . ' Succes')
                     ->setObject($transaction)
+                    ->setModuleName('Cart')
                     // ->setNotes()
                     ->setStaff($user)
                     ->responseOK()
@@ -1214,6 +1319,7 @@ class CashierAPIController extends ControllerAPI
                     ->setActivityName($activity_payment)
                     ->setActivityNameLong($activity_payment_label . ' Failed')
                     ->setObject($transaction)
+                    ->setModuleName('Cart')
                     ->setNotes($e->getMessage())
                     ->setStaff($user)
                     ->responseFailed()
@@ -1230,6 +1336,7 @@ class CashierAPIController extends ControllerAPI
                     ->setActivityName($activity_payment)
                     ->setActivityNameLong($activity_payment_label . ' Failed')
                     ->setObject($transaction)
+                    ->setModuleName('Cart')
                     ->setNotes($e->getMessage())
                     ->setStaff($user)
                     ->responseFailed()
@@ -1246,6 +1353,7 @@ class CashierAPIController extends ControllerAPI
                     ->setActivityName($activity_payment)
                     ->setActivityNameLong($activity_payment_label . ' Failed')
                     ->setObject($transaction)
+                    ->setModuleName('Cart')
                     ->setNotes($e->getMessage())
                     ->setStaff($user)
                     ->responseFailed()
@@ -1659,329 +1767,22 @@ class CashierAPIController extends ControllerAPI
      */
     public function postScanCart()
     {
+
+        $activity = Activity::POS()
+                            ->setActivityType('cart');
+        $user = null;
+        $customer = null;
+        $activity_transfer = 'transfer_cart';
+        $activity_transfer_label = 'Transfer Cart';
+        $cart = null;
+
         try {
-            // $barcode = OrbitInput::post('barcode');
+            // Require authentication
+            $this->checkAuth();
 
-            // $retailer = $this->getRetailerInfo();
-            // if(empty($barcode)){
-            //     $driver = Config::get('orbit.devices.barcode.path');
-            //     $params = Config::get('orbit.devices.barcode.params');
-            //     $cmd = 'sudo '.$driver.' '.$params;
-            //     $barcode = shell_exec($cmd);
-            // }
-
-            // $barcode = trim($barcode);
-            // // $cart = \Cart::with('details.product', 'users')->where('cart_code', $barcode)
-            // //         ->excludeDeleted()
-            // //         ->first();
-
-            // $cart = \Cart::where('status', 'active')->where('cart_code', $barcode)->first();
-            // // dd($cart);
-            // if (! is_object($cart)) {
-            //     $message = \Lang::get('validation.orbit.empty.upc_code');
-            //     ACL::throwAccessForbidden($message);
-            // }
-            
-            // $user = $cart->users;         
-
-            // $cartdetails = CartDetail::with(array('product' => function($q) {
-            //     $q->where('products.status','active');
-            // }, 'variant' => function($q) {
-            //     $q->where('product_variants.status','active');
-            // }), 'tax1', 'tax2')->excludeDeleted()->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
-            // $cartdata = new \stdclass();
-            // $cartdata->cart = $cart;
-            // $cartdata->cartdetails = $cartdetails;
-
-            // $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-            //     inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-            //     inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-            //     inner join ' . DB::getTablePrefix() . 'products prod on 
-            //     (
-            //         (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
-            //         OR
-            //         (
-            //             (pr.discount_object_type="family") AND 
-            //             ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
-            //             ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-            //             ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-            //             ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-            //             ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-            //         )
-            //     )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-            
-            // $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
-            // {
-            //     $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
-            // }, 'issuedcoupon' => function($q) use($user)
-            // {
-            //     $q->where('issued_coupons.user_id', $user->user_id)
-            //     ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-            //     ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            // }))->whereHas('issuedcoupon', function($q) use($user)
-            // {
-            //     $q->where('issued_coupons.user_id', $user->user_id);
-            // })->whereHas('cartdetail', function($q)
-            // {
-            //     $q->where('cart_coupons.object_type', '=', 'cart_detail');
-            // })->get();
-            // // dd($used_product_coupons);
-
-            // $promo_carts = Promotion::with('promotionrule')->excludeDeleted()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
-            // {
-            //     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-            // })
-            // ->where(function($q) 
-            // {
-            //     $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-            //     {
-            //         $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
-            //     });
-            // })->get();
-
-            // $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
-            // {
-            //     $q->where('issued_coupons.user_id', $user->user_id)
-            //     ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-            //     ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
-            // }))
-            // ->whereHas('cart', function($q) use($cartdata)
-            // {
-            //     $q->where('cart_coupons.object_type', '=', 'cart')
-            //     ->where('cart_coupons.object_id', '=', $cartdata->cart->cart_id);
-            // })
-            // ->where('cart_coupons.object_type', '=', 'cart')->get();
-
-            // $subtotal = 0;
-            // $subtotal_wo_tax = 0;
-            // $vat = 0;
-            // $total = 0;
-            
-            // $vat_included = $retailer->parent->vat_included;
-
-            // if($vat_included === 'yes') {
-            //     foreach($cartdata->cartdetails as $cartdetail) {
-            //         $attributes = array();
-            //         $product_vat_value = 0;
-            //         $original_price = $cartdetail->variant->price;
-            //         $original_ammount = $original_price * $cartdetail->quantity;
-            //         $ammount_after_promo = $original_ammount;
-            //         $product_price_wo_tax = $original_price;
-
-            //         if(!is_null($cartdetail->tax1)) {
-            //             $product_vat_value =  $product_vat_value + $cartdetail->tax1->tax_value;
-            //         }
-            //         if(!is_null($cartdetail->tax2)) {
-            //             $product_vat_value =  $product_vat_value + $cartdetail->tax2->tax_value;
-            //         }
-
-            //         $product_price_wo_tax = $original_price / (1 + $product_vat_value);
-            //         $product_vat = ($original_price - $product_price_wo_tax) * $cartdetail->quantity;
-            //         $vat = $vat + $product_vat;
-            //         $product_price_wo_tax = $product_price_wo_tax * $cartdetail->quantity;
-            //         $subtotal = $subtotal + $original_ammount;
-            //         $subtotal_wo_tax = $subtotal_wo_tax + $product_price_wo_tax;
-
-            //         $promo_filters = array_filter($promo_products, function($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-            //         foreach($promo_filters as $promo_filter) {
-            //             if($promo_filter->rule_type == 'product_discount_by_percentage') {
-            //                 $discount = $promo_filter->discount_value * $original_price;
-            //                 $promo_filter->discount_str = $promo_filter->discount_value * 100;
-            //             } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-            //                 $discount = $promo_filter->discount_value;
-            //                 $promo_filter->discount_str = $promo_filter->discount_value;
-            //             }
-            //             $promo_filter->discount = $discount * $cartdetail->quantity;
-            //             $ammount_after_promo = $ammount_after_promo - $promo_filter->discount;
-
-            //             $promo_wo_tax = $discount / (1 + $product_vat_value);
-            //             $promo_vat = ($discount - $promo_wo_tax) * $cartdetail->quantity;
-            //             $vat = $vat - $promo_vat;
-            //             $promo_wo_tax = $promo_wo_tax * $cartdetail->quantity;
-            //             $subtotal = $subtotal - $promo_filter->discount;
-            //             $subtotal_wo_tax = $subtotal_wo_tax - $promo_wo_tax;
-            //         }
-            //         $cartdetail->promo_for_this_product = $promo_filters;
-
-            //         $coupon_filter = array();
-            //         foreach($used_product_coupons as $used_product_coupon) {
-            //             if($used_product_coupon->cartdetail->product_id == $cartdetail->product->product_id) {
-            //                 if($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
-            //                     $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
-            //                     $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value * 100;
-            //                 } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
-            //                     $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
-            //                     $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
-            //                 }
-            //                 $used_product_coupon->discount = $discount;
-            //                 $ammount_after_promo = $ammount_after_promo - $discount;
-            //                 $coupon_filter[] = $used_product_coupon;
-
-            //                 $coupon_wo_tax = $discount / (1 + $product_vat_value);
-            //                 $coupon_vat = ($discount - $coupon_wo_tax);
-            //                 $vat = $vat - $coupon_vat;
-            //                 $subtotal = $subtotal - $discount;
-            //                 $subtotal_wo_tax = $subtotal_wo_tax - $coupon_wo_tax;
-            //             }
-            //         }
-            //         $cartdetail->coupon_for_this_product = $coupon_filter;
-                    
-            //         $cartdetail->original_price = $original_price;
-            //         $cartdetail->original_ammount = $original_ammount;
-            //         $cartdetail->ammount_after_promo = $ammount_after_promo;
-
-            //         if($cartdetail->attributeValue1['value']) {
-            //             $attributes[] = $cartdetail->attributeValue1['value'];
-            //         }
-            //         if($cartdetail->attributeValue2['value']) {
-            //             $attributes[] = $cartdetail->attributeValue2['value'];
-            //         }
-            //         if($cartdetail->attributeValue3['value']) {
-            //             $attributes[] = $cartdetail->attributeValue3['value'];
-            //         }
-            //         if($cartdetail->attributeValue4['value']) {
-            //             $attributes[] = $cartdetail->attributeValue4['value'];
-            //         }
-            //         if($cartdetail->attributeValue5['value']) {
-            //             $attributes[] = $cartdetail->attributeValue5['value'];
-            //         }
-            //         $cartdetail->attributes = $attributes;
-            //     }
-            //     if(count($cartdata->cartdetails) > 0) {
-            //         $cart_vat = $vat / $subtotal_wo_tax;
-            //     }
-
-            //     $cartdiscounts = 0;
-            //     $acquired_promo_carts = array();
-            //     $discount_cart_promo = 0;
-            //     $discount_cart_promo_wo_tax = 0;
-            //     $discount_cart_coupon = 0;
-            //     $cart_promo_taxes = 0;
-            //     $subtotal_before_cart_promo = $subtotal;
-
-            //     if(!empty($promo_carts)) {
-            //         foreach($promo_carts as $promo_cart){
-            //             if($subtotal >= $promo_cart->promotionrule->rule_value){
-            //                 if($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
-            //                     $discount = $subtotal * $promo_cart->promotionrule->discount_value;
-            //                     $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
-            //                     $promo_cart->disc_val = '-'.($subtotal * $promo_cart->promotionrule->discount_value);
-            //                 } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
-            //                     $discount = $promo_cart->promotionrule->discount_value;
-            //                     $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
-            //                     $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
-            //                 }
-
-            //                 $cart_promo_wo_tax = $discount / (1 + $cart_vat);
-            //                 $cart_promo_tax = $discount - $cart_promo_wo_tax;
-            //                 $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-            //                 $discount_cart_promo = $discount_cart_promo + $discount;
-            //                 $discount_cart_promo_wo_tax = $discount_cart_promo_wo_tax + $cart_promo_wo_tax;
-            //                 $acquired_promo_carts[] = $promo_cart;
-            //             }
-            //         }
-                    
-            //     }
-
-            //     $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
-            //     {
-            //         $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
-            //     })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-            //     {
-            //         $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-            //     })
-            //     ->whereHas('issuedcoupons',function($q) use($user)
-            //     {
-            //         $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-            //     })->with(array('issuedcoupons' => function($q) use($user)
-            //     {
-            //         $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->excludeDeleted();
-            //     }))
-            //     ->get();
-
-            //     $available_coupon_carts = array();
-            //     $cart_discount_by_percentage_counter = 0;
-            //     $discount_cart_coupon = 0;
-            //     $discount_cart_coupon_wo_tax = 0;
-            //     $total_cart_coupon_discount = 0;
-            //     $cart_coupon_taxes = 0;
-            //     $acquired_coupon_carts = array();
-            //     if(!empty($used_cart_coupons)) {
-            //         foreach($used_cart_coupons as $used_cart_coupon) {
-            //             if(!empty($used_cart_coupon->issuedcoupon->coupon_redeem_rule_value)) {
-            //                 if($subtotal >= $used_cart_coupon->issuedcoupon->coupon_redeem_rule_value) {
-            //                     if($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
-            //                         $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
-            //                         $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal);
-            //                         $discount = $subtotal * $used_cart_coupon->issuedcoupon->discount_value;
-            //                         $cart_discount_by_percentage_counter++;
-            //                     } elseif($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
-            //                         $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-            //                         $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
-            //                         $discount = $used_cart_coupon->issuedcoupon->discount_value;
-            //                     }
-            //                     $cart_coupon_wo_tax = $discount / (1 + $cart_vat);
-            //                     $cart_coupon_tax = $discount - $cart_coupon_wo_tax;
-            //                     $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
-            //                     $discount_cart_coupon = $discount_cart_coupon + $discount;
-            //                     $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
-
-            //                     $total_cart_coupon_discount = $total_cart_coupon_discount + $discount;
-            //                     $acquired_coupon_carts[] = $used_cart_coupon;
-            //                 } else {
-            //                     $this->beginTransaction();
-            //                     $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $used_cart_coupon->issued_coupon_id)->first();
-            //                     $issuedcoupon->makeActive();
-            //                     $issuedcoupon->save();
-            //                     $used_cart_coupon->delete(TRUE);
-            //                     $this->commit();
-            //                 }
-            //             }
-            //         }
-            //     }
-
-            //     if(!empty($coupon_carts)) {
-            //         foreach($coupon_carts as $coupon_cart) {
-            //             if($subtotal >= $coupon_cart->coupon_redeem_rule_value){
-            //                 if($coupon_cart->rule_type == 'cart_discount_by_percentage') {
-            //                     if($cart_discount_by_percentage_counter == 0) { // prevent more than one cart_discount_by_percentage
-            //                         $discount = $subtotal * $coupon_cart->discount_value;
-            //                         $cartdiscounts = $cartdiscounts + $discount;
-            //                         $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
-            //                         $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
-            //                         $available_coupon_carts[] = $coupon_cart;
-            //                         $cart_discount_by_percentage_counter++;
-            //                     }
-            //                 } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
-            //                     $discount = $coupon_cart->discount_value;
-            //                     $cartdiscounts = $cartdiscounts + $discount;
-            //                     $coupon_cart->disc_val_str = '-'.$coupon_cart->discount_value + 0;
-            //                     $coupon_cart->disc_val = '-'.$coupon_cart->discount_value + 0;
-            //                     $available_coupon_carts[] = $coupon_cart;
-            //                 }
-            //             } else {
-            //                 $coupon_cart->disc_val = $coupon_cart->rule_value;
-            //             }
-            //         }
-            //     }
-
-            //     $subtotal = $subtotal - $discount_cart_promo - $discount_cart_coupon;
-            //     $subtotal_wo_tax = $subtotal_wo_tax - $discount_cart_promo_wo_tax - $discount_cart_coupon_wo_tax;
-            //     $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
-
-            //     $cartsummary = new \stdclass();
-            //     $cartsummary->vat = $vat;
-            //     $cartsummary->total_to_pay = $subtotal;
-            //     $cartsummary->subtotal_wo_tax = $subtotal_wo_tax;
-            //     $cartsummary->acquired_promo_carts = $acquired_promo_carts;
-            //     $cartsummary->used_cart_coupons = $acquired_coupon_carts;
-            //     $cartsummary->available_coupon_carts = $available_coupon_carts;
-            //     $cartsummary->subtotal_before_cart_promo = $subtotal_before_cart_promo;
-            //     $cartdata->cartsummary = $cartsummary;
-            //     // $cartdata->attributes = $attributes;
-            // } else {
-
-            // }
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $cashier = $this->api->user;
 
             $barcode = OrbitInput::post('barcode');
 
@@ -2018,6 +1819,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             $user = $cart->users;
+            $customer = $user;
 
             $cartdetails = CartDetail::with(array('product' => function($q) {
                 $q->where('products.status','active');
@@ -2944,22 +2746,62 @@ class CashierAPIController extends ControllerAPI
                 $cartdata->cartsummary = $cartsummary;
             }
 
+            $activity->setUser($customer)
+                    ->setActivityName($activity_transfer)
+                    ->setActivityNameLong($activity_transfer_label . ' Succes')
+                    ->setObject($cart)
+                    ->setModuleName('Cart')
+                    // ->setNotes()
+                    ->setStaff($cashier)
+                    ->responseOK()
+                    ->save();
+
             $this->response->data = $cartdata;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_transfer)
+                    ->setActivityNameLong($activity_transfer_label . ' Failed')
+                    ->setObject($cart)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($cashier)
+                    ->responseFailed()
+                    ->save();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_transfer)
+                    ->setActivityNameLong($activity_transfer_label . ' Failed')
+                    ->setObject($cart)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($cashier)
+                    ->responseFailed()
+                    ->save();
         } catch (Exception $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_transfer)
+                    ->setActivityNameLong($activity_transfer_label . ' Failed')
+                    ->setObject($cart)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($cashier)
+                    ->responseFailed()
+                    ->save();
         }
 
         return $this->render();
@@ -3211,6 +3053,8 @@ class CashierAPIController extends ControllerAPI
     public function getPosQuickProduct()
     {
         try {
+            $retailer = $this->getRetailerInfo();
+            
             $httpCode = 200;
 
             // Require authentication
@@ -3254,7 +3098,8 @@ class CashierAPIController extends ControllerAPI
             // Builder object
             $posQuickProducts = \PosQuickProduct::joinRetailer()
                                                ->excludeDeleted('pos_quick_products')
-                                               ->with('product');
+                                               ->with('product')
+                                               ->where('product_retailer.retailer_id',$retailer->merchant_id);
 
             // Filter by ids
             OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
@@ -3409,6 +3254,341 @@ class CashierAPIController extends ControllerAPI
                 $this->response->message = $e->getMessage();
                 $this->response->data = null;
             }
+        return $this->render();
+    }
+
+    public function postSaveActivityCheckout()
+    {
+        $activity = Activity::POS()
+                    ->setActivityType('cart');
+        $user = null;
+        $customer = null;
+        $activity_checkout = 'cart_checkout';
+        $activity_checkout_label = 'Cart Checkout';
+        try {
+            // Require authentication
+            $this->checkAuth();
+            
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            $customer_id = OrbitInput::post('customer_id', -1);
+            $customer = User::excludeDeleted()->find($customer_id);   
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_checkout)
+                    ->setActivityNameLong($activity_checkout_label . ' Succes')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
+            $this->response->data = null;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_checkout)
+                    ->setActivityNameLong($activity_checkout_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_checkout)
+                    ->setActivityNameLong($activity_checkout_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_checkout)
+                    ->setActivityNameLong($activity_checkout_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        }
+
+        return $this->render();
+    }
+
+
+    public function postSaveActivityClear()
+    {
+        $activity = Activity::POS()
+                    ->setActivityType('cart');
+        $user = null;
+        $customer = null;
+        $activity_clear = 'cart_clear';
+        $activity_clear_label = 'Cart Clear';
+        try {
+            // Require authentication
+            $this->checkAuth();
+            
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            $customer_id = OrbitInput::post('customer_id', -1);
+            $customer = User::excludeDeleted()->find($customer_id);   
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_clear)
+                    ->setActivityNameLong($activity_clear_label . ' Succes')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
+            $this->response->data = null;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_clear)
+                    ->setActivityNameLong($activity_clear_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_clear)
+                    ->setActivityNameLong($activity_clear_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_clear)
+                    ->setActivityNameLong($activity_clear_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        }
+
+        return $this->render();
+    }
+
+    public function postSaveActivityAddProduct()
+    {
+        $activity = Activity::POS()
+                    ->setActivityType('cart');
+        $user = null;
+        $customer = null;
+        $activity_add = 'cart_add';
+        $activity_add_label = 'Add to Cart';
+        $product = null;
+        try {
+            // Require authentication
+            $this->checkAuth();
+            
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            $customer_id = OrbitInput::post('customer_id', -1);
+            $product_id = OrbitInput::post('product_id', -1);
+            $customer = User::excludeDeleted()->find($customer_id);
+            $product = Product::active()->find($product_id);   
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_add)
+                    ->setActivityNameLong($activity_add_label . ' Succes')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
+            $this->response->data = null;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_add)
+                    ->setActivityNameLong($activity_add_label . ' Failed')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_add)
+                    ->setActivityNameLong($activity_add_label . ' Failed')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_add)
+                    ->setActivityNameLong($activity_add_label . ' Failed')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        }
+
+        return $this->render();
+    }
+
+    public function postSaveActivityDeleteProduct()
+    {
+        $activity = Activity::POS()
+                    ->setActivityType('cart');
+        $user = null;
+        $customer = null;
+        $activity_delete = 'cart_delete';
+        $activity_delete_label = 'Delete from Cart';
+        $product = null;
+        try {
+            // Require authentication
+            $this->checkAuth();
+            
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            $customer_id = OrbitInput::post('customer_id', -1);
+            $product_id = OrbitInput::post('product_id', -1);
+            $customer = User::excludeDeleted()->find($customer_id);
+            $product = Product::active()->find($product_id);   
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_delete)
+                    ->setActivityNameLong($activity_delete_label . ' Succes')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
+            $this->response->data = null;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_delete)
+                    ->setActivityNameLong($activity_delete_label . ' Failed')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_delete)
+                    ->setActivityNameLong($activity_delete_label . ' Failed')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_delete)
+                    ->setActivityNameLong($activity_delete_label . ' Failed')
+                    ->setObject($product)
+                    ->setProduct($product)
+                    ->setModuleName('Cart')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        }
+
         return $this->render();
     }
 

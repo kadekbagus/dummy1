@@ -17,6 +17,9 @@ return array(
         "logout"        => "LOGOUT",
         "payment"       => "PAYMENT",
         "searching"     => "SEARCH",
+        'new_products'  => 'NEW PRODUCTS',
+        'promotions'    => 'PROMOTIONS',
+        'coupons'       => 'COUPONS',
     ),
 
     "widgets"           => array(
@@ -41,7 +44,7 @@ return array(
         'checkout_title'        => 'Checkout',
         'tip_title'             => 'Tip',
         'delete_item_title'     => 'Delete Item',
-        'delete_coupon_title'   => 'Delete Kupon',
+        'delete_coupon_title'   => 'Delete Coupon',
         'close_cart_title'      => 'Close Cart',
 
         'message_no_coupon'     => 'Sorry, you do not have any coupon yet.',
@@ -60,6 +63,7 @@ return array(
         'cancel_button'         => 'Cancel',
         'cash_button'           => 'Cash',
         'credit_button'         => 'Credit Card',
+        'online_payment_button' => 'Online Payment',
         'yes_button'            => 'Yes',
         'do_not_show_label'     => 'Do not show this message again',
 
@@ -109,6 +113,8 @@ return array(
         'taxes_label'        => 'Taxes',
         'checkout_button'    => 'Checkout',
         'continue_button'    => 'Continue Shopping',
+        'transaction_id_label' => 'Transaction ID',
+        'date_label'         => 'Date',
     ),
 
     'promotion_list'         => array(
@@ -147,11 +153,27 @@ return array(
         'dont_forget_message' => "Don't forget to visit",
         'promo_message' => 'for next best deals.',
         'shop_again_button' => 'Shop Again',
+        'transfer_cart_successful' => 'Transfer Cart Successful!',
+        'transfer_cart_message' => 'your transaction will be completed by the cashier',
+        'thank_you_for_shopping' => 'Thank you for shopping with us',
     ),
 
     'transfer_cart'         => array(
         'transfer_message'  => 'To complete the transfer cart, show the following barcode to the cashier.',
         'done_button'       => 'Done',
         'back_button'       => 'Back',
+    ),
+
+    'payment'               => array(
+        'total_to_pay_label'=> 'Total',
+        'name_label'        => 'Name',
+        'name_placeholder'  => 'Enter your name',
+        'card_type_label'   => 'Card Type',
+        'card_number_label' => 'Card Number',
+        'card_number_placeholder' => 'Enter your card number',
+        'expire_label'      => 'Expired on',
+        'ccv_label'         => 'CCV',
+        'ccv_placeholder'   => 'Enter CCV',
+        'submit_button'     => 'Submit',
     ),
 );

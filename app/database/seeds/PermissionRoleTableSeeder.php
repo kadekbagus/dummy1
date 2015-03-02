@@ -293,7 +293,7 @@ class PermissionRoleTableSeeder extends Seeder
                     'create'    => 'yes',
                     'view'      => 'yes',
                     'update'    => 'yes',
-                    'delete'    => 'no'
+                    'delete'    => 'yes'
                 ],
                 // 6
                 'category'  => [

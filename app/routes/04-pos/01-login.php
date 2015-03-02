@@ -132,4 +132,32 @@ Route::group(array('before' => 'orbit-settings'), function()
     Route::get('/pos/dashboard', function () {
          return View::make('pos.dashboard');
     });
+
+    // activity checkout
+    Route::post('/api/v1/pos/activity-checkout', function () {
+        return POS\CashierAPIController::create()->postSaveActivityCheckout();
+    });
+
+    Route::post('/app/v1/pos/activity-checkout', 'IntermediateAuthController@POS\Cashier_postSaveActivityCheckout');
+
+    // activity clear
+    Route::post('/api/v1/pos/activity-clear', function () {
+        return POS\CashierAPIController::create()->postSaveActivityClear();
+    });
+
+    Route::post('/app/v1/pos/activity-clear', 'IntermediateAuthController@POS\Cashier_postSaveActivityClear');
+
+    // activity add product
+    Route::post('/api/v1/pos/activity-add-product', function () {
+        return POS\CashierAPIController::create()->postSaveActivityAddProduct();
+    });
+
+    Route::post('/app/v1/pos/activity-add-product', 'IntermediateAuthController@POS\Cashier_postSaveActivityAddProduct');
+
+    // activity delete product
+    Route::post('/api/v1/pos/activity-delete-product', function () {
+        return POS\CashierAPIController::create()->postSaveActivityDeleteProduct();
+    });
+
+    Route::post('/app/v1/pos/activity-delete-product', 'IntermediateAuthController@POS\Cashier_postSaveActivityDeleteProduct');
 });

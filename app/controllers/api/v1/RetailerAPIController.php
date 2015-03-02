@@ -204,6 +204,7 @@ class RetailerAPIController extends ControllerAPI
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @author Kadek <kadek@dominopos.com>
      * @author Tian <tian@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -278,6 +279,7 @@ class RetailerAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
+            $password = OrbitInput::post('password');
             $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
@@ -323,6 +325,7 @@ class RetailerAPIController extends ControllerAPI
                     'name'      => $name,
                     'status'    => $status,
                     'parent_id' => $parent_id,
+                    'country'   => $country,
                 ),
                 array(
                     'user_id'   => 'required|numeric|orbit.empty.user',
@@ -330,6 +333,7 @@ class RetailerAPIController extends ControllerAPI
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.retailer_status',
                     'parent_id' => 'required|numeric|orbit.empty.merchant',
+                    'country'   => 'required|numeric'
                 )
             );
 
@@ -345,8 +349,34 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
+            $roleRetailer = Role::where('role_name', 'merchant owner')->first();
+            if (empty($roleRetailer)) {
+                OrbitShopAPI::throwInvalidArgument('Could not find role named "Merchant Owner".');
+            }
+
+            $newuser = new User();
+            $newuser->username = $email;
+            $newuser->user_email = $email;
+            $newuser->user_password = Hash::make($password);
+            $newuser->status = 'active';
+            $newuser->user_role_id = $roleRetailer->role_id;
+            $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
+            $newuser->modified_by = $user->user_id;
+            $newuser->save();
+
+            $newuser->createAPiKey();
+
+            $userdetail = new UserDetail();
+            $userdetail = $newuser->userdetail()->save($userdetail);
+
+            $countryName = '';
+            $countryObject = Country::find($country);
+            if (is_object($countryObject)) {
+                $countryName = $countryObject->name;
+            }
+
             $newretailer = new Retailer();
-            $newretailer->user_id = $user_id;
+            $newretailer->user_id = $newuser->user_id;
             $newretailer->omid = '';
             $newretailer->email = $email;
             $newretailer->name = $name;
@@ -357,8 +387,8 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->postal_code = $postal_code;
             $newretailer->city_id = $city_id;
             $newretailer->city = $city;
-            $newretailer->country_id = $country_id;
-            $newretailer->country = $country;
+            $newretailer->country_id = $country;
+            $newretailer->country = $countryName;
             $newretailer->phone = $phone;
             $newretailer->fax = $fax;
             $newretailer->start_date_activity = $start_date_activity;
@@ -661,12 +691,15 @@ class RetailerAPIController extends ControllerAPI
                 $updatedretailer->city = $city;
             });
 
-            OrbitInput::post('country_id', function($country_id) use ($updatedretailer) {
-                $updatedretailer->country_id = $country_id;
-            });
-
             OrbitInput::post('country', function($country) use ($updatedretailer) {
-                $updatedretailer->country = $country;
+                $countryName = '';
+                $countryObject = Country::find($country);
+                if (is_object($countryObject)) {
+                    $countryName = $countryObject->name;
+                }
+
+                $updatedretailer->country_id = $country;
+                $updatedretailer->country = $countryName;
             });
 
             OrbitInput::post('phone', function($phone) use ($updatedretailer) {
