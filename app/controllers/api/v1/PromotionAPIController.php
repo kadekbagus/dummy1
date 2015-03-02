@@ -179,11 +179,42 @@ class PromotionAPIController extends ControllerAPI
             $promotionrule->rule_type = $rule_type;
             $promotionrule->rule_value = $rule_value;
             $promotionrule->discount_object_type = $discount_object_type;
-            $promotionrule->discount_object_id1 = $discount_object_id1;
-            $promotionrule->discount_object_id2 = $discount_object_id2;
-            $promotionrule->discount_object_id3 = $discount_object_id3;
-            $promotionrule->discount_object_id4 = $discount_object_id4;
-            $promotionrule->discount_object_id5 = $discount_object_id5;
+
+            // discount_object_id1
+            if (trim($discount_object_id1) === '') {
+                $promotionrule->discount_object_id1 = NULL;
+            } else {
+                $promotionrule->discount_object_id1 = $discount_object_id1;
+            }
+
+            // discount_object_id2
+            if (trim($discount_object_id2) === '') {
+                $promotionrule->discount_object_id2 = NULL;
+            } else {
+                $promotionrule->discount_object_id2 = $discount_object_id2;
+            }
+
+            // discount_object_id3
+            if (trim($discount_object_id3) === '') {
+                $promotionrule->discount_object_id3 = NULL;
+            } else {
+                $promotionrule->discount_object_id3 = $discount_object_id3;
+            }
+
+            // discount_object_id4
+            if (trim($discount_object_id4) === '') {
+                $promotionrule->discount_object_id4 = NULL;
+            } else {
+                $promotionrule->discount_object_id4 = $discount_object_id4;
+            }
+
+            // discount_object_id5
+            if (trim($discount_object_id5) === '') {
+                $promotionrule->discount_object_id5 = NULL;
+            } else {
+                $promotionrule->discount_object_id5 = $discount_object_id5;
+            }
+
             $promotionrule->discount_value = $discount_value;
             $promotionrule = $newpromotion->promotionrule()->save($promotionrule);
             $newpromotion->promotionrule = $promotionrule;
