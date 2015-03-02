@@ -244,17 +244,79 @@ class CouponAPIController extends ControllerAPI
             $couponrule->rule_type = $rule_type;
             $couponrule->rule_value = $rule_value;
             $couponrule->rule_object_type = $rule_object_type;
-            $couponrule->rule_object_id1 = $rule_object_id1;
-            $couponrule->rule_object_id2 = $rule_object_id2;
-            $couponrule->rule_object_id3 = $rule_object_id3;
-            $couponrule->rule_object_id4 = $rule_object_id4;
-            $couponrule->rule_object_id5 = $rule_object_id5;
+
+            // rule_object_id1
+            if (trim($rule_object_id1) === '') {
+                $couponrule->rule_object_id1 = NULL;
+            } else {
+                $couponrule->rule_object_id1 = $rule_object_id1;
+            }
+
+            // rule_object_id2
+            if (trim($rule_object_id2) === '') {
+                $couponrule->rule_object_id2 = NULL;
+            } else {
+                $couponrule->rule_object_id2 = $rule_object_id2;
+            }
+
+            // rule_object_id3
+            if (trim($rule_object_id3) === '') {
+                $couponrule->rule_object_id3 = NULL;
+            } else {
+                $couponrule->rule_object_id3 = $rule_object_id3;
+            }
+
+            // rule_object_id4
+            if (trim($rule_object_id4) === '') {
+                $couponrule->rule_object_id4 = NULL;
+            } else {
+                $couponrule->rule_object_id4 = $rule_object_id4;
+            }
+
+            // rule_object_id5
+            if (trim($rule_object_id5) === '') {
+                $couponrule->rule_object_id5 = NULL;
+            } else {
+                $couponrule->rule_object_id5 = $rule_object_id5;
+            }
+
             $couponrule->discount_object_type = $discount_object_type;
-            $couponrule->discount_object_id1 = $discount_object_id1;
-            $couponrule->discount_object_id2 = $discount_object_id2;
-            $couponrule->discount_object_id3 = $discount_object_id3;
-            $couponrule->discount_object_id4 = $discount_object_id4;
-            $couponrule->discount_object_id5 = $discount_object_id5;
+
+            // discount_object_id1
+            if (trim($discount_object_id1) === '') {
+                $couponrule->discount_object_id1 = NULL;
+            } else {
+                $couponrule->discount_object_id1 = $discount_object_id1;
+            }
+
+            // discount_object_id2
+            if (trim($discount_object_id2) === '') {
+                $couponrule->discount_object_id2 = NULL;
+            } else {
+                $couponrule->discount_object_id2 = $discount_object_id2;
+            }
+
+            // discount_object_id3
+            if (trim($discount_object_id3) === '') {
+                $couponrule->discount_object_id3 = NULL;
+            } else {
+                $couponrule->discount_object_id3 = $discount_object_id3;
+            }
+
+            // discount_object_id4
+            if (trim($discount_object_id4) === '') {
+                $couponrule->discount_object_id4 = NULL;
+            } else {
+                $couponrule->discount_object_id4 = $discount_object_id4;
+            }
+
+            // discount_object_id5
+            if (trim($discount_object_id5) === '') {
+                $couponrule->discount_object_id5 = NULL;
+            } else {
+                $couponrule->discount_object_id5 = $discount_object_id5;
+            }
+
             $couponrule->discount_value = $discount_value;
             $couponrule->is_cumulative_with_coupons = $is_cumulative_with_coupons;
             $couponrule->is_cumulative_with_promotions = $is_cumulative_with_promotions;
