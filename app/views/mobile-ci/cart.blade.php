@@ -81,7 +81,7 @@
                 </div>
               </div>
               <div class="single-body">
-                <span class="@if($promo->rule_type == 'product_discount_by_percentage') percentage-num @elseif($promo->rule_type == 'product_discount_by_value') formatted-num @endif">{{ $promo->discount_str }}</span>
+                <span class="@if($promo->rule_type == 'product_discount_by_percentage') percentage-num @else formatted-num @endif">{{ $promo->discount_str }}</span>
               </div>
               <div class="single-body text-right">
                 - <span class="formatted-num">{{ $promo->discount }}</span>
@@ -102,7 +102,7 @@
                 </div>
               </div>
               <div class="single-body">
-                <span class="@if($coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') percentage-num @elseif($coupon->issuedcoupon->rule_type == 'product_discount_by_value') formatted-num @endif">{{ $coupon->discount_str }}</span>
+                <span class="@if($coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') percentage-num @else formatted-num @endif">{{ $coupon->discount_str }}</span>
               </div>
               <div class="single-body text-right">
                 - <span class="formatted-num">{{ $coupon->discount }}</span>

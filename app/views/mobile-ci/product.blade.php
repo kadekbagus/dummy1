@@ -60,8 +60,10 @@
 				<div class="col-xs-12">
 					<p>
 					<b>
-					@if($promotion->rule_type === 'product_discount_by_percentage' || $promotion->rule_type === 'cart_discount_by_percentage')
+					@if($promotion->rule_type === 'product_discount_by_percentage')
 					{{ $promotion->discount_value * 100 + 0 }}%
+					@elseif($promotion->rule_type === 'new_product_price')
+					New Price <small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $promotion->discount_value + 0 }}</span>
 					@else
 					<small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $promotion->discount_value + 0 }}</span>
 					@endif
@@ -73,8 +75,10 @@
 				<div class="col-xs-12 col-sm-12">
 					<p>
 					{{ date('j M Y', strtotime($promotion->begin_date)) }}
+					@if($promotion->is_permanent != 'Y')
 					{{ Lang::get('mobileci.product_detail.to') }}
 					{{ date('j M Y', strtotime($promotion->end_date)) }}
+					@endif
 					</p>
 				</div>
 			</div>
@@ -99,6 +103,8 @@
 						<b>
 						@if($couponstocatch->rule_type === 'product_discount_by_percentage' || $couponstocatch->rule_type === 'cart_discount_by_percentage')
 						{{ $couponstocatch->discount_value * 100 + 0 }}%
+						@elseif($couponstocatch->rule_type === 'new_product_price')
+						New Price <small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $couponstocatch->discount_value + 0 }}</span>
 						@else
 						<small>{{ $retailer->parent->currency_symbol }}</small> <span class="formatted-num">{{ $couponstocatch->discount_value + 0 }}</span>
 						@endif
@@ -110,8 +116,10 @@
 				<div class="col-xs-12 col-sm-12">
 					<p>
 					{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
+					@if($promotion->is_permanent != 'Y')
 					{{ Lang::get('mobileci.product_detail.to') }}
 					{{ date('j M Y', strtotime($couponstocatch->end_date)) }}
+					@endif
 					</p>
 				</div>
 			</div>
