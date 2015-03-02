@@ -84,10 +84,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              $scope.cheader            = $scope.language.pilihcarapembayaran;
              $scope.gesek              = $scope.language.gesekkartusekarang;
              $scope.vat_included       = $scope.datauser['merchant']['vat_included'];
-                //show modal product detail
+
              $scope.showdetailFn = function(id,act,attr1){
-                    //set loading
+                    //show modal product detail
                     if(attr1 != null) angular.element('#myModal').modal('show');
+
                     $scope.loadproductdetail = true;
                     $scope.hiddenbtn         = false;
                     $scope.showprice         = false;
@@ -103,7 +104,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              ($scope.getguest = function(){
                     $scope.guests = 'Guest-'+moment().format('DD-MM-YYYY-HH-mm-ss');
                 })();
-             //function -+ wish list
+             //function -+ cart qty list
              $scope.qaFn = function(id,action){
                     var fndelete = function(){
                         if($scope.product[$scope.cart[id]['idx']]) $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
@@ -112,6 +113,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.tmpsubtotal = '';
                         $scope.applycartpromotion   = [];
                         $scope.applycartcoupon      = [];
+                        //set activity when product delete from the cart
+                        var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
+                        $scope.activity('activity-delete-product',{customer_id : user_id ,product_id : $scope.cart[id]['product_id'] });
                     };
 
                     if(action == 'p'){//add
@@ -630,6 +634,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
                         if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
+                        //set activity when product add to cart
+                        var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
+                        $scope.activity('activity-add-product',{customer_id : user_id ,product_id : $scope.productmodal['product_id'] });
 
                         $scope.searchproduct    = '';
                         $scope.adddelenadis($scope.productmodal['product_id'],'add');
@@ -740,9 +747,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.getproduct();
                     if(act) $scope.getguest();
                     $scope.customerdispaly('Welcome to ',$scope.datauser['merchant']['name'].substr(0,20));
+                    //set activity when clear cart
+                    var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
+                    $scope.activity('activity-clear',{customer_id : user_id  });
                 };
              //checkout
              $scope.checkoutFn = function(act,term){
+                    //set activity when cart checkout
+                    var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
+                    $scope.activity('activity-checkout',{customer_id : user_id});
                     $scope.cardfile  = true;
                     switch(act){
                         case 't':
@@ -814,7 +827,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.transaction_id = response.data.transaction_id;
                             //customer display
                             $scope.customerdispaly('Change '+$scope.cart.change,'Thank You');
-
+                            //print ticket
                             $scope.ticketprint();
                         }else{
                             //do something
@@ -1061,7 +1074,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
         }
 
+        //activity
+        $scope.activity = function(act, data){
+            serviceAjax.posDataToServer('/pos/'+act,data).then(function(response){
+                if(response.code == 0){
 
+                }else{
+                    console.log('failed insert activity!');
+                }
+
+            });
+        };
         //cancel cart
         $scope.cancelCart = function(){
             $scope.scanproduct();
