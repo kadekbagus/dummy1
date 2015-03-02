@@ -179,11 +179,42 @@ class PromotionAPIController extends ControllerAPI
             $promotionrule->rule_type = $rule_type;
             $promotionrule->rule_value = $rule_value;
             $promotionrule->discount_object_type = $discount_object_type;
-            $promotionrule->discount_object_id1 = $discount_object_id1;
-            $promotionrule->discount_object_id2 = $discount_object_id2;
-            $promotionrule->discount_object_id3 = $discount_object_id3;
-            $promotionrule->discount_object_id4 = $discount_object_id4;
-            $promotionrule->discount_object_id5 = $discount_object_id5;
+
+            // discount_object_id1
+            if (trim($discount_object_id1) === '') {
+                $promotionrule->discount_object_id1 = NULL;
+            } else {
+                $promotionrule->discount_object_id1 = $discount_object_id1;
+            }
+
+            // discount_object_id2
+            if (trim($discount_object_id2) === '') {
+                $promotionrule->discount_object_id2 = NULL;
+            } else {
+                $promotionrule->discount_object_id2 = $discount_object_id2;
+            }
+
+            // discount_object_id3
+            if (trim($discount_object_id3) === '') {
+                $promotionrule->discount_object_id3 = NULL;
+            } else {
+                $promotionrule->discount_object_id3 = $discount_object_id3;
+            }
+
+            // discount_object_id4
+            if (trim($discount_object_id4) === '') {
+                $promotionrule->discount_object_id4 = NULL;
+            } else {
+                $promotionrule->discount_object_id4 = $discount_object_id4;
+            }
+
+            // discount_object_id5
+            if (trim($discount_object_id5) === '') {
+                $promotionrule->discount_object_id5 = NULL;
+            } else {
+                $promotionrule->discount_object_id5 = $discount_object_id5;
+            }
+
             $promotionrule->discount_value = $discount_value;
             $promotionrule = $newpromotion->promotionrule()->save($promotionrule);
             $newpromotion->promotionrule = $promotionrule;
@@ -878,10 +909,10 @@ class PromotionAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string   `with`                  (optional) - Valid value: retailers, product, family.
-     * @param string   `sortby`                (optional) - column order by
-     * @param string   `sortmode`              (optional) - asc or desc
-     * @param integer  `take`                  (optional) - limit
-     * @param integer  `skip`                  (optional) - limit offset
+     * @param string   `sortby`                (optional) - Column order by. Valid value: registered_date, promotion_name, promotion_type, description, begin_date, end_date, is_permanent, status, rule_type, display_discount_value.
+     * @param string   `sortmode`              (optional) - ASC or DESC
+     * @param integer  `take`                  (optional) - Limit
+     * @param integer  `skip`                  (optional) - Limit offset
      * @param integer  `promotion_id`          (optional) - Promotion ID
      * @param integer  `merchant_id`           (optional) - Merchant ID
      * @param string   `promotion_name`        (optional) - Promotion name
@@ -937,7 +968,7 @@ class PromotionAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status',
+                    'sort_by' => 'in:registered_date,promotion_name,promotion_type,description,begin_date,end_date,is_permanent,status,rule_type,display_discount_value',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.promotion_sortby'),
@@ -959,9 +990,27 @@ class PromotionAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
+            $table_prefix = DB::getTablePrefix();
             // Builder object
+            // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
-                ->excludeDeleted();
+                ->excludeDeleted()
+                ->select(DB::raw($table_prefix . "promotions.*,
+                    CASE rule_type
+                        WHEN 'cart_discount_by_percentage' THEN 'percentage'
+                        WHEN 'product_discount_by_percentage' THEN 'percentage'
+                        WHEN 'cart_discount_by_value' THEN 'value'
+                        WHEN 'product_discount_by_value' THEN 'value'
+                        ELSE NULL
+                    END AS 'display_discount_type',
+                    CASE rule_type
+                        WHEN 'cart_discount_by_percentage' THEN discount_value * 100
+                        WHEN 'product_discount_by_percentage' THEN discount_value * 100
+                        ELSE discount_value
+                    END AS 'display_discount_value'
+                    ")
+                )
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
 
             // Filter promotion by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)
@@ -1139,14 +1188,16 @@ class PromotionAPIController extends ControllerAPI
             {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'registered_date'   => 'promotions.created_at',
-                    'promotion_name'    => 'promotions.promotion_name',
-                    'promotion_type'    => 'promotions.promotion_type',
-                    'description'       => 'promotions.description',
-                    'begin_date'        => 'promotions.begin_date',
-                    'end_date'          => 'promotions.end_date',
-                    'is_permanent'      => 'promotions.is_permanent',
-                    'status'            => 'promotions.status'
+                    'registered_date'          => 'promotions.created_at',
+                    'promotion_name'           => 'promotions.promotion_name',
+                    'promotion_type'           => 'promotions.promotion_type',
+                    'description'              => 'promotions.description',
+                    'begin_date'               => 'promotions.begin_date',
+                    'end_date'                 => 'promotions.end_date',
+                    'is_permanent'             => 'promotions.is_permanent',
+                    'status'                   => 'promotions.status',
+                    'rule_type'                => 'rule_type',
+                    'display_discount_value'   => 'display_discount_value' // only to avoid error 'Undefined index'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -1158,7 +1209,13 @@ class PromotionAPIController extends ControllerAPI
                     $sortMode = 'asc';
                 }
             });
-            $promotions->orderBy($sortBy, $sortMode);
+
+            if (trim(OrbitInput::get('sortby')) === 'display_discount_value') {
+                $promotions->orderBy('display_discount_type', $sortMode);
+                $promotions->orderBy('display_discount_value', $sortMode);
+            } else {
+                $promotions->orderBy($sortBy, $sortMode);
+            }
 
             $totalPromotions = $_promotions->count();
             $listOfPromotions = $promotions->get();

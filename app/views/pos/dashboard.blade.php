@@ -136,7 +136,7 @@
                     <table class="table  orbit-component table-noborder">
                         <tr>
                             <td colspan="3"> <button class="btn btn-danger" data-ng-disabled="cart.length == 0" data-toggle="modal" data-backdrop="static" data-target="#myModalNewCart" type="submit"><% language.keranjangbelanjabaru %></button> &nbsp; <button class="btn btn-primary" data-ng-disabled="cart.length == 0" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#myModalDeleteCart"  type="submit"><% language.hapuskeranjangbelanja %></button></td>
-                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" type="submit"><% language.bayar %></button></td>
+                            <td class="text-right"> <button class="btn btn-success" data-ng-disabled="cart.length == 0" style="background-color: #009933;" data-toggle="modal" data-backdrop="static" data-target="#myModalcheckout" data-ng-click="showCh()" type="submit"><% language.bayar %></button></td>
                        </tr>
                     </table>
                 </div>

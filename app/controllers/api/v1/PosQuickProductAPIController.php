@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class PosQuickProductAPIController extends ControllerAPI
 {
@@ -680,6 +681,12 @@ class PosQuickProductAPIController extends ControllerAPI
                 }
             }
 
+            // Available merchant to query
+            $listOfMerchantIds = [];
+
+            // Available retailer to query
+            $listOfRetailerIds = [];
+
             // Builder object
             $posQuickProducts = PosQuickProduct::joinRetailer()
                                                ->excludeDeleted('pos_quick_products')
@@ -692,13 +699,35 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Filter by merchant ids
             OrbitInput::get('merchant_ids', function($merchantIds) use ($posQuickProducts) {
-                $posQuickProducts->whereIn('pos_quick_products.merchant_id', $merchantIds);
+                // $posQuickProducts->whereIn('pos_quick_products.merchant_id', $merchantIds);
+                $listOfMerchantIds = (array)$merchantIds;
             });
 
             // Filter by retailer ids
             OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
-                $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
+                // $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
+                $listOfRetailerIds = (array)$retailerIds;
             });
+
+            // @To do: Replace this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfMerchantIds = $user->getMyMerchantIds();
+                $posQuickProducts->whereIn('pos_quick_products.merchant_id', $listOfMerchantIds);
+            } else {
+                if (! empty($listOfMerchantIds)) {
+                    $posQuickProducts->whereIn('pos_quick_products.merchant_id', $listOfMerchantIds);
+                }
+            }
+
+            // @To do: Repalce this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfRetailerIds = $user->getMyRetailerIds();
+                $posQuickProducts->whereIn('product_retailer.retailer_id', $listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $posQuickProducts->whereIn('product_retailer.retailer_id', $listOfRetailerIds);
+                }
+            }
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
@@ -749,7 +778,7 @@ class PosQuickProductAPIController extends ControllerAPI
             });
             $posQuickProducts->orderBy($sortBy, $sortMode);
 
-            $totalPosQuickProducts = $_posQuickProducts->count();
+            $totalPosQuickProducts = RecordCounter::create($_posQuickProducts)->count();
             $listOfPosQuickProducts = $posQuickProducts->get();
 
             $data = new stdclass();
@@ -804,6 +833,10 @@ class PosQuickProductAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            }
         }
 
         $output = $this->render($httpCode);

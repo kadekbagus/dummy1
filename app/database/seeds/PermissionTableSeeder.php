@@ -159,7 +159,12 @@ class PermissionTableSeeder extends Seeder
         }
 
         $this->command->info('Seeding permissions table...');
-        DB::table('permissions')->truncate();
+
+        try {
+            DB::table('permissions')->truncate();
+        } catch (Illuminate\Database\QueryException $e) {
+        }
+
         foreach ($permissions as $permission) {
             Permission::unguard();
             Permission::create($permission);

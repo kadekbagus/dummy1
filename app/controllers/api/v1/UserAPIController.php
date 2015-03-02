@@ -1196,6 +1196,12 @@ class UserAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
+            // Available merchant to query
+            $listOfMerchantIds = [];
+
+            // Available retailer to query
+            $listOfRetailerIds = [];
+
             // Builder object
             $users = User::Consumers()
                          ->with(array('userDetail', 'userDetail.lastVisitedShop'))
@@ -1203,13 +1209,35 @@ class UserAPIController extends ControllerAPI
 
             // Filter by merchant ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
-                $users->merchantIds($merchantIds);
+                // $users->merchantIds($merchantIds);
+                $listOfMerchantIds = (array)$merchantIds;
             });
+
+            // @To do: Replace this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfMerchantIds = $user->getMyMerchantIds();
+                $users->merchantIds($listOfMerchantIds);
+            } else {
+                if (! empty($listOfMerchantIds)) {
+                    $users->merchantIds($listOfMerchantIds);
+                }
+            }
 
             // Filter by retailer (shop) ids
             OrbitInput::get('retailer_id', function($retailerIds) use ($users) {
-                $users->retailerIds($retailerIds);
+                // $users->retailerIds($retailerIds);
+                $listOfRetailerIds = (array)$retailerIds;
             });
+
+            // @To do: Repalce this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfRetailerIds = $user->getMyRetailerIds();
+                $users->retailerIds($listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $users->retailerIds($listOfRetailerIds);
+                }
+            }
 
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {

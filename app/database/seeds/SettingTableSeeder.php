@@ -9,7 +9,12 @@ class SettingTableSeeder extends Seeder
     public function run()
     {
         $this->command->info('Seeding settings table...');
-        DB::table('settings')->truncate();
+
+        try {
+            DB::table('settings')->truncate();
+        } catch (Illuminate\Database\QueryException $e) {
+        }
+
         Setting::unguard();
 
         $record = [

@@ -4417,7 +4417,7 @@ class MobileCIAPIController extends ControllerAPI
             $ticketdata = OrbitInput::post('ticketdata');
             $transactionid = OrbitInput::post('transactionid');
 
-            $transaction = Transaction::where('transaction_id', $transactionid)->where('customer_id', $user->user_id)->first();
+            $transaction = Transaction::with('details.product')->where('transaction_id', $transactionid)->where('customer_id', $user->user_id)->first();
 
             $ticketdata = str_replace('data:image/png;base64,', '', $ticketdata);
 
@@ -4433,7 +4433,9 @@ class MobileCIAPIController extends ControllerAPI
                 'text' => 'emails.receipt.receipt-text'
             );
 
-            \Mail::send($mailviews, array('name' => $user->getFullName()), function($message) use($user, $image, $filename)
+            $retailer = $this->getRetailerInfo();
+
+            \Mail::send($mailviews, array('user' => $user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details), function($message) use($user, $image, $filename)
             {
                 $message->to('sembarang@vm.orbit-shop.rio', $user->getFullName())->subject('Orbit Receipt');
                 $message->attachData($image, $filename, array('mime' => 'image/png'));    
@@ -4765,7 +4767,7 @@ class MobileCIAPIController extends ControllerAPI
             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
         }))->whereHas('issuedcoupon', function($q) use($user)
         {
-            $q->where('issued_coupons.user_id', $user->user_id);
+            $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.status', 'deleted');
         })->whereHas('cartdetail', function($q)
         {
             $q->where('cart_coupons.object_type', '=', 'cart_detail');
@@ -4787,6 +4789,7 @@ class MobileCIAPIController extends ControllerAPI
         $used_cart_coupons = CartCoupon::with(array('cart', 'issuedcoupon' => function($q) use($user)
         {
             $q->where('issued_coupons.user_id', $user->user_id)
+            ->where('issued_coupons.status', 'deleted')
             ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
         }))
@@ -5007,7 +5010,7 @@ class MobileCIAPIController extends ControllerAPI
                 $coupon_filter = array();
                 foreach ($used_product_coupons as $used_product_coupon) {
                     // dd($used_product_coupon->cartdetail);
-                    if ($used_product_coupon->cartdetail->product_variant_id == $cartdetail->product_variant_id) {
+                    if ($used_product_coupon->cartdetail->cart_detail_id == $cartdetail->cart_detail_id) {
                         if ($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') {
                             $discount = $used_product_coupon->issuedcoupon->discount_value * $original_price;
                             if ($temp_price < $discount) {

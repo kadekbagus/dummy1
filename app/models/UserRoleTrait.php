@@ -269,4 +269,27 @@ trait UserRoleTrait
 
         return $retailerIds;
     }
+
+    /**
+     * Get list of merchant ids owned by this user. This is f*cking wrong,
+     * normally I hate doing loop on query.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return array
+     */
+    public function getMyMerchantIds()
+    {
+        $merchants = $this->merchants;
+
+        $merchantIds = [];
+        foreach ($merchants as $merchant) {
+            $merchantIds[] = $merchant->merchant_id;
+        }
+
+        if (empty($merchantIds)) {
+            return [];
+        }
+
+        return $merchantIds;
+    }
 }
