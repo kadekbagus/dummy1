@@ -379,6 +379,8 @@ class MobileCIAPIController extends ControllerAPI
         $user = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('view');
+        $activityfamilyid = null;
+        $cat_name = null;
         try {
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
@@ -465,11 +467,17 @@ class MobileCIAPIController extends ControllerAPI
                 }
             }
 
-            $activityfamily = Category::where('category_id', $activityfamilyid)->first();
+            if (is_null($activityfamilyid)) {
+                $activityfamily = null;
+                $cat_name = null;
+            } else {
+                $activityfamily = Category::where('category_id', $activityfamilyid)->first();
+                $cat_name = $activityfamily->category_name;
+            }
             $activityPageNotes = sprintf('Page viewed: %s', 'Catalogue');
             $activityPage->setUser($user)
                             ->setActivityName('view_catalogue')
-                            ->setActivityNameLong('View Cataloguge ' . $activityfamily->category_name)
+                            ->setActivityNameLong('View Cataloguge ' . $cat_name)
                             ->setObject($activityfamily)
                             ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
@@ -706,18 +714,35 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
+                $temp_price = $min_price;
                 $promo_for_this_product = array_filter($promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
                 if (count($promo_for_this_product) > 0) {
-                    $discount=0;
+                    $discounts=0;
                     foreach($promo_for_this_product as $promotion) {
                         if($promotion->rule_type == 'product_discount_by_percentage') {
-                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                            $discount = min($prices) * $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         } elseif($promotion->rule_type == 'product_discount_by_value') {
-                            $discount = $discount + $promotion->discount_value;
+                            $discount = $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
+                        } elseif($promotion->rule_type == 'new_product_price') {
+                            $new_price = $min_price - $promotion->discount_value;
+                            $discount = $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         }
+                        $temp_price = $temp_price - $discount;
                     }
                     $product->on_promo = true;
-                    $product->priceafterpromo = $min_price - $discount;
+                    $product->priceafterpromo = $min_price - $discounts;
                 } else {
                     $product->on_promo = false;
                 }
@@ -1060,18 +1085,35 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
+                $temp_price = $min_price;
                 $promo_for_this_product = array_filter($promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
                 if (count($promo_for_this_product) > 0) {
-                    $discount=0;
+                    $discounts=0;
                     foreach($promo_for_this_product as $promotion) {
                         if($promotion->rule_type == 'product_discount_by_percentage') {
-                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                            $discount = min($prices) * $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         } elseif($promotion->rule_type == 'product_discount_by_value') {
-                            $discount = $discount + $promotion->discount_value;
+                            $discount = $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
+                        } elseif($promotion->rule_type == 'new_product_price') {
+                            $new_price = $min_price - $promotion->discount_value;
+                            $discount = $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         }
+                        $temp_price = $temp_price - $discount;
                     }
                     $product->on_promo = true;
-                    $product->priceafterpromo = $min_price - $discount;
+                    $product->priceafterpromo = $min_price - $discounts;
                 } else {
                     $product->on_promo = false;
                 }
@@ -1315,18 +1357,35 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
+                $temp_price = $min_price;
                 $promo_for_this_product = array_filter($all_promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
                 if (count($promo_for_this_product) > 0) {
-                    $discount=0;
+                    $discounts=0;
                     foreach($promo_for_this_product as $promotion) {
                         if($promotion->rule_type == 'product_discount_by_percentage') {
-                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                            $discount = min($prices) * $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         } elseif($promotion->rule_type == 'product_discount_by_value') {
-                            $discount = $discount + $promotion->discount_value;
+                            $discount = $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
+                        } elseif($promotion->rule_type == 'new_product_price') {
+                            $new_price = $min_price - $promotion->discount_value;
+                            $discount = $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         }
+                        $temp_price = $temp_price - $discount;
                     }
                     $product->on_promo = true;
-                    $product->priceafterpromo = $min_price - $discount;
+                    $product->priceafterpromo = $min_price - $discounts;
                 } else {
                     $product->on_promo = false;
                 }
@@ -1579,18 +1638,35 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
+                $temp_price = $min_price;
                 $promo_for_this_product = array_filter($all_promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
                 if (count($promo_for_this_product) > 0) {
-                    $discount=0;
+                    $discounts=0;
                     foreach($promo_for_this_product as $promotion) {
                         if($promotion->rule_type == 'product_discount_by_percentage') {
-                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                            $discount = min($prices) * $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         } elseif($promotion->rule_type == 'product_discount_by_value') {
-                            $discount = $discount + $promotion->discount_value;
+                            $discount = $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
+                        } elseif($promotion->rule_type == 'new_product_price') {
+                            $new_price = $min_price - $promotion->discount_value;
+                            $discount = $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         }
+                        $temp_price = $temp_price - $discount;
                     }
                     $product->on_promo = true;
-                    $product->priceafterpromo = $min_price - $discount;
+                    $product->priceafterpromo = $min_price - $discounts;
                 } else {
                     $product->on_promo = false;
                 }
@@ -1985,18 +2061,35 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
+                $temp_price = $min_price;
                 $promo_for_this_product = array_filter($promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
                 if (count($promo_for_this_product) > 0) {
-                    $discount=0;
+                    $discounts=0;
                     foreach($promo_for_this_product as $promotion) {
                         if($promotion->rule_type == 'product_discount_by_percentage') {
-                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                            $discount = min($prices) * $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         } elseif($promotion->rule_type == 'product_discount_by_value') {
-                            $discount = $discount + $promotion->discount_value;
+                            $discount = $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
+                        } elseif($promotion->rule_type == 'new_product_price') {
+                            $new_price = $min_price - $promotion->discount_value;
+                            $discount = $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         }
+                        $temp_price = $temp_price - $discount;
                     }
                     $product->on_promo = true;
-                    $product->priceafterpromo = $min_price - $discount;
+                    $product->priceafterpromo = $min_price - $discounts;
                 } else {
                     $product->on_promo = false;
                 }
@@ -2250,16 +2343,33 @@ class MobileCIAPIController extends ControllerAPI
                 // set on_promo flag
                 $promo_for_this_product = array_filter($promotions, function($v) use ($product) { return $v->product_id == $product->product_id; });
                 if (count($promo_for_this_product) > 0) {
-                    $discount=0;
+                    $discounts=0;
+                    $temp_price = $min_price;
                     foreach($promo_for_this_product as $promotion) {
                         if($promotion->rule_type == 'product_discount_by_percentage') {
-                            $discount = $discount + (min($prices) * $promotion->discount_value);
+                            $discount = min($prices) * $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         } elseif($promotion->rule_type == 'product_discount_by_value') {
-                            $discount = $discount + $promotion->discount_value;
+                            $discount = $promotion->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
+                        } elseif($promotion->rule_type == 'new_product_price') {
+                            $new_price = $min_price - $promotion->discount_value;
+                            $discount = $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $discounts = $discounts + $discount;
                         }
+                        $temp_price = $temp_price - $discount;
                     }
+                    $product->priceafterpromo = $min_price - $discounts;
                     $product->on_promo = true;
-                    $product->priceafterpromo = $min_price - $discount;
                 } else {
                     $product->on_promo = false;
                 }
@@ -2411,15 +2521,33 @@ class MobileCIAPIController extends ControllerAPI
             foreach($product->variants as $variant) {
                 $prices[] = $variant->price;
                 $promo_price = $variant->price;
+                $temp_price = $variant->price;
+
                 if(!empty($promo_products)) {
                     $promo_price = $variant->price;
                     foreach($promo_products as $promo_filter) {
                         if($promo_filter->rule_type == 'product_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $variant->price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_price = $promo_price - $discount;
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_price = $promo_price - $discount;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $new_price = $promo_filter->discount_value;
+                            $discount = $variant->price - $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_price = $promo_price - $discount;
                         }
-                        $promo_price = $promo_price - $discount;
+                        
+                        $temp_price = $temp_price - $discount;
                     }
                 }
                 $variant->promo_price = $promo_price;
@@ -2428,15 +2556,31 @@ class MobileCIAPIController extends ControllerAPI
             $min_price = min($prices);
             $product->min_price = $min_price + 0;
 
+            $temp_price = $min_price;
             $min_promo_price = $product->min_price;
             if(!empty($promo_products)) {
                 foreach($promo_products as $promo_filter) {
                     if($promo_filter->rule_type == 'product_discount_by_percentage') {
                         $discount = $promo_filter->discount_value * $product->min_price;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $min_promo_price = $min_promo_price - $discount;
                     } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                         $discount = $promo_filter->discount_value;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $min_promo_price = $min_promo_price - $discount;
+                    } elseif($promo_filter->rule_type == 'new_product_price') {
+                        $new_price = $promo_filter->discount_value;
+                        $discount = $min_price - $new_price;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $min_promo_price = $min_promo_price - $discount;
                     }
-                    $min_promo_price = $min_promo_price - $discount;
+                    $temp_price = $temp_price - $discount;
                 }
             }
             $product->min_promo_price = $min_promo_price;
@@ -3164,14 +3308,31 @@ class MobileCIAPIController extends ControllerAPI
             $price_after_promo = $variant_price;
 
             $activityPromoObj = null;
+            $temp_price = $variant_price;
             foreach ($promo_products as $promo) {
                 if($promo->promotionrule->rule_type == 'product_discount_by_percentage') {
                     $discount = $promo->promotionrule->discount_value * $variant_price;
+                    if ($temp_price < $discount) {
+                        $discount = $temp_price;
+                    }
+                    $price_after_promo = $price_after_promo - $discount;
                 } elseif($promo->promotionrule->rule_type == 'product_discount_by_value') {
                     $discount = $promo->promotionrule->discount_value;
+                    if ($temp_price < $discount) {
+                        $discount = $temp_price;
+                    }
+                    $price_after_promo = $price_after_promo - $discount;
+                } elseif($promo->promotionrule->rule_type == 'new_product_price') {
+                    $new_price = $promo->promotionrule->discount_value;
+                    $discount = $variant_price - $new_price;
+                    if ($temp_price < $discount) {
+                        $discount = $temp_price;
+                    }
+                    $price_after_promo = $price_after_promo - $discount;
                 }
                 $activityPromoObj = $promo;
-                $price_after_promo = $price_after_promo - $discount;
+                
+                $temp_price = $temp_price - $discount;
             }
 
             $activityCoupon = array();
@@ -3789,7 +3950,13 @@ class MobileCIAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            //insert to table transaction
+            // update last spent user
+            $userdetail = UserDetail::where('user_id', $user->user_id)->first();
+            $userdetail->last_spent_any_shop = $cartdata->cartsummary->total_to_pay;
+            $userdetail->last_spent_shop_id = $retailer->merchant_id;
+            $userdetail->save();
+
+            // insert to table transaction
             $transaction = new Transaction();
             $transaction->total_item     = $cartdata->cart->total_item;
             if ($retailer->parent->vat_included == 'yes') {
@@ -4918,19 +5085,19 @@ class MobileCIAPIController extends ControllerAPI
                     $promo_for_this_product = new stdclass();
                     $promo_for_this_product = clone $promo_filter;
                     if($promo_filter->rule_type == 'product_discount_by_percentage') {
-                        $discount = $promo_filter->discount_value * $original_price;
+                        $discount = $promo_filter->discount_value * $original_price * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
                     } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-                        $discount = $promo_filter->discount_value;
+                        $discount = $promo_filter->discount_value * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                    } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                        $discount = $original_price - $promo_filter->discount_value;
+                    } elseif ($promo_filter->rule_type == 'new_product_price') {
+                        $discount = ($original_price - $promo_filter->discount_value) * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
@@ -4939,7 +5106,7 @@ class MobileCIAPIController extends ControllerAPI
                     $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                     $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
                     $promo_for_this_product->rule_type = $promo_filter->rule_type;
-                    $promo_for_this_product->discount = $discount * $cartdetail->quantity;
+                    $promo_for_this_product->discount = $discount;
                     $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
                     $temp_price = $temp_price - $promo_for_this_product->discount;
 
@@ -4997,9 +5164,9 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_wo_tax = $discount / (1 + $tax1);
                     }
 
-                    $promo_vat = ($discount - $promo_wo_tax) * $cartdetail->quantity;
+                    $promo_vat = ($discount - $promo_wo_tax);
                     $vat = $vat - $promo_vat;
-                    $promo_wo_tax = $promo_wo_tax * $cartdetail->quantity;
+                    $promo_wo_tax = $promo_wo_tax;
                     $subtotal = $subtotal - $promo_for_this_product->discount;
                     $subtotal_wo_tax = $subtotal_wo_tax - $promo_wo_tax;
                     $promo_for_this_product_array[] = $promo_for_this_product;
@@ -5379,28 +5546,29 @@ class MobileCIAPIController extends ControllerAPI
                     $promo_for_this_product = new stdclass();
                     $promo_for_this_product = clone $promo_filter;
                     if($promo_filter->rule_type == 'product_discount_by_percentage') {
-                        $discount = $promo_filter->discount_value * $original_price;
+                        $discount = ($promo_filter->discount_value * $original_price) * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
                     } elseif($promo_filter->rule_type == 'product_discount_by_value') {
-                        $discount = $promo_filter->discount_value;
+                        $discount = $promo_filter->discount_value * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
-                    } elseif ($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
-                        $discount = $original_price - $promo_filter->discount_value;
+                    } elseif ($promo_filter->rule_type == 'new_product_price') {
+                        $discount = ($original_price - $promo_filter->discount_value) * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
+                        // dd($discount);
                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
                     }
                     $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                     $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
                     $promo_for_this_product->rule_type = $promo_filter->rule_type;
-                    $promo_for_this_product->discount = $discount * $cartdetail->quantity;
+                    $promo_for_this_product->discount = $discount;
                     $ammount_after_promo = $ammount_after_promo - $promo_for_this_product->discount;
                     $temp_price = $temp_price - $promo_for_this_product->discount;
 
@@ -5452,13 +5620,13 @@ class MobileCIAPIController extends ControllerAPI
                         $promo_with_tax = $discount * (1 + $tax1);
                     }
 
-                    $promo_vat = ($promo_with_tax - $discount) * $cartdetail->quantity;
+                    $promo_vat = ($promo_with_tax - $discount);
                     // $promo_vat = ($discount * $cartdetail->quantity);
                     
                     $vat = $vat - $promo_vat;
-                    $promo_with_tax = $promo_with_tax * $cartdetail->quantity;
+                    $promo_with_tax = $promo_with_tax;
                     $subtotal = $subtotal - $promo_with_tax;
-                    $subtotal_wo_tax = $subtotal_wo_tax - ($discount * $cartdetail->quantity);
+                    $subtotal_wo_tax = $subtotal_wo_tax - ($discount);
                     $promo_for_this_product_array[] = $promo_for_this_product;
                 }
                 
