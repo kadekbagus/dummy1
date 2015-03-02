@@ -665,6 +665,7 @@ class postNewRetailerTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    /*
     public function testReqOK_POST_api_v1_retailer_new()
     {
         // Number of retailer account before this operation
@@ -792,4 +793,5 @@ class postNewRetailerTest extends OrbitTestCase
         $numAfter = Retailer::count();
         $this->assertSame($numBefore, $numAfter);
     }
+    */
 }
