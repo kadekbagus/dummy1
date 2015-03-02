@@ -10,7 +10,6 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
-use Helper\EloquentRecordCounter as RecordCounter;
 
 class UserAPIController extends ControllerAPI
 {
@@ -1201,14 +1200,20 @@ class UserAPIController extends ControllerAPI
             $listOfMerchantIds = [];
 
             // Available retailer to query
-            $listRetailerIds = [];
+            $listOfRetailerIds = [];
 
             // Builder object
             $users = User::Consumers()
                          ->with(array('userDetail', 'userDetail.lastVisitedShop'))
                          ->excludeDeleted();
 
-            // @To do: Repalce this stupid hacks
+            // Filter by merchant ids
+            OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
+                // $users->merchantIds($merchantIds);
+                $listOfMerchantIds = (array)$merchantIds;
+            });
+
+            // @To do: Replace this stupid hacks
             if (! $user->isSuperAdmin()) {
                 $listOfMerchantIds = $user->getMyMerchantIds();
                 $users->merchantIds($listOfMerchantIds);
@@ -1221,7 +1226,7 @@ class UserAPIController extends ControllerAPI
             // Filter by retailer (shop) ids
             OrbitInput::get('retailer_id', function($retailerIds) use ($users) {
                 // $users->retailerIds($retailerIds);
-                $listOfMerchantIds = (array)$retailerIds;
+                $listOfRetailerIds = (array)$retailerIds;
             });
 
             // @To do: Repalce this stupid hacks
@@ -1233,6 +1238,7 @@ class UserAPIController extends ControllerAPI
                     $users->retailerIds($listOfRetailerIds);
                 }
             }
+
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {
                 $users->whereIn('users.user_id', $userIds);
@@ -1332,7 +1338,7 @@ class UserAPIController extends ControllerAPI
             });
             $users->orderBy($sortBy, $sortMode);
 
-            $totalUsers = RecordCounter::create($_users)->count();
+            $totalUsers = $_users->count();
             $listOfUsers = $users->get();
 
             $data = new stdclass();
