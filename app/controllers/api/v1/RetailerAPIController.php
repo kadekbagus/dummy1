@@ -1458,7 +1458,7 @@ class RetailerAPIController extends ControllerAPI
         // Check the existance of the merchant status
         Validator::extend('orbit.empty.merchant_status', function ($attribute, $value, $parameters) {
             $valid = false;
-            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            $statuses = array('active', 'inactive', 'pending', 'blocked', 'deleted');
             foreach ($statuses as $status) {
                 if($value === $status) $valid = $valid || TRUE;
             }
@@ -1503,7 +1503,7 @@ class RetailerAPIController extends ControllerAPI
         // Check the existance of the retailer status
         Validator::extend('orbit.empty.retailer_status', function ($attribute, $value, $parameters) {
             $valid = false;
-            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            $statuses = array('active', 'inactive', 'pending', 'blocked', 'deleted');
             foreach ($statuses as $status) {
                 if($value === $status) $valid = $valid || TRUE;
             }
