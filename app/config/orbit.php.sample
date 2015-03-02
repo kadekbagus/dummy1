@@ -16,7 +16,9 @@ return array(
 
     'shop' => array(
         // Id of the retailer
-        'id'    => NULL
+        'id'    => NULL,
+        // search result limit
+        'search_limit' => 300,
     ),
 
     // General contact data
