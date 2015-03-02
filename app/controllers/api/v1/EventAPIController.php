@@ -52,7 +52,7 @@ class EventAPIController extends ControllerAPI
             Event::fire('orbit.event.postnewevent.before.auth', array($this));
 
             $this->checkAuth();
-            
+
             Event::fire('orbit.event.postnewevent.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
@@ -919,7 +919,8 @@ class EventAPIController extends ControllerAPI
             }
 
             // Builder object
-            $events = EventModel::excludeDeleted();
+            $events = EventModel::excludeDeleted()
+                                ->allowedForViewOnly($user);
 
             // Filter event by Ids
             OrbitInput::get('event_id', function($eventIds) use ($events)
