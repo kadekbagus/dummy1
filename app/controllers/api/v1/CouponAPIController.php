@@ -68,7 +68,7 @@ class CouponAPIController extends ControllerAPI
             Event::fire('orbit.coupon.postnewcoupon.before.auth', array($this));
 
             $this->checkAuth();
-            
+
             Event::fire('orbit.coupon.postnewcoupon.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
@@ -1257,6 +1257,7 @@ class CouponAPIController extends ControllerAPI
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
                 ->excludeDeleted()
+                ->allowedForViewOnly($user)
                 ->select(DB::raw($table_prefix . "promotions.*,
                     CASE rule_type
                         WHEN 'cart_discount_by_percentage' THEN 'percentage'
