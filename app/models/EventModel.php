@@ -114,6 +114,48 @@ class EventModel extends Eloquent
     }
 
     /**
+     * Add Filter events based on user who request it. (used for view only,
+     * mainly for merchant portal. Weird? yeah it's fucking weird. I'm in
+     * hurry.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  User $user Instance of object user
+     */
+    public function scopeAllowedForViewOnly($builder, $user)
+    {
+        // Super admin allowed to see all entries
+        $superAdmin = Config::get('orbit.security.superadmin');
+        if (empty($superAdmin))
+        {
+            $superAdmin = array('super admin');
+        }
+
+        // Transform all array into lowercase
+        $superAdmin = array_map('strtolower', $superAdmin);
+
+        // Add also consumer, they will need it on customer portal
+        $superAdmin[] = 'consumer';
+
+        $userRole = trim(strtolower($user->role->role_name));
+        if (in_array($userRole, $superAdmin))
+        {
+            // do nothing return as is
+            return $builder;
+        }
+
+        // This will filter only events which belongs to merchant
+        // The merchant owner has an ability to view all events
+        $builder->where(function($query) use ($user)
+        {
+            $prefix = DB::getTablePrefix();
+            $query->whereRaw("{$prefix}events.merchant_id in (select m2.merchant_id from {$prefix}merchants m2
+                                where m2.user_id=? and m2.object_type='merchant')", array($user->user_id));
+        });
+
+        return $builder;
+    }
+
+    /**
      * Event has many uploaded media.
      *
      * @return \Illuminate\Database\Eloquent\Builder
