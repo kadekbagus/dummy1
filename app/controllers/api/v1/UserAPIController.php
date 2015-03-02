@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class UserAPIController extends ControllerAPI
 {
@@ -1196,21 +1197,42 @@ class UserAPIController extends ControllerAPI
                 $maxRecord = 20;
             }
 
+            // Available merchant to query
+            $listOfMerchantIds = [];
+
+            // Available retailer to query
+            $listRetailerIds = [];
+
             // Builder object
             $users = User::Consumers()
                          ->with(array('userDetail', 'userDetail.lastVisitedShop'))
                          ->excludeDeleted();
 
-            // Filter by merchant ids
-            OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
-                $users->merchantIds($merchantIds);
-            });
+            // @To do: Repalce this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfMerchantIds = $user->getMyMerchantIds();
+                $users->merchantIds($listOfMerchantIds);
+            } else {
+                if (! empty($listOfMerchantIds)) {
+                    $users->merchantIds($listOfMerchantIds);
+                }
+            }
 
             // Filter by retailer (shop) ids
             OrbitInput::get('retailer_id', function($retailerIds) use ($users) {
-                $users->retailerIds($retailerIds);
+                // $users->retailerIds($retailerIds);
+                $listOfMerchantIds = (array)$retailerIds;
             });
 
+            // @To do: Repalce this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfRetailerIds = $user->getMyRetailerIds();
+                $users->retailerIds($listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $users->retailerIds($listOfRetailerIds);
+                }
+            }
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {
                 $users->whereIn('users.user_id', $userIds);
@@ -1310,7 +1332,7 @@ class UserAPIController extends ControllerAPI
             });
             $users->orderBy($sortBy, $sortMode);
 
-            $totalUsers = $_users->count();
+            $totalUsers = RecordCounter::create($_users)->count();
             $listOfUsers = $users->get();
 
             $data = new stdclass();
