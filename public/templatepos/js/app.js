@@ -206,8 +206,19 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
                                 $scope.datapromotion[i]['begin_date']        = moment($scope.datapromotion[i]['begin_date']).isValid() ? moment($scope.datapromotion[i]['begin_date']).format('DD MMMM YYYY')  : '';
                                 $scope.datapromotion[i]['end_date']          = moment($scope.datapromotion[i]['end_date']).isValid() ? moment($scope.datapromotion[i]['end_date']).format('DD MMMM YYYY') : '';
+
+                                if($scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage'){
+                                    tmpdiscount = $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'];
+                                }else if($scope.datapromotion[i]['rule_type'] == 'product_discount_by_value'){
+                                    tmpdiscount = accounting.unformat($scope.datapromotion[i]['discount_value']);
+                                }else if($scope.datapromotion[i]['rule_type'] == 'new_product_price'){
+                                    tmpdiscount =  $scope.productmodal['price'] - accounting.unformat($scope.datapromotion[i]['discount_value']) + 0;
+                                }else{
+                                    tmpdiscount = 0;
+                                }
+
                                // if(act){
-                                    tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
+                                 //   tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
                                     $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
                                     $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
                                     discount += tmpdiscount;
