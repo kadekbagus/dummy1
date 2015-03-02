@@ -88,10 +88,11 @@ class IntermediateLoginController extends IntermediateBaseController
             $this->session->destroy();
             $response->data = NULL;
 
-            // Successfull login
+            // Successfull logout
             $activity->setUser($user)
                      ->setActivityName('logout_ok')
-                     ->setActivityNameLong('Logout OK')
+                     ->setActivityNameLong('Sign out')
+                     ->setModuleName('Application')
                      ->responseOK();
         } catch (Exception $e) {
             try {
@@ -105,8 +106,9 @@ class IntermediateLoginController extends IntermediateBaseController
 
             $activity->setUser('guest')
                      ->setActivityName('logout_failed')
-                     ->setActivityNameLong('Logout Failed')
+                     ->setActivityNameLong('Sign out Failed')
                      ->setNotes($e->getMessage())
+                     ->setModuleName('Application')
                      ->responseFailed();
         }
 
@@ -242,19 +244,19 @@ class IntermediateLoginController extends IntermediateBaseController
             // Successfull login
             $activity->setUser($user)
                      ->setActivityName('login_ok')
-                     ->setActivityNameLong('Login OK')
+                     ->setActivityNameLong('Sign In')
                      ->responseOK();
         } else {
             // Login Failed
             $activity->setUser('guest')
                      ->setActivityName('login_failed')
-                     ->setActivityNameLong('Login failed')
+                     ->setActivityNameLong('Sign In Failed')
                      ->setNotes($response->message)
                      ->responseFailed();
         }
 
         // Save the activity
-        $activity->save();
+        $activity->setModuleName('Application')->save();
 
         return $this->render($response);
     }
@@ -271,7 +273,7 @@ class IntermediateLoginController extends IntermediateBaseController
     {
         // This Query String trigger how activity would be logged
         $_GET['_orbit_logout_from'] = 'mobile-ci';
-        
+
         $this->session->getSessionConfig()->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
         $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
         $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', 'orbit_mobile_session');

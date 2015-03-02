@@ -61,7 +61,7 @@ class LoginAPIController extends ControllerAPI
             // Successfull login
             $activity->setUser($user)
                      ->setActivityName('login_ok')
-                     ->setActivityNameLong('Login OK')
+                     ->setActivityNameLong('Sign in')
                      ->responseOK();
 
             $this->response->data = $user;
@@ -101,7 +101,7 @@ class LoginAPIController extends ControllerAPI
         }
 
         // Save the activity
-        $activity->save();
+        $activity->setModuleName('Application')->save();
 
         return $this->render();
     }
