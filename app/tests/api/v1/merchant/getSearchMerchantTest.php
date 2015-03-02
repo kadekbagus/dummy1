@@ -366,6 +366,8 @@ class getSearchMerchantTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
+        $_GET['sortby'] = 'registered_date';
+        $_GET['sortmode'] = 'desc';
 
         $url = '/api/v1/merchant/search?' . http_build_query($_GET);
 
@@ -513,6 +515,8 @@ class getSearchMerchantTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
+        $_GET['sortby'] = 'registered_date';
+        $_GET['sortmode'] = 'desc';
 
         $url = '/api/v1/merchant/search?' . http_build_query($_GET);
 
@@ -888,6 +892,8 @@ class getSearchMerchantTest extends OrbitTestCase
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
+        $_GET['sortby'] = 'registered_date';
+        $_GET['sortmode'] = 'desc';
 
         $url = '/api/v1/merchant/search?' . http_build_query($_GET);
 
@@ -1026,7 +1032,8 @@ class getSearchMerchantTest extends OrbitTestCase
         $_GET['merchant_id'] = array(1, 2);
         $_GET['with'] = array('retailers');
         $_GET['with_count'] = array('retailers');
-        $_GET['sortmode'] = 'omid';
+        $_GET['sortby'] = 'merchant_omid';
+        $_GET['sortmode'] = 'asc';
 
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
