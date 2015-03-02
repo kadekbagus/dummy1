@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class EmployeeAPIController extends ControllerAPI
 {
@@ -839,6 +840,12 @@ class EmployeeAPIController extends ControllerAPI
                 }
             }
 
+            // Available merchant to query
+            $listOfMerchantIds = [];
+
+            // Available retailer to query
+            $listOfRetailerIds = [];
+
             // Builder object
             $joined = FALSE;
             $defaultWith = array('employee.retailers');
@@ -856,16 +863,50 @@ class EmployeeAPIController extends ControllerAPI
             });
 
             // Filter user by Retailer Ids
-            OrbitInput::get('retailer_ids', function ($retailerIds) use ($users, $joined) {
-                $joined = TRUE;
-                $users->employeeRetailerIds($retailerIds);
+            OrbitInput::get('retailer_ids', function ($retailerIds) use ($listOfMerchantIds, $joined) {
+                // $joined = TRUE;
+                // $users->employeeRetailerIds($retailerIds);
+                $listOfRetailerIds = (array)$retailerIds;
             });
 
             // Filter user by Merchant Ids
-            OrbitInput::get('merchant_ids', function ($merchantIds) use ($users, $joined) {
-                $joined = TRUE;
-                $users->employeeMerchantIds($retailerIds);
+            OrbitInput::get('merchant_ids', function ($merchantIds) use ($listOfMerchantIds, $joined) {
+                // $joined = TRUE;
+                // $users->employeeMerchantIds($retailerIds);
+                $listOfMerchantIds = (array)$merchantIds;
             });
+
+            // @To do: Repalce this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $joined = TRUE;
+                $listOfRetailerIds = $user->getMyRetailerIds();
+
+                if (empty($listOfRetailerIds)) {
+                    $listOfRetailerIds = [-1];
+                }
+
+                $users->employeeRetailerIds($listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $users->employeeRetailerIds($listOfRetailerIds);
+                }
+            }
+
+            // @To do: Replace this stupid hacks
+            if (! $user->isSuperAdmin()) {
+                $joined = TRUE;
+                $listOfMerchantIds = $user->getMyMerchantIds();
+
+                if (empty($listOfMerchantIds)) {
+                    $listOfMerchantIds = [-1];
+                }
+
+                $users->employeeMerchantIds($listOfMerchantIds);
+            } else {
+                if (! empty($listOfMerchantIds)) {
+                    $users->employeeMerchantIds($listOfMerchantIds);
+                }
+            }
 
             // Filter user by username
             OrbitInput::get('usernames', function ($username) use ($users) {
@@ -986,7 +1027,7 @@ class EmployeeAPIController extends ControllerAPI
             });
             $users->orderBy($sortBy, $sortMode);
 
-            $totalUsers = $_users->count();
+            $totalUsers = RecordCounter::create($_users)->count();
             $listOfUsers = $users->get();
 
             $data = new stdclass();

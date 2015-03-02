@@ -712,6 +712,10 @@ class PosQuickProductAPIController extends ControllerAPI
             // @To do: Replace this stupid hacks
             if (! $user->isSuperAdmin()) {
                 $listOfMerchantIds = $user->getMyMerchantIds();
+
+                if (empty($listOfMerchantIds)) {
+                    $listOfMerchantIds = [-1];
+                }
                 $posQuickProducts->whereIn('pos_quick_products.merchant_id', $listOfMerchantIds);
             } else {
                 if (! empty($listOfMerchantIds)) {
@@ -722,6 +726,10 @@ class PosQuickProductAPIController extends ControllerAPI
             // @To do: Repalce this stupid hacks
             if (! $user->isSuperAdmin()) {
                 $listOfRetailerIds = $user->getMyRetailerIds();
+
+                if (empty($listOfRetailerIds)) {
+                    $listOfRetailerIds = [-1];
+                }
                 $posQuickProducts->whereIn('product_retailer.retailer_id', $listOfRetailerIds);
             } else {
                 if (! empty($listOfRetailerIds)) {

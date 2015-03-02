@@ -1216,6 +1216,11 @@ class UserAPIController extends ControllerAPI
             // @To do: Replace this stupid hacks
             if (! $user->isSuperAdmin()) {
                 $listOfMerchantIds = $user->getMyMerchantIds();
+
+                if (empty($listOfMerchantIds)) {
+                    $listOfMerchantIds = [-1];
+                }
+
                 $users->merchantIds($listOfMerchantIds);
             } else {
                 if (! empty($listOfMerchantIds)) {
@@ -1232,6 +1237,11 @@ class UserAPIController extends ControllerAPI
             // @To do: Repalce this stupid hacks
             if (! $user->isSuperAdmin()) {
                 $listOfRetailerIds = $user->getMyRetailerIds();
+
+                if (empty($listOfRetailerIds)) {
+                    $listOfRetailerIds = [-1];
+                }
+
                 $users->retailerIds($listOfRetailerIds);
             } else {
                 if (! empty($listOfRetailerIds)) {
