@@ -100,6 +100,43 @@ class Coupon extends Eloquent
     }
 
     /**
+     * Add Filter coupons based on user who request it. (Should be used on view only)
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  User $user Instance of object user
+     */
+    public function scopeAllowedForViewOnly($builder, $user)
+    {
+        // Super admin and Consumer allowed to see all entries
+        // Weird? yeah this is supposed to call on merchant portal only
+        $superAdmin = Config::get('orbit.security.superadmin');
+        if (empty($superAdmin))
+        {
+            $superAdmin = array('super admin', 'consumer');
+        }
+
+        // Transform all array into lowercase
+        $superAdmin = array_map('strtolower', $superAdmin);
+        $userRole = trim(strtolower($user->role->role_name));
+        if (in_array($userRole, $superAdmin))
+        {
+            // do nothing return as is
+            return $builder;
+        }
+
+        // This will filter only coupons which belongs to merchant
+        // The merchant owner has an ability to view all coupons
+        $builder->where(function($query) use ($user)
+        {
+            $prefix = DB::getTablePrefix();
+            $query->whereRaw("{$prefix}promotions.merchant_id in (select m2.merchant_id from {$prefix}merchants m2
+                                where m2.user_id=? and m2.object_type='merchant')", array($user->user_id));
+        });
+
+        return $builder;
+    }
+
+    /**
      * Coupon has many uploaded media.
      *
      * @return \Illuminate\Database\Eloquent\Builder
