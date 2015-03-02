@@ -181,7 +181,7 @@
                                 <button ng-class="k % 2 == 0 ? 'btn mini-box ' : 'btn mini-boxright'"  data-ng-click="showdetailFn(v.product_id,false,v.attribute_id1)">
                                        <div class="row no-gutter" >
                                           <div class="col-xs-4 col-xs-offset-1">
-                                              <div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64"></div>
+                                              <div class="col-xs-12"><img ng-src="<% configs.baseUrlServerPublic %>/<% v.image %>"  class="img64_64" style="object-fit: contain;" ></div>
                                            </div>
                                            <div class="col-xs-6">
                                                <div class="col-xs-12 text-left" style="margin-left: 3px;margin-top:-9px; ">
