@@ -107,15 +107,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              //function -+ cart qty list
              $scope.qaFn = function(id,action){
                     var fndelete = function(){
+                         //set activity when product delete from the cart
+                        var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
+                        $scope.activity('activity-delete-product',{customer_id : user_id ,product_id : $scope.cart[id]['product_id'] });
+
                         if($scope.product[$scope.cart[id]['idx']]) $scope.product[$scope.cart[id]['idx']]['disabled'] = false;
                         $scope.adddelenadis($scope.cart[id]['product_id'],'del');
                         $scope.cart.splice(id ,1);
                         $scope.tmpsubtotal = '';
                         $scope.applycartpromotion   = [];
                         $scope.applycartcoupon      = [];
-                        //set activity when product delete from the cart
-                        var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
-                        $scope.activity('activity-delete-product',{customer_id : user_id ,product_id : $scope.cart[id]['product_id'] });
+                       
                     };
 
                     if(action == 'p'){//add
@@ -751,11 +753,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
                     $scope.activity('activity-clear',{customer_id : user_id  });
                 };
-             //checkout
-             $scope.checkoutFn = function(act,term){
+              //when user click checkout  
+              $scope.showCh = function(){
                     //set activity when cart checkout
                     var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
                     $scope.activity('activity-checkout',{customer_id : user_id});
+              }; 
+             //checkout
+             $scope.checkoutFn = function(act,term){
                     $scope.cardfile  = true;
                     switch(act){
                         case 't':
