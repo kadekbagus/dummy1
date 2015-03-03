@@ -57,6 +57,8 @@ define(function(){
         'orbitkasir'            : 'ORBIT KASIR',
         'loginerror'            : 'Maaf, ID atau password tidak cocok',
         'userid'                : 'USER ID',
-        'masuk'                 : 'MASUK'
+        'masuk'                 : 'MASUK',
+        'errorscancart'         : 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.',
+        'scannertidakditemukan' : 'Scanner tidak ditemukan'
     };
 });

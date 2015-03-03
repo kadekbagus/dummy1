@@ -900,10 +900,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                            // $scope.inserttocartFn();
                             if($scope.productmodal['attribute_id1'] != null) angular.element('#myModal').modal('show');
                             $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attribute_id1']);
+                            $scope.cancelRequestService();
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                             // angular.element("#ProductNotFound").modal();
-                             // $scope.scanproduct();
+                            if(response.message != 'Scanner not found'){
+                                 angular.element("#ProductNotFound").modal();
+                            }
+                            $scope.cancelRequestService();
+                            $scope.scanproduct();
                         }
                     });
                 })();
@@ -1077,12 +1081,22 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                  $scope.errorscancart = '';
                                  $scope.manualscancart = '';
                             }else if(response.code == 13 ){
+                                 //do something when error
+                                $scope.errorscancart  = $scope.language.errorscancart;
+                                $scope.manualscancart = '';
+                                
                                 if(response.message == 'You have to login to view this page.'){
                                     $scope.logoutfn();
                                 }
+
+                                if(response.message == 'Scanner not found'){
+                                    $scope.errorscancart  = $scope.language.scannertidakditemukan;
+                                }
+                                
+                                if(response.message != 'Scanner not found') $scope.scancartFn();
                             } else{
                                 //do something when error
-                                $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
+                                $scope.errorscancart  = $scope.language.errorscancart;
                                 $scope.manualscancart = '';
                                 $scope.scancartFn();
                             }
