@@ -19,7 +19,7 @@ return array(
         "searching"     => "SEARCH",
         'new_products'  => 'NEW PRODUCTS',
         'promotions'    => 'PROMOTIONS',
-        'coupons'       => 'COUPONS',
+        'coupons'       => 'MY COUPONS',
     ),
 
     "widgets"           => array(
@@ -84,6 +84,8 @@ return array(
         'coupon_ribbon'     => 'Coupon',
         'new_ribbon'        => 'New',
         'code'              => 'Code',
+        'from'              => 'From',
+        'to'                => 'To',
     ),
 
     'product_detail'         => array(
@@ -97,6 +99,7 @@ return array(
         'coupon'             => 'COUPON',
         'no_item'            => 'No items in cart.',
         'item_label'         => 'Item',
+        'items_label'         => 'Items',
         'qty_label'          => 'Qty',
         'price_label'        => 'Unit Price',
         'subtotal_label'     => 'Subtotal',
@@ -115,6 +118,7 @@ return array(
         'continue_button'    => 'Continue Shopping',
         'transaction_id_label' => 'Transaction ID',
         'date_label'         => 'Date',
+        'acquired_coupons_label'         => 'Acquired Coupons',
     ),
 
     'promotion_list'         => array(
@@ -124,13 +128,13 @@ return array(
     ),
 
     'promotion_detail'         => array(
-        'exp_promo'           => 'Promotion is not exist or is already expired.',
+        'exp_promo'           => 'Promotion does not exist or is already expired.',
         'back_label'          => 'Back',
     ),
 
     'coupon_list'         => array(
         'no_coupon'          => 'You do not have any coupons.',
-        'product_label'      => 'Produk',
+        'product_label'      => 'Product',
         'category_label'     => 'Category',
     ),
 
@@ -156,6 +160,7 @@ return array(
         'transfer_cart_successful' => 'Transfer Cart Successful!',
         'transfer_cart_message' => 'your transaction will be completed by the cashier',
         'thank_you_for_shopping' => 'Thank you for shopping with us',
+        'retailer'          => 'Retailer',
     ),
 
     'transfer_cart'         => array(

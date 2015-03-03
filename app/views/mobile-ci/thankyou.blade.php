@@ -39,7 +39,7 @@
                   </div>
                 </div>
               @else
-                <h4 class="text-center">Items</h4>
+                <h4 class="text-center"><strong>{{ Lang::get('mobileci.cart.items_label') }}</strong></h4>
                 <div class="cart-items-list">
                   <div class="single-item">
                     <div class="single-item-headers">
@@ -267,6 +267,67 @@
                 </div>
               </div>
             </div>
+            @endif
+
+             {{-- acquired coupons --}}
+            @if(count($acquired_coupons) > 0)
+              <div class="receipt-summary text-left">
+                <h4 class="receipt-summary title-text text-center">{{ Lang::get('mobileci.cart.acquired_coupons_label') }}</h4>
+                @foreach($acquired_coupons as $acquired_coupon)
+                <div class="cart-acq-coupon-headers">
+                  <span>{{ $acquired_coupon->coupon->promotion_name }}</span><span class="pull-right">(1x)</span>
+                </div>
+                <div class="cart-acq-coupon-content">
+                  {{ $acquired_coupon->coupon->description }}
+                </div>
+                <div class="cart-acq-coupon-rules">
+                  <table class="table table-striped">
+                    <tr>
+                      <td>{{ Lang::get('mobileci.coupon_detail.coupon_code_label') }}</td>
+                      <td>{{ $acquired_coupon->issued_coupon_code }}</td>
+                    </tr>
+                    <tr>
+                      <td>{{ Lang::get('mobileci.coupon_detail.validity_label') }}</td>
+                      <td>{{ date('j M Y', strtotime($acquired_coupon->expired_date)) }}</td>
+                    </tr>
+                    <tr>
+                      <td>{{ Lang::get('mobileci.thank_you.retailer') }}</td>
+                      <td>{{ $acquired_coupon->coupon->redeemretailers[0]->name }}</td>
+                    </tr>
+                    <tr>
+                        @if($acquired_coupon->coupon->couponrule->discount_object_type == 'product')
+                          <td>{{ Lang::get('mobileci.coupon_list.product_label') }}</td>
+                          <td>
+                            {{ $acquired_coupon->coupon->couponrule->discountproduct->product_name }}
+                          </td>
+                        @elseif($acquired_coupon->coupon->couponrule->discount_object_type == 'family')
+                          <td>{{ Lang::get('mobileci.coupon_list.category_label') }}</td>
+                          <td class="coupon-category">
+                            @if(!is_null($acquired_coupon->coupon->couponrule->discountcategory1))
+                            <span>{{ $acquired_coupon->coupon->couponrule->discountcategory1->category_name }}</span>
+                            @endif
+                            @if(!is_null($acquired_coupon->coupon->couponrule->discountcategory2))
+                            <span>{{ $acquired_coupon->coupon->couponrule->discountcategory2->category_name }}</span>
+                            @endif
+                            @if(!is_null($acquired_coupon->coupon->couponrule->discountcategory3))
+                            <span>{{ $acquired_coupon->coupon->couponrule->discountcategory3->category_name }}</span>
+                            @endif
+                            @if(!is_null($acquired_coupon->coupon->couponrule->discountcategory4))
+                            <span>{{ $acquired_coupon->coupon->couponrule->discountcategory4->category_name }}</span>
+                            @endif
+                            @if(!is_null($acquired_coupon->coupon->couponrule->discountcategory5))
+                            <span>{{ $acquired_coupon->coupon->couponrule->discountcategory5->category_name }}</span>
+                            @endif
+                          </td>
+                        @else
+                          <td>Cart</td>
+                        @endif
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              @endforeach
+              </div>
             @endif
             <div class="row vertically-spaced">
               <div class="col-xs-12 text-center vertically-spaced">

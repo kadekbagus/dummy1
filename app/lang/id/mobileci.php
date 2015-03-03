@@ -19,14 +19,14 @@ return array(
         'searching'     => 'PENCARIAN',
         'new_products'  => 'PRODUK BARU',
         'promotions'    => 'PROMOSI',
-        'coupons'       => 'KUPON',
+        'coupons'       => 'KUPON SAYA',
     ),
 
     'widgets'           => array(
         'catalogue'     => 'KATALOG',
         'new_product'   => 'PRODUK TERBARU',
         'promotion'     => 'PROMOSI',
-        'coupon'        => 'KUPON',
+        'coupon'        => 'KUPON SAYA',
     ),
 
     'greetings'         => array(
@@ -84,6 +84,8 @@ return array(
         'coupon_ribbon'     => 'Kupon',
         'new_ribbon'        => 'Baru',
         'code'              => 'Kode',
+        'from'              => 'Dari',
+        'to'                => 'Hingga',
     ),
 
     'product_detail'         => array(
@@ -97,6 +99,7 @@ return array(
         'coupon'             => 'KUPON',
         'no_item'            => 'Tidak ada item dalam keranjang.',
         'item_label'         => 'Item',
+        'item_label'         => 'Items',
         'qty_label'          => 'Qty',
         'price_label'        => 'Harga Unit',
         'subtotal_label'     => 'Subtotal',
@@ -115,6 +118,7 @@ return array(
         'continue_button'    => 'Lanjut Belanja',
         'transaction_id_label' => 'ID Transaksi',
         'date_label'         => 'Tanggal',
+        'acquired_coupons_label'         => 'Kupon yang Anda Peroleh',
     ),
 
     'promotion_list'         => array(
@@ -156,6 +160,7 @@ return array(
         'transfer_cart_successful' => 'Transfer Cart Berhasil!',
         'transfer_cart_message' => 'transaksi Anda akan diselesaikan oleh kasir',
         'thank_you_for_shopping' => 'Terima kasih telah berbelanja bersama kami',
+        'retailer'          => 'Retailer',
     ),
 
     'transfer_cart'         => array(
