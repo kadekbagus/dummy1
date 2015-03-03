@@ -74,8 +74,10 @@
 			<div class="row additional-dates">
 				<div class="col-xs-12 col-sm-12">
 					<p>
+					@if($promotion->is_permanent == 'Y')
 					{{ date('j M Y', strtotime($promotion->begin_date)) }}
-					@if($promotion->is_permanent != 'Y')
+					@else
+					{{ date('j M Y', strtotime($promotion->begin_date)) }}
 					{{ Lang::get('mobileci.product_detail.to') }}
 					{{ date('j M Y', strtotime($promotion->end_date)) }}
 					@endif
@@ -115,8 +117,10 @@
 			<div class="row additional-dates">
 				<div class="col-xs-12 col-sm-12">
 					<p>
+					@if($couponstocatch->is_permanent == 'Y')
 					{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
-					@if($couponstocatch->is_permanent != 'Y')
+					@else
+					{{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
 					{{ Lang::get('mobileci.product_detail.to') }}
 					{{ date('j M Y', strtotime($couponstocatch->end_date)) }}
 					@endif

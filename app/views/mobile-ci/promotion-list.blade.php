@@ -48,7 +48,11 @@
                                     </div>
                                 @endif
                                 <div class="col-xs-12">
-                                    <h4>{{ date('j M Y', strtotime($promo->begin_date)) }} - {{ date('j M Y', strtotime($promo->end_date)) }}</h4>
+                                    @if($promo->is_permanent == 'Y')
+                                        <h4>{{ Lang::get('mobileci.catalogue.from')}}: {{ date('j M Y', strtotime($promo->begin_date)) }}</h4>
+                                    @else
+                                        <h4>{{ date('j M Y', strtotime($promo->begin_date)) }} - {{ date('j M Y', strtotime($promo->end_date)) }}</h4>
+                                    @endif
                                 </div>
                                 <div class="col-xs-6 catalogue-control text-right pull-right">
                                     <div class="circlet btn-blue detail-btn pull-right vertically-spaced">

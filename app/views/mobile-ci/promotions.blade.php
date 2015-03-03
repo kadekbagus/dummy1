@@ -34,7 +34,11 @@
                         </p>
                     @endif
                 @endif
-                <h4>{{ date('j M Y', strtotime($promotions[0]->begin_date)) }} - {{ date('j M Y', strtotime($promotions[0]->end_date)) }}</h4>
+                @if($promotions[0]->is_permanent == 'Y')
+                    <h4>{{ Lang::get('mobileci.catalogue.from')}}: {{ date('j M Y', strtotime($promotions[0]->begin_date)) }}</h4>
+                @else
+                     <h4>{{ date('j M Y', strtotime($promotions[0]->begin_date)) }} - {{ date('j M Y', strtotime($promotions[0]->end_date)) }}</h4>
+                @endif
             </div>
         </div>
         @if($data->status === 1)
