@@ -4373,12 +4373,12 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             // delete the cart
-            // if(! empty($cart_id)){
-            //     $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
-            //     $cart_delete->delete();
-            //     $cart_delete->save();
-            //     $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
-            // }
+            if(! empty($cart_id)){
+                $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+                $cart_delete->delete();
+                $cart_delete->save();
+                $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            }
             
 
             $this->response->data = $transaction;
@@ -4915,7 +4915,11 @@ class MobileCIAPIController extends ControllerAPI
                 $q->where('products.status','active');
             }, 'variant' => function($q) {
                 $q->where('product_variants.status','active');
-            }))->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+            }))
+            ->whereHas('product', function($q) {
+                $q->where('products.status', 'active');
+            })
+            ->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
             $cartdata = new stdclass();
             $cartdata->cart = $cart;
             $cartdata->cartdetails = $cartdetails;
@@ -4942,10 +4946,17 @@ class MobileCIAPIController extends ControllerAPI
         }
 
         $cartdetails = CartDetail::with(array('product' => function($q) {
-            $q->where('products.status','active');
-        }, 'variant' => function($q) {
-            $q->where('product_variants.status','active');
-        }), 'tax1', 'tax2')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+                $q->where('products.status','active');
+            }, 'variant' => function($q) {
+                $q->where('product_variants.status','active');
+            }), 'tax1', 'tax2')
+            ->active()
+            ->where('cart_id', $cart->cart_id)
+            ->whereHas('product', function($q) {
+                $q->where('products.status', 'active');
+            })
+            ->get();
+
         $cartdata = new stdclass();
         $cartdata->cart = $cart;
         $cartdata->cartdetails = $cartdetails;
