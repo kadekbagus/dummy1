@@ -83,13 +83,22 @@ class ProductAttributeAPIController extends ControllerAPI
             }
             Event::fire('orbit.product.getattribute.after.validation', array($this, $validator));
 
-            // Get the maximum record
+             // Get the maximum record
             $maxRecord = (int) Config::get('orbit.pagination.product_attribute.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
                 if ($maxRecord <= 0) {
                     $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.product_attribute.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
                 }
             }
 
@@ -132,12 +141,16 @@ class ProductAttributeAPIController extends ControllerAPI
             $_attributes = clone $attributes;
 
             // Get the take args
-            $take = $maxRecord;
+            $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $attributes->take($take);
 

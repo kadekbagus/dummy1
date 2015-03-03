@@ -985,9 +985,22 @@ class PromotionAPIController extends ControllerAPI
             Event::fire('orbit.promotion.getsearchpromotion.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.promotion.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.promotion.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
             }
 
             $table_prefix = DB::getTablePrefix();
@@ -1151,20 +1164,18 @@ class PromotionAPIController extends ControllerAPI
             $_promotions = clone $promotions;
 
             // Get the take args
-            if (trim(OrbitInput::get('take')) === '') {
-                $take = $maxRecord;
-            } else {
-                OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-                {
-                    if ($_take > $maxRecord) {
-                        $_take = $maxRecord;
-                    }
-                    $take = $_take;
-                });
-            }
-            if ($take > 0) {
-                $promotions->take($take);
-            }
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $promotions->take($take);
 
             $skip = 0;
             OrbitInput::get('skip', function($_skip) use (&$skip, $promotions)
