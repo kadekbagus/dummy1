@@ -349,6 +349,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_home')
                             ->setActivityNameLong('View (Home Page) Failed')
                             ->setObject(null)
+                            ->setModuleName('Widget')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -1164,6 +1165,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_category')
                             ->setActivityNameLong('View (Category Page)')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -1176,6 +1178,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_category')
                             ->setActivityNameLong('View (Category Page) Failed')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -1434,6 +1437,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_promotion_detail')
                             ->setActivityNameLong('View (Promotion Detail Page)')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -1446,6 +1450,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_promotion_detail')
                             ->setActivityNameLong('View (Promotion Detail Page) Failed')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -1715,6 +1720,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_coupon_detail')
                             ->setActivityNameLong('View (Coupon Detail Page)')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -1727,6 +1733,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_coupon_detail')
                             ->setActivityNameLong('View (Coupon Detail Page) Failed')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -1775,6 +1782,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_promotion_list')
                             ->setActivityNameLong('View (Promotion List Page)')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -1787,6 +1795,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_promotion_list')
                             ->setActivityNameLong('View (Promotion List) Failed')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -1840,6 +1849,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_coupon_list')
                             ->setActivityNameLong('View (Coupon List Page)')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -1852,6 +1862,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_coupon_list')
                             ->setActivityNameLong('View (Coupon List) Failed')
                             ->setObject(null)
+                            ->setModuleName('Catalogue')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -3033,6 +3044,7 @@ class MobileCIAPIController extends ControllerAPI
                                 ->setActivityName('view_cart')
                                 ->setActivityNameLong('View Cart')
                                 ->setObject(null)
+                                ->setModuleName('Cart')
                                 ->setNotes($activityPageNotes)
                                 ->responseOK()
                                 ->save();
@@ -3045,6 +3057,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_cart')
                             ->setActivityNameLong('View Cart Failed')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -3117,6 +3130,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_online_payment')
                             ->setActivityNameLong('View (Online Payment Page)')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -3127,6 +3141,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_online_payment')
                             ->setActivityNameLong('View (Online Payment) Failed')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
@@ -3150,6 +3165,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_thank_you')
                             ->setActivityNameLong('View (Thank You Page)')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
@@ -3161,6 +3177,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setActivityName('view_page_thank_you')
                             ->setActivityNameLong('View (Thank You Page) Failed')
                             ->setObject(null)
+                            ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();

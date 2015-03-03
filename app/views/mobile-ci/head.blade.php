@@ -2,6 +2,7 @@
 <meta name="description" content="Orbit app mobile customer interface" />
 <meta name="author" content="DominoPOS" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="format-detection" content="telephone=no">
 
 {{ HTML::style('mobile-ci/stylesheet/main.css') }}
 {{ HTML::style('mobile-ci/stylesheet/responsiveslides.css') }}
