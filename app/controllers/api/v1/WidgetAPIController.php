@@ -127,6 +127,13 @@ class WidgetAPIController extends ControllerAPI
                 $widget->retailers()->sync($retailerIds);
             });
 
+            // If widget is empty then it should be applied to all retailers
+            if (empty(OrbitInput::post('retailer_ids', NULL))) {
+                $merchant = App::make('orbit.empty.merchant');
+                $listOfRetailerIds = $merchant->getMyRetailerIds();
+                $widget->retailers()->sync($listOfRetailerIds);
+            }
+
             Event::fire('orbit.widget.postnewwidget.after.save', array($this, $widget));
             $this->response->data = $widget;
 
@@ -371,6 +378,13 @@ class WidgetAPIController extends ControllerAPI
             OrbitInput::post('retailer_ids', function($retailerIds) use ($widget) {
                 $widget->retailers()->sync($retailerIds);
             });
+
+            // If widget is empty then it should be applied to all retailers
+            if (empty(OrbitInput::post('retailer_ids', NULL))) {
+                $merchant = App::make('orbit.empty.merchant');
+                $listOfRetailerIds = $merchant->getMyRetailerIds();
+                $widget->retailers()->sync($listOfRetailerIds);
+            }
 
             Event::fire('orbit.widget.postupdatewidget.after.save', array($this, $widget));
             $this->response->data = $widget;
