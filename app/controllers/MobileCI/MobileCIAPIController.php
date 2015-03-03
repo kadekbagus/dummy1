@@ -4373,12 +4373,12 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             // delete the cart
-            // if(! empty($cart_id)){
-            //     $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
-            //     $cart_delete->delete();
-            //     $cart_delete->save();
-            //     $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
-            // }
+            if(! empty($cart_id)){
+                $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+                $cart_delete->delete();
+                $cart_delete->save();
+                $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            }
             
 
             $this->response->data = $transaction;
