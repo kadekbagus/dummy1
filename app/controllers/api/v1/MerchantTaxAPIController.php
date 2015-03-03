@@ -82,9 +82,22 @@ class MerchantTaxAPIController extends ControllerAPI
             Event::fire('orbit.merchanttax.getsearchmerchanttax.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.merchanttax.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.merchanttax.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
             }
 
             $taxes = MerchantTax::excludeDeleted()->allowedForUser($user);
@@ -133,13 +146,16 @@ class MerchantTaxAPIController extends ControllerAPI
             $_taxes = clone $taxes;
 
             // Get the take args
-            $take = $maxRecord;
-            OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-            {
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $taxes->take($take);
 
