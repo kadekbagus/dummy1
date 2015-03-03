@@ -57,6 +57,8 @@ define(function(){
         'orbitkasir'            : 'ORBIT CASHIER',
         'loginerror'            : 'Sorry, the ID or password you entered do not match',
         'userid'                : 'USER ID',
-        'masuk'                 : 'LOGIN'
+        'masuk'                 : 'LOGIN',
+        'errorscancart'         : 'Sorry, Shopping cart is not found. Please try again.',
+        'scannertidakditemukan' : 'Scanner not found'
     };
 });
