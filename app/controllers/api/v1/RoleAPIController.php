@@ -87,6 +87,15 @@ class RoleAPIController extends ControllerAPI
                     $maxRecord = 20;
                 }
             }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.role.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
 
             // Builder object
             $roles = Role::select('roles.*');
@@ -111,12 +120,16 @@ class RoleAPIController extends ControllerAPI
             $_roles = clone $roles;
 
             // Get the take args
-            $take = $maxRecord;
+            $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $roles->take($take);
 
