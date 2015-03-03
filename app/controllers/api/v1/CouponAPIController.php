@@ -1503,9 +1503,7 @@ class CouponAPIController extends ControllerAPI
 
                 $skip = $_skip;
             });
-            if (($take > 0) && ($skip > 0)) {
-                $coupons->skip($skip);
-            }
+            $coupons->skip($skip);
 
             // Default sort by
             $sortBy = 'promotions.created_at';

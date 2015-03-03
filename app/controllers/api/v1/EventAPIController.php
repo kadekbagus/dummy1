@@ -1086,9 +1086,7 @@ class EventAPIController extends ControllerAPI
 
                 $skip = $_skip;
             });
-            if (($take > 0) && ($skip > 0)) {
-                $events->skip($skip);
-            }
+            $events->skip($skip);
 
             // Default sort by
             $sortBy = 'events.created_at';
