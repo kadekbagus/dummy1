@@ -208,7 +208,14 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
 
-            $new_products = Product::with('media')->where('new_from','<=', Carbon::now())->where('new_until', '>=', Carbon::now())->get();
+            $new_products = Product::with('media')
+                ->whereHas('retailers', function($q) use($retailer)
+                {
+                    $q->where('product_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->where('new_from','<=', Carbon::now())
+                ->where('new_until', '>=', Carbon::now())
+                ->get();
             
             $promotion = Promotion::active()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function($q) use ($retailer)
                 {
