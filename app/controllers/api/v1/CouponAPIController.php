@@ -1247,9 +1247,22 @@ class CouponAPIController extends ControllerAPI
             Event::fire('orbit.coupon.getsearchcoupon.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.coupon.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.coupon.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
             }
 
             $table_prefix = DB::getTablePrefix();
@@ -1468,20 +1481,18 @@ class CouponAPIController extends ControllerAPI
             $_coupons = clone $coupons;
 
             // Get the take args
-            if (trim(OrbitInput::get('take')) === '') {
-                $take = $maxRecord;
-            } else {
-                OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-                {
-                    if ($_take > $maxRecord) {
-                        $_take = $maxRecord;
-                    }
-                    $take = $_take;
-                });
-            }
-            if ($take > 0) {
-                $coupons->take($take);
-            }
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $coupons->take($take);
 
             $skip = 0;
             OrbitInput::get('skip', function($_skip) use (&$skip, $coupons)
