@@ -30,4 +30,21 @@ class Employee extends Eloquent
     {
         return $this->belongsToMany('Retailer', 'employee_retailer', 'employee_id', 'retailer_id');
     }
+
+    /**
+     * Employee belongs to many merchant ids.
+     *
+     * @return
+     */
+    public function getMyMerchantIds()
+    {
+        $empId = $this->employee_id;
+        $prefix = DB::getTablePrefix();
+
+        return DB::table('merchants')->whereRaw("merchant_id IN (SELECT `retailer_id`
+                                                 from {$prefix}employee_retailer where `employee_id`=?)", [$empId])
+                 ->where('object_type', 'retailer')
+                 ->groupBy('parent_id')
+                 ->lists('parent_id');
+    }
 }

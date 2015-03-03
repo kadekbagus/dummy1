@@ -1,10 +1,10 @@
 <header class="mobile-ci ci-header header-container">
   <div class="header-buttons-container">
-    <form id="qrform" action="#" method="post" enctype="multipart/form-data">
+    <!-- <form id="qrform" action="#" method="post" enctype="multipart/form-data">
       <div style='height: 0px;width:0px; overflow:hidden;'><input id="get_camera" name="qrphoto" type="file" accept="image/*;capture=camera" value="camera" /></div>
-    </form>
+    </form> -->
     <ul class="buttons-list right">
-      <li><a id="barcodeBtn"><span><i class="glyphicon glyphicon-barcode"></i></span></a></li>
+      <!-- <li><a id="barcodeBtn"><span><i class="glyphicon glyphicon-barcode"></i></span></a></li> -->
       <li><a id="searchBtn"><span><i class="glyphicon glyphicon-search"></i></span></a></li>
       <li><a href="{{ url('/customer/catalogue') }}"><span class="glyphicon glyphicon-book"></span></a></li>
       <li>
@@ -37,9 +37,9 @@
       </li>
       <li><a data-toggle="dropdown" aria-expanded="true"><span><i class="glyphicon glyphicon-cog"></i></span></a>
         <ul class="dropdown-menu" role="menu">
-          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> {{ Lang::get('mobileci.page_title.my_account') }}</span></li>
+          <!-- <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> {{ Lang::get('mobileci.page_title.my_account') }}</span></li> -->
           <li class="complimentary-bg"><a href="{{ url('/customer/transfer') }}"><span><span class="glyphicon glyphicon-shopping-cart"></span> {{ Lang::get('mobileci.page_title.transfercart') }}</span></a></li>
-          <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> {{ Lang::get('mobileci.page_title.customer_id') }}</span></li>
+          <!-- <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> {{ Lang::get('mobileci.page_title.customer_id') }}</span></li> -->
           <li class="complimentary-bg"><a href="{{ url('/customer/logout') }}"><span><span class="glyphicon glyphicon-off"></span> {{ Lang::get('mobileci.page_title.logout') }}</span></a></li>
         </ul>
       </li>

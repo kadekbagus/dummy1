@@ -413,7 +413,7 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><% language.tutup %></span></button>
+            <button type="button" class="close" data-dismiss="modal" data-ng-click="cancelCart()"><span aria-hidden="true">&times;</span><span class="sr-only"><% language.tutup %></span></button>
             <h4 class="modal-title" id="myModalLabel"><b><% language.scankeranjang %></b></h4>
           </div>
           <div class="modal-body">
