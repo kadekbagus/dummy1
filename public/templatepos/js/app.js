@@ -1252,6 +1252,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         };
         //cancel cart
         $scope.cancelCart = function(){
+            $scope.cancelRequestService();
             $scope.scanproduct();
             $scope.errorscancart  = '';
             $scope.manualscancart = '';
