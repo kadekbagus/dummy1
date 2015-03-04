@@ -17,6 +17,7 @@
       </div>
       <div class="mobile-ci home-widget widget-container">
             @foreach($widgets as $i => $widget)
+
                 @if($i % 2 == 1)
                 <div class="row">
                 @endif
@@ -126,7 +127,11 @@
                     <ul class="rslides" id="slider2">
                       <li>
                         <a class="widget-link" data-widget="{{ $widget->widget_id }}" @if(!empty($coupons)) href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
-                          <img class="img-responsive text-center" src="{{ asset('uploads/coupon.jpg') }}" />
+                          @if(!empty($widget->media->path))
+                            <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
+                          @else
+                            <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
+                          @endif
                         </a>
                       </li>
                     </ul>
@@ -163,14 +168,14 @@
                     </a>
                     <br> 
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @else
                     <a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/product?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @endif
                   @elseif($events->link_object_type == 'family')
                     @if(! empty($events->image))
@@ -179,14 +184,14 @@
                     </a>
                     <br> 
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/category?'.$event_family_url_param) }}">{{ $events->event_name }}</a></b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @else
                     <a data-event="{{ $events->event_id }}" href="{{ url('customer/category?'.$event_family_url_param) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/category?id='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @endif
                   @elseif($events->link_object_type == 'promotion')
                     @if(! empty($events->image)) 
@@ -195,14 +200,14 @@
                     </a>
                     <br> 
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @else
                     <a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">
                       <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br> 
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @endif
                   @endif
 
@@ -211,12 +216,12 @@
                     <img class="img-responsive" src="{{ asset($events->image) }}">
                     <br> 
                     <b>{{ $events->event_name }}</b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @else
                     <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     <br> 
                     <b>{{ $events->event_name }}</b> <br> 
-                    {{ $events->description }}
+                    {{ nl2br($events->description) }}
                     @endif
                 @endif
             @endif 

@@ -391,3 +391,30 @@ img.img-logo{
   max-width:240px;
   width:100%;
 }
+.cart-acq-coupon-headers{
+  color: #ffac41;
+  font-weight: bold;
+  border:2px solid #ffac41;
+  padding:4px 8px;
+}
+.cart-acq-coupon-content{
+  padding: 4px 8px;
+}
+.cart-acq-coupon-rules{
+  table{
+    tr{
+      td{
+        border:1px solid #dedede;
+        padding:4px;
+        &.coupon-category span:after{
+          content: " /";
+        }
+        &.coupon-category span:last-child{
+          &:after{
+            content: "";
+          }
+        }
+      }
+    }
+  }
+}

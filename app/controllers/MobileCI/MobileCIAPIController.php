@@ -71,7 +71,7 @@ class MobileCIAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             $user = User::with('apikey', 'userdetail', 'role')
-                        ->active()
+                        ->excludeDeleted()
                         ->where('user_email', $email)
                         ->whereHas('role', function($query)
                             {
@@ -213,6 +213,7 @@ class MobileCIAPIController extends ControllerAPI
                 {
                     $q->where('product_retailer.retailer_id', $retailer->merchant_id);
                 })
+                ->active()
                 ->where('new_from','<=', Carbon::now())
                 ->where('new_until', '>=', Carbon::now())
                 ->get();
@@ -279,7 +280,10 @@ class MobileCIAPIController extends ControllerAPI
             $events = EventModel::active()->whereHas('retailers', function($q) use($retailer)
                 {
                     $q->where('event_retailer.retailer_id', $retailer->merchant_id);
-                })->where('merchant_id', $retailer->parent->merchant_id);
+                })
+                ->where('merchant_id', $retailer->parent->merchant_id)
+                ->where('begin_date', '<=', Carbon::now())
+                ->where('end_date', '>=', Carbon::now());
 
             if(!empty($event_store)) {
                 foreach($event_store as $event_idx) {
@@ -1824,6 +1828,7 @@ class MobileCIAPIController extends ControllerAPI
             $promotions = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 left join ' . DB::getTablePrefix() . 'products prod on
                 (
                     (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
@@ -1837,7 +1842,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'" ORDER BY ic.expired_date ASC'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
             
             if (count($promotions) > 0) {
@@ -1861,7 +1865,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseOK()
                             ->save();
 
-            return View::make('mobile-ci.coupon-list', array('page_title' => 'KUPON SAYA', 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
+            return View::make('mobile-ci.coupon-list', array('page_title' => Lang::get('mobileci.page_title.coupons'), 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
         } catch (Exception $e) {
             // return $this->redirectIfNotLoggedIn($e);
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Coupon List');
@@ -4284,6 +4288,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             // issue product based coupons (if any)
+            $acquired_coupons = array();
             if (! empty($customer_id)) {
                 foreach ($cartdetails as $v) {
                     $product_id = $v->product_id;
@@ -4305,21 +4310,28 @@ class MobileCIAPIController extends ControllerAPI
                         )
                     )
                     WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
-
+                    
                     // dd($coupons);
-                    if($coupons!=NULL){
-                        foreach($coupons as $c){
-                            $issue_coupon = new IssuedCoupon;
-                            $issue_coupon->promotion_id = $c->promotion_id;
-                            $issue_coupon->issued_coupon_code = '';
-                            $issue_coupon->user_id = $customer_id;
-                            $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
-                            $issue_coupon->issued_date = Carbon::now();
-                            $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
-                            $issue_coupon->status = 'active';
-                            $issue_coupon->save();
-                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                            $issue_coupon->save(); 
+                    if ($coupons!=NULL) {
+                        foreach ($coupons as $c) {
+                            $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                            // dd($issued);
+                            if ($issued <= $c->maximum_issued_coupon) {
+                                $issue_coupon = new IssuedCoupon;
+                                $issue_coupon->promotion_id = $c->promotion_id;
+                                $issue_coupon->issued_coupon_code = '';
+                                $issue_coupon->user_id = $customer_id;
+                                $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                                $issue_coupon->issued_date = Carbon::now();
+                                $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                                $issue_coupon->status = 'active';
+                                $issue_coupon->save();
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                $issue_coupon->save();
+
+                                $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
+                                $acquired_coupons[] = $acquired_coupon;
+                            }
                         }  
                     }
                 }
@@ -4338,28 +4350,35 @@ class MobileCIAPIController extends ControllerAPI
                 // dd($coupon_carts);
                 if(!empty($coupon_carts)){
                     foreach($coupon_carts as $kupon){
-                        $issue_coupon = new IssuedCoupon;
-                        $issue_coupon->promotion_id = $kupon->promotion_id;
-                        $issue_coupon->issued_coupon_code = '';
-                        $issue_coupon->user_id = $customer_id;
-                        $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
-                        $issue_coupon->issued_date = Carbon::now();
-                        $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
-                        $issue_coupon->status = 'active';
-                        $issue_coupon->save();
-                        $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                        $issue_coupon->save();
+                        $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
+                        // dd($issued);
+                        if ($issued <= $kupon->maximum_issued_coupon) {
+                            $issue_coupon = new IssuedCoupon;
+                            $issue_coupon->promotion_id = $kupon->promotion_id;
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                            $issue_coupon->save();
+
+                            $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
+                            $acquired_coupons[] = $acquired_coupon;
+                        }
                     }
                 }
             }
 
             // delete the cart
-            if(! empty($cart_id)){
-                $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
-                $cart_delete->delete();
-                $cart_delete->save();
-                $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
-            }
+            // if(! empty($cart_id)){
+            //     $cart_delete = Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+            //     $cart_delete->delete();
+            //     $cart_delete->save();
+            //     $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+            // }
             
 
             $this->response->data = $transaction;
@@ -4375,7 +4394,7 @@ class MobileCIAPIController extends ControllerAPI
                     ->responseOK()
                     ->save();
 
-            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction' => $transaction));
+            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction' => $transaction, 'acquired_coupons' => $acquired_coupons));
 
         } catch (Exception $e) {
             // $activityPageNotes = sprintf('Failed to view Page: %s', 'Category');
