@@ -900,7 +900,6 @@ class ProductAPIController extends ControllerAPI
                     'product_code'              => 'products.product_code',
                     'product_upc'               => 'products.upc_code',
                     'product_price'             => 'products.price',
-                    'product_tax_code'          => 'products.tax_code',
                     'product_short_description' => 'products.short_description',
                     'product_long_description'  => 'products.long_description',
                     'product_is_new'            => 'products.is_new',
