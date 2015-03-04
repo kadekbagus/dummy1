@@ -183,7 +183,7 @@ class CashierAPIController extends ControllerAPI
 
 
     /**
-     * POST - Scan Barcode
+     * POST - Scan Barcode New
      *
      * @author Kadek <kadek@dominopos.com>
      *
