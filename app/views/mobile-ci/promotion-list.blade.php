@@ -24,10 +24,10 @@
                                 @if($promo->promotion_type == 'product')
                                     <div class="col-xs-12">
                                     @if($promo->promotionrule->discount_object_type == 'product')
-                                        <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }} : {{ $promo->promotionrule->discountproduct->product_name }}</p>
+                                        <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }}: {{ $promo->promotionrule->discountproduct->product_name }}</p>
                                     @elseif($promo->promotionrule->discount_object_type == 'family')
                                         <p class="promo-item">
-                                            {{ Lang::get('mobileci.promotion_list.category_label') }} : 
+                                            {{ Lang::get('mobileci.promotion_list.category_label') }}: 
                                             @if(!is_null($promo->promotionrule->discountcategory1))
                                             <span>{{ $promo->promotionrule->discountcategory1->category_name }}</span>
                                             @endif

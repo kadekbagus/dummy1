@@ -20,6 +20,7 @@ return array(
         'new_products'  => 'NEW PRODUCTS',
         'promotions'    => 'PROMOTIONS',
         'coupons'       => 'MY COUPONS',
+        'coupon_single' => 'COUPON',
     ),
 
     "widgets"           => array(

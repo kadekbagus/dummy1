@@ -1724,7 +1724,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             if(!empty($coupons)) {
-                $pagetitle = 'KUPON : '.$coupons[0]->promotion_name;
+                $pagetitle = Lang::get('mobileci.page_title.coupon_single') .' : '. $coupons[0]->promotion_name;
             }
             $activityPageNotes = sprintf('Page viewed: Coupon Detail, Issued Coupon Id: %s', $promoid);
             $activityPage->setUser($user)
