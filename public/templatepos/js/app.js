@@ -765,7 +765,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.activity('activity-clear',{customer_id : user_id  });
                 };
               //when user click checkout  
-              $scope.showCh = function(){
+             $scope.showCh = function(){
                     //set activity when cart checkout
                     var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
                     $scope.activity('activity-checkout',{customer_id : user_id});
@@ -897,9 +897,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
-                           // $scope.inserttocartFn();
-                            if($scope.productmodal['attribute_id1'] != null) angular.element('#myModal').modal('show');
-                            $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attribute_id1']);
+                            var check = 1;
+
+                            if($scope.productmodal['variants'].length > 1){
+                                angular.element('#myModal').modal('show');
+                                check = null;
+                            }else if($scope.productmodal['variants'].length == 1){
+                                $scope.productmodal['price']    =  $scope.productmodal['variants'][0]['price'];
+                                $scope.productmodal['upc_code'] =  $scope.productmodal['variants'][0]['upc_code'];
+                            }
+
+                            //if($scope.productmodal['attribute_id1'] != null)
+                            $scope.getpromotion($scope.productmodal['product_id'],false,check);
                             $scope.cancelRequestService();
                             $scope.scanproduct();
                         }else if(response.code == 13){
