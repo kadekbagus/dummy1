@@ -896,7 +896,9 @@ class ProductAPIController extends ControllerAPI
                     'registered_date'           => 'products.created_at',
                     'product_id'                => 'products.product_id',
                     'product_name'              => 'products.product_name',
+                    'product_sku'               => 'products.product_code',
                     'product_code'              => 'products.product_code',
+                    'product_upc'               => 'products.upc_code',
                     'product_price'             => 'products.price',
                     'product_tax_code'          => 'products.tax_code',
                     'product_short_description' => 'products.short_description',
@@ -907,7 +909,9 @@ class ProductAPIController extends ControllerAPI
                     'product_status'            => 'products.status',
                 );
 
-                $sortBy = $sortByMapping[$_sortBy];
+                if (array_key_exists($_sortBy, $sortByMapping)) {
+                    $sortBy = $sortByMapping[$_sortBy];
+                }
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
