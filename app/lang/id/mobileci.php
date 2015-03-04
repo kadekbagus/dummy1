@@ -20,6 +20,7 @@ return array(
         'new_products'  => 'PRODUK BARU',
         'promotions'    => 'PROMOSI',
         'coupons'       => 'KUPON SAYA',
+        'coupon_single' => 'KUPON',
     ),
 
     'widgets'           => array(
@@ -99,7 +100,7 @@ return array(
         'coupon'             => 'KUPON',
         'no_item'            => 'Tidak ada item dalam keranjang.',
         'item_label'         => 'Item',
-        'item_label'         => 'Items',
+        'items_label'         => 'Items',
         'qty_label'          => 'Qty',
         'price_label'        => 'Harga Unit',
         'subtotal_label'     => 'Subtotal',
