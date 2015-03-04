@@ -160,11 +160,42 @@ class EventAPIController extends ControllerAPI
             $newevent->end_date = $end_date;
             $newevent->is_permanent = $is_permanent;
             $newevent->link_object_type = $link_object_type;
-            $newevent->link_object_id1 = $link_object_id1;
-            $newevent->link_object_id2 = $link_object_id2;
-            $newevent->link_object_id3 = $link_object_id3;
-            $newevent->link_object_id4 = $link_object_id4;
-            $newevent->link_object_id5 = $link_object_id5;
+
+            // link_object_id1
+            if (trim($link_object_id1) === '') {
+                $newevent->link_object_id1 = NULL;
+            } else {
+                $newevent->link_object_id1 = $link_object_id1;
+            }
+
+            // link_object_id2
+            if (trim($link_object_id2) === '') {
+                $newevent->link_object_id2 = NULL;
+            } else {
+                $newevent->link_object_id2 = $link_object_id2;
+            }
+
+            // link_object_id3
+            if (trim($link_object_id3) === '') {
+                $newevent->link_object_id3 = NULL;
+            } else {
+                $newevent->link_object_id3 = $link_object_id3;
+            }
+
+            // link_object_id4
+            if (trim($link_object_id4) === '') {
+                $newevent->link_object_id4 = NULL;
+            } else {
+                $newevent->link_object_id4 = $link_object_id4;
+            }
+
+            // link_object_id5
+            if (trim($link_object_id5) === '') {
+                $newevent->link_object_id5 = NULL;
+            } else {
+                $newevent->link_object_id5 = $link_object_id5;
+            }
+
             $newevent->widget_object_type = $widget_object_type;
             $newevent->created_by = $this->api->user->user_id;
 
