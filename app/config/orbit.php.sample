@@ -117,7 +117,7 @@ return array(
         'availability' => array(
             'header'        => TRUE,
             'query_string'  => TRUE,
-            'cookie'        => FALSE,
+            'cookie'        => TRUE,
         ),
 
         /**
