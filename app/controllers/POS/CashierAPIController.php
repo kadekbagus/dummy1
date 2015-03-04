@@ -198,6 +198,7 @@ class CashierAPIController extends ControllerAPI
             // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+            $retailer = $this->getRetailerInfo();
 
             // Check the device exist or not
             if(!file_exists(Config::get('orbit.devices.barcode.params')))
@@ -219,9 +220,18 @@ class CashierAPIController extends ControllerAPI
             $barcode = shell_exec($cmd);
 
             $barcode = trim($barcode);
-            $product = Product::where('upc_code', $barcode)
-                    ->active()
-                    ->first();
+
+            $product = Product::with(array('variants' => function($q) use($barcode){
+                $q->where('product_variants.upc', $barcode);
+            }))
+            ->whereHas('variants', function($q) use($barcode){
+                $q->where('product_variants.upc', $barcode);
+            })
+            ->whereHas('retailers', function($q) use($retailer){
+                $q->where('product_retailer.retailer_id', $retailer->merchant_id);
+            })
+            ->active()
+            ->first();
 
             if (! is_object($product)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
@@ -1257,17 +1267,21 @@ class CashierAPIController extends ControllerAPI
                     // dd($coupons);
                     if($coupons!=NULL){
                         foreach($coupons as $c){
-                            $issue_coupon = new IssuedCoupon;
-                            $issue_coupon->promotion_id = $c->promotion_id;
-                            $issue_coupon->issued_coupon_code = '';
-                            $issue_coupon->user_id = $customer_id;
-                            $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
-                            $issue_coupon->issued_date = Carbon::now();
-                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-                            $issue_coupon->status = 'active';
-                            $issue_coupon->save();
-                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                            $issue_coupon->save();
+                            $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                            // dd($issued);
+                            if ($issued <= $c->maximum_issued_coupon) {
+                                $issue_coupon = new IssuedCoupon;
+                                $issue_coupon->promotion_id = $c->promotion_id;
+                                $issue_coupon->issued_coupon_code = '';
+                                $issue_coupon->user_id = $customer_id;
+                                $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                                $issue_coupon->issued_date = Carbon::now();
+                                $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                                $issue_coupon->status = 'active';
+                                $issue_coupon->save();
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                $issue_coupon->save();
+                            }
                         }
                     }
                 }
@@ -1286,17 +1300,20 @@ class CashierAPIController extends ControllerAPI
                 // dd($coupon_carts);
                 if(!empty($coupon_carts)){
                     foreach($coupon_carts as $kupon){
-                        $issue_coupon = new IssuedCoupon;
-                        $issue_coupon->promotion_id = $kupon->promotion_id;
-                        $issue_coupon->issued_coupon_code = '';
-                        $issue_coupon->user_id = $customer_id;
-                        $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
-                        $issue_coupon->issued_date = Carbon::now();
-                        $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-                        $issue_coupon->status = 'active';
-                        $issue_coupon->save();
-                        $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                        $issue_coupon->save();
+                        $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
+                        if ($issued <= $kupon->maximum_issued_coupon) {
+                            $issue_coupon = new IssuedCoupon;
+                            $issue_coupon->promotion_id = $kupon->promotion_id;
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                            $issue_coupon->save();
+                        }
                     }
                 }
             }
