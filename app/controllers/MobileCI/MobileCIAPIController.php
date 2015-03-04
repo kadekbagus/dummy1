@@ -282,8 +282,15 @@ class MobileCIAPIController extends ControllerAPI
                     $q->where('event_retailer.retailer_id', $retailer->merchant_id);
                 })
                 ->where('merchant_id', $retailer->parent->merchant_id)
-                ->where('begin_date', '<=', Carbon::now())
-                ->where('end_date', '>=', Carbon::now());
+                ->where(function($q){
+                    $q->where(function($q2){
+                        $q2->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now());    
+                    });
+                    $q->orWhere(function($q2){
+                        $q2->where('begin_date', '<=', Carbon::now())->where('is_permanent', 'Y');    
+                    });
+                });
+                
 
             if(!empty($event_store)) {
                 foreach($event_store as $event_idx) {
