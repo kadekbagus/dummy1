@@ -126,7 +126,7 @@
                   <section class="widget-single">
                     <ul class="rslides" id="slider2">
                       <li>
-                        <a class="widget-link" data-widget="{{ $widget->widget_id }}" @if(!empty($coupons)) href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
+                        <a data-widget="{{ $widget->widget_id }}" @if(!empty($coupons)) class="widget-link" href="{{ url('customer/coupons') }}" @else id="emptyCoupon" @endif>
                           @if(!empty($widget->media->path))
                             <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
                           @else
