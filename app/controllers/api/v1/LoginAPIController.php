@@ -257,7 +257,8 @@ class LoginAPIController extends ControllerAPI
             // Successfull registration
             $activity->setUser($newuser)
                      ->setActivityName('registration_ok')
-                     ->setActivityNameLong('Registration OK')
+                     ->setActivityNameLong('Sign Up')
+                     ->setModuleName('Application')
                      ->responseOK();
 
         } catch (ACLForbiddenException $e) {
@@ -274,6 +275,7 @@ class LoginAPIController extends ControllerAPI
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
                      ->setActivityNameLong('Registration Failed')
+                     ->setModuleName('Application')
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (InvalidArgsException $e) {
@@ -290,6 +292,7 @@ class LoginAPIController extends ControllerAPI
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
                      ->setActivityNameLong('Registration Failed')
+                     ->setModuleName('Application')
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (QueryException $e) {
@@ -312,6 +315,7 @@ class LoginAPIController extends ControllerAPI
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
                      ->setActivityNameLong('Registration Failed')
+                     ->setModuleName('Application')
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (Exception $e) {
@@ -327,6 +331,7 @@ class LoginAPIController extends ControllerAPI
             $activity->setUser('guest')
                      ->setActivityName('registration_failed')
                      ->setActivityNameLong('Registration Failed')
+                     ->setModuleName('Application')
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         }
@@ -435,7 +440,8 @@ class LoginAPIController extends ControllerAPI
             // Successfull activation
             $activity->setUser($user)
                      ->setActivityName('activation_ok')
-                     ->setActivityNameLong('Activation OK')
+                     ->setActivityNameLong('Account Activation')
+                     ->setModuleName('Application')
                      ->responseOK();
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -449,7 +455,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Activation
             $activity->setUser('guest')
                      ->setActivityName('activation_failed')
-                     ->setActivityNameLong($e->getMessage())
+                     ->setActivityNameLong('Account Activation Failed')
+                     ->setModuleName('Application')
                      ->responseFailed();
         } catch (InvalidArgsException $e) {
             $this->response->code = $e->getCode();
@@ -463,7 +470,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Activation
             $activity->setUser('guest')
                      ->setActivityName('activation_failed')
-                     ->setActivityNameLong('Activation Failed')
+                     ->setActivityNameLong('Account Activation Failed')
+                     ->setModuleName('Application')
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (Exception $e) {
@@ -478,7 +486,8 @@ class LoginAPIController extends ControllerAPI
             // Failed Activation
             $activity->setUser('guest')
                      ->setActivityName('activation_failed')
-                     ->setActivityNameLong('Activation Failed')
+                     ->setActivityNameLong('Account Activation Failed')
+                     ->setModuleName('Application')
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         }
