@@ -365,13 +365,15 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
                             //TODO: agung :Refactor this, and try with dfferent data
-                            if($scope.productdetail.attributes.length)for(var a=1; a < $scope.productdetail.attributes.length;a++){
-                                $scope.dataattrvalue1[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue2[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue3[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue4[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue5[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.tmpattr[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                            if($scope.productdetail.attributes.length)for(var a=0; a < $scope.productdetail.attributes.length;a++){
+                                if($scope.productdetail.attributes[a]['attr1'] != null){
+                                    $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue3[a] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue4[a] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue5[a] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.tmpattr[a] = angular.copy($scope.productdetail.attributes[a]);
+                                }
                             }
 
                             for(var i = 0; i < $scope.dataattrvalue1.length;i++){
@@ -1029,7 +1031,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                             }else if($scope.productmodal['variants'].length == 1){
                                 $scope.productmodal['price']    =  $scope.productmodal['variants'][0]['price'];
-                                $scope.productmodal['upc_code'] =  $scope.productmodal['variants'][0]['upc_code'];
+                                $scope.productmodal['upc_code'] =  $scope.productmodal['variants'][0]['upc'];
                                 check = null;
                             }
                              $scope.cancelRequestService();
@@ -1038,11 +1040,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                            if(response.message != 'Scanner not found'){
+                           /* if(response.message != 'Scanner not found'){
                                  angular.element("#ProductNotFound").modal();
                             }
                             $scope.cancelRequestService();
-                            $scope.scanproduct();
+                            $scope.scanproduct();*/
                         }
                     });
                 })();
