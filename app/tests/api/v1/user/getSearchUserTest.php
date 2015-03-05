@@ -308,6 +308,7 @@ class getSearchUserTest extends OrbitTestCase
         // It should fallback to whathever you like when the config is not exists
         $max_record = 2;
         Config::set('orbit.pagination.max_record', $max_record);
+        Config::set('orbit.pagination.per_page', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -379,6 +380,7 @@ class getSearchUserTest extends OrbitTestCase
         // It should fallback to whathever you like when the config is not exists
         $max_record = 10;
         Config::set('orbit.pagination.max_record', $max_record);
+        Config::set('orbit.pagination.per_page', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
