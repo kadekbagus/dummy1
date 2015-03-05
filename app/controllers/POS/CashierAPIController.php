@@ -223,7 +223,7 @@ class CashierAPIController extends ControllerAPI
 
             $product = Product::with(array('variants' => function($q) use($barcode){
                 $q->where('product_variants.upc', $barcode);
-            }))
+            }, 'variants.attributeValue1', 'variants.attributeValue2', 'variants.attributeValue3', 'variants.attributeValue4', 'variants.attributeValue5'))
             ->whereHas('variants', function($q) use($barcode){
                 $q->where('product_variants.upc', $barcode);
             })
@@ -236,6 +236,24 @@ class CashierAPIController extends ControllerAPI
             if (! is_object($product)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
                 ACL::throwAccessForbidden($message);
+            }
+
+            $product_x = $product->variants->toArray();
+            $product_id = null;
+
+            if($product_x[0]['default_variant']=="yes"){
+                $product_id = $product_x[0]['product_id'];
+                $product = Product::with(array('variants' => function($q) use($product_id){
+                    $q->where('product_variants.product_id', $product_id);
+                }, 'variants.attributeValue1', 'variants.attributeValue2', 'variants.attributeValue3', 'variants.attributeValue4', 'variants.attributeValue5'))
+                ->whereHas('variants', function($q) use($product_id){
+                    $q->where('product_variants.product_id', $product_id);
+                })
+                ->whereHas('retailers', function($q) use($retailer){
+                    $q->where('product_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->active()
+                ->first();
             }
 
             $this->response->data = $product;
