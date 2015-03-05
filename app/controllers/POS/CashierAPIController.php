@@ -41,6 +41,7 @@ class CashierAPIController extends ControllerAPI
      * POST - Login cashier in shop
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -65,13 +66,28 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $user = User::with('apikey', 'userdetail.merchant', 'role')
+            $user = User::with('apikey', 'role', 'employee')
                         ->active()
                         ->where('username', $username)
                         ->where('user_role_id', $role->role_id)
                         ->first();
 
             $merchant = $retailer->parent;
+
+            // This should be not happens unless someone messing up the database
+            // manually
+            if (empty($user->employee)) {
+                $message = Lang::get('Internal error, employee object is empty.');
+                ACL::throwAccessForbidden($message);
+            }
+
+            // Check to make sure the cashier only can login to current merchant
+            // on the box
+            $cashierMerchantIds = $user->employee->getMyMerchantIds();
+            if (! in_array($merchant->merchant_id, $cashierMerchantIds)) {
+                $message = Lang::get('validation.orbit.access.loginfailed');
+                ACL::throwAccessForbidden($message);
+            }
 
             if (is_object($user)) {
                 if (! Hash::check($password, $user->user_password)) {
@@ -182,18 +198,19 @@ class CashierAPIController extends ControllerAPI
             // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+            $retailer = $this->getRetailerInfo();
 
             // Check the device exist or not
             if(!file_exists(Config::get('orbit.devices.barcode.params')))
             {
-                $message = 'Scanner not found'; 
+                $message = 'Scanner not found';
                 ACL::throwAccessForbidden($message);
             }
 
             // Check the driver exist or not
             if(!file_exists(Config::get('orbit.devices.barcode.path')))
             {
-                $message = 'Scanner driver not found'; 
+                $message = 'Scanner driver not found';
                 ACL::throwAccessForbidden($message);
             }
 
@@ -203,9 +220,18 @@ class CashierAPIController extends ControllerAPI
             $barcode = shell_exec($cmd);
 
             $barcode = trim($barcode);
-            $product = Product::where('upc_code', $barcode)
-                    ->active()
-                    ->first();
+
+            $product = Product::with(array('variants' => function($q) use($barcode){
+                $q->where('product_variants.upc', $barcode);
+            }))
+            ->whereHas('variants', function($q) use($barcode){
+                $q->where('product_variants.upc', $barcode);
+            })
+            ->whereHas('retailers', function($q) use($retailer){
+                $q->where('product_retailer.retailer_id', $retailer->merchant_id);
+            })
+            ->active()
+            ->first();
 
             if (! is_object($product)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
@@ -468,10 +494,10 @@ class CashierAPIController extends ControllerAPI
                         ->orWhere('products.upc_code', 'like', "%$name%")
                         ->orWhere('products.product_code', 'like', "%$name%")
                         ->orWhere('products.long_description', 'like', "%$name%")
-                        ->orWhere('products.short_description', 'like', "%$name%");       
+                        ->orWhere('products.short_description', 'like', "%$name%");
                 });
             });
-            
+
             $_products = clone $products;
 
             // Get the take args
@@ -882,7 +908,7 @@ class CashierAPIController extends ControllerAPI
             } else {
                 $customer = User::excludeDeleted()->find($customer_id);
             }
-            
+
             $validator = Validator::make(
                 array(
                     'total_item'       => $total_item,
@@ -958,7 +984,7 @@ class CashierAPIController extends ControllerAPI
                 $transactiondetail->variant_upc                 = $cart_value['variants']['upc'];
                 $transactiondetail->variant_sku                 = $cart_value['variants']['sku'];
 
-                    if(!empty($cart_value['variants']['attr_val_id1']) || 
+                    if(!empty($cart_value['variants']['attr_val_id1']) ||
                        !empty($cart_value['variants']['attr_val_id2']) ||
                        !empty($cart_value['variants']['attr_val_id3']) ||
                        !empty($cart_value['variants']['attr_val_id4']) ||
@@ -971,7 +997,7 @@ class CashierAPIController extends ControllerAPI
                         $transactiondetail->product_attribute_value_id5 = $cart_value['variants']['attr_val_id5'];
                     }
 
-                    if(!empty($cart_value['variants']['value1']) || 
+                    if(!empty($cart_value['variants']['value1']) ||
                        !empty($cart_value['variants']['value2']) ||
                        !empty($cart_value['variants']['value3']) ||
                        !empty($cart_value['variants']['value4']) ||
@@ -984,7 +1010,7 @@ class CashierAPIController extends ControllerAPI
                         $transactiondetail->product_attribute_value5    = $cart_value['variants']['value5'];
                     }
 
-                    if(!empty($cart_value['variants']['attr1']) || 
+                    if(!empty($cart_value['variants']['attr1']) ||
                        !empty($cart_value['variants']['attr2']) ||
                        !empty($cart_value['variants']['attr3']) ||
                        !empty($cart_value['variants']['attr4']) ||
@@ -1023,7 +1049,7 @@ class CashierAPIController extends ControllerAPI
                             } else {
                                 $transactiondetailpromotion->promotion_type = $value['promotion_detail']['promotion_type'];
                             }
-                            
+
                             $transactiondetailpromotion->rule_type = $value['rule_type'];
 
                             if(!empty($value['rule_value'])){
@@ -1219,17 +1245,17 @@ class CashierAPIController extends ControllerAPI
             if($customer_id!=0 ||$customer_id!=NULL){
                 foreach($cart as $k => $v){
                     $product_id = $v['product_id'];
-                    
+
                     $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
                     inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
                     inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                     inner join ' . DB::getTablePrefix() . 'products prod on
                     (
-                        (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id) 
+                        (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id)
                         OR
                         (
-                            (pr.rule_object_type="family") AND 
-                            ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND 
+                            (pr.rule_object_type="family") AND
+                            ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND
                             ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
                             ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
                             ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
@@ -1241,18 +1267,22 @@ class CashierAPIController extends ControllerAPI
                     // dd($coupons);
                     if($coupons!=NULL){
                         foreach($coupons as $c){
-                            $issue_coupon = new IssuedCoupon;
-                            $issue_coupon->promotion_id = $c->promotion_id;
-                            $issue_coupon->issued_coupon_code = '';
-                            $issue_coupon->user_id = $customer_id;
-                            $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
-                            $issue_coupon->issued_date = Carbon::now();
-                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-                            $issue_coupon->status = 'active';
-                            $issue_coupon->save();
-                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                            $issue_coupon->save(); 
-                        }  
+                            $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                            // dd($issued);
+                            if ($issued <= $c->maximum_issued_coupon) {
+                                $issue_coupon = new IssuedCoupon;
+                                $issue_coupon->promotion_id = $c->promotion_id;
+                                $issue_coupon->issued_coupon_code = '';
+                                $issue_coupon->user_id = $customer_id;
+                                $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                                $issue_coupon->issued_date = Carbon::now();
+                                $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                                $issue_coupon->status = 'active';
+                                $issue_coupon->save();
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                $issue_coupon->save();
+                            }
+                        }
                     }
                 }
             }
@@ -1270,17 +1300,20 @@ class CashierAPIController extends ControllerAPI
                 // dd($coupon_carts);
                 if(!empty($coupon_carts)){
                     foreach($coupon_carts as $kupon){
-                        $issue_coupon = new IssuedCoupon;
-                        $issue_coupon->promotion_id = $kupon->promotion_id;
-                        $issue_coupon->issued_coupon_code = '';
-                        $issue_coupon->user_id = $customer_id;
-                        $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
-                        $issue_coupon->issued_date = Carbon::now();
-                        $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-                        $issue_coupon->status = 'active';
-                        $issue_coupon->save();
-                        $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                        $issue_coupon->save();
+                        $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
+                        if ($issued <= $kupon->maximum_issued_coupon) {
+                            $issue_coupon = new IssuedCoupon;
+                            $issue_coupon->promotion_id = $kupon->promotion_id;
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                            $issue_coupon->save();
+                        }
                     }
                 }
             }
@@ -1292,7 +1325,7 @@ class CashierAPIController extends ControllerAPI
                 $cart_delete->save();
                 $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
             }
-            
+
 
             $this->response->data = $transaction;
             $this->commit();
@@ -1378,7 +1411,7 @@ class CashierAPIController extends ControllerAPI
         $user = null;
         $activity_payment = 'print_ticket';
         $activity_payment_label = 'Print Ticket';
-        $transaction = null;                    
+        $transaction = null;
         try {
 
             // Require authentication
@@ -1394,7 +1427,7 @@ class CashierAPIController extends ControllerAPI
             // Check the device exist or not
             if(!file_exists(Config::get('orbit.devices.printer.params')))
             {
-                $message = 'Printer not found'; 
+                $message = 'Printer not found';
                 ACL::throwAccessForbidden($message);
             }
 
@@ -1446,7 +1479,7 @@ class CashierAPIController extends ControllerAPI
                         if($x==0){
                             //echo "Cart Promotions <br/>";
                             // if(!$promo){
-                            //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
+                            //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));
                             // }
                             $cart_based_promo = "Cart Promotions"." \n";
                             $promo = TRUE;
@@ -1467,7 +1500,7 @@ class CashierAPIController extends ControllerAPI
                         if($x==0){
                             //echo "Cart Coupons <br/>";
                             // if(!$promo){
-                            //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));  
+                            //     $cart_based_promo = $this->leftAndRight('SUB TOTAL before discount', number_format($transaction['subtotal'], 2));
                             // }
                             if(!$promo){
                                 $cart_based_promo = "Cart Coupons"." \n";
@@ -1647,14 +1680,14 @@ class CashierAPIController extends ControllerAPI
             // Check the device exist or not
             if(!file_exists(Config::get('orbit.devices.edc.params')))
             {
-                $message = 'Payment Terminal not found'; 
+                $message = 'Payment Terminal not found';
                 ACL::throwAccessForbidden($message);
             }
 
             // Check the driver exist or not
             if(!file_exists(Config::get('orbit.devices.edc.path')))
             {
-                $message = 'EDC driver not found'; 
+                $message = 'EDC driver not found';
                 ACL::throwAccessForbidden($message);
             }
 
@@ -1789,18 +1822,18 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             if(empty($barcode)){
-                
+
                 // Check the device exist or not
                 if(!file_exists(Config::get('orbit.devices.barcode.params')))
                 {
-                    $message = 'Scanner not found'; 
+                    $message = 'Scanner not found';
                     ACL::throwAccessForbidden($message);
                 }
 
                 // Check the driver exist or not
                 if(!file_exists(Config::get('orbit.devices.barcode.path')))
                 {
-                    $message = 'Scanner driver not found'; 
+                    $message = 'Scanner driver not found';
                     ACL::throwAccessForbidden($message);
                 }
 
@@ -1833,21 +1866,21 @@ class CashierAPIController extends ControllerAPI
             $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on 
+                inner join ' . DB::getTablePrefix() . 'products prod on
                 (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
                     OR
                     (
-                        (pr.discount_object_type="family") AND 
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                        (pr.discount_object_type="family") AND
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
                         ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
                         ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
                         ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
                         ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
                     )
                 )'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-            
-            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q) 
+
+            $used_product_coupons = CartCoupon::with(array('cartdetail' => function($q)
             {
                 $q->join('product_variants', 'cart_details.product_variant_id', '=', 'product_variants.product_variant_id');
             }, 'issuedcoupon' => function($q) use($user)
@@ -1868,7 +1901,7 @@ class CashierAPIController extends ControllerAPI
             {
                 $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
             })
-            ->where(function($q) 
+            ->where(function($q)
             {
                 $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
                 {
@@ -1895,7 +1928,7 @@ class CashierAPIController extends ControllerAPI
             $total = 0;
 
             $taxes = \MerchantTax::excludeDeleted()->where('merchant_id', $retailer->parent_id)->get();
-            
+
             $vat_included = $retailer->parent->vat_included;
 
             if($vat_included === 'yes') {
@@ -1932,7 +1965,7 @@ class CashierAPIController extends ControllerAPI
                     } else {
                         $tax1 = 0;
                     }
-                    
+
                     if(!is_null($cartdetail->tax2)) {
                         $tax2 = $cartdetail->tax2->tax_value;
                         if(!is_null($cartdetail->tax1)) {
@@ -1957,7 +1990,7 @@ class CashierAPIController extends ControllerAPI
                     // $product_price_wo_tax = $original_price / (1 + $product_vat_value);
                     if(!is_null($cartdetail->tax2)) {
                         if($cartdetail->tax2->tax_type == 'service') {
-                            $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                            $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                         } elseif($cartdetail->tax2->tax_type == 'luxury') {
                             $product_price_wo_tax = $original_price / (1 + $tax1 + $tax2);
                         }
@@ -2014,7 +2047,7 @@ class CashierAPIController extends ControllerAPI
                                 }
                             }
                         }
-                        
+
                         if(!is_null($cartdetail->tax2)) {
                             $tax2 = $cartdetail->tax2->tax_value;
                             if(!is_null($cartdetail->tax1)) {
@@ -2036,7 +2069,7 @@ class CashierAPIController extends ControllerAPI
 
                         if(!is_null($cartdetail->tax2)) {
                             if($cartdetail->tax2->tax_type == 'service') {
-                                $promo_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                                $promo_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                             } elseif($cartdetail->tax2->tax_type == 'luxury') {
                                 $promo_wo_tax = $discount / (1 + $tax1 + $tax2);
                             }
@@ -2093,7 +2126,7 @@ class CashierAPIController extends ControllerAPI
                                     }
                                 }
                             }
-                            
+
                             if(!is_null($cartdetail->tax2)) {
                                 $tax2 = $cartdetail->tax2->tax_value;
                                 if(!is_null($cartdetail->tax1)) {
@@ -2115,7 +2148,7 @@ class CashierAPIController extends ControllerAPI
 
                             if(!is_null($cartdetail->tax2)) {
                                 if($cartdetail->tax2->tax_type == 'service') {
-                                    $coupon_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                                    $coupon_wo_tax = $discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                                 } elseif($cartdetail->tax2->tax_type == 'luxury') {
                                     $coupon_wo_tax = $discount / (1 + $tax1 + $tax2);
                                 }
@@ -2129,7 +2162,7 @@ class CashierAPIController extends ControllerAPI
                         }
                     }
                     $cartdetail->coupon_for_this_product = $coupon_filter;
-                    
+
                     $cartdetail->original_price = $original_price;
                     $cartdetail->original_ammount = $original_ammount;
                     $cartdetail->ammount_after_promo = $ammount_after_promo;
@@ -2183,7 +2216,7 @@ class CashierAPIController extends ControllerAPI
                             $cart_promo_wo_tax = $discount / (1 + $cart_vat);
                             $cart_promo_tax = $discount - $cart_promo_wo_tax;
                             $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-                            
+
                             foreach ($taxes as $tax) {
                                 if (!empty($tax->total_tax)) {
                                     $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
@@ -2197,7 +2230,7 @@ class CashierAPIController extends ControllerAPI
 
                         }
                     }
-                    
+
                 }
 
                 $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal)
@@ -2247,7 +2280,7 @@ class CashierAPIController extends ControllerAPI
                                         $tax->total_tax = $tax->total_tax - $tax_reduction;
                                     }
                                 }
-                                
+
                                 $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
                                 $discount_cart_coupon = $discount_cart_coupon + $discount;
                                 $discount_cart_coupon_wo_tax = $discount_cart_coupon_wo_tax + $cart_coupon_wo_tax;
@@ -2303,7 +2336,7 @@ class CashierAPIController extends ControllerAPI
                 $cartsummary = new \stdclass();
                 $cartsummary->vat = $vat;
                 $cartsummary->total_to_pay = $subtotal;
-                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
+                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax;
                 $cartsummary->acquired_promo_carts = $acquired_promo_carts;
                 $cartsummary->used_cart_coupons = $acquired_coupon_carts;
                 $cartsummary->available_coupon_carts = $available_coupon_carts;
@@ -2326,11 +2359,11 @@ class CashierAPIController extends ControllerAPI
                             inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                             inner join ' . DB::getTablePrefix() . 'products prod on
                             (
-                                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id) 
+                                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
                                 OR
                                 (
-                                    (pr.discount_object_type="family") AND 
-                                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND 
+                                    (pr.discount_object_type="family") AND
+                                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
                                     ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
                                     ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
                                     ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
@@ -2338,15 +2371,15 @@ class CashierAPIController extends ControllerAPI
                                 )
                             )
                             inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                            WHERE 
-                                ic.expired_date >= NOW() 
-                                AND p.merchant_id = :merchantid 
-                                AND prr.retailer_id = :retailerid 
-                                AND ic.user_id = :userid 
-                                AND prod.product_id = :productid 
-                                
+                            WHERE
+                                ic.expired_date >= NOW()
+                                AND p.merchant_id = :merchantid
+                                AND prr.retailer_id = :retailerid
+                                AND ic.user_id = :userid
+                                AND prod.product_id = :productid
+
                             '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id));
- 
+
                     $cartdetail->available_product_coupons = count($available_product_coupons);
 
                     if (!is_null($cartdetail->tax1)) {
@@ -2376,7 +2409,7 @@ class CashierAPIController extends ControllerAPI
                     }
 
                     if (!is_null($cartdetail->tax2)) {
-                        $tax2 = $cartdetail->tax2->tax_value;    
+                        $tax2 = $cartdetail->tax2->tax_value;
                         $tax2_value = $original_price * $tax2;
                         $tax2_total_value = $tax2_value * $cartdetail->quantity;
                         foreach ($taxes as $tax) {
@@ -2391,7 +2424,7 @@ class CashierAPIController extends ControllerAPI
 
                     if(!is_null($cartdetail->tax2)) {
                         if($cartdetail->tax2->tax_type == 'service') {
-                            $product_price_with_tax = $original_price * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                            $product_price_with_tax = $original_price * (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                         } elseif($cartdetail->tax2->tax_type == 'luxury') {
                             $product_price_with_tax = $original_price * (1 + $tax1 + $tax2);
                         }
@@ -2450,12 +2483,12 @@ class CashierAPIController extends ControllerAPI
                                 }
                             }
                         }
-                        
+
                         if(!is_null($cartdetail->tax2)) {
-                            $tax2 = $cartdetail->tax2->tax_value;    
+                            $tax2 = $cartdetail->tax2->tax_value;
                             $tax2_value = $discount * $tax2;
                             $tax2_total_value = $tax2_value * $cartdetail->quantity;
-                            
+
                             foreach ($taxes as $tax) {
                                 if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
                                     $tax->total_tax = $tax->total_tax - $tax2_total_value;
@@ -2466,7 +2499,7 @@ class CashierAPIController extends ControllerAPI
 
                         if(!is_null($cartdetail->tax2)) {
                             if($cartdetail->tax2->tax_type == 'service') {
-                                $promo_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                                $promo_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                             } elseif($cartdetail->tax2->tax_type == 'luxury') {
                                 $promo_with_tax = $discount * (1 + $tax1 + $tax2);
                             }
@@ -2480,7 +2513,7 @@ class CashierAPIController extends ControllerAPI
                         $subtotal_wo_tax = $subtotal_wo_tax - ($discount * $cartdetail->quantity);
                         $promo_for_this_product_array[] = $promo_for_this_product;
                     }
-                    
+
                     $cartdetail->promo_for_this_product = $promo_for_this_product_array;
 
                     $coupon_filter = array();
@@ -2528,12 +2561,12 @@ class CashierAPIController extends ControllerAPI
                                     }
                                 }
                             }
-                            
+
                             if(!is_null($cartdetail->tax2)) {
-                                $tax2 = $cartdetail->tax2->tax_value;    
+                                $tax2 = $cartdetail->tax2->tax_value;
                                 $tax2_value = $discount * $tax2;
                                 $tax2_total_value = $tax2_value;
-                                
+
                                 foreach ($taxes as $tax) {
                                     if ($tax->merchant_tax_id == $cartdetail->tax2->merchant_tax_id) {
                                         $tax->total_tax = $tax->total_tax - $tax2_total_value;
@@ -2544,7 +2577,7 @@ class CashierAPIController extends ControllerAPI
 
                             if(!is_null($cartdetail->tax2)) {
                                 if($cartdetail->tax2->tax_type == 'service') {
-                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));        
+                                    $coupon_with_tax = $discount * (1 + $tax1 + $tax2 + ($tax1 * $tax2));
                                 } elseif($cartdetail->tax2->tax_type == 'luxury') {
                                     $coupon_with_tax = $discount * (1 + $tax1 + $tax2);
                                 }
@@ -2619,7 +2652,7 @@ class CashierAPIController extends ControllerAPI
                             $cart_promo_with_tax = $discount * (1 + $cart_vat);
                             $cart_promo_tax = $cart_promo_with_tax - $discount;
                             $cart_promo_taxes = $cart_promo_taxes + $cart_promo_tax;
-                            
+
                             foreach ($taxes as $tax) {
                                 if (!empty($tax->total_tax)) {
                                     $tax_reduction = ($tax->total_tax_before_cart_promo / $vat_before_cart_promo) * $cart_promo_tax;
@@ -2633,7 +2666,7 @@ class CashierAPIController extends ControllerAPI
                             // dd($cart_promo_with_tax);
                         }
                     }
-                    
+
                 }
 
                 $coupon_carts = Coupon::join('promotion_rules', function($q) use($subtotal_before_cart_promo_without_tax)
@@ -2684,7 +2717,7 @@ class CashierAPIController extends ControllerAPI
                                         $tax->total_tax = $tax->total_tax - $tax_reduction;
                                     }
                                 }
-                                
+
                                 $discount_cart_coupon = $discount_cart_coupon + $discount;
                                 $discount_cart_coupon_with_tax = $discount_cart_coupon_with_tax - $cart_coupon_with_tax;
 
@@ -2701,7 +2734,7 @@ class CashierAPIController extends ControllerAPI
                         }
                     }
                 }
-                
+
                 if (!empty($coupon_carts)) {
                     foreach ($coupon_carts as $coupon_cart) {
                         if ($subtotal_before_cart_promo_without_tax >= $coupon_cart->coupon_redeem_rule_value) {
@@ -2731,11 +2764,11 @@ class CashierAPIController extends ControllerAPI
                 $subtotal = $subtotal + $discount_cart_promo_with_tax + $discount_cart_coupon_with_tax;
                 $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
                 // dd($cart_coupon_taxes);
-                
+
                 $cartsummary = new \stdclass();
                 $cartsummary->vat = round($vat, 2);
                 $cartsummary->total_to_pay = round($subtotal, 2);
-                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax; 
+                $cartsummary->subtotal_wo_tax = $subtotal_wo_tax;
                 $cartsummary->acquired_promo_carts = $acquired_promo_carts;
                 $cartsummary->used_cart_coupons = $acquired_coupon_carts;
                 $cartsummary->available_coupon_carts = $available_coupon_carts;
@@ -3011,7 +3044,7 @@ class CashierAPIController extends ControllerAPI
                 {
                     $q->where('promotion_retailer.retailer_id', Config::get('orbit.shop.id'));
                 })
-                ->where(function($q) 
+                ->where(function($q)
                 {
                     $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
                     {
@@ -3064,18 +3097,18 @@ class CashierAPIController extends ControllerAPI
     {
         try {
             $retailer = $this->getRetailerInfo();
-            
+
             $httpCode = 200;
 
             // Require authentication
             $this->checkAuth();
-            
+
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            
+
             // $this->registerCustomValidation();
-            
+
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
                 array(
@@ -3104,7 +3137,7 @@ class CashierAPIController extends ControllerAPI
                     $maxRecord = 20;
                 }
             }
-            
+
             // Builder object
             $posQuickProducts = \PosQuickProduct::joinRetailer()
                                                ->excludeDeleted('pos_quick_products')
@@ -3148,7 +3181,7 @@ class CashierAPIController extends ControllerAPI
 
                 $skip = $_skip;
             });
-            
+
             $posQuickProducts->skip($skip);
 
             // Default sort by
@@ -3278,13 +3311,13 @@ class CashierAPIController extends ControllerAPI
         try {
             // Require authentication
             $this->checkAuth();
-            
+
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
 
             $customer_id = OrbitInput::post('customer_id', -1);
-            $customer = User::excludeDeleted()->find($customer_id);   
+            $customer = User::excludeDeleted()->find($customer_id);
 
             $activity->setUser($customer)
                     ->setActivityName($activity_checkout)
@@ -3359,13 +3392,13 @@ class CashierAPIController extends ControllerAPI
         try {
             // Require authentication
             $this->checkAuth();
-            
+
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
 
             $customer_id = OrbitInput::post('customer_id', -1);
-            $customer = User::excludeDeleted()->find($customer_id);   
+            $customer = User::excludeDeleted()->find($customer_id);
 
             $activity->setUser($customer)
                     ->setActivityName($activity_clear)
@@ -3440,7 +3473,7 @@ class CashierAPIController extends ControllerAPI
         try {
             // Require authentication
             $this->checkAuth();
-            
+
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
@@ -3448,7 +3481,7 @@ class CashierAPIController extends ControllerAPI
             $customer_id = OrbitInput::post('customer_id', -1);
             $product_id = OrbitInput::post('product_id', -1);
             $customer = User::excludeDeleted()->find($customer_id);
-            $product = Product::active()->find($product_id);   
+            $product = Product::active()->find($product_id);
 
             $activity->setUser($customer)
                     ->setActivityName($activity_add)
@@ -3527,7 +3560,7 @@ class CashierAPIController extends ControllerAPI
         try {
             // Require authentication
             $this->checkAuth();
-            
+
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
@@ -3535,7 +3568,7 @@ class CashierAPIController extends ControllerAPI
             $customer_id = OrbitInput::post('customer_id', -1);
             $product_id = OrbitInput::post('product_id', -1);
             $customer = User::excludeDeleted()->find($customer_id);
-            $product = Product::active()->find($product_id);   
+            $product = Product::active()->find($product_id);
 
             $activity->setUser($customer)
                     ->setActivityName($activity_delete)

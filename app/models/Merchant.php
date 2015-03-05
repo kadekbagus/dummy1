@@ -325,4 +325,18 @@ class Merchant extends Eloquent
 
         return new HasManyThrough((new $related)->newQuery(), $this, $through, $firstKey, $secondKey, $parentKey);
     }
+
+    /**
+     * Method to get list of retailers Ids.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return array
+     */
+    public function getMyRetailerIds($status='active')
+    {
+        return DB::table('merchants')->where('object_type', 'retailer')
+                                     ->where('status', '!=', 'deleted')
+                                     ->where('parent_id', $this->merchant_id)
+                                     ->lists('merchant_id');
+    }
 }

@@ -52,6 +52,15 @@ class TokenAPIController extends ControllerAPI
                     $maxRecord = 20;
                 }
             }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.token.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
 
             // Builder object
             $tokens = Token::excludeDeleted()
@@ -64,12 +73,16 @@ class TokenAPIController extends ControllerAPI
             $_token = clone $tokens;
 
             // Get the take args
-            $take = $maxRecord;
+            $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
                 if ($_take > $maxRecord) {
                     $_take = $maxRecord;
                 }
                 $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
             });
             $tokens->take($take);
 

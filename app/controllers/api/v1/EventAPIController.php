@@ -160,11 +160,42 @@ class EventAPIController extends ControllerAPI
             $newevent->end_date = $end_date;
             $newevent->is_permanent = $is_permanent;
             $newevent->link_object_type = $link_object_type;
-            $newevent->link_object_id1 = $link_object_id1;
-            $newevent->link_object_id2 = $link_object_id2;
-            $newevent->link_object_id3 = $link_object_id3;
-            $newevent->link_object_id4 = $link_object_id4;
-            $newevent->link_object_id5 = $link_object_id5;
+
+            // link_object_id1
+            if (trim($link_object_id1) === '') {
+                $newevent->link_object_id1 = NULL;
+            } else {
+                $newevent->link_object_id1 = $link_object_id1;
+            }
+
+            // link_object_id2
+            if (trim($link_object_id2) === '') {
+                $newevent->link_object_id2 = NULL;
+            } else {
+                $newevent->link_object_id2 = $link_object_id2;
+            }
+
+            // link_object_id3
+            if (trim($link_object_id3) === '') {
+                $newevent->link_object_id3 = NULL;
+            } else {
+                $newevent->link_object_id3 = $link_object_id3;
+            }
+
+            // link_object_id4
+            if (trim($link_object_id4) === '') {
+                $newevent->link_object_id4 = NULL;
+            } else {
+                $newevent->link_object_id4 = $link_object_id4;
+            }
+
+            // link_object_id5
+            if (trim($link_object_id5) === '') {
+                $newevent->link_object_id5 = NULL;
+            } else {
+                $newevent->link_object_id5 = $link_object_id5;
+            }
+
             $newevent->widget_object_type = $widget_object_type;
             $newevent->created_by = $this->api->user->user_id;
 
@@ -913,9 +944,22 @@ class EventAPIController extends ControllerAPI
             Event::fire('orbit.event.getsearchevent.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int)Config::get('orbit.pagination.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.event.max_record');
             if ($maxRecord <= 0) {
-                $maxRecord = 20;
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.event.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
             }
 
             // Builder object
@@ -1051,20 +1095,18 @@ class EventAPIController extends ControllerAPI
             $_events = clone $events;
 
             // Get the take args
-            if (trim(OrbitInput::get('take')) === '') {
-                $take = $maxRecord;
-            } else {
-                OrbitInput::get('take', function($_take) use (&$take, $maxRecord)
-                {
-                    if ($_take > $maxRecord) {
-                        $_take = $maxRecord;
-                    }
-                    $take = $_take;
-                });
-            }
-            if ($take > 0) {
-                $events->take($take);
-            }
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $events->take($take);
 
             $skip = 0;
             OrbitInput::get('skip', function($_skip) use (&$skip, $events)
@@ -1075,9 +1117,7 @@ class EventAPIController extends ControllerAPI
 
                 $skip = $_skip;
             });
-            if (($take > 0) && ($skip > 0)) {
-                $events->skip($skip);
-            }
+            $events->skip($skip);
 
             // Default sort by
             $sortBy = 'events.created_at';

@@ -157,7 +157,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
-                            $scope.logoutfn();
+                          //  $scope.logoutfn();
                         }else{
                             //do something when error
                         }
@@ -192,6 +192,131 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.getproduct();
                     }
                 });
+             //get promotion base scanproduct
+              $scope.getpromotionScanproduct = function(product,act,attr1){
+                   $scope.datapromotion = [];
+                    serviceAjax.posDataToServer('/pos/productdetail', {product_id :product.product_id}).then(function (response) {
+                        if (response.code == 0 ) {
+                            $scope.productmodal = response.data.product;
+                            $scope.productmodal['price']    = product.price;
+                            $scope.productmodal['upc_code'] = product.upc_code;
+                           
+                            $scope.productdetail = response.data;
+                            $scope.datapromotion = response.data.promo;
+                            var discount    = 0;
+                            var tmpdiscount = 0;
+                            if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
+                                $scope.datapromotion[i]['oridiscount_value'] = $scope.datapromotion[i]['discount_value'];
+                                $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[i]['begin_date']        = moment($scope.datapromotion[i]['begin_date']).isValid() ? moment($scope.datapromotion[i]['begin_date']).format('DD MMMM YYYY')  : '';
+                                $scope.datapromotion[i]['end_date']          = moment($scope.datapromotion[i]['end_date']).isValid() ? moment($scope.datapromotion[i]['end_date']).format('DD MMMM YYYY') : '';
+
+                                if($scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage'){
+                                    tmpdiscount = $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'];
+                                }else if($scope.datapromotion[i]['rule_type'] == 'product_discount_by_value'){
+                                    tmpdiscount = accounting.unformat($scope.datapromotion[i]['discount_value']);
+                                }else if($scope.datapromotion[i]['rule_type'] == 'new_product_price'){
+                                    tmpdiscount =  $scope.productmodal['price'] - accounting.unformat($scope.datapromotion[i]['discount_value']) + 0;
+                                }else{
+                                    tmpdiscount = 0;
+                                }
+
+                               // if(act){
+                                 //   tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
+                                    $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                    $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
+                                    discount += tmpdiscount;
+                               // }
+                            }
+                           // if(act){
+                                var discounts = accounting.unformat($scope.productmodal['price']) - discount;
+                                $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
+                           // }
+                            $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", 0, ",", ".");
+
+                            $scope.dataattrvalue1 = [];
+                            $scope.dataattrvalue2 = [];
+                            $scope.dataattrvalue3 = [];
+                            $scope.dataattrvalue4 = [];
+                            $scope.dataattrvalue5 = [];
+                            $scope.tmpattr = [];
+                            $scope.chooseattr = [];
+                            //TODO: agung :Refactor this, and try with dfferent data
+                            if($scope.productdetail.attributes.length)for(var a=1; a < $scope.productdetail.attributes.length;a++){
+                                $scope.dataattrvalue1[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue2[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue3[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue4[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.dataattrvalue5[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                                $scope.tmpattr[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                            }
+
+                            for(var i = 0; i < $scope.dataattrvalue1.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue1.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue1[i]['attr_val_id1'] == $scope.dataattrvalue1[a]['attr_val_id1']){
+                                            $scope.dataattrvalue1.splice(i,1);
+                                            i=0;a=0;
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue2.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue2.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue2[i]['attr_val_id1'] == $scope.dataattrvalue2[a]['attr_val_id1'] && $scope.dataattrvalue2[i]['attr_val_id2'] == $scope.dataattrvalue2[a]['attr_val_id2']){
+                                            $scope.dataattrvalue2.splice(i,1);
+                                            i=0;a=0;
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue3.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue3.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue3[i]['attr_val_id1'] == $scope.dataattrvalue3[a]['attr_val_id1'] && $scope.dataattrvalue3[i]['attr_val_id2'] == $scope.dataattrvalue3[a]['attr_val_id2'] && $scope.dataattrvalue3[i]['attr_val_id3'] == $scope.dataattrvalue3[a]['attr_val_id3']){
+                                            $scope.dataattrvalue3.splice(i,1);
+                                            i=0;a=0;
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue4.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue4.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue4[i]['attr_val_id1'] == $scope.dataattrvalue4[a]['attr_val_id1'] && $scope.dataattrvalue4[i]['attr_val_id2'] == $scope.dataattrvalue4[a]['attr_val_id2'] && $scope.dataattrvalue4[i]['attr_val_id3'] == $scope.dataattrvalue4[a]['attr_val_id3'] && $scope.dataattrvalue4[i]['attr_val_id4'] == $scope.dataattrvalue4[a]['attr_val_id4']){
+                                            $scope.dataattrvalue4.splice(i,1);
+                                            i=0;a=0;
+                                       }
+                                   }
+                                }
+                            }
+                            for(var i = 0; i < $scope.dataattrvalue5.length;i++){
+                                for(var a = 0; a < $scope.dataattrvalue5.length;a++){
+                                   if(i != a) {
+                                       if($scope.dataattrvalue5[i]['attr_val_id1'] == $scope.dataattrvalue5[a]['attr_val_id1'] && $scope.dataattrvalue5[i]['attr_val_id2'] == $scope.dataattrvalue5[a]['attr_val_id2'] && $scope.dataattrvalue5[i]['attr_val_id3'] == $scope.dataattrvalue5[a]['attr_val_id3'] && $scope.dataattrvalue5[i]['attr_val_id4'] == $scope.dataattrvalue5[a]['attr_val_id4'] && $scope.dataattrvalue5[i]['attr_val_id5'] == $scope.dataattrvalue5[a]['attr_val_id5']){
+                                            $scope.dataattrvalue5.splice(i,1);
+                                            i=0;a=0;
+                                       }
+                                   }
+                                }
+                            }
+
+                            $scope.countattr = 0;
+                            if($scope.productdetail.product.attribute1) $scope.countattr++;
+                            if($scope.productdetail.product.attribute2) $scope.countattr++;
+                            if($scope.productdetail.product.attribute3) $scope.countattr++;
+                            if($scope.productdetail.product.attribute4) $scope.countattr++;
+                            if($scope.productdetail.product.attribute5) $scope.countattr++;
+                            $scope.loadproductdetail = false;
+                            if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
+                        }else if(response.code == 13) {
+                           // $scope.logoutfn();
+                        }else{
+                            //do smoething
+                        }
+                    })  
+              };   
              //get product based promotion TODO:
              $scope.getpromotion = function(productid,act,attr1){
                     $scope.datapromotion = [];
@@ -309,7 +434,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.loadproductdetail = false;
                             if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
                         }else if(response.code == 13) {
-                            $scope.logoutfn();
+                           // $scope.logoutfn();
                         }else{
                             //do smoething
                         }
@@ -765,7 +890,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     $scope.activity('activity-clear',{customer_id : user_id  });
                 };
               //when user click checkout  
-              $scope.showCh = function(){
+             $scope.showCh = function(){
                     //set activity when cart checkout
                     var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
                     $scope.activity('activity-checkout',{customer_id : user_id});
@@ -897,13 +1022,27 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
-                           // $scope.inserttocartFn();
-                            if($scope.productmodal['attribute_id1'] != null) angular.element('#myModal').modal('show');
-                            $scope.getpromotion($scope.productmodal['product_id'],false,$scope.productmodal['attribute_id1']);
+                            var check = 1;
+
+                            if($scope.productmodal['variants'].length > 1){
+                                angular.element('#myModal').modal('show');
+                                
+                            }else if($scope.productmodal['variants'].length == 1){
+                                $scope.productmodal['price']    =  $scope.productmodal['variants'][0]['price'];
+                                $scope.productmodal['upc_code'] =  $scope.productmodal['variants'][0]['upc_code'];
+                                check = null;
+                            }
+                             $scope.cancelRequestService();
+                            //if($scope.productmodal['attribute_id1'] != null)
+                            $scope.getpromotionScanproduct($scope.productmodal,false,check);
+                           
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                             // angular.element("#ProductNotFound").modal();
-                             // $scope.scanproduct();
+                            // if(response.message != 'Scanner not found'){
+                            //      angular.element("#ProductNotFound").modal();
+                            // }
+                            // $scope.cancelRequestService();
+                            // $scope.scanproduct();
                         }
                     });
                 })();
@@ -1077,12 +1216,22 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                  $scope.errorscancart = '';
                                  $scope.manualscancart = '';
                             }else if(response.code == 13 ){
+                                 //do something when error
+                                $scope.errorscancart  = $scope.language.errorscancart;
+                                $scope.manualscancart = '';
+                                
                                 if(response.message == 'You have to login to view this page.'){
-                                    $scope.logoutfn();
+                                  //  $scope.logoutfn();
                                 }
+
+                                if(response.message == 'Scanner not found'){
+                                    $scope.errorscancart  = $scope.language.scannertidakditemukan;
+                                }
+                                
+                                if(response.message != 'Scanner not found') $scope.scancartFn();
                             } else{
                                 //do something when error
-                                $scope.errorscancart  = 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.';
+                                $scope.errorscancart  = $scope.language.errorscancart;
                                 $scope.manualscancart = '';
                                 $scope.scancartFn();
                             }
