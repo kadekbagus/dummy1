@@ -7,7 +7,7 @@
 use OrbitShop\API\v1\ResponseProvider;
 use MobileCI\MobileCIAPIController;
 use Net\Security\Firewall;
-use Cookie;
+use \Cookie;
 
 class IntermediateLoginController extends IntermediateBaseController
 {
@@ -280,7 +280,7 @@ class IntermediateLoginController extends IntermediateBaseController
         $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
 
         $response = json_decode($this->getLogout()->getContent());
-        $cookie = null;
+        $cookie = Cookie::make('event', '', 365*5);
         try {
             if ($response->code !== 0) {
                 throw new Exception ($response->message, $response->code);
@@ -295,7 +295,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 }
                 throw new Exception ($deRegisterMac['message'], $exitCode);
             }
-            
+
             // Delete event popup cookie
             $cookie = Cookie::forget('event');
 
