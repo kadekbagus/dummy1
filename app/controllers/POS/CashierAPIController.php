@@ -1272,6 +1272,7 @@ class CashierAPIController extends ControllerAPI
                             if ($issued <= $c->maximum_issued_coupon) {
                                 $issue_coupon = new IssuedCoupon;
                                 $issue_coupon->promotion_id = $c->promotion_id;
+                                $issuedcoupon->transaction_id = $transaction->transaction_id;
                                 $issue_coupon->issued_coupon_code = '';
                                 $issue_coupon->user_id = $customer_id;
                                 $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
@@ -1304,6 +1305,7 @@ class CashierAPIController extends ControllerAPI
                         if ($issued <= $kupon->maximum_issued_coupon) {
                             $issue_coupon = new IssuedCoupon;
                             $issue_coupon->promotion_id = $kupon->promotion_id;
+                            $issue_coupon->transaction_id = $transaction->transaction_id;
                             $issue_coupon->issued_coupon_code = '';
                             $issue_coupon->user_id = $customer_id;
                             $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
@@ -1424,14 +1426,30 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
-            // Check the device exist or not
-            if(!file_exists(Config::get('orbit.devices.printer.params')))
-            {
-                $message = 'Printer not found';
-                ACL::throwAccessForbidden($message);
+            $validator = Validator::make(
+                array(
+                    'transaction_id' => $transaction_id,
+                ),
+                array(
+                    'transaction_id' => 'required|numeric',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
+            // Check the device exist or not
+            // if(!file_exists(Config::get('orbit.devices.printer.params')))
+            // {
+            //     $message = 'Printer not found';
+            //     ACL::throwAccessForbidden($message);
+            // }
+
             $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+            $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
 
             if (! is_object($transaction)) {
                 $message = \Lang::get('validation.orbit.empty.transaction');
@@ -1444,6 +1462,35 @@ class CashierAPIController extends ControllerAPI
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
             $detailpromotion = $transaction->detailpromotion->toArray();
+            $_issuedcoupon = $issuedcoupon->toArray();
+            $total_issuedcoupon = count($_issuedcoupon);
+            $acquired_coupon = null;
+
+            foreach ($_issuedcoupon as $key => $value) {
+            //     echo $_issuedcoupon_value[];
+                // echo $key." ".$value['coupon']['promotion_name']."<br/>";
+                // echo $key." ".$value['coupon']['description']."<br/>";
+                // echo $key." ".$value['coupon']['end_date']."<br/>";
+                // echo $key." ".$value['coupon']['issued_coupon_code']."<br/>";
+                if($key==0){
+                  $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
+                  $acquired_coupon .= '----------------------------------------'." \n";  
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);     
+                }
+                else{
+                  $acquired_coupon .= '----------------------------------------'." \n";
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                  if($key==$total_issuedcoupon-1){
+                    $acquired_coupon .= '----------------------------------------'." \n";
+                  }  
+                }     
+            }
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
@@ -1586,18 +1633,21 @@ class CashierAPIController extends ControllerAPI
             $footer .= $this->just40CharMid('Powered by DominoPos');
             $footer .= $this->just40CharMid('www.dominopos.com');
             $footer .= '----------------------------------------'." \n";
-            $footer .= " \n";
-            $footer .= " \n";
-            $footer .= " \n";
-            $footer .= " \n";
-            $footer .= " \n";
+            if(empty($acquired_coupon) || $acquired_coupon==""){
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+                $footer .= " \n";
+            }
+
 
             $file = storage_path()."/views/receipt.txt";
 
             if(!empty($cart_based_promo)){
-                $write = $head.$product.$cart_based_promo.$pay.$footer;
+                $write = $head.$product.$cart_based_promo.$pay.$footer.$acquired_coupon;
             }else{
-                $write = $head.$product.$pay.$footer;
+                $write = $head.$product.$pay.$footer.$acquired_coupon;
             }
 
             $fp = fopen($file, 'w');
