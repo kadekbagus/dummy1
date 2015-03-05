@@ -301,7 +301,9 @@ class CategoryAPIController extends ControllerAPI
             $updatedcategory = Category::excludeDeleted()->allowedForUser($user)->where('category_id', $category_id)->first();
 
             OrbitInput::post('merchant_id', function($merchant_id) use ($updatedcategory) {
-                $updatedcategory->merchant_id = $merchant_id;
+                if (! (trim($merchant_id) === '')) {
+                    $updatedcategory->merchant_id = $merchant_id;
+                }
             });
 
             OrbitInput::post('category_name', function($category_name) use ($updatedcategory) {
@@ -920,7 +922,7 @@ class CategoryAPIController extends ControllerAPI
 
         // Check category name, it should not exists
         Validator::extend('orbit.exists.category_name', function ($attribute, $value, $parameters) {
-            $merchant_id = trim($parameters[0]);
+            $merchant_id = $parameters[0];
             $categoryName = Category::excludeDeleted()
                         ->where('category_name', $value)
                         ->where('merchant_id', $merchant_id)
@@ -940,8 +942,9 @@ class CategoryAPIController extends ControllerAPI
             $category_id = trim($parameters[0]);
             $merchant_id = trim($parameters[1]);
 
+            // if merchant_id not being updated, then get merchant_id from db.
             if ($merchant_id === '') {
-                $category = Category::excludeDeleted()->allowedForUser($user)->where('category_id', $category_id)->first();
+                $category = Category::where('category_id', $category_id)->first();
                 $merchant_id = $category->merchant_id;
             }
 
