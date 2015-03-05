@@ -76,7 +76,7 @@ class CategoryAPIController extends ControllerAPI
                 ),
                 array(
                     'merchant_id'    => 'required|numeric|orbit.empty.merchant',
-                    'category_name'  => 'required|orbit.exists.category_name',
+                    'category_name'  => 'required|orbit.exists.category_name:'.$merchant_id,
                     'category_level' => 'required|numeric|between:1,5',
                     'status'         => 'required|orbit.empty.category_status',
                 )
@@ -277,7 +277,7 @@ class CategoryAPIController extends ControllerAPI
                 array(
                     'category_id'       => 'required|numeric|orbit.empty.category',
                     'merchant_id'       => 'numeric|orbit.empty.merchant',
-                    'category_name'     => 'category_name_exists_but_me',
+                    'category_name'     => 'category_name_exists_but_me:'.$category_id.','.$merchant_id,
                     'category_level'    => 'numeric|between:1,5',
                     'status'            => 'orbit.empty.category_status',
                 ),
@@ -920,8 +920,10 @@ class CategoryAPIController extends ControllerAPI
 
         // Check category name, it should not exists
         Validator::extend('orbit.exists.category_name', function ($attribute, $value, $parameters) {
+            $merchant_id = trim($parameters[0]);
             $categoryName = Category::excludeDeleted()
                         ->where('category_name', $value)
+                        ->where('merchant_id', $merchant_id)
                         ->first();
 
             if (! empty($categoryName)) {
@@ -935,10 +937,18 @@ class CategoryAPIController extends ControllerAPI
 
         // Check category name, it should not exists (for update)
         Validator::extend('category_name_exists_but_me', function ($attribute, $value, $parameters) {
-            $category_id = trim(OrbitInput::post('category_id'));
+            $category_id = trim($parameters[0]);
+            $merchant_id = trim($parameters[1]);
+
+            if ($merchant_id === '') {
+                $category = Category::excludeDeleted()->allowedForUser($user)->where('category_id', $category_id)->first();
+                $merchant_id = $category->merchant_id;
+            }
+
             $category = Category::excludeDeleted()
                         ->where('category_name', $value)
                         ->where('category_id', '!=', $category_id)
+                        ->where('merchant_id', $merchant_id)
                         ->first();
 
             if (! empty($category)) {
