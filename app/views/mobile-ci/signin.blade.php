@@ -127,7 +127,8 @@
     function afterLogin(xhr) {
         // Get Session which returned by the Orbit backend named
         // 'Set-X-Orbit-Session: SESSION_ID
-        var session_id = xhr.getResponseHeader('Set-X-Orbit-Session');
+        // To do: replace this hardcode session name
+        var session_id = xhr.getResponseHeader('Set-X-Orbit-Mobile-Session');
         console.log('Session ID: ' + session_id);
 
         // We will pass this session id to the application inside real browser

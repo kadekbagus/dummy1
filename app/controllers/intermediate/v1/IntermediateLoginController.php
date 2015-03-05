@@ -12,6 +12,19 @@ use \Cookie;
 class IntermediateLoginController extends IntermediateBaseController
 {
     /**
+     * Mobile CI cookie, temporary fix.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @todo put it on config
+     * @var string
+     */
+    protected $mobileCISessionName = [
+        'query_string'  => 'orbit_mobile_session',
+        'header'        => 'X-Orbit-Mobile-Session',
+        'cookie'        => 'orbit_mobile_session'
+    ];
+
+    /**
      * @author Rio Astamal <me@rioastamal.net>
      * @param @see LoginAPIController::postLogin
      * @return Response
@@ -216,6 +229,7 @@ class IntermediateLoginController extends IntermediateBaseController
                          ->setActivityName('login_failed')
                          ->setActivityNameLong('Login failed - Fails to register mac address')
                          ->setNotes($response->message)
+                         ->setModuleName('Application')
                          ->responseFailed();
 
                 // Call logout to clear session
@@ -232,9 +246,9 @@ class IntermediateLoginController extends IntermediateBaseController
                 'logged_in' => TRUE,
                 'user_id'   => $user->user_id,
             );
-            $this->session->getSessionConfig()->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
-            $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
-            $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
+            $this->session->getSessionConfig()->setConfig('session_origin.header.name', $this->mobileCISessionName['header']);
+            $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', $this->mobileCISessionName['query_string']);
+            $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', $this->mobileCISessionName['cookie']);
             $this->session->enableForceNew()->start($data);
 
             // Send the session id via HTTP header
@@ -252,6 +266,7 @@ class IntermediateLoginController extends IntermediateBaseController
             $activity->setUser('guest')
                      ->setActivityName('login_failed')
                      ->setActivityNameLong('Sign In Failed')
+                     ->setModuleName('Application')
                      ->setNotes($response->message)
                      ->responseFailed();
         }
@@ -275,9 +290,9 @@ class IntermediateLoginController extends IntermediateBaseController
         // This Query String trigger how activity would be logged
         $_GET['_orbit_logout_from'] = 'mobile-ci';
 
-        $this->session->getSessionConfig()->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
-        $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
-        $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
+        $this->session->getSessionConfig()->setConfig('session_origin.header.name', $this->mobileCISessionName['header']);
+        $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', $this->mobileCISessionName['query_string']);
+        $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', $this->mobileCISessionName['cookie']);
 
         $response = json_decode($this->getLogout()->getContent());
         $cookie = Cookie::make('event', '', 365*5);
@@ -335,7 +350,7 @@ class IntermediateLoginController extends IntermediateBaseController
         }
 
         if (isset($_GET['createsession'])) {
-            $cookieName = Config::get('orbit.session.session_origin.cookie.name');
+            $cookieName = $this->mobileCISessionName['cookie'];
             $expireTime = Config::get('orbit.session.session_origin.cookie.expire');
 
             $sessionId = $_GET['createsession'];
