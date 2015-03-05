@@ -242,13 +242,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
                             //TODO: agung :Refactor this, and try with dfferent data
-                            if($scope.productdetail.attributes.length)for(var a=1; a < $scope.productdetail.attributes.length;a++){
-                                $scope.dataattrvalue1[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue2[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue3[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue4[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.dataattrvalue5[a-1] = angular.copy($scope.productdetail.attributes[a]);
-                                $scope.tmpattr[a-1] = angular.copy($scope.productdetail.attributes[a]);
+                            if($scope.productdetail.attributes.length)for(var a=0; a < $scope.productdetail.attributes.length;a++){
+                                if($scope.productdetail.attributes[a]['attr1'] != null){
+                                     $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue3[a] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue4[a] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue5[a] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.tmpattr[a] = angular.copy($scope.productdetail.attributes[a]);  
+                                }
+                                
                             }
 
                             for(var i = 0; i < $scope.dataattrvalue1.length;i++){
@@ -1025,13 +1028,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if(response.code == 0){
                             $scope.productmodal      = response['data'];
                             var check = 1;
-
+                            $scope.variantstmp ={};
                             if($scope.productmodal['variants'].length > 1){
                                 angular.element('#myModal').modal('show');
 
                             }else if($scope.productmodal['variants'].length == 1){
                                 $scope.productmodal['price']    =  $scope.productmodal['variants'][0]['price'];
                                 $scope.productmodal['upc_code'] =  $scope.productmodal['variants'][0]['upc'];
+
+                                $scope.variantstmp['product_variant_id']    =  $scope.productmodal['variants'][0]['product_variant_id'];
+                                $scope.variantstmp['value1']                =  $scope.productmodal['variants'][0]['attribute_value1'] != null ? $scope.productmodal['variants'][0]['attribute_value1']['value'] :'';
+                                $scope.variantstmp['value2']                =  $scope.productmodal['variants'][0]['attribute_value2'] != null ? $scope.productmodal['variants'][0]['attribute_value2']['value'] :'';
+                                $scope.variantstmp['value3']                =  $scope.productmodal['variants'][0]['attribute_value3'] != null ? $scope.productmodal['variants'][0]['attribute_value3']['value'] :'';
+                                $scope.variantstmp['value4']                =  $scope.productmodal['variants'][0]['attribute_value4'] != null ? $scope.productmodal['variants'][0]['attribute_value4']['value'] :'';
+                                $scope.variantstmp['value5']                =  $scope.productmodal['variants'][0]['attribute_value5'] != null ? $scope.productmodal['variants'][0]['attribute_value5']['value'] :'';
                                 check = null;
                             }
                              $scope.cancelRequestService();
