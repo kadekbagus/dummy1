@@ -79,4 +79,11 @@ class Widget extends Eloquent
     {
         return $this->media()->where('media_name_id', 'home_widget');
     }
+
+    public function scopeJoinRetailer()
+    {
+        return $this->select('widgets.*')
+                    ->join('widget_retailer', 'widget_retailer.widget_id', '=', 'widgets.widget_id')
+                    ->groupBy('widgets.widget_id');
+    }
 }

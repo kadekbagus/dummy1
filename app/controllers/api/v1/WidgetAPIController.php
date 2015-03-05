@@ -7,7 +7,7 @@ use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 
@@ -718,7 +718,7 @@ class WidgetAPIController extends ControllerAPI
                 Event::fire('orbit.widget.getwidget.authz.notallowed', array($this, $user));
 
                 $errorMessage = Lang::get('validation.orbit.actionlist.view_widget');
-                $message = Lang::get('validation.orbit.access.view_widget', array('action' => $errorMessage));
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
 
                 ACL::throwAccessForbidden($message);
             }
@@ -769,8 +769,15 @@ class WidgetAPIController extends ControllerAPI
                 }
             }
 
+            // Available merchant to query
+            $listOfMerchantIds = [];
+
+            // Available retailer to query
+            $listOfRetailerIds = [];
+
             // Builder object
-            $widgets = Widget::excludeDeleted();
+            $widgets = Widget::joinRetailer()
+                            ->excludeDeleted('widgets');
 
             // Include other relationship
             OrbitInput::get('with', function($with) use ($widgets) {
@@ -784,12 +791,12 @@ class WidgetAPIController extends ControllerAPI
 
             // Filter by merchant ids
             OrbitInput::get('merchant_ids', function($merchantIds) use ($widgets) {
-                $widgets->whereIn('widgets.merchant_id', $merchantIds);
+                $listOfMerchantIds = (array)$merchantIds;
             });
 
             // Filter by retailer ids
             OrbitInput::get('retailer_ids', function($retailerIds) use ($widgets) {
-                $widgets->retailerIds($retailerIds);
+                $listOfRetailerIds = (array)$retailerIds;
             });
 
             // Filter by animation
@@ -801,6 +808,34 @@ class WidgetAPIController extends ControllerAPI
             OrbitInput::get('types', function($types) use ($widgets) {
                 $widgets->whereIn('widgets.widget_tyoe', $types);
             });
+
+            // @To do: Replace this hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfMerchantIds = $user->getMyMerchantIds();
+
+                if (empty($listOfMerchantIds)) {
+                    $listOfMerchantIds = [-1];
+                }
+                $widgets->whereIn('widgets.merchant_id', $listOfMerchantIds);
+            } else {
+                if (! empty($listOfMerchantIds)) {
+                    $widgets->whereIn('widgets.merchant_id', $listOfMerchantIds);
+                }
+            }
+
+            // @To do: Replace this hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfRetailerIds = $user->getMyRetailerIds();
+
+                if (empty($listOfRetailerIds)) {
+                    $listOfRetailerIds = [-1];
+                }
+                $widgets->whereIn('widget_retailer.retailer_id', $listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $widgets->whereIn('widget_retailer.retailer_id', $listOfRetailerIds);
+                }
+            }
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
