@@ -347,6 +347,7 @@ class MobileCIAPIController extends ControllerAPI
                     $q->where('retailer_id', $retailer->merchant_id);
                 })
                 ->orderBy('widget_order', 'ASC')
+                ->groupBy('widget_type')
                 ->take(4)
                 ->get();
 
@@ -4332,6 +4333,7 @@ class MobileCIAPIController extends ControllerAPI
                                 $issue_coupon->issued_date = Carbon::now();
                                 $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
                                 $issue_coupon->status = 'active';
+                                $issue_coupon->transaction_id = $transaction->transaction_id;
                                 $issue_coupon->save();
                                 $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
                                 $issue_coupon->save();
@@ -4368,6 +4370,7 @@ class MobileCIAPIController extends ControllerAPI
                             $issue_coupon->issued_date = Carbon::now();
                             $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
                             $issue_coupon->status = 'active';
+                            $issue_coupon->transaction_id = $transaction->transaction_id;
                             $issue_coupon->save();
                             $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
                             $issue_coupon->save();
