@@ -311,21 +311,21 @@
                 <div class="col-md-12  main-theme" data-ng-if="!hiddenbtn">
                     <div class="col-md-6" >
                         <div data-ng-show="datapromotion.length && showprice">
-                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p>UPC 1:<% productmodal.upc_code %> </p>
                             <p><h5><del><% productmodal.price %></del></h5></p>
                             <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
 
                         </div>
-                        <div data-ng-show="!datapromotion.length && showprice ">
-                            <p>UPC :<% productmodal.upc_code %> </p>
+                        <div data-ng-show="!datapromotion.length && showprice && dataattrvalue1.length != '1'" >
+                            <p>UPC 2:<% productmodal.upc_code %> </p>
                             <p><h4>IDR : <% productmodal.price %></h3></p>
                         </div>
-                        <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1'">
-                            <p>UPC :<% productmodal.upc_code %> </p>
-                            <p><h4>IDR : <% productmodal.price %></h3></p>
+                        <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1' && showprice">
+                            <p>UPC 3:<% productmodal.upc_code %> </p>
+                            <p><h4>IDR : <%  productmodal.price %></h3></p>
                         </div>
                         <div data-ng-show="datapromotion.length && dataattrvalue1.length == '1'">
-                            <p>UPC :<% productmodal.upc_code %> </p>
+                            <p>UPC 4:<% productmodal.upc_code %> </p>
                             <p><h5><del><% productmodal.price %></del></h5></p>
                             <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
                         </div>

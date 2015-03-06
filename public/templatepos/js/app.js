@@ -157,7 +157,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
-                          //  $scope.logoutfn();
+                            $scope.logoutfn();
                         }else{
                             //do something when error
                         }
@@ -242,14 +242,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
                             //TODO: agung :Refactor this, and try with dfferent data
+                            var b = 0;
                             if($scope.productdetail.attributes.length)for(var a=0; a < $scope.productdetail.attributes.length;a++){
                                 if($scope.productdetail.attributes[a]['attr1'] != null){
-                                     $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
-                                     $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
-                                     $scope.dataattrvalue3[a] = angular.copy($scope.productdetail.attributes[a]);
-                                     $scope.dataattrvalue4[a] = angular.copy($scope.productdetail.attributes[a]);
-                                     $scope.dataattrvalue5[a] = angular.copy($scope.productdetail.attributes[a]);
-                                     $scope.tmpattr[a] = angular.copy($scope.productdetail.attributes[a]);  
+                                     $scope.dataattrvalue1[b] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue2[b] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue3[b] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue4[b] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.dataattrvalue5[b] = angular.copy($scope.productdetail.attributes[a]);
+                                     $scope.tmpattr[b] = angular.copy($scope.productdetail.attributes[a]);  
+                                     b++;
                                 }
                                 
                             }
@@ -314,7 +316,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.loadproductdetail = false;
                             if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
                         }else if(response.code == 13) {
-                           // $scope.logoutfn();
+                            $scope.logoutfn();
                         }else{
                             //do smoething
                         }
@@ -368,14 +370,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.tmpattr = [];
                             $scope.chooseattr = [];
                             //TODO: agung :Refactor this, and try with dfferent data
+                            var b = 0;
                             if($scope.productdetail.attributes.length)for(var a=0; a < $scope.productdetail.attributes.length;a++){
                                 if($scope.productdetail.attributes[a]['attr1'] != null){
-                                    $scope.dataattrvalue1[a] = angular.copy($scope.productdetail.attributes[a]);
-                                    $scope.dataattrvalue2[a] = angular.copy($scope.productdetail.attributes[a]);
-                                    $scope.dataattrvalue3[a] = angular.copy($scope.productdetail.attributes[a]);
-                                    $scope.dataattrvalue4[a] = angular.copy($scope.productdetail.attributes[a]);
-                                    $scope.dataattrvalue5[a] = angular.copy($scope.productdetail.attributes[a]);
-                                    $scope.tmpattr[a] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue1[b] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue2[b] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue3[b] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue4[b] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.dataattrvalue5[b] = angular.copy($scope.productdetail.attributes[a]);
+                                    $scope.tmpattr[b] = angular.copy($scope.productdetail.attributes[a]);
+                                    b++
                                 }
                             }
 
