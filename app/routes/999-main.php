@@ -17,6 +17,16 @@ Route::get('/', ['before' => 'orbit-settings', function()
 
 /*
 |--------------------------------------------------------------------------
+| Orbit Application Version
+|--------------------------------------------------------------------------
+|
+*/
+Route::get('/{api}/orbit-version', ['as' => 'orbit-app-version', function() {
+    return OrbitVersionAPIController::create()->getVersion();
+}])->where('api', '(api|app)');
+
+/*
+|--------------------------------------------------------------------------
 | CORS REQUEST
 |--------------------------------------------------------------------------
 |

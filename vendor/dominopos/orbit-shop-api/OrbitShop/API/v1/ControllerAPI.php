@@ -77,6 +77,13 @@ abstract class ControllerAPI extends Controller
     public $customHeaders = array();
 
     /**
+     * Prettify the output.
+     *
+     * @var boolean
+     */
+    public $prettyPrintJSON = FALSE;
+
+    /**
      * Contructor
      *
      * @param string $contentType - HTTP content type that would be sent to client
@@ -157,7 +164,11 @@ abstract class ControllerAPI extends Controller
                 $json->message = $this->response->message;
                 $json->data = $this->response->data;
 
-                $output = json_encode($json);
+                if ($this->prettyPrintJSON) {
+                    $output = json_encode($json, JSON_PRETTY_PRINT);
+                } else {
+                    $output = json_encode($json);
+                }
 
                 // Allow Cross-Domain Request
                 // http://enable-cors.org/index.html
@@ -285,6 +296,8 @@ abstract class ControllerAPI extends Controller
         // Used to ouput the HTML
         $info->format = 'plain';
         $info->output = '';
+
+        $this->prettyPrintJSON = TRUE;
 
         return $info;
     }
