@@ -1340,10 +1340,10 @@ class CashierAPIController extends ControllerAPI
 
             // delete the cart
             if($cart_id!=NULL){
-                $cart_delete = \Cart::where('status', 'active')->where('cart_id', $cart_id)->first();
+                $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->first();
                 $cart_delete->delete();
                 $cart_delete->save();
-                $cart_detail_delete = \CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+                $cart_detail_delete = \CartDetail::where('status', 'cashier')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
             }
 
 
