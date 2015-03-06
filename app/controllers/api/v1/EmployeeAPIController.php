@@ -1122,7 +1122,10 @@ class EmployeeAPIController extends ControllerAPI
                                 $q->whereHas('retailers', function($q) use($retailer_ids, $merchant_ids) {
                                     $q->whereIn('employee_retailer.retailer_id', $retailer_ids);
                                     $prefix = DB::getTablePrefix();
-                                    $q->whereRaw("(SELECT COUNT(*) from {$prefix}merchants m, {$prefix}merchants r WHERE m.merchant_id = r.parent_id AND m.merchant_id not in ({$merchant_ids})) >= 1");
+                                    $q->whereRaw("(SELECT COUNT(*) from {$prefix}merchants m, {$prefix}merchants r 
+                                        WHERE m.merchant_id = r.parent_id AND m.merchant_id not in (?)) >= 1", 
+                                        array($merchant_ids)
+                                    );
                                 });
                             })
                             ->excludeDeleted()
