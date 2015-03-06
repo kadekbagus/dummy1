@@ -973,7 +973,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
                         if(response.code == 0){
                             $scope.action = 'done';
-                            $scope.cheader = 'TRANSAKSI BERHASIL';
+                            $scope.cheader = $scope.language.transaksiberhasil;
                             $scope.transaction_id = response.data.transaction_id;
                             //customer display
                             $scope.customerdispaly('Change '+$scope.cart.change,'Thank You');
@@ -981,7 +981,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.ticketprint();
                         }else{
                             //do something
-                            $scope.cheader = 'TRANSAKSI GAGAL';
+                            $scope.cheader = $scope.language.transaksigagal;
                         }
                     });
                 };
