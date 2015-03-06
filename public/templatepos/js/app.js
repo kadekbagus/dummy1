@@ -314,7 +314,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if($scope.productdetail.product.attribute4) $scope.countattr++;
                             if($scope.productdetail.product.attribute5) $scope.countattr++;
                             $scope.loadproductdetail = false;
-                            if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
+                            if(attr1 == null ) $scope.inserttocartFn();
                         }else if(response.code == 13) {
                             $scope.logoutfn();
                         }else{
@@ -1030,7 +1030,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              ($scope.scanproduct = function(){
                     serviceAjax.posDataToServer('/pos/scanbarcode').then(function(response){
                         if(response.code == 0){
+                            $scope.productmodal      = [];
                             $scope.productmodal      = response['data'];
+                            $scope.showprice         = false;
+                            $scope.hiddenbtn         = false;
                             var check = 1;
                             $scope.variantstmp ={};
                             if($scope.productmodal['variants'].length > 1){
@@ -1048,8 +1051,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.variantstmp['value5']                =  $scope.productmodal['variants'][0]['attribute_value5'] != null ? $scope.productmodal['variants'][0]['attribute_value5']['value'] :'';
                                 check = null;
                             }
-                             $scope.cancelRequestService();
-                            //if($scope.productmodal['attribute_id1'] != null)
+                           
                             $scope.getpromotionScanproduct($scope.productmodal,false,check);
 
                             $scope.scanproduct();

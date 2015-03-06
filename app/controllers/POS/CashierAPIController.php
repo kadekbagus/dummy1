@@ -1290,7 +1290,7 @@ class CashierAPIController extends ControllerAPI
                             if ($issued <= $c->maximum_issued_coupon) {
                                 $issue_coupon = new IssuedCoupon;
                                 $issue_coupon->promotion_id = $c->promotion_id;
-                                $issuedcoupon->transaction_id = $transaction->transaction_id;
+                                $issue_coupon->transaction_id = $transaction->transaction_id;
                                 $issue_coupon->issued_coupon_code = '';
                                 $issue_coupon->user_id = $customer_id;
                                 $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
