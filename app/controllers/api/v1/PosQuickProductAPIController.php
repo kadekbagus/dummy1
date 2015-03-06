@@ -706,6 +706,11 @@ class PosQuickProductAPIController extends ControllerAPI
                 $posQuickProducts->whereIn('pos_quick_products.pos_quick_product_id', $posQuickIds);
             });
 
+            // Filter by status
+            OrbitInput::get('status', function($status) use ($posQuickProducts) {
+                $posQuickProducts->whereIn('pos_quick_products.status', $status);
+            });
+
             // Filter by merchant ids
             OrbitInput::get('merchant_ids', function($merchantIds) use ($posQuickProducts) {
                 // $posQuickProducts->whereIn('pos_quick_products.merchant_id', $merchantIds);
@@ -714,11 +719,14 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Filter by retailer ids
             OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
-                // $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
-                $listOfRetailerIds = (array)$retailerIds;
+                if ($user->isSuperAdmin()) {
+                    $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
+                }
             });
 
-            // @To do: Replace this stupid hacks
+            // @Todo:
+            // 1. Replace this stupid hacks
+            // 2. Look also for retailer ids
             if (! $user->isSuperAdmin()) {
                 $listOfMerchantIds = $user->getMyMerchantIds();
 
@@ -729,20 +737,6 @@ class PosQuickProductAPIController extends ControllerAPI
             } else {
                 if (! empty($listOfMerchantIds)) {
                     $posQuickProducts->whereIn('pos_quick_products.merchant_id', $listOfMerchantIds);
-                }
-            }
-
-            // @To do: Repalce this stupid hacks
-            if (! $user->isSuperAdmin()) {
-                $listOfRetailerIds = $user->getMyRetailerIds();
-
-                if (empty($listOfRetailerIds)) {
-                    $listOfRetailerIds = [-1];
-                }
-                $posQuickProducts->whereIn('product_retailer.retailer_id', $listOfRetailerIds);
-            } else {
-                if (! empty($listOfRetailerIds)) {
-                    $posQuickProducts->whereIn('product_retailer.retailer_id', $listOfRetailerIds);
                 }
             }
 
