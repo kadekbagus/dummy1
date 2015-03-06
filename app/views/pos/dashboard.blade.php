@@ -205,7 +205,7 @@
         <div class="modal-content" style="width: 400px;  margin: 30px auto;" >
             <div data-ng-show="!loadproductdetail" data-ng-init="loadproductdetail = false">
               <div class="modal-header"  data-ng-if="hiddenbtn">
-                 <button class="btn  close closemodal"  data-dismiss="modal" type="button">
+                 <button class="btn  close closemodal" data-dismiss="modal" type="button">
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                  </button>
                    <h4 class="modal-title text-center" id="myModalLabel"><b>PRODUK DETAIL</b></h4>
