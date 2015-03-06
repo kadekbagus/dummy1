@@ -1460,11 +1460,11 @@ class CashierAPIController extends ControllerAPI
             }
 
             // Check the device exist or not
-            // if(!file_exists(Config::get('orbit.devices.printer.params')))
-            // {
-            //     $message = 'Printer not found';
-            //     ACL::throwAccessForbidden($message);
-            // }
+            if(!file_exists(Config::get('orbit.devices.printer.params')))
+            {
+                $message = 'Printer not found';
+                ACL::throwAccessForbidden($message);
+            }
 
             $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
@@ -1491,6 +1491,8 @@ class CashierAPIController extends ControllerAPI
                 // echo $key." ".$value['coupon']['end_date']."<br/>";
                 // echo $key." ".$value['coupon']['issued_coupon_code']."<br/>";
                 if($key==0){
+                  $acquired_coupon .= " \n";
+                  $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
                   $acquired_coupon .= '----------------------------------------'." \n";  
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
@@ -1651,21 +1653,21 @@ class CashierAPIController extends ControllerAPI
             $footer .= $this->just40CharMid('Powered by DominoPos');
             $footer .= $this->just40CharMid('www.dominopos.com');
             $footer .= '----------------------------------------'." \n";
-            if(empty($acquired_coupon) || $acquired_coupon==""){
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-                $footer .= " \n";
-            }
+            // if(empty($acquired_coupon) || $acquired_coupon==""){
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            // $footer .= " \n";
+            // $footer .= " \n";
+            // }
 
 
             $file = storage_path()."/views/receipt.txt";
 
             if(!empty($cart_based_promo)){
-                $write = $head.$product.$cart_based_promo.$pay.$footer.$acquired_coupon;
+                $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
             }else{
-                $write = $head.$product.$pay.$footer.$acquired_coupon;
+                $write = $head.$product.$pay.$acquired_coupon.$footer;
             }
 
             $fp = fopen($file, 'w');
