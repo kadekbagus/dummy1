@@ -372,8 +372,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -516,8 +516,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseOK()
                             ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -846,8 +846,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -1201,8 +1201,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -1473,8 +1473,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -1756,8 +1756,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -1808,7 +1808,6 @@ class MobileCIAPIController extends ControllerAPI
 
             return View::make('mobile-ci.promotion-list', array('page_title' => 'PROMOTIONS', 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Promotion List');
             $activityPage->setUser($user)
                             ->setActivityName('view_page_promotion_list')
@@ -1818,7 +1817,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            return $e->getMessage();
+            return $this->redirectIfNotLoggedIn($e);                            
+            // return $e->getMessage();
         }
     }
 
@@ -1875,7 +1875,6 @@ class MobileCIAPIController extends ControllerAPI
 
             return View::make('mobile-ci.coupon-list', array('page_title' => Lang::get('mobileci.page_title.coupons'), 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Coupon List');
             $activityPage->setUser($user)
                             ->setActivityName('view_page_coupon_list')
@@ -1885,7 +1884,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            return $e->getMessage();
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e->getMessage();
         }
     }
 
@@ -2178,19 +2178,17 @@ class MobileCIAPIController extends ControllerAPI
             return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
             
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
-            // if($e->getMessage() === 'Invalid session data.') {
-                $activityCategoryNotes = sprintf('Category viewed: %s', $family_id);
-                $activityCategory->setUser($user)
-                                ->setActivityName('view_catalogue')
-                                ->setActivityNameLong('View Catalogue Failed')
-                                ->setObject(null)
-                                ->setModuleName('Catalogue')
-                                ->setNotes($e->getMessage())
-                                ->responseFailed()
-                                ->save();
-                return $e->getMessage();
-            // }
+            $activityCategoryNotes = sprintf('Category viewed: %s', $family_id);
+            $activityCategory->setUser($user)
+                            ->setActivityName('view_catalogue')
+                            ->setActivityNameLong('View Catalogue Failed')
+                            ->setObject(null)
+                            ->setModuleName('Catalogue')
+                            ->setNotes($e->getMessage())
+                            ->responseFailed()
+                            ->save();
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e->getMessage();
         }
         
     }
@@ -2427,19 +2425,6 @@ class MobileCIAPIController extends ControllerAPI
                     $product->is_new = false;
                 }
             }
-            // dd($subfamilies);
-            // $listOfRec = $products;
-            // $search_limit = Config::get('orbit.shop.search_limit');
-            // if($totalRec>$search_limit) {
-            //     $data = new stdclass();
-            //     $data->status = 0;
-            // }else{
-            //     $data = new stdclass();
-            //     $data->status = 1;
-            //     $data->total_records = $totalRec;
-            //     $data->returned_records = count($listOfRec);
-            //     $data->records = $listOfRec;
-            // }
 
             $data = new stdclass();
             $data->records = $listOfRec;
@@ -2452,10 +2437,8 @@ class MobileCIAPIController extends ControllerAPI
             // return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
             
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
-            // if($e->getMessage() === 'Invalid session data.') {
-                return $e->getMessage();
-            // }
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e->getMessage();
         }
         
     }
@@ -2637,7 +2620,6 @@ class MobileCIAPIController extends ControllerAPI
             return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
         
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
             $activityProductNotes = sprintf('Product viewed: %s', $product_id);
             $activityProduct->setUser($user)
                             ->setActivityName('view_product')
@@ -2648,7 +2630,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($e->getMessage())
                             ->responseFailed()
                             ->save();
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -2685,26 +2668,8 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $product;
 
-            // $activityPageNotes = sprintf('Popup viewed: %s', 'Product');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_product')
-            //                 ->setActivityNameLong('View (Product Popup)')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseOK()
-            //                 ->save();
-
             return $this->render();
         } catch (Exception $e) {
-            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_product')
-            //                 ->setActivityNameLong('View (Product Popup) Failed')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseFailed()
-            //                 ->save();
-
             return $this->redirectIfNotLoggedIn($e);
             // return $e->getMessage();
         }
@@ -2742,27 +2707,10 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $promotion;
 
-            // $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Promotion');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_cart_promo')
-            //                 ->setActivityNameLong('View (Cart Promotion Popup)')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseOK()
-            //                 ->save();
-
             return $this->render();
         } catch (Exception $e) {
-            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Promotion');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_cart_promo')
-            //                 ->setActivityNameLong('View (Cart Promotion Popup) Failed')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseFailed()
-            //                 ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -2798,27 +2746,10 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $promotion;
 
-            // $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Coupon');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_cart_coupon')
-            //                 ->setActivityNameLong('View (Cart Coupon Popup)')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseOK()
-            //                 ->save();
-
             return $this->render();
         } catch (Exception $e) {
-            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Coupon');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_cart_coupon')
-            //                 ->setActivityNameLong('View (Cart Coupon Popup) Failed')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseFailed()
-            //                 ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -2837,8 +2768,8 @@ class MobileCIAPIController extends ControllerAPI
 
             return $this->render();
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -2949,41 +2880,13 @@ class MobileCIAPIController extends ControllerAPI
                     
                 '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id));
 
-            // $promotion = C oupon::whereHas('issuedcoupons', function($q) use($user)
-            //     {
-            //         $q->active()->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now());
-            //     })
-            //     ->whereHas('redeemretailers', function($q) use($retailer)
-            //     {
-            //         $q->where('promotion_retailer_redeem', $retailer->merchant_id);
-            //     })->active()->where('promotion_type', 'product')->first();
-
             $this->response->message = 'success';
             $this->response->data = $coupons;
-            // dd($coupons);
-            // $activityPageNotes = sprintf('Popup viewed: %s', 'Product Coupon');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_product_coupon')
-            //                 ->setActivityNameLong('View (Product Coupon Popup)')
-            //                 ->setObject(null)
-            //                 ->setModuleName('Coupon')
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseOK()
-            //                 ->save();
 
             return $this->render();
         } catch (Exception $e) {
-            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Product Coupon');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_product_coupon')
-            //                 ->setActivityNameLong('View (Product Coupon Popup) Failed')
-            //                 ->setObject(null)
-            //                 ->setModuleName('Coupon')
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseFailed()
-            //                 ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -3015,28 +2918,10 @@ class MobileCIAPIController extends ControllerAPI
             $this->response->message = 'success';
             $this->response->data = $coupon;
 
-            // $activityPageNotes = sprintf('Popup viewed: %s', 'Cart Product Coupon');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup__cart_product_coupon')
-            //                 ->setActivityNameLong('View (Cart Product Coupon Popup)')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseOK()
-            //                 ->save();
-
-
             return $this->render();
         } catch (Exception $e) {
-            // $activityPageNotes = sprintf('Failed to view Popup: %s', 'Cart Product Coupon');
-            // $activityPage->setUser($user)
-            //                 ->setActivityName('view_popup_cart_product_coupon')
-            //                 ->setActivityNameLong('View (Cart Product Coupon Popup) Failed')
-            //                 ->setObject(null)
-            //                 ->setNotes($activityPageNotes)
-            //                 ->responseFailed()
-            //                 ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -3080,8 +2965,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -3477,7 +3362,6 @@ class MobileCIAPIController extends ControllerAPI
             $this->commit();
 
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
             $activityCartNotes = sprintf('Add to cart: %s', $product_id);
             $activityCart->setUser($user)
                             ->setActivityName('add_to_cart')
@@ -3487,8 +3371,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityCartNotes)
                             ->responseFailed()
                             ->save();
-
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
         
         return $this->render();
@@ -3604,7 +3488,7 @@ class MobileCIAPIController extends ControllerAPI
 
         } catch (Exception $e) {
             $this->rollback();
-            // return $this->redirectIfNotLoggedIn($e);
+            
             $activityCartNotes = sprintf('Use Coupon Failed : %s', $used_coupon_id);
             $activityCart->setUser($user)
                             ->setActivityName('use_coupon')
@@ -3614,8 +3498,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityCartNotes)
                             ->responseFailed()
                             ->save();
-
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
         
         return $this->render();
@@ -3701,8 +3585,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
         
         return $this->render();
@@ -3793,8 +3677,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -3855,8 +3739,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -3932,7 +3816,6 @@ class MobileCIAPIController extends ControllerAPI
             return $this->render();
 
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
             $this->rollback();
             $activityPageNotes = sprintf('Failed to update cart item id: ' . $cartdetailid . ' quantity to %s', $quantity);
             $activityPage->setUser($user)
@@ -3943,7 +3826,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseFailed()
                             ->save();
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4407,7 +4291,6 @@ class MobileCIAPIController extends ControllerAPI
             return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction' => $transaction, 'acquired_coupons' => $acquired_coupons));
 
         } catch (Exception $e) {
-            // $activityPageNotes = sprintf('Failed to view Page: %s', 'Category');
             $this->rollback();
             $activity->setUser($user)
                             ->setActivityName($activity_payment)
@@ -4417,8 +4300,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($e->getMessage())
                             ->responseFailed()
                             ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4459,8 +4342,8 @@ class MobileCIAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed()
                     ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4501,8 +4384,8 @@ class MobileCIAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed()
                     ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4541,8 +4424,8 @@ class MobileCIAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed()
                     ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4584,8 +4467,8 @@ class MobileCIAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed()
                     ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4624,8 +4507,8 @@ class MobileCIAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed()
                     ->save();
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e;
         }
     }
 
@@ -4936,8 +4819,8 @@ class MobileCIAPIController extends ControllerAPI
 
             return $cartdata;
         } catch (Exception $e) {
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e->getMessage();
+            return $this->redirectIfNotLoggedIn($e);
+            // return $e->getMessage();
         }
     }
 
