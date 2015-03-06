@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class IssuedCouponAPIController extends ControllerAPI
 {
@@ -682,7 +683,7 @@ class IssuedCouponAPIController extends ControllerAPI
             });
             $issuedcoupons->orderBy($sortBy, $sortMode);
 
-            $totalIssuedCoupons = $_issuedcoupons->count();
+            $totalIssuedCoupons = RecordCounter::create($_issuedcoupons)->count();
             $listOfIssuedCoupons = $issuedcoupons->get();
 
             $data = new stdclass();

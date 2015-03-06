@@ -596,7 +596,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             });
             $transactions->orderBy($sortBy, $sortMode);
 
-            $totalTransactions = $_transactions->count();
+            $totalTransactions = RecordCounter::create($_transactions)->count();
             $listOfTransactions = $transactions->get();
 
             $data = new stdclass();

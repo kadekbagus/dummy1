@@ -11,6 +11,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class ProductAttributeAPIController extends ControllerAPI
 {
@@ -187,7 +188,7 @@ class ProductAttributeAPIController extends ControllerAPI
             });
             $attributes->orderBy($sortBy, $sortMode);
 
-            $totalAttributes = $_attributes->count();
+            $totalAttributes = RecordCounter::create($_attributes)->count();
             $listOfAttributes = $attributes->get();
 
             $data = new stdclass();

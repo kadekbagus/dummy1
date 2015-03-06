@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class PromotionAPIController extends ControllerAPI
 {
@@ -1228,7 +1229,7 @@ class PromotionAPIController extends ControllerAPI
                 $promotions->orderBy($sortBy, $sortMode);
             }
 
-            $totalPromotions = $_promotions->count();
+            $totalPromotions = RecordCounter::create($_promotions)->count();
             $listOfPromotions = $promotions->get();
 
             $data = new stdclass();

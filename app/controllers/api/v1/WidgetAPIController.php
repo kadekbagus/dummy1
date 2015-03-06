@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class WidgetAPIController extends ControllerAPI
 {
@@ -888,7 +889,7 @@ class WidgetAPIController extends ControllerAPI
             });
             $widgets->orderBy($sortBy, $sortMode);
 
-            $totalWidgets = $_widgets->count();
+            $totalWidgets = RecordCounter::create($_widgets)->count();
             $listOfWidgets = $widgets->get();
 
             $data = new stdclass();

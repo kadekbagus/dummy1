@@ -11,6 +11,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use Arrays\Util\DuplicateChecker as ArrayChecker;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class ProductAPIController extends ControllerAPI
 {
@@ -920,7 +921,7 @@ class ProductAPIController extends ControllerAPI
             });
             $products->orderBy($sortBy, $sortMode);
 
-            $totalRec = $_products->count();
+            $totalRec = RecordCounter::create($_products)->count();
             $listOfRec = $products->get();
 
             $data = new stdclass();

@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class CategoryAPIController extends ControllerAPI
 {
@@ -825,7 +826,7 @@ class CategoryAPIController extends ControllerAPI
             });
             $categories->orderBy($sortBy, $sortMode);
 
-            $totalCategories = $_categories->count();
+            $totalCategories = RecordCounter::create($_categories)->count();
             $listOfCategories = $categories->get();
 
             $data = new stdclass();

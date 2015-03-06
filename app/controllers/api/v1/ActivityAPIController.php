@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class ActivityAPIController extends ControllerAPI
 {
@@ -347,7 +348,7 @@ class ActivityAPIController extends ControllerAPI
             });
             $activities->orderBy($sortBy, $sortMode);
 
-            $totalActivities = $_activities->count();
+            $totalActivities = RecordCounter::create($_activities)->count();
             $listOfActivities = $activities->get();
 
             $data = new stdclass();

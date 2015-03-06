@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class RetailerAPIController extends ControllerAPI
 {
@@ -1345,7 +1346,7 @@ class RetailerAPIController extends ControllerAPI
             });
             $retailers->orderBy($sortBy, $sortMode);
 
-            $totalRetailers = $_retailers->count();
+            $totalRetailers = RecordCounter::create($_retailers)->count();
             $listOfRetailers = $retailers->get();
 
             $data = new stdclass();

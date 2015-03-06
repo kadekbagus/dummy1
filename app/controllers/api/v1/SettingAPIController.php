@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class SettingAPIController extends ControllerAPI
 {
@@ -428,7 +429,7 @@ class SettingAPIController extends ControllerAPI
             });
             $settings->orderBy($sortBy, $sortMode);
 
-            $totalSettings = $_settings->count();
+            $totalSettings = RecordCounter::create($_settings)->count();
             $listOfSettings = $settings->get();
 
             $data = new stdclass();

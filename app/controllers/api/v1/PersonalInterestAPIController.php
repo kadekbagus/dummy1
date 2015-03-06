@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class PersonalInterestAPIController extends ControllerAPI
 {
@@ -162,7 +163,7 @@ class PersonalInterestAPIController extends ControllerAPI
             });
             $interests->orderBy($sortBy, $sortMode);
 
-            $totalPersonalInterest = $_interests->count();
+            $totalPersonalInterest = RecordCounter::create($_interests)->count();
             $listOfPersonalInterest = $interests->get();
 
             $data = new stdclass();

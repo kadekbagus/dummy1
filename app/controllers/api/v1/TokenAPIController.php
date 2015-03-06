@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class TokenAPIController extends ControllerAPI
 {
@@ -117,7 +118,7 @@ class TokenAPIController extends ControllerAPI
             });
             $tokens->orderBy($sortBy, $sortMode);
 
-            $totalToken = $_token->count();
+            $totalToken = RecordCounter::create($_token)->count();
             $listToken = $tokens->get();
 
             $data = new stdclass();

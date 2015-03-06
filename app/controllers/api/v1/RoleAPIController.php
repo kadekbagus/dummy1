@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class RoleAPIController extends ControllerAPI
 {
@@ -167,7 +168,7 @@ class RoleAPIController extends ControllerAPI
             });
             $roles->orderBy($sortBy, $sortMode);
 
-            $totalRole = $_roles->count();
+            $totalRole = RecordCounter::create($_roles)->count();
             $listOfRole = $roles->get();
 
             $data = new stdclass();

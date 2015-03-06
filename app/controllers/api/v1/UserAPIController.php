@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class UserAPIController extends ControllerAPI
 {
@@ -1056,7 +1057,7 @@ class UserAPIController extends ControllerAPI
             });
             $users->orderBy($sortBy, $sortMode);
 
-            $totalUsers = $_users->count();
+            $totalUsers = RecordCounter::create($_users)->count();
             $listOfUsers = $users->get();
 
             $data = new stdclass();
@@ -1379,7 +1380,7 @@ class UserAPIController extends ControllerAPI
             });
             $users->orderBy($sortBy, $sortMode);
 
-            $totalUsers = $_users->count();
+            $totalUsers = RecordCounter::create($_users)->count();
             $listOfUsers = $users->get();
 
             $data = new stdclass();

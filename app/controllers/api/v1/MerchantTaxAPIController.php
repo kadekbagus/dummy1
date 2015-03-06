@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class MerchantTaxAPIController extends ControllerAPI
 {
@@ -198,7 +199,7 @@ class MerchantTaxAPIController extends ControllerAPI
             });
             $taxes->orderBy($sortBy, $sortMode);
 
-            $totalRec = $_taxes->count();
+            $totalRec = RecordCounter::create($_taxes)->count();
             $listOfRec = $taxes->get();
 
             $data = new stdclass();

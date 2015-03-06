@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class CountryAPIController extends ControllerAPI
 {
@@ -120,7 +121,7 @@ class CountryAPIController extends ControllerAPI
             });
             $countries->orderBy($sortBy, $sortMode);
 
-            $totalCountry = $_countries->count();
+            $totalCountry = RecordCounter::create($_countries)->count();
             $listCountry = $countries->get();
 
             $data = new stdclass();

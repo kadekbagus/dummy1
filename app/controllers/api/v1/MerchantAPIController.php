@@ -10,6 +10,7 @@ use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use Text\Util\LineChecker;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class MerchantAPIController extends ControllerAPI
 {
@@ -945,7 +946,7 @@ class MerchantAPIController extends ControllerAPI
             });
             $merchants->orderBy($sortBy, $sortMode);
 
-            $totalRec = $_merchants->count();
+            $totalRec = RecordCounter::create($_merchants)->count();
             $listOfRec = $merchants->get();
 
             $data = new stdclass();

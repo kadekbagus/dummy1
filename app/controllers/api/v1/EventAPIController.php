@@ -9,6 +9,7 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
+use Helper\EloquentRecordCounter as RecordCounter;
 
 class EventAPIController extends ControllerAPI
 {
@@ -1149,7 +1150,7 @@ class EventAPIController extends ControllerAPI
             });
             $events->orderBy($sortBy, $sortMode);
 
-            $totalEvents = $_events->count();
+            $totalEvents = RecordCounter::create($_events)->count();
             $listOfEvents = $events->get();
 
             $data = new stdclass();
