@@ -264,4 +264,110 @@ abstract class ControllerAPI extends Controller
 
         return $code;
     }
+
+    /**
+     * Used for easter eggs :)
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     */
+    protected function formatInfo($info)
+    {
+        $do = isset($_GET['do']) ? $_GET['do'] : '';
+        $date = gmdate('Y-m-d');
+
+        if ($do !== md5('easter-eggs' . $date)) {
+            return $info;
+        }
+
+        $info->message = 'Congratulation you are the gifted one! Normally only Einstein or Tesla who could open this page.';
+        $info->the_team = $this->createEasterEggs();
+
+        // Used to ouput the HTML
+        $info->format = 'plain';
+        $info->output = '';
+
+        return $info;
+    }
+
+    /**
+     * Create an easter eggs :)
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return array
+     */
+    protected function createEasterEggs()
+    {
+        $data = [
+            'rio' => [
+                'name'      => 'Rio Astamal',
+                'email'     => 'rio@dominopos.com',
+                'role'      => 'Lead Developer',
+                'message'   => 'Born to be root#',
+                'image'     => 'http://rioastamal.net/portfolio/img/me-gray.jpg?build=13'
+            ],
+            'ahmad' => [
+                'name'      => 'Ahmad Anshori',
+                'email'     => 'ahmad@dominopos.com',
+                'role'      => 'Backend Developer',
+                'message'   => 'More coffee please?',
+                'image'     => 'https://avatars0.githubusercontent.com/u/6212359?v=3&s=460'
+            ],
+            'tian' => [
+                'name'      => 'Tian Lim',
+                'email'     => 'tian@dominopos.com',
+                'role'      => 'Backend Developer',
+                'message'   => '???',
+                'image'     => '#'
+            ],
+            'kadek' => [
+                'name'      => 'Kadek Bagus',
+                'email'     => 'kadek@dominopos.com',
+                'role'      => 'Backend Developer',
+                'message'   => 'I\'m the bad boy',
+                'image'     => '#'
+            ],
+            'danish' => [
+                'name'      => 'Danish Kalesaran',
+                'email'     => 'danish@dominopos.com',
+                'role'      => 'Front End Warrior',
+                'message'   => 'Through rancor find serenity',
+                'image'     => '#'
+            ],
+            'agung' => [
+                'name'      => 'Agung Julisman',
+                'email'     => 'agung@dominopos.com',
+                'role'      => 'Front End Developer',
+                'message'   => 'I love what i do.',
+                'image'     => '#'
+            ],
+            'lanang' => [
+                'name'      => 'Lanang Satrio Hutomo',
+                'email'     => 'lanang@dominopos.com',
+                'role'      => 'Graphic and UX Designer',
+                'message'   => 'Do you wanna to watch an opera? I\'m the actor',
+                'image'     => '#'
+            ],
+            'riko' => [
+                'name'      => 'Riko Suswidiantoro',
+                'email'     => 'riko@dominopos.com',
+                'role'      => 'System Engineer',
+                'message'   => 'Odd person, adventurer, automotive, sport, this is me',
+                'image'     => '#'
+            ],
+        ];
+        $eggs = [];
+
+        foreach ($data as $person) {
+            $tmp = new \stdClass();
+            $tmp->name = $person['name'];
+            $tmp->email = $person['email'];
+            $tmp->role = $person['role'];
+            $tmp->message = $person['message'];
+            $tmp->image = $person['image'];
+
+            $eggs[] = $tmp;
+        }
+
+        return $eggs;
+    }
 }
