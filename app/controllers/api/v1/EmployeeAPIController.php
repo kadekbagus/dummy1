@@ -64,7 +64,7 @@ class EmployeeAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.employee.postnewemployee.after.authz', array($this, $user));
-
+            // dd();
             $this->registerCustomValidation();
 
             $loginId = OrbitInput::post('username');
@@ -1113,10 +1113,28 @@ class EmployeeAPIController extends ControllerAPI
     {
         // Check username, it should not exists
         Validator::extend('orbit.exists.username', function ($attribute, $value, $parameters) {
-            $user = User::excludeDeleted()
-                        ->where('username', $value)
-                        ->first();
-
+            $merchantowner = $this->api->user;
+            $retailer_ids = $merchantowner->getMyRetailerIds();
+            $merchant_ids = implode(', ', $merchantowner->getMyMerchantIds());
+           
+            if (! empty($retailer_ids) && ! empty($merchant_ids)) {
+                $user = User::whereHas('employee',  function($q) use($retailer_ids, $merchant_ids) {
+                                $q->whereHas('retailers', function($q) use($retailer_ids, $merchant_ids) {
+                                    $q->whereIn('employee_retailer.retailer_id', $retailer_ids);
+                                    $prefix = DB::getTablePrefix();
+                                    $q->whereRaw("(SELECT COUNT(*) from {$prefix}merchants m, {$prefix}merchants r 
+                                        WHERE m.merchant_id = r.parent_id AND m.merchant_id not in (?)) >= 1", 
+                                        array($merchant_ids)
+                                    );
+                                });
+                            })
+                            ->excludeDeleted()
+                            ->where('username', $value)
+                            ->first();
+            } else {
+                return FALSE;
+            }
+            
             if (! empty($user)) {
                 return FALSE;
             }
