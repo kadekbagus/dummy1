@@ -1287,7 +1287,7 @@ class CashierAPIController extends ControllerAPI
                         foreach($coupons as $c){
                             $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
                             // dd($issued);
-                            if ($issued <= $c->maximum_issued_coupon) {
+                            if ($issued < $c->maximum_issued_coupon) {
                                 $issue_coupon = new IssuedCoupon;
                                 $issue_coupon->promotion_id = $c->promotion_id;
                                 $issue_coupon->transaction_id = $transaction->transaction_id;
@@ -1320,7 +1320,7 @@ class CashierAPIController extends ControllerAPI
                 if(!empty($coupon_carts)){
                     foreach($coupon_carts as $kupon){
                         $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
-                        if ($issued <= $kupon->maximum_issued_coupon) {
+                        if ($issued < $kupon->maximum_issued_coupon) {
                             $issue_coupon = new IssuedCoupon;
                             $issue_coupon->promotion_id = $kupon->promotion_id;
                             $issue_coupon->transaction_id = $transaction->transaction_id;
@@ -4724,7 +4724,7 @@ class CashierAPIController extends ControllerAPI
 
             $this->response->data = $cart_delete;
             $this->commit();
-            
+
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
