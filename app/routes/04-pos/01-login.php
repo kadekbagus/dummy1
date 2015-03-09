@@ -167,4 +167,11 @@ Route::group(array('before' => 'orbit-settings'), function()
     });
 
     Route::get('/app/v1/pos/getcartcashier', 'IntermediateAuthController@POS\Cashier_getCartCashier');
+
+    // delete cart cashier
+    Route::post('/api/v1/pos/deletecart', function () {
+        return POS\CashierAPIController::create()->postDeleteCart();
+    });
+
+    Route::post('/app/v1/pos/deletecart', 'IntermediateAuthController@POS\Cashier_postDeleteCart');
 });

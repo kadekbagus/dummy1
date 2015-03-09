@@ -4681,6 +4681,77 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
+    /**
+     * POST - Delete Cart
+     *
+     * @author Kadek <kadek@dominopos.com>
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postDeleteCart()
+    {
+        try {
+            $cart_id = trim(OrbitInput::post('cart_id'));
+
+            $validator = Validator::make(
+                array(
+                    'cart_id' => $cart_id,
+                ),
+                array(
+                    'cart_id' => 'required',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->first();
+
+            if (! is_object($cart_delete)) {
+                $message = "cart not found";
+                ACL::throwAccessForbidden($message);
+            }
+
+            $cart_delete->delete();
+            $cart_delete->save();
+            $cart_detail_delete = \CartDetail::where('status', 'cashier')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
+
+            $this->response->data = $cart_delete;
+            $this->commit();
+            
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        return $this->render();
+    }
+
+
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
