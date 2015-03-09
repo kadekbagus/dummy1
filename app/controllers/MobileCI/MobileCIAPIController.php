@@ -2885,8 +2885,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
@@ -4107,12 +4106,12 @@ class MobileCIAPIController extends ControllerAPI
                         )
                     )
                     WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
-
+                    
                     if ($coupons!=NULL) {
                         foreach ($coupons as $c) {
                             $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
 
-                            if ($issued <= $c->maximum_issued_coupon) {
+                            if ($issued < $c->maximum_issued_coupon) {
                                 $issue_coupon = new IssuedCoupon();
                                 $issue_coupon->promotion_id = $c->promotion_id;
                                 $issue_coupon->issued_coupon_code = '';
@@ -4146,8 +4145,8 @@ class MobileCIAPIController extends ControllerAPI
                 if (!empty($coupon_carts)) {
                     foreach ($coupon_carts as $kupon) {
                         $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
-                        
-                        if ($issued <= $kupon->maximum_issued_coupon) {
+                        // dd($issued . ' | ' . $kupon->maximum_issued_coupon);
+                        if ($issued < $kupon->maximum_issued_coupon) {
                             $issue_coupon = new IssuedCoupon();
                             $issue_coupon->promotion_id = $kupon->promotion_id;
                             $issue_coupon->issued_coupon_code = '';
