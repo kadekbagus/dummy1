@@ -146,8 +146,9 @@ class Uploader
 
             // Check for allowed file extension
             $allowedExtensions = $this->config->getConfig('file_type');
-            $ext = substr(strrchr($file->name, '.'), 1);
-            if (! in_array($ext, $allowedExtensions)) {
+            $allowedExtensionsLower = array_map('strtolower', $allowedExtensions);
+            $ext = strtolower(substr(strrchr($file->name, '.'), 1));
+            if (! in_array($ext, $allowedExtensionsLower)) {
                 throw new Exception(
                     $this->message->getMessage('errors.file_type_not_allowed', array(
                         'extension' => '.' . $ext
