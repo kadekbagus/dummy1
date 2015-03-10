@@ -1339,7 +1339,7 @@ class MerchantAPIController extends ControllerAPI
                         ),
                         array(
                             'merchant_tax_id'        => 'orbit.empty.tax',
-                            'tax_name'               => 'required|min:5|max:50|tax_name_exists_but_me:'.$merchant_tax['merchant_tax_id'].','.$updatedmerchant->merchant_id,
+                            'tax_name'               => 'required|max:50|tax_name_exists_but_me:'.$merchant_tax['merchant_tax_id'].','.$updatedmerchant->merchant_id,
                             'tax_type'               => 'orbit.empty.tax_type',
                             'is_delete'              => 'orbit.exists.tax_link_to_product:'.$merchant_tax['merchant_tax_id'],
                         ),
