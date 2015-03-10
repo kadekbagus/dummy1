@@ -174,4 +174,11 @@ Route::group(array('before' => 'orbit-settings'), function()
     });
 
     Route::post('/app/v1/pos/deletecart', 'IntermediateAuthController@POS\Cashier_postDeleteCart');
+
+    // send ticket via email
+    Route::post('/api/v1/pos/sendticketemail', function() {
+        return POS\CashierAPIController::create()->postSendTicketEmail();
+    });
+
+    Route::post('/app/v1/pos/sendticketemail', 'IntermediateAuthController@POS\Cashier_postSendTicketEmail');
 });
