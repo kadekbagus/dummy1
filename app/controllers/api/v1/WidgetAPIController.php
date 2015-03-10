@@ -357,13 +357,8 @@ class WidgetAPIController extends ControllerAPI
                 $widget->widget_slogan = $slogan;
             });
 
-
             OrbitInput::post('widget_order', function($order) use ($widget) {
                 $widget->widget_order = $order;
-            });
-
-            OrbitInput::post('animation', function($animation) use ($widget) {
-                $widget->animation = $animation;
             });
 
             OrbitInput::post('animation', function($animation) use ($widget) {
