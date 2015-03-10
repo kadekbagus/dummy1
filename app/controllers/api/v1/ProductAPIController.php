@@ -229,7 +229,7 @@ class ProductAPIController extends ControllerAPI
                 // This is sucks, why we need check it? The frontend should not send it to us!
                 if ((string)$merchant_tax_id1 !== (string)$updatedproduct->merchant_tax_id1) {
                     if ($productHasTransaction) {
-                        $errorMessage = Lang::get('validation.orbit.exists.product.transactionx', ['name' => $updatedproduct->product_name]);
+                        $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
                         OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
                 }
@@ -1421,7 +1421,7 @@ class ProductAPIController extends ControllerAPI
                     'product_id' => $product_id,
                 ),
                 array(
-                    'product_id' => 'required|numeric|orbit.empty.product',
+                    'product_id' => 'required|numeric|orbit.empty.product|orbit.exists.product_have_transaction',
                 )
             );
 
@@ -1785,6 +1785,23 @@ class ProductAPIController extends ControllerAPI
             }
 
             App::instance('memory:deleted.variants', $variant_objects);
+
+            return TRUE;
+        });
+
+        // Check if product have transaction.
+        Validator::extend('orbit.exists.product_have_transaction', function ($attribute, $value, $parameters) {
+
+            // Check inside transaction details to see if this product has a transaction
+            $transactionDetailProduct = TransactionDetail::transactionJoin()
+                                                         ->where('product_id', $value)
+                                                         ->excludeDeleted('transactions')
+                                                         ->first();
+            if (! empty($transactionDetailProduct)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.product_have_transaction', $transactionDetailProduct);
 
             return TRUE;
         });

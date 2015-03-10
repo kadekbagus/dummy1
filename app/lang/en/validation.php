@@ -96,6 +96,7 @@ return array(
             'orid'                  => 'ORID has already taken by another Retailer.',
             'category_name'         => 'The category name has already been used.',
             'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.',
+            'product_have_transaction' => 'The product has one or more transactions linked to it, so it can not be deleted.',
             'promotion_name'        => 'The promotion name has already been used.',
             'coupon_name'           => 'The coupon name has already been used.',
             'issued_coupon_code'    => 'The coupon code has been redeemed.',
