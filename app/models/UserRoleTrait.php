@@ -128,7 +128,8 @@ trait UserRoleTrait
         $this->prepareEmployeeRetailerCalled = TRUE;
 
         return $query->select('users.*')
-                     ->join('employees', 'employees.user_id', '=', 'users.user_id');
+                     ->join('employees', 'employees.user_id', '=', 'users.user_id')
+                     ->join('employee_retailer', 'employees.employee_id', '=', 'employee_retailer.employee_id');
     }
 
     /**
@@ -151,8 +152,7 @@ trait UserRoleTrait
         }
 
         if (! empty($ids)) {
-            return $query->join('employee_retailer', 'employees.employee_id', '=', 'employee_retailer.employee_id')
-                         ->whereIn('employee_retailer.retailer_id', $ids);
+            return $query->whereIn('employee_retailer.retailer_id', $ids);
         }
 
         return $query;

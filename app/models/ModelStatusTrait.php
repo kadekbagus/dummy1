@@ -35,7 +35,7 @@ trait ModelStatusTrait
      */
     public function scopeActive($query, $table=NULL)
     {
-        return $query->whereStatus($this->appendDot($table) . 'active');
+        return $query->where($this->appendDot($table) . 'status', 'active');
     }
 
     /**
@@ -49,7 +49,7 @@ trait ModelStatusTrait
      */
     public function scopeBlocked($query, $table=NULL)
     {
-        return $query->whereStatus($this->appendDot($table) . 'blocked');
+        return $query->where($this->appendDot($table) . 'status', 'blocked');
     }
 
     /**
@@ -62,7 +62,7 @@ trait ModelStatusTrait
      */
     public function scopePending($query, $table=NULL)
     {
-        return $query->whereStatus($this->appendDot(NULL) . 'pending');
+        return $query->where($this->appendDot($table) . 'status', 'pending');
     }
 
     /**
@@ -75,7 +75,7 @@ trait ModelStatusTrait
      */
     public function scopeInactive($query, $table=NULL)
     {
-        return $query->whereStatus($this->appendDot($table) . 'inactive');
+        return $query->where($this->appendDot($table) . 'status', 'inactive');
     }
 
     /**
@@ -88,7 +88,7 @@ trait ModelStatusTrait
      */
     public function scopeWithDeleted($query, $table=NULL)
     {
-        return $query->whereStatus($this->appendDot($table) . 'deleted');
+        return $query->where($this->appendDot($table) . 'status', 'deleted');
     }
 
     /**
