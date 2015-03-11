@@ -9,7 +9,7 @@ return array(
 
     "page_title"        => array(
         "home"          => "HOME",
-        "catalogue"     => "CATALOG",
+        "catalogue"     => "CATALOGUE",
         "cart"          => "CART",
         "my_account"    => "MY ACCOUNT",
         "transfercart"  => "TRANSFER CART",

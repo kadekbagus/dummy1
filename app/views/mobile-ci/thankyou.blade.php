@@ -290,10 +290,18 @@
                       <td>{{ Lang::get('mobileci.coupon_detail.validity_label') }}</td>
                       <td>{{ date('j M Y', strtotime($acquired_coupon->expired_date)) }}</td>
                     </tr>
-                    <tr>
+                    <?php $c = 0;?>
+                    @foreach($acquired_coupon->coupon->redeemretailers as $redeem_retailer)
+                      @if($c==0)
+                      <tr>
                       <td>{{ Lang::get('mobileci.thank_you.retailer') }}</td>
-                      <td>{{ $acquired_coupon->coupon->redeemretailers[0]->name }}</td>
-                    </tr>
+                      @else
+                      <td>&nbsp;</td>
+                      @endif
+                      <td>{{ $redeem_retailer->name }}</td>
+                      <?php $c++;?>
+                      </tr>
+                    @endforeach
                     <tr>
                         @if($acquired_coupon->coupon->couponrule->discount_object_type == 'product')
                           <td>{{ Lang::get('mobileci.coupon_list.product_label') }}</td>
@@ -321,6 +329,7 @@
                           </td>
                         @else
                           <td>Cart</td>
+                          <td>&nbsp</td>
                         @endif
                       </td>
                     </tr>

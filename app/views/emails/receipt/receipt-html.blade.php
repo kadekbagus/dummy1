@@ -11,9 +11,9 @@
             </div>
             <div style="text-align:center;">
                 <br>
-                Thank you {{ $user->getFullName() }} for your shopping at {{ $retailer->name }}.
+                Thank you {{ $user->getFullName() }} for your shopping at <strong>{{ $retailer->name }}</strong>.
                 <br>
-                Here is a copy of your ticket and some information about your products.
+                Here is a copy of your receipt and some information about your products purcashed on <strong>{{ date('d/m/Y H:i', strtotime($transaction->created_at)) }}</strong>.
                 <br>
                 <h2>Please come see us again soon!</h2>
             </div>
@@ -21,19 +21,19 @@
                 <ul style="margin:0 auto; list-style: none;">
                     @foreach($transactiondetails as $detail)
                     <li style="text-align:center;">● {{ $detail->product->post_sales_url }} : <span style="color : rgb(76, 166, 218); font-weight:bold;">{{ $detail->product_name }}</span>
-                        @if(! is_null($detail->product_attribute_value1))
+                        @if(! empty($detail->product_attribute_value1))
                         / <span style="color : rgb(76, 166, 218); font-weight:bold;">{{ $detail->product_attribute_value1 }}</span>
                         @endif
-                        @if(! is_null($detail->product_attribute_value2))
+                        @if(! empty($detail->product_attribute_value2))
                         / <span style="color : rgb(76, 166, 218); font-weight:bold;">{{ $detail->product_attribute_value2 }}</span>
                         @endif
-                        @if(! is_null($detail->product_attribute_value3))
+                        @if(! empty($detail->product_attribute_value3))
                         / <span style="color : rgb(76, 166, 218); font-weight:bold;">{{ $detail->product_attribute_value3 }}</span>
                         @endif
-                        @if(! is_null($detail->product_attribute_value4))
+                        @if(! empty($detail->product_attribute_value4))
                         / <span style="color : rgb(76, 166, 218); font-weight:bold;">{{ $detail->product_attribute_value4 }}</span>
                         @endif
-                        @if(! is_null($detail->product_attribute_value5))
+                        @if(! empty($detail->product_attribute_value5))
                         / <span style="color : rgb(76, 166, 218); font-weight:bold;">{{ $detail->product_attribute_value5 }}</span>
                         @endif
                     </li>
