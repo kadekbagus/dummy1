@@ -43,8 +43,8 @@ class PosQuickProduct extends Eloquent
                         $join->on('products.product_id', '=', 'pos_quick_products.product_id');
                         $join->on('products.status', '=', DB::raw('"active"'));
                     })
-                    ->join('product_retailer', 'product_retailer.product_id', '=', 'pos_quick_products.product_id')
-                    ->join('merchants', function($join) {
+                    ->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'pos_quick_products.product_id')
+                    ->leftJoin('merchants', function($join) {
                         $join->on('merchants.merchant_id', '=', 'product_retailer.retailer_id');
                         $join->on('merchants.status', '=', DB::raw('"active"'));
                         $join->on('merchants.object_type', '=', DB::raw('"retailer"'));

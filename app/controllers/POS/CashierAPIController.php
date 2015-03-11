@@ -3211,11 +3211,9 @@ class CashierAPIController extends ControllerAPI
             }
 
             // Builder object
-            $posQuickProducts = \PosQuickProduct::joinMerchant()
-                                               ->excludeDeleted('pos_quick_products')
-                                               ->with('product')
-                                               //->where('product_retailer.retailer_id',$retailer->merchant_id);
-                                               ->where('merchants.parent_id', $retailer->parent_id);
+            $posQuickProducts = \PosQuickProduct::excludeDeleted('pos_quick_products')
+                                                ->with('product')
+                                                ->where('pos_quick_products.merchant_id', $retailer->parent_id);
 
             // Filter by ids
             OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
@@ -4839,6 +4837,255 @@ class CashierAPIController extends ControllerAPI
         return trim(str_replace(',','',$x[1]));
     }
 
+    // public function postSendTicketEmail()
+    // {
+    //     try {
+    //         $this->checkAuth();
+    //         $user = $this->api->user;
+
+    //         $retailer = $this->getRetailerInfo();
+    //         $transaction_id = trim(OrbitInput::post('transaction_id'));
+
+    //         $validator = Validator::make(
+    //             array(
+    //                 'transaction_id' => $transaction_id,
+    //             ),
+    //             array(
+    //                 'transaction_id' => 'required|numeric',
+    //             )
+    //         );
+
+    //         // Run the validation
+    //         if ($validator->fails()) {
+    //             $errorMessage = $validator->messages()->first();
+    //             OrbitShopAPI::throwInvalidArgument($errorMessage);
+    //         }
+
+    //         $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+    //         $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
+
+    //         if (! is_object($transaction)) {
+    //             $message = \Lang::get('validation.orbit.empty.transaction');
+    //             ACL::throwAccessForbidden($message);
+    //         }
+
+    //         $this->response->data = $transaction;
+    //         $customer = $transaction->user;
+
+    //         $details = $transaction->details->toArray();
+    //         $detailcoupon = $transaction->detailcoupon->toArray();
+    //         $detailpromotion = $transaction->detailpromotion->toArray();
+    //         $_issuedcoupon = $issuedcoupon->toArray();
+    //         $total_issuedcoupon = count($_issuedcoupon);
+    //         $acquired_coupon = null;
+
+    //         foreach ($_issuedcoupon as $key => $value) {
+    //             if($key==0){
+    //               $acquired_coupon .= " \n";
+    //               $acquired_coupon .= '----------------------------------------'." \n";
+    //               $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
+    //               $acquired_coupon .= '----------------------------------------'." \n";
+    //               $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+    //               $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+    //               $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
+    //               $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+    //             }
+    //             else{
+    //               $acquired_coupon .= '----------------------------------------'." \n";
+    //               $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+    //               $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+    //               $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
+    //               $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+    //               if($key==$total_issuedcoupon-1){
+    //                 $acquired_coupon .= '----------------------------------------'." \n";
+    //               }
+    //             }
+    //         }
+
+    //         foreach ($details as $details_key => $details_value) {
+    //             if($details_key==0){
+    //                 $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+    //             }
+    //             else {
+    //                 $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+    //             }
+    //             foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
+    //                 if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
+    //                     $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);
+    //                 }
+    //             }
+
+    //             foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
+    //                 if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
+    //                     $product .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 25), $detailpromotion_value['value_after_percentage']);
+    //                 }
+    //             }
+    //         }
+
+    //         $product .= '----------------------------------------'." \n";
+
+    //         $promo = FALSE;
+
+    //         foreach ($details as $details_key => $details_value) {
+    //             $x = 0;
+    //             foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
+    //                 if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='cart'){
+    //                     if($x==0){
+    //                         $cart_based_promo = "Cart Promotions"." \n";
+    //                         $promo = TRUE;
+    //                     }
+    //                     $x = $x+1;
+    //                     $promo = TRUE;
+    //                     $cart_based_promo .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 23), $detailpromotion_value['value_after_percentage']);
+    //                 }
+    //             }
+
+    //         }
+
+    //         foreach ($details as $details_key => $details_value) {
+    //             $x = 0;
+    //             foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
+    //                 if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
+    //                     if($x==0){
+    //                         if(!$promo){
+    //                             $cart_based_promo = "Cart Coupons"." \n";
+    //                             $promo = TRUE;
+    //                         } else {
+    //                             $cart_based_promo .= "Cart Coupons"." \n";
+    //                         }
+
+    //                     }
+    //                     $x = $x+1;
+    //                     $promo = TRUE;
+    //                     $cart_based_promo .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 23), $detailcoupon_value['value_after_percentage']);
+    //                 }
+    //             }
+
+    //         }
+
+    //         if($promo){
+    //             $cart_based_promo .= '----------------------------------------'." \n";
+    //         }
+
+    //         $payment = $transaction['payment_method'];
+    //         if($payment=='cash'){$payment='Cash';}
+    //         if($payment=='card'){$payment='Card';}
+
+    //         $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+
+    //         if($transaction['user']==NULL){
+    //             $customer = "Guest";
+    //         }else{
+    //             $customer = $transaction['user']->user_email;
+    //         }
+
+    //         $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
+    //         $bill_no = $transaction['transaction_id'];
+
+    //         $head  = $this->just40CharMid($retailer->parent->name);
+    //         $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
+
+    //         // ticket header
+    //         $ticket_header = $retailer->parent->ticket_header;
+    //         $ticket_header_line = explode("\n", $ticket_header);
+    //         foreach ($ticket_header_line as $line => $value) {
+    //             $head .= $this->just40CharMid($value);
+    //         }
+    //         $head .= '----------------------------------------'." \n";
+    //         $head .= 'Date : '.$date." \n";
+    //         $head .= 'Bill No  : '.$bill_no." \n";
+    //         $head .= 'Cashier : '.$cashier." \n";
+    //         $head .= 'Customer : '.$customer." \n";
+
+    //         $head .= '----------------------------------------'." \n";
+
+    //         $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
+    //         $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
+    //         $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
+    //         $pay  .= " \n";
+    //         $pay  .= $this->leftAndRight('Payment Method', $payment);
+    //         if($payment=='Cash'){
+    //             $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
+    //             $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+    //         }
+    //         if($payment=="Card"){
+    //             $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
+    //         }
+
+    //         $footer  = " \n";
+    //         $footer .= " \n";
+    //         $footer .= " \n";
+
+    //         // ticket footer
+    //         $ticket_footer = $retailer->parent->ticket_footer;
+    //         $ticket_footer_line = explode("\n", $ticket_footer);
+    //         foreach ($ticket_footer_line as $line => $value) {
+    //             $footer .= $this->just40CharMid($value);
+    //         }
+
+    //         $footer .= " \n";
+    //         $footer .= " \n";
+    //         $footer .= " \n";
+    //         $footer .= $this->just40CharMid('Powered by DominoPos');
+    //         $footer .= $this->just40CharMid('www.dominopos.com');
+    //         $footer .= '----------------------------------------'." \n";
+
+    //         $footer .= " \n";
+    //         $footer .= " \n";
+    //         $footer .= " \n";
+
+    //         $filepath = storage_path() . '/views/receipt.txt';
+    //         $transaction_date = str_replace(' ', '_', $transaction->created_at);
+    //         $transaction_date = str_replace(':', '', $transaction->created_at);
+
+    //         // Example Result: recipt-123-2015-03-04_101010.txt
+    //         $attachment_name = sprintf('receipt-%s-%s.txt', $transaction->transaction_id, $transaction_date);
+
+    //         if(!empty($cart_based_promo)){
+    //             $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
+    //         }else{
+    //             $write = $head.$product.$pay.$acquired_coupon.$footer;
+    //         }
+
+    //         $date = str_replace(' ', '_', $transaction->created_at);
+
+    //         $filename = 'receipt-' . $date . '.txt';
+
+    //         $mailviews = array(
+    //             'html' => 'emails.receipt.receipt-html',
+    //             'text' => 'emails.receipt.receipt-text'
+    //         );
+
+    //         $retailer = $this->getRetailerInfo();
+    //         $customer_email = $transaction->user->user_email;
+
+    //         Mail::send($mailviews, array('user' => $user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details), function($message) use($user, $filepath, $attachment_name, $write, $customer_email)
+    //         {
+    //             $message->to($customer_email, $user->getFullName())->subject('Orbit Receipt');
+    //             $message->attachData($write, $attachment_name, ['mime' => 'text/plain']);
+    //         });
+
+    //         $this->response->message = 'success';
+    //     }
+    //     catch (ACLForbiddenException $e) {
+    //         $this->response->code = $e->getCode();
+    //         $this->response->status = 'error';
+    //         $this->response->message = $e->getMessage();
+    //         $this->response->data = null;
+    //     } catch (InvalidArgsException $e) {
+    //         $this->response->code = $e->getCode();
+    //         $this->response->status = 'error';
+    //         $this->response->message = $e->getMessage();
+    //         $this->response->data = null;
+    //     } catch (Exception $e) {
+    //         $this->response->code = $e->getCode();
+    //         $this->response->status = 'error';
+    //         $this->response->message = $e->getMessage();
+    //         $this->response->data = null;
+    //     }
+    //     return $this->render();
+    // }
+
     public function postSendTicketEmail()
     {
         try {
@@ -5041,13 +5288,39 @@ class CashierAPIController extends ControllerAPI
             $transaction_date = str_replace(':', '', $transaction->created_at);
 
             // Example Result: recipt-123-2015-03-04_101010.txt
-            $attachment_name = sprintf('receipt-%s-%s.txt', $transaction->transaction_id, $transaction_date);
+            $attachment_name = sprintf('receipt-%s-%s.png', $transaction->transaction_id, $transaction_date);
 
             if(!empty($cart_based_promo)){
                 $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
             }else{
                 $write = $head.$product.$pay.$acquired_coupon.$footer;
             }
+
+            $fontsize = 12;
+            // if(!isset($_GET['text'])) $_GET['text'] = $write;
+
+            $font_path = public_path() . '/templatepos/courier.ttf';
+            $size = imagettfbbox($fontsize, 0, $font_path, $write);
+            $xsize = abs($size[0]) + abs($size[2]);
+            $ysize = abs($size[5]) + abs($size[1]);
+
+            $image = imagecreate($xsize, $ysize);
+            $white = imagecolorallocate($image, 255, 255, 255);
+            $black = ImageColorAllocate($image, 0, 0, 0);
+            imagettftext($image, $fontsize, 0, abs($size[0]), abs($size[5]), $black, $font_path, $write);
+
+            // header("content-type: image/png");
+            // imagepng($image);
+            // imagedestroy($image);
+
+            ob_start (); 
+
+              $image_data = imagepng($image);
+              $image_data = ob_get_contents (); 
+
+            ob_end_clean (); 
+
+            $base64img = base64_encode($image_data);
 
             $date = str_replace(' ', '_', $transaction->created_at);
 
@@ -5061,10 +5334,10 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $customer_email = $transaction->user->user_email;
 
-            Mail::send($mailviews, array('user' => $user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details), function($message) use($user, $filepath, $attachment_name, $write, $customer_email)
+            Mail::send($mailviews, array('user' => $transaction->user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details, 'transactionuser' => $transaction->user), function($message) use($base64img, $user, $filepath, $attachment_name, $write, $customer_email, $transaction)
             {
-                $message->to($customer_email, $user->getFullName())->subject('Orbit Receipt');
-                $message->attachData($write, $attachment_name, ['mime' => 'text/plain']);
+                $message->to($customer_email, $transaction->user->getFullName())->subject('Orbit Receipt');
+                $message->attachData(base64_decode($base64img), $attachment_name, ['mime' => 'img/png']);
             });
 
             $this->response->message = 'success';
