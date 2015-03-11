@@ -18,12 +18,12 @@
       <div class="mobile-ci home-widget widget-container">
             @foreach($widgets as $i => $widget)
 
-                @if($i % 2 == 1)
+                @if($i % 2 == 0)
                 <div class="row">
                 @endif
 
                 @if($widget->widget_type == 'catalogue')
-                  <div class="single-widget-container col-xs-6 col-sm-6">
+                  <div class="single-widget-container @if($i < count($widgets) - 1) col-xs-6 col-sm-6 @else @if(count($widgets)%2 == 1) col-xs-12 col-sm-12 @else col-xs-6 col-sm-6 @endif @endif">
                     <header class="widget-title">
                       <div><strong>{{ Lang::get('mobileci.widgets.catalogue') }}</strong></div>
                     </header>
@@ -67,7 +67,7 @@
                 @endif
 
                 @if($widget->widget_type == 'new_product')
-                  <div class="single-widget-container col-xs-6 col-sm-6">
+                  <div class="single-widget-container @if($i < count($widgets) - 1) col-xs-6 col-sm-6 @else  @if(count($widgets)%2 == 1) col-xs-12 col-sm-12 @else col-xs-6 col-sm-6 @endif @endif">
                     <header class="widget-title">
                       <div><strong>{{ Lang::get('mobileci.widgets.new_product') }}</strong></div>
                     </header>
@@ -114,7 +114,7 @@
                 @endif
 
                 @if($widget->widget_type == 'promotion')
-                <div class="single-widget-container col-xs-6 col-sm-6">
+                <div class="single-widget-container @if($i < count($widgets) - 1) col-xs-6 col-sm-6 @else  @if(count($widgets)%2 == 1) col-xs-12 col-sm-12 @else col-xs-6 col-sm-6 @endif @endif">
                   <header class="widget-title">
                     <div><strong>{{ Lang::get('mobileci.widgets.promotion') }}</strong></div>
                   </header>
@@ -160,7 +160,7 @@
                 @endif
 
                 @if($widget->widget_type == 'coupon')
-                <div class="single-widget-container col-xs-6 col-sm-6">
+                <div class="single-widget-container @if($i < count($widgets) - 1) col-xs-6 col-sm-6 @else  @if(count($widgets)%2 == 1) col-xs-12 col-sm-12 @else col-xs-6 col-sm-6 @endif @endif">
                   <header class="widget-title">
                     <div><strong>{{ Lang::get('mobileci.widgets.coupon') }}</strong></div>
                   </header>
