@@ -35,4 +35,20 @@ class PosQuickProduct extends Eloquent
                     ->join('product_retailer', 'product_retailer.product_id', '=', 'pos_quick_products.product_id')
                     ->groupBy('pos_quick_products.product_id');
     }
+
+    public function scopeJoinMerchant()
+    {
+        return $this->select('pos_quick_products.*')
+                    ->join('products', function($join) {
+                        $join->on('products.product_id', '=', 'pos_quick_products.product_id');
+                        $join->on('products.status', '=', DB::raw('"active"'));
+                    })
+                    ->join('product_retailer', 'product_retailer.product_id', '=', 'pos_quick_products.product_id')
+                    ->join('merchants', function($join) {
+                        $join->on('merchants.merchant_id', '=', 'product_retailer.retailer_id');
+                        $join->on('merchants.status', '=', DB::raw('"active"'));
+                        $join->on('merchants.object_type', '=', DB::raw('"retailer"'));
+                    })
+                    ->groupBy('pos_quick_products.product_id');
+    }
 }

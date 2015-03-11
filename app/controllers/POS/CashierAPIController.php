@@ -3211,10 +3211,11 @@ class CashierAPIController extends ControllerAPI
             }
 
             // Builder object
-            $posQuickProducts = \PosQuickProduct::joinRetailer()
+            $posQuickProducts = \PosQuickProduct::joinMerchant()
                                                ->excludeDeleted('pos_quick_products')
                                                ->with('product')
-                                               ->where('product_retailer.retailer_id',$retailer->merchant_id);
+                                               //->where('product_retailer.retailer_id',$retailer->merchant_id);
+                                               ->where('merchants.parent_id', $retailer->parent_id);
 
             // Filter by ids
             OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
@@ -3281,7 +3282,7 @@ class CashierAPIController extends ControllerAPI
             });
             $posQuickProducts->orderBy($sortBy, $sortMode);
 
-            $totalPosQuickProducts = $_posQuickProducts->count();
+            $totalPosQuickProducts = RecordCounter::create($_posQuickProducts)->count();
             $listOfPosQuickProducts = $posQuickProducts->get();
 
             $data = new \stdclass();
