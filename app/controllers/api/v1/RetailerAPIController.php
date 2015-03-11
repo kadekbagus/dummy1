@@ -350,7 +350,7 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $roleRetailer = Role::where('role_name', 'merchant owner')->first();
+            $roleRetailer = Role::where('role_name', 'retailer owner')->first();
             if (empty($roleRetailer)) {
                 OrbitShopAPI::throwInvalidArgument('Could not find role named "Merchant Owner".');
             }
