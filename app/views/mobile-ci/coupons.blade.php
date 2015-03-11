@@ -35,7 +35,15 @@
                     @endif
                 @endif
                 <h4>{{ Lang::get('mobileci.coupon_detail.coupon_code_label') }} : {{ $coupons[0]->issued_coupon_code }}</h4>
-                <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }} : {{ date('j M Y', strtotime($coupons[0]->expired_date)) }}</h4>
+                @if($coupons[0]->is_permanent == 'N')
+                    @if(strtotime($coupons[0]->expired_date) < strtotime($coupons[0]->end_date))
+                    <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($coupons[0]->expired_date)) }}</h4>
+                    @else
+                    <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($coupons[0]->end_date)) }}</h4>
+                    @endif
+                @else
+                    <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }} : {{ date('j M Y', strtotime($coupons[0]->expired_date)) }}</h4>
+                @endif
             </div>
         </div>
         @if($data->status === 1)

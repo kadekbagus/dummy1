@@ -288,7 +288,15 @@
                     </tr>
                     <tr>
                       <td>{{ Lang::get('mobileci.coupon_detail.validity_label') }}</td>
-                      <td>{{ date('j M Y', strtotime($acquired_coupon->expired_date)) }}</td>
+                      @if($acquired_coupon->coupon->is_permanent == 'N')
+                          @if(strtotime($acquired_coupon->expired_date) < strtotime($acquired_coupon->coupon->end_date))
+                          <td>{{ date('j M Y', strtotime($acquired_coupon->expired_date)) }}</td>
+                          @else
+                          <td>{{ date('j M Y', strtotime($acquired_coupon->coupon->end_date)) }}</td>
+                          @endif
+                      @else
+                          <td>{{ date('j M Y', strtotime($acquired_coupon->expired_date)) }}</td>
+                      @endif
                     </tr>
                     <?php $c = 0;?>
                     @foreach($acquired_coupon->coupon->redeemretailers as $redeem_retailer)
