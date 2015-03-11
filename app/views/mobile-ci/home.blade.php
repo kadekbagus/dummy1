@@ -31,16 +31,36 @@
                       <div>{{$widget->widget_slogan}}</div>
                     </header>
                     <section class="widget-single">
-                      <ul class="rslides">
-                        <li>
-                          <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
-                            @if(!empty($widget->media->path))
-                              <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
-                            @else
-                              <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_catalogue.png') }}" />
-                            @endif
-                          </a>
-                        </li>
+                      <ul class="rslides" @if($widget->animation == 'horizontal') id="slider1" @endif>
+                        @if($widget->animation == 'none')
+                          <li>
+                            <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
+                              @if(!empty($widget->media->path))
+                                <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
+                              @else
+                                <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_catalogue.png') }}" />
+                              @endif
+                            </a>
+                          </li>
+                        @elseif($widget->animation == 'horizontal')
+                          @if(count($random_products) > 0)
+                            @foreach($random_products as $random_product)
+                              <li>
+                                <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
+                                @if(!is_null($random_product->image))
+                                  <img class="img-responsive" src="{{ asset($random_product->image) }}"/>
+                                @else
+                                  <img class="img-responsive" src="{{ asset('mobile-ci/images/default_product.png') }}"/>
+                                @endif
+                                </a>
+                              </li>
+                            @endforeach
+                          @else
+                            <li>
+                              <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_catalogue.png') }}"/>
+                            </li>
+                          @endif
+                        @endif
                       </ul>
                     </section>
                   </div>
@@ -57,23 +77,35 @@
                     <section class="widget-single">
                       <!-- Slideshow 4 -->
                       <div class="callbacks_container">
-                        <ul class="rslides" id="slider1">
-                          @if(count($new_products) > 0)
-                            @foreach($new_products as $new_product)
-                              <li>
-                                <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
-                                @if(!is_null($new_product->image))
-                                  <img class="img-responsive" src="{{ asset($new_product->image) }}"/>
-                                @else
-                                  <img class="img-responsive" src="{{ asset('mobile-ci/images/default_product.png') }}"/>
-                                @endif
-                                </a>
-                              </li>
-                            @endforeach
-                          @else
+                        <ul class="rslides" @if($widget->animation == 'horizontal') id="slider2" @endif>
+                          @if($widget->animation == 'none')
                             <li>
-                              <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_new_product.png') }}"/>
+                              <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/search?new=1') }}">
+                                @if(!empty($widget->media->path))
+                                  <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
+                                @else
+                                  <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_new_product.png') }}" />
+                                @endif
+                              </a>
                             </li>
+                          @elseif($widget->animation == 'horizontal')
+                            @if(count($new_products) > 0)
+                              @foreach($new_products as $new_product)
+                                <li>
+                                  <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
+                                  @if(!is_null($new_product->image))
+                                    <img class="img-responsive" src="{{ asset($new_product->image) }}"/>
+                                  @else
+                                    <img class="img-responsive" src="{{ asset('mobile-ci/images/default_new_product.png') }}"/>
+                                  @endif
+                                  </a>
+                                </li>
+                              @endforeach
+                            @else
+                              <li>
+                                <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_new_product.png') }}"/>
+                              </li>
+                            @endif
                           @endif
                         </ul>
                       </div>
@@ -90,25 +122,37 @@
                     <div>{{$widget->widget_slogan}}</div>
                   </header>
                   <section class="widget-single">
-                    <ul class="rslides" id="slider2">
-                      @if(count($promo_products) > 1)
-                        @foreach($promo_products as $promo_product)
-                          @if($promo_product->promotion_type == 'product')
-                          <li>
-                            <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
-                            @if(!is_null($promo_product->image))
-                              <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
-                            @else
-                              <img class="img-responsive" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
-                            @endif
-                            </a>
-                          </li>
-                          @endif
-                        @endforeach
-                      @else
+                    <ul class="rslides" @if($widget->animation == 'horizontal') id="slider3" @endif>
+                      @if($widget->animation == 'none')
                         <li>
-                          <img id="emptyPromo" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
+                          <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/promotions') }}">
+                            @if(!empty($widget->media->path))
+                              <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
+                            @else
+                              <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_promotion.png') }}" />
+                            @endif
+                          </a>
                         </li>
+                      @elseif($widget->animation == 'horizontal')
+                        @if(count($promo_products) > 1)
+                          @foreach($promo_products as $promo_product)
+                            @if($promo_product->promotion_type == 'product')
+                            <li>
+                              <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
+                              @if(!is_null($promo_product->image))
+                                <img class="img-responsive" src="{{ asset($promo_product->image) }}"/>
+                              @else
+                                <img class="img-responsive" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                              @endif
+                              </a>
+                            </li>
+                            @endif
+                          @endforeach
+                        @else
+                          <li>
+                            <img id="emptyPromo" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
+                          </li>
+                        @endif
                       @endif
                     </ul>
                   </section>
@@ -306,6 +350,22 @@
           speed: 500
         });
         $("#slider2").responsiveSlides({
+          auto: true,
+          pager: false,
+          nav: true,
+          prevText: '<i class="fa fa-chevron-left"></i>',
+          nextText: '<i class="fa fa-chevron-right"></i>',
+          speed: 500
+        });
+        $("#slider3").responsiveSlides({
+          auto: true,
+          pager: false,
+          nav: true,
+          prevText: '<i class="fa fa-chevron-left"></i>',
+          nextText: '<i class="fa fa-chevron-right"></i>',
+          speed: 500
+        });
+        $("#slider4").responsiveSlides({
           auto: true,
           pager: false,
           nav: true,

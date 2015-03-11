@@ -194,6 +194,15 @@ class MobileCIAPIController extends ControllerAPI
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
 
+            $random_products = Product::with('media')
+                ->whereHas('retailers', function ($q) use ($retailer) {
+                    $q->where('product_retailer.retailer_id', $retailer->merchant_id);
+                })
+                ->active()
+                ->orderByRaw("RAND()")
+                ->take(10)
+                ->get();
+
             $new_products = Product::with('media')
                 ->whereHas('retailers', function ($q) use ($retailer) {
                     $q->where('product_retailer.retailer_id', $retailer->merchant_id);
@@ -321,7 +330,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseOK()
                             ->save();
 
-            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartitems' => $cartitems, 'coupons' => $coupons, 'events' => $events, 'widgets' => $widgets, 'event_families' => $event_families, 'event_family_url_param' => $event_family_url_param))->withCookie($event_store);
+            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'random_products' => $random_products, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartitems' => $cartitems, 'coupons' => $coupons, 'events' => $events, 'widgets' => $widgets, 'event_families' => $event_families, 'event_family_url_param' => $event_family_url_param))->withCookie($event_store);
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Home');
             $activityPage->setUser($user)
