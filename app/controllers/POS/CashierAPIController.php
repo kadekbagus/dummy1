@@ -1354,7 +1354,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_payment)
-                    ->setActivityNameLong($activity_payment_label . ' Succes')
+                    ->setActivityNameLong($activity_payment_label . ' Success')
                     ->setObject($transaction)
                     ->setModuleName('Cart')
                     // ->setNotes()
@@ -1685,7 +1685,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_payment)
-                    ->setActivityNameLong($activity_payment_label . ' Succes')
+                    ->setActivityNameLong($activity_payment_label . ' Success')
                     ->setObject($transaction)
                     // ->setNotes()
                     ->setStaff($user)
@@ -2863,7 +2863,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
-                    ->setActivityNameLong($activity_transfer_label . ' Succes')
+                    ->setActivityNameLong($activity_transfer_label . ' Success')
                     ->setObject($cart)
                     ->setModuleName('Cart')
                     // ->setNotes()
@@ -3392,7 +3392,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_checkout)
-                    ->setActivityNameLong($activity_checkout_label . ' Succes')
+                    ->setActivityNameLong($activity_checkout_label . ' Success')
                     ->setObject(null)
                     ->setModuleName('Cart')
                     // ->setNotes()
@@ -3473,7 +3473,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_clear)
-                    ->setActivityNameLong($activity_clear_label . ' Succes')
+                    ->setActivityNameLong($activity_clear_label . ' Success')
                     ->setObject(null)
                     ->setModuleName('Cart')
                     // ->setNotes()
@@ -3556,7 +3556,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_add)
-                    ->setActivityNameLong($activity_add_label . ' Succes')
+                    ->setActivityNameLong($activity_add_label . ' Success')
                     ->setObject($product)
                     ->setProduct($product)
                     ->setModuleName('Cart')
@@ -3643,7 +3643,7 @@ class CashierAPIController extends ControllerAPI
 
             $activity->setUser($customer)
                     ->setActivityName($activity_delete)
-                    ->setActivityNameLong($activity_delete_label . ' Succes')
+                    ->setActivityNameLong($activity_delete_label . ' Success')
                     ->setObject($product)
                     ->setProduct($product)
                     ->setModuleName('Cart')
