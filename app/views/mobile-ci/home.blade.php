@@ -49,7 +49,7 @@
                 @if($widget->widget_type == 'new_product')
                   <div class="single-widget-container col-xs-6 col-sm-6">
                     <header class="widget-title">
-                      <div>{{ Lang::get('mobileci.widgets.new_product') }}</div>
+                      <div><strong>{{ Lang::get('mobileci.widgets.new_product') }}</strong></div>
                     </header>
                     <header class="widget-title widget-subtitle">
                       <div>{{$widget->widget_slogan}}</div>
@@ -84,7 +84,7 @@
                 @if($widget->widget_type == 'promotion')
                 <div class="single-widget-container col-xs-6 col-sm-6">
                   <header class="widget-title">
-                    <div>{{ Lang::get('mobileci.widgets.promotion') }}</div>
+                    <div><strong>{{ Lang::get('mobileci.widgets.promotion') }}</strong></div>
                   </header>
                   <header class="widget-title widget-subtitle">
                     <div>{{$widget->widget_slogan}}</div>
@@ -118,7 +118,7 @@
                 @if($widget->widget_type == 'coupon')
                 <div class="single-widget-container col-xs-6 col-sm-6">
                   <header class="widget-title">
-                    <div>{{ Lang::get('mobileci.widgets.coupon') }}</div>
+                    <div><strong>{{ Lang::get('mobileci.widgets.coupon') }}</strong></div>
                   </header>
                   <header class="widget-title widget-subtitle">
                     <div>{{$widget->widget_slogan}}</div>
