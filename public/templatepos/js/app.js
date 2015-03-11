@@ -1183,7 +1183,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
             //check if cart.status == 'cashier'
             ($scope.getCart = function(){
-                serviceAjax.posDataToServer('/pos/getcartcashier',data).then(function(response) {
+                serviceAjax.getDataFromServer('/pos/getcartcashier').then(function(response) {
                     if (response.code == 0) {
                         $scope.tmpdatacart();
                     }
