@@ -68,9 +68,10 @@ class CashierAPIController extends ControllerAPI
             }
 
             $user = User::with('apikey', 'role', 'employee')
-                        ->active()
+                        ->active('users')
                         ->where('username', $username)
                         ->where('user_role_id', $role->role_id)
+                        ->employeeMerchantIds([$retailer->parent_id])
                         ->first();
 
             $merchant = $retailer->parent;
@@ -1495,11 +1496,11 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= " \n";
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
-                  $acquired_coupon .= '----------------------------------------'." \n";  
+                  $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);     
+                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
                 }
                 else{
                   $acquired_coupon .= '----------------------------------------'." \n";
@@ -1509,8 +1510,8 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
                   if($key==$total_issuedcoupon-1){
                     $acquired_coupon .= '----------------------------------------'." \n";
-                  }  
-                }     
+                  }
+                }
             }
 
             foreach ($details as $details_key => $details_value) {
@@ -4884,11 +4885,11 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= " \n";
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
-                  $acquired_coupon .= '----------------------------------------'." \n";  
+                  $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);     
+                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
                 }
                 else{
                   $acquired_coupon .= '----------------------------------------'." \n";
@@ -4898,8 +4899,8 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
                   if($key==$total_issuedcoupon-1){
                     $acquired_coupon .= '----------------------------------------'." \n";
-                  }  
-                }     
+                  }
+                }
             }
 
             foreach ($details as $details_key => $details_value) {
