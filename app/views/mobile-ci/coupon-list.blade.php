@@ -51,7 +51,15 @@
                                     <h4>{{ Lang::get('mobileci.coupon_detail.coupon_code_label') }}: {{ $promo->issued_coupon_code }}</h4>
                                 </div>
                                 <div class="col-xs-12">
-                                    <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($promo->expired_date)) }}</h4>
+                                    @if($promo->is_permanent == 'N')
+                                        @if(strtotime($promo->expired_date) < strtotime($promo->end_date))
+                                        <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($promo->expired_date)) }}</h4>
+                                        @else
+                                        <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($promo->end_date)) }}</h4>
+                                        @endif
+                                    @else
+                                        <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($promo->expired_date)) }}</h4>
+                                    @endif
                                 </div>
                                 <div class="col-xs-6 catalogue-control text-right pull-right">
                                     <div class="circlet btn-blue detail-btn pull-right vertically-spaced">
