@@ -300,6 +300,10 @@ return array(
             'view_event'                => 'view event',
             'update_setting'            => 'update setting',
             'view_setting'              => 'view setting',
+            'new_pos_quick_product'     => 'add new pos quick product',
+            'update_pos_quick_product'  => 'update pos quick product',
+            'delete_pos_quick_product'  => 'delete pos quick product',
+            'view_pos_quick_product'    => 'view pos quick product',
         ),
     ),
 

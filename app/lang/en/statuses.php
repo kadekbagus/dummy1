@@ -42,7 +42,8 @@ return array(
             'widget'        => 'There is no widget found that matches your criteria.',
             'city'          => 'There is no city found that matched your criteria.',
             'setting'       => 'There is no setting found that matched your criteria.',
-            'country'       => 'There is no country found that matched your criteria.'
+            'country'       => 'There is no country found that matched your criteria.',
+            'pos_quick_product' => 'There is no pos quick product found that matches your criteria.',
         ),
         'uploaded'  => array(
             'merchant' => array(
