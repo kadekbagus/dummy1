@@ -1465,6 +1465,7 @@ class UserAPIController extends ControllerAPI
      * POST - Change password user
      *
      * @author Ahmad <ahmad@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * List of API Parameters
      * ----------------------
@@ -1491,8 +1492,8 @@ class UserAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
 
+            $user_id = OrbitInput::get('user_id');
             if (! ACL::create($user)->isAllowed('change_password')) {
-                $user_id = OrbitInput::get('user_id');
                 if ((string)$user->user_id !== (string)$user_id) {
                     Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
                     $changePasswordUserLang = Lang::get('validation.orbit.actionlist.change_password');
@@ -1504,7 +1505,6 @@ class UserAPIController extends ControllerAPI
 
             $this->registerCustomValidation();
 
-            // $user_id = OrbitInput::post('user_id');
             $old_password = OrbitInput::post('old_password');
             $new_password = OrbitInput::post('new_password');
             $new_password_confirmation = OrbitInput::post('confirm_password');
@@ -1514,15 +1514,15 @@ class UserAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    // 'user_id' => $user_id,
+                    'user_id' => $user_id,
                     'old_password' => $old_password,
                     'new_password' => $new_password,
                     'new_password_confirmation' => $new_password_confirmation,
                 ),
                 array(
-                    // 'user_id' => 'required|numeric|orbit.empty.user',
-                    'old_password' => 'required|min:5|valid_user_password',
-                    'new_password' => 'required|min:5|confirmed',
+                    'user_id'       => 'required|numeric|orbit.empty.user',
+                    'old_password'  => 'required|min:5|valid_user_password',
+                    'new_password'  => 'required|min:5|confirmed',
                 ),
                 array(
                     'valid_user_password' => $message,
@@ -1541,7 +1541,7 @@ class UserAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $passupdateduser = User::excludeDeleted()->find($this->api->user->user_id);
+            $passupdateduser = App::make('orbit.empty.user');
             $passupdateduser->user_password = Hash::make($new_password);
             $passupdateduser->modified_by = $this->api->user->user_id;
 
@@ -1616,15 +1616,6 @@ class UserAPIController extends ControllerAPI
 
     protected function registerCustomValidation()
     {
-        // Check user old password
-        Validator::extend('valid_user_password', function ($attribute, $value, $parameters) {
-            if (Hash::check($value, $this->api->user->user_password)) {
-                return TRUE;
-            }
-
-            return FALSE;
-        });
-
         // Check user email address, it should not exists
         Validator::extend('orbit.email.exists', function ($attribute, $value, $parameters) {
             $user = User::excludeDeleted()
@@ -1668,6 +1659,17 @@ class UserAPIController extends ControllerAPI
             App::instance('orbit.empty.user', $user);
 
             return TRUE;
+        });
+
+        // Check user old password
+        Validator::extend('valid_user_password', function ($attribute, $value, $parameters) {
+            $user = App::make('orbit.empty.user');
+
+            if (Hash::check($value, $user->user_password)) {
+                return TRUE;
+            }
+
+            return FALSE;
         });
 
         // Check self
