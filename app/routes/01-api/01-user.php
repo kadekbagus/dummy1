@@ -74,3 +74,11 @@ Route::get('/api/v1/employee/list', function()
 {
     return UserAPIController::create()->getSearchEmployee();
 });
+
+/**
+ * Change password user
+ */
+Route::post('/api/v1/user/changepassword', ['as' => 'change-password', function()
+{
+    return UserAPIController::create()->postChangePassword();
+}]);
