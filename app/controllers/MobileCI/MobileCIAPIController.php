@@ -2869,7 +2869,7 @@ class MobileCIAPIController extends ControllerAPI
                                 ->save();
             }
 
-            return View::make('mobile-ci.cart', array('page_title'=>Lang::get('mobileci.page_title.cart'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            return View::make('mobile-ci.cart', array('page_title' => Lang::get('mobileci.page_title.cart'), 'retailer' => $retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view : %s', 'Cart');
             $activityPage->setUser($user)
