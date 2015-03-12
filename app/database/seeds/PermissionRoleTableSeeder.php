@@ -375,7 +375,7 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 18
                 'password'  => [
-                    'change'      => 'yes',
+                    'change'      => 'no',
                 ],
                 // 19
                 'tax'   => [
