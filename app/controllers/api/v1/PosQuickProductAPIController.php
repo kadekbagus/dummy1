@@ -7,7 +7,7 @@ use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use Helper\EloquentRecordCounter as RecordCounter;
@@ -51,7 +51,7 @@ class PosQuickProductAPIController extends ControllerAPI
             if (! ACL::create($user)->isAllowed('create_pos_quick_product')) {
                 Event::fire('orbit.product.postnewposquickproduct.authz.notallowed', array($this, $user));
 
-                $lang = Lang::get('validation.orbit.actionlist.add_new_pos_quick_product');
+                $lang = Lang::get('validation.orbit.actionlist.new_pos_quick_product');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $lang));
 
                 ACL::throwAccessForbidden($message);
@@ -431,27 +431,27 @@ class PosQuickProductAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.product.postupdateposquickproduct.before.auth', array($this));
+            Event::fire('orbit.product.postdeleteposquickproduct.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.product.postupdateposquickproduct.after.auth', array($this));
+            Event::fire('orbit.product.postdeleteposquickproduct.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.product.postupdateposquickproduct.before.authz', array($this, $user));
+            Event::fire('orbit.product.postdeleteposquickproduct.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('delete_pos_quick_product')) {
-                Event::fire('orbit.product.postupdateposquickproduct.authz.notallowed', array($this, $user));
+                Event::fire('orbit.product.postdeleteposquickproduct.authz.notallowed', array($this, $user));
 
                 $lang = Lang::get('validation.orbit.actionlist.delete_pos_quick_product');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $lang));
 
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.product.postupdateposquickproduct.after.authz', array($this, $user));
+            Event::fire('orbit.product.postdeleteposquickproduct.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -469,14 +469,14 @@ class PosQuickProductAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.product.postupdateposquickproduct.before.validation', array($this, $validator));
+            Event::fire('orbit.product.postdeleteposquickproduct.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.product.postupdateposquickproduct.after.validation', array($this, $validator));
+            Event::fire('orbit.product.postdeleteposquickproduct.after.validation', array($this, $validator));
 
             // Begin database transaction
             $this->beginTransaction();
@@ -490,11 +490,11 @@ class PosQuickProductAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            Event::fire('orbit.product.postupdateposquickproduct.before.save', array($this, $posQuickProduct));
+            Event::fire('orbit.product.postdeleteposquickproduct.before.save', array($this, $posQuickProduct));
 
             $posQuickProduct->delete();
 
-            Event::fire('orbit.product.postupdateposquickproduct.after.save', array($this, $posQuickProduct));
+            Event::fire('orbit.product.postdeleteposquickproduct.after.save', array($this, $posQuickProduct));
             $this->response->data = $posQuickProduct;
 
             // Commit the changes
@@ -509,9 +509,9 @@ class PosQuickProductAPIController extends ControllerAPI
                     ->setNotes($activityNotes)
                     ->responseOK();
 
-            Event::fire('orbit.product.postupdateposquickproduct.after.commit', array($this, $posQuickProduct));
+            Event::fire('orbit.product.postdeleteposquickproduct.after.commit', array($this, $posQuickProduct));
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.product.postupdateposquickproduct.access.forbidden', array($this, $e));
+            Event::fire('orbit.product.postdeleteposquickproduct.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -530,7 +530,7 @@ class PosQuickProductAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed();
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.product.postupdateposquickproduct.invalid.arguments', array($this, $e));
+            Event::fire('orbit.product.postdeleteposquickproduct.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -549,7 +549,7 @@ class PosQuickProductAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed();
         } catch (QueryException $e) {
-            Event::fire('orbit.product.postupdateposquickproduct.query.error', array($this, $e));
+            Event::fire('orbit.product.postdeleteposquickproduct.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -574,7 +574,7 @@ class PosQuickProductAPIController extends ControllerAPI
                     ->setNotes($e->getMessage())
                     ->responseFailed();
         } catch (Exception $e) {
-            Event::fire('orbit.product.postupdateposquickproduct.general.exception', array($this, $e));
+            Event::fire('orbit.product.postdeleteposquickproduct.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
@@ -637,12 +637,10 @@ class PosQuickProductAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.product.getposquickproduct.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_product_attribute')) {
+            if (! ACL::create($user)->isAllowed('view_pos_quick_product')) {
                 Event::fire('orbit.product.getposquickproduct.authz.notallowed', array($this, $user));
-
-                $errorMessage = Lang::get('validation.orbit.actionlist.view_user');
-                $message = Lang::get('validation.orbit.access.view_product_attribute', array('action' => $errorMessage));
-
+                $errorMessage = Lang::get('validation.orbit.actionlist.view_pos_quick_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $errorMessage));
                 ACL::throwAccessForbidden($message);
             }
             Event::fire('orbit.product.getposquickproduct.after.authz', array($this, $user));
@@ -672,7 +670,7 @@ class PosQuickProductAPIController extends ControllerAPI
             Event::fire('orbit.product.getposquickproduct.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product_attribute.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.pos_quick_product.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -681,7 +679,7 @@ class PosQuickProductAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product_attribute.per_page');
+            $perPage = (int) Config::get('orbit.pagination.pos_quick_product.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -803,7 +801,7 @@ class PosQuickProductAPIController extends ControllerAPI
 
             if ($listOfPosQuickProducts === 0) {
                 $data->records = null;
-                $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
+                $this->response->message = Lang::get('statuses.orbit.nodata.pos_quick_product');
             }
 
             $this->response->data = $data;

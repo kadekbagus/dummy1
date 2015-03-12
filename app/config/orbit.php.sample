@@ -37,6 +37,72 @@ return array(
         'per_page'      => 25,
         'max_record'    => 50,
 
+        // Activity
+        'activity' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Country
+        'country' => array(
+            'per_page'      => 300,
+            'max_record'    => 300,
+        ),
+
+        // Coupon
+        'coupon' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Employee
+        'employee' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Event
+        'event' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Issued Coupon
+        'issuedcoupon' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Merchant
+        'merchant' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Merchant Tax
+        'merchanttax' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Personal Interest
+        'personal_interest' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Pos Quick Product
+        'pos_quick_product' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Product
+        'product' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
         // Product attribute
         'product_attribute' => array(
             'per_page'      => 50,
@@ -49,11 +115,54 @@ return array(
             'max_record'    => 100,
         ),
 
-        // Personal Interests
-        'personal_interest' => array(
+        // Promotion
+        'promotion' => array(
             'per_page'      => 50,
             'max_record'    => 100,
         ),
+
+        // Retailer
+        'retailer' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Role
+        'role' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Setting
+        'setting' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Token
+        'token' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Transaction History
+        'transaction_history' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // User
+        'user' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
+        // Widget
+        'widget' => array(
+            'per_page'      => 50,
+            'max_record'    => 100,
+        ),
+
     ),
 
     'registration' => array(
