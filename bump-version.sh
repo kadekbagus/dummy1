@@ -18,5 +18,8 @@ PHP_VERSION_PATH="app/orbit_version.php"
 # --> define('ORBIT_APP_BUILD_DATE', ABC);
 #
 # We should replace the 'XYZ' with the BUILD_NUMBER env and ABC with build date.
+echo "Bumping build number to ${BUILD_NUMBER}..."
 sed -i "s/\(ORBIT_APP_BUILD_NUMBER\x27,\)\s\(0\)/\1 $BUILD_NUMBER/" app/orbit_version.php
+
+echo "Bumping build date to ${BUILD_ID}..."
 sed -i "s/\(ORBIT_APP_BUILD_NUMBER\x27,\)\s\(0\)/\1 $BUILD_ID/" app/orbit_version.php
