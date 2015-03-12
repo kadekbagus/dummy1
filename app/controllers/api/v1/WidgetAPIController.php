@@ -76,9 +76,9 @@ class WidgetAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'widget_type'           => $widgetType,
                     'object_id'             => $widgetObjectId,
                     'merchant_id'           => $merchantId,
+                    'widget_type'           => $widgetType,
                     'retailer_ids'          => $retailerIds,
                     'slogan'                => $slogan,
                     'animation'             => $animation,
@@ -86,9 +86,9 @@ class WidgetAPIController extends ControllerAPI
                     'images'                => $images
                 ),
                 array(
-                    'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon',
                     'object_id'             => 'required|numeric',
                     'merchant_id'           => 'required|numeric|orbit.empty.merchant',
+                    'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon|orbit.exists.widget_type:' . $merchantId,
                     'slogan'                => 'required',
                     'animation'             => 'required|in:none,horizontal,vertical',
                     'widget_order'          => 'required|numeric',
@@ -306,9 +306,9 @@ class WidgetAPIController extends ControllerAPI
             $validator = Validator::make(
                 array(
                     'widget_id'             => $widgetId,
-                    'widget_type'           => $widgetType,
                     'object_id'             => $widgetObjectId,
                     'merchant_id'           => $merchantId,
+                    'widget_type'           => $widgetType,
                     'retailer_ids'          => $retailerIds,
                     'slogan'                => $slogan,
                     'animation'             => $animation,
@@ -317,9 +317,9 @@ class WidgetAPIController extends ControllerAPI
                 ),
                 array(
                     'widget_id'             => 'required|numeric|orbit.empty.widget',
-                    'widget_type'           => 'in:catalogue,new_product,promotion,coupon',
                     'object_id'             => 'numeric',
                     'merchant_id'           => 'numeric|orbit.empty.merchant',
+                    'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon|orbit.exists.widget_type_but_me:' . $merchantId . ', ' . $widgetId,
                     'animation'             => 'in:none,horizontal,vertical',
                     'images'                => 'required_if:animation,none',
                     'widget_order'          => 'numeric',
@@ -998,6 +998,37 @@ class WidgetAPIController extends ControllerAPI
                         ->count();
 
             if ($expectedNumber !== $retailerNumber) {
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+        // Check the existstance of each widget type
+        Validator::extend('orbit.exists.widget_type', function ($attribute, $value, $parameters) use ($user) {
+            
+            $widget = Widget::excludeDeleted()
+                        ->where('widget_type', $value)
+                        ->where('merchant_id', $parameters[0])
+                        ->first();
+            
+            if (!empty($widget)) {
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+        // Check the existstance of each widget type on update
+        Validator::extend('orbit.exists.widget_type_but_me', function ($attribute, $value, $parameters) use ($user) {
+            
+            $widget = Widget::excludeDeleted()
+                        ->where('widget_type', $value)
+                        ->where('merchant_id', $parameters[0])
+                        ->where('widget_id', '!=', $parameters[1])
+                        ->first();
+
+            if (!empty($widget)) {
                 return FALSE;
             }
 
