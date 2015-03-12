@@ -24,7 +24,7 @@ return array(
     ),
 
     "widgets"           => array(
-        "catalogue"     => "CATALOG",
+        "catalogue"     => "CATALOGUE",
         "new_product"   => "NEW PRODUCTS",
         "promotion"     => "PROMOTIONS",
         "coupon"        => "MY COUPONS",

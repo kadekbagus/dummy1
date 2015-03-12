@@ -315,6 +315,7 @@ class MobileCIAPIController extends ControllerAPI
                 ->whereHas('retailers', function ($q) use ($retailer) {
                     $q->where('retailer_id', $retailer->merchant_id);
                 })
+                ->orderBy('widget_id', 'DESC')
                 ->orderBy('widget_order', 'ASC')
                 ->groupBy('widget_type')
                 ->take(4)
