@@ -3740,7 +3740,7 @@ class CashierAPIController extends ControllerAPI
                 $q->where('products.status','active');
             }, 'variant' => function($q) {
                 $q->where('product_variants.status','active');
-            }), 'tax1', 'tax2')->where('status', 'active')->where('cart_id', $cart->cart_id)->get();
+            }), 'tax1', 'tax2')->where('status', 'cashier')->where('cart_id', $cart->cart_id)->get();
             $cartdata = new \stdclass();
             $cartdata->cart = $cart;
             $cartdata->cartdetails = $cartdetails;
