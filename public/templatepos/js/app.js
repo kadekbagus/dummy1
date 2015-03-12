@@ -994,6 +994,20 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                     });
                 };
+             //sendticket
+             $scope.sendticket = function(){
+                    if($scope.transaction_id){
+                        serviceAjax.posDataToServer('/pos/sendticketemail',{transaction_id : $scope.transaction_id}).then(function(response){
+                            if(response.code == 0){
+
+                            }else{
+                                //do something
+                            }
+                        });
+                    }else{
+                        //do something
+                    }
+             };   
              //Ticket Print
              $scope.ticketprint = function(){
                     if($scope.transaction_id){
