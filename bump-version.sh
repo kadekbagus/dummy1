@@ -17,12 +17,3 @@ sed -i "s/\(ORBIT_APP_BUILD_NUMBER\x27,\)\s\([0-9]\+\)/\1 $BUILD_NUMBER/" ${PHP_
 
 echo "Bumping build date to ${BUILD_ID}..."
 sed -i "s/\(ORBIT_APP_BUILD_DATE\x27,\)\s\(\x27*\x27\));/\1 \x27$BUILD_ID\x27);/" ${PHP_VERSION_PATH}
-
-# Commit to the origin repository
-echo "JENKINS HOME_DIR=${JENKINS_HOME}"
-echo "Committing the changes for build number ${BUILD_NUMBER}..."
-git add ${PHP_VERSION_PATH} && git commit -m "Jenkins: Bump build number to ${BUILD_NUMBER}"
-
-echo "Pushing new build number ${BUILD_NUMBER} to github..."
-export GIT_SSH=${JENKINS_HOME}/git-orbit-ssh.sh
-ORBIT_SHOP_KEY=${JENKINS_HOME}/orbit-deploy-keys/orbit-shop-deploy.key git push origin $(cat .git/HEAD):development
