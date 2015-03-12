@@ -315,9 +315,8 @@ class MobileCIAPIController extends ControllerAPI
                 ->whereHas('retailers', function ($q) use ($retailer) {
                     $q->where('retailer_id', $retailer->merchant_id);
                 })
-                ->orderBy('widget_id', 'DESC')
+                ->whereRaw('widget_id IN (SELECT widget_id FROM ' . DB::getTablePrefix() . 'widgets group by widget_type)')
                 ->orderBy('widget_order', 'ASC')
-                ->groupBy('widget_type')
                 ->take(4)
                 ->get();
 
@@ -343,7 +342,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+                            return $e;
         }
     }
 
