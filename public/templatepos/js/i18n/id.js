@@ -60,6 +60,6 @@ define(function(){
         'masuk'                 : 'MASUK',
         'errorscancart'         : 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.',
         'scannertidakditemukan' : 'Scanner tidak ditemukan',
-        'kirimticket'           : 'EMAIL STRUK'
+        'kirimstruk'            : 'EMAIL STRUK'
     };
 });
