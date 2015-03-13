@@ -94,6 +94,9 @@ class WidgetAPIController extends ControllerAPI
                     'widget_order'          => 'required|numeric',
                     'images'                => 'required_if:animation,none',
                     'retailer_ids'          => 'array|orbit.empty.retailer'
+                ),
+                array(
+                    'orbit.exists.widget_type' => Lang::get('validation.orbit.exists.widget_type'),
                 )
             );
 
@@ -324,6 +327,9 @@ class WidgetAPIController extends ControllerAPI
                     'images'                => 'required_if:animation,none',
                     'widget_order'          => 'numeric',
                     'retailer_ids'          => 'array|orbit.empty.retailer',
+                ),
+                array(
+                    'orbit.exists.widget_type_but_me' => Lang::get('validation.orbit.exists.widget_type'),
                 )
             );
 
