@@ -1033,9 +1033,9 @@ class UserAPIController extends ControllerAPI
             $users->skip($skip);
 
             // Default sort by
-            $sortBy = 'users.created_at';
+            $sortBy = 'users.user_firstname';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
@@ -1051,8 +1051,8 @@ class UserAPIController extends ControllerAPI
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $users->orderBy($sortBy, $sortMode);
@@ -1374,9 +1374,9 @@ class UserAPIController extends ControllerAPI
             $users->skip($skip);
 
             // Default sort by
-            $sortBy = 'users.created_at';
+            $sortBy = 'users.user_firstname';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
@@ -1392,8 +1392,8 @@ class UserAPIController extends ControllerAPI
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $users->orderBy($sortBy, $sortMode);

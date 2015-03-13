@@ -799,9 +799,9 @@ class CategoryAPIController extends ControllerAPI
             $categories->skip($skip);
 
             // Default sort by
-            $sortBy = 'categories.created_at';
+            $sortBy = 'categories.category_name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
@@ -820,8 +820,8 @@ class CategoryAPIController extends ControllerAPI
 
             OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
             {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $categories->orderBy($sortBy, $sortMode);
