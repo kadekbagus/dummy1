@@ -44,6 +44,9 @@ return array(
             'setting'       => 'There is no setting found that matched your criteria.',
             'country'       => 'There is no country found that matched your criteria.',
             'pos_quick_product' => 'There is no pos quick product found that matches your criteria.',
+            'personalinterest' => 'There is no personal interest found that matched your criteria.',
+            'role'          => 'There is no role found that matched your criteria.',
+            'token'         => 'There is no token found that matched your criteria.',
         ),
         'uploaded'  => array(
             'merchant' => array(
@@ -72,6 +75,10 @@ return array(
             'user' => array(
                 'profile_picture'           => 'Profile picture has been successfully uploaded.',
                 'profile_picture_deleted'   => 'Profile picture has been successfully deleted.'
+            ),
+            'widget' => array(
+                'main'           => 'Widget picture has been successfully uploaded.',
+                'delete_image'   => 'Widget picture has been successfully deleted.'
             ),
         )
     )

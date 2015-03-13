@@ -117,6 +117,7 @@ return array(
                 'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it can not be edited or deleted.'
             ),
             'employeeid'            => 'The employee ID is not available.',
+            'widget_type'           => 'Another widget with the same widget type is already exists',
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -124,7 +125,10 @@ return array(
             'loginfailed'            => 'Your email or password is incorrect.',
             'tokenmissmatch'         => 'CSRF protection token missmatch.',
             'wrongpassword'          => 'Password is incorrect.',
-            'old_password_not_match' => 'Old password is incorrect.'
+            'old_password_not_match' => 'Old password is incorrect.',
+            'view_activity'          => 'You do not have access to view activity',
+            'view_personal_interest' => 'You do not have access to view personal interest',
+            'view_role'              => 'You do not have access to view role',
         ),
         'empty' => array(
             'role'                 => 'The Role ID you specified is not found.',
@@ -209,6 +213,20 @@ return array(
             ),
             'setting_status'       => 'The setting status you specified is not found.',
             'setting_sortby'       => 'The sort by argument you specified is not valid, the valid values are: registered_date, setting_name, status.',
+            'employee_sortby'      => 'The sort by argument you specified is not valid, the valid values are: username, firstname, lastname, registered_date, employee_id_char, position.',
+            'posquickproduct'      => 'The pos quick product you specified is not found.',
+            'posquickproduct_sortby' => 'The sort by argument you specified is not valid, the valid values are: id, price, name, product_order.',
+            'transactionhistory'   => array(
+                'merchantlist'     => array(
+                    'sortby'       => 'The sort by argument you specified is not valid, the valid values are: name, last_transaction.',
+                ),
+                'retailerlist'     => array(
+                    'sortby'       => 'The sort by argument you specified is not valid, the valid values are: name, last_transaction.',
+                ),
+                'productlist'      => array(
+                    'sortby'       => 'The sort by argument you specified is not valid, the valid values are: name, last_transaction.',
+                ),
+            ),
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(
@@ -304,6 +322,13 @@ return array(
             'update_pos_quick_product'  => 'update pos quick product',
             'delete_pos_quick_product'  => 'delete pos quick product',
             'view_pos_quick_product'    => 'view pos quick product',
+            'view_activity'             => 'view activity',
+            'add_new_employee'          => 'add new employee',
+            'update_employee'           => 'update employee',
+            'delete_employee'           => 'delete employee',
+            'view_personal_interest'    => 'view personal interest',
+            'view_role'                 => 'view role',
+            'view_transaction_history'  => 'view transaction history'
         ),
     ),
 

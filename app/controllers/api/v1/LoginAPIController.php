@@ -162,7 +162,7 @@ class LoginAPIController extends ControllerAPI
 
             $customerRole = Role::where('role_name', 'Consumer')->first();
             if (empty($customerRole)) {
-                $errorMessage = Lang::get('validation.orbit.empty.customer_role');
+                $errorMessage = Lang::get('validation.orbit.empty.consumer_role');
                 throw new Exception($errorMessage);
             }
 
