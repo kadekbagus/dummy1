@@ -28,25 +28,25 @@ return array(
             'your_password'  => 'Your password has been successfully updated.'
         ),
         'nodata'    => array(
-            'user'          => 'There is no user found that matched your criteria.',
-            'merchant'      => 'There is no merchant found that matched your criteria.',
-            'retailer'      => 'There is no retailer found that matched your criteria.',
-            'product'       => 'There is no product found that matched your criteria.',
-            'tax'           => 'There is no tax found that matched your criteria.',
-            'categories'    => 'There is no category found that matched your criteria.',
-            'promotion'     => 'There is no promotion found that matched your criteria.',
-            'coupon'        => 'There is no coupon found that matched your criteria.',
-            'issued_coupon' => 'There is no issued coupon found that matched your criteria.',
-            'event'         => 'There is no event found that matched your criteria.',
-            'attribute'     => 'There is no product attribute found that matches your criteria.',
-            'widget'        => 'There is no widget found that matches your criteria.',
-            'city'          => 'There is no city found that matched your criteria.',
-            'setting'       => 'There is no setting found that matched your criteria.',
-            'country'       => 'There is no country found that matched your criteria.',
-            'pos_quick_product' => 'There is no pos quick product found that matches your criteria.',
-            'personalinterest' => 'There is no personal interest found that matched your criteria.',
-            'role'          => 'There is no role found that matched your criteria.',
-            'token'         => 'There is no token found that matched your criteria.',
+            'user'          => 'There is no user that matched your search criteria.',
+            'merchant'      => 'There is no merchant that matched your search criteria.',
+            'retailer'      => 'There is no retailer that matched your search criteria.',
+            'product'       => 'There is no product that matched your search criteria.',
+            'tax'           => 'There is no tax that matched your search criteria.',
+            'categories'    => 'There is no category that matched your search criteria.',
+            'promotion'     => 'There is no promotion that matched your search criteria.',
+            'coupon'        => 'There is no coupon that matched your search criteria.',
+            'issued_coupon' => 'There is no issued coupon that matched your search criteria.',
+            'event'         => 'There is no event that matched your search criteria.',
+            'attribute'     => 'There is no product attribute that matched your search criteria.',
+            'widget'        => 'There is no widget that matched your search criteria.',
+            'city'          => 'There is no city that matched your search criteria.',
+            'setting'       => 'There is no setting that matched your search criteria.',
+            'country'       => 'There is no country that matched your search criteria.',
+            'pos_quick_product' => 'There is no POS quick product that matched your search criteria.',
+            'personalinterest' => 'There is no personal interest that matched your search criteria.',
+            'role'          => 'There is no role that matched your search criteria.',
+            'token'         => 'There is no token that matched your search criteria.',
         ),
         'uploaded'  => array(
             'merchant' => array(
@@ -73,12 +73,12 @@ return array(
                 'delete_image'  => 'Event image has been successfully deleted.'
             ),
             'user' => array(
-                'profile_picture'           => 'Profile picture has been successfully uploaded.',
-                'profile_picture_deleted'   => 'Profile picture has been successfully deleted.'
+                'profile_picture'           => 'Profile image has been successfully uploaded.',
+                'profile_picture_deleted'   => 'Profile image has been successfully deleted.'
             ),
             'widget' => array(
-                'main'           => 'Widget picture has been successfully uploaded.',
-                'delete_image'   => 'Widget picture has been successfully deleted.'
+                'main'           => 'Widget image has been successfully uploaded.',
+                'delete_image'   => 'Widget image has been successfully deleted.'
             ),
         )
     )
