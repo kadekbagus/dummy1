@@ -91,12 +91,12 @@ return array(
         ),
         'exists' => array(
             'username'              => 'The username has already been taken.',
-            'email'                 => 'Email address has been taken.',
-            'omid'                  => 'OMID has already taken by another Merchant.',
-            'orid'                  => 'ORID has already taken by another Retailer.',
+            'email'                 => 'Email address has already been taken.',
+            'omid'                  => 'OMID has already been taken by another Merchant.',
+            'orid'                  => 'ORID has already been taken by another Retailer.',
             'category_name'         => 'The category name has already been used.',
             'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.',
-            'product_have_transaction' => 'The product has one or more transactions linked to it, so it can not be deleted.',
+            'product_have_transaction' => 'The product has one or more transactions linked to it, so it cannot be deleted.',
             'promotion_name'        => 'The promotion name has already been used.',
             'coupon_name'           => 'The coupon name has already been used.',
             'issued_coupon_code'    => 'The coupon code has been redeemed.',
@@ -107,17 +107,17 @@ return array(
                 'attribute'         => array(
                     'unique'        => 'The attribute name \':attrname\' already exists.',
                     'value'         => array(
-                        'transaction'   => 'The attribute combination has one or more transactions linked to it, so it can not be edited or deleted.',
-                        'unique'        => 'The attaribute value \':value\' already exists.'
+                        'transaction'   => 'The attribute combination has one or more transactions linked to it, so it cannot be edited or deleted.',
+                        'unique'        => 'The attribute value \':value\' already exists.'
                     ),
                 ),
                 'variant'           => array(
-                    'transaction'   => 'Product variant ID :id has one or more transactions linked to it, so it can not be edited or deleted.'
+                    'transaction'   => 'Product variant ID :id has one or more transactions linked to it, so it cannot be edited or deleted.'
                 ),
-                'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it can not be edited or deleted.'
+                'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it cannot be edited or deleted.'
             ),
             'employeeid'            => 'The employee ID is not available.',
-            'widget_type'           => 'Another widget with the same widget type is already exists',
+            'widget_type'           => 'Another widget with the same widget type already exists',
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
@@ -245,10 +245,10 @@ return array(
                         'price'         => 'The price should be in numeric or decimal.',
                         'count'         => 'The number of value must be 5.',
                         'order'         => 'Invalid attribute ID order, expected :expect but got :got.',
-                        'allnull'       => 'All five attribute values can not be null at the same time.',
-                        'exists'        => 'The attribute combinations you have sent already exists.',
-                        'nullprepend'   => 'Null value must be put after attribute value.',
-                        'duplicate'     => 'There is a duplicate of product attribute value you have sent.',
+                        'allnull'       => 'All five attribute values cannot be empty at the same time.',
+                        'exists'        => 'The attribute combinations you have sent already exist.',
+                        'nullprepend'   => 'Empty value must be put after attribute value.',
+                        'duplicate'     => 'There is a duplicate of product attribute value.',
                         'notsame'       => 'One or more product combination you sent does not have the same number of order.'
                     ),
                 ),
