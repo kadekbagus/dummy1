@@ -804,13 +804,27 @@ class CashierAPIController extends ControllerAPI
             foreach($cart as $cart_key => $cart_value){
                 $cart_id = $cart_value['cart_id'];
                 $transactiondetail = new \TransactionDetail();
-                $transactiondetail->transaction_id              = $transaction->transaction_id;
-                $transactiondetail->product_id                  = $cart_value['product_id'];
-                $transactiondetail->product_name                = $cart_value['product_name'];
-                $transactiondetail->product_code                = $cart_value['product_code'];
-                $transactiondetail->quantity                    = $cart_value['qty'];
-                $transactiondetail->upc                         = $cart_value['upc_code'];
-                $transactiondetail->price                       = str_replace( ',', '', $cart_value['price'] );
+                $transactiondetail->transaction_id = $transaction->transaction_id;
+                
+                if(!empty($cart_value['product_id'])){
+                    $transactiondetail->product_id = $cart_value['product_id'];
+                }
+                if(!empty($cart_value['product_name'])){
+                    $transactiondetail->product_name = $cart_value['product_name'];
+                }
+                if(!empty($cart_value['product_code'])){
+                    $transactiondetail->product_code = $cart_value['product_code'];
+                }
+                if(!empty($cart_value['qty'])){
+                    $transactiondetail->quantity = $cart_value['qty'];
+                }
+                if(!empty($cart_value['upc_code'])){
+                    $transactiondetail->upc = $cart_value['upc_code'];
+                }
+                if(!empty($cart_value['price'])){
+                    $transactiondetail->price = str_replace( ',', '', $cart_value['price'] );
+                }
+
                 if(!empty($cart_value['variants'])){
                     if(!empty($cart_value['variants']['product_variant_id'])){
                         $transactiondetail->product_variant_id  = $cart_value['variants']['product_variant_id'];
