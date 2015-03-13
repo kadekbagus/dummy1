@@ -741,7 +741,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1108,7 +1111,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1382,7 +1388,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1659,7 +1668,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1995,7 +2007,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-
+            
             $couponstocatchs = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
@@ -2083,7 +2095,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { 
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -2346,7 +2361,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued;
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -2437,7 +2455,12 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
-
+            
+            $couponstocatchs = array_filter($couponstocatchs, function ($v) use ($product) {
+                $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+            });
+            
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
