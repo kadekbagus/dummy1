@@ -54,7 +54,4 @@ echo "-------------------------------------------------------"
     echo "done."
 }
 
-# Bump the version build number
-./bump-version.sh
-
 phpunit -c phpunit-nocolor.xml
