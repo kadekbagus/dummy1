@@ -2163,7 +2163,7 @@ class UploadAPIController extends ControllerAPI
             Event::fire('orbit.upload.postuploadwidgetimage.after.save', array($this, $widget, $uploader));
 
             $this->response->data = $mediaList;
-            $this->response->message = Lang::get('statuses.orbit.uploaded.user.profile_picture');
+            $this->response->message = Lang::get('statuses.orbit.uploaded.widget.main');
 
             // Commit the changes
             if (! $this->calledFrom('widget.new, widget.update')) {
