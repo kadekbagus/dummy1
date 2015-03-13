@@ -16,8 +16,9 @@ class OrbitVersionAPIController extends ControllerAPI
     {
         $info = new stdClass();
         $info->version = ORBIT_APP_VERSION;
-        $info->internal_version = ORBIT_APP_INTERNAL_VERSION;
+        $info->build_number = ORBIT_APP_BUILD_NUMBER;
         $info->release_date = ORBIT_APP_RELEASE_DATE;
+        $info->build_date = ORBIT_APP_BUILD_DATE;
         $info->codename = ORBIT_APP_CODENAME;
 
         $this->formatInfo($info);

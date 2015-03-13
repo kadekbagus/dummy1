@@ -7,7 +7,7 @@ use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use Helper\EloquentRecordCounter as RecordCounter;
@@ -1492,7 +1492,7 @@ class UserAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.user.postchangepassword.before.authz', array($this, $user));
 
-            $user_id = OrbitInput::get('user_id');
+            $user_id = OrbitInput::post('user_id');
             if (! ACL::create($user)->isAllowed('change_password')) {
                 if ((string)$user->user_id !== (string)$user_id) {
                     Event::fire('orbit.user.postchangepassword.authz.notallowed', array($this, $user));
@@ -1514,18 +1514,18 @@ class UserAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'user_id' => $user_id,
-                    'old_password' => $old_password,
-                    'new_password' => $new_password,
+                    'user_id'                   => $user_id,
+                    'old_password'              => $old_password,
+                    'new_password'              => $new_password,
                     'new_password_confirmation' => $new_password_confirmation,
                 ),
                 array(
-                    'user_id'       => 'required|numeric|orbit.empty.user',
-                    'old_password'  => 'required|min:5|valid_user_password',
-                    'new_password'  => 'required|min:5|confirmed',
+                    'user_id'                   => 'required|numeric|orbit.empty.user',
+                    'old_password'              => 'required|min:5|valid_user_password:'.$user_id,
+                    'new_password'              => 'required|min:5|confirmed',
                 ),
                 array(
-                    'valid_user_password' => $message,
+                    'valid_user_password'       => $message,
                 )
             );
 
@@ -1541,7 +1541,9 @@ class UserAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $passupdateduser = App::make('orbit.empty.user');
+            $passupdateduser = User::excludeDeleted()
+                                    ->where('user_id', $user_id)
+                                    ->first();
             $passupdateduser->user_password = Hash::make($new_password);
             $passupdateduser->modified_by = $this->api->user->user_id;
 
@@ -1663,9 +1665,14 @@ class UserAPIController extends ControllerAPI
 
         // Check user old password
         Validator::extend('valid_user_password', function ($attribute, $value, $parameters) {
-            $user = App::make('orbit.empty.user');
+            $user_id = trim($parameters[0]);
+            $user = User::excludeDeleted()
+                        ->where('user_id', $user_id)
+                        ->first();
 
-            if (Hash::check($value, $user->user_password)) {
+            if (empty($user)) {
+                return FALSE;
+            } elseif (Hash::check($value, $user->user_password)) {
                 return TRUE;
             }
 
