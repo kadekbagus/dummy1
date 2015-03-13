@@ -1079,11 +1079,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                             $scope.scanproduct();
                         }else if(response.code == 13){
-                           /* if(response.message != 'Scanner not found'){
+                            if(response.message != 'Scanner not found'){
                                  angular.element("#ProductNotFound").modal();
                             }
                             $scope.cancelRequestService();
-                            $scope.scanproduct();*/
+                            $scope.scanproduct();
                         }
                     });
                 })();
