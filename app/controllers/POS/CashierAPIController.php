@@ -5118,6 +5118,11 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
+            if (empty($transaction->user->user_email)) {
+                $message = 'email not found';
+                ACL::throwAccessForbidden($message);
+            }
+
             $this->response->data = $transaction;
             $customer = $transaction->user;
 

@@ -60,6 +60,6 @@ define(function(){
         'masuk'                 : 'LOGIN',
         'errorscancart'         : 'Sorry, Shopping cart is not found. Please try again.',
         'scannertidakditemukan' : 'Scanner not found',
-        'kirimticket'           : 'EMAIL TICKET'
+        'kirimstruk'            : 'EMAIL TICKET'
     };
 });
