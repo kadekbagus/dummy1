@@ -69,7 +69,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     'sort_by'       => 'in:name,last_transaction'
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.transaction.history.merchantlist.sortby'),
+                    'in' => Lang::get('validation.orbit.empty.transactionhistory.merchantlist.sortby'),
                 )
             );
 
@@ -282,7 +282,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     'sort_by'       => 'in:name,last_transaction',
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.transaction.history.retailerlist.sortby'),
+                    'in' => Lang::get('validation.orbit.empty.transactionhistory.retailerlist.sortby'),
                 )
             );
 
@@ -496,7 +496,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     'sort_by'       => 'in:product_name,last_transaction,qty,price'
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.transaction.history.productlist.sortby'),
+                    'in' => Lang::get('validation.orbit.empty.transactionhistory.productlist.sortby'),
                 )
             );
 
