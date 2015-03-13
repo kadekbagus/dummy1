@@ -124,19 +124,24 @@
                   <section class="widget-single">
                     <ul class="rslides" @if($widget->animation == 'horizontal') id="slider3" @endif>
                       @if($widget->animation == 'none')
-                        <li>
-                          <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/promotions') }}">
-                            @if(!empty($widget->media->path))
-                              <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
-                            @else
-                              <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_promotion.png') }}" />
-                            @endif
-                          </a>
-                        </li>
+                        @if(count($promo_products) > 0)
+                          <li>
+                            <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/promotions') }}">
+                              @if(!empty($widget->media->path))
+                                <img class="img-responsive text-center" src="{{ asset($widget->media->path) }}" />
+                              @else
+                                <img class="img-responsive text-center" src="{{ asset('mobile-ci/images/default_promotion.png') }}" />
+                              @endif
+                            </a>
+                          </li>
+                        @else
+                          <li>
+                            <img id="emptyPromo" class="img-responsive" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
+                          </li>
+                        @endif
                       @elseif($widget->animation == 'horizontal')
                         @if(count($promo_products) > 0)
                           @foreach($promo_products as $promo_product)
-                            @if($promo_product->promotion_type == 'product')
                             <li>
                               <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
                               @if(!is_null($promo_product->image))
@@ -146,7 +151,6 @@
                               @endif
                               </a>
                             </li>
-                            @endif
                           @endforeach
                         @else
                           <li>
