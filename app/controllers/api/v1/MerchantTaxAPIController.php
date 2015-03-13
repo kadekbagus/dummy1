@@ -172,9 +172,9 @@ class MerchantTaxAPIController extends ControllerAPI
             $taxes->skip($skip);
 
             // Default sort by
-            $sortBy = 'merchant_taxes.created_at';
+            $sortBy = 'merchant_taxes.tax_name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
@@ -193,8 +193,8 @@ class MerchantTaxAPIController extends ControllerAPI
 
             OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
             {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $taxes->orderBy($sortBy, $sortMode);

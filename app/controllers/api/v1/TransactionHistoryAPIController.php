@@ -142,7 +142,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'name'              => 'merchants.name',
-                    'last_transcation'  => 'transactions.created_at',
+                    'last_transaction'  => 'transactions.created_at',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -355,7 +355,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
                     'name'              => 'merchants.name',
-                    'last_transcation'  => 'transactions.created_at',
+                    'last_transaction'  => 'transactions.created_at',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];

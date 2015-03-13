@@ -776,7 +776,7 @@ class PosQuickProductAPIController extends ControllerAPI
                 $sortByMapping = array(
                     'id'            => 'pos_quick_products.pos_quick_product_id',
                     'name'          => 'products.product_name',
-                    'product_order' => 'pos_quick_products.product_prder',
+                    'product_order' => 'pos_quick_products.product_order',
                     'price'         => 'products.price',
                     'created'       => 'pos_quick_products.created_at',
                 );

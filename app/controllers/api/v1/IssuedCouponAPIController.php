@@ -656,9 +656,9 @@ class IssuedCouponAPIController extends ControllerAPI
             $issuedcoupons->skip($skip);
 
             // Default sort by
-            $sortBy = 'issued_coupons.created_at';
+            $sortBy = 'issued_coupons.issued_coupon_code';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
@@ -677,8 +677,8 @@ class IssuedCouponAPIController extends ControllerAPI
 
             OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
             {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $issuedcoupons->orderBy($sortBy, $sortMode);

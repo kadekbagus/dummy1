@@ -887,9 +887,9 @@ class ProductAPIController extends ControllerAPI
             $products->skip($skip);
 
             // Default sort by
-            $sortBy = 'products.created_at';
+            $sortBy = 'products.product_name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
@@ -915,8 +915,8 @@ class ProductAPIController extends ControllerAPI
             });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $products->orderBy($sortBy, $sortMode);

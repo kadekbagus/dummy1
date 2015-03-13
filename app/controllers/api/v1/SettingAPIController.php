@@ -405,9 +405,9 @@ class SettingAPIController extends ControllerAPI
             $settings->skip($skip);
 
             // Default sort by
-            $sortBy = 'settings.created_at';
+            $sortBy = 'settings.setting_name';
             // Default sort mode
-            $sortMode = 'desc';
+            $sortMode = 'asc';
 
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
@@ -423,8 +423,8 @@ class SettingAPIController extends ControllerAPI
 
             OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
             {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
                 }
             });
             $settings->orderBy($sortBy, $sortMode);
