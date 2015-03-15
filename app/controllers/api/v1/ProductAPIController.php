@@ -1222,12 +1222,6 @@ class ProductAPIController extends ControllerAPI
                 $attribute_values = $this->checkVariant($variant_decode);
 
                 foreach ($variant_decode as $variant_index=>$variant) {
-                    $nullNumber = (int)Config::get('memory:productapicontroller.skipped.' . $variant_index);
-                    if ($nullNumber === 5) {
-                        // All attribute values are null, skip saving
-                        continue;
-                    }
-
                     // Return the default price if the variant price is empty
                     $vprice = function() use ($variant, $price) {
                         if (empty($variant->price)) {
@@ -1647,6 +1641,18 @@ class ProductAPIController extends ControllerAPI
         // Check upc_code, it should not exists
         Validator::extend('orbit.exists.product.upc_code', function ($attribute, $value, $parameters) {
             $merchant = App::make('orbit.empty.merchant');
+
+            // Check also the UPC on product variant
+            $productVariant = ProductVariant::with([])
+                                            ->excludeDeleted()
+                                            ->where('merchant_id', $merchant->merchant_id)
+                                            ->where('upc', $value)
+                                            ->first();
+
+            if (! empty($productVariant)) {
+                return FALSE;
+            }
+
             $product = Product::excludeDeleted()
                         ->where('upc_code', $value)
                         ->where('merchant_id', $merchant->merchant_id)
@@ -1664,6 +1670,18 @@ class ProductAPIController extends ControllerAPI
         // Check upc_code, it should not exists
         Validator::extend('orbit.exists.product.upc_code_but_me', function ($attribute, $value, $parameters) {
             $product = App::make('orbit.empty.product');
+
+            // Check also the UPC on product variant
+            $productVariant = ProductVariant::with([])
+                                            ->excludeDeleted()
+                                            ->where('product_id', '!=', $product->product_id)
+                                            ->where('merchant_id', $product->merchant_id)
+                                            ->where('upc', $value)
+                                            ->first();
+
+            if (! empty($productVariant)) {
+                return FALSE;
+            }
 
             $product = Product::excludeDeleted()
                         ->where('upc_code', $value)
@@ -1683,6 +1701,18 @@ class ProductAPIController extends ControllerAPI
         // Check product_code (SKU), it should not exists
         Validator::extend('orbit.exists.product.sku_code', function ($attribute, $value, $parameters) {
             $merchant = App::make('orbit.empty.merchant');
+
+            // Check also the UPC on product variant
+            $productVariant = ProductVariant::with([])
+                                            ->excludeDeleted()
+                                            ->where('merchant_id', $merchant->merchant_id)
+                                            ->where('sku', $value)
+                                            ->first();
+
+            if (! empty($productVariant)) {
+                return FALSE;
+            }
+
             $product = Product::excludeDeleted()
                         ->where('product_code', $value)
                         ->where('merchant_id', $merchant->merchant_id)
@@ -1700,6 +1730,18 @@ class ProductAPIController extends ControllerAPI
         // Check product_code (SKU) for update, it should not exists
         Validator::extend('orbit.exists.product.sku_code_but_me', function ($attribute, $value, $parameters) {
             $product = App::make('orbit.empty.product');
+
+            // Check also the UPC on product variant
+            $productVariant = ProductVariant::with([])
+                                            ->excludeDeleted()
+                                            ->where('product_id', '!=', $product->product_id)
+                                            ->where('merchant_id', $product->merchant_id)
+                                            ->where('sku', $value)
+                                            ->first();
+
+            if (! empty($productVariant)) {
+                return FALSE;
+            }
 
             $product = Product::excludeDeleted()
                         ->where('product_code', $value)
@@ -2067,6 +2109,82 @@ class ProductAPIController extends ControllerAPI
             if (! empty($variantProduct->first())) {
                 $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.exists');
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if (! empty($variant->upc)) {
+                // Make sure there is no duplicate on UPC code:
+                // 1) Search product which has the same UPC but exclude the parent
+                $productUPC = Product::with([])
+                                     ->excludeDeleted()
+                                     ->where('product_id', '!=', $product->product_id)
+                                     ->where('upc_code', $variant->upc)
+                                     ->where('merchant_id', $product->merchant_id)
+                                     ->first();
+                if (! empty($productUPC)) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.upc_code', [
+                        'upc' => $productUPC->upc_code
+                    ]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                // 2) Search product variant which has the same upc but exclude one
+                //    which has the same parent
+                $productVariantUPC = ProductVariant::with([])
+                                                   ->excludeDeleted()
+                                                   ->where('product_id', '!=', $product->product_id)
+                                                   ->where('upc', $variant->upc);
+
+                if ($mode === 'update') {
+                    $productVariantUPC->where('product_variant_id', '!=', $productVariantExists->product_variant_id);
+                }
+
+                // If this is not empty, then there are other variant on different
+                // product which has the same UPC
+                $productVariantUPC = $productVariantUPC->first();
+                if (! empty($productVariantUPC)) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.upc_code', [
+                        'upc' => $productVariantUPC->upc
+                    ]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if (! empty($variant->sku)) {
+                // Make sure there is no duplicate on SKU code:
+                // 1) Search product which has the same SKU but exclude the parent
+                $productSKU = Product::with([])
+                                     ->excludeDeleted()
+                                     ->where('product_id', '!=', $product->product_id)
+                                     ->where('product_code', $variant->sku)
+                                     ->where('merchant_id', $product->merchant_id)
+                                     ->first();
+                if (! empty($productSKU)) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.sku_code', [
+                        'sku' => $productSKU->product_code
+                    ]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                // 2) Search product variant which has the same sku but exclude one
+                //    which has the same parent
+                $productVariantSKU = ProductVariant::with([])
+                                                   ->excludeDeleted()
+                                                   ->where('product_id', '!=', $product->product_id)
+                                                   ->where('sku', $variant->sku);
+
+                if ($mode === 'update') {
+                    $productVariantSKU->where('product_variant_id', '!=', $productVariantExists->product_variant_id);
+                }
+
+                // If this is not empty, then there are other variant on different
+                // product which has the same UPC
+                $productVariantSKU = $productVariantSKU->first();
+                if (! empty($productVariantSKU)) {
+                    $errorMessage = Lang::get('validation.orbit.exists.product.sku_code', [
+                        'sku' => $productVariantSKU->sku
+                    ]);
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
         }
 
