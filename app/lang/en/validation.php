@@ -115,7 +115,7 @@ return array(
                     'transaction'   => 'Product variant ID :id has one or more transactions linked to it, so it cannot be edited or deleted.'
                 ),
                 'upc_code'          => 'UPC :upc has already been used by other product.',
-                'upc_code'          => 'SKU :sku has already been used by other product.',
+                'sku_code'          => 'SKU :sku has already been used by other product.',
                 'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it cannot be edited or deleted.'
             ),
             'employeeid'            => 'The employee ID is not available.',
