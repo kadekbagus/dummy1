@@ -1464,8 +1464,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Kunci Obeng';
-        $_POST['product_code'] = 'SKU-001';
-        $_POST['upc_code'] = 'SKU-001';
+        $_POST['product_code'] = 'SKU-001-1';
+        $_POST['upc_code'] = 'SKU-001-1';
         $_POST['status'] = 'active';
         $_POST['product_variants'] = json_encode([$kunciObeng1]);
 
@@ -1511,8 +1511,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Kunci Obeng';
-        $_POST['product_code'] = 'SKU-001';
-        $_POST['upc_code'] = 'SKU-001';
+        $_POST['product_code'] = 'SKU-001-2';
+        $_POST['upc_code'] = 'SKU-001-2';
         $_POST['status'] = 'active';
         $_POST['product_variants'] = json_encode([$kunciObeng1]);
 
@@ -1566,8 +1566,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Kunci Obeng X';
-        $_POST['product_code'] = 'SKU-001';
-        $_POST['upc_code'] = 'UPC-001';
+        $_POST['product_code'] = 'SKU-001-Obeng';
+        $_POST['upc_code'] = 'UPC-001-Obeng';
         $_POST['price'] = 1000000;
         $_POST['status'] = 'active';
         $_POST['product_variants'] = json_encode([$kunciObeng1, $kunciObeng2]);
@@ -1611,8 +1611,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Kunci Obeng XYZ';
-        $_POST['product_code'] = 'SKU-001';
-        $_POST['upc_code'] = 'SKU-001';
+        $_POST['product_code'] = 'SKU-001-ObengXYZ';
+        $_POST['upc_code'] = 'SKU-001-ObengXYZ';
         $_POST['price'] = 1000000;
         $_POST['status'] = 'active';
         $_POST['product_id'] = $product->product_id;
