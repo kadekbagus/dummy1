@@ -1055,7 +1055,10 @@ class ProductAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $merchant_id = OrbitInput::post('merchant_id');
+
+            // This product_code is the same as SKU
             $product_code = OrbitInput::post('product_code');
+
             $upc_code = OrbitInput::post('upc_code');
             $product_name = OrbitInput::post('product_name');
             $image = OrbitInput::post('image');
@@ -1082,6 +1085,8 @@ class ProductAPIController extends ControllerAPI
                 array(
                     'merchant_id'       => $merchant_id,
                     'product_name'      => $product_name,
+                    'upc_code'          => $upc_code,
+                    'product_code'      => $product_code,
                     'status'            => $status,
                     'category_id1'      => $category_id1,
                     'category_id2'      => $category_id2,
@@ -1093,11 +1098,24 @@ class ProductAPIController extends ControllerAPI
                     'merchant_id'           => 'required|numeric|orbit.empty.merchant',
                     'product_name'          => 'required',
                     'status'                => 'required|orbit.empty.product_status',
+                    'upc_code'              => 'orbit.exists.product.upc_code',
+                    'product_code'          => 'orbit.exists.product.sku_code',
                     'category_id1'          => 'numeric|orbit.empty.category_id1',
                     'category_id2'          => 'numeric|orbit.empty.category_id2',
                     'category_id3'          => 'numeric|orbit.empty.category_id3',
                     'category_id4'          => 'numeric|orbit.empty.category_id4',
                     'category_id5'          => 'numeric|orbit.empty.category_id5',
+                ),
+                array(
+                    // Duplicate UPC error message
+                    'orbit.exists.product.upc_code' => Lang::get('validation.orbit.exists.product.upc_code', [
+                        'upc' => $upc_code
+                    ]),
+
+                    // Duplicate SKU error message
+                    'orbit.exists.product.sku_code' => Lang::get('validation.orbit.exists.product.sku_code', [
+                        'sku' => $product_code
+                    ])
                 )
             );
 
@@ -1581,6 +1599,7 @@ class ProductAPIController extends ControllerAPI
         // Check the existance of merchant id
         Validator::extend('orbit.empty.merchant', function ($attribute, $value, $parameters) {
             $merchant = Merchant::excludeDeleted()
+                        ->allowedForUser($this->api->user)
                         ->where('merchant_id', $value)
                         ->first();
 
@@ -1611,9 +1630,28 @@ class ProductAPIController extends ControllerAPI
         });
 
         // Check product_code, it should not exists
-        Validator::extend('orbit.exists.product_code', function ($attribute, $value, $parameters) {
+        Validator::extend('orbit.exists.product.upc_code', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
+            $product = Product::excludeDeleted()
+                        ->where('upc_code', $value)
+                        ->where('merchant_id', $merchant->merchant_id)
+                        ->first();
+
+            if (! empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.product.upc_code', $product);
+
+            return TRUE;
+        });
+
+        // Check product_code, it should not exists
+        Validator::extend('orbit.exists.product.sku_code', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
             $product = Product::excludeDeleted()
                         ->where('product_code', $value)
+                        ->where('merchant_id', $merchant->merchant_id)
                         ->first();
 
             if (! empty($product)) {
