@@ -1168,6 +1168,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              //scan cart automatic and manually
              $scope.scancartFn = function(bool){
                    $scope.cancelRequestService();
+                   $scope.getcartpromotion();
                     $scope.cartcoupon = [];
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
