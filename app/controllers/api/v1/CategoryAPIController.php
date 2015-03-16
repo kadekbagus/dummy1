@@ -826,6 +826,12 @@ class CategoryAPIController extends ControllerAPI
             });
             $categories->orderBy($sortBy, $sortMode);
 
+            // @TODO: quick solving.
+            // also sort by name when level is being sorted.
+            if ($sortBy === 'categories.category_level') {
+                $categories->orderBy('categories.category_name', 'asc');
+            }
+
             $totalCategories = RecordCounter::create($_categories)->count();
             $listOfCategories = $categories->get();
 
