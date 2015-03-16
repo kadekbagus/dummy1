@@ -1704,7 +1704,7 @@ class UserAPIController extends ControllerAPI
         // Check the existance of the Role
         Validator::extend('orbit.empty.user_status', function ($attribute, $value, $parameters) {
             $valid = false;
-            $statuses = array('active', 'pending', 'blocked', 'deleted');
+            $statuses = array('active', 'inactive', 'pending', 'blocked', 'deleted');
             foreach ($statuses as $status) {
                 if($value === $status) $valid = $valid || TRUE;
             }

@@ -372,7 +372,7 @@ class MerchantAPIController extends ControllerAPI
             $newuser->username = $email;
             $newuser->user_email = $email;
             $newuser->user_password = Hash::make($password);
-            $newuser->status = 'active';
+            $newuser->status = $status;
             $newuser->user_role_id = $roleMerchant->role_id;
             $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
             $newuser->modified_by = $user->user_id;
@@ -1337,6 +1337,15 @@ class MerchantAPIController extends ControllerAPI
             Event::fire('orbit.merchant.postupdatemerchant.before.save', array($this, $updatedmerchant));
 
             $updatedmerchant->save();
+
+            // update user status
+            OrbitInput::post('status', function($status) use ($updatedmerchant) {
+                $updateuser = User::excludeDeleted()->find($updatedmerchant->user_id);
+                $updateuser->status = $status;
+                $updateuser->modified_by = $this->api->user->user_id;
+
+                $updateuser->save();
+            });
 
             // do insert/update/delete merchant_taxes
             OrbitInput::post('merchant_taxes', function($merchant_taxes) use ($updatedmerchant) {
