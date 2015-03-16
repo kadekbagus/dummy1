@@ -148,7 +148,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
              //get product
              $scope.getproduct = function(){
-                    serviceAjax.getDataFromServer('/pos/quickproduct').then(function(response){
+                    serviceAjax.getDataFromServer('/pos/quickproduct?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
                                 response.data.records[i]['product']['price'] = accounting.formatMoney(response.data.records[i]['product']['price'], "", 0, ",", ".");
