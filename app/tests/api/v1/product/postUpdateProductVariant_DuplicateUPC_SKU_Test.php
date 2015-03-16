@@ -391,6 +391,16 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
                 'merchant_id'                   => 1,
                 'status'                        => 'active',
             ],
+            [
+                'product_variant_id'            => 3,
+                'product_id'                    => 3,
+                'price'                         => 123000,
+                'upc'                           => 'UPC-102',
+                'sku'                           => 'SKU-102',
+                'product_attribute_value_id1'   => 14,
+                'merchant_id'                   => 1,
+                'status'                        => 'active',
+            ],
         ];
         foreach (static::$variants as $variant) {
             DB::table('product_variants')->insert($variant);
@@ -698,5 +708,88 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
         $this->assertSame('error', $response->status);
         $this->assertSame($errorMessage, $response->message);
+    }
+
+
+    /**
+     * This test should produce no error, since sku 'SKU-102' are belongs to
+     * Variant of 'Kunci Obeng' Product even though it also belongs to
+     * 'Kemeja Mahal' but it has different merchant.
+     */
+    public function testSaveProductUpdate_SKU_102_BelongsToKunciObjeng_Allowed()
+    {
+        $productVariant1 = ProductVariant::find(3);
+
+        // Object of first "Kemeja Mahal"
+        $kunciObeng1 = new stdClass();
+        $kunciObeng1->variant_id = $productVariant1->product_variant_id;
+        $kunciObeng1->upc = NULL;
+        $kunciObeng1->sku = 'SKU-002';
+        $kunciObeng1->price = NULL;
+
+        // It containts array of product_attribute_value_id
+        $kunciObeng1->attribute_values = [13, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 3;
+        $_POST['product_variants_update'] = json_encode([$kunciObeng1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+    }
+
+    /**
+     * This test should produce no error, since sku 'UPC-102' are belongs to
+     * Variant of 'Kunci Obeng' Product even though it also belongs to
+     * 'Kemeja Mahal' but it has different merchant.
+     */
+    public function testSaveProductUpdate_UPC_102_BelongsToKunciObjeng_Allowed()
+    {
+        $productVariant1 = ProductVariant::find(3);
+
+        // Object of first "Kemeja Mahal"
+        $kunciObeng1 = new stdClass();
+        $kunciObeng1->variant_id = $productVariant1->product_variant_id;
+        $kunciObeng1->upc = 'UPC-102';
+        $kunciObeng1->sku = NULL;
+        $kunciObeng1->price = NULL;
+
+        // It containts array of product_attribute_value_id
+        $kunciObeng1->attribute_values = [14, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 3;
+        $_POST['product_variants_update'] = json_encode([$kunciObeng1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
     }
 }

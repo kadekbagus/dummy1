@@ -2148,7 +2148,8 @@ class ProductAPIController extends ControllerAPI
                 $productVariantUPC = ProductVariant::with([])
                                                    ->excludeDeleted()
                                                    ->where('product_id', '!=', $product->product_id)
-                                                   ->where('upc', $variant->upc);
+                                                   ->where('upc', $variant->upc)
+                                                   ->where('merchant_id', $product->merchant_id);
 
                 if ($mode === 'update') {
                     $productVariantUPC->where('product_variant_id', '!=', $productVariantExists->product_variant_id);
@@ -2186,7 +2187,8 @@ class ProductAPIController extends ControllerAPI
                 $productVariantSKU = ProductVariant::with([])
                                                    ->excludeDeleted()
                                                    ->where('product_id', '!=', $product->product_id)
-                                                   ->where('sku', $variant->sku);
+                                                   ->where('sku', $variant->sku)
+                                                   ->where('merchant_id', $product->merchant_id);
 
                 if ($mode === 'update') {
                     $productVariantSKU->where('product_variant_id', '!=', $productVariantExists->product_variant_id);
