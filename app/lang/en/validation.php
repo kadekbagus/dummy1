@@ -246,7 +246,7 @@ return array(
                     'value' => array(
                         'price'         => 'The price should be in numeric or decimal.',
                         'count'         => 'The number of value must be 5.',
-                        'order'         => 'Invalid attribute ID order, expected :expect but got :got.',
+                        'order'         => 'Invalid attribute order, expected value from attribute `:expect` but got value from attribute `:got`.',
                         'allnull'       => 'All five attribute values cannot be empty at the same time.',
                         'exists'        => 'The attribute combinations you have sent already exist.',
                         'nullprepend'   => 'Empty value must be put after attribute value.',

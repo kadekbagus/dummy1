@@ -419,9 +419,25 @@ class ProductAPIController extends ControllerAPI
 
                         // Compare it
                         if ((string)$_attribute_value->product_attribute_id !== $old_product_id) {
+                            $old_product_attribute_name = $old_product_id;
+                            $new_product_attribute_name = $_attribute_value->product_attribute_id;
+
+                            $old_product_attribute_name_obj = ProductAttribute::find($old_product_id);
+                            $new_product_attribute_name_obj = ProductAttribute::find($_attribute_value->product_attribute_id);
+
+                            if (is_object($old_product_attribute_name_obj)) {
+                                // Get the attribute name
+                                $old_product_attribute_name = $old_product_attribute_name_obj->product_attribute_name;
+                            }
+
+                            if (is_object($new_product_attribute_name_obj)) {
+                                // Get the attribute name
+                                $new_product_attribute_name = $new_product_attribute_name_obj->product_attribute_name;
+                            }
+
                             $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.order', [
-                                                    'expect' => $old_product_id,
-                                                    'got' => $_attribute_value->product_attribute_id
+                                                    'expect' => $old_product_attribute_name,
+                                                    'got' => $new_product_attribute_name
                             ]);
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
                         }
@@ -2241,6 +2257,7 @@ class ProductAPIController extends ControllerAPI
             'attributeValue5',
         );
         $complete_variant = ProductVariant::excludeDeleted()
+                                          ->excludeDefault()
                                           ->mostCompleteValue()
                                           ->where('product_id', $updatedproduct->product_id)
                                           ->with($with)

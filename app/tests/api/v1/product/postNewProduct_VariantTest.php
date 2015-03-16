@@ -630,8 +630,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
         $this->assertSame('error', $response->status);
         $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.order', [
-                                'expect' => 1,
-                                'got' => 4
+                                'expect' => 'Size',
+                                'got' => 'Class'
         ]);
         $this->assertSame($errorMessage, $response->message);
     }
