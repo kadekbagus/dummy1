@@ -32,6 +32,19 @@
 </div>
 @stop
 
+@section('footer')
+  <footer>
+    <div class="row">
+      <div class="col-xs-12 text-center">
+        <img class="img-responsive orbit-footer"  src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
+      </div>
+      <div class="text-center">
+          {{ 'Orbit v' . ORBIT_APP_VERSION . '.' . ORBIT_APP_BUILD_NUMBER }}
+      </div>
+    </div>
+  </footer>
+@stop
+
 @section('ext_script_bot')
   {{ HTML::script('mobile-ci/scripts/html2canvas.min.js') }}
   <script type="text/javascript">
