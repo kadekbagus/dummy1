@@ -13,7 +13,7 @@
  *   Y: Minor version
  */
 if (! defined('ORBIT_APP_VERSION')) {
-    define('ORBIT_APP_VERSION', '1.0');
+    define('ORBIT_APP_VERSION', '0.9');
 }
 
 /**
