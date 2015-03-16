@@ -136,7 +136,9 @@ class ActivityAPIController extends ControllerAPI
             OrbitInput::get('with', function($_with) use (&$with) {
                 $with = array_merge($with, $_with);
             });
-            $activities = Activity::with($with);
+            $tablePrefix = DB::getTablePrefix();
+            $activities = Activity::with($with)->select('activities.*',
+                                                        DB::Raw("DATE_FORMAT({$tablePrefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"));
 
             // Filter by ids
             OrbitInput::get('id', function($activityIds) use ($activities) {
