@@ -1226,7 +1226,7 @@ class CashierAPIController extends ControllerAPI
             // issue product based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
                 foreach($cart as $k => $v){
-                    if(!empty($v['product_id']){
+                    if(!empty($v['product_id'])){
                         $product_id = $v['product_id'];
 
                         $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
@@ -2053,6 +2053,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price'){
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -2134,6 +2140,12 @@ class CashierAPIController extends ControllerAPI
                             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($promo_filter->rule_type == 'new_product_price'){
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $used_product_coupon->discount = $discount;
                             $ammount_after_promo = $ammount_after_promo - $discount;
@@ -2488,6 +2500,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -2570,6 +2588,15 @@ class CashierAPIController extends ControllerAPI
                                     $discount = $temp_price;
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $temp_price = $temp_price - $discount;
                             $used_product_coupon->discount = $discount;
@@ -3863,6 +3890,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -3944,6 +3977,12 @@ class CashierAPIController extends ControllerAPI
                             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $used_product_coupon->discount = $discount;
                             $ammount_after_promo = $ammount_after_promo - $discount;
@@ -4298,6 +4337,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -4380,6 +4425,15 @@ class CashierAPIController extends ControllerAPI
                                     $discount = $temp_price;
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $temp_price = $temp_price - $discount;
                             $used_product_coupon->discount = $discount;
