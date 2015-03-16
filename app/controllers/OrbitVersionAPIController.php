@@ -1,6 +1,6 @@
 <?php
 /**
- * A dummy API controller for testing purpose.
+ * A Controller for returning the API version number.
  */
 use OrbitShop\API\v1\ControllerAPI;
 
