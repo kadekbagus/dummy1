@@ -34,6 +34,9 @@
                                </div>
                            </fieldset>
                        </form>
+                        <section>
+                             <p class="text-center text-muted text-small"><% versions.strings %></p>
+                         </section>
                    </div>
                </div>
         </div>

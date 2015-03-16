@@ -29,6 +29,21 @@ define([
                         return $q.reject(response.data);
                     });
             },
+            getDataFromServerPublicUrl : function(params){
+
+                return $http.get(config['baseUrlServerPublic'] + params)
+                    .then(function(response){
+                        if (response.data) {
+                            return response.data;
+                        } else {
+                            // invalid response
+                            return $q.reject(response.data);
+                        }
+                    },function(response){
+                        // invalid response
+                        return $q.reject(response.data);
+                    });
+            },
 
             posDataToServer : function(){
                 var params = '',

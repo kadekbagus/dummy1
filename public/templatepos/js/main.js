@@ -15,7 +15,8 @@ require.config({
 
 require([
     './app',
-    './service'
+    './service',
+    './version'
 ],function(){
     angular.element(document).ready(function(){
         // bootstrapping angular module
