@@ -85,6 +85,7 @@ class MerchantAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
+            // soft delete merchant.
             $deletemerchant = Merchant::excludeDeleted()->allowedForUser($user)->where('merchant_id', $merchant_id)->first();
             $deletemerchant->status = 'deleted';
             $deletemerchant->modified_by = $this->api->user->user_id;
@@ -92,6 +93,18 @@ class MerchantAPIController extends ControllerAPI
             Event::fire('orbit.merchant.postdeletemerchant.before.save', array($this, $deletemerchant));
 
             $deletemerchant->save();
+
+            // soft delete user.
+            $deleteuser = User::with(array('apikey'))->excludeDeleted()->find($deletemerchant->user_id);
+            $deleteuser->status = 'deleted';
+            $deleteuser->modified_by = $this->api->user->user_id;
+
+            // soft delete api key.
+            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+            $deleteapikey->status = 'deleted';
+
+            $deleteuser->save();
+            $deleteapikey->save();
 
             Event::fire('orbit.merchant.postdeletemerchant.after.save', array($this, $deletemerchant));
             $this->response->data = null;
