@@ -1374,7 +1374,7 @@ class UserAPIController extends ControllerAPI
             $users->skip($skip);
 
             // Default sort by
-            $sortBy = 'users.user_firstname';
+            $sortBy = 'users.user_email';
             // Default sort mode
             $sortMode = 'asc';
 
