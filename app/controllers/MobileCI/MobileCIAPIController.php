@@ -741,7 +741,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1108,7 +1111,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1382,7 +1388,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1659,7 +1668,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -1796,6 +1808,19 @@ class MobileCIAPIController extends ControllerAPI
             $promotions = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" AND p.status = "active" AND ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "'. Carbon::now() .'" ORDER BY ic.expired_date ASC'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id));
 
@@ -1853,7 +1878,6 @@ class MobileCIAPIController extends ControllerAPI
             $families = OrbitInput::get('families');
 
             if (count($families) == 1) {
-                // dd($families);
                 \Session::put('f1', $family_id);
                 \Session::forget('f2');
                 \Session::forget('f3');
@@ -1982,7 +2006,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id));
-
+            
             $couponstocatchs = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
@@ -2070,7 +2094,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { 
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -2200,7 +2227,7 @@ class MobileCIAPIController extends ControllerAPI
             });
 
             $_products = clone $products;
-            // dd($products->get());
+            
             // Default sort by
             $sortBy = 'products.product_name';
             // Default sort mode
@@ -2333,7 +2360,10 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set coupons to catch flag
-                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { return $v->product_id == $product->product_id; });
+                $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued;
+                });
                 if (count($couponstocatch_this_product) > 0) {
                     $product->on_couponstocatch = true;
                 } else {
@@ -2424,7 +2454,12 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
-
+            
+            $couponstocatchs = array_filter($couponstocatchs, function ($v) use ($product) {
+                $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+            });
+            
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
@@ -3770,6 +3805,9 @@ class MobileCIAPIController extends ControllerAPI
             $cart = $cartdata->cart;
             $cartdetails = $cartdata->cartdetails;
 
+            $cart_promotion   = $cartdata->cartsummary->acquired_promo_carts; // data of array
+            $cart_coupon      = $cartdata->cartsummary->used_cart_coupons; // data of array
+
             $cart_id = null;
 
             $activity_payment = 'payment_online';
@@ -4017,14 +4055,11 @@ class MobileCIAPIController extends ControllerAPI
                     $transactiondetailpromotion->rule_value = $value->promotionrule->rule_value;
                     $transactiondetailpromotion->discount_object_type = $value->promotionrule->discount_object_type;
                     if ($value->promotionrule->rule_type=="cart_discount_by_percentage") {
-                        $discount_percent = intval($value->promotionrule->discount)/100;
-                        $discount_value = $this->removeFormat($value->promotionrule->discount_value);
-                        $transactiondetailpromotion->discount_value = $discount_percent;
-                        $transactiondetailpromotion->value_after_percentage = $discount_value;
-                    } elseif ($value->promotionrule->rule_type=="cart_discount_by_value") {
-                        $discount_value = $this->removeFormat($value->promotionrule->discount_value);
-                        $transactiondetailpromotion->discount_value = $discount_value;
-                        $transactiondetailpromotion->value_after_percentage = $discount_value;
+                        $transactiondetailpromotion->discount_value = $value->promotionrule->discount_value;
+                        $transactiondetailpromotion->value_after_percentage = str_replace('-', '', $value->disc_val_str);
+                    } else {
+                        $transactiondetailpromotion->discount_value = $value->promotionrule->discount_value;
+                        $transactiondetailpromotion->value_after_percentage = str_replace('-', '', $value->disc_val_str);
                     }
                     $transactiondetailpromotion->description = $value->description;
                     $transactiondetailpromotion->begin_date = $value->begin_date;
@@ -4037,7 +4072,6 @@ class MobileCIAPIController extends ControllerAPI
             // cart based coupon
             if (!empty($cart_coupon)) {
                 foreach ($cart_coupon as $value) {
-
                     $transactiondetailcoupon = new TransactionDetailCoupon();
                     $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
                     $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
@@ -4058,14 +4092,11 @@ class MobileCIAPIController extends ControllerAPI
                     $transactiondetailcoupon->category_name5 = $value->issuedcoupon->discount_object_id5;
                     $transactiondetailcoupon->discount_object_type = $value->issuedcoupon->discount_object_type;
                     if ($value->issuedcoupon->rule_type=="cart_discount_by_percentage") {
-                        $discount_percent = intval($value->issuedcoupon->discount)/100;
-                        $discount_value = $this->removeFormat($value->issuedcoupon->discount_value);
-                        $transactiondetailcoupon->discount_value = $discount_percent;
-                        $transactiondetailcoupon->value_after_percentage = $discount_value;
+                        $transactiondetailcoupon->discount_value = $value->issuedcoupon->discount_value;
+                        $transactiondetailcoupon->value_after_percentage = str_replace('-', '', $value->disc_val_str);
                     } else {
-                        $discount_value = $this->removeFormat($value->issuedcoupon->discount_value);
-                        $transactiondetailcoupon->discount_value = $discount_percent;
-                        $transactiondetailcoupon->value_after_percentage = $discount_value;
+                        $transactiondetailcoupon->discount_value = $value->issuedcoupon->discount_value;
+                        $transactiondetailcoupon->value_after_percentage = str_replace('-', '', $value->disc_val_str);
                     }
                     $transactiondetailcoupon->coupon_redeem_rule_value = $value->issuedcoupon->coupon_redeem_rule_value;
                     $transactiondetailcoupon->description = $value->issuedcoupon->description;
@@ -4078,7 +4109,6 @@ class MobileCIAPIController extends ControllerAPI
                         $coupon_id = intval($value->issuedcoupon->issued_coupon_id);
                         $coupon_redeemed = IssuedCoupon::where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
                     }
-
                 }
             }
 
@@ -4144,7 +4174,6 @@ class MobileCIAPIController extends ControllerAPI
                 if (!empty($coupon_carts)) {
                     foreach ($coupon_carts as $kupon) {
                         $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
-                        // dd($issued . ' | ' . $kupon->maximum_issued_coupon);
                         if ($issued < $kupon->maximum_issued_coupon) {
                             $issue_coupon = new IssuedCoupon();
                             $issue_coupon->promotion_id = $kupon->promotion_id;
@@ -4174,6 +4203,212 @@ class MobileCIAPIController extends ControllerAPI
                 $cart_detail_delete = CartDetail::where('status', 'active')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
             }
 
+            // generate receipt
+            $transaction = Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction->transaction_id)->first();
+            $issuedcoupon = IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction->transaction_id)->get();
+
+            $details = $transaction->details->toArray();
+            $detailcoupon = $transaction->detailcoupon->toArray();
+
+            $detailpromotion = $transaction->detailpromotion->toArray();
+            $_issuedcoupon = $issuedcoupon->toArray();
+            $total_issuedcoupon = count($_issuedcoupon);
+            $acquired_coupon = null;
+
+            foreach ($_issuedcoupon as $key => $value) {
+                if($key==0){
+                  $acquired_coupon .= " \n";
+                  $acquired_coupon .= '----------------------------------------'." \n";
+                  $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
+                  $acquired_coupon .= '----------------------------------------'." \n";
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                }
+                else{
+                  $acquired_coupon .= '----------------------------------------'." \n";
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+                  $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                  if($key==$total_issuedcoupon-1){
+                    $acquired_coupon .= '----------------------------------------'." \n";
+                  }
+                }
+            }
+
+            foreach ($details as $details_key => $details_value) {
+                if($details_key==0){
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                }
+                else {
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                }
+                foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
+                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
+                        $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);
+                    }
+                }
+
+                foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
+                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
+                        $product .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 25), $detailpromotion_value['value_after_percentage']);
+                    }
+                }
+            }
+
+            $product .= '----------------------------------------'." \n";
+
+            $promo = FALSE;
+
+            foreach ($details as $details_key => $details_value) {
+                $x = 0;
+                foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
+                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='cart'){
+                        if($x==0){
+                            $cart_based_promo = "Cart Promotions"." \n";
+                            $promo = TRUE;
+                        }
+                        $x = $x+1;
+                        $promo = TRUE;
+                        $cart_based_promo .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 23), $detailpromotion_value['value_after_percentage']);
+                    }
+                }
+            }
+
+            foreach ($details as $details_key => $details_value) {
+                $x = 0;
+                foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
+                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
+                        if($x==0){
+                            if(!$promo){
+                                $cart_based_promo = "Cart Coupons"." \n";
+                                $promo = TRUE;
+                            } else {
+                                $cart_based_promo .= "Cart Coupons"." \n";
+                            }
+
+                        }
+                        $x = $x+1;
+                        $promo = TRUE;
+                        $cart_based_promo .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 23), $detailcoupon_value['value_after_percentage']);
+                    }
+                }
+            }
+
+            if ($promo) {
+                $cart_based_promo .= '----------------------------------------'." \n";
+            }
+
+            $payment = $transaction['payment_method'];
+            if ($payment=='cash') {
+                $payment='Cash';
+            }
+
+            if ($payment=='card') {
+                $payment='Card';
+            }
+            
+            if ($payment=='online_payment') {
+                $payment='Online Payment';
+            }
+
+            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+
+            if($transaction['user']==NULL){
+                $customer = "Guest";
+            }else{
+                $customer = $transaction['user']->user_email;
+            }
+
+            $bill_no = $transaction['transaction_id'];
+
+            $head  = $this->just40CharMid($retailer->parent->name);
+            $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
+
+            // ticket header
+            $ticket_header = $retailer->parent->ticket_header;
+            $ticket_header_line = explode("\n", $ticket_header);
+            foreach ($ticket_header_line as $line => $value) {
+                $head .= $this->just40CharMid($value);
+            }
+            $head .= '----------------------------------------'." \n";
+            $head .= 'Date : '.$date." \n";
+            $head .= 'Bill No  : '.$bill_no." \n";
+            $head .= 'Customer : '.$customer." \n";
+
+            $head .= '----------------------------------------'." \n";
+
+            $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
+            $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
+            $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
+            $pay  .= " \n";
+            $pay  .= $this->leftAndRight('Payment Method', $payment);
+            if($payment=='Cash'){
+                $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
+                $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+            }
+            if($payment=="Card"){
+                $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
+            }
+
+            $footer  = " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+
+            // ticket footer
+            $ticket_footer = $retailer->parent->ticket_footer;
+            $ticket_footer_line = explode("\n", $ticket_footer);
+            foreach ($ticket_footer_line as $line => $value) {
+                $footer .= $this->just40CharMid($value);
+            }
+
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= $this->just40CharMid('Powered by DominoPos');
+            $footer .= $this->just40CharMid('www.dominopos.com');
+            $footer .= '----------------------------------------'." \n";
+
+            $footer .= " \n";
+            $footer .= " \n";
+            $footer .= " \n";
+
+            $transaction_date = str_replace(' ', '_', $transaction->created_at);
+            $transaction_date = str_replace(':', '', $transaction->created_at);
+
+            // Example Result: recipt-123-2015-03-04_101010.txt
+            $attachment_name = sprintf('receipt-%s-%s.png', $transaction->transaction_id, $transaction_date);
+            
+            if(!empty($cart_based_promo)){
+                $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
+            }else{
+                $write = $head.$product.$pay.$acquired_coupon.$footer;
+            }
+
+            $fontsize = 12;
+
+            $font_path = public_path() . '/templatepos/courier.ttf';
+            $size = imagettfbbox($fontsize, 0, $font_path, $write);
+            $xsize = abs($size[0]) + abs($size[2]);
+            $ysize = abs($size[5]) + abs($size[1]);
+
+            $image = imagecreate($xsize, $ysize);
+            $white = imagecolorallocate($image, 255, 255, 255);
+            $black = ImageColorAllocate($image, 0, 0, 0);
+            imagettftext($image, $fontsize, 0, abs($size[0]), abs($size[5]), $black, $font_path, $write);
+
+            ob_start (); 
+
+              $image_data = imagepng($image);
+              $image_data = ob_get_contents (); 
+
+            ob_end_clean (); 
+
+            $base64receipt = base64_encode($image_data);
+
+
             $this->response->data = $transaction;
             $this->commit();
 
@@ -4187,7 +4422,7 @@ class MobileCIAPIController extends ControllerAPI
                     ->responseOK()
                     ->save();
 
-            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction' => $transaction, 'acquired_coupons' => $acquired_coupons));
+            return View::make('mobile-ci.thankyou', array('retailer'=>$retailer, 'cartdata' => $cartdata, 'transaction' => $transaction, 'acquired_coupons' => $acquired_coupons, 'base64receipt' => $base64receipt));
 
         } catch (Exception $e) {
             $this->rollback();
@@ -4200,7 +4435,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+            return $e;
         }
     }
 
@@ -4775,7 +5011,6 @@ class MobileCIAPIController extends ControllerAPI
         })->whereHas('cartdetail', function ($q) {
             $q->where('cart_coupons.object_type', '=', 'cart_detail');
         })->get();
-        // dd($used_product_coupons);
 
         $promo_carts = Promotion::with('promotionrule')->active()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('retailers', function ($q) use ($retailer) {
             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
@@ -5363,7 +5598,7 @@ class MobileCIAPIController extends ControllerAPI
 
                 $promo_for_this_product_array = array();
                 $promo_filters = array_filter($promo_products, function ($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                // dd($promo_filters);
+                
                 foreach ($promo_filters as $promo_filter) {
                     $promo_for_this_product = new stdclass();
                     $promo_for_this_product = clone $promo_filter;
@@ -5384,7 +5619,7 @@ class MobileCIAPIController extends ControllerAPI
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
-                        // dd($discount);
+                        
                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
                     }
                     $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
@@ -5717,4 +5952,58 @@ class MobileCIAPIController extends ControllerAPI
 
         return $cartdata;
     }
+
+    private function just40CharMid($str)
+    {
+        $nnn = strlen($str);
+        if ($nnn>40) {
+            $all = explode('::break-here::', wordwrap($str,38,'::break-here::'));
+            $tmp = '';
+            foreach ($all as $str) {
+                $space = round( (40-strlen($str))/2 );
+                $spc = '';
+                for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+                $tmp .= $spc.$str." \n";
+            }
+        } else {
+            $space = round( (40-strlen($str))/2 );
+            $spc = '';
+            for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+            $tmp = $spc.$str." \n";
+        }
+
+        return $tmp;
+    }
+    private function productListFormat($name, $price, $qty, $sku)
+    {
+        $all  = '';
+        $sbT = number_format($price*$qty,2);
+        $space = 40-strlen($name)-strlen($sbT); $spc = '';
+        for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+        $all .= $name.$spc.$sbT." \n";
+        $all .= '   '.$qty.' x '.number_format($price,2).' ('.$sku.')'." \n";
+
+        return $all;
+    }
+
+    private function discountListFormat($discount_name, $discount_value)
+    {
+        $all  = '';
+        $sbT = number_format($discount_value,2);
+        $space = 36-strlen($discount_name)-strlen($sbT); $spc = '';
+        for ($i=0;$i<$space;$i++) { $spc .= ' '; }
+        $all .= '   '.$discount_name.$spc."-".$sbT." \n";
+
+        return $all;
+    }
+
+    private function leftAndRight($left, $right)
+    {
+        $all  = '';
+        $space = 40-strlen($left)-strlen($right); $spc = '';
+        for($i=0;$i<$space;$i++){ $spc .= ' '; }
+        $all .= $left.$spc.$right." \n";
+        return $all;
+    }
+
 }

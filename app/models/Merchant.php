@@ -339,4 +339,19 @@ class Merchant extends Eloquent
                                      ->where('parent_id', $this->merchant_id)
                                      ->lists('merchant_id');
     }
+
+    /**
+     * Accessor for currency and currency symbol.
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     */
+    public function getCurrencyAttribute($value)
+    {
+        return 'IDR';
+    }
+
+    public function getCurrencySymbolAttribute($value)
+    {
+        return 'Rp';
+    }
 }

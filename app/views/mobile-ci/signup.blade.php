@@ -41,6 +41,19 @@
   </div>
 @stop
 
+@section('footer')
+  <footer>
+    <div class="row">
+      <div class="col-xs-12 text-center">
+        <img class="img-responsive orbit-footer"  src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
+      </div>
+      <div class="text-center">
+          {{ 'Orbit v' . ORBIT_APP_VERSION . '.' . ORBIT_APP_BUILD_NUMBER }}
+      </div>
+    </div>
+  </footer>
+@stop
+
 @section('modals')
   <!-- Modal -->
   <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

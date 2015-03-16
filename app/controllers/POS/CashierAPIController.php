@@ -804,13 +804,27 @@ class CashierAPIController extends ControllerAPI
             foreach($cart as $cart_key => $cart_value){
                 $cart_id = $cart_value['cart_id'];
                 $transactiondetail = new \TransactionDetail();
-                $transactiondetail->transaction_id              = $transaction->transaction_id;
-                $transactiondetail->product_id                  = $cart_value['product_id'];
-                $transactiondetail->product_name                = $cart_value['product_name'];
-                $transactiondetail->product_code                = $cart_value['product_code'];
-                $transactiondetail->quantity                    = $cart_value['qty'];
-                $transactiondetail->upc                         = $cart_value['upc_code'];
-                $transactiondetail->price                       = str_replace( ',', '', $cart_value['price'] );
+                $transactiondetail->transaction_id = $transaction->transaction_id;
+                
+                if(!empty($cart_value['product_id'])){
+                    $transactiondetail->product_id = $cart_value['product_id'];
+                }
+                if(!empty($cart_value['product_name'])){
+                    $transactiondetail->product_name = $cart_value['product_name'];
+                }
+                if(!empty($cart_value['product_code'])){
+                    $transactiondetail->product_code = $cart_value['product_code'];
+                }
+                if(!empty($cart_value['qty'])){
+                    $transactiondetail->quantity = $cart_value['qty'];
+                }
+                if(!empty($cart_value['upc_code'])){
+                    $transactiondetail->upc = $cart_value['upc_code'];
+                }
+                if(!empty($cart_value['price'])){
+                    $transactiondetail->price = str_replace( ',', '', $cart_value['price'] );
+                }
+
                 if(!empty($cart_value['variants'])){
                     if(!empty($cart_value['variants']['product_variant_id'])){
                         $transactiondetail->product_variant_id  = $cart_value['variants']['product_variant_id'];
@@ -1212,44 +1226,46 @@ class CashierAPIController extends ControllerAPI
             // issue product based coupons (if any)
             if($customer_id!=0 ||$customer_id!=NULL){
                 foreach($cart as $k => $v){
-                    $product_id = $v['product_id'];
+                    if(!empty($v['product_id'])){
+                        $product_id = $v['product_id'];
 
-                    $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
-                    inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                    inner join ' . DB::getTablePrefix() . 'products prod on
-                    (
-                        (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id)
-                        OR
+                        $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                        inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id AND p.promotion_type = "product" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                        inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                        inner join ' . DB::getTablePrefix() . 'products prod on
                         (
-                            (pr.rule_object_type="family") AND
-                            ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND
-                            ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
-                            ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
-                            ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
-                            ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                            (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id)
+                            OR
+                            (
+                                (pr.rule_object_type="family") AND
+                                ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND
+                                ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
+                                ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
+                                ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
+                                ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                            )
                         )
-                    )
-                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
+                        WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
 
-                    // dd($coupons);
-                    if($coupons!=NULL){
-                        foreach($coupons as $c){
-                            $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
-                            // dd($issued);
-                            if ($issued < $c->maximum_issued_coupon) {
-                                $issue_coupon = new IssuedCoupon;
-                                $issue_coupon->promotion_id = $c->promotion_id;
-                                $issue_coupon->transaction_id = $transaction->transaction_id;
-                                $issue_coupon->issued_coupon_code = '';
-                                $issue_coupon->user_id = $customer_id;
-                                $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
-                                $issue_coupon->issued_date = Carbon::now();
-                                $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
-                                $issue_coupon->status = 'active';
-                                $issue_coupon->save();
-                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                                $issue_coupon->save();
+                        // dd($coupons);
+                        if($coupons!=NULL){
+                            foreach($coupons as $c){
+                                $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                                // dd($issued);
+                                if ($issued < $c->maximum_issued_coupon) {
+                                    $issue_coupon = new IssuedCoupon;
+                                    $issue_coupon->promotion_id = $c->promotion_id;
+                                    $issue_coupon->transaction_id = $transaction->transaction_id;
+                                    $issue_coupon->issued_coupon_code = '';
+                                    $issue_coupon->user_id = $customer_id;
+                                    $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                                    $issue_coupon->issued_date = Carbon::now();
+                                    $issue_coupon->issuer_retailer_id = Config::get('orbit.shop.id');
+                                    $issue_coupon->status = 'active';
+                                    $issue_coupon->save();
+                                    $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                    $issue_coupon->save();
+                                }
                             }
                         }
                     }
@@ -2037,6 +2053,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price'){
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -2118,6 +2140,12 @@ class CashierAPIController extends ControllerAPI
                             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($promo_filter->rule_type == 'new_product_price'){
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $used_product_coupon->discount = $discount;
                             $ammount_after_promo = $ammount_after_promo - $discount;
@@ -2472,6 +2500,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -2554,6 +2588,15 @@ class CashierAPIController extends ControllerAPI
                                     $discount = $temp_price;
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $temp_price = $temp_price - $discount;
                             $used_product_coupon->discount = $discount;
@@ -3847,6 +3890,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -3928,6 +3977,12 @@ class CashierAPIController extends ControllerAPI
                             } elseif($used_product_coupon->issuedcoupon->rule_type == 'product_discount_by_value') {
                                 $discount = $used_product_coupon->issuedcoupon->discount_value + 0;
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $used_product_coupon->discount = $discount;
                             $ammount_after_promo = $ammount_after_promo - $discount;
@@ -4282,6 +4337,12 @@ class CashierAPIController extends ControllerAPI
                         } elseif($promo_filter->rule_type == 'product_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } elseif($promo_filter->rule_type == 'new_product_price') {
+                            $discount = $original_price - $promo_filter->discount_value;
+                            $promo_for_this_product->discount_str = $promo_filter->discount_value;
+                        } else {
+                            $discount = 0;
+                            $promo_for_this_product->discount_str = 0;
                         }
                         $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
                         $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
@@ -4364,6 +4425,15 @@ class CashierAPIController extends ControllerAPI
                                     $discount = $temp_price;
                                 }
                                 $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } elseif($used_product_coupon->issuedcoupon->rule_type == 'new_product_price') {
+                                $discount = $original_price - $used_product_coupon->issuedcoupon->discount_value + 0;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $used_product_coupon->discount_str = $used_product_coupon->issuedcoupon->discount_value + 0;
+                            } else {
+                                $discount = 0;
+                                $used_product_coupon->discount_str = 0;
                             }
                             $temp_price = $temp_price - $discount;
                             $used_product_coupon->discount = $discount;

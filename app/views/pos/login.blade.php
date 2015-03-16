@@ -21,8 +21,8 @@
                        <form name="signform" class="form-horizontal">
                            <fieldset>
                                <div class="form-group">
-                                   <span class="glyphicon glyphicon-envelope"></span>
-                                   <input type="text" name="username" class="orbit-component form-control input-lg input-round text-center" placeholder="ID" ng-model="login.username" required />
+                                   <span class="glyphicon glyphicon-user"></span>
+                                   <input type="text" name="username" class="orbit-component form-control input-lg input-round text-center" placeholder="Login ID" ng-model="login.username" required />
                                </div>
                                <div class="form-group">
                                    <span class="glyphicon glyphicon-lock"></span>

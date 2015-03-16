@@ -32,10 +32,10 @@
                 <span class="header-text">{{ Lang::get('mobileci.cart.qty_label') }}</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">{{ Lang::get('mobileci.cart.price_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+                <span class="header-text">{{ Lang::get('mobileci.cart.price_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
               </div>
               <div class="single-header unique-column">
-                <span class="header-text">{{ Lang::get('mobileci.cart.total_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+                <span class="header-text">{{ Lang::get('mobileci.cart.total_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
               </div>
             </div>
         {{-- product listing --}}
@@ -147,13 +147,13 @@
           <span>{{ Lang::get('mobileci.cart.promotion_label') }}</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
         <div class="cart-promo-single-header">
           <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
         </div>
         <div class="cart-promo-single-header">
-          <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.discount_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
       </div>
 
@@ -191,13 +191,13 @@
           <span>{{ Lang::get('mobileci.cart.coupon_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
         <div class="cart-coupon-single-header">
           <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.discount_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
       </div>
       @foreach($cartdata->cartsummary->used_cart_coupons as $coupon_cart)
@@ -244,7 +244,7 @@
           <span>{{ Lang::get('mobileci.cart.value_label') }}</span>
         </div>
         <div class="cart-coupon-single-header">
-          <span>{{ Lang::get('mobileci.cart.discount_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.discount_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
         <div class="cart-coupon-single-header">
           <span>&nbsp;</span>
@@ -280,13 +280,13 @@
           <span>{{ Lang::get('mobileci.cart.item_label') }}</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.subtotal_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>{{ Lang::get('mobileci.cart.taxes_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.taxes_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
         <div class="cart-sum-single-header">
-          <span>{{ Lang::get('mobileci.cart.total_label') }} ({{ $retailer->parent->currency_symbol }})</span>
+          <span>{{ Lang::get('mobileci.cart.total_label') }} @if(!empty($retailer->parent->currency_symbol)) ({{ $retailer->parent->currency_symbol }}) @endif</span>
         </div>
       </div>
       <div class="cart-sum-bodies">
