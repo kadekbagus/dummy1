@@ -23,7 +23,9 @@
                 {{ $retailer->parent->address_line1 }}
               </div>
               <div class="col-xs-12 text-center vertically-spaced">
-                {{ nl2br($retailer->parent->ticket_header) }}
+                @if(! empty($retailer->parent->ticket_header))
+                  {{ nl2br($retailer->parent->ticket_header) }}
+                @endif
               </div>
               <div class="col-xs-12 text-left vertically-spaced">
                 {{ Lang::get('mobileci.cart.transaction_id_label') }}: {{ str_pad($transaction->transaction_id, 10, '0', STR_PAD_LEFT) }}
@@ -348,7 +350,9 @@
             @endif
             <div class="row vertically-spaced">
               <div class="col-xs-12 text-center vertically-spaced">
-                {{ nl2br($retailer->parent->ticket_footer) }}
+                @if(! empty($retailer->parent->ticket_footer))
+                  {{ nl2br($retailer->parent->ticket_footer) }}
+                @endif
               </div>
             </div>
       </div>
