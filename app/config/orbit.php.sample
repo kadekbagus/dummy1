@@ -181,7 +181,7 @@ return array(
 
             // Activation URL
             // This should be frontend URL not backend
-            'activation_base_url' => 'http://orbit-shop.here/activate-account?token=%s',
+            'activation_base_url' => 'http://orbit-shop.here/#/activate-account?token=%s',
 
             // Number of days the activation link will expires
             'activation_expire' => 365,
@@ -302,6 +302,17 @@ return array(
 
             // Command to register or deregister client Mac address
             'command'   => 'sudo /home/orbit/scripts/firewall/register_mac.sh'
+        ),
+
+        // Box management related commands
+        'commands' => array(
+            // The shutdown command, the caller should send the "shutdown"
+            // string via STDIN
+            'shutdown'  => 'sudo /home/orbit/scripts/helpers/shutdown.sh',
+
+            // The reboot command, the caller should send the "reboot" string
+            // via STDIN
+            'reboot'    => 'sudo /home/orbit/scripts/helpers/shutdown.sh'
         ),
     ),
 
