@@ -68,14 +68,14 @@ class Shutdown
 
         switch ($mode) {
             case 'reboot':
-                $haltCmd = Config::get('orbit.security.commands.shutdown.reboot');
+                $haltCmd = Config::get('orbit.security.commands.reboot');
                 $return['message'] = 'Reboot has been initiated.';
                 $input = 'reboot';
                 break;
 
             case 'poweroff':
             default:
-                $haltCmd = Config::get('orbit.security.commands.shutdown.shutdown');
+                $haltCmd = Config::get('orbit.security.commands.shutdown');
                 $input = 'shutdown';
                 break;
         }

@@ -66,7 +66,7 @@ class ShutdownAPIController extends ControllerAPI
 
             $shutdown = Shutdown::create()->poweroff();
 
-            if ($shutdown['status'] !== FALSE) {
+            if ($shutdown['status'] === FALSE) {
                 OrbitShopAPI::throwInvalidArgument($shutdown['message']);
             }
 
@@ -168,7 +168,7 @@ class ShutdownAPIController extends ControllerAPI
 
             $shutdown = Shutdown::create()->reboot();
 
-            if ($shutdown['status'] !== FALSE) {
+            if ($shutdown['status'] === FALSE) {
                 OrbitShopAPI::throwInvalidArgument($shutdown['message']);
             }
 
