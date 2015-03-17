@@ -40,7 +40,7 @@ return array(
         'email_error'           => 'Please enter your email first.',
         'event_title'           => 'Events',
         'info_title'            => 'Info',
-        'coupon_title'          => 'My Coupon',
+        'coupon_title'          => 'My Coupons',
         'search_title'          => 'Search Product',
         'checkout_title'        => 'Checkout',
         'tip_title'             => 'Tip',
@@ -48,7 +48,7 @@ return array(
         'delete_coupon_title'   => 'Delete Coupon',
         'close_cart_title'      => 'Close Cart',
 
-        'message_no_coupon'     => 'Sorry, you do not have any coupon yet.',
+        'message_no_coupon'     => 'Sorry, you do not have any coupons yet.',
         'message_no_new_product'=> 'Sorry, there are no new products for today.',
         'message_no_promotion'  => 'Sorry, there are no promotions for today.',
         'message_delete_item'   => 'Are you sure to remove this item from your cart?',
@@ -178,8 +178,8 @@ return array(
         'card_number_label' => 'Card Number',
         'card_number_placeholder' => 'Enter your card number',
         'expire_label'      => 'Expired on',
-        'ccv_label'         => 'CVV',
-        'ccv_placeholder'   => 'Enter CVV',
+        'ccv_label'         => 'CCV',
+        'ccv_placeholder'   => 'Enter CCV',
         'submit_button'     => 'Submit',
     ),
 );
