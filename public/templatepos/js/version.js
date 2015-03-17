@@ -9,9 +9,11 @@
 define([
 
 ], function () {
-  var version = {};
-    version.timestamp       = moment().unix();
-    version.posVersion      = "0.9";
-    version.posBuildNumber  = "0";
-  return version;
+    var version = {};
+    version.timestamp    = moment().unix();
+    version.version      = "0.9";
+    version.buildNumber  = "0";
+    version.buildDate    = "0";
+
+    return version;
 });
