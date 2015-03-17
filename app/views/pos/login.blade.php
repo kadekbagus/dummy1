@@ -8,6 +8,7 @@
         <h4><% language.orbitkasir %></h4>
        <img ng-src="{{ URL::asset('templatepos/images/orbit-logo.png') }}"   data-ng-init="showloader = false" data-ng-if="!showloader" alt="Orbit Logo" />
        <img ng-src="{{ URL::asset('templatepos/images/orbit_circle.gif') }}"   data-ng-if="showloader" style="height: 60px; width: 60px; " alt="Orbit Logo" />
+       <link rel="shortcut icon" href="{{ URL::asset('templatepos/images/favicon.ico') }}">
       </section>
     </div>
 
@@ -33,6 +34,9 @@
                                </div>
                            </fieldset>
                        </form>
+                        <section>
+                             <p class="text-center text-muted text-small"><% versions.strings %></p>
+                         </section>
                    </div>
                </div>
         </div>
