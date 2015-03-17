@@ -87,7 +87,7 @@ class Shutdown
             return $return;
         }
 
-        $execCmd = Command::Factory($haltCmd)->run($input);
+        $execCmd = Command::Factory($haltCmd)->run($input . "\n");
         if ($execCmd->getExitCode() !== 0) {
             $return['status'] = FALSE;
             $return['message'] = $return['message'] = empty($execCmd->getStderr()) ? $execCmd->getStdout() : $execCmd->getStderr();
