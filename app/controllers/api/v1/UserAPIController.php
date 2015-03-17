@@ -1189,7 +1189,7 @@ class UserAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:username,email,firstname,lastname,registered_date',
+                    'sort_by' => 'in:username,email,firstname,lastname,registered_date,gender,city,last_visit_shop,last_visit_date,last_spent_amount',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -1232,8 +1232,11 @@ class UserAPIController extends ControllerAPI
 
             // Builder object
             $users = User::Consumers()
+                        ->select('users.*')
+                        ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                        ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                        ->excludeDeleted();
+                        ->excludeDeleted('users');
 
             // Filter by merchant ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
@@ -1381,11 +1384,16 @@ class UserAPIController extends ControllerAPI
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'registered_date'   => 'users.created_at',
-                    'username'          => 'users.username',
-                    'email'             => 'users.user_email',
-                    'lastname'          => 'users.user_lastname',
-                    'firstname'         => 'users.user_firstname'
+                    'registered_date'         => 'users.created_at',
+                    'username'                => 'users.username',
+                    'email'                   => 'users.user_email',
+                    'lastname'                => 'users.user_lastname',
+                    'firstname'               => 'users.user_firstname',
+                    'gender'                  => 'user_details.gender',
+                    'city'                    => 'user_details.city',
+                    'last_visit_shop'         => 'merchants.name',
+                    'last_visit_date'         => 'user_details.last_visit_any_shop',
+                    'last_spent_amount'       => 'user_details.last_spent_any_shop'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
