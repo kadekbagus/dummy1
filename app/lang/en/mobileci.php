@@ -40,7 +40,7 @@ return array(
         'email_error'           => 'Please enter your email first.',
         'event_title'           => 'Events',
         'info_title'            => 'Info',
-        'coupon_title'          => 'My Coupon',
+        'coupon_title'          => 'My Coupons',
         'search_title'          => 'Search Product',
         'checkout_title'        => 'Checkout',
         'tip_title'             => 'Tip',
@@ -48,12 +48,12 @@ return array(
         'delete_coupon_title'   => 'Delete Coupon',
         'close_cart_title'      => 'Close Cart',
 
-        'message_no_coupon'     => 'Sorry, you do not have any coupon yet.',
+        'message_no_coupon'     => 'Sorry, you do not have any coupons yet.',
         'message_no_new_product'=> 'Sorry, there are no new products for today.',
         'message_no_promotion'  => 'Sorry, there are no promotions for today.',
         'message_delete_item'   => 'Are you sure to remove this item from your cart?',
         'message_delete_coupon' => 'Are you sure to remove this coupon from your cart? Removed coupon could be used next time.',
-        'message_transfer_cart' => 'To complete the transfer cart, use the Transfer Cart on the settings menu and please show your smartphone to the cashier.',
+        'message_transfer_cart' => 'Show this screen to the cashier to complete your checkout.',
         'message_close_cart'    => 'Your cart is not transferred to the cashier. Please show the following barcode to the cashier.',
         
         'coupon_use'            => 'Use',

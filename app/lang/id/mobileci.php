@@ -53,7 +53,7 @@ return array(
         'message_no_promotion'  => 'Maaf, tidak ada promosi untuk saat ini.',
         'message_delete_item'   => 'Apakah Anda yakin akan menghapus item ini dari keranjang belanja?',
         'message_delete_coupon' => 'Apakah Anda yakin akan menghapus kupon ini dari keranjang belanja? Kupon yang Anda hapus masih dapat digunakan lain kali.',
-        'message_transfer_cart' => 'Untuk menyelesaikan transfer keranjang, gunakan Transfer Cart pada menu setting dan silahkan tunjukkan smartphone Anda ke kasir.',
+        'message_transfer_cart' => 'Tunjukkan smartphone Anda ke kasir untuk menyelesaikan checkout.',
         'message_close_cart'    => 'Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.',
         
         'coupon_use'            => 'Gunakan',
@@ -154,9 +154,9 @@ return array(
     'thank_you'             => array(
         'thank_you'         => 'Terima Kasih',
         'save_ticket_button'=> 'Simpan Struk Belanja',
-        'thank_you_message' => 'Terima kasih atas kunjungan Anda',
+        'thank_you_message' => 'Terima kasih telah berbelanja.',
         'dont_forget_message' => 'Jangan lupa kunjungi',
-        'promo_message' => 'untuk dapatkan info promo menarik lainya.',
+        'promo_message' => 'untuk dapatkan info promo menarik lainnya.',
         'shop_again_button' => 'Belanja Lagi',
         'transfer_cart_successful' => 'Transfer Cart Berhasil!',
         'transfer_cart_message' => 'transaksi Anda akan diselesaikan oleh kasir',
@@ -178,8 +178,8 @@ return array(
         'card_number_label' => 'Nomor Kartu Kredit',
         'card_number_placeholder' => 'Inputkan nomor kartu Anda',
         'expire_label'      => 'Kadaluarsa pada',
-        'ccv_label'         => 'CCV',
-        'ccv_placeholder'   => 'Inputkan CCV',
+        'ccv_label'         => 'CVV',
+        'ccv_placeholder'   => 'Inputkan CVV',
         'submit_button'     => 'Submit',
     ),
 );
