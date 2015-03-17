@@ -389,6 +389,7 @@ class ProductAPIController extends ControllerAPI
                     $product_variant->merchant_id = $merchant_id;
                     $product_variant->created_by = $user->user_id;
                     $product_variant->status = 'active';
+                    $product_variant->default_variant = 'no';
 
                     // Check the validity of each attribute value sent
                     foreach ($variant->attribute_values as $i=>$value_id) {
@@ -581,7 +582,18 @@ class ProductAPIController extends ControllerAPI
             {
                 $_variants = App::make('memory:deleted.variants');
                 foreach ($_variants as $variant) {
+                    $transaction_detail_variant = TransactionDetail::TransactionJoin()
+                                                          ->ExcludeDeletedTransaction()
+                                                          ->where('transaction_details.product_variant_id', $variant->product_variant_id)
+                                                          ->first();
+
+                    if (is_object($transaction_detail_variant)) {
+                        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', array('id' => $variant->product_variant_id));
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
                     // Unset variant which has been deleted
+                    // So it does not returned on the result
                     foreach ($variants as $i=>$v) {
                         if ((string)$v->product_variant_id === (string)$variant->product_variant_id) {
                             unset($variants[$i]);
