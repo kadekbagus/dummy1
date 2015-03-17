@@ -21,7 +21,7 @@
       <h3>{{ Lang::get('mobileci.thank_you.thank_you_message') }}</h3>
       @if(!empty($retailer->parent->url))
       <h5>{{ Lang::get('mobileci.thank_you.dont_forget_message') }}</h5>
-      <a href="{{ $retailer->parent->url }}">{{ $retailer->parent->url }}</a>
+      <a href="http://www.myorbit.com">www.myorbit.com</a>
       <h5>{{ Lang::get('mobileci.thank_you.promo_message') }}</h5>
       @endif
     </div>
@@ -38,7 +38,7 @@
       <div class="col-xs-12 text-center">
         <img class="img-responsive orbit-footer"  src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
       </div>
-      <div class="text-center">
+      <div class="text-center vertically-spaced">
           {{ 'Orbit v' . ORBIT_APP_VERSION . '.' . ORBIT_APP_BUILD_NUMBER }}
       </div>
     </div>
