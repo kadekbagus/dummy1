@@ -452,7 +452,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.loadproductdetail = false;
                             if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
                         }else if(response.code == 13) {
-                           // $scope.logoutfn();
+                            $scope.logoutfn();
                         }else{
                             //do smoething
                         }
