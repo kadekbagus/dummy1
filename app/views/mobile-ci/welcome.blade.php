@@ -80,7 +80,7 @@
         <img class="img-responsive orbit-footer"  src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
       </div>
       <div class="text-center">
-          {{ 'Orbit v' . ORBIT_APP_VERSION . '.' . ORBIT_APP_BUILD_NUMBER }}
+          {{ 'Orbit v' . ORBIT_APP_VERSION }}
       </div>
     </div>
   </footer>

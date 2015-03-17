@@ -64,7 +64,7 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-xs-12 text-center"> 
+    <div class="col-xs-12 text-center merchant-logo"> 
       <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" style="margin: 0 auto;" />
     </div>
   </div>
