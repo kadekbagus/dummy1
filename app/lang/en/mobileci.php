@@ -53,7 +53,7 @@ return array(
         'message_no_promotion'  => 'Sorry, there are no promotions for today.',
         'message_delete_item'   => 'Are you sure to remove this item from your cart?',
         'message_delete_coupon' => 'Are you sure to remove this coupon from your cart? Removed coupon could be used next time.',
-        'message_transfer_cart' => 'To complete the transfer cart, use the Transfer Cart on the settings menu and please show your smartphone to the cashier.',
+        'message_transfer_cart' => 'Show this screen to the cashier to complete your checkout.',
         'message_close_cart'    => 'Your cart is not transferred to the cashier. Please show the following barcode to the cashier.',
         
         'coupon_use'            => 'Use',
@@ -178,8 +178,8 @@ return array(
         'card_number_label' => 'Card Number',
         'card_number_placeholder' => 'Enter your card number',
         'expire_label'      => 'Expired on',
-        'ccv_label'         => 'CCV',
-        'ccv_placeholder'   => 'Enter CCV',
+        'ccv_label'         => 'CVV',
+        'ccv_placeholder'   => 'Enter CVV',
         'submit_button'     => 'Submit',
     ),
 );
