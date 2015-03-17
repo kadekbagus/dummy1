@@ -29,7 +29,7 @@
     <div class="col-xs-12 text-center">
       <h3 class="text-black">{{ Lang::get('mobileci.thank_you.thank_you_for_shopping') }}</h3>
     </div>
-    <div class="col-xs-12 text-center">
+    <div class="col-xs-12 text-center merchant-logo">
       <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" style="margin:0 auto;"/>
     </div>
     <div class="col-xs-12 text-center vertically-spaced">
