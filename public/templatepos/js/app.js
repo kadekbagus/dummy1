@@ -40,11 +40,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 }
          });
          serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
-             console.log(response);
                 if(response.code == 0){
                     $scope.versions.adminBuildDate    = "";
-                    $scope.versions.apiVersion        = 'v'+response.data.version+'.'+response.data.build_number;
-                    $scope.versions.strings           = 'POS v'+version.posVersion+'.'+version.posBuildNumber+' | Orbit '+$scope.versions.apiVersion;
+                    $scope.versions.apiVersion        = 'v'+response.data.version;
+                    $scope.versions.strings           = 'Orbit '+$scope.versions.apiVersion;
                 }
          });
         if(localStorageService.get('user')){
