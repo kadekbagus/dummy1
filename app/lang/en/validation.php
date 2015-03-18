@@ -330,7 +330,8 @@ return array(
             'delete_employee'           => 'delete employee',
             'view_personal_interest'    => 'view personal interest',
             'view_role'                 => 'view role',
-            'view_transaction_history'  => 'view transaction history'
+            'view_transaction_history'  => 'view transaction history',
+            'shutdown_box'              => 'shutdown or reboot'
         ),
     ),
 
