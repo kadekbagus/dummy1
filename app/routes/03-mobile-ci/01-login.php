@@ -47,6 +47,11 @@ Route::group(array('before' => 'orbit-settings'), function()
         return MobileCI\MobileCIAPIController::create()->getPaymentView();
     });
 
+    Route::get('/customer/paypalpayment', function()
+    {
+        return MobileCI\MobileCIAPIController::create()->getPaypalPaymentView();
+    });
+
     Route::get('/customer/thankyou', function()
     {
         return MobileCI\MobileCIAPIController::create()->getThankYouView();

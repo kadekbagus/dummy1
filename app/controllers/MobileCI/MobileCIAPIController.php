@@ -3008,6 +3008,51 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function getPaypalPaymentView()
+    {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartitems = $this->getCartForToolbar();
+
+            $cartdata = $this->cartCalc($user, $retailer);
+
+            if (! empty($cartitems)) {
+                return View::make('mobile-ci.paypal', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            } else {
+                return \Redirect::to('/customer/home');
+            }
+
+            $activityPageNotes = sprintf('Page viewed: %s', 'Online Payment');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_online_payment')
+                            ->setActivityNameLong('View (Online Payment Page)')
+                            ->setObject(null)
+                            ->setModuleName('Cart')
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
+        } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_online_payment')
+                            ->setActivityNameLong('View (Online Payment) Failed')
+                            ->setObject(null)
+                            ->setModuleName('Cart')
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
+
+            return $this->redirectIfNotLoggedIn($e);
+        }
+    }
+
     // thank you from transfer cart
     public function getThankYouView()
     {
