@@ -120,6 +120,8 @@ return array(
             ),
             'product_attribute_have_transaction'           => 'The product attribute has one or more transactions linked to it, so it cannot be edited or deleted.',
             'product_attribute_value_have_transaction'     => 'The product attribute value has one or more transactions linked to it, so it cannot be edited or deleted.',
+            'product_attribute_have_product'               => 'The product attribute has one or more products linked to it, so it cannot be edited or deleted.',
+            'product_attribute_value_have_product_variant' => 'The product attribute value has one or more product variants linked to it, so it cannot be edited or deleted.',
             'employeeid'            => 'The employee ID is not available.',
             'widget_type'           => 'Another widget with the same widget type already exists',
         ),
