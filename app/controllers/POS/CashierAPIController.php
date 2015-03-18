@@ -1490,10 +1490,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 //echo $details_key." ".$details_value['product_name']."<br/>";
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
@@ -4947,10 +4947,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
