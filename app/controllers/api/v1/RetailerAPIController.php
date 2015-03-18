@@ -81,14 +81,26 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
+            // soft delete retailer.
             $deleteretailer = Retailer::excludeDeleted()->allowedForUser($user)->where('merchant_id', $retailer_id)->first();
-
             $deleteretailer->status = 'deleted';
             $deleteretailer->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.retailer.postdeleteretailer.before.save', array($this, $deleteretailer));
 
             $deleteretailer->save();
+
+            // soft delete user.
+            $deleteuser = User::with(array('apikey'))->excludeDeleted()->find($deleteretailer->user_id);
+            $deleteuser->status = 'deleted';
+            $deleteuser->modified_by = $this->api->user->user_id;
+
+            // soft delete api key.
+            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+            $deleteapikey->status = 'deleted';
+
+            $deleteuser->save();
+            $deleteapikey->save();
 
             Event::fire('orbit.retailer.postdeleteretailer.after.save', array($this, $deleteretailer));
             $this->response->data = null;
@@ -321,7 +333,6 @@ class RetailerAPIController extends ControllerAPI
 
             $validator = Validator::make(
                 array(
-                    'user_id'   => $user_id,
                     'email'     => $email,
                     'name'      => $name,
                     'status'    => $status,
@@ -329,7 +340,6 @@ class RetailerAPIController extends ControllerAPI
                     'country'   => $country,
                 ),
                 array(
-                    'user_id'   => 'required|numeric|orbit.empty.user',
                     'email'     => 'required|email|orbit.exists.email',
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.retailer_status',
@@ -359,7 +369,7 @@ class RetailerAPIController extends ControllerAPI
             $newuser->username = $email;
             $newuser->user_email = $email;
             $newuser->user_password = Hash::make($password);
-            $newuser->status = 'active';
+            $newuser->status = $status;
             $newuser->user_role_id = $roleRetailer->role_id;
             $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
             $newuser->modified_by = $user->user_id;
@@ -645,7 +655,6 @@ class RetailerAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            // $updatedretailer = Retailer::find($retailer_id);
             $updatedretailer = Retailer::excludeDeleted()->allowedForUser($user)->where('merchant_id', $retailer_id)->first();
 
             OrbitInput::post('orid', function($orid) use ($updatedretailer) {
@@ -653,7 +662,7 @@ class RetailerAPIController extends ControllerAPI
             });
 
             OrbitInput::post('user_id', function($user_id) use ($updatedretailer) {
-                $updatedretailer->user_id = $user_id;
+                // $updatedretailer->user_id = $user_id;
             });
 
             OrbitInput::post('email', function($email) use ($updatedretailer) {
@@ -804,6 +813,15 @@ class RetailerAPIController extends ControllerAPI
             Event::fire('orbit.retailer.postupdateretailer.before.save', array($this, $updatedretailer));
 
             $updatedretailer->save();
+
+            // update user status
+            OrbitInput::post('status', function($status) use ($updatedretailer) {
+                $updateuser = User::excludeDeleted()->find($updatedretailer->user_id);
+                $updateuser->status = $status;
+                $updateuser->modified_by = $this->api->user->user_id;
+
+                $updateuser->save();
+            });
 
             Event::fire('orbit.retailer.postupdateretailer.after.save', array($this, $updatedretailer));
             $this->response->data = $updatedretailer;
