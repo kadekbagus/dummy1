@@ -524,13 +524,13 @@ class postUpdateProduct_NewVaraint_TransactionExists_Test extends OrbitTestCase
     {
         // Object of first "Kemeja Mahal"
         $kemejaMahal1 = new stdClass();
-        $kemejaMahal1->upc = 'UPC-101';  // Follows the parent
-        $kemejaMahal1->sku = 'SKU-101';  // Follows the parent
-        $kemejaMahal1->price = NULL;  // Follows the parent
+        $kemejaMahal1->upc = 'UPC-101';
+        $kemejaMahal1->sku = 'SKU-101';
+        $kemejaMahal1->price = NULL;
         $kemejaMahal1->variant_id = 1;
 
         // It containts array of product_attribute_value_id
-        $kemejaMahal1->attribute_values = [19, 5, 8, 17, 15];
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
 
         // Object of second "Kemeja Agak Mahal"
         $kemejaMahal2 = new stdClass();
@@ -538,11 +538,117 @@ class postUpdateProduct_NewVaraint_TransactionExists_Test extends OrbitTestCase
         $kemejaMahal2->sku = 'SKU-001-AGAK-MAHAL';  // Has own SKU
         $kemejaMahal2->price = 999000;  // Has own price
 
-        $kemejaMahal2->attribute_values = [20, null, null, null, null];
+        $kemejaMahal2->attribute_values = [20, NULL, NULL, NULL, NULL];
 
         // POST data
         $_POST['product_id'] = 1;
         $_POST['product_variants'] = json_encode([$kemejaMahal2]);
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+    }
+
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_SKU_Changed_NotAllowed()
+    {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = NULL; // Leave as is
+        $kemejaMahal1->sku = 'SKU-102';
+        $kemejaMahal1->price = NULL;  // Leave as is
+        $kemejaMahal1->variant_id = 1;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', ['id' => 1]);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_UPC_Changed_NotAllowed()
+    {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = NULL; // Leave as is
+        $kemejaMahal1->sku = 'UPC-102';
+        $kemejaMahal1->price = NULL;  // Leave as is
+        $kemejaMahal1->variant_id = 1;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', ['id' => 1]);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_Price_Changed_Allowed()
+    {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = NULL; // Leave as is
+        $kemejaMahal1->sku = NULL;
+        $kemejaMahal1->price = 25999;  // Leave as is
+        $kemejaMahal1->variant_id = 1;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 1;
         $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
