@@ -6,6 +6,7 @@
     <div class="col-xs-12">
       <h4>{{ Lang::get('mobileci.payment.total_to_pay_label') }} : {{$retailer->parent->currency_symbol}} <span class="formatted-num">{{ $cartdata->cartsummary->total_to_pay }}</span></h4>
       <form role="form" name="paymentForm" method="POST" action="{{ url('/customer/savetransaction') }}">
+        <input type="hidden" name="payment_method" value="online_payment">
         <div class="form-group">
           <label for="exampleInputEmail1">{{ Lang::get('mobileci.payment.name_label') }}</label>
           <input type="text" class="form-control" id="exampleInputEmail1" placeholder="{{ Lang::get('mobileci.payment.name_placeholder') }}">
@@ -64,7 +65,7 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-xs-12 text-center"> 
+    <div class="col-xs-12 text-center merchant-logo"> 
       <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" style="margin: 0 auto;" />
     </div>
   </div>

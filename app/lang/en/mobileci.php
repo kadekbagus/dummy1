@@ -65,6 +65,7 @@ return array(
         'cash_button'           => 'Cash',
         'credit_button'         => 'Credit Card',
         'online_payment_button' => 'Online Payment',
+        'paypal_payment_button' => 'Paypal',
         'yes_button'            => 'Yes',
         'do_not_show_label'     => 'Do not show this message again',
 
@@ -87,6 +88,7 @@ return array(
         'code'              => 'Code',
         'from'              => 'From',
         'to'                => 'To',
+        'in_store_location' => 'In Store Location',
     ),
 
     'product_detail'         => array(
@@ -178,8 +180,8 @@ return array(
         'card_number_label' => 'Card Number',
         'card_number_placeholder' => 'Enter your card number',
         'expire_label'      => 'Expired on',
-        'ccv_label'         => 'CCV',
-        'ccv_placeholder'   => 'Enter CCV',
+        'ccv_label'         => 'CVV',
+        'ccv_placeholder'   => 'Enter CVV',
         'submit_button'     => 'Submit',
     ),
 );

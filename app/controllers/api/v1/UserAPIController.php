@@ -486,7 +486,7 @@ class UserAPIController extends ControllerAPI
             $city = OrbitInput::post('city');
             $province = OrbitInput::post('province');
             $postal_code = OrbitInput::post('postal_code');
-            $country = OrbitInput::post('postal_code');
+            $country = OrbitInput::post('country');
             $phone1 = OrbitInput::post('phone');
             $phone2 = OrbitInput::post('phone2');
             $relationship_status = OrbitInput::post('relationship_status');
@@ -638,7 +638,9 @@ class UserAPIController extends ControllerAPI
             });
 
             OrbitInput::post('country', function($country) use ($updateduser) {
-                $updateduser->userdetail->country = $country;
+                $updateduser->userdetail->country_id = $country;
+                $country_name = Country::where('country_id', $country)->first()->name;
+                $updateduser->userdetail->country = $country_name;
             });
 
             OrbitInput::post('phone', function($phone1) use ($updateduser) {
