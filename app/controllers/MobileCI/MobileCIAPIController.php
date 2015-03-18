@@ -4240,10 +4240,10 @@ class MobileCIAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
@@ -4324,7 +4324,9 @@ class MobileCIAPIController extends ControllerAPI
 
             $bill_no = $transaction['transaction_id'];
 
-            $head  = $this->just40CharMid($retailer->parent->name);
+            $head = " \n";
+            $head .= " \n";
+            $head .= $this->just40CharMid($retailer->parent->name);
             $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
 
             // ticket header
@@ -4344,12 +4346,19 @@ class MobileCIAPIController extends ControllerAPI
             $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
+
+            foreach ($cartdata->cartsummary->taxes as $tax) {
+                if(! empty($tax->total_tax)) {
+                    $pay  .= $this->leftAndRight($tax->tax_name . '(' . ($tax->tax_value * 100) . '%)', number_format($tax->total_tax, 2));
+                }
+            }
+            $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
-            if($payment=='Cash'){
+            if ($payment=='Cash') {
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
                 $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
             }
-            if($payment=="Card"){
+            if ($payment=="Card") {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
             }
 
@@ -4435,8 +4444,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-            return $e;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 

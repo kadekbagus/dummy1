@@ -154,9 +154,9 @@ return array(
     'thank_you'             => array(
         'thank_you'         => 'Terima Kasih',
         'save_ticket_button'=> 'Simpan Struk Belanja',
-        'thank_you_message' => 'Terima kasih atas kunjungan Anda',
+        'thank_you_message' => 'Terima kasih telah berbelanja.',
         'dont_forget_message' => 'Jangan lupa kunjungi',
-        'promo_message' => 'untuk dapatkan info promo menarik lainya.',
+        'promo_message' => 'untuk dapatkan info promo menarik lainnya.',
         'shop_again_button' => 'Belanja Lagi',
         'transfer_cart_successful' => 'Transfer Cart Berhasil!',
         'transfer_cart_message' => 'transaksi Anda akan diselesaikan oleh kasir',

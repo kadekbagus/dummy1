@@ -40,6 +40,14 @@ class ProductVariant extends Eloquent
     }
 
     /**
+     * Product variant belongs to a transaction detail
+     */
+    public function transactionDetail()
+    {
+        return $this->belongsTo('TransactionDetail', 'product_variant_id', 'product_variant_id');
+    }
+
+    /**
      * Product variant atribute belongs to a product attribute value.
      */
     public function attributeValue1()
