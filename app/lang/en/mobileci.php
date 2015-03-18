@@ -88,6 +88,7 @@ return array(
         'code'              => 'Code',
         'from'              => 'From',
         'to'                => 'To',
+        'in_store_location' => 'In Store Location',
     ),
 
     'product_detail'         => array(

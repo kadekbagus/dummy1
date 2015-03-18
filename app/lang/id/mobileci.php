@@ -88,6 +88,7 @@ return array(
         'code'              => 'Kode',
         'from'              => 'Dari',
         'to'                => 'Hingga',
+        'in_store_location' => 'Lokasi Dalam Toko',
     ),
 
     'product_detail'         => array(
