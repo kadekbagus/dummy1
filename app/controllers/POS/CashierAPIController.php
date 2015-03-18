@@ -722,6 +722,7 @@ class CashierAPIController extends ControllerAPI
             $cart             = OrbitInput::post('cart'); //data of array
             $cart_promotion   = OrbitInput::post('cart_promotion'); // data of array
             $cart_coupon      = OrbitInput::post('cart_coupon'); // data of array
+            $taxes            = OrbitInput::post('taxes'); // data of array
             $cart_id = null;
 
             $activity_payment = 'payment_cash';
@@ -1057,23 +1058,29 @@ class CashierAPIController extends ControllerAPI
                 }
 
 
-                // transaction detail taxes
-                if(!empty($cart_value['product_details']['cartsummary']['taxes'])){
-                    foreach ($cart_value['product_details']['cartsummary']['taxes'] as $key => $value) {
-                        $transactiondetailtax = new \TransactionDetailTax();
-                        $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
-                        $transactiondetailtax->transaction_id = $transaction->transaction_id;
-                        if(!empty($value['tax_name'])){
-                            $transactiondetailtax->tax_name = $value['tax_name'];
-                        }
-                        if(!empty($value['tax_value'])){
-                            $transactiondetailtax->tax_value = $value['tax_value'];
-                        }
-                        if(!empty($value['tax_order'])){
-                            $transactiondetailtax->tax_order = $value['tax_order'];
-                        }
-                        $transactiondetailtax->save();
+
+            }
+
+
+            // transaction detail taxes
+            if(!empty($taxes)){
+                foreach ($taxes as $key => $value) {
+                    $transactiondetailtax = new \TransactionDetailTax();
+                    $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                    $transactiondetailtax->transaction_id = $transaction->transaction_id;
+                    if(!empty($value['id'])){
+                        $transactiondetailtax->tax_id = $value['id'];
                     }
+                    if(!empty($value['name'])){
+                        $transactiondetailtax->tax_name = $value['name'];
+                    }
+                    if(!empty($value['value'])){
+                        $transactiondetailtax->tax_value = $value['value'];
+                    }
+                    if(!empty($value['total'])){
+                        $transactiondetailtax->total_tax = $value['total'];
+                    }
+                    $transactiondetailtax->save();
                 }
             }
 
