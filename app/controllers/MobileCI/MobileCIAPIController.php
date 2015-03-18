@@ -3846,7 +3846,9 @@ class MobileCIAPIController extends ControllerAPI
             $merchant_id = $retailer->parent->merchant_id;
             $retailer_id = $retailer->merchant_id;
             $customer_id = $user->user_id;
-            $payment_method = 'online_payment';
+
+            $payment_method = OrbitInput::post('payment_method');
+
             $cart = $cartdata->cart;
             $cartdetails = $cartdata->cartdetails;
 
@@ -3855,8 +3857,13 @@ class MobileCIAPIController extends ControllerAPI
 
             $cart_id = null;
 
-            $activity_payment = 'payment_online';
-            $activity_payment_label = 'Payment Online';
+            if ($payment_method == 'online_payment') {
+                $activity_payment = 'online_payment';
+                $activity_payment_label = 'Payment Online';
+            } elseif ($payment_method == 'paypal') {
+                $activity_payment = 'paypal';
+                $activity_payment_label = 'Paypal';
+            }
 
             // Begin database transaction
             $this->beginTransaction();
@@ -4357,6 +4364,10 @@ class MobileCIAPIController extends ControllerAPI
             
             if ($payment=='online_payment') {
                 $payment='Online Payment';
+            }
+
+            if ($payment=='paypal') {
+                $payment='Paypal';
             }
 
             $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');

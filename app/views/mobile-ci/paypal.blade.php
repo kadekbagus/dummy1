@@ -93,6 +93,7 @@
           </div>
         </div>
         <form role="form" name="paymentForm" method="POST" action="{{ url('/customer/savetransaction') }}">
+          <input type="hidden" name="payment_method" value="paypal">
           <div class="form-group">
             <button type="submit" class="btn btn-paypal btn-block">Pay Now</button>
           </div>
