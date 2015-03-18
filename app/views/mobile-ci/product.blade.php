@@ -29,7 +29,7 @@
 			</div>
 			<?php $x++;?>
 			@endif
-			@if(count($couponstocatchs)>0)
+			@if($product->on_couponstocatch)
 			<div class="ribbon-wrapper-yellow-dash ribbon{{$x}}">
 				<div class="ribbon-yellow-dash">{{ Lang::get('mobileci.catalogue.coupon_ribbon') }}</div>
 			</div>
@@ -99,7 +99,7 @@
 		@endforeach
 		@endif
 
-		@if(count($couponstocatchs)>0)
+		@if($product->on_couponstocatch)
 		<div class="col-xs-12">
 			<h3>{{ Lang::get('mobileci.product_detail.get_coupon') }}</h3>
 		</div>
