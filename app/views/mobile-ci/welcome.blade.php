@@ -53,7 +53,7 @@
         </div>
       </header>
       <div class="col-xs-12 text-center welcome-user">
-        <h3>{{ Lang::get('mobileci.greetings.welcome') }}, <br><span class="signedUser"></span><span class="userName"></span></h3>
+        <h3>{{ Lang::get('mobileci.greetings.welcome') }}, <br><span class="signedUser"></span><span class="userName"></span> !</h3>
       </div>
       <div class="col-xs-12 text-center">
         <form name="loginForm" id="loginSignedForm" action="{{ url('customer/login') }}" method="post">

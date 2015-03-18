@@ -31,7 +31,7 @@ return array(
     ),
 
     "greetings"         => array(
-        "welcome"       => "Welcome!"
+        "welcome"       => "Welcome"
     ),
 
     // modal specific lang
