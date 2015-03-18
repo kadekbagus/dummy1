@@ -165,7 +165,9 @@ class Uploader
             $mime = $finfo->file($file->tmp_name);
             if (! in_array($mime, $allowedMime)) {
                 throw new Exception(
-                    $this->message->getMessage('errors.mime_type_not_allowed'),
+                    $this->message->getMessage('errors.mime_type_not_allowed', array(
+                        'mime' => $mime
+                    )),
                     static::ERR_FILE_MIME
                 );
             }

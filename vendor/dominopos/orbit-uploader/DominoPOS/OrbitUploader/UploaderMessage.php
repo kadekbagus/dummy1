@@ -35,8 +35,8 @@ class UploaderMessage
                 'path_not_found'        => 'Unable to find the upload directory.',
                 'no_write_access'       => 'Unable to write to the upload directory.',
                 'file_too_big'          => 'File size is too big, maximum size allowed is :size :unit.',
-                'file_type_not_allowed' => 'File extension :extension is not allowed.',
-                'mime_type_not_allowed' => 'Mime type of :mime is not allowed.',
+                'file_type_not_allowed' => 'File extension ":extension" is not allowed.',
+                'mime_type_not_allowed' => 'File with mime type of ":mime" is not allowed.',
                 'dimension_not_allowed' => 'Maximum dimension allowed is :maxdimension, your image dimension is :yoursdimension',
                 'unable_to_upload'      => 'Unable to move the uploaded file.'
             ),
