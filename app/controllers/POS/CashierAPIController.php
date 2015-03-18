@@ -1441,7 +1441,7 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'detailtax', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
 
             if (! is_object($transaction)) {
@@ -1455,6 +1455,7 @@ class CashierAPIController extends ControllerAPI
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
             $detailpromotion = $transaction->detailpromotion->toArray();
+            $detailtax = $transaction->detailtax->toArray();
             $_issuedcoupon = $issuedcoupon->toArray();
             $total_issuedcoupon = count($_issuedcoupon);
             $acquired_coupon = null;
@@ -1569,6 +1570,7 @@ class CashierAPIController extends ControllerAPI
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
 
+            //$date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
             $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
 
             if($transaction['user']==NULL){
@@ -1602,6 +1604,14 @@ class CashierAPIController extends ControllerAPI
             $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
+
+            foreach ($detailtax as $tax) {
+                if(! empty($tax['total_tax'])) {
+                    $pay  .= $this->leftAndRight($tax['tax_name'] . '(' . ($tax['tax_value'] * 100) . '%)', number_format($tax['total_tax'], 2));
+                }
+            }
+            $pay  .= " \n";
+
             $pay  .= $this->leftAndRight('Payment Method', $payment);
             if($payment=='Cash'){
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
@@ -4888,7 +4898,7 @@ class CashierAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'detailtax', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
 
             if (! is_object($transaction)) {
@@ -4907,6 +4917,7 @@ class CashierAPIController extends ControllerAPI
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
             $detailpromotion = $transaction->detailpromotion->toArray();
+            $detailtax = $transaction->detailtax->toArray();
             $_issuedcoupon = $issuedcoupon->toArray();
             $total_issuedcoupon = count($_issuedcoupon);
             $acquired_coupon = null;
@@ -5014,7 +5025,9 @@ class CashierAPIController extends ControllerAPI
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
-            $head  = $this->just40CharMid($retailer->parent->name);
+            $head  = " \n";
+            $head .= " \n";
+            $head .= $this->just40CharMid($retailer->parent->name);
             $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
 
             // ticket header
@@ -5034,6 +5047,13 @@ class CashierAPIController extends ControllerAPI
             $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
             $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
+            $pay  .= " \n";
+
+            foreach ($detailtax as $tax) {
+                if(! empty($tax['total_tax'])) {
+                    $pay  .= $this->leftAndRight($tax['tax_name'] . '(' . ($tax['tax_value'] * 100) . '%)', number_format($tax['total_tax'], 2));
+                }
+            }
             $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
             if($payment=='Cash'){
