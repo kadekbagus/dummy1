@@ -31,7 +31,7 @@ return array(
     ),
 
     "greetings"         => array(
-        "welcome"       => "Welcome!"
+        "welcome"       => "Welcome"
     ),
 
     // modal specific lang
@@ -65,6 +65,7 @@ return array(
         'cash_button'           => 'Cash',
         'credit_button'         => 'Credit Card',
         'online_payment_button' => 'Online Payment',
+        'paypal_payment_button' => 'Paypal',
         'yes_button'            => 'Yes',
         'do_not_show_label'     => 'Do not show this message again',
 
@@ -87,6 +88,7 @@ return array(
         'code'              => 'Code',
         'from'              => 'From',
         'to'                => 'To',
+        'in_store_location' => 'In Store Location',
     ),
 
     'product_detail'         => array(
@@ -154,9 +156,9 @@ return array(
     'thank_you'             => array(
         'thank_you'         => 'Thank You',
         'save_ticket_button'=> 'Save Ticket',
-        'thank_you_message' => 'Thank you for visiting us.',
+        'thank_you_message' => 'Thank you for shopping',
         'dont_forget_message' => "Don't forget to visit",
-        'promo_message' => 'for next best deals.',
+        'promo_message' => 'for great deals',
         'shop_again_button' => 'Shop Again',
         'transfer_cart_successful' => 'Transfer Cart Successful!',
         'transfer_cart_message' => 'your transaction will be completed by the cashier',
@@ -178,8 +180,9 @@ return array(
         'card_number_label' => 'Card Number',
         'card_number_placeholder' => 'Enter your card number',
         'expire_label'      => 'Expired on',
-        'ccv_label'         => 'CCV',
-        'ccv_placeholder'   => 'Enter CCV',
+        'ccv_label'         => 'CVV',
+        'ccv_placeholder'   => 'Enter CVV',
         'submit_button'     => 'Submit',
+        'cancel_button'     => 'Back',
     ),
 );

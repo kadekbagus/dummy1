@@ -11,7 +11,7 @@
     </div>
     <footer>
       <div class="text-center">
-        {{ 'Orbit v' . ORBIT_APP_VERSION . '.' . ORBIT_APP_BUILD_NUMBER }}
+        {{ 'Orbit v' . ORBIT_APP_VERSION }}
       </div>
     </footer>
     @yield('modals')

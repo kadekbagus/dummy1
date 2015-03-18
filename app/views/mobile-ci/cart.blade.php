@@ -337,8 +337,11 @@
             </div>
           </div>
           <div class="row ">
-            <div class="col-xs-12 col-sm-12 vertically-spaced">
+            <div class="col-xs-12 col-sm-6 vertically-spaced">
               <a href="{{ url('customer/payment') }}"  class="btn btn-success btn-block" >{{ Lang::get('mobileci.modals.online_payment_button') }}</a>
+            </div>
+            <div class="col-xs-12 col-sm-6 vertically-spaced">
+              <a href="{{ url('customer/paypalpayment') }}"  class="btn btn-success btn-block" >{{ Lang::get('mobileci.modals.paypal_payment_button') }}</a>
             </div>
           </div>
         </div>

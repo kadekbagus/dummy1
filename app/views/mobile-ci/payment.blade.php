@@ -6,6 +6,7 @@
     <div class="col-xs-12">
       <h4>{{ Lang::get('mobileci.payment.total_to_pay_label') }} : {{$retailer->parent->currency_symbol}} <span class="formatted-num">{{ $cartdata->cartsummary->total_to_pay }}</span></h4>
       <form role="form" name="paymentForm" method="POST" action="{{ url('/customer/savetransaction') }}">
+        <input type="hidden" name="payment_method" value="paypal">
         <div class="form-group">
           <label for="exampleInputEmail1">{{ Lang::get('mobileci.payment.name_label') }}</label>
           <input type="text" class="form-control" id="exampleInputEmail1" placeholder="{{ Lang::get('mobileci.payment.name_placeholder') }}">
@@ -57,14 +58,21 @@
               </div>
             </div>
         </div>
-        <div class="form-group pull-right">
-            <button type="submit" class="btn btn-success btn-block">{{ Lang::get('mobileci.payment.submit_button') }}</button>
+        <div class="form-group">
+            <div class="row">
+              <div class="col-xs-6">
+                <button type="submit" class="btn btn-success">{{ Lang::get('mobileci.payment.submit_button') }}</button>
+              </div>
+              <div class="col-xs-6 text-right">
+                <a href="{{ url('customer/cart') }}" class="btn btn-info">{{ Lang::get('mobileci.payment.cancel_button') }}</a>
+              </div>
+            </div>
         </div>
       </form>
     </div>
   </div>
   <div class="row">
-    <div class="col-xs-12 text-center"> 
+    <div class="col-xs-12 text-center merchant-logo"> 
       <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" style="margin: 0 auto;" />
     </div>
   </div>

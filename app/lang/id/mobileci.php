@@ -31,7 +31,7 @@ return array(
     ),
 
     'greetings'         => array(
-        'welcome'       => 'Selamat Datang!'
+        'welcome'       => 'Selamat Datang'
     ),
 
     // modal specific lang
@@ -65,6 +65,7 @@ return array(
         'cash_button'           => 'Tunai',
         'credit_button'         => 'Kartu Kredit',
         'online_payment_button' => 'Pembayaran Online',
+        'paypal_payment_button' => 'Paypal',
         'yes_button'            => 'Ya',
         'do_not_show_label'     => 'Jangan tunjukkan pesan ini lagi',
 
@@ -87,6 +88,7 @@ return array(
         'code'              => 'Kode',
         'from'              => 'Dari',
         'to'                => 'Hingga',
+        'in_store_location' => 'Lokasi Dalam Toko',
     ),
 
     'product_detail'         => array(
@@ -181,5 +183,6 @@ return array(
         'ccv_label'         => 'CVV',
         'ccv_placeholder'   => 'Inputkan CVV',
         'submit_button'     => 'Submit',
+        'cancel_button'     => 'Kembali',
     ),
 );

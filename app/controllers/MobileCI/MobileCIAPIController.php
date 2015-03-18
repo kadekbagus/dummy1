@@ -712,13 +712,13 @@ class MobileCIAPIController extends ControllerAPI
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage') {
+                        if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = min($prices) * $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -1082,13 +1082,13 @@ class MobileCIAPIController extends ControllerAPI
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage') {
+                        if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = min($prices) * $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -1359,13 +1359,13 @@ class MobileCIAPIController extends ControllerAPI
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage') {
+                        if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = min($prices) * $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -1639,13 +1639,13 @@ class MobileCIAPIController extends ControllerAPI
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage') {
+                        if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = min($prices) * $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -2065,13 +2065,13 @@ class MobileCIAPIController extends ControllerAPI
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage') {
+                        if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = min($prices) * $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -2331,13 +2331,13 @@ class MobileCIAPIController extends ControllerAPI
                     $discounts=0;
                     $temp_price = $min_price;
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage') {
+                        if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = min($prices) * $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value') {
+                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promotion->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -2502,13 +2502,13 @@ class MobileCIAPIController extends ControllerAPI
                 if (!empty($promo_products)) {
                     $promo_price = $variant->price;
                     foreach ($promo_products as $promo_filter) {
-                        if ($promo_filter->rule_type == 'product_discount_by_percentage') {
+                        if ($promo_filter->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $variant->price;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
                             }
                             $promo_price = $promo_price - $discount;
-                        } elseif ($promo_filter->rule_type == 'product_discount_by_value') {
+                        } elseif ($promo_filter->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                             $discount = $promo_filter->discount_value;
                             if ($temp_price < $discount) {
                                 $discount = $temp_price;
@@ -2536,13 +2536,13 @@ class MobileCIAPIController extends ControllerAPI
             $min_promo_price = $product->min_price;
             if (!empty($promo_products)) {
                 foreach ($promo_products as $promo_filter) {
-                    if ($promo_filter->rule_type == 'product_discount_by_percentage') {
+                    if ($promo_filter->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                         $discount = $promo_filter->discount_value * $product->min_price;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $min_promo_price = $min_promo_price - $discount;
-                    } elseif ($promo_filter->rule_type == 'product_discount_by_value') {
+                    } elseif ($promo_filter->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                         $discount = $promo_filter->discount_value;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
@@ -2785,7 +2785,7 @@ class MobileCIAPIController extends ControllerAPI
             $promo_for_this_product = array_filter($promo_products, function ($v) use ($product_id) { return $v->product_id == $product_id; });
             if (count($promo_for_this_product) > 0) {
                 foreach ($promo_for_this_product as $promotion) {
-                    if ($promotion->rule_type == 'product_discount_by_percentage') {
+                    if ($promotion->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                         $promo_percentage_cumulative = $promo_percentage_cumulative + $promotion->discount_value;
                     }
                 }
@@ -2796,7 +2796,9 @@ class MobileCIAPIController extends ControllerAPI
                 $q->where('issued_coupons.user_id', $user->user_id);
                 $q->whereHas('coupon', function ($q2) {
                     $q2->whereHas('couponrule', function ($q3) {
-                        $q3->where('promotion_rules.rule_type', 'product_discount_by_percentage');
+                        $q3->where(function($q4){
+                            $q4->where('promotion_rules.rule_type', 'product_discount_by_percentage')->orWhere('promotion_rules.rule_type', 'cart_discount_by_percentage');
+                        });
                     });
                 });
             })->whereHas('cartdetail', function ($q4) use ($product_variant_id) {
@@ -3008,6 +3010,51 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function getPaypalPaymentView()
+    {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartitems = $this->getCartForToolbar();
+
+            $cartdata = $this->cartCalc($user, $retailer);
+
+            if (! empty($cartitems)) {
+                return View::make('mobile-ci.paypal', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            } else {
+                return \Redirect::to('/customer/home');
+            }
+
+            $activityPageNotes = sprintf('Page viewed: %s', 'Online Payment');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_online_payment')
+                            ->setActivityNameLong('View (Online Payment Page)')
+                            ->setObject(null)
+                            ->setModuleName('Cart')
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
+        } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_page_online_payment')
+                            ->setActivityNameLong('View (Online Payment) Failed')
+                            ->setObject(null)
+                            ->setModuleName('Cart')
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
+
+            return $this->redirectIfNotLoggedIn($e);
+        }
+    }
+
     // thank you from transfer cart
     public function getThankYouView()
     {
@@ -3188,13 +3235,13 @@ class MobileCIAPIController extends ControllerAPI
             $activityPromoObj = null;
             $temp_price = $variant_price;
             foreach ($promo_products as $promo) {
-                if ($promo->promotionrule->rule_type == 'product_discount_by_percentage') {
+                if ($promo->promotionrule->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                     $discount = $promo->promotionrule->discount_value * $variant_price;
                     if ($temp_price < $discount) {
                         $discount = $temp_price;
                     }
                     $price_after_promo = $price_after_promo - $discount;
-                } elseif ($promo->promotionrule->rule_type == 'product_discount_by_value') {
+                } elseif ($promo->promotionrule->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                     $discount = $promo->promotionrule->discount_value;
                     if ($temp_price < $discount) {
                         $discount = $temp_price;
@@ -3801,7 +3848,9 @@ class MobileCIAPIController extends ControllerAPI
             $merchant_id = $retailer->parent->merchant_id;
             $retailer_id = $retailer->merchant_id;
             $customer_id = $user->user_id;
-            $payment_method = 'online_payment';
+
+            $payment_method = OrbitInput::post('payment_method');
+
             $cart = $cartdata->cart;
             $cartdetails = $cartdata->cartdetails;
 
@@ -3810,8 +3859,13 @@ class MobileCIAPIController extends ControllerAPI
 
             $cart_id = null;
 
-            $activity_payment = 'payment_online';
-            $activity_payment_label = 'Payment Online';
+            if ($payment_method == 'online_payment') {
+                $activity_payment = 'online_payment';
+                $activity_payment_label = 'Payment Online';
+            } elseif ($payment_method == 'paypal') {
+                $activity_payment = 'paypal';
+                $activity_payment_label = 'Paypal';
+            }
 
             // Begin database transaction
             $this->beginTransaction();
@@ -4312,6 +4366,10 @@ class MobileCIAPIController extends ControllerAPI
             
             if ($payment=='online_payment') {
                 $payment='Online Payment';
+            }
+
+            if ($payment=='paypal') {
+                $payment='Paypal';
             }
 
             $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
@@ -5158,13 +5216,13 @@ class MobileCIAPIController extends ControllerAPI
                 foreach ($promo_filters as $promo_filter) {
                     $promo_for_this_product = new stdclass();
                     $promo_for_this_product = clone $promo_filter;
-                    if ($promo_filter->rule_type == 'product_discount_by_percentage') {
+                    if ($promo_filter->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                         $discount = $promo_filter->discount_value * $original_price * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                    } elseif ($promo_filter->rule_type == 'product_discount_by_value') {
+                    } elseif ($promo_filter->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                         $discount = $promo_filter->discount_value * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
@@ -5610,13 +5668,13 @@ class MobileCIAPIController extends ControllerAPI
                 foreach ($promo_filters as $promo_filter) {
                     $promo_for_this_product = new stdclass();
                     $promo_for_this_product = clone $promo_filter;
-                    if ($promo_filter->rule_type == 'product_discount_by_percentage') {
+                    if ($promo_filter->rule_type == 'product_discount_by_percentage' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') {
                         $discount = ($promo_filter->discount_value * $original_price) * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value * 100;
-                    } elseif ($promo_filter->rule_type == 'product_discount_by_value') {
+                    } elseif ($promo_filter->rule_type == 'product_discount_by_value' || $used_product_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                         $discount = $promo_filter->discount_value * $cartdetail->quantity;
                         if ($temp_price < $discount) {
                             $discount = $temp_price;

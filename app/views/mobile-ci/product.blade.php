@@ -49,6 +49,12 @@
 			<div class="col-xs-12">
 				<p>{{ $product->long_description }}</p>
 			</div>
+			@if(!empty($product->in_store_localization))
+			<div class="col-xs-12">
+				<h4>{{ Lang::get('mobileci.catalogue.in_store_location') }}</h4>
+				<p>{{ $product->in_store_localization }}</p>
+			</div>
+			@endif
 		</div>
 		@if(count($promotions)>0)
 		<div class="col-xs-12">

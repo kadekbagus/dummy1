@@ -9,7 +9,7 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use OrbitShop\API\v1\OrbitShopAPI;
 
-class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
+class postUpdateProduct_NewVaraint_TransactionExists_Test extends OrbitTestCase
 {
     protected static $merchants = [];
     protected static $retailers = [];
@@ -347,6 +347,7 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
                 'price'         => 500000,
                 'status'        => 'active',
                 'merchant_id'   => 1,
+                'attribute_id1' => 1
             ],
             [
                 'product_id'    => 2,
@@ -519,11 +520,30 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $this->assertInstanceOf('ProductAPIController', $ctl);
     }
 
-    public function testPostUpdateVariant_DeleteVariantWhenTransactionExists_notAllowed()
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_Allowed()
     {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = 'UPC-101';  // Follows the parent
+        $kemejaMahal1->sku = 'SKU-101';  // Follows the parent
+        $kemejaMahal1->price = NULL;  // Follows the parent
+        $kemejaMahal1->variant_id = 1;
+
+        // It containts array of product_attribute_value_id
+        $kemejaMahal1->attribute_values = [19, 5, 8, 17, 15];
+
+        // Object of second "Kemeja Agak Mahal"
+        $kemejaMahal2 = new stdClass();
+        $kemejaMahal2->upc = 'UPC-001-AGAK-MAHAL';  // Has own UPC
+        $kemejaMahal2->sku = 'SKU-001-AGAK-MAHAL';  // Has own SKU
+        $kemejaMahal2->price = 999000;  // Has own price
+
+        $kemejaMahal2->attribute_values = [20, null, null, null, null];
+
         // POST data
         $_POST['product_id'] = 1;
-        $_POST['product_variants_delete'] = [1];
+        $_POST['product_variants'] = json_encode([$kemejaMahal2]);
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
         $_GET['apikey'] = 'abc123';
@@ -539,9 +559,7 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $return = $this->call('POST', $url)->getContent();
 
         $response = json_decode($return);
-        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', ['id' => 1]);
-        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
-        $this->assertSame('error', $response->status);
-        $this->assertSame($errorMessage, $response->message);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
     }
 }

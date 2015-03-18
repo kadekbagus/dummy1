@@ -722,6 +722,7 @@ class CashierAPIController extends ControllerAPI
             $cart             = OrbitInput::post('cart'); //data of array
             $cart_promotion   = OrbitInput::post('cart_promotion'); // data of array
             $cart_coupon      = OrbitInput::post('cart_coupon'); // data of array
+            $taxes            = OrbitInput::post('taxes'); // data of array
             $cart_id = null;
 
             $activity_payment = 'payment_cash';
@@ -1057,23 +1058,29 @@ class CashierAPIController extends ControllerAPI
                 }
 
 
-                // transaction detail taxes
-                if(!empty($cart_value['product_details']['cartsummary']['taxes'])){
-                    foreach ($cart_value['product_details']['cartsummary']['taxes'] as $key => $value) {
-                        $transactiondetailtax = new \TransactionDetailTax();
-                        $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
-                        $transactiondetailtax->transaction_id = $transaction->transaction_id;
-                        if(!empty($value['tax_name'])){
-                            $transactiondetailtax->tax_name = $value['tax_name'];
-                        }
-                        if(!empty($value['tax_value'])){
-                            $transactiondetailtax->tax_value = $value['tax_value'];
-                        }
-                        if(!empty($value['tax_order'])){
-                            $transactiondetailtax->tax_order = $value['tax_order'];
-                        }
-                        $transactiondetailtax->save();
+
+            }
+
+
+            // transaction detail taxes
+            if(!empty($taxes)){
+                foreach ($taxes as $key => $value) {
+                    $transactiondetailtax = new \TransactionDetailTax();
+                    $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
+                    $transactiondetailtax->transaction_id = $transaction->transaction_id;
+                    if(!empty($value['id'])){
+                        $transactiondetailtax->tax_id = $value['id'];
                     }
+                    if(!empty($value['name'])){
+                        $transactiondetailtax->tax_name = $value['name'];
+                    }
+                    if(!empty($value['value'])){
+                        $transactiondetailtax->tax_value = $value['value'];
+                    }
+                    if(!empty($value['total'])){
+                        $transactiondetailtax->total_tax = $value['total'];
+                    }
+                    $transactiondetailtax->save();
                 }
             }
 
@@ -1434,7 +1441,7 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'detailtax', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
 
             if (! is_object($transaction)) {
@@ -1448,6 +1455,7 @@ class CashierAPIController extends ControllerAPI
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
             $detailpromotion = $transaction->detailpromotion->toArray();
+            $detailtax = $transaction->detailtax->toArray();
             $_issuedcoupon = $issuedcoupon->toArray();
             $total_issuedcoupon = count($_issuedcoupon);
             $acquired_coupon = null;
@@ -1482,10 +1490,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 //echo $details_key." ".$details_value['product_name']."<br/>";
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
@@ -1562,6 +1570,7 @@ class CashierAPIController extends ControllerAPI
             if($payment=='cash'){$payment='Cash';}
             if($payment=='card'){$payment='Card';}
 
+            //$date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
             $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
 
             if($transaction['user']==NULL){
@@ -1595,6 +1604,14 @@ class CashierAPIController extends ControllerAPI
             $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
             $pay  .= " \n";
+
+            foreach ($detailtax as $tax) {
+                if(! empty($tax['total_tax'])) {
+                    $pay  .= $this->leftAndRight($tax['tax_name'] . '(' . ($tax['tax_value'] * 100) . '%)', number_format($tax['total_tax'], 2));
+                }
+            }
+            $pay  .= " \n";
+
             $pay  .= $this->leftAndRight('Payment Method', $payment);
             if($payment=='Cash'){
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
@@ -4881,7 +4898,7 @@ class CashierAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
+            $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'detailtax', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
 
             if (! is_object($transaction)) {
@@ -4900,6 +4917,7 @@ class CashierAPIController extends ControllerAPI
             $details = $transaction->details->toArray();
             $detailcoupon = $transaction->detailcoupon->toArray();
             $detailpromotion = $transaction->detailpromotion->toArray();
+            $detailtax = $transaction->detailtax->toArray();
             $_issuedcoupon = $issuedcoupon->toArray();
             $total_issuedcoupon = count($_issuedcoupon);
             $acquired_coupon = null;
@@ -4929,10 +4947,10 @@ class CashierAPIController extends ControllerAPI
 
             foreach ($details as $details_key => $details_value) {
                 if($details_key==0){
-                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 else {
-                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                    $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                 }
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
@@ -5007,7 +5025,9 @@ class CashierAPIController extends ControllerAPI
             $cashier = $transaction['cashier']->user_firstname." ".$transaction['cashier']->user_lastname;
             $bill_no = $transaction['transaction_id'];
 
-            $head  = $this->just40CharMid($retailer->parent->name);
+            $head  = " \n";
+            $head .= " \n";
+            $head .= $this->just40CharMid($retailer->parent->name);
             $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
 
             // ticket header
@@ -5027,6 +5047,13 @@ class CashierAPIController extends ControllerAPI
             $pay   = $this->leftAndRight('SUB TOTAL', number_format($transaction['subtotal'], 2));
             $pay  .= $this->leftAndRight('TAX', number_format($transaction['vat'], 2));
             $pay  .= $this->leftAndRight('TOTAL', number_format($transaction['total_to_pay'], 2));
+            $pay  .= " \n";
+
+            foreach ($detailtax as $tax) {
+                if(! empty($tax['total_tax'])) {
+                    $pay  .= $this->leftAndRight($tax['tax_name'] . '(' . ($tax['tax_value'] * 100) . '%)', number_format($tax['total_tax'], 2));
+                }
+            }
             $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
             if($payment=='Cash'){
