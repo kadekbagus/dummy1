@@ -183,6 +183,6 @@ return array(
         'ccv_label'         => 'CVV',
         'ccv_placeholder'   => 'Enter CVV',
         'submit_button'     => 'Submit',
-        'cancel_button'     => 'Cancel',
+        'cancel_button'     => 'Back',
     ),
 );
