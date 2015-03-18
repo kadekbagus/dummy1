@@ -268,6 +268,9 @@ return array(
                     'max_length' => 'Merchant ticket footer max length is 40 characters for each line.'
                 ),
             ),
+            'url'   => array(
+                'web'   => 'The URL is not valid. Examples of valid URL are www.example.com or www.example.com/sub/page. No need to include the http:// or https://.'
+            )
         ),
         'actionlist' => array(
             'change_password'           => 'change password',

@@ -341,13 +341,15 @@ class MerchantAPIController extends ControllerAPI
                     'email'         => $email,
                     'name'          => $name,
                     'status'        => $status,
-                    'country'       => $country
+                    'country'       => $country,
+                    'url'           => $url,
                 ),
                 array(
                     'email'         => 'required|email|orbit.exists.email',
                     'name'          => 'required',
                     'status'        => 'required|orbit.empty.merchant_status',
-                    'country'       => 'required|numeric'
+                    'country'       => 'required|numeric',
+                    'url'           => 'orbit.formaterror.url.web'
                 )
             );
 
@@ -1118,6 +1120,7 @@ class MerchantAPIController extends ControllerAPI
             $omid = OrbitInput::post('omid');
             $ticket_header = OrbitInput::post('ticket_header');
             $ticket_footer = OrbitInput::post('ticket_footer');
+            $url = OrbitInput::post('url');
 
             $validator = Validator::make(
                 array(
@@ -1128,6 +1131,7 @@ class MerchantAPIController extends ControllerAPI
                     'omid'              => $omid,
                     'ticket_header'     => $ticket_header,
                     'ticket_footer'     => $ticket_footer,
+                    'url'               => $url,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
@@ -1137,6 +1141,7 @@ class MerchantAPIController extends ControllerAPI
                     'omid'              => 'omid_exists_but_me',
                     'ticket_header'     => 'ticket_header_max_length',
                     'ticket_footer'     => 'ticket_footer_max_length',
+                    'url'               => 'orbit.formaterror.url.web'
                 ),
                 array(
                    'email_exists_but_me'      => Lang::get('validation.orbit.exists.email'),
@@ -1739,5 +1744,18 @@ class MerchantAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check the validity of URL
+        Validator::extend('orbit.formaterror.url.web', function ($attribute, $value, $parameters) {
+            $url = $value;
+            $pattern = '@^([a-z0-9]+)([a-z0-9\-]+)(\.([a-z0-9]){2}){1}@';
+
+            if (! preg_match($pattern, $url)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.formaterror.url.web', $url);
+
+            return TRUE;
+        });
     }
 }

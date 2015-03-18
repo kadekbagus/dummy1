@@ -338,13 +338,15 @@ class RetailerAPIController extends ControllerAPI
                     'status'    => $status,
                     'parent_id' => $parent_id,
                     'country'   => $country,
+                    'url'       => $url,
                 ),
                 array(
                     'email'     => 'required|email|orbit.exists.email',
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.retailer_status',
                     'parent_id' => 'required|numeric|orbit.empty.merchant',
-                    'country'   => 'required|numeric'
+                    'country'   => 'required|numeric',
+                    'url'       => 'orbit.formaterror.url.web'
                 )
             );
 
@@ -619,6 +621,7 @@ class RetailerAPIController extends ControllerAPI
             $status = OrbitInput::post('status');
             $orid = OrbitInput::post('orid');
             $parent_id = OrbitInput::post('parent_id');
+            $url = OrbitInput::post('url');
 
             $validator = Validator::make(
                 array(
@@ -628,6 +631,7 @@ class RetailerAPIController extends ControllerAPI
                     'status'            => $status,
                     'orid'              => $orid,
                     'parent_id'         => $parent_id,
+                    'url'               => $url,
                 ),
                 array(
                     'retailer_id'       => 'required|numeric|orbit.empty.retailer',
@@ -636,6 +640,7 @@ class RetailerAPIController extends ControllerAPI
                     'status'            => 'orbit.empty.retailer_status',
                     'orid'              => 'orid_exists_but_me',
                     'parent_id'         => 'numeric|orbit.empty.merchant',
+                    'url'               => 'orbit.formaterror.url.web'
                 ),
                 array(
                    'email_exists_but_me' => Lang::get('validation.orbit.exists.email'),
@@ -1568,6 +1573,20 @@ class RetailerAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check the validity of URL
+        Validator::extend('orbit.formaterror.url.web', function ($attribute, $value, $parameters) {
+            $url = $value;
+            $pattern = '@^([a-z0-9]+)([a-z0-9\-]+)(\.([a-z0-9]){2}){1}@';
+
+            if (! preg_match($pattern, $url)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.formaterror.url.web', $url);
 
             return TRUE;
         });
