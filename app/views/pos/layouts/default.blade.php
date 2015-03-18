@@ -9,6 +9,7 @@
     <link rel="stylesheet" href=" {{ URL::asset('templatepos/css/keypad-numeric.css') }} ">
     <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/font-awesome-4.2.0/css/font-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/progressjs/progressjs.css') }}">
+    <link rel="shortcut icon" href="{{ URL::asset('templatepos/images/favicon.ico') }}">
    {{--js--}}
 
     <script src="{{ URL::asset('templatepos/vendor/jquery/dist/jquery.min.js') }}"></script>

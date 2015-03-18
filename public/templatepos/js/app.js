@@ -11,7 +11,8 @@ define([
     'config',
     'i18n/id',
     'i18n/en',
-], function (config,id,en) {
+    'version'
+], function (config,id,en, version) {
 
 var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule','ngTouch'], function($interpolateProvider,$httpProvider) {
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -31,10 +32,18 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
          //get merchant info
         $scope.infomerchant = [];
+        $scope.versions     = {};
         $scope.language     = en;
          serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
                 if(response.code == 0){
                     $scope.language = response.data.pos_language == 'id' ? id : en;
+                }
+         });
+         serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
+                if(response.code == 0){
+                    $scope.versions.adminBuildDate    = "";
+                    $scope.versions.apiVersion        = 'v'+response.data.version;
+                    $scope.versions.strings           = 'Orbit '+$scope.versions.apiVersion;
                 }
          });
         if(localStorageService.get('user')){
@@ -443,7 +452,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.loadproductdetail = false;
                             if(attr1 == null && !$scope.hiddenbtn) $scope.inserttocartFn();
                         }else if(response.code == 13) {
-                           // $scope.logoutfn();
+                            $scope.logoutfn();
                         }else{
                             //do smoething
                         }
