@@ -531,11 +531,12 @@ class ProductAttributeAPIController extends ControllerAPI
                 array(
                     'product_attribute_id'      => 'required|numeric|orbit.empty.attribute',
                     'merchant_id'               => 'numeric|orbit.empty.merchant',
-                    'attribute_name'            => 'orbit.attribute.unique.butme',
+                    'attribute_name'            => 'orbit.exists.product_attribute_name_have_transaction:'.$attributeId.'|orbit.attribute.unique.butme',
                     'attribute_value_deleted'   => 'array',
                 ),
                 array(
-                    'orbit.attribute.unique.butme'    => $messageAttributeUnique
+                    'orbit.attribute.unique.butme'                          => $messageAttributeUnique,
+                    'orbit.exists.product_attribute_name_have_transaction'  => Lang::get('validation.orbit.exists.product_attribute_have_transaction')
                 )
             );
 
@@ -573,6 +574,22 @@ class ProductAttributeAPIController extends ControllerAPI
             OrbitInput::post('attribute_value_delete', function($attributeValueDelete) use ($attribute, &$deletedValues, $user)
             {
                 foreach ($attributeValueDelete as $valueId) {
+                    // validate attribute value
+                    $validator = Validator::make(
+                        array(
+                            'product_attribute_value_id' => $valueId,
+                        ),
+                        array(
+                            'product_attribute_value_id' => 'orbit.exists.product_attribute_value_have_transaction',
+                        )
+                    );
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
                     $attrValue = ProductAttributeValue::excludeDeleted()->find($valueId);
 
                     if (empty($attrValue)) {
@@ -602,6 +619,22 @@ class ProductAttributeAPIController extends ControllerAPI
                 }
 
                 foreach ($oldValueArray as $valueId=>$newValue) {
+                    // validate attribute value
+                    $validator = Validator::make(
+                        array(
+                            'product_attribute_value_id' => $valueId,
+                        ),
+                        array(
+                            'product_attribute_value_id' => 'orbit.exists.product_attribute_value_have_transaction',
+                        )
+                    );
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
                     $otherAttributeValue = ProductAttributeValue::where('value', $newValue)
                                                                 ->where('product_attribute_id', $attribute->product_attribute_id)
                                                                 ->where('product_attribute_value_id', '!=', $valueId)
@@ -856,7 +889,7 @@ class ProductAttributeAPIController extends ControllerAPI
                     'product_attribute_id'  => $attributeId,
                 ),
                 array(
-                    'product_attribute_id'  => 'required|numeric|orbit.empty.attribute',
+                    'product_attribute_id'  => 'required|numeric|orbit.empty.attribute|orbit.exists.product_attribute_have_transaction',
                 )
             );
 
@@ -878,7 +911,13 @@ class ProductAttributeAPIController extends ControllerAPI
 
             // Change the status to deleted
             $attribute->status = 'deleted';
+            $attribute->modified_by = $user->user_id;
             $attribute->save();
+
+            // soft delete attribute value, by updating a set of models
+            $affectedRows = ProductAttributeValue::excludeDeleted()
+                                                ->where('product_attribute_id', $attribute->product_attribute_id)
+                                                ->update(array('status' => 'deleted', 'modified_by' => $user->user_id));
 
             Event::fire('orbit.product.postdeleteattribute.after.save', array($this, $attribute));
             $this->response->data = $attribute;
@@ -1065,6 +1104,81 @@ class ProductAttributeAPIController extends ControllerAPI
             }
 
             App::instance('orbit.attribute.unique.butme', $attribute);
+
+            return TRUE;
+        });
+
+        // Check if product attribute have transaction.
+        Validator::extend('orbit.exists.product_attribute_have_transaction', function ($attribute, $value, $parameters) {
+            // Check inside transaction details to see if this product attribute has a transaction
+            $transactionDetail = TransactionDetail::transactionJoin()
+                                                ->excludeDeleted('transactions')
+                                                ->where(function ($query) use ($value) {
+                                                    $query->where('attribute_id1', $value)
+                                                        ->orWhere('attribute_id2', $value)
+                                                        ->orWhere('attribute_id3', $value)
+                                                        ->orWhere('attribute_id4', $value)
+                                                        ->orWhere('attribute_id5', $value);
+                                                })
+                                                ->first();
+            if (! empty($transactionDetail)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.product_attribute_have_transaction', $transactionDetail);
+
+            return TRUE;
+        });
+
+        // Check if updating product attribute name, the attribute must not have transaction
+        Validator::extend('orbit.exists.product_attribute_name_have_transaction', function ($attribute, $value, $parameters) {
+            $product_attribute_id = trim($parameters[0]);
+            $attribute = ProductAttribute::excludeDeleted()
+                                         ->where('product_attribute_id', $product_attribute_id)
+                                         ->where('product_attribute_name', $value)
+                                         ->first();
+
+            // if empty, attribute name is being change.
+            if (empty($attribute)) {
+                // Check inside transaction details to see if this product attribute has a transaction
+                $transactionDetail = TransactionDetail::transactionJoin()
+                                                    ->excludeDeleted('transactions')
+                                                    ->where(function ($query) use ($product_attribute_id) {
+                                                        $query->where('attribute_id1', $product_attribute_id)
+                                                            ->orWhere('attribute_id2', $product_attribute_id)
+                                                            ->orWhere('attribute_id3', $product_attribute_id)
+                                                            ->orWhere('attribute_id4', $product_attribute_id)
+                                                            ->orWhere('attribute_id5', $product_attribute_id);
+                                                    })
+                                                    ->first();
+                if (! empty($transactionDetail)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.exists.product_attribute_name_have_transaction', $transactionDetail);
+            }
+
+            return TRUE;
+        });
+
+        // Check if product attribute value have transaction.
+        Validator::extend('orbit.exists.product_attribute_value_have_transaction', function ($attribute, $value, $parameters) {
+            // Check inside transaction details to see if this product attribute value has a transaction
+            $transactionDetail = TransactionDetail::transactionJoin()
+                                                ->excludeDeleted('transactions')
+                                                ->where(function ($query) use ($value) {
+                                                    $query->where('product_attribute_value_id1', $value)
+                                                        ->orWhere('product_attribute_value_id2', $value)
+                                                        ->orWhere('product_attribute_value_id3', $value)
+                                                        ->orWhere('product_attribute_value_id4', $value)
+                                                        ->orWhere('product_attribute_value_id5', $value);
+                                                })
+                                                ->first();
+            if (! empty($transactionDetail)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.product_attribute_value_have_transaction', $transactionDetail);
 
             return TRUE;
         });
