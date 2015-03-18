@@ -102,6 +102,11 @@
     </div>
   </div>
 </div>
+<div class="row">
+  <div class="col-xs-12 text-center">
+    <a href="{{ url('customer/cart') }}" class="btn btn-info">{{ Lang::get('mobileci.payment.cancel_button') }}</a>
+  </div>
+</div>
 @stop
 
 @section('ext_script_bot')
