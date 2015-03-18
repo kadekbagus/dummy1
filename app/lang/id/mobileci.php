@@ -183,5 +183,6 @@ return array(
         'ccv_label'         => 'CVV',
         'ccv_placeholder'   => 'Inputkan CVV',
         'submit_button'     => 'Submit',
+        'cancel_button'     => 'Batal',
     ),
 );
