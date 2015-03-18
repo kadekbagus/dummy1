@@ -502,11 +502,14 @@ class ProductAPIController extends ControllerAPI
                         }
 
                         if ($has_transaction) {
-                            // Reject the saving
-                            $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
-                                ['id' => $variant->variant_id]
-                            );
-                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            // Reject the saving if user change the SKU which has
+                            // already transaction
+                            if ((string)$variant->sku !== (string)$product_variant->sku) {
+                                $errorMessage = Lang::get('validation.orbit.exists.product.variant.transactionx',
+                                    ['id' => $variant->variant_id]
+                                );
+                                OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            }
                         }
 
                         return $variant->sku;
@@ -519,11 +522,14 @@ class ProductAPIController extends ControllerAPI
                         }
 
                         if ($has_transaction) {
-                            // Reject the saving
-                            $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
-                                ['id' => $variant->variant_id]
-                            );
-                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            // Reject the saving if user change the SKU which has
+                            // already transaction
+                            if ((string)$variant->upc !== (string)$product_variant->upc) {
+                                $errorMessage = Lang::get('validation.orbit.exists.product.variant.transactiony',
+                                    ['id' => $variant->variant_id]
+                                );
+                                OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            }
                         }
 
                         return $variant->upc;
