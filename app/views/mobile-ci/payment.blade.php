@@ -61,10 +61,10 @@
         <div class="form-group">
             <div class="row">
               <div class="col-xs-6">
-                <a href="{{ url('customer/cart') }}" class="btn btn-info">{{ Lang::get('mobileci.payment.cancel_button') }}</a>
+                <button type="submit" class="btn btn-success">{{ Lang::get('mobileci.payment.submit_button') }}</button>
               </div>
               <div class="col-xs-6 text-right">
-                <button type="submit" class="btn btn-success">{{ Lang::get('mobileci.payment.submit_button') }}</button>
+                <a href="{{ url('customer/cart') }}" class="btn btn-info">{{ Lang::get('mobileci.payment.cancel_button') }}</a>
               </div>
             </div>
         </div>

@@ -31,7 +31,7 @@ return array(
     ),
 
     'greetings'         => array(
-        'welcome'       => 'Selamat Datang!'
+        'welcome'       => 'Selamat Datang'
     ),
 
     // modal specific lang
@@ -183,6 +183,6 @@ return array(
         'ccv_label'         => 'CVV',
         'ccv_placeholder'   => 'Inputkan CVV',
         'submit_button'     => 'Submit',
-        'cancel_button'     => 'Batal',
+        'cancel_button'     => 'Kembali',
     ),
 );
