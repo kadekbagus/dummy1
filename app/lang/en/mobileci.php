@@ -156,9 +156,9 @@ return array(
     'thank_you'             => array(
         'thank_you'         => 'Thank You',
         'save_ticket_button'=> 'Save Ticket',
-        'thank_you_message' => 'Thank you for visiting us.',
+        'thank_you_message' => 'Thank you for shopping.',
         'dont_forget_message' => "Don't forget to visit",
-        'promo_message' => 'for next best deals.',
+        'promo_message' => 'for great deals.',
         'shop_again_button' => 'Shop Again',
         'transfer_cart_successful' => 'Transfer Cart Successful!',
         'transfer_cart_message' => 'your transaction will be completed by the cashier',
