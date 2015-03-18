@@ -505,7 +505,7 @@ class ProductAPIController extends ControllerAPI
                             // Reject the saving if user change the SKU which has
                             // already transaction
                             if ((string)$variant->sku !== (string)$product_variant->sku) {
-                                $errorMessage = Lang::get('validation.orbit.exists.product.variant.transactionx',
+                                $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
                                     ['id' => $variant->variant_id]
                                 );
                                 OrbitShopAPI::throwInvalidArgument($errorMessage);
@@ -525,7 +525,7 @@ class ProductAPIController extends ControllerAPI
                             // Reject the saving if user change the SKU which has
                             // already transaction
                             if ((string)$variant->upc !== (string)$product_variant->upc) {
-                                $errorMessage = Lang::get('validation.orbit.exists.product.variant.transactiony',
+                                $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction',
                                     ['id' => $variant->variant_id]
                                 );
                                 OrbitShopAPI::throwInvalidArgument($errorMessage);
