@@ -118,6 +118,8 @@ return array(
                 'sku_code'          => 'SKU :sku has already been used by other product.',
                 'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it cannot be edited or deleted.'
             ),
+            'product_attribute_have_transaction'           => 'The product attribute has one or more transactions linked to it, so it cannot be edited or deleted.',
+            'product_attribute_value_have_transaction'     => 'The product attribute value has one or more transactions linked to it, so it cannot be edited or deleted.',
             'employeeid'            => 'The employee ID is not available.',
             'widget_type'           => 'Another widget with the same widget type already exists',
         ),
