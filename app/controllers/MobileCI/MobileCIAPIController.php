@@ -2488,7 +2488,7 @@ class MobileCIAPIController extends ControllerAPI
                     $product->on_couponstocatch |= false;
                 }
             }
-            
+
             $coupons = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
                 inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
@@ -4401,7 +4401,7 @@ class MobileCIAPIController extends ControllerAPI
                 $payment='Paypal';
             }
 
-            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+            $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
 
             if($transaction['user']==NULL){
                 $customer = "Guest";
