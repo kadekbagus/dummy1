@@ -112,7 +112,7 @@ return array(
                     ),
                 ),
                 'variant'           => array(
-                    'transaction'   => 'Product variant ID :id has one or more transactions linked to it, so it cannot be edited or deleted.'
+                    'transaction'   => 'Product combination ID :id has one or more transactions linked to it, so it cannot be edited or deleted.'
                 ),
                 'upc_code'          => 'UPC :upc has already been used by other product.',
                 'sku_code'          => 'SKU :sku has already been used by other product.',
@@ -208,7 +208,7 @@ return array(
                     'attribute'    => array(
                         'value'         => 'The product attribute value ID :id you specified is not found or does not belong to this merchant.',
                         'json_property' => 'Missing property of ":property" on your JSON string.',
-                        'variant'       => 'The product variant ID you specified is not found.'
+                        'variant'       => 'The product combination ID you specified is not found.'
                     ),
             ),
             'upc_code'             => 'The UPC code of the product is not found.',
