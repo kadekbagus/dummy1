@@ -187,9 +187,9 @@
                         @else
                           <li>
                             @if(!empty($widget->media->path))
-                              <img class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
+                              <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
                             @else
-                              <img id="emptyCoupon" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
+                              <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
                             @endif
                           </li>
                         @endif
@@ -199,7 +199,7 @@
                             <li>
                               <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/coupons#'.$coupon->promotion_id) }}" >
                                 @if(!empty($coupon->image))
-                                  <img class="img-responsive vcenter" src="{{ asset($coupon->image) }}"/>
+                                  <img class="img-responsive text-center vcenter" src="{{ asset($coupon->image) }}"/>
                                 @else
                                   <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
                                 @endif
