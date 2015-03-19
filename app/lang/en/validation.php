@@ -203,7 +203,7 @@ return array(
             'attribute_sortby'     => 'The sort by argument you specified is not valid, valid values are: id, name and created.',
             'attribute'            => 'The product attribute ID you specified is not found.',
             'product_status'       => 'The product status you specified is not found.',
-            'product_sortby'       => 'The sort by argument you specified is not valid, the valid values are: registered_date, product_id, product_name, product_code, product_price, product_tax_code, product_short_description, product_long_description, product_is_new, product_new_until, product_merchant_id, product_status.',
+            'product_sortby'       => 'The sort by argument you specified is not valid, the valid values are: registered_date, product_id, product_name, product_sku, product_code, product_upc, product_price, product_short_description, product_long_description, product_is_new, product_new_until, product_merchant_id, product_status.',
             'product_attr'         => array(
                     'attribute'    => array(
                         'value'         => 'The product attribute value ID :id you specified is not found or does not belong to this merchant.',
