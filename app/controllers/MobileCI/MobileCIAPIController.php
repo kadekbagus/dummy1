@@ -4512,7 +4512,7 @@ class MobileCIAPIController extends ControllerAPI
 
 
             $this->response->data = $transaction;
-            // $this->commit();
+            $this->commit();
 
             $activityPageNotes = sprintf('Transaction Success. Cart Id : %s', $cartdata->cart->cart_id);
             $activity->setUser($user)
