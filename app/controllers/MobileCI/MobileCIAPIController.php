@@ -4441,7 +4441,7 @@ class MobileCIAPIController extends ControllerAPI
             $pay  .= " \n";
 
             foreach ($cartdata->cartsummary->taxes as $tax) {
-                if(! empty($tax->total_tax)) {
+                if(! empty($tax->total_tax) && $tax->total_tax > 0) {
                     $pay  .= $this->leftAndRight($tax->tax_name . '(' . ($tax->tax_value * 100) . '%)', number_format($tax->total_tax, 2));
                 }
             }
@@ -4512,7 +4512,7 @@ class MobileCIAPIController extends ControllerAPI
 
 
             $this->response->data = $transaction;
-            $this->commit();
+            // $this->commit();
 
             $activityPageNotes = sprintf('Transaction Success. Cart Id : %s', $cartdata->cart->cart_id);
             $activity->setUser($user)
@@ -5925,7 +5925,7 @@ class MobileCIAPIController extends ControllerAPI
             $discount_cart_coupon = 0;
             $cart_promo_taxes = 0;
             $subtotal_before_cart_promo = $subtotal;
-            $temp_subtotal = $subtotal;
+            $temp_subtotal = $subtotal_before_cart_promo_without_tax;
 
             if (!empty($promo_carts)) {
                 foreach ($promo_carts as $promo_cart) {
