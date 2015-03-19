@@ -5925,19 +5925,27 @@ class MobileCIAPIController extends ControllerAPI
             $discount_cart_coupon = 0;
             $cart_promo_taxes = 0;
             $subtotal_before_cart_promo = $subtotal;
+            $temp_subtotal = $subtotal;
 
             if (!empty($promo_carts)) {
                 foreach ($promo_carts as $promo_cart) {
                     if ($subtotal_before_cart_promo_without_tax >= $promo_cart->promotionrule->rule_value) {
                         if ($promo_cart->promotionrule->rule_type == 'cart_discount_by_percentage') {
                             $discount = $subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value;
+                            if ($temp_subtotal < $discount) {
+                                $discount = $temp_subtotal;
+                            }
                             $promo_cart->disc_val_str = '-'.($promo_cart->promotionrule->discount_value * 100).'%';
                             $promo_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $promo_cart->promotionrule->discount_value);
                         } elseif ($promo_cart->promotionrule->rule_type == 'cart_discount_by_value') {
                             $discount = $promo_cart->promotionrule->discount_value;
+                            if ($temp_subtotal < $discount) {
+                                $discount = $temp_subtotal;
+                            }
                             $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
                             $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
                         }
+                        $temp_subtotal = $temp_subtotal - $discount;
 
                         $cart_promo_with_tax = $discount * (1 + $cart_vat);
 
@@ -5986,13 +5994,19 @@ class MobileCIAPIController extends ControllerAPI
                                 $used_cart_coupon->disc_val_str = '-'.($used_cart_coupon->issuedcoupon->discount_value * 100).'%';
                                 $used_cart_coupon->disc_val = '-'.($used_cart_coupon->issuedcoupon->discount_value * $subtotal_before_cart_promo_without_tax);
                                 $discount = $subtotal_before_cart_promo_without_tax * $used_cart_coupon->issuedcoupon->discount_value;
+                                if ($temp_subtotal < $discount) {
+                                    $discount = $temp_subtotal;
+                                }
                                 $cart_discount_by_percentage_counter++;
                             } elseif ($used_cart_coupon->issuedcoupon->rule_type == 'cart_discount_by_value') {
                                 $used_cart_coupon->disc_val_str = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
                                 $used_cart_coupon->disc_val = '-'.$used_cart_coupon->issuedcoupon->discount_value + 0;
                                 $discount = $used_cart_coupon->issuedcoupon->discount_value;
+                                if ($temp_subtotal < $discount) {
+                                    $discount = $temp_subtotal;
+                                }
                             }
-
+                            $temp_subtotal = $temp_subtotal - $discount;
                             $cart_coupon_with_tax = $discount * (1 + $cart_vat);
                             $cart_coupon_tax = $discount / $subtotal_wo_tax * $vat_before_cart_promo;
                             $cart_coupon_taxes = $cart_coupon_taxes + $cart_coupon_tax;
