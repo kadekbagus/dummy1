@@ -101,7 +101,7 @@ return array(
         'promo'              => 'PROMO',
         'coupon'             => 'COUPON',
         'no_item'            => 'No items in cart.',
-        'item_label'         => 'Item',
+        'item_label'         => 'Item(s)',
         'items_label'         => 'Items',
         'qty_label'          => 'Qty',
         'price_label'        => 'Unit Price',
