@@ -8,6 +8,7 @@
     @if($data->status === 1)
         @if(sizeof($data->records) > 0)
             @foreach($data->records as $promo)
+                @if(!empty($promo))
                 <div class="main-theme catalogue promo-list" id="promo-{{$promo->promotion_id}}">
                     <div class="row row-xs-height catalogue-top">
                         <div class="col-xs-6 catalogue-img col-xs-height col-middle">
@@ -21,8 +22,32 @@
                                 <div class="col-xs-12">
                                     <h3>{{ $promo->promotion_name }}</h3>
                                 </div>
-                                <?php echo var_dump($promo); exit;?>
-                                
+                                @if($promo->promotion_type == 'product' || $promo->promotion_type == 'cart')
+                                    <div class="col-xs-12">
+                                    @if($promo->promotionrule->discount_object_type == 'product')
+                                        <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }}: {{ $promo->promotionrule->discountproduct->product_name }}</p>
+                                    @elseif($promo->promotionrule->discount_object_type == 'family')
+                                        <p class="promo-item">
+                                            {{ Lang::get('mobileci.promotion_list.category_label') }}: 
+                                            @if(!is_null($promo->promotionrule->discountcategory1))
+                                            <span>{{ $promo->promotionrule->discountcategory1->category_name }}</span>
+                                            @endif
+                                            @if(!is_null($promo->promotionrule->discountcategory2))
+                                            <span>{{ $promo->promotionrule->discountcategory2->category_name }}</span>
+                                            @endif
+                                            @if(!is_null($promo->promotionrule->discountcategory3))
+                                            <span>{{ $promo->promotionrule->discountcategory3->category_name }}</span>
+                                            @endif
+                                            @if(!is_null($promo->promotionrule->discountcategory4))
+                                            <span>{{ $promo->promotionrule->discountcategory4->category_name }}</span>
+                                            @endif
+                                            @if(!is_null($promo->promotionrule->discountcategory5))
+                                            <span>{{ $promo->promotionrule->discountcategory5->category_name }}</span>
+                                            @endif
+                                        </p>
+                                    @endif
+                                    </div>
+                                @endif
                                 <div class="col-xs-12">
                                     @if($promo->is_permanent == 'Y')
                                         <h4>{{ Lang::get('mobileci.catalogue.from')}}: {{ date('j M Y', strtotime($promo->begin_date)) }}</h4>
@@ -39,6 +64,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             @endforeach
         @else
             <div class="row padded">
