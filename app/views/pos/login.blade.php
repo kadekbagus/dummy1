@@ -26,7 +26,7 @@
                                </div>
                                <div class="form-group">
                                    <span class="glyphicon glyphicon-lock"></span>
-                                   <input type="password" name="password" class="orbit-component form-control input-lg input-round text-center" placeholder="Password" ng-model="login.password" required />
+                                   <input type="password" name="password" class="orbit-component form-control input-lg input-round text-center" ng-disabled="!login.username" placeholder="Password" ng-model="login.password" required />
                                </div>
                                <div class="form-group">
                                    <button ng-disabled="signform.$invalid" class="btn btn-primary btn-lg btn-round btn-block text-center" data-ng-click="loginFn()" type="submit"><% language.masuk %></button>
