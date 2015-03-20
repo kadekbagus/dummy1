@@ -796,7 +796,7 @@ class ProductAPIController extends ControllerAPI
                     'product_id' => OrbitInput::get('product_id'),
                 ),
                 array(
-                    'sort_by'       => 'in:registered_date,product_id,product_name,product_code,product_price,product_tax_code,product_short_description,product_long_description,product_is_new,product_new_until,product_merchant_id,product_status',
+                    'sort_by'       => 'in:registered_date,product_id,product_name,product_sku,product_code,product_upc,product_price,product_short_description,product_long_description,product_is_new,product_new_until,product_merchant_id,product_status',
                     'product_id'    => 'array|min:1'
                 ),
                 array(
@@ -952,7 +952,7 @@ class ProductAPIController extends ControllerAPI
                     'product_price'             => 'products.price',
                     'product_short_description' => 'products.short_description',
                     'product_long_description'  => 'products.long_description',
-                    'product_is_new'            => 'products.is_new',
+                    'product_is_new'            => 'is_new',
                     'product_new_until'         => 'products.new_until',
                     'product_merchant_id'       => 'products.merchant_id',
                     'product_status'            => 'products.status',

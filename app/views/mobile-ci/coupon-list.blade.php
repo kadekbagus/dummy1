@@ -21,7 +21,7 @@
                                 <div class="col-xs-12">
                                     <h3>{{ $promo->promotion_name }}</h3>
                                 </div>
-                                @if($promo->promotion_type == 'product')
+                                @if($promo->promotion_type == 'product' || $promo->promotion_type == 'cart')
                                     <div class="col-xs-12">
                                     @if($promo->discount_object_type == 'product')
                                         <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }}: {{ $promo->product_name }}</p>
