@@ -21,7 +21,7 @@
                                 <div class="col-xs-12">
                                     <h3>{{ $promo->promotion_name }}</h3>
                                 </div>
-                                {{ var_dump($promo); exit; }}
+                                <?php var_dump($promo); exit;?>
                                 @if($promo->promotion_type == 'product' || $promo->promotion_type == 'cart')
                                     <div class="col-xs-12">
                                     @if($promo->promotionrule->discount_object_type == 'product')
