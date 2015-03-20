@@ -21,10 +21,10 @@
                                 <div class="col-xs-12">
                                     <h3>{{ $promo->promotion_name }}</h3>
                                 </div>
+                                {{ var_dump($promo); exit; }}
                                 @if($promo->promotion_type == 'product' || $promo->promotion_type == 'cart')
                                     <div class="col-xs-12">
                                     @if($promo->promotionrule->discount_object_type == 'product')
-                                        {{ var_dump($promo); exit; }}
                                         <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }}: {{ $promo->promotionrule->discountproduct->product_name }}</p>
                                     @elseif($promo->promotionrule->discount_object_type == 'family')
                                         <p class="promo-item">
