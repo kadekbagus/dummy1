@@ -130,6 +130,27 @@ class ProductVariant extends Eloquent
     }
 
     /**
+     * Scope to determine product variant with transaction details and add custom
+     * attribute named 'has_transaction' which hold value 'yes' or 'no'.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @todo This a slow query - rewrite it later.
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeIncludeTransactionStatus($builder)
+    {
+        $prefix = DB::getTablePrefix();
+        return $builder->select('product_variants.*', DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+                       ->leftJoin('transaction_details', 'transaction_details.product_variant_id', '=', 'product_variants.product_variant_id')
+                       ->leftJoin('transactions', function($join) {
+                            $join->on('transactions.status', '!=', DB::Raw("'deleted'"));
+                            $join->on('transactions.transaction_id', '=', 'transaction_details.transaction_id');
+                       })
+                       ->groupBy('product_variants.product_variant_id');
+    }
+
+    /**
      * Static method to create default variant
      *
      * @author Rio Astamal <me@rioastamal.net>

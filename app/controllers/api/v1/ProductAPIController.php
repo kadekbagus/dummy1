@@ -837,6 +837,21 @@ class ProductAPIController extends ControllerAPI
                                 ->excludeDeleted()
                                 ->allowedForUser($user);
 
+            // Check the value of `with_params` argument
+            OrbitInput::get('with_params', function ($withParams) use ($products) {
+                if (isset($withParams['variant.exclude_default'])) {
+                    if ($withParams['variant.exclude_default'] === 'yes') {
+                        Config::set('model:product.variant.exclude_default', 'yes');
+                    }
+                }
+
+                if (isset($withParams['variant.include_transaction_status'])) {
+                    if ($withParams['variant.include_transaction_status'] === 'yes') {
+                        Config::set('model:product.variant.include_transaction_status', 'yes');
+                    }
+                }
+            });
+
             // Filter product by Ids
             OrbitInput::get('product_id', function ($productIds) use ($products) {
                 $products->whereIn('products.product_id', $productIds);

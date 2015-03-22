@@ -1,4 +1,5 @@
 <?php
+
 class Product extends Eloquent
 {
     /**
@@ -6,6 +7,7 @@ class Product extends Eloquent
     *
     * @author Ahmad Anshori <ahmad@dominopos.com>
     * @author Tian <tian@dominopos.com>
+    * @author Rio Astamal <me@rioastamal.net>
     */
 
     /**
@@ -90,9 +92,19 @@ class Product extends Eloquent
 
     public function variants()
     {
-        return $this->hasMany('ProductVariant', 'product_id', 'product_id')
-                    ->excludeDeleted()
-                    ->orderBy('created_at', 'desc');
+        $variants = $this->hasMany('ProductVariant', 'product_id', 'product_id')
+                         ->excludeDeleted('product_variants')
+                         ->orderBy('created_at', 'desc');
+
+        if (Config::get('model:product.variant.exclude_default', NULL) === 'yes') {
+            $variants->excludeDefault();
+        }
+
+        if (Config::get('model:product.variant.include_transaction_status', NULL) === 'yes') {
+            $variants->includeTransactionStatus();
+        }
+
+        return $variants;
     }
 
     public function variantsNoDefault()
