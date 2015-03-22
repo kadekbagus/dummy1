@@ -611,13 +611,14 @@ class PosQuickProductAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param array         `product_ids`           (optional) - IDs of the product
-     * @param array         `merchant_ids`          (optional) - IDs of the merchant
-     * @param array         `retailer_ids`          (optional) - IDs of the
-     * @param string        `sort_by`               (optional) - column order by
-     * @param string        `sort_mode`             (optional) - asc or desc
-     * @param integer       `take`                  (optional) - limit
-     * @param integer       `skip`                  (optional) - limit offset
+     * @param array         `product_ids`              (optional) - IDs of the product
+     * @param array         `merchant_ids`             (optional) - IDs of the merchant
+     * @param array         `retailer_ids`             (optional) - IDs of the
+     * @param string        `sort_by`                  (optional) - column order by
+     * @param string        `sort_mode`                (optional) - asc or desc
+     * @param integer       `take`                     (optional) - limit
+     * @param integer       `skip`                     (optional) - limit offset
+     * @param string        `is_current_retailer_only` (optional) - To show current retailer product only. Valid value: Y
      * @return Illuminate\Support\Facades\Response
      */
     public function getSearchPosQuickProduct()
@@ -719,6 +720,16 @@ class PosQuickProductAPIController extends ControllerAPI
             OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
                 if ($user->isSuperAdmin()) {
                     $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
+                }
+            });
+
+            // Filter by current retailer
+            OrbitInput::get('is_current_retailer_only', function ($is_current_retailer_only) use ($posQuickProducts) {
+                if ($is_current_retailer_only === 'Y') {
+                    $retailer_id = Setting::where('setting_name', 'current_retailer')->first();
+                    if (! empty($retailer_id)) {
+                        $posQuickProducts->where('product_retailer.retailer_id', $retailer_id->setting_value);
+                    }
                 }
             });
 

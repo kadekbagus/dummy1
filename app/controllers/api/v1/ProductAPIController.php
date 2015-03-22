@@ -759,6 +759,7 @@ class ProductAPIController extends ControllerAPI
      * @param integer    `status`                   (optional)
      * @param array      `merchant_tax_id1`         (optional)
      * @param array      `merchant_tax_id2`         (optional)
+     * @param string     `is_current_retailer_only` (optional) - To show current retailer product only. Valid value: Y
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -910,6 +911,18 @@ class ProductAPIController extends ControllerAPI
             // Filter product by merchant_tax_id2
             OrbitInput::get('merchant_tax_id2', function ($merchant_tax_id2) use ($products) {
                 $products->whereIn('products.merchant_tax_id2', $merchant_tax_id2);
+            });
+
+            // Filter product by current retailer
+            OrbitInput::get('is_current_retailer_only', function ($is_current_retailer_only) use ($products) {
+                if ($is_current_retailer_only === 'Y') {
+                    $retailer_id = Setting::where('setting_name', 'current_retailer')->first();
+                    if (! empty($retailer_id)) {
+                        $products->whereHas('retailers', function($q) use ($retailer_id) {
+                                    $q->where('product_retailer.retailer_id', $retailer_id->setting_value);
+                                });
+                    }
+                }
             });
 
             // Add new relation based on request
