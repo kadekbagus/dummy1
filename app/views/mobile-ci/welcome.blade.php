@@ -92,7 +92,7 @@
     /**
      * Get Query String from the URL
      *
-     * @author Rio Astamal <me@rioastamal.net>
+     * @author Rio Astamal <me@rioastamal.net> 
      * @param string n - Name of the parameter
      */
     function get(n) {
@@ -125,7 +125,7 @@
 
         return;
     }
-    
+
     $(document).ready(function(){
       var em;
       var user_em = '{{ $user_email }}';

@@ -112,7 +112,7 @@
      * Get Query String from the URL
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param string n - Name of the parameter
+     * @param string n - Name of the parameter 
      */
     function get(n) {
         var half = location.search.split(n + '=')[1];

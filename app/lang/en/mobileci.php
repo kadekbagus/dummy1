@@ -21,6 +21,7 @@ return array(
         'promotions'    => 'PROMOTIONS',
         'coupons'       => 'MY COUPONS',
         'coupon_single' => 'COUPON',
+        'promotion'     => 'PROMOTION',
     ),
 
     "widgets"           => array(

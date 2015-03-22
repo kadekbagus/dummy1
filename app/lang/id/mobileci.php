@@ -21,6 +21,7 @@ return array(
         'promotions'    => 'PROMOSI',
         'coupons'       => 'KUPON SAYA',
         'coupon_single' => 'KUPON',
+        'promotion'     => 'PROMOSI',
     ),
 
     'widgets'           => array(
