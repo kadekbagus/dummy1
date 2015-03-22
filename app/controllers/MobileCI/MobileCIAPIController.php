@@ -742,8 +742,12 @@ class MobileCIAPIController extends ControllerAPI
 
                 // set coupons to catch flag
                 $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
-                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    } else {
+                        return $v->product_id == $product->product_id; 
+                    }
                 });
 
                 $product->on_couponstocatch = false;
@@ -1117,8 +1121,12 @@ class MobileCIAPIController extends ControllerAPI
 
                 // set coupons to catch flag
                 $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
-                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    } else {
+                        return $v->product_id == $product->product_id; 
+                    } 
                 });
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
@@ -1397,8 +1405,12 @@ class MobileCIAPIController extends ControllerAPI
 
                 // set coupons to catch flag
                 $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
-                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    } else {
+                        return $v->product_id == $product->product_id; 
+                    }
                 });
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
@@ -1438,7 +1450,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             if (!empty($promotions)) {
-                $pagetitle = 'PROMOTION : '.$promotions[0]->promotion_name;
+                $pagetitle = Lang::get('mobileci.page_title.promotion') . ' : ' . $promotions[0]->promotion_name;
             }
             $activityPageNotes = sprintf('Page viewed: Promotion Detail, Promotion Id: %s', $promoid);
             $activityPage->setUser($user)
@@ -1680,8 +1692,12 @@ class MobileCIAPIController extends ControllerAPI
 
                 // set coupons to catch flag
                 $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
-                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                   if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    } else {
+                        return $v->product_id == $product->product_id; 
+                    }
                 });
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
@@ -1721,7 +1737,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             if (!empty($coupons)) {
-                $pagetitle = Lang::get('mobileci.page_title.coupon_single') .' : '. $coupons[0]->promotion_name;
+                $pagetitle = Lang::get('mobileci.page_title.coupon_single') .': '. $coupons[0]->promotion_name;
             }
             $activityPageNotes = sprintf('Page viewed: Coupon Detail, Issued Coupon Id: %s', $promoid);
             $activityPage->setUser($user)
@@ -1792,7 +1808,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseOK()
                             ->save();
 
-            return View::make('mobile-ci.promotion-list', array('page_title' => 'PROMOTIONS', 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
+            return View::make('mobile-ci.promotion-list', array('page_title' => Lang::get('mobileci.page_title.promotions'), 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems));
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Promotion List');
             $activityPage->setUser($user)
@@ -2109,8 +2125,12 @@ class MobileCIAPIController extends ControllerAPI
 
                 // set coupons to catch flag
                 $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) { 
-                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    } else {
+                        return $v->product_id == $product->product_id; 
+                    }
                 });
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
@@ -2378,8 +2398,12 @@ class MobileCIAPIController extends ControllerAPI
 
                 // set coupons to catch flag
                 $couponstocatch_this_product = array_filter($couponstocatchs, function ($v) use ($product) {
-                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued;
+                    if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                    } else {
+                        return $v->product_id == $product->product_id; 
+                    }
                 });
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
@@ -2427,16 +2451,22 @@ class MobileCIAPIController extends ControllerAPI
         $product_id = 0;
         $activityProduct = Activity::mobileci()
                                    ->setActivityType('view');
+        $product = null;
         try {
             $user = $this->getLoggedInUser();
 
             $retailer = $this->getRetailerInfo();
             $product_id = trim(OrbitInput::get('id'));
+            $product_only = Product::where('product_id', $product_id)->active()->first();
+            $cartitems = $this->getCartForToolbar();
+
             $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function ($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                         })->active()->where('product_id', $product_id)->first();
+            
             if (empty($product)) {
-                throw new Exception('Product id ' . $product_id . ' not found');
+                // throw new Exception('Product id ' . $product_id . ' not found');
+                return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
             }
 
             $promo_products = DB::select(DB::raw('SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
@@ -2476,8 +2506,12 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id));
             
             $couponstocatchs = array_filter($couponstocatchs, function ($v) use ($product) {
-                $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                if ($v->maximum_issued_coupon != 0) {
+                    $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+                    return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued; 
+                } else {
+                    return $v->product_id == $product->product_id; 
+                }
             });
 
             $product->on_couponstocatch = false;
@@ -2509,17 +2543,17 @@ class MobileCIAPIController extends ControllerAPI
                 WHERE ic.expired_date >= "'.Carbon::now().'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "'. Carbon::now() .'"'), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id));
 
             $attributes = DB::select(DB::raw('SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
-                inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id
-                left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1
-                left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2
-                left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3
-                left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4
-                left join ' . DB::getTablePrefix() . 'product_attribute_values as av5 on av5.product_attribute_value_id = v.product_attribute_value_id5
-                left join ' . DB::getTablePrefix() . 'product_attributes as pa1 on pa1.product_attribute_id = av1.product_attribute_id
-                left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id
-                left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id
-                left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id
-                left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id
+                inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id AND p.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1 AND av1.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2 AND av2.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3 AND av3.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4 AND av4.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av5 on av5.product_attribute_value_id = v.product_attribute_value_id5 AND av5.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa1 on pa1.product_attribute_id = av1.product_attribute_id AND pa1.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id AND pa2.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id AND pa3.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id AND pa4.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id AND pa5.status = "active"
                 WHERE p.product_id = :productid'), array('productid' => $product->product_id));
 
             $prices = array();
@@ -2623,7 +2657,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+                            return $e;
         }
     }
 
@@ -4226,24 +4261,25 @@ class MobileCIAPIController extends ControllerAPI
                     
                     if ($coupons!=NULL) {
                         foreach ($coupons as $c) {
-                            $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                            if ($c->maximum_issued_coupon != 0) {
+                                $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                                if ($issued < $c->maximum_issued_coupon) {
+                                    $issue_coupon = new IssuedCoupon();
+                                    $issue_coupon->promotion_id = $c->promotion_id;
+                                    $issue_coupon->issued_coupon_code = '';
+                                    $issue_coupon->user_id = $customer_id;
+                                    $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                                    $issue_coupon->issued_date = Carbon::now();
+                                    $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                                    $issue_coupon->status = 'active';
+                                    $issue_coupon->transaction_id = $transaction->transaction_id;
+                                    $issue_coupon->save();
+                                    $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                    $issue_coupon->save();
 
-                            if ($issued < $c->maximum_issued_coupon) {
-                                $issue_coupon = new IssuedCoupon();
-                                $issue_coupon->promotion_id = $c->promotion_id;
-                                $issue_coupon->issued_coupon_code = '';
-                                $issue_coupon->user_id = $customer_id;
-                                $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
-                                $issue_coupon->issued_date = Carbon::now();
-                                $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
-                                $issue_coupon->status = 'active';
-                                $issue_coupon->transaction_id = $transaction->transaction_id;
-                                $issue_coupon->save();
-                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                                $issue_coupon->save();
-
-                                $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
-                                $acquired_coupons[] = $acquired_coupon;
+                                    $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
+                                    $acquired_coupons[] = $acquired_coupon;
+                                }
                             }
                         }
                     }
@@ -4261,23 +4297,25 @@ class MobileCIAPIController extends ControllerAPI
 
                 if (!empty($coupon_carts)) {
                     foreach ($coupon_carts as $kupon) {
-                        $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
-                        if ($issued < $kupon->maximum_issued_coupon) {
-                            $issue_coupon = new IssuedCoupon();
-                            $issue_coupon->promotion_id = $kupon->promotion_id;
-                            $issue_coupon->issued_coupon_code = '';
-                            $issue_coupon->user_id = $customer_id;
-                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
-                            $issue_coupon->issued_date = Carbon::now();
-                            $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
-                            $issue_coupon->status = 'active';
-                            $issue_coupon->transaction_id = $transaction->transaction_id;
-                            $issue_coupon->save();
-                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                            $issue_coupon->save();
+                        if ($c->maximum_issued_coupon != 0) {
+                            $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
+                            if ($issued < $kupon->maximum_issued_coupon) {
+                                $issue_coupon = new IssuedCoupon();
+                                $issue_coupon->promotion_id = $kupon->promotion_id;
+                                $issue_coupon->issued_coupon_code = '';
+                                $issue_coupon->user_id = $customer_id;
+                                $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                                $issue_coupon->issued_date = Carbon::now();
+                                $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                                $issue_coupon->status = 'active';
+                                $issue_coupon->transaction_id = $transaction->transaction_id;
+                                $issue_coupon->save();
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                $issue_coupon->save();
 
-                            $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
-                            $acquired_coupons[] = $acquired_coupon;
+                                $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
+                                $acquired_coupons[] = $acquired_coupon;
+                            }
                         }
                     }
                 }
@@ -4312,14 +4350,14 @@ class MobileCIAPIController extends ControllerAPI
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until ". date('d M Y H:i', strtotime($value['expired_date'])));
                 }
                 else{
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until ". date('d M Y H:i', strtotime($value['expired_date'])));
                   if($key==$total_issuedcoupon-1){
                     $acquired_coupon .= '----------------------------------------'." \n";
                   }

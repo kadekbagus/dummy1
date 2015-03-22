@@ -22,6 +22,7 @@ return array(
         'coupons'       => 'KUPON SAYA',
         'coupon_single' => 'KUPON',
         'promotion'     => 'PROMOSI',
+        'not_found'     => 'ERROR',
     ),
 
     'widgets'           => array(
@@ -186,5 +187,9 @@ return array(
         'ccv_placeholder'   => 'Inputkan CVV',
         'submit_button'     => 'Submit',
         'cancel_button'     => 'Kembali',
+    ),
+
+    '404'                   => array(
+        'not_found'         => 'Halaman tidak ditemukan.',
     ),
 );

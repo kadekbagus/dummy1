@@ -22,6 +22,7 @@ return array(
         'coupons'       => 'MY COUPONS',
         'coupon_single' => 'COUPON',
         'promotion'     => 'PROMOTION',
+        'not_found'     => 'ERROR',
     ),
 
     "widgets"           => array(
@@ -186,5 +187,9 @@ return array(
         'ccv_placeholder'   => 'Enter CVV',
         'submit_button'     => 'Submit',
         'cancel_button'     => 'Back',
+    ),
+
+    '404'                   => array(
+        'not_found'         => 'Page not found.',
     ),
 );
