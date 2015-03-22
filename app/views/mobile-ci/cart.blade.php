@@ -46,6 +46,7 @@
               <div class="single-body">
                 <p><span class="product-name" data-product="{{ $cartdetail->product->product_id }}"><b>{{ $cartdetail->product->product_name }}</b></span></p>
                 <p class="attributes">
+                  {{ $cartdetail->cart_detail_id }}
                   @if(count($cartdetail->attributes) > 0)
                     @foreach($cartdetail->attributes as $attribute)
                       <span>{{$attribute}}</span>
@@ -312,6 +313,7 @@
     
     <div class="cart-page button-group text-center">
       <button id="checkOutBtn" class="btn box-one cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>{{ Lang::get('mobileci.cart.checkout_button') }}</button>
+      <button id="resetBtn" class="btn btn-danger cart-btn @if(count($cartdata->cartdetails) < 1) disabled @endif" @if(count($cartdata->cartdetails) < 1) disabled @endif>{{ Lang::get('mobileci.cart.reset_button') }}</button>
       <a href="{{ url('customer/home') }}" class="btn box-three cart-btn">{{ Lang::get('mobileci.cart.continue_button') }}</a>
       <img class="img-responsive img-center img-logo" src="{{ asset($retailer->parent->logo) }}" />
     </div>
@@ -375,6 +377,37 @@
               <input type="hidden" name="obj" id="obj" value="">
               <div class="col-xs-6">
                 <button type="button" id="cartDeleteBtn" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.yes_button') }}</button>
+              </div>
+              <div class="col-xs-6">
+                <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel_button') }}</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-labelledby="resetLabel" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+      <div class="modal-content">
+        <div class="modal-header orbit-modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+          <h4 class="modal-title" id="deleteLabel">{{ Lang::get('mobileci.modals.reset_cart_title') }}</h4>
+        </div>
+        <div class="modal-body">
+          <div class="row ">
+            <div class="col-xs-12 vertically-spaced">
+              <p>{{ Lang::get('mobileci.modals.message_reset_cart') }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <form name="deleteCart" id="deleteCart">
+            <div class="row">
+              <input type="hidden" name="cart" id="cart" value="{{ $cartdata->cart->cart_id }}">
+              <div class="col-xs-6">
+                <button type="button" id="cartResetBtn" class="btn btn-success btn-block">{{ Lang::get('mobileci.modals.yes_button') }}</button>
               </div>
               <div class="col-xs-6">
                 <button type="button" class="btn btn-danger btn-block" data-dismiss="modal">{{ Lang::get('mobileci.modals.cancel_button') }}</button>
@@ -662,6 +695,27 @@
         method: 'POST',
         data: {
           detail: detail
+        }
+      }).done(function(data){
+        if(data.message == 'success'){
+          window.location.assign(window.location.origin + window.location.pathname + '?from=update_cart');
+        }else{
+          console.log(data);
+        }
+      });
+    });
+
+    $('#resetBtn').click(function(){
+      $('#resetModal').modal();
+    })
+
+    $('#cartResetBtn').click(function(){
+      var cart = $('#cart').val();
+      $.ajax({
+        url: apiPath+'customer/resetcart',
+        method: 'POST',
+        data: {
+          cartid: cart
         }
       }).done(function(data){
         if(data.message == 'success'){

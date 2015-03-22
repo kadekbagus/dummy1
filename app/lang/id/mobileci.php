@@ -14,7 +14,7 @@ return array(
         'my_account'    => 'AKUN SAYA',
         'transfercart'  => 'TRANSFER CART',
         'customer_id'   => 'CUSTOMER ID',
-        'logout'        => 'LOGOUT',
+        'logout'        => 'KELUAR',
         'payment'       => 'PEMBAYARAN',
         'searching'     => 'PENCARIAN',
         'new_products'  => 'PRODUK BARU',
@@ -49,6 +49,7 @@ return array(
         'delete_item_title'     => 'Hapus Item',
         'delete_coupon_title'   => 'Hapus Kupon',
         'close_cart_title'      => 'Tutup Keranjang',
+        'reset_cart_title'      => 'Hapus Keranjang',
 
         'message_no_coupon'     => 'Maaf, Anda belum memiliki kupon.',
         'message_no_new_product'=> 'Maaf, tidak ada produk baru untuk saat ini.',
@@ -57,6 +58,7 @@ return array(
         'message_delete_coupon' => 'Apakah Anda yakin akan menghapus kupon ini dari keranjang belanja? Kupon yang Anda hapus masih dapat digunakan lain kali.',
         'message_transfer_cart' => 'Tunjukkan smartphone Anda ke kasir untuk menyelesaikan checkout.',
         'message_close_cart'    => 'Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.',
+        'message_reset_cart'    => 'Apakah Anda yakin akan menghapus cart Anda?',
         
         'coupon_use'            => 'Gunakan',
         'coupon_ignore'         => 'Lain Kali',
@@ -125,6 +127,7 @@ return array(
         'transaction_id_label' => 'ID Transaksi',
         'date_label'         => 'Tanggal',
         'acquired_coupons_label'         => 'Kupon yang Anda Peroleh',
+        'reset_button'       => 'Hapus Keranjang',
     ),
 
     'promotion_list'         => array(
@@ -191,5 +194,9 @@ return array(
 
     '404'                   => array(
         'not_found'         => 'Halaman tidak ditemukan.',
+    ),
+
+    'recognize_me'  => array(
+        'recognize_me_message' => 'Customer ID Anda'
     ),
 );

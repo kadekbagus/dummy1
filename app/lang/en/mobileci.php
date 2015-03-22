@@ -23,6 +23,7 @@ return array(
         'coupon_single' => 'COUPON',
         'promotion'     => 'PROMOTION',
         'not_found'     => 'ERROR',
+        'recognize_me'  => 'RECOGNIZE ME'
     ),
 
     "widgets"           => array(
@@ -49,6 +50,7 @@ return array(
         'delete_item_title'     => 'Delete Item',
         'delete_coupon_title'   => 'Delete Coupon',
         'close_cart_title'      => 'Close Cart',
+        'reset_cart_title'      => 'Reset Cart',
 
         'message_no_coupon'     => 'Sorry, you do not have any coupons yet.',
         'message_no_new_product'=> 'Sorry, there are no new products for today.',
@@ -57,7 +59,8 @@ return array(
         'message_delete_coupon' => 'Are you sure to remove this coupon from your cart? Removed coupon could be used next time.',
         'message_transfer_cart' => 'Show this screen to the cashier to complete your checkout.',
         'message_close_cart'    => 'Your cart is not transferred to the cashier. Please show the following barcode to the cashier.',
-        
+        'message_reset_cart'    => 'Are you sure to reset your cart?',
+
         'coupon_use'            => 'Use',
         'coupon_ignore'         => 'Later',
         'search_label'          => 'Search by Product Name, Code or Description',
@@ -125,6 +128,7 @@ return array(
         'transaction_id_label' => 'Transaction ID',
         'date_label'         => 'Date',
         'acquired_coupons_label'         => 'Acquired Coupons',
+        'reset_button'       => 'Reset Cart',
     ),
 
     'promotion_list'         => array(
@@ -191,5 +195,9 @@ return array(
 
     '404'                   => array(
         'not_found'         => 'Page not found.',
+    ),
+
+    'recognize_me'  => array(
+        'recognize_me_message' => 'Here is your customer ID'
     ),
 );
