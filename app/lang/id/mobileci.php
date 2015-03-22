@@ -21,6 +21,8 @@ return array(
         'promotions'    => 'PROMOSI',
         'coupons'       => 'KUPON SAYA',
         'coupon_single' => 'KUPON',
+        'promotion'     => 'PROMOSI',
+        'not_found'     => 'ERROR',
     ),
 
     'widgets'           => array(
@@ -78,6 +80,7 @@ return array(
         'start_button'      => 'Mulai Belanja',
         'not'               => 'Bukan',
         'click_here'        => 'klik disini',
+        'email_not_valid'   => 'Alamat email tidak valid',
     ),
 
     'catalogue'         => array(
@@ -184,5 +187,9 @@ return array(
         'ccv_placeholder'   => 'Inputkan CVV',
         'submit_button'     => 'Submit',
         'cancel_button'     => 'Kembali',
+    ),
+
+    '404'                   => array(
+        'not_found'         => 'Halaman tidak ditemukan.',
     ),
 );

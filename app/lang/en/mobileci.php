@@ -21,6 +21,8 @@ return array(
         'promotions'    => 'PROMOTIONS',
         'coupons'       => 'MY COUPONS',
         'coupon_single' => 'COUPON',
+        'promotion'     => 'PROMOTION',
+        'not_found'     => 'ERROR',
     ),
 
     "widgets"           => array(
@@ -78,6 +80,7 @@ return array(
         'start_button'      => 'Start Shopping',
         'not'               => 'Not',
         'click_here'        => 'click here',
+        'email_not_valid'   => 'Email address is not valid',
     ),
 
     'catalogue'         => array(
@@ -149,7 +152,7 @@ return array(
     ),
 
     'search'                => array(
-        'no_item'           => 'There are no products match the criteria.',
+        'no_item'           => 'There is no product matching the criteria.',
         'too_much_items'     => 'Search result is too broad, please narrow it down.',
     ),
 
@@ -184,5 +187,9 @@ return array(
         'ccv_placeholder'   => 'Enter CVV',
         'submit_button'     => 'Submit',
         'cancel_button'     => 'Back',
+    ),
+
+    '404'                   => array(
+        'not_found'         => 'Page not found.',
     ),
 );

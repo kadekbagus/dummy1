@@ -6,9 +6,10 @@
 
 @section('content')
 	
-	<div class="row padded">
+	<div class="row padded text-center">
 		<div class="col-xs-12">
-			<h4>Halaman tidak ditemukan, silahkan kembali ke halaman <a href="{{ url('/customer/home') }}">utama</a>.</h4>
+			<h4>{{ Lang::get('mobileci.404.not_found') }}</h4>
+			<a class="btn btn-info" href="{{ url('/customer/home') }}">{{ Lang::get('mobileci.promotion_detail.back_label') }}</a>
 		</div>
 	</div>
 @stop

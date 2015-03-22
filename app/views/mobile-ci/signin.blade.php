@@ -112,7 +112,7 @@
      * Get Query String from the URL
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param string n - Name of the parameter
+     * @param string n - Name of the parameter 
      */
     function get(n) {
         var half = location.search.split(n + '=')[1];
@@ -158,6 +158,7 @@
         em = user_em;
         $('.signedUser').text(em);
         $('.emailSigned').val(em);
+        $('#email').val(em);
         // console.log(user_em);
       } else {
         if(typeof $.cookie('orbit_email') === 'undefined') {
@@ -172,6 +173,7 @@
             em = $.cookie('orbit_email');
             $('.emailSigned').val(em);
             $('.signedUser').text(em);
+            $('#email').val(em);
           } else {
             $('#signedIn').hide();
             $('#signIn').show();
@@ -190,26 +192,24 @@
         window.location.replace('/customer/logout');
       });
       $('form[name="loginForm"]').submit(function(event){
-
+        event.preventDefault();
         $('.signedUser').text(em);
 
         $('#signup').css('display','none');
         $('#errorModalText').text('');
         $('#emailSignUp').val('');
-        console.log(em);
-        if(!em) {
-          em = $('#email').val();
-        }
-        if(!em) {
+
+        if(!$('#email').val().trim()) {
           $('#errorModalText').text('{{ Lang::get('mobileci.modals.email_error') }}');
           $('#errorModal').modal();
         }else{
-          if(isValidEmailAddress(em)){
+          
+          if(isValidEmailAddress($('#email').val().trim())){
             $.ajax({
               method:'POST',
               url:apiPath+'customer/login',
               data:{
-                email: em
+                email: $('#email').val().trim()
               }
             }).done(function(data, status, xhr){
               if(data.status==='error'){
@@ -235,11 +235,10 @@
               $('#errorModal').modal();
             });
           } else {
-            $('#errorModalText').text('Email tidak valid.');
+            $('#errorModalText').text('{{ Lang::get('mobileci.signin.email_not_valid') }}');
             $('#errorModal').modal();
           }
         }
-        event.preventDefault();
       });
     });
   </script>
