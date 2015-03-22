@@ -7,7 +7,7 @@
             <div class="header">
                 <img ng-src="<% configs.baseUrlServerPublic %>/<% datauser['merchant']['logo'] %>" class="img" style="height: 64px">
                 <h1><% datauser['merchant']['name'] %></h1>
-                <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px;padding-right: 20px;color:#46c2ff" dropdown>
+                <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px; color:#46c2ff;" dropdown>
                      <% $parent.datauser.user.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
                         <li> <a href="#" data-ng-click="logoutfn()"><% language.keluar %></a></li>
@@ -528,15 +528,15 @@
                     </div>
                 </div>
                    <div class="row" ng-show="action == 'done'">
-                         <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" ng-click="ticketprint()"><% language.cetakstruk %></button></p>
                          <p><button type="button" class="btn btn-primary btn-lg" ng-if="cart.user_id" style="background-color: #2c71a3;" ng-click="sendticket()"><% language.kirimstruk %></button></p>
+                         <p><button type="button" class="btn btn-primary btn-lg"  style="background-color: #2c71a3;" ng-click="ticketprint()"><% language.cetakstruk %></button></p>
                          <p><button type="button" class="btn btn-success btn-lg" data-dismiss="modal"  style="background-color: #009933; padding-left: 53px; padding-right: 53px"   data-ng-click="checkoutFn('d')"><% language.selesai %></button> </p>
                    </div>
           </div>
           <div class="modal-footer" data-ng-if="action !='main'">
                      <button type="button"  data-ng-if="cardfile && action != 'done' && cheader == 'PEMBAYARAN KARTU DEBIT/KREDIT'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')"><% language.ulangi %></button>
                      <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()"><% language.batal %></button>
-                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;"><% language.lanjutkan %></button>
+                     <button type="button"  data-ng-if="action =='cash'" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;"><% language.lanjutkan %></button>
            </div>
         </div>
 
