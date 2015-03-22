@@ -78,6 +78,7 @@ return array(
         'start_button'      => 'Mulai Belanja',
         'not'               => 'Bukan',
         'click_here'        => 'klik disini',
+        'email_not_valid'   => 'Alamat email tidak valid',
     ),
 
     'catalogue'         => array(

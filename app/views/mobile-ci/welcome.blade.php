@@ -89,6 +89,43 @@
 @section('ext_script_bot')
   {{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
   <script type="text/javascript">
+    /**
+     * Get Query String from the URL
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string n - Name of the parameter
+     */
+    function get(n) {
+        var half = location.search.split(n + '=')[1];
+        return half !== undefined ? decodeURIComponent(half.split('&')[0]) : null;
+    }
+
+    /**
+     * Function to handle after loction process which used to trick the
+     * CaptivePortal Login Window such as in iPhone/iPad to open real browser.
+     *
+     * @author Rio Astamal <me@rioastamal>
+     * @param XMLHttpRequest|jqXHR xhr
+     * @return void
+     */
+    function afterLogin(xhr) {
+        // Get Session which returned by the Orbit backend named
+        // 'Set-X-Orbit-Session: SESSION_ID
+        // To do: replace this hardcode session name
+        var session_id = xhr.getResponseHeader('Set-X-Orbit-Mobile-Session');
+        console.log('Session ID: ' + session_id);
+
+        // We will pass this session id to the application inside real browser
+        // so the it can recreate the session information and able to recognize
+        // the user.
+        var create_session_url = '{{ URL::Route("captive-portal") }}';
+        console.log('Create session URL: ' + create_session_url);
+
+        window.location = create_session_url + '?loadsession=' + session_id;
+
+        return;
+    }
+    
     $(document).ready(function(){
       var em;
       var user_em = '{{ $user_email }}';
@@ -102,13 +139,14 @@
         em = user_em;
         $('.signedUser').text(em);
         $('.emailSigned').val(em);
+        $('#email').val(em);
         // console.log(user_em);
       } else {
         if(typeof $.cookie('orbit_email') === 'undefined') {
           // $.cookie('orbit_email', '-', { expires: 5 * 365, path: '/' });
           $('#signedIn').hide();
           $('#signIn').show();
-          
+
         } else {
           if($.cookie('orbit_email')){
             $('#signedIn').show();
@@ -116,6 +154,7 @@
             em = $.cookie('orbit_email');
             $('.emailSigned').val(em);
             $('.signedUser').text(em);
+            $('#email').val(em);
           } else {
             $('#signedIn').hide();
             $('#signIn').show();
@@ -134,28 +173,26 @@
         window.location.replace('/customer/logout');
       });
       $('form[name="loginForm"]').submit(function(event){
-        
+        event.preventDefault();
         $('.signedUser').text(em);
-        
+
         $('#signup').css('display','none');
         $('#errorModalText').text('');
         $('#emailSignUp').val('');
-        console.log(em);
-        if(!em) {
-          em = $('#email').val();
-        }
-        if(!em) {
+
+        if(!$('#email').val().trim()) {
           $('#errorModalText').text('{{ Lang::get('mobileci.modals.email_error') }}');
           $('#errorModal').modal();
         }else{
-          if(isValidEmailAddress(em)){
+          
+          if(isValidEmailAddress($('#email').val().trim())){
             $.ajax({
               method:'POST',
               url:apiPath+'customer/login',
               data:{
-                email: em
+                email: $('#email').val().trim()
               }
-            }).done(function(data){
+            }).done(function(data, status, xhr){
               if(data.status==='error'){
                 console.log(data);
               }
@@ -165,18 +202,24 @@
                 if(data.data.user_firstname) {
                   $.cookie('orbit_firstname', data.data.user_firstname, { expires: 5 * 365, path: '/' });
                 }
-                window.location.replace(homePath);
+
+                // Check if we are redirected from captive portal
+                // The query string 'from_captive' are from apache configuration
+                if (get('from_captive') == 'yes') {
+                    afterLogin(xhr);
+                } else {
+                    window.location.replace(homePath);
+                }
               }
             }).fail(function(data){
               $('#errorModalText').text(data.responseJSON.message);
               $('#errorModal').modal();
             });
           } else {
-            $('#errorModalText').text('Email tidak valid.');
+            $('#errorModalText').text('{{ Lang::get('mobileci.signin.email_not_valid') }}');
             $('#errorModal').modal();
           }
         }
-        event.preventDefault();
       });
     });
   </script>

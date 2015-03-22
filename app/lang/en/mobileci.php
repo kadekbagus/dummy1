@@ -78,6 +78,7 @@ return array(
         'start_button'      => 'Start Shopping',
         'not'               => 'Not',
         'click_here'        => 'click here',
+        'email_not_valid'   => 'Email address is not valid',
     ),
 
     'catalogue'         => array(
@@ -149,7 +150,7 @@ return array(
     ),
 
     'search'                => array(
-        'no_item'           => 'There are no products match the criteria.',
+        'no_item'           => 'There is no product matching the criteria.',
         'too_much_items'     => 'Search result is too broad, please narrow it down.',
     ),
 
