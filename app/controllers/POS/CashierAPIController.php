@@ -3131,6 +3131,7 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             // check for cart based promotions
             $promo_carts = \Promotion::with('promotionrule')->excludeDeleted()
+                ->where('status', 'active')
                 ->where('is_coupon', 'N')
                 ->where('promotion_type', 'cart')
                 ->where('merchant_id', $retailer['parent']['merchant_id'])
