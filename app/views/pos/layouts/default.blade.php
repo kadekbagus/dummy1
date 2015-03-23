@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/font-awesome-4.2.0/css/font-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('templatepos/vendor/progressjs/progressjs.css') }}">
     <link rel="shortcut icon" href="{{ URL::asset('templatepos/images/favicon.ico') }}">
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic' rel='stylesheet' type='text/css'> 
    {{--js--}}
 
     <script src="{{ URL::asset('templatepos/vendor/jquery/dist/jquery.min.js') }}"></script>
@@ -35,6 +36,9 @@
         }
         .loading-invisible{
             display:none;
+        }
+        body{
+            background-color: #f3f3f3;
         }
     </style>
 
