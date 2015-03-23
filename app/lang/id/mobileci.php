@@ -23,6 +23,7 @@ return array(
         'coupon_single' => 'KUPON',
         'promotion'     => 'PROMOSI',
         'not_found'     => 'ERROR',
+        'recognize_me'  => 'KENALI SAYA'
     ),
 
     'widgets'           => array(
