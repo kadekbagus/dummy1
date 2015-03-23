@@ -336,6 +336,7 @@ class ActivityAPIController extends ControllerAPI
                     'activity_type'     => 'activities.activity_type',
                     'staff_name'        => 'activities.staff_name',
                     'gender'            => 'activities.gender',
+                    'module_name'       => 'activities.module_name',
                 );
 
                 if (array_key_exists($_sortBy, $sortByMapping)) {
