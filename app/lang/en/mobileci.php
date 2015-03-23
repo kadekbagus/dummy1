@@ -59,7 +59,7 @@ return array(
         'message_delete_coupon' => 'Are you sure to remove this coupon from your cart? Removed coupon could be used next time.',
         'message_transfer_cart' => 'Show this screen to the cashier to complete your checkout.',
         'message_close_cart'    => 'Your cart is not transferred to the cashier. Please show the following barcode to the cashier.',
-        'message_reset_cart'    => 'Are you sure to reset your cart?',
+        'message_reset_cart'    => 'Are you sure you want to reset your cart?',
 
         'coupon_use'            => 'Use',
         'coupon_ignore'         => 'Later',
@@ -198,6 +198,6 @@ return array(
     ),
 
     'recognize_me'  => array(
-        'recognize_me_message' => 'Here is your customer ID'
+        'recognize_me_message' => 'To be recognized, show the following barcode to the cashier.'
     ),
 );

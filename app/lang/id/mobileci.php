@@ -197,6 +197,6 @@ return array(
     ),
 
     'recognize_me'  => array(
-        'recognize_me_message' => 'Customer ID Anda'
+        'recognize_me_message' => 'Agar Anda dapat dikenali, perlihatkan barcode berikut ini kepada kasir.'
     ),
 );
