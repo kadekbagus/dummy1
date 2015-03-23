@@ -558,7 +558,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 var temp_price = $scope.cart[i]['hargatotal'];
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
-
+                                console.log('tes 123');
                                 var promotionprice = 0;
                                 var couponprice    = 0;
                                 if($scope.vat_included == 'yes'){
@@ -581,6 +581,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                 tax.total = service;
+                                                tax.tmptotal = service;
                                                 taxes.push(tax);
                                             }
                                             var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -593,6 +594,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                 tax.total = vat;
+                                                tax.tmptotal = vat;
                                                 taxes.push(tax);
                                             }
                                         }else if($scope.cart[i]['product_details']['tax2']['tax_type'] == 'luxury'){
@@ -611,6 +613,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                 tax.total = service;
+                                                tax.tmptotal = service;
                                                 taxes.push(tax);
                                             }
                                             var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -623,6 +626,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                 tax.total = vat;
+                                                tax.tmptotal = vat;
                                                 taxes.push(tax);
                                             }
                                         }
@@ -641,6 +645,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                             tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                             tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                             tax.total = vat;
+                                            tax.tmptotal = vat;
                                             taxes.push(tax);
                                         }
                                     }
@@ -682,6 +687,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -694,6 +700,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                     //nasplet    += promo_tmpservice;
@@ -713,6 +720,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -725,6 +733,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                 }
@@ -743,6 +752,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                     tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                     tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                     tax.total = promo_vat;
+                                                    tax.tmptotal = promo_vat;
                                                     taxes.push(tax);
                                                 }
                                             }
@@ -784,6 +794,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -796,6 +807,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                     //nasplet    += promo_tmpservice;
@@ -814,6 +826,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -826,6 +839,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                 }
@@ -844,6 +858,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                     tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                     tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                     tax.total = promo_vat;
+                                                    tax.tmptotal = promo_vat;
                                                     taxes.push(tax);
                                                 }
                                             }
@@ -872,6 +887,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                 tax.total = service;
+                                                tax.tmptotal = service;
                                                 taxes.push(tax);
                                             }
                                             var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -884,6 +900,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                 tax.total = vat;
+                                                tax.tmptotal = vat;
                                                 taxes.push(tax);
                                             }
                                             //nasplet    += tmpservice;
@@ -902,6 +919,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                 tax.total = service;
+                                                tax.tmptotal = service;
                                                 taxes.push(tax);
                                             }
                                             var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -914,6 +932,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                 tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                 tax.total = vat;
+                                                tax.tmptotal = vat;
                                                 taxes.push(tax);
                                             }
                                         }
@@ -931,6 +950,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                             tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                             tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                             tax.total = vat;
+                                            tax.tmptotal = vat;
                                             taxes.push(tax);
                                         }
                                     }
@@ -971,6 +991,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -983,6 +1004,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                     //nasplet    += promo_tmpservice;
@@ -1002,6 +1024,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -1014,6 +1037,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                 }
@@ -1032,6 +1056,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                     tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                     tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                     tax.total = promo_vat;
+                                                    tax.tmptotal = promo_vat;
                                                     taxes.push(tax);
                                                 }
                                             }
@@ -1072,6 +1097,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -1084,6 +1110,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                     //nasplet    += promo_tmpservice;
@@ -1103,6 +1130,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax2']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax2']['tax_value'];
                                                         tax.total = promo_service;
+                                                        tax.tmptotal = promo_service;
                                                         taxes.push(tax);
                                                     }
                                                     var taxonarray = $filter('getById')(taxes, $scope.cart[i]['product_details']['tax1']['merchant_tax_id']);
@@ -1115,6 +1143,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                         tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                         tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                         tax.total = promo_vat;
+                                                        tax.tmptotal = promo_vat;
                                                         taxes.push(tax);
                                                     }
                                                 }
@@ -1133,6 +1162,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                     tax.name = $scope.cart[i]['product_details']['tax1']['tax_name'];
                                                     tax.value = $scope.cart[i]['product_details']['tax1']['tax_value'];
                                                     tax.total = promo_vat;
+                                                    tax.tmptotal = promo_vat;
                                                     taxes.push(tax);
                                                 }
                                             }
@@ -1157,6 +1187,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         var tmpcartsubtotalpromotion   = accounting.unformat($scope.cart.subtotal);
                         var temp_subtotal = tmpcartsubtotalpromotion;
                         var tmpvattotalbeforecartbased = tmpvattotal;
+                        
+
                         var cart_tax_factor = 0;
                         if($scope.vat_included == 'yes'){
                             if(tmphargatotalwotax !== 0){
@@ -1186,7 +1218,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     promotioncartbase  += promotion;
                                     
                                     temp_subtotal = temp_subtotal - promotion;
-                                    
+
                                     $scope.tmpvallues  = promotion;
                                     $scope.applycartpromotion.push(angular.copy($scope.cartpromotions[j]));
                                     var idxapply = $scope.applycartpromotion.length -1;
@@ -1201,7 +1233,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                         cart_promo_tmpvat = promotion - cart_promo_tmpvat_wo_tax;
                                         taxpromotioncartbase += cart_promo_tmpvat;
                                         for(var xx = 0; xx < taxes.length; xx++){
-                                            var tax_reduction = (taxes[xx].total / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
+                                            var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
                                             taxes[xx].total -= tax_reduction;
                                         }
                                     } else {
@@ -1210,7 +1242,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                         cart_promo_tmpvat = promotion / tmphargatotal * tmpvattotalbeforecartbased;
                                         taxpromotioncartbase += cart_promo_tmpvat;
                                         for(var xx = 0; xx < taxes.length; xx++){
-                                            var tax_reduction = (taxes[xx].total / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
+                                            var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
                                             taxes[xx].total -= tax_reduction;
                                         }
                                     }
@@ -1249,8 +1281,10 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     cart_promo_tmpvat = coupon - cart_promo_tmpvat_wo_tax;
                                     taxcouponcartbase += cart_promo_tmpvat;
                                     for(var xx = 0; xx < taxes.length; xx++){
-                                        var tax_reduction = (taxes[xx].total / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
+
+                                        var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
                                         taxes[xx].total -= tax_reduction;
+                                        console.log(taxes[xx].total);
                                     }
                                 } else {
                                     cart_promo_tmpvat_tax = coupon * (1 + cart_tax_factor);
@@ -1258,14 +1292,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     cart_promo_tmpvat = coupon / tmphargatotal * tmpvattotalbeforecartbased;
                                     taxcouponcartbase += cart_promo_tmpvat;
                                     for(var xx = 0; xx < taxes.length; xx++){
-                                        var tax_reduction = (taxes[xx].total / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
+                                        var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
                                         taxes[xx].total -= tax_reduction;
                                     }
                                 }
                             }
                             tmpvattotal -= taxcouponcartbase;
                         }
-
+                        console.log(taxes);
                         if($scope.vat_included == 'yes'){
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                              $scope.cart.subtotal = $scope.cart.totalpay;
@@ -1502,7 +1536,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if($scope.transaction_id){
                         serviceAjax.posDataToServer('/pos/sendticketemail',{transaction_id : $scope.transaction_id}).then(function(response){
                             if(response.code == 0){
-
+                                  $scope.messagesendemail = '';  
                             }else{
                                 //do something
                             }
