@@ -1584,7 +1584,9 @@ class CashierAPIController extends ControllerAPI
 
             if($transaction['user']==NULL){
                 $customer = "Guest";
-            }else{
+            }else if($transaction['user']->user_firstname!=NULL && $transaction['user']->user_firstname!=""){
+                $customer = $transaction['user']->user_firstname." ".$transaction['user']->user_lastname;
+            }else {
                 $customer = $transaction['user']->user_email;
             }
 
@@ -5047,7 +5049,9 @@ class CashierAPIController extends ControllerAPI
 
             if($transaction['user']==NULL){
                 $customer = "Guest";
-            }else{
+            }else if($transaction['user']->user_firstname!=NULL && $transaction['user']->user_firstname!=""){
+                $customer = $transaction['user']->user_firstname." ".$transaction['user']->user_lastname;
+            }else {
                 $customer = $transaction['user']->user_email;
             }
 
