@@ -236,4 +236,19 @@ Route::group(array('before' => 'orbit-settings'), function()
             return MobileCI\MobileCIAPIController::create()->postSendTicket();
         })
     );
+
+    // recognize me
+    Route::get('/customer/me', function()
+    {
+        return MobileCI\MobileCIAPIController::create()->getMeView();
+    });
+
+    // reset cart
+    Route::post('/app/v1/customer/resetcart', array(
+        'as' => 'reset-cart', 
+        function()
+        {
+            return MobileCI\MobileCIAPIController::create()->postResetCart();
+        })
+    );
 });

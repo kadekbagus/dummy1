@@ -3029,6 +3029,46 @@ class MobileCIAPIController extends ControllerAPI
         }
     }
 
+    public function getMeView()
+    {
+        $user = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('view');
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartitems = $this->getCartForToolbar();
+
+            $cartdata = $this->getCartData();
+
+            $activityPageNotes = sprintf('Page viewed: %s', 'Recognize Me');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_recognize_me')
+                            ->setActivityNameLong('View Recognize Me')
+                            ->setObject($user)
+                            ->setModuleName('User')
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
+            return View::make('mobile-ci.recognizeme', array('page_title'=>Lang::get('mobileci.page_title.recognize_me'), 'user' => $user, 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+        } catch (Exception $e) {
+            $activityPageNotes = sprintf('Failed to view: %s', 'Recognize Me');
+            $activityPage->setUser($user)
+                            ->setActivityName('view_recognize_me')
+                            ->setActivityNameLong('View Recognize Me')
+                            ->setObject(null)
+                            ->setModuleName('User')
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
+
+            return $this->redirectIfNotLoggedIn($e);
+        }
+    }
+
     public function getPaymentView()
     {
         $user = null;
@@ -3732,6 +3772,102 @@ class MobileCIAPIController extends ControllerAPI
             $activityPage->setUser($user)
                             ->setActivityName('delete_cart')
                             ->setActivityNameLong('Failed To Delete From Cart')
+                            ->setObject(null)
+                            ->setModuleName('Cart')
+                            ->setNotes($activityPageNotes)
+                            ->responseFailed()
+                            ->save();
+
+            return $this->redirectIfNotLoggedIn($e);
+        }
+    }
+
+    public function postResetCart()
+    {
+        $user = null;
+        $cartdetailid = null;
+        $productid = null;
+        $activityPage = Activity::mobileci()
+                        ->setActivityType('delete');
+        try {
+            $this->registerCustomValidation();
+
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+
+            $cartid = OrbitInput::post('cartid');
+
+            $validator = \Validator::make(
+                array(
+                    'cartid' => $cartid,
+                ),
+                array(
+                    'cartid' => 'required|orbit.exists.cartid',
+                )
+            );
+
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            $this->beginTransaction();
+
+            $cart = Cart::where('cart_id', $cartid)->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->active()->first();
+
+            $cartdetails = CartDetail::where('cart_id', $cart->cart_id)->active()->get();
+
+            $cartbasedcoupons = CartCoupon::where('object_type', 'cart')->where('object_id', $cart->cart_id)->get();
+            
+            foreach ($cartbasedcoupons as $cartbasedcoupon) {
+                $issuedcartcoupon = IssuedCoupon::where('issued_coupon_id', $cartbasedcoupon->issued_coupon_id)->first();
+                $issuedcartcoupon->makeActive();
+                $issuedcartcoupon->save();
+                $cartbasedcoupon->delete(true);
+            }
+
+            foreach ($cartdetails as $cartdetail) {
+                $cartcoupons = CartCoupon::where('object_type', 'cart_detail')->where('object_id', $cartdetail->cart_detail_id)->get();
+                if (!empty($cartcoupons)) {
+                    foreach ($cartcoupons as $cartcoupon) {
+                        $issuedcoupon = IssuedCoupon::where('issued_coupon_id', $cartcoupon->issued_coupon_id)->first();
+                        $issuedcoupon->makeActive();
+                        $issuedcoupon->save();
+                        $cartcoupon->delete(true);
+                    }
+                }
+                $cartdetail->delete();
+                $cartdetail->save();
+            }
+            $cart->delete();
+            $cart->save();
+
+            $cartdata = new stdclass();
+            // $cartdata->cart = $cart;
+            $this->response->message = 'success';
+            $this->response->data = $cartdata;
+            
+            $activityPageNotes = sprintf('Cart Reset. Cart id: %s', $cartid);
+            $activityPage->setUser($user)
+                            ->setActivityName('delete_cart')
+                            ->setActivityNameLong('Reset Cart')
+                            ->setObject($cart)
+                            ->setModuleName('Cart')
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
+            $this->commit();
+
+            return $this->render();
+
+        } catch (Exception $e) {
+            $this->rollback();
+            $activityPageNotes = sprintf('Failed to reset cart. Cart id: %s', $cartid);
+            $activityPage->setUser($user)
+                            ->setActivityName('delete_cart')
+                            ->setActivityNameLong('Failed To Reset Cart')
                             ->setObject(null)
                             ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
@@ -4962,6 +5098,23 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             \App::instance('orbit.validation.cartdetailid', $cartdetail);
+
+            return TRUE;
+        });
+
+        // Check cart, it should exists
+        Validator::extend('orbit.exists.cartid', function ($attribute, $value, $parameters) {
+            $retailer = $this->getRetailerInfo();
+
+            $user = $this->getLoggedInUser();
+
+            $cart = Cart::where('cart_id', $value)->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->active()->first();
+
+            if (empty($cart)) {
+                return FALSE;
+            }
+
+            \App::instance('orbit.validation.cartid', $cart);
 
             return TRUE;
         });

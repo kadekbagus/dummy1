@@ -39,6 +39,7 @@
         <ul class="dropdown-menu" role="menu">
           <!-- <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> {{ Lang::get('mobileci.page_title.my_account') }}</span></li> -->
           <li class="complimentary-bg"><a href="{{ url('/customer/transfer') }}"><span><span class="fa fa-shopping-cart"></span> {{ Lang::get('mobileci.page_title.transfercart') }}</span></a></li>
+          <li class="complimentary-bg"><a href="{{ url('/customer/me') }}"><span><span class="fa fa-user"></span> {{ Lang::get('mobileci.page_title.recognize_me') }}</span></a></li>
           <!-- <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> {{ Lang::get('mobileci.page_title.customer_id') }}</span></li> -->
           <li class="complimentary-bg"><a href="{{ url('/customer/logout') }}"><span><span class="glyphicon glyphicon-off"></span> {{ Lang::get('mobileci.page_title.logout') }}</span></a></li>
         </ul>
