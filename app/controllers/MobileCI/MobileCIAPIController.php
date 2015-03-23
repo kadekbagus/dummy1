@@ -2657,8 +2657,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-                            return $e;
+            return $this->redirectIfNotLoggedIn($e);
         }
     }
 
