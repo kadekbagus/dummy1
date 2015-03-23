@@ -55,7 +55,7 @@ define(function(){
         'gagal'                 : 'GAGAL',
         'keluar'                : 'Keluar',
         'orbitkasir'            : 'ORBIT KASIR',
-        'loginerror'            : 'Maaf, ID atau password tidak cocok',
+        'loginerror'            : 'Username / password salah',
         'userid'                : 'USER ID',
         'masuk'                 : 'Log in',
         'errorscancart'         : 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.',
