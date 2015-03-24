@@ -3435,7 +3435,7 @@ class CashierAPIController extends ControllerAPI
         $user = null;
         $customer = null;
         $activity_name = 'add_promotion';
-        $activity_name_label = 'Add Promotion ' . $promotion_name;
+        $activity_name_label = 'Add Promotion ';
         try {
             // Require authentication
             $this->checkAuth();
@@ -3450,10 +3450,21 @@ class CashierAPIController extends ControllerAPI
             }
             $customer = User::excludeDeleted()->find($customer_id);
 
+            if(!empty($promotion_id)){
+                $promo_cart = Promotion::where('promotion_id', $promotion_id)->first();
+                $activity_name_label = 'Add Promotion ' . $promotion_name;
+            }else{
+                $promo_cart = null;
+                $activity_name_label = 'Add Promotion ';
+            }
+
+            //dd($promo_cart);
+
             $activity->setUser($customer)
                     ->setActivityName($activity_name)
                     ->setActivityNameLong($activity_name_label . ' Success')
-                    ->setObject(null)
+                    ->setObject($promo_cart)
+                    ->setPromotion($promo_cart)
                     ->setModuleName('Promotion')
                     // ->setNotes()
                     ->setStaff($user)
