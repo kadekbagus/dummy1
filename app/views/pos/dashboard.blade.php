@@ -537,7 +537,7 @@
           <div class="modal-footer" data-ng-if="action !='main'">
                      <button type="button"  data-ng-if="cardfile && action != 'done' && cheader == 'PEMBAYARAN KARTU DEBIT/KREDIT'" class="btn btn-primary"  style="background-color: #2c71a3;" data-ng-click="checkoutFn('k')"><% language.ulangi %></button>
                      <button type="button"  data-ng-if="action !='done' && cardfile" class="btn btn-danger"  data-ng-click="gotomain()"><% language.batal %></button>
-                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;"><% language.lanjutkan %></button>
+                     <button type="button"  data-ng-if="action =='cash'" data-ng-disabled="!changetf || lock" data-ng-init="change = 0" data-ng-click="checkoutFn('c')" class="btn btn-success" style="background-color: #009933;"><% language.lanjutkan %></button>
            </div>
         </div>
 

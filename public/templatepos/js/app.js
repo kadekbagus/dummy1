@@ -97,7 +97,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.manualscancart     = '';
         $scope.holdbtn            = true;
         $scope.versions           = localStorageService.get('version');
-
+        $scope.lock               = false;
 
         if(!$scope.datauser){
              window.location.assign("signin");
@@ -1499,6 +1499,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 };
              //save transaction
              $scope.savetransactions = function(){
+                    $scope.lock = true;
                     $scope.sendcart = {
                         total_item     : accounting.unformat($scope.cart.totalitem),
                         subtotal       : accounting.unformat($scope.cart.subtotal),
@@ -1529,6 +1530,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             //do something
                             $scope.cheader = $scope.language.transaksigagal;
                         }
+                         $scope.lock = false;
                     });
                 };
              //sendticket
@@ -1647,7 +1649,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else if(idx == 'r'){
                         $scope.cart.amount = $scope.cart.amount.length == 1 ? 0 : $scope.cart.amount != '' ? $scope.cart.amount.substring(0, $scope.cart.amount.length-1) : 0;
                     }else{
-                        $scope.cart.amount =  $scope.cart.amount == undefined ?  0 : ($scope.cart.amount == 0 ? idx : $scope.cart.amount+idx);
+                        $scope.cart.amount =  $scope.cart.amount == 0 ? idx : $scope.cart.amount+idx;
                     }
                 };
              //binding keypad qty
