@@ -1330,11 +1330,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             }
                             tmpvattotal -= taxcouponcartbase;
                         }
-                        console.log(taxes);
-                        if($scope.vat_included == 'yes'){
+                        
+                        if($scope.vat_included == 'yes'){    
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                              $scope.cart.subtotal = $scope.cart.totalpay;
-                             $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
+                             $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 2, ",", ".");
                              $scope.taxes = taxes;
                         } else {
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", 0, ",", ".");
