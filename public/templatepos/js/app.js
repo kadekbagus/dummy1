@@ -1288,7 +1288,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         if($scope.cartcoupon){
                             $scope.applycartcoupon      = [];
                             $scope.tmpvallues = '';
-                            var cart_coupon_tmpvat, cart_coupon_tmpvat_wo_tax, cart_coupon_tmpvat_tax;
+                            var cart_promo_tmpvat, cart_promo_tmpvat_wo_tax, cart_promo_tmpvat_tax;
                             for(var m = 0; m < $scope.cartcoupon.length; m++){
                                 var coupon = $scope.cartcoupon[m]['issuedcoupon']['rule_type'] == 'cart_discount_by_percentage' ?  $scope.cartcoupon[m]['issuedcoupon']['discount_value'] *  tmpcartsubtotalpromotion : accounting.unformat($scope.cartcoupon[m]['issuedcoupon']['discount_value']);
                                 
@@ -1310,27 +1310,27 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'], "", 0, ",", ".");
                                 }
                                 if($scope.vat_included == 'yes'){
-                                    cart_coupon_tmpvat_wo_tax = coupon / (1 + cart_tax_factor);
-                                    cart_promo_tmpvat = coupon - cart_coupon_tmpvat_wo_tax;
-                                    taxcouponcartbase += cart_coupon_tmpvat;
+                                    cart_promo_tmpvat_wo_tax = coupon / (1 + cart_tax_factor);
+                                    cart_promo_tmpvat = coupon - cart_promo_tmpvat_wo_tax;
+                                    taxcouponcartbase += cart_promo_tmpvat;
                                     for(var xx = 0; xx < taxes.length; xx++){
-                                        var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_coupon_tmpvat;
+                                        var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
                                         taxes[xx].total -= tax_reduction;
                                     }
                                 } else {
-                                    cart_coupon_tmpvat_tax = coupon * (1 + cart_tax_factor);
-                                    // cart_promo_tmpvat = cart_coupon_tmpvat_tax - coupon;
+                                    cart_promo_tmpvat_tax = coupon * (1 + cart_tax_factor);
+                                    // cart_promo_tmpvat = cart_promo_tmpvat_tax - coupon;
                                     cart_promo_tmpvat = coupon / tmphargatotal * tmpvattotalbeforecartbased;
-                                    taxcouponcartbase += cart_coupon_tmpvat;
+                                    taxcouponcartbase += cart_promo_tmpvat;
                                     for(var xx = 0; xx < taxes.length; xx++){
-                                        var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_coupon_tmpvat;
+                                        var tax_reduction = (taxes[xx].tmptotal / tmpvattotalbeforecartbased) * cart_promo_tmpvat;
                                         taxes[xx].total -= tax_reduction;
                                     }
                                 }
                             }
                             tmpvattotal -= taxcouponcartbase;
                         }
-                        
+                        console.log(taxes);
                         if($scope.vat_included == 'yes'){
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
                              $scope.cart.subtotal = $scope.cart.totalpay;
