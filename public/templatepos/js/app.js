@@ -99,7 +99,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.versions           = localStorageService.get('version');
         $scope.lock               = false;
         $scope.terminalstatus     = true;
-        
+
         if(!$scope.datauser){
              window.location.assign("signin");
         }else{
@@ -129,14 +129,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 })();
 
              //check terminal status
-             ($scope.getterminal = function(){
+             $scope.getterminal = function(){
                     serviceAjax.getDataFromServer('/pos/terminalstatus').then(function(response){
                         if(response.code == 13 && response.message == 'Terminal not found' ){
                           $scope.terminalstatus = false;
                         }
                     });
                     
-              })();
+              };
              //function -+ cart qty list
              $scope.qaFn = function(id,action){
                     var fndelete = function(){
@@ -1488,11 +1488,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
               //when user click checkout
              $scope.showCh = function(){
                     //set activity when cart checkout
+                    $scope.getterminal();
                     var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
                     $scope.activity('activity-checkout',{customer_id : user_id});
               };
              //checkout
              $scope.checkoutFn = function(act,term){
+
                     $scope.cardfile  = true;
                     switch(act){
                         case 't':
