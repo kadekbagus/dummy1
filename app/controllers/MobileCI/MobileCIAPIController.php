@@ -5774,7 +5774,7 @@ class MobileCIAPIController extends ControllerAPI
                                 $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
                                 $coupon_cart->disc_val = '-'.($subtotal * $coupon_cart->discount_value);
                                 $available_coupon_carts[] = $coupon_cart;
-                                $cart_discount_by_percentage_counter++;
+                                // $cart_discount_by_percentage_counter++;
                             }
                         } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
                             $discount = $coupon_cart->discount_value;
@@ -6168,7 +6168,7 @@ class MobileCIAPIController extends ControllerAPI
                 $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->active();
             }))
             ->get();
-
+            
             $available_coupon_carts = array();
             $cart_discount_by_percentage_counter = 0;
             $discount_cart_coupon = 0;
@@ -6235,7 +6235,7 @@ class MobileCIAPIController extends ControllerAPI
                                 $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
                                 $coupon_cart->disc_val = '-'.($subtotal_before_cart_promo_without_tax * $coupon_cart->discount_value);
                                 $available_coupon_carts[] = $coupon_cart;
-                                $cart_discount_by_percentage_counter++;
+                                // $cart_discount_by_percentage_counter++;
                             }
                         } elseif ($coupon_cart->rule_type == 'cart_discount_by_value') {
                             $discount = $coupon_cart->discount_value;
