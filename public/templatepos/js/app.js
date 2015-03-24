@@ -133,6 +133,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.getDataFromServer('/pos/terminalstatus').then(function(response){
                         if(response.code == 13 && response.message == 'Terminal not found' ){
                           $scope.terminalstatus = false;
+                        }else{
+                          $scope.terminalstatus = true;
                         }
                     });
                     
