@@ -1435,11 +1435,11 @@ class CashierAPIController extends ControllerAPI
             }
 
             // Check the device exist or not
-            // if(!file_exists(Config::get('orbit.devices.printer.params')))
-            // {
-            //     $message = 'Printer not found';
-            //     ACL::throwAccessForbidden($message);
-            // }
+            if(!file_exists(Config::get('orbit.devices.printer.params')))
+            {
+                $message = 'Printer not found';
+                ACL::throwAccessForbidden($message);
+            }
 
             $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'detailtax', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
@@ -1920,6 +1920,9 @@ class CashierAPIController extends ControllerAPI
 
             $user = $cart->users;
             $customer = $user;
+
+            // Begin database transaction
+            $this->beginTransaction();
 
             $cartdata = $this->cartCalc($cart, $user, 'active', $barcode, $retailer);
 
@@ -2879,12 +2882,15 @@ class CashierAPIController extends ControllerAPI
             //update cart and cart_detail status to 'cashier'
             if(!empty($cart)){
                 $cart_update = \Cart::where('status', 'active')->where('cart_id', $cart->cart_id)->first();
-                $cart_update->status = 'cashier';
-                $cart_update->save();
-                $cart_detail_update = \CartDetail::where('status', 'active')->where('cart_id', $cart->cart_id)->update(array('status' => 'cashier'));
+                if(is_object($cart_update)){
+                    $cart_update->status = 'cashier';
+                    $cart_update->save();
+                    $cart_detail_update = \CartDetail::where('status', 'active')->where('cart_id', $cart->cart_id)->update(array('status' => 'cashier'));
+                }
             }
 
-
+            $this->commit();
+            
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
                     ->setActivityNameLong($activity_transfer_label . ' Success')
@@ -2901,6 +2907,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $this->rollBack();
 
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
@@ -2916,6 +2923,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $this->rollBack();
 
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
@@ -2931,6 +2939,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
+            $this->rollBack();
 
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
