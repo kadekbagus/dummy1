@@ -288,7 +288,7 @@ class MobileCIAPIController extends ControllerAPI
             }
 
             $events = $events->orderBy('events.event_id', 'DESC')->first();
-
+            
             $event_families = array();
             if (!empty($events)) {
                 if ($events->link_object_type == 'family') {
