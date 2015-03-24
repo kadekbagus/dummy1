@@ -1959,11 +1959,15 @@ class MobileCIAPIController extends ControllerAPI
             $nextfamily = $family_level + 1;
 
             $subfamilies = Category::active();
+
             if ($nextfamily < 6) {
-                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function ($q) use ($family_id, $family_level, $families) {
+                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function ($q) use ($family_id, $family_level, $families, $retailer) {
                     $nextfamily = $family_level + 1;
-                    for ($i = 1; $i < count($families); $i++) {
+                    for ($i = 1; $i <= count($families); $i++) {
                         $q->where('products.category_id'.$i, $families[$i-1]);
+                        $q->whereHas('retailers', function($q2) use($retailer) {
+                            $q2->where('product_retailer.retailer_id', $retailer->merchant_id);
+                        });
                     }
 
                     $q->where('products.category_id'.$family_level, $family_id)
@@ -2233,10 +2237,13 @@ class MobileCIAPIController extends ControllerAPI
             $nextfamily = $family_level + 1;
 
             if ($nextfamily < 6) {
-                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function ($q) use ($family_id, $family_level, $families) {
+                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas('product'.$nextfamily, function ($q) use ($family_id, $family_level, $families, $retailer) {
                     $nextfamily = $family_level + 1;
-                    for ($i = 1; $i < count($families); $i++) {
+                    for ($i = 1; $i <= count($families); $i++) {
                         $q->where('products.category_id'.$i, $families[$i-1]);
+                        $q->whereHas('retailers', function($q2) use($retailer) {
+                            $q2->where('product_retailer.retailer_id', $retailer->merchant_id);
+                        });
                     }
 
                     $q->where('products.category_id'.$family_level, $family_id)
