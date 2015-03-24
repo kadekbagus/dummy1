@@ -2012,7 +2012,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     localStorageService.remove('user');
                     window.location.assign("signin");
                 }else{
-                    alert('gagal logout');
+                    //alert('gagal logout');
                 }
                 if(progressJs) progressJs().end();
             });
