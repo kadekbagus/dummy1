@@ -847,6 +847,7 @@ class ProductAttributeAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer   `product_attribute_id`      (required) - ID of the product attribute
+     * @param integer   `is_validation`             (optional) - Valid value: Y. Flag to validate only.
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteAttribute()
@@ -884,6 +885,7 @@ class ProductAttributeAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $attributeId = OrbitInput::post('product_attribute_id');
+            $is_validation = OrbitInput::post('is_validation');
 
             $validator = Validator::make(
                 array(
@@ -900,7 +902,15 @@ class ProductAttributeAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            } elseif ($is_validation === 'Y') { // the deletion request is only for validation
+                $this->response->code = 0;
+                $this->response->status = 'success';
+                $this->response->message = 'Request OK';
+                $this->response->data = NULL;
+
+                return $this->render($httpCode);
             }
+
             Event::fire('orbit.product.postdeleteattribute.after.validation', array($this, $validator));
 
             // Begin database transaction
