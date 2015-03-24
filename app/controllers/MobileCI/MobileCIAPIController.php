@@ -3143,7 +3143,7 @@ class MobileCIAPIController extends ControllerAPI
             } else {
                 return \Redirect::to('/customer/home');
             }
-            
+
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Paypal Payment');
             $activityPage->setUser($user)
@@ -6155,6 +6155,20 @@ class MobileCIAPIController extends ControllerAPI
                             $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
                             $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
                         }
+
+                        $activityPage = Activity::mobileci()
+                                    ->setActivityType('add');
+                        $activityPageNotes = sprintf('Add Promotion: %s', $promo_cart->promo);
+                        $activityPage->setUser($user)
+                            ->setActivityName('add_promotion')
+                            ->setActivityNameLong('Add Promotion ' . $promo_cart->promotion_name)
+                            ->setObject($promo_cart)
+                            ->setPromotion($promo_cart)
+                            ->setModuleName('Promotion')
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+                            
                         $temp_subtotal = $temp_subtotal - $discount;
 
                         $cart_promo_with_tax = $discount * (1 + $cart_vat);
