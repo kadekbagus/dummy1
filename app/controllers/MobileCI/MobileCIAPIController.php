@@ -823,8 +823,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-                            return $e;
+            return $this->redirectIfNotLoggedIn($e);
+                            // return $e;
         }
     }
 
@@ -2984,7 +2984,8 @@ class MobileCIAPIController extends ControllerAPI
                             ->responseFailed()
                             ->save();
 
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+                            return $e;
         }
     }
 
@@ -3082,12 +3083,6 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartdata = $this->cartCalc($user, $retailer);
 
-            if (! empty($cartitems)) {
-                return View::make('mobile-ci.payment', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
-            } else {
-                return \Redirect::to('/customer/home');
-            }
-
             $activityPageNotes = sprintf('Page viewed: %s', 'Online Payment');
             $activityPage->setUser($user)
                             ->setActivityName('view_page_online_payment')
@@ -3097,6 +3092,12 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
+
+            if (! empty($cartitems)) {
+                return View::make('mobile-ci.payment', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            } else {
+                return \Redirect::to('/customer/home');
+            }
 
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
@@ -3127,27 +3128,27 @@ class MobileCIAPIController extends ControllerAPI
 
             $cartdata = $this->cartCalc($user, $retailer);
 
-            if (! empty($cartitems)) {
-                return View::make('mobile-ci.paypal', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
-            } else {
-                return \Redirect::to('/customer/home');
-            }
-
-            $activityPageNotes = sprintf('Page viewed: %s', 'Online Payment');
+            $activityPageNotes = sprintf('Page viewed: %s', 'Paypal Payment');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_online_payment')
-                            ->setActivityNameLong('View (Online Payment Page)')
+                            ->setActivityName('view_page_paypal_payment')
+                            ->setActivityNameLong('View (Paypal Payment Page)')
                             ->setObject(null)
                             ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
 
+            if (! empty($cartitems)) {
+                return View::make('mobile-ci.paypal', array('page_title'=>Lang::get('mobileci.page_title.payment'), 'retailer'=>$retailer, 'cartitems' => $cartitems, 'cartdata' => $cartdata));
+            } else {
+                return \Redirect::to('/customer/home');
+            }
+            
         } catch (Exception $e) {
-            $activityPageNotes = sprintf('Failed to view Page: %s', 'Online Payment');
+            $activityPageNotes = sprintf('Failed to view Page: %s', 'Paypal Payment');
             $activityPage->setUser($user)
-                            ->setActivityName('view_page_online_payment')
-                            ->setActivityNameLong('View (Online Payment) Failed')
+                            ->setActivityName('view_page_paypal_payment')
+                            ->setActivityNameLong('View (Paypal Payment) Failed')
                             ->setObject(null)
                             ->setModuleName('Cart')
                             ->setNotes($activityPageNotes)
@@ -5680,6 +5681,20 @@ class MobileCIAPIController extends ControllerAPI
                             $promo_cart->disc_val_str = '-'.$promo_cart->promotionrule->discount_value + 0;
                             $promo_cart->disc_val = '-'.$promo_cart->promotionrule->discount_value + 0;
                         }
+
+                        $activityPage = Activity::mobileci()
+                                    ->setActivityType('add');
+                        $activityPageNotes = sprintf('Add Promotion: %s', $promo_cart->promo);
+                        $activityPage->setUser($user)
+                            ->setActivityName('add_promotion')
+                            ->setActivityNameLong('Add Promotion ' . $promo_cart->promotion_name)
+                            ->setObject($promo_cart)
+                            ->setPromotion($promo_cart)
+                            ->setModuleName('Promotion')
+                            ->setNotes($activityPageNotes)
+                            ->responseOK()
+                            ->save();
+
                         $temp_subtotal = $temp_subtotal - $discount;
                         $cart_promo_wo_tax = $discount / (1 + $cart_vat);
                         $cart_promo_tax = $discount - $cart_promo_wo_tax;
