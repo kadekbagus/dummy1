@@ -3450,10 +3450,17 @@ class CashierAPIController extends ControllerAPI
             }
             $customer = User::excludeDeleted()->find($customer_id);
 
+            if(!empty($promotion_id)){
+                $promo_cart = Promotion::where('promotion_id', $promotion_id)->first();
+            }else{
+                $promo_cart = null;
+            }
+
             $activity->setUser($customer)
                     ->setActivityName($activity_name)
                     ->setActivityNameLong($activity_name_label . ' Success')
                     ->setObject(null)
+                    ->setPromotion($promo_cart)
                     ->setModuleName('Promotion')
                     // ->setNotes()
                     ->setStaff($user)
