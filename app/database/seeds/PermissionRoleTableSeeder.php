@@ -381,6 +381,10 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 20
+                'setting'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Retailer Owner'  =>  [

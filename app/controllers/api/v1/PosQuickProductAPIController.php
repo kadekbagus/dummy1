@@ -23,7 +23,8 @@ class PosQuickProductAPIController extends ControllerAPI
      * ----------------------
      * @param integer   `product_id`    (required) - ID of the product
      * @param integer   `merchant_id`   (required) - ID of the merchant
-     * @param integer   `product_order` (requird)  - Order of the Pos Quick Product Order
+     * @param integer   `retailer_id`   (required) - ID of the retailer
+     * @param integer   `product_order` (required) - Order of the Pos Quick Product Order
      * @return Illuminate\Support\Facades\Response
      */
     public function postNewPosQuickProduct()
@@ -64,15 +65,21 @@ class PosQuickProductAPIController extends ControllerAPI
             $merchantId = OrbitInput::post('merchant_id');
             $order = OrbitInput::post('product_order');
 
+            // @TODO temporary code.
+            // $retailerId = OrbitInput::post('retailer_id');
+            $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
             $validator = Validator::make(
                 array(
                     'product_id'        => $productId,
                     'merchant_id'       => $merchantId,
+                    'retailer_id'       => $retailerId,
                     'product_order'     => $order,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                     'product_order'     => 'required|numeric|min:0'
                 )
             );
@@ -92,12 +99,14 @@ class PosQuickProductAPIController extends ControllerAPI
             $posQuickProduct = PosQuickProduct::excludeDeleted()
                                               ->where('product_id', $productId)
                                               ->where('merchant_id', $merchantId)
+                                              ->where('retailer_id', $retailerId)
                                               ->first();
             if (empty($posQuickProduct)) {
                 $posQuickProduct = new PosQuickProduct();
             }
             $posQuickProduct->product_id = $productId;
             $posQuickProduct->merchant_id = $merchantId;
+            $posQuickProduct->retailer_id = $retailerId;
             $posQuickProduct->product_order = $order;
 
             Event::fire('orbit.product.postnewposquickproduct.before.save', array($this, $posQuickProduct));
@@ -219,7 +228,8 @@ class PosQuickProductAPIController extends ControllerAPI
      * ----------------------
      * @param integer   `product_id`    (required) - ID of the product
      * @param integer   `merchant_id`   (required) - ID of the merchant
-     * @param integer   `product_order` (requird)  - Order of the Pos Quick Product Order
+     * @param integer   `retailer_id`   (required) - ID of the retailer
+     * @param integer   `product_order` (required) - Order of the Pos Quick Product Order
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdatePosQuickProduct()
@@ -260,15 +270,21 @@ class PosQuickProductAPIController extends ControllerAPI
             $merchantId = OrbitInput::post('merchant_id');
             $order = OrbitInput::post('product_order');
 
+            // @TODO temporary code.
+            // $retailerId = OrbitInput::post('retailer_id');
+            $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
             $validator = Validator::make(
                 array(
                     'product_id'        => $productId,
                     'merchant_id'       => $merchantId,
+                    'retailer_id'       => $retailerId,
                     'product_order'     => $order,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                     'product_order'     => 'required|numeric|min:0'
                 )
             );
@@ -288,12 +304,14 @@ class PosQuickProductAPIController extends ControllerAPI
             $posQuickProduct = PosQuickProduct::excludeDeleted()
                                               ->where('product_id', $productId)
                                               ->where('merchant_id', $merchantId)
+                                              ->where('retailer_id', $retailerId)
                                               ->first();
             if (empty($posQuickProduct)) {
                 $posQuickProduct = new PosQuickProduct();
             }
             $posQuickProduct->product_id = $productId;
             $posQuickProduct->merchant_id = $merchantId;
+            $posQuickProduct->retailer_id = $retailerId;
             $posQuickProduct->product_order = $order;
 
             Event::fire('orbit.product.postupdateposquickproduct.before.save', array($this, $posQuickProduct));
@@ -419,6 +437,7 @@ class PosQuickProductAPIController extends ControllerAPI
      * ----------------------
      * @param integer   `product_id`    (required) - ID of the product
      * @param integer   `merchant_id`   (required) - ID of the merchant
+     * @param integer   `retailer_id`   (required) - ID of the retailer
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeletePosQuickProduct()
@@ -458,14 +477,20 @@ class PosQuickProductAPIController extends ControllerAPI
             $productId = OrbitInput::post('product_id');
             $merchantId = OrbitInput::post('merchant_id');
 
+            // @TODO temporary code.
+            // $retailerId = OrbitInput::post('retailer_id');
+            $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
             $validator = Validator::make(
                 array(
                     'product_id'        => $productId,
                     'merchant_id'       => $merchantId,
+                    'retailer_id'       => $retailerId,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
+                    'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                 )
             );
 
@@ -484,6 +509,7 @@ class PosQuickProductAPIController extends ControllerAPI
             $posQuickProduct = PosQuickProduct::excludeDeleted()
                                               ->where('product_id', $productId)
                                               ->where('merchant_id', $merchantId)
+                                              ->where('retailer_id', $retailerId)
                                               ->first();
             if (empty($posQuickProduct)) {
                 $errorMessage = Lang::get('validation.orbit.empty.posquickproduct');
@@ -728,7 +754,7 @@ class PosQuickProductAPIController extends ControllerAPI
                 if ($is_current_retailer_only === 'Y') {
                     $retailer_id = Setting::where('setting_name', 'current_retailer')->first();
                     if (! empty($retailer_id)) {
-                        $posQuickProducts->where('product_retailer.retailer_id', $retailer_id->setting_value);
+                        $posQuickProducts->where('pos_quick_products.retailer_id', $retailer_id->setting_value);
                     }
                 }
             });
@@ -899,6 +925,21 @@ class PosQuickProductAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.product', $product);
+
+            return TRUE;
+        });
+
+        // Check the existance of retailer id
+        Validator::extend('orbit.empty.retailer', function ($attribute, $value, $parameters) {
+            $retailer = Retailer::excludeDeleted()
+                        ->where('merchant_id', $value)
+                        ->first();
+
+            if (empty($retailer)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.retailer', $retailer);
 
             return TRUE;
         });

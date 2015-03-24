@@ -92,13 +92,13 @@ class ActivityAPIController extends ControllerAPI
                     'end_date'      => $end_date
                 ),
                 array(
-                    'sort_by'       => 'in:id,ip_address,created,registered_at,email,full_name,object_name,product_name,coupon_name,promotion_name,event_name,action_name,action_name_long,activity_type,gender,staff_name',
+                    'sort_by'       => 'in:id,ip_address,created,registered_at,email,full_name,object_name,product_name,coupon_name,promotion_name,event_name,action_name,action_name_long,activity_type,gender,staff_name,module_name',
                     'merchant_ids'  => 'orbit.check.merchants',
                     'start_date'    => 'date_format:Y-m-d|before:' . $tomorrow,
                     'end_date'      => 'date_format:Y-m-d|before:' . $tomorrow,
                 ),
                 array(
-                    'in' => Lang::get('validation.orbit.empty.attribute_sortby'),
+                    'in' => Lang::get('validation.orbit.empty.activity_sortby'),
                 )
             );
 
@@ -336,6 +336,7 @@ class ActivityAPIController extends ControllerAPI
                     'activity_type'     => 'activities.activity_type',
                     'staff_name'        => 'activities.staff_name',
                     'gender'            => 'activities.gender',
+                    'module_name'       => 'activities.module_name',
                 );
 
                 if (array_key_exists($_sortBy, $sortByMapping)) {
