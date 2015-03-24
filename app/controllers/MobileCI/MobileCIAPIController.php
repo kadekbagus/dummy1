@@ -4585,7 +4585,12 @@ class MobileCIAPIController extends ControllerAPI
             if($transaction['user']==NULL){
                 $customer = "Guest";
             }else{
-                $customer = $transaction['user']->user_email;
+                if (! empty($transaction['user']->user_firstname) && ! empty($transaction['user']->user_lastname)) {
+                    $customer = $transaction['user']->user_firstname . ' ' . $transaction['user']->user_lastname;
+                } else {
+                    $customer = $transaction['user']->user_email;
+                }
+                
             }
 
             $bill_no = $transaction['transaction_id'];
@@ -6168,7 +6173,7 @@ class MobileCIAPIController extends ControllerAPI
                 $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.expired_date', '>=', Carbon::now())->active();
             }))
             ->get();
-            
+
             $available_coupon_carts = array();
             $cart_discount_by_percentage_counter = 0;
             $discount_cart_coupon = 0;
