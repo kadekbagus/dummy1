@@ -177,8 +177,8 @@ class LoginAPIController extends ControllerAPI
             }
 
             $newuser = new User();
-            $newuser->username = $email;
-            $newuser->user_email = $email;
+            $newuser->username = strtolower($email);
+            $newuser->user_email = strtolower($email);
             $newuser->status = 'pending';
             $newuser->user_role_id = $customerRole->role_id;
             $newuser->user_ip = $_SERVER['REMOTE_ADDR'];
