@@ -1569,13 +1569,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if($scope.transaction_id){
                         serviceAjax.posDataToServer('/pos/sendticketemail',{transaction_id : $scope.transaction_id}).then(function(response){
                             if(response.code == 0){
-                                  $scope.messagesendemail = '';  
+                                  $scope.messagesendemail = $scope.language.emailberhasil;  
                             }else{
-                                //do something
+                                  $scope.messagesendemail = $scope.language.emailgagal;
                             }
                         });
                     }else{
-                        //do something
+                        $scope.messagesendemail = $scope.language.emailgagal;
                     }
              };   
              //Ticket Print
