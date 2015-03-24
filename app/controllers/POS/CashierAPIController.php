@@ -1094,9 +1094,15 @@ class CashierAPIController extends ControllerAPI
                         $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
                         if(!empty($value['promotion_id'])){
                             $transactiondetailpromotion->promotion_id = $value['promotion_id'];
+                            $promoid =  $value['promotion_id'];
+                        } else {
+                            $promoid =  0;
                         }
                         if(!empty($value['promotion_name'])){
                             $transactiondetailpromotion->promotion_name = $value['promotion_name'];
+                            $promoname = $value['promotion_name'];
+                        } else {
+                            $promoname = '';
                         }
                         if(!empty($value['promotion_type'])){
                             $transactiondetailpromotion->promotion_type = $value['promotion_type'];
@@ -1131,7 +1137,12 @@ class CashierAPIController extends ControllerAPI
                             $transactiondetailpromotion->end_date = $value['end_date'];
                         }
                         $transactiondetailpromotion->save();
+
+
+                        // activity cart promotion
+                        $this->CartBasedPromoActivity($customer_id, $promoid, $promoname);
                     }
+
                 }
             }
 
@@ -3414,6 +3425,89 @@ class CashierAPIController extends ControllerAPI
                 $this->response->message = $e->getMessage();
                 $this->response->data = null;
             }
+        return $this->render();
+    }
+
+    public function CartBasedPromoActivity($customer_id, $promotion_id, $promotion_name)
+    {
+        $activity = Activity::POS()
+                    ->setActivityType('add');
+        $user = null;
+        $customer = null;
+        $activity_name = 'add_promotion';
+        $activity_name_label = 'Add Promotion ' . $promotion_name;
+        try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            //$customer_id = OrbitInput::post('customer_id', -1);
+            if($customer_id==null){
+                $customer_id = -1;
+            }
+            $customer = User::excludeDeleted()->find($customer_id);
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_name)
+                    ->setActivityNameLong($activity_name_label . ' Success')
+                    ->setObject(null)
+                    ->setModuleName('Promotion')
+                    // ->setNotes()
+                    ->setStaff($user)
+                    ->responseOK()
+                    ->save();
+
+            $this->response->data = null;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_name)
+                    ->setActivityNameLong($activity_name_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Promotion')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_name)
+                    ->setActivityNameLong($activity_name_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Promotion')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+
+            $activity->setUser($customer)
+                    ->setActivityName($activity_name)
+                    ->setActivityNameLong($activity_name_label . ' Failed')
+                    ->setObject(null)
+                    ->setModuleName('Promotion')
+                    ->setNotes($e->getMessage())
+                    ->setStaff($user)
+                    ->responseFailed()
+                    ->save();
+        }
+
         return $this->render();
     }
 
