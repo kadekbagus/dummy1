@@ -806,7 +806,7 @@ class CashierAPIController extends ControllerAPI
                 $cart_id = $cart_value['cart_id'];
                 $transactiondetail = new \TransactionDetail();
                 $transactiondetail->transaction_id = $transaction->transaction_id;
-                
+
                 if(!empty($cart_value['product_id'])){
                     $transactiondetail->product_id = $cart_value['product_id'];
                 }
@@ -902,7 +902,7 @@ class CashierAPIController extends ControllerAPI
                 if(!empty($cart_value['product_details']['attribute_id5'])){
                     $transactiondetail->attribute_id5    = $cart_value['product_details']['attribute_id5'];
                 }
-                
+
                 $transactiondetail->save();
 
                 // product based promotion
@@ -928,7 +928,7 @@ class CashierAPIController extends ControllerAPI
                             if(!empty($value['rule_type'])){
                                 $transactiondetailpromotion->rule_type = $value['rule_type'];
                             }
-                            
+
                             if(!empty($value['rule_value'])){
                                 $transactiondetailpromotion->rule_value = $value['rule_value'];
                             } else if(!empty($value['promotion_detail']['rule_value'])){
@@ -944,11 +944,11 @@ class CashierAPIController extends ControllerAPI
                             if(!empty($value['oridiscount_value'])){
                                 $transactiondetailpromotion->discount_value = $value['oridiscount_value'];
                             }
-                            
+
                             if(!empty($value['tmpafterpromotionprice'])){
                                 $transactiondetailpromotion->value_after_percentage = $value['tmpafterpromotionprice'];
                             }
-                            
+
                             if(!empty($value['description'])){
                                 $transactiondetailpromotion->description = $value['description'];
                             } else if(!empty($value['promotion_detail']['description'])){
@@ -1045,7 +1045,7 @@ class CashierAPIController extends ControllerAPI
                             if(!empty($value['issuedcoupon']['end_date'])){
                                 $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
                             }
-                          
+
                             $transactiondetailcoupon->save();
 
                             // coupon redeemed
@@ -1191,7 +1191,7 @@ class CashierAPIController extends ControllerAPI
                         if(!empty($value['issuedcoupon']['discount_object_type'])){
                             $transactiondetailcoupon->discount_object_type = $value['issuedcoupon']['discount_object_type'];
                         }
-                 
+
                         if($value['issuedcoupon']['rule_type']=="cart_discount_by_percentage"){
                             $discount_percent = intval($value['issuedcoupon']['discount'])/100;
                             $discount_value = $this->removeFormat($value['issuedcoupon']['discount_value']);
@@ -1910,7 +1910,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             $barcode = trim($barcode);
-            
+
             $cart = \Cart::where('status', 'active')->where('cart_code', $barcode)->first();
 
             if (! is_object($cart)) {
@@ -2890,7 +2890,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             $this->commit();
-            
+
             $activity->setUser($customer)
                     ->setActivityName($activity_transfer)
                     ->setActivityNameLong($activity_transfer_label . ' Success')
@@ -2986,7 +2986,12 @@ class CashierAPIController extends ControllerAPI
             $driver = Config::get('orbit.devices.cdisplay.path');
             $params = Config::get('orbit.devices.cdisplay.params');
 
-            $cmd = 'screen '.$params;
+            // Prepare Screen
+            $prepare_screen_cmd = Config::get('orbit.devices.prepare_screen.path', NULL);
+            if (is_null($prepare_screen_cmd)) {
+                throw new Exception ('Could not find prepare_screen command.');
+            }
+            $cmd = $prepare_screen_cmd;
             $screen = shell_exec($cmd);
 
             if(strlen($line1)<20)
@@ -3018,7 +3023,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -5159,12 +5164,12 @@ class CashierAPIController extends ControllerAPI
             // imagepng($image);
             // imagedestroy($image);
 
-            ob_start (); 
+            ob_start ();
 
               $image_data = imagepng($image);
-              $image_data = ob_get_contents (); 
+              $image_data = ob_get_contents ();
 
-            ob_end_clean (); 
+            ob_end_clean ();
 
             $base64img = base64_encode($image_data);
 
@@ -5208,7 +5213,7 @@ class CashierAPIController extends ControllerAPI
     }
 
     protected function cartCalc($cart, $user, $status, $barcode, $retailer)
-    {   
+    {
         $cartdetails = CartDetail::with(array('product' => function ($q) {
                 $q->where('products.status','active');
             }, 'variant' => function ($q) {
@@ -5441,7 +5446,7 @@ class CashierAPIController extends ControllerAPI
                             }
                         }
                     }
-                    
+
                     if (!is_null($cartdetail->tax2)) {
                         $tax2 = $cartdetail->tax2->tax_value;
                         if (!is_null($cartdetail->tax1)) {
@@ -5853,7 +5858,7 @@ class CashierAPIController extends ControllerAPI
 
                 $promo_for_this_product_array = array();
                 $promo_filters = array_filter($promo_products, function ($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
-                
+
                 foreach ($promo_filters as $promo_filter) {
                     $promo_for_this_product = new stdclass();
                     $promo_for_this_product = clone $promo_filter;
@@ -5874,7 +5879,7 @@ class CashierAPIController extends ControllerAPI
                         if ($temp_price < $discount) {
                             $discount = $temp_price;
                         }
-                        
+
                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
                     }
                     $promo_for_this_product->promotion_id = $promo_filter->promotion_id;

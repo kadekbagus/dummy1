@@ -927,5 +927,9 @@ return array(
         'cashdrawer' => array(
             'path'   => '/home/dominopos1/drivers/64bits/cash_drawer'
         ),
+
+        'prepare_screen'    => array(
+            'path'  => '/home/orbitadmin/scripts/helpers/screen-display.sh'
+        )
     ),
 );
