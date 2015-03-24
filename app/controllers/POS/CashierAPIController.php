@@ -1435,11 +1435,11 @@ class CashierAPIController extends ControllerAPI
             }
 
             // Check the device exist or not
-            if(!file_exists(Config::get('orbit.devices.printer.params')))
-            {
-                $message = 'Printer not found';
-                ACL::throwAccessForbidden($message);
-            }
+            // if(!file_exists(Config::get('orbit.devices.printer.params')))
+            // {
+            //     $message = 'Printer not found';
+            //     ACL::throwAccessForbidden($message);
+            // }
 
             $transaction = \Transaction::with('details', 'detailcoupon', 'detailpromotion', 'detailtax', 'cashier', 'user')->where('transaction_id',$transaction_id)->first();
             $issuedcoupon = \IssuedCoupon::with('coupon.couponrule', 'coupon.redeemretailers')->where('transaction_id', $transaction_id)->get();
@@ -3238,7 +3238,8 @@ class CashierAPIController extends ControllerAPI
             // Builder object
             $posQuickProducts = \PosQuickProduct::excludeDeleted('pos_quick_products')
                                                 ->with('product')
-                                                ->where('pos_quick_products.merchant_id', $retailer->parent_id);
+                                                ->where('pos_quick_products.merchant_id', $retailer->parent_id)
+                                                ->where('pos_quick_products.retailer_id', $retailer->merchant_id);
 
             // Filter by ids
             OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
