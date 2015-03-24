@@ -5023,6 +5023,45 @@ class CashierAPIController extends ControllerAPI
         return trim(str_replace(',','',$x[1]));
     }
 
+    public function getPaymentTerminalStatus()
+    {
+
+        try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Check the device exist or not
+            if(!file_exists(Config::get('orbit.devices.edc.params')))
+            {
+                $message = 'Terminal not found';
+                ACL::throwAccessForbidden($message);
+            } 
+            else
+            {
+                $message = 'Terminal exist';
+            }
+
+            $this->response->data = $message;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        return $this->render();
+    }
+
     public function postSendTicketEmail()
     {
         try {
