@@ -3008,6 +3008,12 @@ class CashierAPIController extends ControllerAPI
                 $line2 = str_pad($line2, $fill, "\ ");
             }
 
+            // hacks to prevent customer display removing the first character of
+            // line 1 when line 2 is more or equals than 20 chars
+            if (strlen($line2) >= 20) {
+                $line2 = substr($line2, 0, 19);
+            }
+
             $cmd = 'sudo '.$driver.' '.$line1.$line2;
             $display = shell_exec($cmd);
 
