@@ -2992,7 +2992,7 @@ class CashierAPIController extends ControllerAPI
                 throw new Exception ('Could not find prepare_screen command.');
             }
             $cmd = $prepare_screen_cmd;
-            $screen = shell_exec($cmd);
+            $screen = shell_exec($cmd . ' 2>&1 >/dev/null');
 
             if(strlen($line1)<20)
             {
