@@ -478,6 +478,7 @@ class ProductAttributeAPIController extends ControllerAPI
      * @param array     `attribute_value_new`       (optional) - The value of attribute (new)
      * @param array     `attribute_value_update`    (optional) - The value of attribute (update)
      * @param array     `attribute_value_delete`    (optional) - The value of attribute (delete)
+     * @param integer   `is_validation`             (optional) - Valid value: Y. Flag to validate only when deleting attribute value.
      * @return Illuminate\Support\Facades\Response
      */
     public function postUpdateAttribute()
@@ -517,6 +518,7 @@ class ProductAttributeAPIController extends ControllerAPI
             $attributeId = OrbitInput::post('product_attribute_id');
             $merchantId = OrbitInput::post('merchant_id');
             $attributeName = OrbitInput::post('attribute_name');
+            $is_validation = OrbitInput::post('is_validation');
 
             $messageAttributeUnique = Lang::get('validation.orbit.exists.product.attribute.unique', array(
                 'attrname' => $attributeName
@@ -572,7 +574,7 @@ class ProductAttributeAPIController extends ControllerAPI
             $deletedValues = array();
 
             // Delete attribute value
-            OrbitInput::post('attribute_value_delete', function($attributeValueDelete) use ($attribute, &$deletedValues, $user)
+            OrbitInput::post('attribute_value_delete', function($attributeValueDelete) use ($attribute, &$deletedValues, $user, $is_validation)
             {
                 foreach ($attributeValueDelete as $valueId) {
                     // validate attribute value
@@ -591,17 +593,20 @@ class ProductAttributeAPIController extends ControllerAPI
                         OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
 
-                    $attrValue = ProductAttributeValue::excludeDeleted()->find($valueId);
+                    // the deletion request is only for validation
+                    if (! ($is_validation === 'Y')) {
+                        $attrValue = ProductAttributeValue::excludeDeleted()->find($valueId);
 
-                    if (empty($attrValue)) {
-                        continue;   // Skip deleting
+                        if (empty($attrValue)) {
+                            continue;   // Skip deleting
+                        }
+
+                        $attrValue->status = 'deleted';
+                        $attrValue->modified_by = $user->user_id;
+                        $attrValue->save();
+
+                        $deletedValues[] = $attrValue->product_attribute_value_id;
                     }
-
-                    $attrValue->status = 'deleted';
-                    $attrValue->modified_by = $user->user_id;
-                    $attrValue->save();
-
-                    $deletedValues[] = $attrValue->product_attribute_value_id;
                 }
             });
 
@@ -847,7 +852,7 @@ class ProductAttributeAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer   `product_attribute_id`      (required) - ID of the product attribute
-     * @param integer   `is_validation`             (optional) - Valid value: Y. Flag to validate only.
+     * @param integer   `is_validation`             (optional) - Valid value: Y. Flag to validate only when deleting attribute.
      * @return Illuminate\Support\Facades\Response
      */
     public function postDeleteAttribute()
