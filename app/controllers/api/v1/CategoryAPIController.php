@@ -447,6 +447,7 @@ class CategoryAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `category_id`                  (required) - ID of the category
+     * @param integer    `is_validation`                (optional) - Valid value: Y. Flag to validate only when deleting category.
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -483,6 +484,7 @@ class CategoryAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $category_id = OrbitInput::post('category_id');
+            $is_validation = OrbitInput::post('is_validation');
 
             $validator = Validator::make(
                 array(
@@ -499,7 +501,15 @@ class CategoryAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            } elseif ($is_validation === 'Y') { // the deletion request is only for validation
+                $this->response->code = 0;
+                $this->response->status = 'success';
+                $this->response->message = 'Request OK';
+                $this->response->data = NULL;
+
+                return $this->render($httpCode);
             }
+
             Event::fire('orbit.category.postdeletecategory.after.validation', array($this, $validator));
 
             // Begin database transaction
