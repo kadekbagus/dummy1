@@ -462,7 +462,7 @@
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-             <button class="btn  close closemodal" data-ng-if="action != 'done' && cardfile" data-dismiss="modal" data-ng-click="gotomain()"type="button">
+             <button class="btn  close closemodal" data-ng-if="action != 'done' || cardfile" data-dismiss="modal" data-ng-click="gotomain()"type="button">
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
              </button>
             <h4 class="modal-title text-center" id="myModalLabel"><b> <% cheader %></b></h4>
@@ -471,9 +471,9 @@
 
                    <div class="row" data-ng-init="action = 'main'" data-ng-show="action == 'main'">
                           <p><button type="button" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 83px; padding-right: 83px " data-ng-click="checkoutFn('t')"><% language.tunai %></button></p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal1)"><% language.terminal1 %></button> </p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal2)"><% language.terminal2 %></button> </p>
-                          <p><button type="button" data-ng-disabled="!holdbtn" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal3)"><% language.terminal3 %></button> </p>
+                          <p><button type="button" ng-disabled="!holdbtn || !terminalstatus" class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal1)"><% language.terminal1 %></button> </p>
+                          <p><button type="button" disabled class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal2)"><% language.terminal2 %></button> </p>
+                          <p><button type="button" disabled class="btn btn-success btn-lg"  style="background-color: #009933; padding-left: 58px; padding-right: 58px" data-ng-click="checkoutFn('k',language.terminal3)"><% language.terminal3 %></button> </p>
                           <p data-ng-show="!holdbtn"><% language.terminalbelumdisiapkan %></p>
                    </div>
                    <div class="row" ng-show="action == 'cash'">

@@ -181,4 +181,11 @@ Route::group(array('before' => 'orbit-settings'), function()
     });
 
     Route::post('/app/v1/pos/sendticketemail', 'IntermediateAuthController@POS\Cashier_postSendTicketEmail');
+
+    // 
+    Route::get('/api/v1/pos/terminalstatus', function() {
+        return POS\CashierAPIController::create()->getPaymentTerminalStatus();
+    });
+
+    Route::get('/app/v1/pos/terminalstatus', 'IntermediateAuthController@POS\Cashier_getPaymentTerminalStatus');
 });

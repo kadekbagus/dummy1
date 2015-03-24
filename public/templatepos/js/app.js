@@ -98,7 +98,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.holdbtn            = true;
         $scope.versions           = localStorageService.get('version');
         $scope.lock               = false;
-
+        $scope.terminalstatus     = true;
+        
         if(!$scope.datauser){
              window.location.assign("signin");
         }else{
@@ -126,6 +127,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              ($scope.getguest = function(){
                     $scope.guests = 'Guest-'+moment().format('DD-MM-YYYY-HH-mm-ss');
                 })();
+
+             //check terminal status
+             ($scope.getterminal = function(){
+                    serviceAjax.getDataFromServer('/pos/terminalstatus').then(function(response){
+                        if(response.code == 13 && response.message == 'Terminal not found' ){
+                          $scope.terminalstatus = false;
+                        }
+                    });
+                    
+              })();
              //function -+ cart qty list
              $scope.qaFn = function(id,action){
                     var fndelete = function(){
