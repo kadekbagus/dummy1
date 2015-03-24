@@ -60,6 +60,8 @@ define(function(){
         'masuk'                 : 'Log in',
         'errorscancart'         : 'Maaf, keranjang belanja tidak ditemukan. Silakan coba lagi.',
         'scannertidakditemukan' : 'Scanner tidak ditemukan',
-        'kirimstruk'            : 'EMAIL STRUK'
+        'kirimstruk'            : 'EMAIL STRUK',
+        'emailberhasil'         : 'Email Berhasil Dikirim',
+        'emailgagal'            : 'Email Gagal Dikirim'
     };
 });
