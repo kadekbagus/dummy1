@@ -5684,7 +5684,7 @@ class MobileCIAPIController extends ControllerAPI
 
                         $activityPage = Activity::mobileci()
                                     ->setActivityType('add');
-                        $activityPageNotes = sprintf('Add Promotion: %s', $promo_cart->promo);
+                        $activityPageNotes = sprintf('Add Promotion: %s', $promo_cart->promotion_id);
                         $activityPage->setUser($user)
                             ->setActivityName('add_promotion')
                             ->setActivityNameLong('Add Promotion ' . $promo_cart->promotion_name)
@@ -6158,7 +6158,7 @@ class MobileCIAPIController extends ControllerAPI
 
                         $activityPage = Activity::mobileci()
                                     ->setActivityType('add');
-                        $activityPageNotes = sprintf('Add Promotion: %s', $promo_cart->promo);
+                        $activityPageNotes = sprintf('Add Promotion: %s', $promo_cart->promotion_id);
                         $activityPage->setUser($user)
                             ->setActivityName('add_promotion')
                             ->setActivityNameLong('Add Promotion ' . $promo_cart->promotion_name)
@@ -6168,7 +6168,7 @@ class MobileCIAPIController extends ControllerAPI
                             ->setNotes($activityPageNotes)
                             ->responseOK()
                             ->save();
-                            
+
                         $temp_subtotal = $temp_subtotal - $discount;
 
                         $cart_promo_with_tax = $discount * (1 + $cart_vat);
