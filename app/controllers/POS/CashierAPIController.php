@@ -5971,7 +5971,7 @@ class CashierAPIController extends ControllerAPI
                 $promo_filters = array_filter($promo_products, function ($v) use ($cartdetail) { return $v->product_id == $cartdetail->product_id; });
 
                 foreach ($promo_filters as $promo_filter) {
-                    $promo_for_this_product = new stdclass();
+                    $promo_for_this_product = new \stdclass();
                     $promo_for_this_product = clone $promo_filter;
                     if ($promo_filter->rule_type == 'product_discount_by_percentage' || $promo_filter->rule_type == 'cart_discount_by_percentage') {
                         $discount = ($promo_filter->discount_value * $original_price) * $cartdetail->quantity;
@@ -6321,7 +6321,7 @@ class CashierAPIController extends ControllerAPI
             $subtotal = $subtotal + $discount_cart_promo_with_tax + $discount_cart_coupon_with_tax;
             $vat = $vat - $cart_promo_taxes - $cart_coupon_taxes;
 
-            $cartsummary = new stdclass();
+            $cartsummary = new \stdclass();
             $cartsummary->vat = round($vat, 2);
             $cartsummary->total_to_pay = round($subtotal, 2);
             $cartsummary->subtotal_wo_tax = $subtotal_wo_tax;

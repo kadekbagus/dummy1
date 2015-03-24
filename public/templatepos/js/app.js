@@ -1609,7 +1609,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              //go to main
              $scope.gotomain = function(){
                     $scope.resetpayment();
-                    $scope.cheader = 'PILIH CARA PEMBAYARAN';
+                    $scope.cheader = $scope.language.pilihcarapembayaran;
                     $scope.action  = 'main';
                 };
              //reset payment
