@@ -13,7 +13,7 @@
                 <br>
                 Thank you {{ $user->getFullName() }} for your shopping at <strong>{{ $retailer->name }}</strong>.
                 <br>
-                Here is a copy of your receipt and some information about your products purcashed on <strong>{{ date('d/m/Y H:i', strtotime($transaction->created_at)) }}</strong>.
+                Here is a copy of your receipt and some information about your products purchased on <strong>{{ date('d/m/Y H:i', strtotime($transaction->created_at)) }}</strong>.
                 <br>
                 <h2>Please come see us again soon!</h2>
             </div>
