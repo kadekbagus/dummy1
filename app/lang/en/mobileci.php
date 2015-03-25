@@ -73,7 +73,7 @@ return array(
         'paypal_payment_button' => 'Paypal',
         'yes_button'            => 'Yes',
         'do_not_show_label'     => 'Do not show this message again',
-
+        'new_product_price'     => 'New price',
     ),
 
     // page specific lang
