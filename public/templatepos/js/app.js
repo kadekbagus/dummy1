@@ -1669,6 +1669,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             }
                             $scope.cancelRequestService();
                             $scope.scanproduct();
+                        }else if(response.message == 'shell error'){
+                            $scope.cancelRequestService();
+                            $scope.scanproduct();
                         }
                     });
                 })();
