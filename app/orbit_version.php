@@ -13,7 +13,7 @@
  *   Y: Minor version
  */
 if (! defined('ORBIT_APP_VERSION')) {
-    define('ORBIT_APP_VERSION', '0.11-dev');
+    define('ORBIT_APP_VERSION', '0.11');
 }
 
 /**
@@ -35,7 +35,7 @@ if (! defined('ORBIT_APP_CODENAME')) {
  * Constant storing the release date, ISO 8601.
  */
 if (! defined('ORBIT_APP_RELEASE_DATE')) {
-    define('ORBIT_APP_RELEASE_DATE', '');
+    define('ORBIT_APP_RELEASE_DATE', '2015-03-25 13-50-00');
 }
 
 /**
