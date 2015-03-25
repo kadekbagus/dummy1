@@ -292,6 +292,72 @@
                     <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotion?promoid='.$events->link_object_id1) }}">{{ $events->event_name }}</a></b> <br> 
                     {{ nl2br($events->description) }}
                     @endif
+                  @elseif($events->link_object_type == 'widget')
+                    @if($events->widget_object_type == 'promotion')
+                      @if(! empty($events->image)) 
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/promotions') }}">
+                        <img class="img-responsive" src="{{ asset($events->image) }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotions') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @else
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/promotions') }}">
+                        <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/promotions') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @endif
+                    @elseif($events->widget_object_type == 'coupon')
+                      @if(! empty($events->image)) 
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/coupons') }}">
+                        <img class="img-responsive" src="{{ asset($events->image) }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/coupons') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @else
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/coupons') }}">
+                        <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/coupons') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @endif
+                    @elseif($events->widget_object_type == 'new_product')
+                      @if(! empty($events->image)) 
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/search?new=1') }}">
+                        <img class="img-responsive" src="{{ asset($events->image) }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/search?new=1') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @else
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/search?new=1') }}">
+                        <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/search?new=1') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @endif
+                    @elseif($events->widget_object_type == 'catalogue')
+                      @if(! empty($events->image)) 
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/catalogue') }}">
+                        <img class="img-responsive" src="{{ asset($events->image) }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/catalogue') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @else
+                      <a data-event="{{ $events->event_id }}" href="{{ url('customer/catalogue') }}">
+                        <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
+                      </a>
+                      <br> 
+                      <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/catalogue') }}">{{ $events->event_name }}</a></b> <br> 
+                      {{ nl2br($events->description) }}
+                      @endif
+                    @endif
                   @endif
 
                 @elseif($events->event_type == 'informative')

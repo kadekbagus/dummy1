@@ -547,7 +547,7 @@ class UserAPIController extends ControllerAPI
                     'address_line1'         => 'required',
                     'city'                  => 'required',
                     'province'              => 'required',
-                    'postal_code'           => 'required|numeric',
+                    'postal_code'           => 'required',
                     'country'               => 'required',
                     'phone'                 => 'required',
                     'relationship_status'   => 'in:none,single,in a relationship,engaged,married,divorced,widowed',
