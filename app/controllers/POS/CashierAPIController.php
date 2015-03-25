@@ -34,6 +34,7 @@ use \Coupon;
 use \IssuedCoupon;
 use Helper\EloquentRecordCounter as RecordCounter;
 use \Mail;
+use Exception;
 
 class CashierAPIController extends ControllerAPI
 {
@@ -145,7 +146,7 @@ class CashierAPIController extends ControllerAPI
                      ->setNotes($e->getMessage())
                      ->responseFailed();
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -216,10 +217,18 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
+            // Kill the previous barcode process
+            // @Todo use config file
+            shell_exec('sudo /usr/bin/killall /opt/programs/orbit-driver/64bit/barcode');
+
             $driver = Config::get('orbit.devices.barcode.path');
             $params = Config::get('orbit.devices.barcode.params');
             $cmd = 'sudo '.$driver.' '.$params;
             $barcode = shell_exec($cmd);
+
+            if ($barcode === NULL) {
+                throw new Exception ('shell error');
+            }
 
             $barcode = trim($barcode);
 
@@ -270,7 +279,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         } catch (Exception $e) {
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -5035,7 +5044,7 @@ class CashierAPIController extends ControllerAPI
             {
                 $message = 'Terminal not found';
                 ACL::throwAccessForbidden($message);
-            } 
+            }
             else
             {
                 $message = 'Terminal exist';
