@@ -73,7 +73,7 @@ return array(
         'paypal_payment_button' => 'Paypal',
         'yes_button'            => 'Ya',
         'do_not_show_label'     => 'Jangan tunjukkan pesan ini lagi',
-
+        'new_product_price'     => 'Harga baru',
     ),
 
     // page specific lang
