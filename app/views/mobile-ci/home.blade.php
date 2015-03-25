@@ -31,8 +31,8 @@
                         @if($widget->animation == 'none')
                           <li>
                             <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
-                              @if(!empty($widget->media->path))
-                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
+                              @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
                               @else
                                 <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_catalogue.png') }}" />
                               @endif
@@ -77,8 +77,8 @@
                           @if($widget->animation == 'none')
                             <li>
                               <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/search?new=1') }}">
-                                @if(!empty($widget->media->path))
-                                  <img class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
+                                @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                  <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
                                 @else
                                   <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_new_product.png') }}" />
                                 @endif
@@ -123,8 +123,8 @@
                         @if(count($promo_products) > 0)
                           <li>
                             <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/promotions') }}">
-                              @if(!empty($widget->media->path))
-                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
+                              @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
                               @else
                                 <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}" />
                               @endif
@@ -177,8 +177,8 @@
                         @if(count($coupons) > 0)
                           <li>
                             <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/coupons') }}">
-                              @if(!empty($widget->media->path))
-                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
+                              @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
                               @else
                                 <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
                               @endif
