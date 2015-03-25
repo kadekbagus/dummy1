@@ -1352,7 +1352,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         } else {
                              $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", 0, ",", ".");
                              $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
-                             $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 0, ",", ".");
+                             $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 2, ",", ".");
                              $scope.taxes = taxes;
                         }
                     }
