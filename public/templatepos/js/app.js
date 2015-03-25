@@ -133,6 +133,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.getDataFromServer('/pos/terminalstatus').then(function(response){
                         if(response.code == 13 && response.message == 'Terminal not found' ){
                           $scope.terminalstatus = false;
+                        }else{
+                          $scope.terminalstatus = true;
                         }
                     });
                     
@@ -1665,6 +1667,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if(response.message != 'Scanner not found'){
                                  angular.element("#ProductNotFound").modal();
                             }
+                            $scope.cancelRequestService();
+                            $scope.scanproduct();
+                        }else if(response.message == 'shell error'){
                             $scope.cancelRequestService();
                             $scope.scanproduct();
                         }
