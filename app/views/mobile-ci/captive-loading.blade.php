@@ -1,54 +1,53 @@
 @extends('mobile-ci.layout-headless')
 
 @section('ext_style')
-  <style>
-    .modal-backdrop{
-      z-index:0;
-    }
-    #signup{
-      display: none;
-    }
-    .img-responsive{
-      margin:0 auto;
-    }
-    #signedIn{
-      display: none;
-    }
-  </style>
+<style>
+.modal-backdrop{
+  z-index:0;
+}
+#signup{
+  display: none;
+}
+.img-responsive{
+  margin:0 auto;
+}
+#signedIn{
+  display: none;
+}
+</style>
 @stop
 
 @section('content')
-  <div class="row top-space" id="signIn">
+<div class="row top-space" id="signIn">
     <div class="col-xs-12">
-      <header>
-        <div class="row vertically-spaced">
-          <div class="col-xs-12 text-center">
-            <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
-          </div>
-        </div>
-        <div class="row vertically-spaced">
-          <div class="col-xs-12 text-center">
-            <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
-          </div>
-        </div>
-      </header>
-      <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
-        <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block" onclick="return false;">Loading Orbit, please wait...</button>
-        </div>
-      </form>
+        <header>
+            <div class="row vertically-spaced">
+                <div class="col-xs-12 text-center">
+                    <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
+                </div>
+            </div>
+            <div class="row vertically-spaced">
+                <div class="col-xs-12 text-center">
+                    <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
+                </div>
+            </div>
+        </header>
+        <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
+            <div class="form-group">
+                <button type="submit" class="btn btn-info btn-block" onclick="return false;">Loading Orbit, please wait...</button>
+            </div>
+        </form>
     </div>
-  </div>
+</div>
 @stop
-
 @section('footer')
-  <footer>
+<footer>
     <div class="row">
-      <div class="col-xs-12 text-center">
-        <img class="img-responsive orbit-footer" style="width:120px;" src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
-      </div>
+        <div class="col-xs-12 text-center">
+            <img class="img-responsive orbit-footer" style="width:120px;" src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
+        </div>
     </div>
-  </footer>
+</footer>
 @stop
 
 <script>
