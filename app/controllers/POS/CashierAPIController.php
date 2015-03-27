@@ -10,10 +10,8 @@ use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
 use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
-use \View;
 use \User;
 use \UserDetail;
-use \Token;
 use \Role;
 use \Lang;
 use \Apikey;
@@ -23,7 +21,6 @@ use \CartCoupon;
 use DominoPOS\OrbitSession\Session;
 use DominoPOS\OrbitSession\SessionConfig;
 use \Config;
-use \ProductAttribute;
 use \DB;
 use Carbon\Carbon as Carbon;
 use \Hash;
@@ -159,6 +156,7 @@ class CashierAPIController extends ControllerAPI
         }
 
         $activity->save();
+
         return $this->render();
     }
 
@@ -183,8 +181,6 @@ class CashierAPIController extends ControllerAPI
         return \Redirect::to('/pos');
     }
 
-
-
     /**
      * POST - Scan Barcode New
      *
@@ -204,15 +200,13 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
 
             // Check the device exist or not
-            if(!file_exists(Config::get('orbit.devices.barcode.params')))
-            {
+            if (!file_exists(Config::get('orbit.devices.barcode.params'))) {
                 $message = 'Scanner not found';
                 ACL::throwAccessForbidden($message);
             }
 
             // Check the driver exist or not
-            if(!file_exists(Config::get('orbit.devices.barcode.path')))
-            {
+            if (!file_exists(Config::get('orbit.devices.barcode.path'))) {
                 $message = 'Scanner driver not found';
                 ACL::throwAccessForbidden($message);
             }
@@ -232,13 +226,13 @@ class CashierAPIController extends ControllerAPI
 
             $barcode = trim($barcode);
 
-            $product = Product::with(array('variants' => function($q) use($barcode){
+            $product = Product::with(array('variants' => function ($q) use ($barcode) {
                 $q->where('product_variants.upc', $barcode);
             }, 'variants.attributeValue1', 'variants.attributeValue2', 'variants.attributeValue3', 'variants.attributeValue4', 'variants.attributeValue5'))
-            ->whereHas('variants', function($q) use($barcode){
+            ->whereHas('variants', function ($q) use ($barcode) {
                 $q->where('product_variants.upc', $barcode);
             })
-            ->whereHas('retailers', function($q) use($retailer){
+            ->whereHas('retailers', function ($q) use ($retailer) {
                 $q->where('product_retailer.retailer_id', $retailer->merchant_id);
             })
             ->active()
@@ -252,15 +246,15 @@ class CashierAPIController extends ControllerAPI
             $product_x = $product->variants->toArray();
             $product_id = null;
 
-            if($product_x[0]['default_variant']=="yes"){
+            if ($product_x[0]['default_variant'] == "yes") {
                 $product_id = $product_x[0]['product_id'];
-                $product = Product::with(array('variants' => function($q) use($product_id){
+                $product = Product::with(array('variants' => function ($q) use ($product_id) {
                     $q->where('product_variants.product_id', $product_id);
                 }, 'variants.attributeValue1', 'variants.attributeValue2', 'variants.attributeValue3', 'variants.attributeValue4', 'variants.attributeValue5'))
-                ->whereHas('variants', function($q) use($product_id){
+                ->whereHas('variants', function ($q) use ($product_id) {
                     $q->where('product_variants.product_id', $product_id);
                 })
-                ->whereHas('retailers', function($q) use($retailer){
+                ->whereHas('retailers', function ($q) use ($retailer) {
                     $q->where('product_retailer.retailer_id', $retailer->merchant_id);
                 })
                 ->active()
@@ -323,15 +317,14 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $products = Product::whereHas('retailers', function($query) use ($retailer) {
+            $products = Product::whereHas('retailers', function ($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                         })->where('merchant_id', $retailer->parent_id)->where('status', 'active');
 
-
             // Filter product by name pattern
             OrbitInput::get('keyword', function ($name) use ($products) {
-                $products->where(function($q) use ($name) {
-                    $q  ->where('products.product_name', 'like', "%$name%")
+                $products->where(function ($q) use ($name) {
+                    $q->where('products.product_name', 'like', "%$name%")
                         ->orWhere('products.upc_code', 'like', "%$name%")
                         ->orWhere('products.product_code', 'like', "%$name%")
                         ->orWhere('products.long_description', 'like', "%$name%")
@@ -379,7 +372,7 @@ class CashierAPIController extends ControllerAPI
             OrbitInput::get('sort_mode', function ($_sortMode) use (&$sortMode) {
                 if (strtolower($_sortMode) !== 'desc') {
                     $sortMode = 'asc';
-                }else{
+                } else {
                     $sortMode = 'desc';
                 }
             });
@@ -436,9 +429,9 @@ class CashierAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
+
         return $output;
     }
-
 
     /**
      * GET - Search Product for POS with Variant
@@ -684,12 +677,11 @@ class CashierAPIController extends ControllerAPI
         $this->response->code = 0;
         $this->response->status = 'succes';
         $this->response->message = 'succes';
-        $httpCode =200;
+        $httpCode = 200;
         $output = $this->render($httpCode);
+
         return $output;
     }
-
-
 
     /**
      * POST - Save The Transaction
@@ -745,7 +737,7 @@ class CashierAPIController extends ControllerAPI
                 $activity_payment_label = 'Payment Card';
             }
 
-            if (empty($customer_id)){
+            if (empty($customer_id)) {
                 $customer_id = 0;
             } else {
                 $customer = User::excludeDeleted()->find($customer_id);
@@ -802,7 +794,7 @@ class CashierAPIController extends ControllerAPI
 
             $transaction->save();
 
-            if($customer_id!=0 ||$customer_id!=NULL){
+            if ($customer_id != 0 || $customer_id != NULL) {
                 $update_user_detail = \UserDetail::where('user_id', $customer_id)->first();
                 $update_user_detail->last_spent_any_shop = $total_to_pay;
                 $update_user_detail->last_spent_shop_id = $retailer_id;
@@ -810,41 +802,41 @@ class CashierAPIController extends ControllerAPI
             }
 
             //insert to table transaction_details
-            foreach($cart as $cart_key => $cart_value){
+            foreach ($cart as $cart_key => $cart_value) {
                 $cart_id = $cart_value['cart_id'];
                 $transactiondetail = new \TransactionDetail();
                 $transactiondetail->transaction_id = $transaction->transaction_id;
 
-                if(!empty($cart_value['product_id'])){
+                if (!empty($cart_value['product_id'])) {
                     $transactiondetail->product_id = $cart_value['product_id'];
                 }
-                if(!empty($cart_value['product_name'])){
+                if (!empty($cart_value['product_name'])) {
                     $transactiondetail->product_name = $cart_value['product_name'];
                 }
-                if(!empty($cart_value['product_code'])){
+                if (!empty($cart_value['product_code'])) {
                     $transactiondetail->product_code = $cart_value['product_code'];
                 }
-                if(!empty($cart_value['qty'])){
+                if (!empty($cart_value['qty'])) {
                     $transactiondetail->quantity = $cart_value['qty'];
                 }
-                if(!empty($cart_value['upc_code'])){
+                if (!empty($cart_value['upc_code'])) {
                     $transactiondetail->upc = $cart_value['upc_code'];
                 }
-                if(!empty($cart_value['price'])){
+                if (!empty($cart_value['price'])) {
                     $transactiondetail->price = str_replace( ',', '', $cart_value['price'] );
                 }
 
-                if(!empty($cart_value['variants'])){
-                    if(!empty($cart_value['variants']['product_variant_id'])){
+                if (!empty($cart_value['variants'])) {
+                    if (!empty($cart_value['variants']['product_variant_id'])) {
                         $transactiondetail->product_variant_id  = $cart_value['variants']['product_variant_id'];
                     }
-                    if(!empty($cart_value['variants']['price'])){
+                    if (!empty($cart_value['variants']['price'])) {
                         $transactiondetail->variant_price       = $cart_value['variants']['price'];
                     }
-                    if(!empty($cart_value['variants']['upc'])){
+                    if (!empty($cart_value['variants']['upc'])) {
                         $transactiondetail->variant_upc         = $cart_value['variants']['upc'];
                     }
-                    if(!empty($cart_value['variants']['sku'])){
+                    if (!empty($cart_value['variants']['sku'])) {
                         $transactiondetail->variant_sku         = $cart_value['variants']['sku'];
                     }
 
@@ -889,89 +881,89 @@ class CashierAPIController extends ControllerAPI
 
                 }
 
-                if(!empty($cart_value['product_details']['merchant_tax_id1'])){
+                if (!empty($cart_value['product_details']['merchant_tax_id1'])) {
                     $transactiondetail->merchant_tax_id1 = $cart_value['product_details']['merchant_tax_id1'];
                 }
-                if(!empty($cart_value['product_details']['merchant_tax_id2'])){
+                if (!empty($cart_value['product_details']['merchant_tax_id2'])) {
                     $transactiondetail->merchant_tax_id2 = $cart_value['product_details']['merchant_tax_id2'];
                 }
-                if(!empty($cart_value['product_details']['attribute_id1'])){
+                if (!empty($cart_value['product_details']['attribute_id1'])) {
                     $transactiondetail->attribute_id1    = $cart_value['product_details']['attribute_id1'];
                 }
-                if(!empty($cart_value['product_details']['attribute_id2'])){
+                if (!empty($cart_value['product_details']['attribute_id2'])) {
                     $transactiondetail->attribute_id2    = $cart_value['product_details']['attribute_id2'];
                 }
-                if(!empty($cart_value['product_details']['attribute_id3'])){
+                if (!empty($cart_value['product_details']['attribute_id3'])) {
                     $transactiondetail->attribute_id3    = $cart_value['product_details']['attribute_id3'];
                 }
-                if(!empty($cart_value['product_details']['attribute_id4'])){
+                if (!empty($cart_value['product_details']['attribute_id4'])) {
                     $transactiondetail->attribute_id4    = $cart_value['product_details']['attribute_id4'];
                 }
-                if(!empty($cart_value['product_details']['attribute_id5'])){
+                if (!empty($cart_value['product_details']['attribute_id5'])) {
                     $transactiondetail->attribute_id5    = $cart_value['product_details']['attribute_id5'];
                 }
 
                 $transactiondetail->save();
 
                 // product based promotion
-                if(!empty($cart_value['promotion'])){
+                if (!empty($cart_value['promotion'])) {
                     foreach ($cart_value['promotion'] as $key => $value) {
-                        if($value['promotion_name']!="Subtotal"){
+                        if ($value['promotion_name'] != "Subtotal") {
                             $transactiondetailpromotion = new \TransactionDetailPromotion();
                             $transactiondetailpromotion->transaction_detail_id = $transactiondetail->transaction_detail_id;
                             $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
-                            if(!empty($value['promotion_id'])){
+                            if (!empty($value['promotion_id'])) {
                                 $transactiondetailpromotion->promotion_id = $value['promotion_id'];
                             }
-                            if(!empty($value['promotion_name'])){
+                            if (!empty($value['promotion_name'])) {
                                 $transactiondetailpromotion->promotion_name = $value['promotion_name'];
                             }
 
-                            if(!empty($value['promotion_type'])){
+                            if (!empty($value['promotion_type'])) {
                                 $transactiondetailpromotion->promotion_type = $value['promotion_type'];
-                            } else if(!empty($value['promotion_detail']['promotion_type'])){
+                            } elseif (!empty($value['promotion_detail']['promotion_type'])) {
                                 $transactiondetailpromotion->promotion_type = $value['promotion_detail']['promotion_type'];
                             }
 
-                            if(!empty($value['rule_type'])){
+                            if (!empty($value['rule_type'])) {
                                 $transactiondetailpromotion->rule_type = $value['rule_type'];
                             }
 
-                            if(!empty($value['rule_value'])){
+                            if (!empty($value['rule_value'])) {
                                 $transactiondetailpromotion->rule_value = $value['rule_value'];
-                            } else if(!empty($value['promotion_detail']['rule_value'])){
+                            } elseif (!empty($value['promotion_detail']['rule_value'])) {
                                 $transactiondetailpromotion->rule_value = $value['promotion_detail']['rule_value'];
                             }
 
-                            if(!empty($value['discount_object_type'])){
+                            if (!empty($value['discount_object_type'])) {
                                 $transactiondetailpromotion->discount_object_type = $value['discount_object_type'];
-                            } else if(!empty($value['promotion_detail']['discount_object_type'])){
+                            } elseif (!empty($value['promotion_detail']['discount_object_type'])) {
                                 $transactiondetailpromotion->discount_object_type = $value['promotion_detail']['discount_object_type'];
                             }
 
-                            if(!empty($value['oridiscount_value'])){
+                            if (!empty($value['oridiscount_value'])) {
                                 $transactiondetailpromotion->discount_value = $value['oridiscount_value'];
                             }
 
-                            if(!empty($value['tmpafterpromotionprice'])){
+                            if (!empty($value['tmpafterpromotionprice'])) {
                                 $transactiondetailpromotion->value_after_percentage = $value['tmpafterpromotionprice'];
                             }
 
-                            if(!empty($value['description'])){
+                            if (!empty($value['description'])) {
                                 $transactiondetailpromotion->description = $value['description'];
-                            } else if(!empty($value['promotion_detail']['description'])){
+                            } elseif (!empty($value['promotion_detail']['description'])) {
                                 $transactiondetailpromotion->description = $value['promotion_detail']['description'];
                             }
 
-                            if(!empty($value['begin_date'])){
+                            if (!empty($value['begin_date'])) {
                                 $transactiondetailpromotion->begin_date = $value['begin_date'];
-                            } else if(!empty($value['promotion_detail']['begin_date'])){
+                            } elseif (!empty($value['promotion_detail']['begin_date'])) {
                                 $transactiondetailpromotion->begin_date = $value['promotion_detail']['begin_date'];
                             }
 
-                            if(!empty($value['end_date'])){
+                            if (!empty($value['end_date'])) {
                                 $transactiondetailpromotion->end_date = $value['end_date'];
-                            } else if(!empty($value['promotion_detail']['end_date'])){
+                            } elseif (!empty($value['promotion_detail']['end_date'])) {
                                 $transactiondetailpromotion->end_date = $value['promotion_detail']['end_date'];
                             }
 
@@ -980,172 +972,164 @@ class CashierAPIController extends ControllerAPI
                     }
                 }
 
-
                 // product based coupon
-                if(!empty($cart_value['product_details']['coupon_for_this_product'])){
+                if (!empty($cart_value['product_details']['coupon_for_this_product'])) {
                     foreach ($cart_value['product_details']['coupon_for_this_product'] as $key => $value) {
                             $transactiondetailcoupon = new \TransactionDetailCoupon();
                             $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
                             $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
-                            if(!empty($value['issuedcoupon']['issued_coupon_id'])){
+                            if (!empty($value['issuedcoupon']['issued_coupon_id'])) {
                                 $transactiondetailcoupon->promotion_id = $value['issuedcoupon']['issued_coupon_id'];
                             }
-                            if(!empty($value['issuedcoupon']['promotion_name'])){
+                            if (!empty($value['issuedcoupon']['promotion_name'])) {
                                 $transactiondetailcoupon->promotion_name = $value['issuedcoupon']['promotion_name'];
                             }
-                            if(!empty($value['issuedcoupon']['promotion_type'])){
+                            if (!empty($value['issuedcoupon']['promotion_type'])) {
                                 $transactiondetailcoupon->promotion_type = $value['issuedcoupon']['promotion_type'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_type'])){
+                            if (!empty($value['issuedcoupon']['rule_type'])) {
                                 $transactiondetailcoupon->rule_type = $value['issuedcoupon']['rule_type'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_value'])){
+                            if (!empty($value['issuedcoupon']['rule_value'])) {
                                 $transactiondetailcoupon->rule_value = $value['issuedcoupon']['rule_value'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_object_id1'])){
+                            if (!empty($value['issuedcoupon']['rule_object_id1'])) {
                                 $transactiondetailcoupon->category_id1 = $value['issuedcoupon']['rule_object_id1'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_object_id2'])){
+                            if (!empty($value['issuedcoupon']['rule_object_id2'])) {
                                 $transactiondetailcoupon->category_id2 = $value['issuedcoupon']['rule_object_id2'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_object_id3'])){
+                            if (!empty($value['issuedcoupon']['rule_object_id3'])) {
                                 $transactiondetailcoupon->category_id3 = $value['issuedcoupon']['rule_object_id3'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_object_id4'])){
+                            if (!empty($value['issuedcoupon']['rule_object_id4'])) {
                                 $transactiondetailcoupon->category_id4 = $value['issuedcoupon']['rule_object_id4'];
                             }
-                            if(!empty($value['issuedcoupon']['rule_object_id5'])){
+                            if (!empty($value['issuedcoupon']['rule_object_id5'])) {
                                 $transactiondetailcoupon->category_id5 = $value['issuedcoupon']['rule_object_id5'];
                             }
-                            if(!empty($value['issuedcoupon']['discount_object_id1'])){
+                            if (!empty($value['issuedcoupon']['discount_object_id1'])) {
                                 $transactiondetailcoupon->category_name1 = $value['issuedcoupon']['discount_object_id1'];
                             }
-                            if(!empty($value['issuedcoupon']['discount_object_id2'])){
+                            if (!empty($value['issuedcoupon']['discount_object_id2'])) {
                                 $transactiondetailcoupon->category_name2 = $value['issuedcoupon']['discount_object_id2'];
                             }
-                            if(!empty($value['issuedcoupon']['discount_object_id3'])){
+                            if (!empty($value['issuedcoupon']['discount_object_id3'])) {
                                 $transactiondetailcoupon->category_name3 = $value['issuedcoupon']['discount_object_id3'];
                             }
-                            if(!empty($value['issuedcoupon']['discount_object_id4'])){
+                            if (!empty($value['issuedcoupon']['discount_object_id4'])) {
                                 $transactiondetailcoupon->category_name4 = $value['issuedcoupon']['discount_object_id4'];
                             }
-                            if(!empty($value['issuedcoupon']['discount_object_id5'])){
+                            if (!empty($value['issuedcoupon']['discount_object_id5'])) {
                                 $transactiondetailcoupon->category_name5 = $value['issuedcoupon']['discount_object_id5'];
                             }
-                            if(!empty($value['issuedcoupon']['discount_object_type'])){
+                            if (!empty($value['issuedcoupon']['discount_object_type'])) {
                                 $transactiondetailcoupon->discount_object_type = $value['issuedcoupon']['discount_object_type'];
                             }
-                            if(!empty($value['oridiscount_value'])){
+                            if (!empty($value['oridiscount_value'])) {
                                 $transactiondetailcoupon->discount_value = $value['oridiscount_value'];
                             }
-                            if(!empty($value['tmpafterpromotionprice'])){
+                            if (!empty($value['tmpafterpromotionprice'])) {
                                 $transactiondetailcoupon->value_after_percentage = $value['tmpafterpromotionprice'];
                             }
-                            if(!empty($value['issuedcoupon']['coupon_redeem_rule_value'])){
+                            if (!empty($value['issuedcoupon']['coupon_redeem_rule_value'])) {
                                 $transactiondetailcoupon->coupon_redeem_rule_value = $value['issuedcoupon']['coupon_redeem_rule_value'];
                             }
-                            if(!empty($value['issuedcoupon']['description'])){
+                            if (!empty($value['issuedcoupon']['description'])) {
                                 $transactiondetailcoupon->description = $value['issuedcoupon']['description'];
                             }
-                            if(!empty($value['issuedcoupon']['begin_date'])){
+                            if (!empty($value['issuedcoupon']['begin_date'])) {
                                 $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
                             }
-                            if(!empty($value['issuedcoupon']['end_date'])){
+                            if (!empty($value['issuedcoupon']['end_date'])) {
                                 $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
                             }
 
                             $transactiondetailcoupon->save();
 
                             // coupon redeemed
-                            if(!empty($value['issuedcoupon']['issued_coupon_id'])){
+                            if (!empty($value['issuedcoupon']['issued_coupon_id'])) {
                                 $coupon_id = intval($value['issuedcoupon']['issued_coupon_id']);
-                                //echo $coupon_id."<br/>";
                                 $coupon_redeemed = IssuedCoupon::where('status', 'active')->where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
                             }
                     }
                 }
 
-
-
             }
 
-
             // transaction detail taxes
-            if(!empty($taxes)){
+            if (!empty($taxes)) {
                 foreach ($taxes as $key => $value) {
                     $transactiondetailtax = new \TransactionDetailTax();
                     $transactiondetailtax->transaction_detail_id = $transactiondetail->transaction_detail_id;
                     $transactiondetailtax->transaction_id = $transaction->transaction_id;
-                    if(!empty($value['id'])){
+                    if (!empty($value['id'])) {
                         $transactiondetailtax->tax_id = $value['id'];
                     }
-                    if(!empty($value['name'])){
+                    if (!empty($value['name'])) {
                         $transactiondetailtax->tax_name = $value['name'];
                     }
-                    if(!empty($value['value'])){
+                    if (!empty($value['value'])) {
                         $transactiondetailtax->tax_value = $value['value'];
                     }
-                    if(!empty($value['total'])){
+                    if (!empty($value['total'])) {
                         $transactiondetailtax->total_tax = $value['total'];
                     }
                     $transactiondetailtax->save();
                 }
             }
 
-
             // cart based promotion
-            if(!empty($cart_promotion)){
+            if (!empty($cart_promotion)) {
                 foreach ($cart_promotion as $key => $value) {
-                    if($value['promotion_name']!="Subtotal"){
+                    if ($value['promotion_name']!="Subtotal") {
                         $transactiondetailpromotion = new \TransactionDetailPromotion();
                         $transactiondetailpromotion->transaction_detail_id = $transactiondetail->transaction_detail_id;
                         $transactiondetailpromotion->transaction_id = $transaction->transaction_id;
-                        if(!empty($value['promotion_id'])){
+                        if (!empty($value['promotion_id'])) {
                             $transactiondetailpromotion->promotion_id = $value['promotion_id'];
                             $promoid =  $value['promotion_id'];
                         } else {
                             $promoid =  0;
                         }
-                        if(!empty($value['promotion_name'])){
+                        if (!empty($value['promotion_name'])) {
                             $transactiondetailpromotion->promotion_name = $value['promotion_name'];
                             $promoname = $value['promotion_name'];
                         } else {
                             $promoname = '';
                         }
-                        if(!empty($value['promotion_type'])){
+                        if (!empty($value['promotion_type'])) {
                             $transactiondetailpromotion->promotion_type = $value['promotion_type'];
                         }
-                        if(!empty($value['promotionrule']['rule_type'])){
+                        if (!empty($value['promotionrule']['rule_type'])) {
                             $transactiondetailpromotion->rule_type = $value['promotionrule']['rule_type'];
                         }
-                        if(!empty($value['promotionrule']['rule_value'])){
+                        if (!empty($value['promotionrule']['rule_value'])) {
                             $transactiondetailpromotion->rule_value = $value['promotionrule']['rule_value'];
                         }
-                        if(!empty($value['promotionrule']['discount_object_type'])){
+                        if (!empty($value['promotionrule']['discount_object_type'])) {
                             $transactiondetailpromotion->discount_object_type = $value['promotionrule']['discount_object_type'];
                         }
-                        if($value['promotionrule']['rule_type']=="cart_discount_by_percentage"){
+                        if ($value['promotionrule']['rule_type'] == "cart_discount_by_percentage") {
                             $discount_percent = intval($value['promotionrule']['discount'])/100;
                             $discount_value = $this->removeFormat($value['promotionrule']['discount_value']);
                             $transactiondetailpromotion->discount_value = $discount_percent;
                             $transactiondetailpromotion->value_after_percentage = $discount_value;
-                        }
-                        else{
+                        } else {
                             $discount_value = $this->removeFormat($value['promotionrule']['discount_value']);
                             $transactiondetailpromotion->discount_value = $discount_value;
                             $transactiondetailpromotion->value_after_percentage = $discount_value;
                         }
-                        if(!empty($value['description'])){
+                        if (!empty($value['description'])) {
                             $transactiondetailpromotion->description = $value['description'];
                         }
-                        if(!empty($value['begin_date'])){
+                        if (!empty($value['begin_date'])) {
                             $transactiondetailpromotion->begin_date = $value['begin_date'];
                         }
-                        if(!empty($value['end_date'])){
+                        if (!empty($value['end_date'])) {
                             $transactiondetailpromotion->end_date = $value['end_date'];
                         }
                         $transactiondetailpromotion->save();
-
 
                         // activity cart promotion
                         $this->CartBasedPromoActivity($customer_id, $promoid, $promoname);
@@ -1154,64 +1138,63 @@ class CashierAPIController extends ControllerAPI
                 }
             }
 
-
             // cart based coupon
-            if(!empty($cart_coupon)){
+            if (!empty($cart_coupon)) {
                 foreach ($cart_coupon as $key => $value) {
-                    if($value['issuedcoupon']['promotion_name']!="Subtotal"){
+                    if ($value['issuedcoupon']['promotion_name'] != "Subtotal") {
                         $transactiondetailcoupon = new \TransactionDetailCoupon();
                         $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
                         $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
-                        if(!empty($value['issuedcoupon']['issued_coupon_id'])){
+                        if (!empty($value['issuedcoupon']['issued_coupon_id'])) {
                             $transactiondetailcoupon->promotion_id = $value['issuedcoupon']['issued_coupon_id'];
                         }
-                        if(!empty($value['issuedcoupon']['promotion_name'])){
+                        if (!empty($value['issuedcoupon']['promotion_name'])) {
                             $transactiondetailcoupon->promotion_name = $value['issuedcoupon']['promotion_name'];
                         }
-                        if(!empty($value['issuedcoupon']['promotion_type'])){
+                        if (!empty($value['issuedcoupon']['promotion_type'])) {
                             $transactiondetailcoupon->promotion_type = $value['issuedcoupon']['promotion_type'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_type'])){
+                        if (!empty($value['issuedcoupon']['rule_type'])) {
                             $transactiondetailcoupon->rule_type = $value['issuedcoupon']['rule_type'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_value'])){
+                        if (!empty($value['issuedcoupon']['rule_value'])) {
                             $transactiondetailcoupon->rule_value = $value['issuedcoupon']['rule_value'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_object_id1'])){
+                        if (!empty($value['issuedcoupon']['rule_object_id1'])) {
                             $transactiondetailcoupon->category_id1 = $value['issuedcoupon']['rule_object_id1'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_object_id2'])){
+                        if (!empty($value['issuedcoupon']['rule_object_id2'])) {
                             $transactiondetailcoupon->category_id2 = $value['issuedcoupon']['rule_object_id2'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_object_id3'])){
+                        if (!empty($value['issuedcoupon']['rule_object_id3'])) {
                             $transactiondetailcoupon->category_id3 = $value['issuedcoupon']['rule_object_id3'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_object_id4'])){
+                        if (!empty($value['issuedcoupon']['rule_object_id4'])) {
                             $transactiondetailcoupon->category_id4 = $value['issuedcoupon']['rule_object_id4'];
                         }
-                        if(!empty($value['issuedcoupon']['rule_object_id5'])){
+                        if (!empty($value['issuedcoupon']['rule_object_id5'])) {
                             $transactiondetailcoupon->category_id5 = $value['issuedcoupon']['rule_object_id5'];
                         }
-                        if(!empty($value['issuedcoupon']['discount_object_id1'])){
+                        if (!empty($value['issuedcoupon']['discount_object_id1'])) {
                             $transactiondetailcoupon->category_name1 = $value['issuedcoupon']['discount_object_id1'];
                         }
-                        if(!empty($value['issuedcoupon']['discount_object_id2'])){
+                        if (!empty($value['issuedcoupon']['discount_object_id2'])) {
                             $transactiondetailcoupon->category_name2 = $value['issuedcoupon']['discount_object_id2'];
                         }
-                        if(!empty($value['issuedcoupon']['discount_object_id3'])){
+                        if (!empty($value['issuedcoupon']['discount_object_id3'])) {
                             $transactiondetailcoupon->category_name3 = $value['issuedcoupon']['discount_object_id3'];
                         }
-                        if(!empty($value['issuedcoupon']['discount_object_id4'])){
+                        if (!empty($value['issuedcoupon']['discount_object_id4'])) {
                             $transactiondetailcoupon->category_name4 = $value['issuedcoupon']['discount_object_id4'];
                         }
-                        if(!empty($value['issuedcoupon']['discount_object_id5'])){
+                        if (!empty($value['issuedcoupon']['discount_object_id5'])) {
                             $transactiondetailcoupon->category_name5 = $value['issuedcoupon']['discount_object_id5'];
                         }
-                        if(!empty($value['issuedcoupon']['discount_object_type'])){
+                        if (!empty($value['issuedcoupon']['discount_object_type'])) {
                             $transactiondetailcoupon->discount_object_type = $value['issuedcoupon']['discount_object_type'];
                         }
 
-                        if($value['issuedcoupon']['rule_type']=="cart_discount_by_percentage"){
+                        if ($value['issuedcoupon']['rule_type'] == "cart_discount_by_percentage") {
                             $discount_percent = intval($value['issuedcoupon']['discount'])/100;
                             $discount_value = $this->removeFormat($value['issuedcoupon']['discount_value']);
                             $transactiondetailcoupon->discount_value = $discount_percent;
@@ -1221,38 +1204,34 @@ class CashierAPIController extends ControllerAPI
                             $transactiondetailcoupon->discount_value = $discount_value;
                             $transactiondetailcoupon->value_after_percentage = $discount_value;
                         }
-                        if(!empty($value['issuedcoupon']['coupon_redeem_rule_value'])){
+                        if (!empty($value['issuedcoupon']['coupon_redeem_rule_value'])) {
                             $transactiondetailcoupon->coupon_redeem_rule_value = $value['issuedcoupon']['coupon_redeem_rule_value'];
                         }
-                        if(!empty($value['issuedcoupon']['description'])){
+                        if (!empty($value['issuedcoupon']['description'])) {
                             $transactiondetailcoupon->description = $value['issuedcoupon']['description'];
                         }
-                        if(!empty($value['issuedcoupon']['begin_date'])){
+                        if (!empty($value['issuedcoupon']['begin_date'])) {
                             $transactiondetailcoupon->begin_date = $value['issuedcoupon']['begin_date'];
                         }
-                        if(!empty($value['issuedcoupon']['end_date'])){
+                        if (!empty($value['issuedcoupon']['end_date'])) {
                             $transactiondetailcoupon->end_date = $value['issuedcoupon']['end_date'];
                         }
 
                         $transactiondetailcoupon->save();
 
                         // coupon redeemed
-                        if(!empty($value['issuedcoupon']['issued_coupon_id'])){
+                        if (!empty($value['issuedcoupon']['issued_coupon_id'])) {
                             $coupon_id = intval($value['issuedcoupon']['issued_coupon_id']);
-                            //echo $coupon_id."<br/>";
                             $coupon_redeemed = IssuedCoupon::where('status', 'active')->where('issued_coupon_id', $coupon_id)->update(array('status' => 'redeemed'));
                         }
                     }
                 }
             }
 
-
-
-
             // issue product based coupons (if any)
-            if($customer_id!=0 ||$customer_id!=NULL){
-                foreach($cart as $k => $v){
-                    if(!empty($v['product_id'])){
+            if ($customer_id != 0 ||$customer_id != NULL) {
+                foreach ($cart as $k => $v) {
+                    if (!empty($v['product_id'])) {
                         $product_id = $v['product_id'];
 
                         $coupons = DB::select(DB::raw('SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
@@ -1274,12 +1253,12 @@ class CashierAPIController extends ControllerAPI
                         WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
 
                         // dd($coupons);
-                        if($coupons!=NULL){
-                            foreach($coupons as $c){
+                        if ($coupons != NULL) {
+                            foreach ($coupons as $c) {
                                 $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
                                 // dd($issued);
                                 if ($issued < $c->maximum_issued_coupon) {
-                                    $issue_coupon = new IssuedCoupon;
+                                    $issue_coupon = new IssuedCoupon();
                                     $issue_coupon->promotion_id = $c->promotion_id;
                                     $issue_coupon->transaction_id = $transaction->transaction_id;
                                     $issue_coupon->issued_coupon_code = '';
@@ -1299,21 +1278,19 @@ class CashierAPIController extends ControllerAPI
             }
 
             // issue cart based coupons (if any)
-            if($customer_id!=0 ||$customer_id!=NULL){
-                $coupon_carts = Coupon::join('promotion_rules', function($q) use($total_to_pay)
-                {
+            if ($customer_id != 0 ||$customer_id != NULL) {
+                $coupon_carts = Coupon::join('promotion_rules', function ($q) use ($total_to_pay) {
                     $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.rule_value', '<=', $total_to_pay);
-                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function($q) use ($retailer)
-                {
+                })->excludeDeleted()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas('issueretailers', function ($q) use ($retailer) {
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
                 })
                 ->get();
                 // dd($coupon_carts);
-                if(!empty($coupon_carts)){
-                    foreach($coupon_carts as $kupon){
+                if (!empty($coupon_carts)) {
+                    foreach ($coupon_carts as $kupon) {
                         $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();
                         if ($issued < $kupon->maximum_issued_coupon) {
-                            $issue_coupon = new IssuedCoupon;
+                            $issue_coupon = new IssuedCoupon();
                             $issue_coupon->promotion_id = $kupon->promotion_id;
                             $issue_coupon->transaction_id = $transaction->transaction_id;
                             $issue_coupon->issued_coupon_code = '';
@@ -1331,9 +1308,9 @@ class CashierAPIController extends ControllerAPI
             }
 
             // delete the cart
-            if($cart_id!=NULL){
+            if ($cart_id != NULL) {
                 $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->first();
-                if(is_object($cart_delete)){
+                if (is_object($cart_delete)) {
                     $cart_delete->delete();
                     $cart_delete->save();
                     $cart_detail_delete = \CartDetail::where('status', 'cashier')->where('cart_id', $cart_id)->update(array('status' => 'deleted'));
@@ -1453,8 +1430,7 @@ class CashierAPIController extends ControllerAPI
             }
 
             // Check the device exist or not
-            if(!file_exists(Config::get('orbit.devices.printer.params')))
-            {
+            if (!file_exists(Config::get('orbit.devices.printer.params'))) {
                 $message = 'Printer not found';
                 ACL::throwAccessForbidden($message);
             }
@@ -1479,7 +1455,7 @@ class CashierAPIController extends ControllerAPI
             $acquired_coupon = null;
 
             foreach ($_issuedcoupon as $key => $value) {
-                if($key==0){
+                if ($key == 0) {
                   $acquired_coupon .= " \n";
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
@@ -1488,44 +1464,41 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
                   $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
-                }
-                else{
+                } else {
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
                   $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
-                  if($key==$total_issuedcoupon-1){
+                  if ($key == $total_issuedcoupon-1) {
                     $acquired_coupon .= '----------------------------------------'." \n";
                   }
                 }
             }
 
             foreach ($details as $details_key => $details_value) {
-                if($details_key==0){
-                    if(empty($details_value['variant_price'])){
+                if ($details_key == 0) {
+                    if (empty($details_value['variant_price'])) {
                         $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
-                    } else{
+                    } else {
                         $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                     }
-                }
-                else {
-                    if(empty($details_value['variant_price'])){
+                } else {
+                    if (empty($details_value['variant_price'])) {
                         $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
-                    } else{
+                    } else {
                         $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                     }
                 }
 
-
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
-                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
+                    if ($details_value['transaction_detail_id'] == $detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type'] == 'product') {
                         $product .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 25), $detailpromotion_value['value_after_percentage']);
                     }
                 }
 
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
-                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && ($detailcoupon_value['promotion_type']=='product' || ($detailcoupon_value['promotion_type']=='cart' && $detailcoupon_value['discount_object_type']!='cash_rebate' ))){
+                    if ($details_value['transaction_detail_id'] == $detailcoupon_value['transaction_detail_id'] && ($detailcoupon_value['promotion_type'] == 'product' || ($detailcoupon_value['promotion_type'] == 'cart' && $detailcoupon_value['discount_object_type'] != 'cash_rebate' ))) {
                         $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);
                     }
                 }
@@ -1533,18 +1506,18 @@ class CashierAPIController extends ControllerAPI
 
             $product .= '----------------------------------------'." \n";
 
-            $promo = FALSE;
+            $promo = false;
 
             foreach ($details as $details_key => $details_value) {
                 $x = 0;
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
-                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='cart'){
-                        if($x==0){
+                    if ($details_value['transaction_detail_id'] == $detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type'] == 'cart') {
+                        if ($x == 0) {
                             $cart_based_promo = "Cart Promotions"." \n";
-                            $promo = TRUE;
+                            $promo = true;
                         }
                         $x = $x+1;
-                        $promo = TRUE;
+                        $promo = true;
                         $cart_based_promo .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 23), $detailpromotion_value['value_after_percentage']);
                     }
                 }
@@ -1554,39 +1527,39 @@ class CashierAPIController extends ControllerAPI
             foreach ($details as $details_key => $details_value) {
                 $x = 0;
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
-                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']== 'cart' && $detailcoupon_value['discount_object_type']=='cash_rebate'){
-                        if($x==0){
-                            if(!$promo){
+                    if ($details_value['transaction_detail_id'] == $detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type'] == 'cart' && $detailcoupon_value['discount_object_type'] == 'cash_rebate') {
+                        if ($x == 0) {
+                            if (!$promo) {
                                 $cart_based_promo = "Cart Coupons"." \n";
-                                $promo = TRUE;
+                                $promo = true;
                             } else {
                                 $cart_based_promo .= "Cart Coupons"." \n";
                             }
 
                         }
                         $x = $x+1;
-                        $promo = TRUE;
+                        $promo = true;
                         $cart_based_promo .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 23), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
             }
 
-            if($promo){
+            if ($promo) {
                 $cart_based_promo .= '----------------------------------------'." \n";
             }
 
             $payment = $transaction['payment_method'];
-            if($payment=='cash'){$payment='Cash';}
-            if($payment=='card'){$payment='Card';}
+            if ($payment == 'cash') {$payment='Cash';}
+            if ($payment == 'card') {$payment='Card';}
 
             $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
 
-            if($transaction['user']==NULL){
+            if ($transaction['user'] == NULL) {
                 $customer = "Guest";
-            }else if($transaction['user']->user_firstname!=NULL && $transaction['user']->user_firstname!=""){
+            } elseif ($transaction['user']->user_firstname != NULL && $transaction['user']->user_firstname != "") {
                 $customer = $transaction['user']->user_firstname." ".$transaction['user']->user_lastname;
-            }else {
+            } else {
                 $customer = $transaction['user']->user_email;
             }
 
@@ -1615,18 +1588,18 @@ class CashierAPIController extends ControllerAPI
             $pay  .= " \n";
 
             foreach ($detailtax as $tax) {
-                if(! empty($tax['total_tax'])) {
+                if (! empty($tax['total_tax'])) {
                     $pay  .= $this->leftAndRight($tax['tax_name'] . '(' . ($tax['tax_value'] * 100) . '%)', number_format($tax['total_tax'], 2));
                 }
             }
             $pay  .= " \n";
 
             $pay  .= $this->leftAndRight('Payment Method', $payment);
-            if($payment=='Cash'){
+            if ($payment == 'Cash') {
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
                 $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
             }
-            if($payment=="Card"){
+            if ($payment == 'Card') {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
             }
 
@@ -1653,9 +1626,9 @@ class CashierAPIController extends ControllerAPI
 
             $file = storage_path()."/views/receipt.txt";
 
-            if(!empty($cart_based_promo)){
+            if (!empty($cart_based_promo)) {
                 $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
-            }else{
+            } else {
                 $write = $head.$product.$pay.$acquired_coupon.$footer;
             }
 
@@ -1724,7 +1697,6 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
-
     /**
      * POST - Card Payment
      *
@@ -1737,15 +1709,13 @@ class CashierAPIController extends ControllerAPI
         try {
 
             // Check the device exist or not
-            if(!file_exists(Config::get('orbit.devices.edc.params')))
-            {
+            if (!file_exists(Config::get('orbit.devices.edc.params'))) {
                 $message = 'Payment Terminal not found';
                 ACL::throwAccessForbidden($message);
             }
 
             // Check the driver exist or not
-            if(!file_exists(Config::get('orbit.devices.edc.path')))
-            {
+            if (!file_exists(Config::get('orbit.devices.edc.path'))) {
                 $message = 'EDC driver not found';
                 ACL::throwAccessForbidden($message);
             }
@@ -1779,9 +1749,9 @@ class CashierAPIController extends ControllerAPI
             // read the output ict220
             $x = explode('--------~>', $card);
             $z = explode('<----------', $x[1]);
-            $output = trim($z[0]);             
+            $output = trim($z[0]);
 
-            if($output=='FAILED' || $output=='Failed'){
+            if ($output == 'FAILED' || $output == 'Failed') {
                 $message = 'Payment Failed';
                 ACL::throwAccessForbidden($message);
             }
@@ -1844,7 +1814,6 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
-
     /**
      * POST - Scan Cart
      *
@@ -1875,18 +1844,16 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            if(empty($barcode)){
+            if (empty($barcode)) {
 
                 // Check the device exist or not
-                if(!file_exists(Config::get('orbit.devices.barcode.params')))
-                {
+                if (!file_exists(Config::get('orbit.devices.barcode.params'))) {
                     $message = 'Scanner not found';
                     ACL::throwAccessForbidden($message);
                 }
 
                 // Check the driver exist or not
-                if(!file_exists(Config::get('orbit.devices.barcode.path')))
-                {
+                if (!file_exists(Config::get('orbit.devices.barcode.path'))) {
                     $message = 'Scanner driver not found';
                     ACL::throwAccessForbidden($message);
                 }
@@ -1915,9 +1882,9 @@ class CashierAPIController extends ControllerAPI
             $cartdata = $this->cartCalc($cart, $user, 'active', $barcode, $retailer);
 
             //update cart and cart_detail status to 'cashier'
-            if(!empty($cart)){
+            if (!empty($cart)) {
                 $cart_update = \Cart::where('status', 'active')->where('cart_id', $cart->cart_id)->first();
-                if(is_object($cart_update)){
+                if (is_object($cart_update)) {
                     $cart_update->status = 'cashier';
                     $cart_update->save();
                     $cart_detail_update = \CartDetail::where('status', 'active')->where('cart_id', $cart->cart_id)->update(array('status' => 'cashier'));
@@ -2022,22 +1989,20 @@ class CashierAPIController extends ControllerAPI
             $params = Config::get('orbit.devices.cdisplay.params');
 
             // Prepare Screen
-            $prepare_screen_cmd = Config::get('orbit.devices.prepare_screen.path', NULL);
+            $prepare_screen_cmd = Config::get('orbit.devices.prepare_screen.path', null);
             if (is_null($prepare_screen_cmd)) {
                 throw new Exception ('Could not find prepare_screen command.');
             }
             $cmd = $prepare_screen_cmd;
             $screen = shell_exec($cmd . ' 2>&1 >/dev/null');
 
-            if(strlen($line1)<20)
-            {
+            if (strlen($line1)<20) {
                 $line1_length = strlen($line1);
                 $fill = 40 - $line1_length;
                 $line1 = str_pad($line1, $fill, "\ ");
             }
 
-            if(strlen($line2)<20)
-            {
+            if (strlen($line2)<20) {
                 $line2_length = strlen($line2);
                 $fill = 36 - $line2_length;
                 $line2 = str_pad($line2, $fill, "\ ");
@@ -2073,7 +2038,6 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
-
     /**
      * POST - Product Detail with variant and promotion
      *
@@ -2103,7 +2067,7 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = \Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->first();
 
-            $product = Product::with('tax1', 'tax2', 'variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function($query) use ($retailer) {
+            $product = Product::with('tax1', 'tax2', 'variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas('retailers', function ($query) use ($retailer) {
                        $query->where('retailer_id', $retailer->merchant_id);
                       })->excludeDeleted()->where('product_id', $product_id)->first();
 
@@ -2165,6 +2129,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
+
         return $this->render();
     }
 
@@ -2185,14 +2150,11 @@ class CashierAPIController extends ControllerAPI
                 ->where('is_coupon', 'N')
                 ->where('promotion_type', 'cart')
                 ->where('merchant_id', $retailer['parent']['merchant_id'])
-                ->whereHas('retailers', function($q) use ($retailer)
-                {
+                ->whereHas('retailers', function ($q) use ($retailer) {
                     $q->where('promotion_retailer.retailer_id', Config::get('orbit.shop.id'));
                 })
-                ->where(function($q)
-                {
-                    $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function($qr)
-                    {
+                ->where(function ($q) {
+                    $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(function ($qr) {
                         $qr->where('begin_date', '<=', Carbon::now())->where('is_permanent', '=', 'Y');
                     });
                 })
@@ -2218,9 +2180,9 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
+
         return $this->render();
     }
-
 
     /**
      * GET - List of POS Quick Product
@@ -2288,17 +2250,17 @@ class CashierAPIController extends ControllerAPI
                                                 ->where('pos_quick_products.retailer_id', $retailer->merchant_id);
 
             // Filter by ids
-            OrbitInput::get('id', function($posQuickIds) use ($posQuickProducts) {
+            OrbitInput::get('id', function ($posQuickIds) use ($posQuickProducts) {
                 $posQuickProducts->whereIn('pos_quick_products.pos_quick_product_id', $posQuickIds);
             });
 
             // Filter by merchant ids
-            OrbitInput::get('merchant_ids', function($merchantIds) use ($posQuickProducts) {
+            OrbitInput::get('merchant_ids', function ($merchantIds) use ($posQuickProducts) {
                 $posQuickProducts->whereIn('pos_quick_products.merchant_id', $merchantIds);
             });
 
             // Filter by retailer ids
-            OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
+            OrbitInput::get('retailer_ids', function ($retailerIds) use ($posQuickProducts) {
                 $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
             });
 
@@ -2406,7 +2368,6 @@ class CashierAPIController extends ControllerAPI
         return $output;
     }
 
-
     /**
      * GET - Merchant info without login
      *
@@ -2439,6 +2400,7 @@ class CashierAPIController extends ControllerAPI
                 $this->response->message = $e->getMessage();
                 $this->response->data = null;
             }
+
         return $this->render();
     }
 
@@ -2458,15 +2420,15 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
-            if($customer_id==null){
+            if ($customer_id == null) {
                 $customer_id = -1;
             }
             $customer = User::excludeDeleted()->find($customer_id);
 
-            if(!empty($promotion_id)){
+            if (!empty($promotion_id)) {
                 $promo_cart = Promotion::where('promotion_id', $promotion_id)->first();
                 $activity_name_label = 'Add Promotion ' . $promotion_name;
-            }else{
+            } else {
                 $promo_cart = null;
                 $activity_name_label = 'Add Promotion ';
             }
@@ -2612,7 +2574,6 @@ class CashierAPIController extends ControllerAPI
 
         return $this->render();
     }
-
 
     public function postSaveActivityClear()
     {
@@ -2868,7 +2829,6 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
-
     /**
      * GET - Cart Cashier
      *
@@ -2988,7 +2948,6 @@ class CashierAPIController extends ControllerAPI
         return $this->render();
     }
 
-
     private function just40CharMid($str)
     {
         $nnn = strlen($str);
@@ -3038,8 +2997,9 @@ class CashierAPIController extends ControllerAPI
     {
         $all  = '';
         $space = 40-strlen($left)-strlen($right); $spc = '';
-        for($i=0;$i<$space;$i++){ $spc .= ' '; }
+        for ($i=0;$i<$space;$i++) { $spc .= ' '; }
         $all .= $left.$spc.$right." \n";
+
         return $all;
     }
 
@@ -3048,6 +3008,7 @@ class CashierAPIController extends ControllerAPI
         try {
             $retailer_id = Config::get('orbit.shop.id');
             $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
             return $retailer;
         } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
@@ -3070,6 +3031,7 @@ class CashierAPIController extends ControllerAPI
     public function removeFormat($s)
     {
         $x =  explode("-", $s);
+
         return trim(str_replace(',','',$x[1]));
     }
 
@@ -3081,13 +3043,10 @@ class CashierAPIController extends ControllerAPI
             $this->checkAuth();
 
             // Check the device exist or not
-            if(!file_exists(Config::get('orbit.devices.edc.params')))
-            {
+            if (!file_exists(Config::get('orbit.devices.edc.params'))) {
                 $message = 'Terminal not found';
                 ACL::throwAccessForbidden($message);
-            }
-            else
-            {
+            } else {
                 $message = 'Terminal exist';
             }
 
@@ -3161,7 +3120,7 @@ class CashierAPIController extends ControllerAPI
             $acquired_coupon = null;
 
             foreach ($_issuedcoupon as $key => $value) {
-                if($key==0){
+                if ($key == 0) {
                   $acquired_coupon .= " \n";
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
@@ -3170,42 +3129,40 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
                   $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
-                }
-                else{
+                } else {
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                   $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
                   $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
-                  if($key==$total_issuedcoupon-1){
+                  if ($key == $total_issuedcoupon-1) {
                     $acquired_coupon .= '----------------------------------------'." \n";
                   }
                 }
             }
 
             foreach ($details as $details_key => $details_value) {
-                if($details_key==0){
-                    if(empty($details_value['variant_price'])){
+                if ($details_key == 0) {
+                    if (empty($details_value['variant_price'])) {
                         $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
-                    } else{
+                    } else {
                         $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                     }
-                }
-                else {
-                    if(empty($details_value['variant_price'])){
+                } else {
+                    if (empty($details_value['variant_price'])) {
                         $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
-                    } else{
+                    } else {
                         $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                     }
                 }
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
-                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='product'){
+                    if ($details_value['transaction_detail_id'] == $detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type'] == 'product') {
                         $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
-                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='product'){
+                    if ($details_value['transaction_detail_id'] == $detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type'] == 'product') {
                         $product .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 25), $detailpromotion_value['value_after_percentage']);
                     }
                 }
@@ -3213,18 +3170,18 @@ class CashierAPIController extends ControllerAPI
 
             $product .= '----------------------------------------'." \n";
 
-            $promo = FALSE;
+            $promo = false;
 
             foreach ($details as $details_key => $details_value) {
                 $x = 0;
                 foreach ($detailpromotion as $detailpromotion_key => $detailpromotion_value) {
-                    if($details_value['transaction_detail_id']==$detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type']=='cart'){
-                        if($x==0){
+                    if ($details_value['transaction_detail_id'] == $detailpromotion_value['transaction_detail_id'] && $detailpromotion_value['promotion_type'] == 'cart') {
+                        if ($x == 0) {
                             $cart_based_promo = "Cart Promotions"." \n";
-                            $promo = TRUE;
+                            $promo = true;
                         }
                         $x = $x+1;
-                        $promo = TRUE;
+                        $promo = true;
                         $cart_based_promo .= $this->discountListFormat(substr($detailpromotion_value['promotion_name'], 0, 23), $detailpromotion_value['value_after_percentage']);
                     }
                 }
@@ -3234,39 +3191,39 @@ class CashierAPIController extends ControllerAPI
             foreach ($details as $details_key => $details_value) {
                 $x = 0;
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
-                    if($details_value['transaction_detail_id']==$detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type']=='cart'){
-                        if($x==0){
-                            if(!$promo){
+                    if ($details_value['transaction_detail_id'] == $detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type'] == 'cart') {
+                        if ($x == 0) {
+                            if (!$promo) {
                                 $cart_based_promo = "Cart Coupons"." \n";
-                                $promo = TRUE;
+                                $promo = true;
                             } else {
                                 $cart_based_promo .= "Cart Coupons"." \n";
                             }
 
                         }
                         $x = $x+1;
-                        $promo = TRUE;
+                        $promo = true;
                         $cart_based_promo .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 23), $detailcoupon_value['value_after_percentage']);
                     }
                 }
 
             }
 
-            if($promo){
+            if ($promo) {
                 $cart_based_promo .= '----------------------------------------'." \n";
             }
 
             $payment = $transaction['payment_method'];
-            if($payment=='cash'){$payment='Cash';}
-            if($payment=='card'){$payment='Card';}
+            if ($payment == 'cash') {$payment = 'Cash';}
+            if ($payment == 'card') {$payment = 'Card';}
 
             $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
 
-            if($transaction['user']==NULL){
+            if ($transaction['user'] == NULL) {
                 $customer = "Guest";
-            }else if($transaction['user']->user_firstname!=NULL && $transaction['user']->user_firstname!=""){
+            } elseif ($transaction['user']->user_firstname != NULL && $transaction['user']->user_firstname != "") {
                 $customer = $transaction['user']->user_firstname." ".$transaction['user']->user_lastname;
-            }else {
+            } else {
                 $customer = $transaction['user']->user_email;
             }
 
@@ -3298,17 +3255,17 @@ class CashierAPIController extends ControllerAPI
             $pay  .= " \n";
 
             foreach ($detailtax as $tax) {
-                if(! empty($tax['total_tax'])) {
+                if (! empty($tax['total_tax'])) {
                     $pay  .= $this->leftAndRight($tax['tax_name'] . '(' . ($tax['tax_value'] * 100) . '%)', number_format($tax['total_tax'], 2));
                 }
             }
             $pay  .= " \n";
             $pay  .= $this->leftAndRight('Payment Method', $payment);
-            if($payment=='Cash'){
+            if ($payment == 'Cash') {
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
                 $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
             }
-            if($payment=="Card"){
+            if ($payment == 'Card') {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
             }
 
@@ -3340,9 +3297,9 @@ class CashierAPIController extends ControllerAPI
 
             $attachment_name = sprintf('receipt-%s-%s.png', $transaction->transaction_id, $transaction_date);
 
-            if(!empty($cart_based_promo)){
+            if (!empty($cart_based_promo)) {
                 $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
-            }else{
+            } else {
                 $write = $head.$product.$pay.$acquired_coupon.$footer;
             }
 
@@ -3379,15 +3336,13 @@ class CashierAPIController extends ControllerAPI
             $retailer = $this->getRetailerInfo();
             $customer_email = $transaction->user->user_email;
 
-            Mail::send($mailviews, array('user' => $transaction->user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details, 'transaction' => $transaction), function($message) use($base64img, $user, $filepath, $attachment_name, $write, $customer_email, $transaction)
-            {
+            Mail::send($mailviews, array('user' => $transaction->user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details, 'transaction' => $transaction), function ($message) use ($base64img, $user, $filepath, $attachment_name, $write, $customer_email, $transaction) {
                 $message->to($customer_email, $transaction->user->getFullName())->subject('Orbit Receipt');
                 $message->attachData(base64_decode($base64img), $attachment_name, ['mime' => 'img/png']);
             });
 
             $this->response->message = 'success';
-        }
-        catch (ACLForbiddenException $e) {
+        } catch (ACLForbiddenException $e) {
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
@@ -3403,6 +3358,7 @@ class CashierAPIController extends ControllerAPI
             $this->response->message = $e->getMessage();
             $this->response->data = null;
         }
+
         return $this->render();
     }
 
@@ -3919,7 +3875,7 @@ class CashierAPIController extends ControllerAPI
                     if ($subtotal >= $coupon_cart->coupon_redeem_rule_value) {
                         if ($coupon_cart->rule_type == 'cart_discount_by_percentage') {
                             // prevent more than one cart_discount_by_percentage
-                            if ($cart_discount_by_percentage_counter == 0) { 
+                            if ($cart_discount_by_percentage_counter == 0) {
                                 $discount = $subtotal * $coupon_cart->discount_value;
                                 $cartdiscounts = $cartdiscounts + $discount;
                                 $coupon_cart->disc_val_str = '-'.($coupon_cart->discount_value * 100).'%';
@@ -4169,7 +4125,6 @@ class CashierAPIController extends ControllerAPI
                         $temp_price = $temp_price - $discount;
                         $used_product_coupon->discount = $discount;
                         $ammount_after_promo = $ammount_after_promo - $discount;
-
 
                         if (!is_null($cartdetail->tax1)) {
                             $tax1 = $cartdetail->tax1->tax_value;
