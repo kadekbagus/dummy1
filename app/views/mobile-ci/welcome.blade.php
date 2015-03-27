@@ -1,89 +1,87 @@
 @extends('mobile-ci.layout-headless')
 
 @section('ext_style')
-  <style>
-    .modal-backdrop{
-      z-index:0;
-    }
-    #signup{
-      display: none;
-    }
-    .img-responsive{
-      margin:0 auto;
-    }
-    #signedIn{
-      display: none;
-    }
-  </style>
+<style>
+.modal-backdrop{
+    z-index:0;
+}
+#signup{
+    display: none;
+}
+.img-responsive{
+    margin:0 auto;
+}
+#signedIn{
+    display: none;
+}
+</style>
 @stop
 
 @section('content')
-  <div class="row top-space" id="signIn">
+<div class="row top-space" id="signIn">
     <div class="col-xs-12">
-      <header>
-        <div class="row vertically-spaced">
-          <div class="col-xs-12 text-center">
-            <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
-          </div>
-        </div>
-        <div class="row vertically-spaced">
-          <div class="col-xs-12 text-center">
-            <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
-          </div>
-        </div>
-      </header>
-      <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
-        <div class="form-group">
-          <input type="text" class="form-control" name="email" id="email" placeholder="{{ Lang::get('mobileci.signin.email_placeholder') }}" />
-        </div>
-        <div class="form-group">
-          <button type="submit" class="btn btn-info btn-block">{{ Lang::get('mobileci.signin.login_button') }}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="row top-space" id="signedIn">
-    <div class="col-xs-12">
-      <header>
-        <div class="row vertically-spaced">
-          <div class="col-xs-12 text-center">
-            <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
-          </div>
-        </div>
-      </header>
-      <div class="col-xs-12 text-center welcome-user">
-        <h3>{{ Lang::get('mobileci.greetings.welcome') }}, <br><span class="signedUser"></span><span class="userName"></span> !</h3>
-      </div>
-      <div class="col-xs-12 text-center">
-        <form name="loginForm" id="loginSignedForm" action="{{ url('customer/login') }}" method="post">
-          <div class="form-group">
-            <input type="hidden" class="form-control" name="email" id="emailSigned" />
-          </div>
-          <div class="form-group">
-            <button type="submit" class="btn btn-info btn-block">{{ Lang::get('mobileci.signin.start_button') }}</button>
-          </div>
+        <header>
+            <div class="row vertically-spaced">
+                <div class="col-xs-12 text-center">
+                    <span class="greetings">{{ Lang::get('mobileci.greetings.welcome') }}</span>
+                </div>
+            </div>
+            <div class="row vertically-spaced">
+                <div class="col-xs-12 text-center">
+                    <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
+                </div>
+            </div>
+        </header>
+        <form name="loginForm" id="loginForm" action="{{ url('customer/login') }}" method="post">
+            <div class="form-group">
+                <input type="text" class="form-control" name="email" id="email" placeholder="{{ Lang::get('mobileci.signin.email_placeholder') }}" />
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-info btn-block">{{ Lang::get('mobileci.signin.login_button') }}</button>
+            </div>
         </form>
-      </div>
+    </div>
+</div>
+<div class="row top-space" id="signedIn">
+    <div class="col-xs-12">
+        <header>
+            <div class="row vertically-spaced">
+                <div class="col-xs-12 text-center">
+                    <img class="img-responsive" src="{{ asset($retailer->parent->logo) }}" />
+                </div>
+            </div>
+        </header>
+        <div class="col-xs-12 text-center welcome-user">
+            <h3>{{ Lang::get('mobileci.greetings.welcome') }}, <br><span class="signedUser"></span><span class="userName"></span> !</h3>
+        </div>
+        <div class="col-xs-12 text-center">
+            <form name="loginForm" id="loginSignedForm" action="{{ url('customer/login') }}" method="post">
+                <div class="form-group">
+                    <input type="hidden" class="form-control" name="email" id="emailSigned" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-info btn-block">{{ Lang::get('mobileci.signin.start_button') }}</button>
+                </div>
+            </form>
+        </div>
     </div>
     <div class="col-xs-12 text-center vertically-spaced">
-      <a id="notMe">{{ Lang::get('mobileci.signin.not') }} <span class="signedUser"></span><span class="userName"></span>, {{ Lang::get('mobileci.signin.click_here') }}.</a>
+        <a id="notMe">{{ Lang::get('mobileci.signin.not') }} <span class="signedUser"></span><span class="userName"></span>, {{ Lang::get('mobileci.signin.click_here') }}.</a>
     </div>
-  </div>
-
+</div>
 @stop
 
 @section('footer')
-  <footer>
+<footer>
     <div class="row">
-      <div class="col-xs-12 text-center">
-        <img class="img-responsive orbit-footer"  src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
-      </div>
-      <div class="text-center">
-          {{ 'Orbit v' . ORBIT_APP_VERSION }}
-      </div>
+        <div class="col-xs-12 text-center">
+            <img class="img-responsive orbit-footer"  src="{{ asset('mobile-ci/images/orbit_footer.png') }}">
+        </div>
+        <div class="text-center">
+            {{ 'Orbit v' . ORBIT_APP_VERSION }}
+        </div>
     </div>
-  </footer>
+</footer>
 @stop
 
 @section('ext_script_bot')

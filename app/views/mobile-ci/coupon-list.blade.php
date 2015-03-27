@@ -86,26 +86,26 @@
 @stop
 
 @section('ext_script_bot')
-    {{ HTML::script('mobile-ci/scripts/jquery-ui.min.js') }}
-    {{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
-    <script type="text/javascript">
-        // window.onunload = function(){};
-        $(window).bind("pageshow", function(event) {
-            if (event.originalEvent.persisted) {
-                window.location.reload() 
-            }
-        });
-        $(document).ready(function(){
-            if(window.location.hash){
-                var hash = window.location.hash;
-                var producthash = "#promo-"+hash.replace(/^.*?(#|$)/,'');
-                console.log(producthash);
-                var hashoffset = $(producthash).offset();
-                var hashoffsettop = hashoffset.top-68;
-                setTimeout(function() {
-                    $(window).scrollTop(hashoffsettop);
-                }, 1);
-            }
-        });
-    </script>
+{{ HTML::script('mobile-ci/scripts/jquery-ui.min.js') }}
+{{ HTML::script('mobile-ci/scripts/featherlight.min.js') }}
+<script type="text/javascript">
+    // window.onunload = function(){};
+    $(window).bind("pageshow", function(event) {
+        if (event.originalEvent.persisted) {
+            window.location.reload() 
+        }
+    });
+    $(document).ready(function(){
+        if(window.location.hash){
+            var hash = window.location.hash;
+            var producthash = "#promo-"+hash.replace(/^.*?(#|$)/,'');
+            console.log(producthash);
+            var hashoffset = $(producthash).offset();
+            var hashoffsettop = hashoffset.top-68;
+            setTimeout(function() {
+                $(window).scrollTop(hashoffsettop);
+            }, 1);
+        }
+    });
+</script>
 @stop
