@@ -23,10 +23,10 @@ class CategoryAPIController extends ControllerAPI
      * ----------------------
      * @param integer    `merchant_id`           (required) - Merchant ID
      * @param string     `category_name`         (required) - Category name
-     * @param integer    `category_level`        (required) - Category Level
+     * @param integer    `category_level`        (required) - Category Level. Valid value: 1 to 5.
+     * @param string     `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
-     * @param string     `status`                (optional) - Status
      *
      * @return Illuminate\Support\Facades\Response
      */
