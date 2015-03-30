@@ -95,16 +95,18 @@ class MerchantAPIController extends ControllerAPI
             $deletemerchant->save();
 
             // soft delete user.
-            $deleteuser = User::with(array('apikey'))->excludeDeleted()->find($deletemerchant->user_id);
-            $deleteuser->status = 'deleted';
-            $deleteuser->modified_by = $this->api->user->user_id;
+            $deleteuser = User::with(array('apikey', 'role'))->excludeDeleted()->find($deletemerchant->user_id);
+            if (! $deleteuser->isSuperAdmin()) {
+                $deleteuser->status = 'deleted';
+                $deleteuser->modified_by = $this->api->user->user_id;
 
-            // soft delete api key.
-            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-            $deleteapikey->status = 'deleted';
+                // soft delete api key.
+                $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+                $deleteapikey->status = 'deleted';
 
-            $deleteuser->save();
-            $deleteapikey->save();
+                $deleteuser->save();
+                $deleteapikey->save();
+            }
 
             Event::fire('orbit.merchant.postdeletemerchant.after.save', array($this, $deletemerchant));
             $this->response->data = null;
@@ -1345,11 +1347,13 @@ class MerchantAPIController extends ControllerAPI
 
             // update user status
             OrbitInput::post('status', function($status) use ($updatedmerchant) {
-                $updateuser = User::excludeDeleted()->find($updatedmerchant->user_id);
-                $updateuser->status = $status;
-                $updateuser->modified_by = $this->api->user->user_id;
+                $updateuser = User::with(array('role'))->excludeDeleted()->find($updatedmerchant->user_id);
+                if (! $updateuser->isSuperAdmin()) {
+                    $updateuser->status = $status;
+                    $updateuser->modified_by = $this->api->user->user_id;
 
-                $updateuser->save();
+                    $updateuser->save();
+                }
             });
 
             // do insert/update/delete merchant_taxes
