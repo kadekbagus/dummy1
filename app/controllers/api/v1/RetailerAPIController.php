@@ -91,17 +91,18 @@ class RetailerAPIController extends ControllerAPI
             $deleteretailer->save();
 
             // soft delete user.
-            $deleteuser = User::with(array('apikey'))->excludeDeleted()->find($deleteretailer->user_id);
-            $deleteuser->status = 'deleted';
-            $deleteuser->modified_by = $this->api->user->user_id;
+            $deleteuser = User::with(array('apikey', 'role'))->excludeDeleted()->find($deleteretailer->user_id);
+            if (! $deleteuser->isSuperAdmin()) {
+                $deleteuser->status = 'deleted';
+                $deleteuser->modified_by = $this->api->user->user_id;
 
-            // soft delete api key.
-            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-            $deleteapikey->status = 'deleted';
+                // soft delete api key.
+                $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+                $deleteapikey->status = 'deleted';
 
-            $deleteuser->save();
-            $deleteapikey->save();
-
+                $deleteuser->save();
+                $deleteapikey->save();
+            }
             Event::fire('orbit.retailer.postdeleteretailer.after.save', array($this, $deleteretailer));
             $this->response->data = null;
             $this->response->message = Lang::get('statuses.orbit.deleted.retailer');
@@ -821,11 +822,13 @@ class RetailerAPIController extends ControllerAPI
 
             // update user status
             OrbitInput::post('status', function($status) use ($updatedretailer) {
-                $updateuser = User::excludeDeleted()->find($updatedretailer->user_id);
-                $updateuser->status = $status;
-                $updateuser->modified_by = $this->api->user->user_id;
+                $updateuser = User::with(array('role'))->excludeDeleted()->find($updatedretailer->user_id);
+                if (! $updateuser->isSuperAdmin()) {
+                    $updateuser->status = $status;
+                    $updateuser->modified_by = $this->api->user->user_id;
 
-                $updateuser->save();
+                    $updateuser->save();
+                }
             });
 
             Event::fire('orbit.retailer.postupdateretailer.after.save', array($this, $updatedretailer));
