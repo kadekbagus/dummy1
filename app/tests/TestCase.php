@@ -31,11 +31,7 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 	public function tearDown()
 	{
-		try {
-			DB::rollback();
-		} catch (Exception $_) {
-
-		}
+		DB::rollback();
 
 		unset($_GET);
 		unset($_POST);

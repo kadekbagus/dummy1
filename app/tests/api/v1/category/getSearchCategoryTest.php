@@ -56,6 +56,30 @@ class getSearchCategoryTest extends TestCase
         $this->assertSame($expect, $return);
     }
 
+    public function testError_get_category_as_guest()
+    {
+        $apiKey = Factory::create('Apikey', ['user_id' => 'factory:user_guest']);
+
+        $_GET['apikey']       = $apiKey->api_key;
+        $_GET['apitimestamp'] = time();
+
+        $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+        $_SERVER['REQUEST_METHOD']         = 'GET';
+        $_SERVER['REQUEST_URI']            = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($apiKey->api_secret_key, 'sha256');
+
+        $response = $this->call('GET', $url)->getContent();
+        $response = json_decode($response);
+
+        // Should be failed
+        $this->assertResponseStatus(403);
+
+        // Should be error access denied
+        $this->assertSame(Status::ACCESS_DENIED, $response->code);
+        $this->assertSame('You do not have permission to view category.',$response->message );
+    }
+
     public function testOK_get_without_additional_parameters()
     {
         // Set the client API Keys

@@ -36,3 +36,13 @@ $factory('User', 'user_super_admin', [
     'status'         => 'active',
     'user_role_id'   => 'factory:role_super_admin'
 ]);
+
+$factory('User', 'user_guest', [
+    'username'       => $faker->userName,
+    'user_password'  => "SecretAdmin",
+    'user_email'     => $faker->email,
+    'user_firstname' => $faker->firstName,
+    'user_lastname'  => $faker->lastName,
+    'status'         => 'active',
+    'user_role_id'   => 'factory:role_guest'
+]);
