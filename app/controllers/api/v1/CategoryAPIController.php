@@ -187,7 +187,7 @@ class CategoryAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.category.postnewcategory.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -415,7 +415,7 @@ class CategoryAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.category.postupdatecategory.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -606,7 +606,7 @@ class CategoryAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.category.postdeletecategory.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -893,7 +893,7 @@ class CategoryAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.category.getsearchcategory.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
