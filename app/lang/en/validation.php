@@ -125,6 +125,7 @@ return array(
             'employeeid'            => 'The employee ID is not available.',
             'widget_type'           => 'Another widget with the same widget type already exists',
             'merchant_have_retailer' => 'The merchant has one or more retailers linked to it, so it cannot be deleted.',
+            'merchant_retailers_is_box_current_retailer' => 'The merchant status cannot be set to inactive, because one of its retailers is set to box current retailer.',
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',

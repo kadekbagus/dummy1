@@ -1140,7 +1140,7 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.merchant_status',
+                    'status'            => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
                     'omid'              => 'omid_exists_but_me',
                     'ticket_header'     => 'ticket_header_max_length',
                     'ticket_footer'     => 'ticket_footer_max_length',
@@ -1773,6 +1773,26 @@ class MerchantAPIController extends ControllerAPI
             }
 
             App::instance('orbit.exists.merchant_have_retailer', $retailer);
+
+            return TRUE;
+        });
+
+        // if merchant status is updated to inactive, then reject if its retailers is current retailer.
+        Validator::extend('orbit.exists.merchant_retailers_is_box_current_retailer', function ($attribute, $value, $parameters) {
+            if ($value === 'inactive') {
+                $merchant_id = $parameters[0];
+                $retailer_id = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+                $currentRetailer = Retailer::excludeDeleted()
+                                    ->where('parent_id', $merchant_id)
+                                    ->where('merchant_id', $retailer_id)
+                                    ->first();
+
+                if (! empty($currentRetailer)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.exists.merchant_retailers_is_box_current_retailer', $currentRetailer);
+            }
 
             return TRUE;
         });
