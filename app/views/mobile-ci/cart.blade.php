@@ -492,7 +492,9 @@
 
 @section('ext_script_bot')
 <script type="text/javascript">
-
+  if (!window.location.origin) {
+    window.location.origin = window.location.protocol + "//" + window.location.hostname;
+  }
   $(document).ready(function(){
     $('body').off('click', '.use-coupon').on('click', '.use-coupon', function($event){
       $('#hasCouponModal .modal-body p').html('');
