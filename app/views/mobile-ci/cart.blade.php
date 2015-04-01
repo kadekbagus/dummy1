@@ -491,8 +491,11 @@
 @stop
 
 @section('ext_script_bot')
+{{ HTML::script('mobile-ci/scripts/autoNumeric.js') }}
 <script type="text/javascript">
-
+  if (!window.location.origin) {
+    window.location.origin = window.location.protocol + "//" + window.location.hostname;
+  }
   $(document).ready(function(){
     $('body').off('click', '.use-coupon').on('click', '.use-coupon', function($event){
       $('#hasCouponModal .modal-body p').html('');
@@ -515,14 +518,13 @@
                   var disc_val;
                   if(data.data[i].rule_type == 'product_discount_by_percentage' || data.data[i].rule_type == 'cart_discount_by_percentage') disc_val = '-' + (data.data[i].discount_value * 100) + '% off';
                   else if(data.data[i].rule_type == 'product_discount_by_value' || data.data[i].rule_type == 'cart_discount_by_value') disc_val = '- {{ $retailer->parent->currency }} ' + parseFloat(data.data[i].discount_value) +' off';
-                  else if(data.data[i].rule_type == 'new_product_price') disc_val = '{{ Lang::get('mobileci.modals.new_product_price') }} {{ $retailer->parent->currency }} <span class="formatted-numx">' + parseFloat(data.data[i].discount_value) + '</span>';
+                  else if(data.data[i].rule_type == 'new_product_price') disc_val = '{{ Lang::get('mobileci.modals.new_product_price') }} {{ $retailer->parent->currency }} <span class="formatted-numx'+i+'">' + parseFloat(data.data[i].discount_value) + '</span>';
                   $('#hasCouponModal .modal-body p').html($('#hasCouponModal .modal-body p').html() + '<div class="row vertically-spaced"><div class="col-xs-2"><input type="checkbox" class="used_coupons" name="used_coupons" value="'+ data.data[i].issued_coupon_id +'"></div><div class="col-xs-4"><img style="width:64px;" class="img-responsive" src="{{asset("'+ data.data[i].promo_image +'")}}"></div><div class="col-xs-6">'+data.data[i].promotion_name+'<br>'+ disc_val +'</div></div>');
-                  $('.formatted-numx').each(function(index){
-                  var num = parseFloat($(this).text()).toFixed(0);
-                  var partnum = num.toString().split('.');
-                  var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-                    $(this).text(part1);
-                  });
+                  @if($retailer->parent->currency == 'IDR')
+                    $('.formatted-numx'+i).text(parseFloat($('.formatted-numx'+i).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
+                  @else
+                    $('.formatted-numx'+i).text(parseFloat($('.formatted-numx'+i).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+                  @endif
                 }
                 $('#hasCouponModal').modal();
               }else{
@@ -567,12 +569,15 @@
         $('#hasCouponModal').modal('hide');
       });
     });
+    @if($retailer->parent->currency == 'IDR')
     $('.formatted-num').each(function(index){
-      var num = parseFloat($(this).text()).toFixed(0);
-      var partnum = num.toString().split('.');
-      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-      $(this).text(part1);
+      $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
     });
+    @else
+    $('.formatted-num').each(function(index){
+      $(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+    });
+    @endif
     $('.percentage-num').each(function(index){
       var num = parseFloat($(this).text());
       $(this).text(num+'%');
