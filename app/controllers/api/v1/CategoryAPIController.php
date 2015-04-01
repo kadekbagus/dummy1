@@ -24,7 +24,7 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `merchant_id`           (required) - Merchant ID
      * @param string     `category_name`         (required) - Category name
      * @param integer    `category_level`        (required) - Category Level. Valid value: 1 to 5.
-     * @param string     `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
+     * @param string     `status`                (required) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
      *
@@ -67,7 +67,7 @@ class CategoryAPIController extends ControllerAPI
             $category_order = OrbitInput::post('category_order');
             $description = OrbitInput::post('description');
             $status = OrbitInput::post('status');
-            
+
             $validator = Validator::make(
                 array(
                     'merchant_id'    => $merchant_id,
@@ -220,10 +220,10 @@ class CategoryAPIController extends ControllerAPI
      * @param integer    `category_id`           (required) - Category ID
      * @param integer    `merchant_id`           (optional) - Merchant ID
      * @param string     `category_name`         (optional) - Category name
-     * @param integer    `category_level`        (optional) - Category level
+     * @param integer    `category_level`        (optional) - Category level. Valid value: 1 to 5.
      * @param integer    `category_order`        (optional) - Category order
      * @param string     `description`           (optional) - Description
-     * @param string     `status`                (optional) - Status
+     * @param string     `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -447,7 +447,7 @@ class CategoryAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `category_id`                  (required) - ID of the category
-     * @param integer    `is_validation`                (optional) - Valid value: Y. Flag to validate only when deleting category.
+     * @param string     `is_validation`                (optional) - Valid value: Y. Flag to validate only when deleting category.
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -640,17 +640,17 @@ class CategoryAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param string   `sort_by`               (optional) - column order by
-     * @param string   `sort_mode`             (optional) - asc or desc
-     * @param integer  `category_id`           (optional) - Category ID
-     * @param integer  `merchant_id`           (optional) - Merchant ID
-     * @param string   `category_name`         (optional) - Category name
+     * @param string   `sortby`                (optional) - column order by. Valid value: registered_date, category_name, category_level, category_order, description, status.
+     * @param string   `sortmode`              (optional) - asc or desc
+     * @param array    `category_id`           (optional) - Category ID
+     * @param array    `merchant_id`           (optional) - Merchant ID
+     * @param array    `category_name`         (optional) - Category name
      * @param string   `category_name_like`    (optional) - Category name like
-     * @param integer  `category_level`        (optional) - Category level
-     * @param integer  `category_order`        (optional) - Category order
-     * @param string   `description`           (optional) - Description
+     * @param array    `category_level`        (optional) - Category level. Valid value: 1 to 5.
+     * @param array    `category_order`        (optional) - Category order
+     * @param array    `description`           (optional) - Description
      * @param string   `description_like`      (optional) - Description like
-     * @param string   `status`                (optional) - Status
+     * @param array    `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param integer  `take`                  (optional) - limit
      * @param integer  `skip`                  (optional) - limit offset
      *
