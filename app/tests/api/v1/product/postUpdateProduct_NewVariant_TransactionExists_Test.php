@@ -1,7 +1,7 @@
 <?php
 /**
- * Unit testing for ProductAPIController::postNewProduct() and postUpdateProduct()
- * method which lead to duplicate UPC.
+ * Unit testing for ProductAPIController::postUpdateProduct() when a variant
+ * deleted and transaction already exists.
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
@@ -9,7 +9,7 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use OrbitShop\API\v1\OrbitShopAPI;
 
-class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
+class postUpdateProduct_NewVariant_TransactionExists_Test extends OrbitTestCase
 {
     protected static $merchants = [];
     protected static $retailers = [];
@@ -18,6 +18,8 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
     protected static $attributes = [];
     protected static $attributeValues = [];
     protected static $productVariants = [];
+    protected static $transactions = [];
+    protected static $transactionDetails = [];
 
     /**
      * Executed only once at the beginning of the test.
@@ -345,6 +347,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
                 'price'         => 500000,
                 'status'        => 'active',
                 'merchant_id'   => 1,
+                'attribute_id1' => 1
             ],
             [
                 'product_id'    => 2,
@@ -367,6 +370,60 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         ];
         foreach (static::$products as $product) {
             DB::table('products')->insert($product);
+        }
+
+        // Insert dummy product variants
+        static::$variants = [
+            [
+                'product_variant_id'            => 1,
+                'product_id'                    => 1,
+                'price'                         => 123000,
+                'upc'                           => 'UPC-101',
+                'sku'                           => 'SKU-101',
+                'product_attribute_value_id1'   => 19,
+                'merchant_id'                   => 1,
+                'status'                        => 'active',
+            ],
+        ];
+        foreach (static::$variants as $variant) {
+            DB::table('product_variants')->insert($variant);
+        }
+
+        // Insert dummy transactions
+        static::$transactions = [
+            [
+                'transaction_id'    => 1,
+                'transaction_code'  => 'T001',
+                'cashier_id'        => 99,
+                'customer_id'       => 3,
+                'retailer_id'       => 3,
+                'merchant_id'       => 1,
+                'status'            => 'paid',
+            ],
+        ];
+        foreach (static::$transactions as $transaction) {
+            DB::table('transactions')->insert($transaction);
+        }
+
+        // Insert dummy transaction details
+        static::$transactionDetails = [
+            [
+                'transaction_detail_id'     => 1,
+                'transaction_id'            => 1,
+                'product_id'                => 1,
+                'product_name'              => 'Kemeja Mahal',
+                'price'                     => 3,
+                'product_code'              => 'SKU-001',
+                'sku'                       => 'SKU-001',
+                'upc'                       => 'UPC-001',
+                'product_variant_id'        => 1,
+                'variant_price'             => 8000,
+                'variant_sku'               => 'SKU-001',
+                'variant_upc'               => 'UPC-001'
+            ],
+        ];
+        foreach (static::$transactionDetails as $tdetails) {
+            DB::table('transaction_details')->insert($tdetails);
         }
     }
 
@@ -454,6 +511,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         foreach ($events as $event) {
             Event::forget($event);
         }
+
     }
 
     public function testObjectInstance()
@@ -462,45 +520,100 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $this->assertInstanceOf('ProductAPIController', $ctl);
     }
 
-    /**
-     * This test would produce the following variants:
-     *
-     * Kemeja Mahal	Size 14 (19, 1)	Color White (5,2)	Material Cotton (8,3)	Origin USA (17, 5)	Class KW 1 (15,4)
-     * Kemeja Mahal	Size 15 (20, 1)	Color White (5,2)	Material Cotton (8,3)	Origin USA (17, 5)	Class KW 1 (15,4)
-     * Kemeja Mahal	Size 16 (21, 1)	Color Black (7,2)	Material Cotton (8,3)	Origin USA (17, 5)	Class KW 2 (16,4)
-     */
-    public function testSaveProductUpdate_DeleteVariant_KemejaMahal_Size14_ColorWhite_MaterialCotton_OriginUSA_ClassKW()
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_Allowed()
     {
         // Object of first "Kemeja Mahal"
         $kemejaMahal1 = new stdClass();
-        $kemejaMahal1->upc = NULL;  // Follows the parent
-        $kemejaMahal1->sku = NULL;  // Follows the parent
-        $kemejaMahal1->price = NULL;  // Follows the parent
+        $kemejaMahal1->upc = 'UPC-101';
+        $kemejaMahal1->sku = 'SKU-101';
+        $kemejaMahal1->price = NULL;
+        $kemejaMahal1->variant_id = 1;
 
         // It containts array of product_attribute_value_id
-        $kemejaMahal1->attribute_values = [19, 5, 8, 17, 15];
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
 
-        // Object of second "Kemeja Mahal"
+        // Object of second "Kemeja Agak Mahal"
         $kemejaMahal2 = new stdClass();
-        $kemejaMahal2->upc = 'UPC-001-MAHAL';  // Has own UPC
-        $kemejaMahal2->sku = 'SKU-001-MAHAL';  // Has own SKU
+        $kemejaMahal2->upc = 'UPC-001-AGAK-MAHAL';  // Has own UPC
+        $kemejaMahal2->sku = 'SKU-001-AGAK-MAHAL';  // Has own SKU
         $kemejaMahal2->price = 999000;  // Has own price
 
+        $kemejaMahal2->attribute_values = [20, NULL, NULL, NULL, NULL];
+
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants'] = json_encode([$kemejaMahal2]);
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $this->assertSame(Status::OK, (int)$response->code);
+        $this->assertSame('success', $response->status);
+    }
+
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_SKU_Changed_NotAllowed()
+    {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = NULL; // Leave as is
+        $kemejaMahal1->sku = 'SKU-102';
+        $kemejaMahal1->price = NULL;  // Leave as is
+        $kemejaMahal1->variant_id = 1;
+
         // It containts array of product_attribute_value_id
-        $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
 
-        // Object of third "Kemeja Mahal"
-        $kemejaMahal3 = new stdClass();
-        $kemejaMahal3->upc = 'UPC-001-MAHAL3';  // Has own UPC
-        $kemejaMahal3->sku = 'SKU-001-MAHAL3';  // Has own SKU
-        $kemejaMahal3->price = NULL;    // Follows the parent
+        // POST data
+        $_POST['product_id'] = 1;
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
+
+        // Set the client API Keys
+        $_GET['apikey'] = 'abc123';
+        $_GET['apitimestamp'] = time();
+
+        $url = '/api/v1/product/update?' . http_build_query($_GET);
+
+        $secretKey = 'abc12345678910';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+        $return = $this->call('POST', $url)->getContent();
+
+        $response = json_decode($return);
+        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', ['id' => 1]);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame($errorMessage, $response->message);
+    }
+
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_UPC_Changed_NotAllowed()
+    {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = NULL; // Leave as is
+        $kemejaMahal1->sku = 'UPC-102';
+        $kemejaMahal1->price = NULL;  // Leave as is
+        $kemejaMahal1->variant_id = 1;
 
         // It containts array of product_attribute_value_id
-        $kemejaMahal3->attribute_values = [21, 7, 8, 17, 16];
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
 
         // POST data
         $_POST['product_id'] = 1;
-        $_POST['product_variants'] = json_encode([$kemejaMahal1, $kemejaMahal2, $kemejaMahal3]);
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
         $_GET['apikey'] = 'abc123';
@@ -516,47 +629,27 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $return = $this->call('POST', $url)->getContent();
 
         $response = json_decode($return);
-        $this->assertSame(0, (int)$response->code);
-        $this->assertSame('success', $response->status);
+        $errorMessage = Lang::get('validation.orbit.exists.product.variant.transaction', ['id' => 1]);
+        $this->assertSame(Status::INVALID_ARGUMENT, (int)$response->code);
+        $this->assertSame('error', $response->status);
+        $this->assertSame($errorMessage, $response->message);
+    }
 
-        $product = Product::with('variantsNoDefault')->find(1);
+    public function testPostNewVariantAndUpdate_TransactionProductID1_Exists_Price_Changed_Allowed()
+    {
+        // Object of first "Kemeja Mahal"
+        $kemejaMahal1 = new stdClass();
+        $kemejaMahal1->upc = NULL; // Leave as is
+        $kemejaMahal1->sku = NULL;
+        $kemejaMahal1->price = 25999;  // Leave as is
+        $kemejaMahal1->variant_id = 1;
 
-        // The values of attribute_id1,2,3,4,5 for Product ID 1 should be
-        // 1, 2, 3, 5, 4
-        $this->assertSame('1', (string)$product->attribute_id1);
-        $this->assertSame('2', (string)$product->attribute_id2);
-        $this->assertSame('3', (string)$product->attribute_id3);
-        $this->assertSame('5', (string)$product->attribute_id4);
-        $this->assertSame('4', (string)$product->attribute_id5);
-
-        // Check data for first Object
-        $variant1 = $product->variantsNoDefault[0];
-
-        $this->assertSame('SKU-001', $variant1->sku);
-        $this->assertSame('UPC-001', $variant1->upc);
-        $this->assertSame('500000.00', (string)$variant1->price);
-
-        // Check data for second Object
-        $variant2 = $product->variantsNoDefault[1];
-
-        $this->assertSame('SKU-001-MAHAL', $variant2->sku);
-        $this->assertSame('UPC-001-MAHAL', $variant2->upc);
-        $this->assertSame('999000.00', (string)$variant2->price);
-
-        // Check data for third Object
-        $variant3 = $product->variantsNoDefault[2];
-
-        $this->assertSame('SKU-001-MAHAL3', $variant3->sku);
-        $this->assertSame('UPC-001-MAHAL3', $variant3->upc);
-        $this->assertSame('500000.00', (string)$variant3->price);
-
-        // Now Delete the variant 1
-        $_GET = [];
-        $_POST = [];
+        // It containts array of product_attribute_value_id
+        $kemejaMahal1->attribute_values = [19, NULL, NULL, NULL, NULL];
 
         // POST data
         $_POST['product_id'] = 1;
-        $_POST['product_variants_delete'] = [$variant1->product_variant_id];
+        $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
         $_GET['apikey'] = 'abc123';
@@ -572,74 +665,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $return = $this->call('POST', $url)->getContent();
 
         $response = json_decode($return);
-        $this->assertSame(0, (int)$response->code);
+        $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', $response->status);
-
-        $product = Product::with('variantsNoDefault')->find(1);
-        $this->assertSame(2, count($product->variantsNoDefault));
-
-        // Now Delete the variant 2
-        $_GET = [];
-        $_POST = [];
-
-        // POST data
-        $_POST['product_id'] = 1;
-        $_POST['product_variants_delete'] = [$variant2->product_variant_id];
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'abc123';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/product/update?' . http_build_query($_GET);
-
-        $secretKey = 'abc12345678910';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $return = $this->call('POST', $url)->getContent();
-
-        $response = json_decode($return);
-        $this->assertSame(0, (int)$response->code);
-        $this->assertSame('success', $response->status);
-
-        $product = Product::with('variantsNoDefault')->find(1);
-        $this->assertSame(1, count($product->variantsNoDefault));
-
-        // Now Delete the variant 3
-        $_GET = [];
-        $_POST = [];
-
-        // POST data
-        $_POST['product_id'] = 1;
-        $_POST['product_variants_delete'] = [$variant3->product_variant_id];
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'abc123';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/product/update?' . http_build_query($_GET);
-
-        $secretKey = 'abc12345678910';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $return = $this->call('POST', $url)->getContent();
-
-        $response = json_decode($return);
-        $this->assertSame(0, (int)$response->code);
-        $this->assertSame('success', $response->status);
-
-        $product = Product::with('variantsNoDefault')->find(1);
-        $this->assertSame(0, count($product->variantsNoDefault));
-
-        // The values of attribute_id1,2,3,4,5 for Product ID 1 should be
-        // 1, 2, 3, 5, 4
-        $this->assertSame('', (string)$product->attribute_id1);
-        $this->assertSame('', (string)$product->attribute_id2);
-        $this->assertSame('', (string)$product->attribute_id3);
-        $this->assertSame('', (string)$product->attribute_id4);
-        $this->assertSame('', (string)$product->attribute_id5);
     }
 }
