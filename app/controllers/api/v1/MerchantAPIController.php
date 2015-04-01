@@ -68,7 +68,7 @@ class MerchantAPIController extends ControllerAPI
                     'password'    => $password,
                 ),
                 array(
-                    'merchant_id' => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id' => 'required|numeric|orbit.empty.merchant|orbit.exists.merchant_have_retailer',
                     'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
@@ -96,6 +96,7 @@ class MerchantAPIController extends ControllerAPI
 
             // soft delete user.
             $deleteuser = User::with(array('apikey', 'role'))->excludeDeleted()->find($deletemerchant->user_id);
+            // don't delete linked user if linked user is super admin.
             if (! $deleteuser->isSuperAdmin()) {
                 $deleteuser->status = 'deleted';
                 $deleteuser->modified_by = $this->api->user->user_id;
@@ -1758,6 +1759,20 @@ class MerchantAPIController extends ControllerAPI
             }
 
             App::instance('orbit.formaterror.url.web', $url);
+
+            return TRUE;
+        });
+
+        // Check if merchant have retailer.
+        Validator::extend('orbit.exists.merchant_have_retailer', function ($attribute, $value, $parameters) {
+            $retailer = Retailer::excludeDeleted()
+                            ->where('parent_id', $value)
+                            ->first();
+            if (! empty($retailer)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.merchant_have_retailer', $retailer);
 
             return TRUE;
         });
