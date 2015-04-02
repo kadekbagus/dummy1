@@ -35,7 +35,7 @@
                            <tr>
                                 <th class="text-center"><% language.nama %> + <% language.upc %></th>
                                 <th class="text-center"><% language.jumlah %></th>
-                                <th class="text-center"><% language.hargasatuan %></th>
+                                <th class="text-center"><% language.hargasatuan  +'('+ currency +')'%> </th>
                                 <th class="text-center"><% language.hargatotal %></th>
                            </tr>
                          </thead>
@@ -256,10 +256,10 @@
                       <div class="row" data-ng-if="hiddenbtn">
                            <div class="col-xs-12" data-ng-show="datapromotion.length">
                                     <p><h5><del><% productmodal.price %></del></h5></p>
-                                    <p><h4>IDR : <% productmodal.afterpromotionprice %> </h4></p>
+                                    <p><h4><% currency %> : <% productmodal.afterpromotionprice %> </h4></p>
                                </div>
                            <div class="col-xs-12" data-ng-show="!datapromotion.length">
-                                     <p><h4>IDR : <% productmodal.price %></h4></p>
+                                     <p><h4><% currency %> : <% productmodal.price %></h4></p>
                                </div>
                       </div>
                      </div>
@@ -313,21 +313,21 @@
                         <div data-ng-show="datapromotion.length && showprice">
                             <p>UPC 1:<% productmodal.upc_code %> </p>
                             <p><h5><del><% productmodal.price %></del></h5></p>
-                            <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
+                            <p><h4><% currency %> : <% productmodal.afterpromotionprice %></h3></p>
 
                         </div>
                         <div data-ng-show="!datapromotion.length && showprice && dataattrvalue1.length != '1'" >
                             <p>UPC 2:<% productmodal.upc_code %> </p>
-                            <p><h4>IDR : <% productmodal.price %></h3></p>
+                            <p><h4><% currency %> : <% productmodal.price %></h3></p>
                         </div>
                         <div data-ng-show="!datapromotion.length && dataattrvalue1.length == '1' && showprice">
                             <p>UPC 3:<% productmodal.upc_code %> </p>
-                            <p><h4>IDR : <%  productmodal.price %></h3></p>
+                            <p><h4><% currency %> : <%  productmodal.price %></h3></p>
                         </div>
                         <div data-ng-show="datapromotion.length && dataattrvalue1.length == '1'">
                             <p>UPC 4:<% productmodal.upc_code %> </p>
                             <p><h5><del><% productmodal.price %></del></h5></p>
-                            <p><h4>IDR : <% productmodal.afterpromotionprice %></h3></p>
+                            <p><h4><% currency %> : <% productmodal.afterpromotionprice %></h3></p>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -505,10 +505,12 @@
                                          <button data-ng-click="keypadFn('3')">3</button>
 
 
-                                         <button data-ng-click="keypadFn('c')" class="smaller"><% language.bersihkan %></button>
+                                         <button data-ng-click="keypadFn('.')" class="smaller">.</button>
                                          <button data-ng-click="keypadFn('0')">0</button>
                                          <button data-ng-click="keypadFn('r')" class="smaller"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>
-                                          <button data-ng-click="virtualFn(false)" class="button-wide smaller"><% language.selesai %></button>
+
+                                          <button data-ng-click="keypadFn('c')" class=" smaller"><% language.bersihkan %></button>
+                                          <button data-ng-click="virtualFn(false)" class="smaller" style="width: 110px"><% language.selesai %></button>
 
                                       </div>
 
