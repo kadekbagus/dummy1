@@ -219,7 +219,7 @@ class SettingAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.setting.postupdatesetting.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -480,7 +480,7 @@ class SettingAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.setting.getsearchsetting.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;

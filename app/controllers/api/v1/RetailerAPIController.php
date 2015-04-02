@@ -186,7 +186,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postdeleteretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -517,7 +517,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postnewretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -913,7 +913,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postupdateretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1423,7 +1423,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.getsearchretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1680,7 +1680,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.getcitylist.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;

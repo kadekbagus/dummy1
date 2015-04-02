@@ -426,7 +426,7 @@ class CouponAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.coupon.postnewcoupon.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -938,7 +938,7 @@ class CouponAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.coupon.postupdatecoupon.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1131,7 +1131,7 @@ class CouponAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.coupon.postdeletecoupon.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1595,7 +1595,7 @@ class CouponAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.coupon.getsearchcoupon.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1899,7 +1899,7 @@ class CouponAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.coupon.getsearchcouponbyissueretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
