@@ -3995,13 +3995,13 @@ class MobileCIAPIController extends ControllerAPI
             $activityPromoObj = null;
             $temp_price = $variant_price;
             foreach ($promo_products as $promo) {
-                if ($promo->promotionrule->rule_type == 'product_discount_by_percentage' || $promo_filter->rule_type == 'cart_discount_by_percentage') {
+                if ($promo->promotionrule->rule_type == 'product_discount_by_percentage' || $promo->promotionrule->rule_type == 'cart_discount_by_percentage') {
                     $discount = $promo->promotionrule->discount_value * $variant_price;
                     if ($temp_price < $discount) {
                         $discount = $temp_price;
                     }
                     $price_after_promo = $price_after_promo - $discount;
-                } elseif ($promo->promotionrule->rule_type == 'product_discount_by_value' || $promo_filter->rule_type == 'cart_discount_by_value') {
+                } elseif ($promo->promotionrule->rule_type == 'product_discount_by_value' || $promo->promotionrule->rule_type == 'cart_discount_by_value') {
                     $discount = $promo->promotionrule->discount_value;
                     if ($temp_price < $discount) {
                         $discount = $temp_price;
@@ -4133,7 +4133,8 @@ class MobileCIAPIController extends ControllerAPI
                 ->responseFailed()
                 ->save();
 
-            return $this->redirectIfNotLoggedIn($e);
+            // return $this->redirectIfNotLoggedIn($e);
+                return $e;
         }
 
         return $this->render();
