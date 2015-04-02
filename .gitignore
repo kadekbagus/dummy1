@@ -33,3 +33,6 @@ app/config/packages/laraeval/laraeval/config.php
 # test vendor
 vendor/fzaninotto/
 vendor/laracasts/
+
+# Export directory
+export-import/data/**
