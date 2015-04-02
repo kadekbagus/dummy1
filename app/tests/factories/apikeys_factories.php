@@ -16,3 +16,10 @@ $factory('Apikey', [
     'status'         => 'active',
     'user_id'        => 'factory:User'
 ]);
+
+$factory('Apikey', 'apikey_super_admin', [
+    'api_key'        => $faker->lexify('??????'),
+    'api_secret_key' => $faker->lexify('??????????'),
+    'status'         => 'active',
+    'user_id'        => 'factory:user_super_admin'
+]);
