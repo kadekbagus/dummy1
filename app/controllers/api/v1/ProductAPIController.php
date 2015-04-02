@@ -444,6 +444,7 @@ class ProductAPIController extends ControllerAPI
                         }
                     }
                     $product_variant->save();
+                    $product_variant->has_transaction = 'no';
 
                     $variants[] = $product_variant;
                 }
@@ -576,6 +577,11 @@ class ProductAPIController extends ControllerAPI
                         }
                     }
                     $product_variant->save();
+                    $product_variant->has_transaction = 'no';
+
+                    if ($has_transaction) {
+                        $product_variant->has_transaction = 'yes';
+                    }
 
                     $variants[] = $product_variant;
                 }

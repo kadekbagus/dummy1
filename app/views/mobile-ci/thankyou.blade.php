@@ -46,6 +46,7 @@ body{
 
 @section('ext_script_bot')
 {{ HTML::script('mobile-ci/scripts/html2canvas.min.js') }}
+{{ HTML::script('mobile-ci/scripts/autoNumeric.js') }}
 <script type="text/javascript">
   $(document).ready(function(){
     var img64 = $('#receipt-img').attr('src');
@@ -58,12 +59,15 @@ body{
       method: 'POST'
     });
 
+    @if($retailer->parent->currency == 'IDR')
     $('.formatted-num').each(function(index){
-      var num = parseFloat($(this).text()).toFixed(0);
-      var partnum = num.toString().split('.');
-      var part1 = partnum[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-      $(this).text(part1);
+      $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
     });
+    @else
+    $('.formatted-num').each(function(index){
+      $(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+    });
+    @endif
   
     $('.percentage-num').each(function(index){
       var num = parseFloat($(this).text());
