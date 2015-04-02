@@ -102,11 +102,13 @@ class MerchantAPIController extends ControllerAPI
                 $deleteuser->modified_by = $this->api->user->user_id;
 
                 // soft delete api key.
-                $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-                $deleteapikey->status = 'deleted';
+                if (! empty($deleteuser->apikey)) {
+                    $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+                    $deleteapikey->status = 'deleted';
+                    $deleteapikey->save();
+                }
 
                 $deleteuser->save();
-                $deleteapikey->save();
             }
 
             Event::fire('orbit.merchant.postdeletemerchant.after.save', array($this, $deletemerchant));

@@ -64,7 +64,7 @@ class RetailerAPIController extends ControllerAPI
                     'password'    => $password,
                 ),
                 array(
-                    'retailer_id' => 'required|numeric|orbit.empty.retailer',
+                    'retailer_id' => 'required|numeric|orbit.empty.retailer|orbit.exists.deleted_retailer_is_box_current_retailer',
                     'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
@@ -97,11 +97,13 @@ class RetailerAPIController extends ControllerAPI
                 $deleteuser->modified_by = $this->api->user->user_id;
 
                 // soft delete api key.
-                $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-                $deleteapikey->status = 'deleted';
+                if (! empty($deleteuser->apikey)) {
+                    $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+                    $deleteapikey->status = 'deleted';
+                    $deleteapikey->save();
+                }
 
                 $deleteuser->save();
-                $deleteapikey->save();
             }
             Event::fire('orbit.retailer.postdeleteretailer.after.save', array($this, $deleteretailer));
             $this->response->data = null;
@@ -638,7 +640,7 @@ class RetailerAPIController extends ControllerAPI
                     'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.retailer_status',
+                    'status'            => 'orbit.empty.retailer_status|orbit.exists.inactive_retailer_is_box_current_retailer:'.$retailer_id,
                     'orid'              => 'orid_exists_but_me',
                     'parent_id'         => 'numeric|orbit.empty.merchant',
                     'url'               => 'orbit.formaterror.url.web'
@@ -1590,6 +1592,32 @@ class RetailerAPIController extends ControllerAPI
             }
 
             App::instance('orbit.formaterror.url.web', $url);
+
+            return TRUE;
+        });
+
+        // Retailer cannot be deleted if is box current retailer.
+        Validator::extend('orbit.exists.deleted_retailer_is_box_current_retailer', function ($attribute, $value, $parameters) {
+            $retailer_id = $value;
+            $box_retailer_id = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
+            if ($retailer_id === $box_retailer_id) {
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+        // if retailer status is updated to inactive, then reject if is box current retailer.
+        Validator::extend('orbit.exists.inactive_retailer_is_box_current_retailer', function ($attribute, $value, $parameters) {
+            if ($value === 'inactive') {
+                $retailer_id = $parameters[0];
+                $box_retailer_id = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
+                if ($retailer_id === $box_retailer_id) {
+                    return FALSE;
+                }
+            }
 
             return TRUE;
         });
