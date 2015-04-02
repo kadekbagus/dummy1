@@ -9,7 +9,7 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use OrbitShop\API\v1\OrbitShopAPI;
 
-class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
+class getProductVariants_withParamTest extends OrbitTestCase
 {
     protected static $merchants = [];
     protected static $retailers = [];

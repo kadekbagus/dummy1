@@ -124,6 +124,8 @@ return array(
             'product_attribute_value_have_product_variant' => 'The product attribute value has one or more product variants linked to it, so it cannot be edited or deleted.',
             'employeeid'            => 'The employee ID is not available.',
             'widget_type'           => 'Another widget with the same widget type already exists',
+            'merchant_have_retailer' => 'The merchant has one or more retailers linked to it, so it cannot be deleted.',
+            'merchant_retailers_is_box_current_retailer' => 'The merchant status cannot be set to inactive, because one of its retailers is set to box current retailer.',
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',

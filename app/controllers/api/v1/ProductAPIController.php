@@ -444,6 +444,7 @@ class ProductAPIController extends ControllerAPI
                         }
                     }
                     $product_variant->save();
+                    $product_variant->has_transaction = 'no';
 
                     $variants[] = $product_variant;
                 }
@@ -576,6 +577,11 @@ class ProductAPIController extends ControllerAPI
                         }
                     }
                     $product_variant->save();
+                    $product_variant->has_transaction = 'no';
+
+                    if ($has_transaction) {
+                        $product_variant->has_transaction = 'yes';
+                    }
 
                     $variants[] = $product_variant;
                 }
@@ -1621,7 +1627,7 @@ class ProductAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.product.postdeleteproduct.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
