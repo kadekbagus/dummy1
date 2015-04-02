@@ -646,11 +646,11 @@
 						$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
 						@if($retailer->parent->currency == 'IDR')
 					        a.parent('[data-family-container="'+ family_id +'"]').find('.formatted-num').each(function(index){
-						      $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0});
+						      $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
 						    });
 					    @else
 					        a.parent('[data-family-container="'+ family_id +'"]').find('.formatted-num').each(function(index){
-						      $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0});
+						      $(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
 						    });
 					    @endif
 					}
@@ -696,10 +696,10 @@
                                 else if(data.data[i].rule_type == 'new_product_price') disc_val = '{{ Lang::get('mobileci.modals.new_product_price') }} {{ $retailer->parent->currency }} <span class="formatted-numx'+i+'">' + parseFloat(data.data[i].discount_value) + '</span>';
                                 $('#hasCouponModal .modal-body p').html($('#hasCouponModal .modal-body p').html() + '<div class="row vertically-spaced"><div class="col-xs-2"><input type="checkbox" class="used_coupons" name="used_coupons" value="'+ data.data[i].issued_coupon_id +'"></div><div class="col-xs-4"><img style="width:64px;" class="img-responsive" src="{{asset("'+ data.data[i].promo_image +'")}}"></div><div class="col-xs-6">'+data.data[i].promotion_name+'<br>'+ disc_val +'</div></div>');
                                 @if($retailer->parent->currency == 'IDR')
-			                    $('.formatted-numx'+i).text(parseFloat($('.formatted-numx'+i).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
-			                  	@else
-			                    $('.formatted-numx'+i).text(parseFloat($('.formatted-numx'+i).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
-			                  	@endif
+				                    $('.formatted-numx'+i).text(parseFloat($('.formatted-numx'+i).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
+				                  @else
+				                    $('.formatted-numx'+i).text(parseFloat($('.formatted-numx'+i).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+				                  @endif
 					        }
 					        $('#hasCouponModal').modal();
 				        }else{
