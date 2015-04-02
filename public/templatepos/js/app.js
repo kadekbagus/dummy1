@@ -37,6 +37,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
          serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
                 if(response.code == 0){
                     $scope.language = response.data.pos_language == 'id' ? id : en;
+                    localStorageService.set('currency',response.data.currency)
                 }
          });
          serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
@@ -99,6 +100,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.versions           = localStorageService.get('version');
         $scope.lock               = false;
         $scope.terminalstatus     = true;
+        //get currency from local storage
+        $scope.precision          = localStorageService.get('currency') == 'IDR' ? 0 : 2;
+        $scope.currency           = localStorageService.get('currency');
 
         if(!$scope.datauser){
              window.location.assign("signin");
@@ -177,7 +181,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              $scope.watchqtypromotion = function(id){
                     if($scope.cart[id]['promotion'].length){
                         for(var i = 0; i < $scope.cart[id]['promotion'].length;i++){
-                            $scope.cart[id]['promotion'][i]['afterpromotionprice'] = accounting.formatMoney($scope.cart[id]['promotion'][i]['tmpafterpromotionprice'] * $scope.cart[id]['qty'], "", 0, ",", ".");
+                            $scope.cart[id]['promotion'][i]['afterpromotionprice'] = accounting.formatMoney($scope.cart[id]['promotion'][i]['tmpafterpromotionprice'] * $scope.cart[id]['qty'], "", $scope.precision, ",", ".");
                         }
                     }
                 };
@@ -186,13 +190,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     serviceAjax.getDataFromServer('/pos/quickproduct?take=12').then(function(response){
                         if(response.code == 0 ){
                             if(response.data.records.length > 0)for(var i =0; i <response.data.records.length; i++){
-                                response.data.records[i]['product']['price'] = accounting.formatMoney(response.data.records[i]['product']['price'], "", 0, ",", ".");
+                                response.data.records[i]['product']['price'] = accounting.formatMoney(response.data.records[i]['product']['price'], "", $scope.precision, ",", ".");
                                 $scope.product[i] = response.data.records[i]['product'];
                             }
                             //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
-                            $scope.logoutfn();
+                            //$scope.logoutfn();
                         }else{
                             //do something when error
                         }
@@ -207,7 +211,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             serviceAjax.getDataFromServer('/pos/productsearch?keyword=' + newvalue).then(function (response) {
                                 if (response.code == 0 &&  response.message != 'There is no product found that matched your criteria.' &&  response.data.records != null) {
                                     for (var i = 0; i < response.data.records.length; i++) {
-                                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", 0, ",", ".");
+                                        response.data.records[i]['price'] = accounting.formatMoney(response.data.records[i]['price'], "", $scope.precision, ",", ".");
                                     }
                                     $scope.product = response.data.records;
 
@@ -242,7 +246,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             var tmpdiscount = 0;
                             if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
                                 $scope.datapromotion[i]['oridiscount_value'] = $scope.datapromotion[i]['discount_value'];
-                                $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", $scope.precision, ",", ".");
                                 $scope.datapromotion[i]['begin_date']        = moment($scope.datapromotion[i]['begin_date']).isValid() ? moment($scope.datapromotion[i]['begin_date']).format('DD MMMM YYYY')  : '';
                                 $scope.datapromotion[i]['end_date']          = moment($scope.datapromotion[i]['end_date']).isValid() ? moment($scope.datapromotion[i]['end_date']).format('DD MMMM YYYY') : '';
 
@@ -258,16 +262,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                                // if(act){
                                  //   tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
-                                    $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                    $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                                     $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
                                     discount += tmpdiscount;
                                // }
                             }
                            // if(act){
                                 var discounts = accounting.unformat($scope.productmodal['price']) - discount;
-                                $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
+                                $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
                            // }
-                            $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", 0, ",", ".");
+                            $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", $scope.precision, ",", ".");
 
                             $scope.dataattrvalue1 = [];
                             $scope.dataattrvalue2 = [];
@@ -370,7 +374,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             var tmpdiscount = 0;
                             if($scope.datapromotion.length)for(var i = 0; i < $scope.datapromotion.length;i++){
                                 $scope.datapromotion[i]['oridiscount_value'] = $scope.datapromotion[i]['discount_value'];
-                                $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[i]['discount_value']    = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[i]['discount_value'], "", $scope.precision, ",", ".");
                                 $scope.datapromotion[i]['begin_date']        = moment($scope.datapromotion[i]['begin_date']).isValid() ? moment($scope.datapromotion[i]['begin_date']).format('DD MMMM YYYY')  : '';
                                 $scope.datapromotion[i]['end_date']          = moment($scope.datapromotion[i]['end_date']).isValid() ? moment($scope.datapromotion[i]['end_date']).format('DD MMMM YYYY') : '';
 
@@ -386,16 +390,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
 
                                // if(act){
                                  //   tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.productmodal['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
-                                    $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                    $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                                     $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
                                     discount += tmpdiscount;
                                // }
                             }
                            // if(act){
                                 var discounts = accounting.unformat($scope.productmodal['price']) - discount;
-                                $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
+                                $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
                            // }
-                            $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", 0, ",", ".");
+                            $scope.productmodal['price'] = accounting.formatMoney($scope.productmodal['price'], "", $scope.precision, ",", ".");
 
                             $scope.dataattrvalue1 = [];
                             $scope.dataattrvalue2 = [];
@@ -517,16 +521,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     tmpdiscount = 0;
                                 }
                               //  tmpdiscount = $scope.datapromotion[i]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[i]['oridiscount_value'] * $scope.tmpattr[idx]['price'] : accounting.unformat($scope.datapromotion[i]['discount_value']);
-                                $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                $scope.datapromotion[i]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                                 $scope.datapromotion[i]['tmpafterpromotionprice'] = tmpdiscount;
                                 tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
                                 discount += tmpdiscount;
                             }
                             var discounts = $scope.tmpattr[idx]['price'] - discount;
-                            $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
-                            $scope.productmodal.price =  accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
+                            $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
+                            $scope.productmodal.price =  accounting.formatMoney($scope.tmpattr[idx]['price'], "", $scope.precision, ",", ".");
                         }else{
-                            $scope.productmodal.price    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", 0, ",", ".");
+                            $scope.productmodal.price    = accounting.formatMoney($scope.tmpattr[idx]['price'], "", $scope.precision, ",", ".");
                             $scope.productmodal.afterpromotionprice = 0;
                         }
                     }
@@ -567,7 +571,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 var pricewotax      = 0;
                                 var pricetax        = 0;
 
-                                $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] * accounting.unformat($scope.cart[i]['price']), "", 0, ",", ".");
+                                $scope.cart[i]['hargatotal'] =  accounting.formatMoney($scope.cart[i]['qty'] * accounting.unformat($scope.cart[i]['price']), "", $scope.precision, ",", ".");
                                 var temp_price = $scope.cart[i]['hargatotal'];
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
@@ -1221,9 +1225,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 couponprice    = couponprice > 0 ? couponprice : 0;
                                 tmphargatotal    += accounting.unformat($scope.cart[i]['hargatotal']) - promotionprice - couponprice;
                                 // console.log(couponprice);
-                                $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", 0, ",", ".");
+                                $scope.cart.subtotal   = accounting.formatMoney(tmphargatotal, "", $scope.precision, ",", ".");
                                 $scope.tmpsubtotal     = $scope.cart.subtotal;
-                                $scope.naspletan  = accounting.formatMoney(nasplet, "", 0, ",", "."); 
+                                $scope.naspletan  = accounting.formatMoney(nasplet, "", $scope.precision, ",", "."); 
                             }
                         }
 
@@ -1267,9 +1271,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                     var idxapply = $scope.applycartpromotion.length -1;
                                     if($scope.applycartpromotion[idxapply]['promotionrule']['rule_type'] == 'cart_discount_by_percentage'){
                                         $scope.applycartpromotion[idxapply]['promotionrule']['discount']       = $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] * 100 +' %';
-                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.tmpvallues, "", 0, ",", ".");
+                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.tmpvallues, "", $scope.precision, ",", ".");
                                     }else{
-                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartpromotion[idxapply]['promotionrule']['discount_value'], "", 0, ",", ".");
+                                        $scope.applycartpromotion[idxapply]['promotionrule']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartpromotion[idxapply]['promotionrule']['discount_value'], "", $scope.precision, ",", ".");
                                     }
                                     if($scope.vat_included == 'yes'){
                                         cart_promo_tmpvat_wo_tax = promotion / (1 + cart_tax_factor);
@@ -1318,9 +1322,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 var idxapply = $scope.applycartcoupon.length -1;
                                 if($scope.applycartcoupon[idxapply]['issuedcoupon']['rule_type'] == 'cart_discount_by_percentage'){
                                     $scope.applycartcoupon[idxapply]['issuedcoupon']['discount']       = $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] * 100 +' %';
-                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.tmpvalluescoupon, "", 0, ",", ".");
+                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.tmpvalluescoupon, "", $scope.precision, ",", ".");
                                 }else{
-                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'], "", 0, ",", ".");
+                                    $scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'] = '- '+ accounting.formatMoney($scope.applycartcoupon[idxapply]['issuedcoupon']['discount_value'], "", $scope.precision, ",", ".");
                                 }
                                 if($scope.vat_included == 'yes'){
                                     cart_promo_tmpvat_wo_tax = coupon / (1 + cart_tax_factor);
@@ -1345,22 +1349,23 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }
                         
                         if($scope.vat_included == 'yes'){    
-                             $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
+                             $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", $scope.precision, ",", ".");
                              $scope.cart.subtotal = $scope.cart.totalpay;
                              $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 2, ",", ".");
                              $scope.taxes = taxes;
                         } else {
-                             $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", 0, ",", ".");
-                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", 0, ",", ".");
+                             $scope.cart.totalpay = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase + parseInt(tmpvattotal), "", $scope.precision, ",", ".");
+                             $scope.cart.subtotal = accounting.formatMoney(tmpcartsubtotalpromotion - promotioncartbase - couponcartbase, "", $scope.precision, ",", ".");
                              $scope.cart.vat      = accounting.formatMoney(tmpvattotal, "", 2, ",", ".");
                              $scope.taxes = taxes;
                         }
+                        console.log(taxes);
                     }
                 };
              //insert to cart
              $scope.inserttocartFn = function(bool){
                     if($scope.productmodal){
-                        if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", 0, ",", "."));
+                        if(!bool)$scope.customerdispaly($scope.productmodal['product_name'], accounting.formatMoney($scope.productmodal['price'], "", $scope.precision, ",", "."));
                         //set activity when product add to cart
                         var user_id = $scope.cart.user_id ? $scope.cart.user_id : 0;
                         $scope.activity('activity-add-product',{customer_id : user_id ,product_id : $scope.productmodal['product_id'] });
@@ -1441,7 +1446,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.cart[i]['qty']++;
                                 if($scope.cart[i]['promotion']){
                                     for(var a = 0;a < $scope.cart[i]['promotion'].length;a++){
-                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney((accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) /  ($scope.cart[i]['qty'] -1))* $scope.cart[i]['qty'], "", 0, ",", ".");
+                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney((accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) /  ($scope.cart[i]['qty'] -1))* $scope.cart[i]['qty'], "", $scope.precision, ",", ".");
                                     }
                                 }
                                 check = false;
@@ -1452,7 +1457,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.cart[i]['qty']++;
                                 if($scope.cart[i]['promotion']){
                                     for(var a = 0;a < $scope.cart[i]['promotion'].length;a++){
-                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] =  accounting.formatMoney((accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / ($scope.cart[i]['qty'] -1)) * $scope.cart[i]['qty'], "", 0, ",", ".");
+                                        $scope.cart[i]['promotion'][a]['afterpromotionprice'] =  accounting.formatMoney((accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']) / ($scope.cart[i]['qty'] -1)) * $scope.cart[i]['qty'], "", $scope.precision, ",", ".");
                                     }
                                 }
                                 check = false;
@@ -1610,14 +1615,16 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
              //watch amount on page cash
              $scope.$watch("cart.amount", function(newvalue,oldvalue){
                     if(newvalue) {
+                        var check     = newvalue.split('.');
+                        var precision = $scope.precision == 0 ? 0 : (check.length > 1 ? 2 : 0);
                         oldvalue = accounting.unformat(oldvalue);
                         newvalue = accounting.unformat(newvalue);
                         if(oldvalue != newvalue){
                             $scope.changetf = false;
-                            $scope.cart['amount'] = accounting.formatMoney(newvalue, "", 0, ",", ".");
+                            $scope.cart['amount'] =   check.length > 1 ? $scope.cart['amount'] : accounting.formatMoney(newvalue, "", precision, ",", ".");
                             $scope.change = accounting.unformat($scope.cart['amount']) - accounting.unformat($scope.cart['totalpay']);
                             $scope.changetf = $scope.change >= 0 ? true:false;
-                            $scope.cart['change'] =  $scope.change > 0 ?   accounting.formatMoney($scope.change, "", 0, ",", ".") : 0;
+                            $scope.cart['change'] =  $scope.change > 0 ?   accounting.formatMoney($scope.change, "", $scope.precision, ",", ".") : 0;
                         }
                     }
                 });
@@ -1667,11 +1674,11 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             if(response.message != 'Scanner not found'){
                                  angular.element("#ProductNotFound").modal();
                             }
-                            $scope.cancelRequestService();
-                            $scope.scanproduct();
+                           /* $scope.cancelRequestService();
+                            $scope.scanproduct();*/
                         }else if(response.message == 'shell error'){
-                            $scope.cancelRequestService();
-                            $scope.scanproduct();
+                            /*$scope.cancelRequestService();
+                            $scope.scanproduct();*/
                         }
                     });
                 })();
@@ -1790,7 +1797,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         for(var a =0; a < $scope.datapromotion.length; a++){
                             if($scope.datapromotion[a]) {
                                 $scope.datapromotion[a]['oridiscount_value'] = $scope.datapromotion[a]['discount_value'];
-                                $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['discount_value'], "", $scope.precision, ",", ".");
 
                                 if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage'){
                                     tmpdiscount = $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']);
@@ -1805,17 +1812,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                
                                 tmpprice = tmpprice - tmpdiscount;
                                 //  tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];
-                                $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                                 $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount / response.data.cartdetails[i]['quantity'];
                                 // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
                                 discount += tmpdiscount;
                             }
                         }
                         var discounts = price - discount;
-                        $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
-                        $scope.productmodal.price =  accounting.formatMoney(price, "", 0, ",", ".");
+                        $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
+                        $scope.productmodal.price =  accounting.formatMoney(price, "", $scope.precision, ",", ".");
                     }else{
-                        $scope.productmodal.price    = accounting.formatMoney(price, "", 0, ",", ".");
+                        $scope.productmodal.price    = accounting.formatMoney(price, "", $scope.precision, ",", ".");
                         $scope.productmodal.afterpromotionprice = 0;
                     }
 
@@ -1824,7 +1831,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if($scope.productmodal['coupon_for_this_product']){
                         for(var b =0;b < $scope.productmodal['coupon_for_this_product'].length; b++){
                             $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'];
-                            $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", 0, ",", ".");
+                            $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", $scope.precision, ",", ".");
 
                             if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage'){
                                 tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price;
@@ -1841,7 +1848,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                            
                             tmpprice = tmpprice - tmpdiscount;
                             //  tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ?  $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price : accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
-                            $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                            $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                             $scope.productmodal['coupon_for_this_product'][b]['tmpafterpromotionprice'] = tmpdiscount;
                             // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
                             discount += tmpdiscount;
@@ -1913,7 +1920,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         for(var a =0; a < $scope.datapromotion.length; a++){ 
                             if($scope.datapromotion[a]){
                                 $scope.datapromotion[a]['oridiscount_value'] = $scope.datapromotion[a]['discount_value'];
-                                $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['discount_value'], "", 0, ",", ".");
+                                $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['discount_value'], "", $scope.precision, ",", ".");
 
                                 if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage'){
                                     tmpdiscount = $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']);
@@ -1928,17 +1935,17 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 console.log(tmpprice);
                                 tmpprice = tmpprice - tmpdiscount;
                                 //  tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];
-                                $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                                $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                                 $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount / response.data.cartdetails[i]['quantity'];
                                 // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
                                 discount += tmpdiscount;
                             }
                         }
                         var discounts = price - discount;
-                        $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", 0, ",", ".");
-                        $scope.productmodal.price =  accounting.formatMoney(price, "", 0, ",", ".");
+                        $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
+                        $scope.productmodal.price =  accounting.formatMoney(price, "", $scope.precision, ",", ".");
                     }else{
-                        $scope.productmodal.price    = accounting.formatMoney(price, "", 0, ",", ".");
+                        $scope.productmodal.price    = accounting.formatMoney(price, "", $scope.precision, ",", ".");
                         $scope.productmodal.afterpromotionprice = 0;
                     }
 
@@ -1947,7 +1954,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     if($scope.productmodal['coupon_for_this_product']){
                         for(var b =0;b < $scope.productmodal['coupon_for_this_product'].length; b++){
                             $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'];
-                            $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", 0, ",", ".");
+                            $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", $scope.precision, ",", ".");
 
                             if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage'){
                                 tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price;
@@ -1965,7 +1972,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             tmpprice = tmpprice - tmpdiscount;
                            
                             //  tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ?  $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price : accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
-                            $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", 0, ",", ".");
+                            $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
                             $scope.productmodal['coupon_for_this_product'][b]['tmpafterpromotionprice'] = tmpdiscount;
                             // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
                             discount += tmpdiscount;
