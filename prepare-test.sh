@@ -1,4 +1,4 @@
-#!/usr/local/bin/env bash
+#!/usr/bin/env bash
 ROOT=$(pwd)
 TESTDUMMYDIR="$ROOT/vendor/laracasts/testdummy"
 FAKERDIR="$ROOT/vendor/fzaninotto/faker"
@@ -18,7 +18,3 @@ else
     curl -sSL https://api.github.com/repos/fzaninotto/Faker/tarball/010c7efedd88bf31141a02719f51fb44c732d5a0 \
       | tar zx -C $FAKERDIR --strip-components 1
 fi
-
-echo "Checking Versions of library"
-
-cat 

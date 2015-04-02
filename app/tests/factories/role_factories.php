@@ -18,3 +18,8 @@ $factory('Role', 'role_super_admin', [
     'role_name'  => 'Super Admin',
     'role_order' => 1
 ]);
+
+$factory('Role', 'role_guest', [
+    'role_name'  => 'Guest',
+    'role_order' => 1
+]);
