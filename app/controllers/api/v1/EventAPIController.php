@@ -294,7 +294,7 @@ class EventAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.event.postnewevent.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -649,7 +649,7 @@ class EventAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.event.postupdateevent.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -836,7 +836,7 @@ class EventAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.event.postdeleteevent.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1201,7 +1201,7 @@ class EventAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.event.getsearchevent.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1540,7 +1540,7 @@ class EventAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.event.getsearcheventbyretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
