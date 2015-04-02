@@ -22,16 +22,17 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 		return require __DIR__.'/../../bootstrap/start.php';
 	}
 
-	public function setUp()
-	{
-		parent::setUp();
-
-		DB::beginTransaction();
-	}
-
 	public function tearDown()
 	{
-		DB::rollback();
+        // Truncate all tables, except migrations
+        $tables = DB::select('SHOW TABLES');
+        $tables_in_database = 'Tables_in_' . DB::getDatabaseName();
+        foreach ($tables as $table) {
+            if ($table->$tables_in_database !== 'migrations') {
+                $tableName = str_replace(DB::getTablePrefix(), '', $table->$tables_in_database);
+                DB::table($tableName)->truncate();
+            }
+        }
 
 		unset($_GET);
 		unset($_POST);
@@ -88,7 +89,7 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 				return true;
 			}
 		}
-	   
+
 	    return false;
 	}
 

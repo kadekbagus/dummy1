@@ -17,7 +17,6 @@ class postNewCategoryTest extends TestCase
     {
         parent::setUp();
 
-        DB::beginTransaction();
         $this->authData   = Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']);
         $this->category   = Factory::create('Category');
     }
@@ -107,6 +106,7 @@ class postNewCategoryTest extends TestCase
 
     public function testOK_post_new_category_with_valid_data()
     {
+
         $merchant = Factory::create('Merchant');
 
         $_GET['apikey']       = $this->authData->api_key;
@@ -132,6 +132,6 @@ class postNewCategoryTest extends TestCase
 
         // should say merchant not found
         $this->assertSame(Status::OK, $response->code);
-        $this->assertRegExp('/success/i', $response->message);
+        $this->assertSame(Status::OK_MSG, $response->message);
     }
 }
