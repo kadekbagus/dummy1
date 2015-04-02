@@ -106,7 +106,6 @@ class postNewCategoryTest extends TestCase
 
     public function testOK_post_new_category_with_valid_data()
     {
-
         $merchant = Factory::create('Merchant');
 
         $_GET['apikey']       = $this->authData->api_key;

@@ -16,8 +16,17 @@ class getSearchCategoryTest extends TestCase
     {
         parent::setUp();
 
+        DB::beginTransaction();
         $this->authData   = Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']);
         $this->categories = Factory::times(6)->create('Category');
+    }
+
+    public function tearDown()
+    {
+        DB::rollback();
+        $this->useTruncate = false;
+
+        parent::tearDown();
     }
 
     public function testError_get_without_auth_data()
@@ -77,7 +86,7 @@ class getSearchCategoryTest extends TestCase
 
         // Should be error access denied
         $this->assertSame(Status::ACCESS_DENIED, $response->code);
-        $this->assertSame('You do not have permission to view category.',$response->message );
+        $this->assertSame('You do not have permission to view category.', $response->message);
     }
 
     public function testOK_get_without_additional_parameters()
