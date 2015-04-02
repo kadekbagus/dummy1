@@ -8,7 +8,7 @@ define(function(){
         'nama'                  : 'NAME',
         'upc'                   : 'UPC',
         'jumlah'                : 'QUANTITY',
-        'hargasatuan'           : 'UNIT PRICE (IDR)',
+        'hargasatuan'           : 'UNIT PRICE',
         'hargatotal'            : 'TOTAL PRICE',
         'promosibelanja'        : 'CART BASED PROMOTION',
         'kuponbelanja'          : 'CART BASED COUPON',
