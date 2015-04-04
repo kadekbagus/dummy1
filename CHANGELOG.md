@@ -1,6 +1,6 @@
 Overview
 --------
-This is orbit release change log file contains information for every release.
+This is orbit release change log file which contains information for every release.
 
 Current Release v0.11
 ---------------------
