@@ -198,7 +198,7 @@ echo "done."
 
 # Import all pictures
 echo -n "Importing all upload pictures..."
-rsync -ax ${ORBIT_TMP_DIR}/uploads ${ORBIT_UPLOAD_DIR}
+cp -a ${ORBIT_TMP_DIR}/uploads ${ORBIT_UPLOAD_DIR}
 echo "done."
 
 # Cleaning up the temporary directory
