@@ -840,9 +840,11 @@ class ProductAPIController extends ControllerAPI
                 }
             }
 
+            $now = date('Y-m-d H:i:s');
             $products = Product::with('retailers')
                                 ->excludeDeleted()
-                                ->allowedForUser($user);
+                                ->allowedForUser($user)
+                                ->select('products.*', DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'));
 
             // Check the value of `with_params` argument
             OrbitInput::get('with_params', function ($withParams) use ($products) {
