@@ -64,7 +64,7 @@ class RetailerAPIController extends ControllerAPI
                     'password'    => $password,
                 ),
                 array(
-                    'retailer_id' => 'required|numeric|orbit.empty.retailer',
+                    'retailer_id' => 'required|numeric|orbit.empty.retailer|orbit.exists.deleted_retailer_is_box_current_retailer',
                     'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
@@ -91,17 +91,20 @@ class RetailerAPIController extends ControllerAPI
             $deleteretailer->save();
 
             // soft delete user.
-            $deleteuser = User::with(array('apikey'))->excludeDeleted()->find($deleteretailer->user_id);
-            $deleteuser->status = 'deleted';
-            $deleteuser->modified_by = $this->api->user->user_id;
+            $deleteuser = User::with(array('apikey', 'role'))->excludeDeleted()->find($deleteretailer->user_id);
+            if (! $deleteuser->isSuperAdmin()) {
+                $deleteuser->status = 'deleted';
+                $deleteuser->modified_by = $this->api->user->user_id;
 
-            // soft delete api key.
-            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-            $deleteapikey->status = 'deleted';
+                // soft delete api key.
+                if (! empty($deleteuser->apikey)) {
+                    $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+                    $deleteapikey->status = 'deleted';
+                    $deleteapikey->save();
+                }
 
-            $deleteuser->save();
-            $deleteapikey->save();
-
+                $deleteuser->save();
+            }
             Event::fire('orbit.retailer.postdeleteretailer.after.save', array($this, $deleteretailer));
             $this->response->data = null;
             $this->response->message = Lang::get('statuses.orbit.deleted.retailer');
@@ -185,7 +188,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postdeleteretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -516,7 +519,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postnewretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -637,7 +640,7 @@ class RetailerAPIController extends ControllerAPI
                     'retailer_id'       => 'required|numeric|orbit.empty.retailer',
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.retailer_status',
+                    'status'            => 'orbit.empty.retailer_status|orbit.exists.inactive_retailer_is_box_current_retailer:'.$retailer_id,
                     'orid'              => 'orid_exists_but_me',
                     'parent_id'         => 'numeric|orbit.empty.merchant',
                     'url'               => 'orbit.formaterror.url.web'
@@ -821,11 +824,13 @@ class RetailerAPIController extends ControllerAPI
 
             // update user status
             OrbitInput::post('status', function($status) use ($updatedretailer) {
-                $updateuser = User::excludeDeleted()->find($updatedretailer->user_id);
-                $updateuser->status = $status;
-                $updateuser->modified_by = $this->api->user->user_id;
+                $updateuser = User::with(array('role'))->excludeDeleted()->find($updatedretailer->user_id);
+                if (! $updateuser->isSuperAdmin()) {
+                    $updateuser->status = $status;
+                    $updateuser->modified_by = $this->api->user->user_id;
 
-                $updateuser->save();
+                    $updateuser->save();
+                }
             });
 
             Event::fire('orbit.retailer.postupdateretailer.after.save', array($this, $updatedretailer));
@@ -910,7 +915,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.postupdateretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1420,7 +1425,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.getsearchretailer.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1590,6 +1595,32 @@ class RetailerAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // Retailer cannot be deleted if is box current retailer.
+        Validator::extend('orbit.exists.deleted_retailer_is_box_current_retailer', function ($attribute, $value, $parameters) {
+            $retailer_id = $value;
+            $box_retailer_id = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
+            if ($retailer_id === $box_retailer_id) {
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+        // if retailer status is updated to inactive, then reject if is box current retailer.
+        Validator::extend('orbit.exists.inactive_retailer_is_box_current_retailer', function ($attribute, $value, $parameters) {
+            if ($value === 'inactive') {
+                $retailer_id = $parameters[0];
+                $box_retailer_id = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+
+                if ($retailer_id === $box_retailer_id) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
     }
 
     /**
@@ -1677,7 +1708,7 @@ class RetailerAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.retailer.getcitylist.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;

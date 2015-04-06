@@ -68,7 +68,7 @@ class MerchantAPIController extends ControllerAPI
                     'password'    => $password,
                 ),
                 array(
-                    'merchant_id' => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id' => 'required|numeric|orbit.empty.merchant|orbit.exists.merchant_have_retailer',
                     'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
@@ -95,16 +95,21 @@ class MerchantAPIController extends ControllerAPI
             $deletemerchant->save();
 
             // soft delete user.
-            $deleteuser = User::with(array('apikey'))->excludeDeleted()->find($deletemerchant->user_id);
-            $deleteuser->status = 'deleted';
-            $deleteuser->modified_by = $this->api->user->user_id;
+            $deleteuser = User::with(array('apikey', 'role'))->excludeDeleted()->find($deletemerchant->user_id);
+            // don't delete linked user if linked user is super admin.
+            if (! $deleteuser->isSuperAdmin()) {
+                $deleteuser->status = 'deleted';
+                $deleteuser->modified_by = $this->api->user->user_id;
 
-            // soft delete api key.
-            $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
-            $deleteapikey->status = 'deleted';
+                // soft delete api key.
+                if (! empty($deleteuser->apikey)) {
+                    $deleteapikey = Apikey::where('apikey_id', '=', $deleteuser->apikey->apikey_id)->first();
+                    $deleteapikey->status = 'deleted';
+                    $deleteapikey->save();
+                }
 
-            $deleteuser->save();
-            $deleteapikey->save();
+                $deleteuser->save();
+            }
 
             Event::fire('orbit.merchant.postdeletemerchant.after.save', array($this, $deletemerchant));
             $this->response->data = null;
@@ -189,7 +194,7 @@ class MerchantAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.merchant.postdeletemerchant.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -521,7 +526,7 @@ class MerchantAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.merchant.postnewmerchant.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1013,7 +1018,7 @@ class MerchantAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.merchant.getsearchmerchant.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1137,7 +1142,7 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.merchant_status',
+                    'status'            => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
                     'omid'              => 'omid_exists_but_me',
                     'ticket_header'     => 'ticket_header_max_length',
                     'ticket_footer'     => 'ticket_footer_max_length',
@@ -1345,11 +1350,13 @@ class MerchantAPIController extends ControllerAPI
 
             // update user status
             OrbitInput::post('status', function($status) use ($updatedmerchant) {
-                $updateuser = User::excludeDeleted()->find($updatedmerchant->user_id);
-                $updateuser->status = $status;
-                $updateuser->modified_by = $this->api->user->user_id;
+                $updateuser = User::with(array('role'))->excludeDeleted()->find($updatedmerchant->user_id);
+                if (! $updateuser->isSuperAdmin()) {
+                    $updateuser->status = $status;
+                    $updateuser->modified_by = $this->api->user->user_id;
 
-                $updateuser->save();
+                    $updateuser->save();
+                }
             });
 
             // do insert/update/delete merchant_taxes
@@ -1501,7 +1508,7 @@ class MerchantAPIController extends ControllerAPI
         } catch (Exception $e) {
             Event::fire('orbit.merchant.postupdatemerchant.general.exception', array($this, $e));
 
-            $this->response->code = $e->getCode();
+            $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
             $this->response->data = null;
@@ -1754,6 +1761,40 @@ class MerchantAPIController extends ControllerAPI
             }
 
             App::instance('orbit.formaterror.url.web', $url);
+
+            return TRUE;
+        });
+
+        // Check if merchant have retailer.
+        Validator::extend('orbit.exists.merchant_have_retailer', function ($attribute, $value, $parameters) {
+            $retailer = Retailer::excludeDeleted()
+                            ->where('parent_id', $value)
+                            ->first();
+            if (! empty($retailer)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.exists.merchant_have_retailer', $retailer);
+
+            return TRUE;
+        });
+
+        // if merchant status is updated to inactive, then reject if its retailers is current retailer.
+        Validator::extend('orbit.exists.merchant_retailers_is_box_current_retailer', function ($attribute, $value, $parameters) {
+            if ($value === 'inactive') {
+                $merchant_id = $parameters[0];
+                $retailer_id = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+                $currentRetailer = Retailer::excludeDeleted()
+                                    ->where('parent_id', $merchant_id)
+                                    ->where('merchant_id', $retailer_id)
+                                    ->first();
+
+                if (! empty($currentRetailer)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.exists.merchant_retailers_is_box_current_retailer', $currentRetailer);
+            }
 
             return TRUE;
         });

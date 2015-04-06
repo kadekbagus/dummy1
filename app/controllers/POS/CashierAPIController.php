@@ -185,6 +185,7 @@ class CashierAPIController extends ControllerAPI
      * POST - Scan Barcode New
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -197,6 +198,11 @@ class CashierAPIController extends ControllerAPI
             // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             $retailer = $this->getRetailerInfo();
 
             // Check the device exist or not
@@ -1788,6 +1794,17 @@ class CashierAPIController extends ControllerAPI
     public function postCashDrawer()
     {
         try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             $driver = Config::get('orbit.devices.cashdrawer.path');
             $cmd = 'sudo '.$driver;
             $drawer = shell_exec($cmd);
@@ -1818,6 +1835,7 @@ class CashierAPIController extends ControllerAPI
      * POST - Scan Cart
      *
      * @author Kadek <kadek@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -1839,6 +1857,10 @@ class CashierAPIController extends ControllerAPI
             // Try to check access control list, does this product allowed to
             // perform this action
             $cashier = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $barcode = OrbitInput::post('barcode');
 
@@ -4374,5 +4396,28 @@ class CashierAPIController extends ControllerAPI
         }
 
         return $cartdata;
+    }
+
+    /**
+     * Make sure only Super Admin and Cashier which are able to perform some
+     * action.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @return void
+     */
+    protected function CashierAndSuperAdminOnly()
+    {
+        // Make sure only Super Admin and Cashier which are able to call
+        // this URL
+        $user = $this->api->user;
+
+        if (! $user->isSuperAdmin()) {
+            $allowedRoleToCalls = ['cashier'];
+            $myRoleName = $user->role->role_name;
+            if (! in_array(strtolower($myRoleName), $allowedRoleToCalls)) {
+                $message = Lang::get('validation.orbit.access.forbidden', ['action' => 'scan barcode']);
+                ACL::throwAccessForbidden($message);
+            }
+        }
     }
 }
