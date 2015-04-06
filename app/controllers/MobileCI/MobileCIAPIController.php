@@ -4828,6 +4828,8 @@ class MobileCIAPIController extends ControllerAPI
             $transaction->customer_id    = $customer_id;
             $transaction->payment_method = $payment_method;
             $transaction->status         = 'paid';
+            $transaction->currency       = $retailer->parent->currency;
+            $transaction->currency_symbol = $retailer->parent->currency_symbol;
 
             $transaction->save();
 
@@ -4842,6 +4844,7 @@ class MobileCIAPIController extends ControllerAPI
                 $transactiondetail->quantity                    = $cart_value->quantity;
                 $transactiondetail->upc                         = $cart_value->product->upc_code;
                 $transactiondetail->price                       = $cart_value->product->price;
+                $transactiondetail->currency                    = $retailer->parent->currency;
 
                 if (! empty($cart_value->variant)) {
                     $transactiondetail->product_variant_id          = $cart_value->variant->product_variant_id;
