@@ -41,6 +41,7 @@ return array(
     'AlterTableCartDetailsDropColumnPriceEtc' => $baseDir . '/app/database/migrations/2015_01_08_085539_alter_table_cart_details_drop_column_price_etc.php',
     'AlterTableCartsAddMovedToPosFlagColumn' => $baseDir . '/app/database/migrations/2015_01_28_062801_alter_table_carts_add_moved_to_pos_flag_column.php',
     'AlterTableCartsDropColumnTotalItemEtc' => $baseDir . '/app/database/migrations/2015_01_08_083728_alter_table_carts_drop_column_total_item_etc.php',
+    'AlterTableCartsRenameMovedToPosToCashierId' => $baseDir . '/app/database/migrations/2015_04_06_110211_alter_table_carts_rename_moved_to_pos_to_cashier_id.php',
     'AlterTableCategories' => $baseDir . '/app/database/migrations/2014_12_11_062433_alter_table_categories.php',
     'AlterTableCategoriesDropCategoryNameUnique' => $baseDir . '/app/database/migrations/2014_12_17_031758_alter_table_categories_drop_category_name_unique.php',
     'AlterTableChangeEngineInnodb' => $baseDir . '/app/database/migrations/2014_12_05_064558_alter_table_change_engine_innodb.php',
