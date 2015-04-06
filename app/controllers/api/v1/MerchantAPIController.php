@@ -677,7 +677,10 @@ class MerchantAPIController extends ControllerAPI
             $merchants = Merchant::excludeDeleted('merchants')
                                 ->allowedForUser($user)
                                 ->select('merchants.*', DB::raw('count(retailer.merchant_id) AS total_retailer'))
-                                ->leftJoin('merchants AS retailer', DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
+                                ->leftJoin('merchants AS retailer', function($join) {
+                                        $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
+                                            ->where(DB::raw('retailer.status'), '!=', 'deleted');
+                                    })
                                 ->groupBy('merchants.merchant_id');
 
             // Filter merchant by Ids
