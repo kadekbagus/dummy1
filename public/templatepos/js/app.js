@@ -1675,12 +1675,28 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }else if(response.code == 13){
                             if(response.message != 'Scanner not found'){
                                  angular.element("#ProductNotFound").modal();
+                            }else if(response.message == 'Scanner not found'){
+                                //danger harcoded check type by message
+                                if(response.message != 'Scanner not found'){
+                                    angular.element("#ProductNotFound").modal();
+                                }else if(response.message == 'Scanner not found'){
+                                    //wait 2 second and 4 second after 10 request if scanner not found
+                                    $scope.counter = $scope.resetback ? 4 : 2;
+                                    $scope.timer   = $scope.counter *1000;
+                                    $scope.counttimeout = $scope.counttimeout || 0;
+                                    $timeout(function(){
+                                        $scope.scanproduct();
+                                        $scope.counttimeout++;
+                                        if($scope.counttimeout == 10){
+                                            $scope.resetback = true;
+                                        }
+                                    },$scope.timer);
+                                }
                             }
                            /* $scope.cancelRequestService();
                             $scope.scanproduct();*/
                         }else if(response.message == 'shell error'){
-                            /*$scope.cancelRequestService();
-                            $scope.scanproduct();*/
+                            $scope.scanproduct();
                         }
                     });
                 })();
