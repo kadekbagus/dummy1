@@ -153,6 +153,13 @@ mkdir -p "$ORBIT_TMP_DIR" 2>/dev/null || {
 }
 echo "done."
 
+# Extract the content of archive file
+echo -n "Extracting the content of ${SOURCE_FILE} into orbit temp dir..."
+tar -zxf "${SOURCE_FILE}" -C "${ORBIT_TMP_DIR}" || {
+    echo "FAILED extracting ${SOURCE_FILE}."
+}
+echo "extract done."
+
 # Get the version of current orbit
 # The #) at the end are just to make syntax highlighting behaves correctly
 CURRENT_ORBIT_VERSION=$( grep "define('ORBIT_APP_VERSION" ${ORBIT_BASE_DIR}/app/orbit_version.php | sed "s/define('ORBIT_APP_VERSION', '\(.*\)');/\1/" ) #)
@@ -166,20 +173,13 @@ SOURCE_ORBIT_VERSION=$( cat ${ORBIT_TMP_DIR}/orbit-version.txt )
 [ "${FORCE_IMPORT}" != "yes" ] && {
     [ "${CURRENT_ORBIT_VERSION}" = "${SOURCE_ORBIT_VERSION}" ] || {
         echo "Could not import since orbit version is different."
-        echo "Current version: ${CURRENT_ORBIT_VERION}."
+        echo "Current version: ${CURRENT_ORBIT_VERSION}."
         echo "Source version: ${SOURCE_ORBIT_VERSION}."
         echo ""
         echo "Use -f to force the import process, but it might introduce some compatibility issue."
         exit 6
     }
 }
-
-# Extract the content of archive file
-echo -n "Extracting the content of ${SOURCE_FILE} into orbit temp dir..."
-tar -zxf "${SOURCE_FILE}" -C "${ORBIT_TMP_DIR}" || {
-    echo "FAILED extracting ${SOURCE_FILE}."
-}
-echo "extract done."
 
 # Drop all tables
 echo -n "Dropping all current MySQL tables..."
