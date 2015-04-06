@@ -12,8 +12,7 @@ class AlterTableTransactionAddcolumnCurrency extends Migration
      */
     public function up()
     {
-        Schema::table('transactions', function(Blueprint $table)
-        {
+        Schema::table('transactions', function (Blueprint $table) {
             $table->char('currency', 3)->nullable()->default('USD')->after('vat');
             $table->char('currency_symbol', 3)->nullable()->default('$')->after('currency');
         });
@@ -27,8 +26,7 @@ class AlterTableTransactionAddcolumnCurrency extends Migration
      */
     public function down()
     {
-        Schema::table('transactions', function(Blueprint $table)
-        {
+        Schema::table('transactions', function (Blueprint $table) {
             $table->dropColumn('currency');
             $table->dropColumn('currency_symbol');
         });
