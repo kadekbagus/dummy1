@@ -102,7 +102,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.terminalstatus     = true;
         //get currency from local storage
         $scope.precision          = localStorageService.get('currency') == 'IDR' ? 0 : 2;
-        $scope.currency           = localStorageService.get('currency');
+        $scope.currency           = localStorageService.get('currency') == 'IDR' ? 'IDR' : 'USD';
 
         if(!$scope.datauser){
              window.location.assign("signin");
@@ -1402,7 +1402,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 category_id4           : angular.copy($scope.productmodal['category_id4']),
                                 category_id5           : angular.copy($scope.productmodal['category_id5']),
                                 product_details        : angular.copy($scope.productmodal),
-                                hargatotal             : 0
+                                hargatotal             : 0,
+                                currency               : $scope.currency
                             });
                             $timeout(function(){
                                 $location.hash('bottom');
