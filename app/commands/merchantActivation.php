@@ -64,18 +64,21 @@ date(start_date_activity) is not null and date(end_date_activity) is not null an
 
 -- Set status to 'active' when now is greater then start date and end date activity is null
 update {{PREFIX}}merchants set status='active' where {{OBJECT_TYPE_QUERY}}
-date(start_date_activity) is not null and date(end_date_activity) is null and
+date(start_date_activity) is not null and
+(date(end_date_activity) is null or date(end_date_activity) = '0000-00-00') and
 curdate() >= start_date_activity and status != 'deleted';
 
 -- Set status to 'inactive' when now is less then start date and end date activity is null
 update {{PREFIX}}merchants set status='inactive' where {{OBJECT_TYPE_QUERY}}
-date(start_date_activity) is not null and date(end_date_activity) is null and
+date(start_date_activity) is not null and
+(date(end_date_activity) is null or date(end_date_activity) = '0000-00-00') and
 curdate() < start_date_activity and status != 'deleted';
 
 -- Set status to 'active' when start date and end date activity is null
 update {{PREFIX}}merchants set status='active' where {{OBJECT_TYPE_QUERY}}
-date(start_date_activity) is null and date(end_date_activity) is null
-and status != 'deleted';";
+(date(start_date_activity) is null or date(start_date_activity) = '0000-00-00') and
+(date(end_date_activity) is null or date(end_date_activity) = '0000-00-00') and
+status != 'deleted';";
 
         // Replace the table prefix
         $query = str_replace('{{PREFIX}}', $prefix, $query);
