@@ -1282,23 +1282,25 @@ class UserAPIController extends ControllerAPI
                 // }
             }
 
-            // filter only by merchant_id, not include retailer_id yet.
-            // @TODO: include retailer_id.
-            $users->where(function($query) use($listOfMerchantIds) {
-                // get users registered in shop.
-                $query->whereIn('users.user_id', function($query2) use($listOfMerchantIds) {
-                    $query2->select('user_details.user_id')
-                        ->from('user_details')
-                        ->whereIn('user_details.merchant_id', $listOfMerchantIds);
-                })
-                // get users have transactions in shop.
-                ->orWhereIn('users.user_id', function($query3) use($listOfMerchantIds) {
-                    $query3->select('customer_id')
-                        ->from('transactions')
-                        ->whereIn('merchant_id', $listOfMerchantIds)
-                        ->groupBy('customer_id');
+            if (! $user->isSuperAdmin()) {
+                // filter only by merchant_id, not include retailer_id yet.
+                // @TODO: include retailer_id.
+                $users->where(function($query) use($listOfMerchantIds) {
+                    // get users registered in shop.
+                    $query->whereIn('users.user_id', function($query2) use($listOfMerchantIds) {
+                        $query2->select('user_details.user_id')
+                            ->from('user_details')
+                            ->whereIn('user_details.merchant_id', $listOfMerchantIds);
+                    })
+                    // get users have transactions in shop.
+                    ->orWhereIn('users.user_id', function($query3) use($listOfMerchantIds) {
+                        $query3->select('customer_id')
+                            ->from('transactions')
+                            ->whereIn('merchant_id', $listOfMerchantIds)
+                            ->groupBy('customer_id');
+                    });
                 });
-            });
+            }
 
             // Filter user by Ids
             OrbitInput::get('user_id', function ($userIds) use ($users) {
