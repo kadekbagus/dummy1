@@ -1315,7 +1315,7 @@ class CashierAPIController extends ControllerAPI
 
             // delete the cart
             if ($cart_id != NULL) {
-                $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->first();
+                $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->where('cashier_id', $cashier_id)->first();
                 if (is_object($cart_delete)) {
                     $cart_delete->delete();
                     $cart_delete->save();
@@ -1908,6 +1908,7 @@ class CashierAPIController extends ControllerAPI
                 $cart_update = \Cart::where('status', 'active')->where('cart_id', $cart->cart_id)->first();
                 if (is_object($cart_update)) {
                     $cart_update->status = 'cashier';
+                    $cart_update->cashier_id = $cashier->user_id;
                     $cart_update->save();
                     $cart_detail_update = \CartDetail::where('status', 'active')->where('cart_id', $cart->cart_id)->update(array('status' => 'cashier'));
                 }
@@ -2870,7 +2871,7 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $cart = \Cart::where('status', 'cashier')->first();
+            $cart = \Cart::where('status', 'cashier')->where('cashier_id', $cashier->user_id)->first();
 
             if (! is_object($cart)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
@@ -2910,6 +2911,14 @@ class CashierAPIController extends ControllerAPI
     public function postDeleteCart()
     {
         try {
+
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $cashier = $this->api->user;
+
             $cart_id = trim(OrbitInput::post('cart_id'));
 
             $validator = Validator::make(
@@ -2930,7 +2939,7 @@ class CashierAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->first();
+            $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->where('cashier_id', $cashier->user_id)->first();
 
             if (! is_object($cart_delete)) {
                 $message = "cart not found";
