@@ -1794,6 +1794,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.successscant = true;
                 $scope.guests       = name;
                 $scope.cart.user_id = response.data.cart.users.user_id;
+                $scope.cart.cart_id = response.data.cart.cart_id;
                 //cart coupon
                 $scope.cartcoupon =  response.data.cartsummary['used_cart_coupons'];
                 for(var i = 0; i < response.data.cartdetails.length; i++){
