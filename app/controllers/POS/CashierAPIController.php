@@ -833,6 +833,9 @@ class CashierAPIController extends ControllerAPI
                 if (!empty($cart_value['price'])) {
                     $transactiondetail->price = str_replace( ',', '', $cart_value['price'] );
                 }
+                if (!empty($cart_value['currency'])) {
+                    $transactiondetail->currency = $cart_value['currency'];
+                }
 
                 if (!empty($cart_value['variants'])) {
                     if (!empty($cart_value['variants']['product_variant_id'])) {
