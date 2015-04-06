@@ -20,8 +20,31 @@
         </div>
     </div>
 </div>
+
+{{ HTML::script('mobile-ci/scripts/offline.js') }}
 <script type="text/javascript">
     $(document).ready(function(){
+        var run = function () {
+            if (Offline.state === 'up') {
+              $('#offlinemark').attr('class', 'fa fa-check fa-stack-1x').css({
+                'color': '#3c9',
+                'left': '6px',
+                'top': '2px',
+                'font-size': '.5em'
+              });
+              Offline.check();
+            } else {
+              $('#offlinemark').attr('class', 'fa fa-times fa-stack-1x').css({
+                'color': 'red',
+                'left': '6px',
+                'top': '2px',
+                'font-size': '.5em'
+              });
+            }
+        };
+        run();
+        setInterval(run, 5000);
+
         $('#barcodeBtn').click(function(){
             $('#get_camera').click();
         });

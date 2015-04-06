@@ -41,6 +41,14 @@ body{
             {{ 'Orbit v' . ORBIT_APP_VERSION }}
         </div>
     </div>
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <span class="fa-stack fa-lg offline">
+              <i class="fa fa-globe fa-stack-1x globe"></i>
+              <i id="offlinemark"></i>
+            </span>
+        </div>
+    </div>
 </footer>
 @stop
 
