@@ -180,8 +180,8 @@
                         </li>
                         @else
                         <li>
-                            @if(!empty($widget->media->path))
-                            <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
+                            @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                            <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
                             @else
                             <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
                             @endif
