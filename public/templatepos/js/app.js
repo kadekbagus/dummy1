@@ -684,6 +684,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 var discountpromo = temp_price;
                                                 promotionprice  += temp_price;
                                                 var promo = temp_price;
+                                                $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney(discountpromo, "", $scope.precision, ",", ".");
                                             } else {
                                                 var discountpromo = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
                                                 promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
@@ -795,6 +796,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 var discountpromo = temp_price;
                                                 couponprice  += temp_price;
                                                 var promo = temp_price;
+                                                $scope.cart[i]['coupon'][b]['aftercouponprice'] = accounting.formatMoney(discountpromo, "", $scope.precision, ",", ".");
                                             } else {
                                                 var discountpromo = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
                                                 couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
