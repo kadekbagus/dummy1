@@ -249,11 +249,11 @@ class CashierAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $product_x = $product->variants->toArray();
+            $product_x = $product->variants;
             $product_id = null;
 
-            if ($product_x[0]['default_variant'] == "yes") {
-                $product_id = $product_x[0]['product_id'];
+            if ($product_x[0]->default_variant == "yes") {
+                $product_id = $product_x[0]->product_id;
                 $product = Product::with(array('variants' => function ($q) use ($product_id) {
                     $q->where('product_variants.product_id', $product_id);
                 }, 'variants.attributeValue1', 'variants.attributeValue2', 'variants.attributeValue3', 'variants.attributeValue4', 'variants.attributeValue5'))
