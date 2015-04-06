@@ -726,6 +726,7 @@ class CashierAPIController extends ControllerAPI
             $cashier_id       = trim(OrbitInput::post('cashier_id'));
             $customer_id      = trim(OrbitInput::post('customer_id'));
             $payment_method   = trim(OrbitInput::post('payment_method'));
+            $currency         = trim(OrbitInput::post('currency'));
             $cart             = OrbitInput::post('cart'); //data of array
             $cart_promotion   = OrbitInput::post('cart_promotion'); // data of array
             $cart_coupon      = OrbitInput::post('cart_coupon'); // data of array
@@ -796,6 +797,7 @@ class CashierAPIController extends ControllerAPI
             $transaction->cashier_id     = $cashier_id;
             $transaction->customer_id    = $customer_id;
             $transaction->payment_method = $payment_method;
+            $transaction->currency       = $currency;
             $transaction->status         = 'paid';
 
             $transaction->save();

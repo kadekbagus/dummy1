@@ -1569,7 +1569,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         cart           : $scope.cart,
                         cart_promotion : $scope.applycartpromotion,
                         cart_coupon    : $scope.applycartcoupon,
-                        taxes          : $scope.taxes
+                        taxes          : $scope.taxes,
+                        currency       : $scope.currency
                     };
                     serviceAjax.posDataToServer('/pos/savetransaction',$scope.sendcart).then(function(response){
                         if(response.code == 0){
