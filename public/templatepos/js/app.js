@@ -684,6 +684,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 var discountpromo = temp_price;
                                                 promotionprice  += temp_price;
                                                 var promo = temp_price;
+                                                $scope.cart[i]['promotion'][a]['afterpromotionprice'] = accounting.formatMoney(discountpromo, "", $scope.precision, ",", ".");
                                             } else {
                                                 var discountpromo = accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
                                                 promotionprice  += accounting.unformat($scope.cart[i]['promotion'][a]['afterpromotionprice']);
@@ -795,6 +796,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                                 var discountpromo = temp_price;
                                                 couponprice  += temp_price;
                                                 var promo = temp_price;
+                                                $scope.cart[i]['coupon'][b]['aftercouponprice'] = accounting.formatMoney(discountpromo, "", $scope.precision, ",", ".");
                                             } else {
                                                 var discountpromo = accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
                                                 couponprice  += accounting.unformat($scope.cart[i]['coupon'][b]['aftercouponprice']);
@@ -1673,12 +1675,28 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         }else if(response.code == 13){
                             if(response.message != 'Scanner not found'){
                                  angular.element("#ProductNotFound").modal();
+                            }else if(response.message == 'Scanner not found'){
+                                //danger harcoded check type by message
+                                if(response.message != 'Scanner not found'){
+                                    angular.element("#ProductNotFound").modal();
+                                }else if(response.message == 'Scanner not found'){
+                                    //wait 2 second and 4 second after 10 request if scanner not found
+                                    $scope.counter = $scope.resetback ? 4 : 2;
+                                    $scope.timer   = $scope.counter *1000;
+                                    $scope.counttimeout = $scope.counttimeout || 0;
+                                    $timeout(function(){
+                                        $scope.scanproduct();
+                                        $scope.counttimeout++;
+                                        if($scope.counttimeout == 10){
+                                            $scope.resetback = true;
+                                        }
+                                    },$scope.timer);
+                                }
                             }
                            /* $scope.cancelRequestService();
                             $scope.scanproduct();*/
                         }else if(response.message == 'shell error'){
-                            /*$scope.cancelRequestService();
-                            $scope.scanproduct();*/
+                            $scope.scanproduct();
                         }
                     });
                 })();
