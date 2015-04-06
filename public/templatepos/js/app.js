@@ -1676,9 +1676,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.scanproduct();
                         }else if(response.code == 13){
                             if(response.message != 'Scanner not found'){
-                                 angular.element("#ProductNotFound").modal();
+                                if(response.message=='You have to login to view this page.'){
+
+                                }else{
+                                    angular.element("#ProductNotFound").modal();
+                                }
                             }else if(response.message == 'Scanner not found'){
                                 //danger harcoded check type by message
+                                console.log('naskeleng2');
                                 if(response.message != 'Scanner not found'){
                                     angular.element("#ProductNotFound").modal();
                                 }else if(response.message == 'Scanner not found'){
