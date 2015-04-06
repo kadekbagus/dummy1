@@ -1676,9 +1676,14 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             $scope.scanproduct();
                         }else if(response.code == 13){
                             if(response.message != 'Scanner not found'){
-                                 angular.element("#ProductNotFound").modal();
+                                if(response.message=='You have to login to view this page.'){
+
+                                }else{
+                                    angular.element("#ProductNotFound").modal();
+                                }
                             }else if(response.message == 'Scanner not found'){
                                 //danger harcoded check type by message
+                                console.log('naskeleng2');
                                 if(response.message != 'Scanner not found'){
                                     angular.element("#ProductNotFound").modal();
                                 }else if(response.message == 'Scanner not found'){
@@ -1794,6 +1799,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 $scope.successscant = true;
                 $scope.guests       = name;
                 $scope.cart.user_id = response.data.cart.users.user_id;
+                $scope.cart.cart_id = response.data.cart.cart_id;
                 //cart coupon
                 $scope.cartcoupon =  response.data.cartsummary['used_cart_coupons'];
                 for(var i = 0; i < response.data.cartdetails.length; i++){
