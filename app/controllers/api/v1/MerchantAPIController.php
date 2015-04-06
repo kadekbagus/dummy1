@@ -638,7 +638,7 @@ class MerchantAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:merchant_omid,registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency',
+                    'sort_by' => 'in:merchant_omid,registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency,start_date_activity,total_retailer',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.merchant_sortby'),
@@ -674,7 +674,11 @@ class MerchantAPIController extends ControllerAPI
                 }
             }
 
-            $merchants = Merchant::excludeDeleted()->allowedForUser($user);
+            $merchants = Merchant::excludeDeleted('merchants')
+                                ->allowedForUser($user)
+                                ->select('merchants.*', DB::raw('count(retailer.merchant_id) AS total_retailer'))
+                                ->leftJoin('merchants AS retailer', DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
+                                ->groupBy('merchants.merchant_id');
 
             // Filter merchant by Ids
             OrbitInput::get('merchant_id', function ($merchantIds) use ($merchants) {
@@ -954,6 +958,8 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_fax'         => 'merchants.fax',
                     'merchant_status'      => 'merchants.status',
                     'merchant_currency'    => 'merchants.currency',
+                    'start_date_activity'  => 'merchants.start_date_activity',
+                    'total_retailer'       => 'total_retailer',
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
