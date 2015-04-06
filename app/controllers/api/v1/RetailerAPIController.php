@@ -1026,7 +1026,7 @@ class RetailerAPIController extends ControllerAPI
                     'sortby' => $sort_by,
                 ),
                 array(
-                    'sortby' => 'in:registered_date,retailer_name,retailer_email,orid',
+                    'sortby' => 'in:registered_date,retailer_name,retailer_email,orid,contact_person_firstname,merchant_name',
                 ),
                 array(
                     'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
@@ -1062,7 +1062,10 @@ class RetailerAPIController extends ControllerAPI
             }
 
             // Builder object
-            $retailers = Retailer::excludeDeleted()->allowedForUser($user);
+            $retailers = Retailer::excludeDeleted('merchants')
+                                ->allowedForUser($user)
+                                ->select('merchants.*', DB::raw('m.name as merchant_name'))
+                                ->join('merchants AS m', DB::raw('m.merchant_id'), '=', 'merchants.parent_id');
 
             // Filter retailer by Ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($retailers)
@@ -1361,6 +1364,8 @@ class RetailerAPIController extends ControllerAPI
                   'retailer_fax' => 'merchants.fax',
                   'retailer_status' => 'merchants.status',
                   'retailer_currency' => 'merchants.currency',
+                  'contact_person_firstname' => 'merchants.contact_person_firstname',
+                  'merchant_name' => 'merchant_name',
                   );
 
                 $sortBy = $sortByMapping[$_sortBy];
