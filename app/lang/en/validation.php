@@ -157,7 +157,7 @@ return array(
             'user_status'          => 'The user status you specified is not found.',
             'user_sortby'          => 'The sort by argument you specified is not valid, the valid values are: username, email, firstname, lastname, registered_date, gender, city, last_visit_shop, last_visit_date, last_spent_amount.',
             'merchant_status'      => 'The merchant status you specified is not found.',
-            'merchant_sortby'      => 'The sort by argument you specified is not valid, the valid values are: registered_date, merchant_name, merchant_email, merchant_userid, merchant_description, merchantid, merchant_address1, merchant_address2, merchant_address3, merchant_cityid, merchant_city, merchant_countryid, merchant_country, merchant_phone, merchant_fax, merchant_status, merchant_currency.',
+            'merchant_sortby'      => 'The sort by argument you specified is not valid, the valid values are: registered_date, merchant_name, merchant_email, merchant_userid, merchant_description, merchantid, merchant_address1, merchant_address2, merchant_address3, merchant_cityid, merchant_city, merchant_countryid, merchant_country, merchant_phone, merchant_fax, merchant_status, merchant_currency, start_date_activity, total_retailer.',
             'retailer_status'      => 'The retailer status you specified is not found.',
             'retailer_sortby'      => 'The sort by argument for retailer you specified is not valid, the valid values are: registered_date, retailer_name, retailer_email, and orid.',
             'tax_status'           => 'The tax status you specified is not found.',
