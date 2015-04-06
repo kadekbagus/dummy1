@@ -11,5 +11,6 @@
         @yield('footer')
         @yield('modals')
         @yield('ext_script_bot')
+        @include('mobile-ci.commonscripts')
     </body>
 </html>

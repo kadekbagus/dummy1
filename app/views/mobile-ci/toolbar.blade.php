@@ -58,5 +58,12 @@
             {{ $page_title }}
             @endif
         </span>
+        <div class="text-center pull-right">
+            <span class="fa-stack offline">
+              <i class="fa fa-globe fa-stack-1x globe"></i>
+              <i id="offlinemark"></i>
+            </span>
+        </div>
+    </div>
     </div>
 </header>
