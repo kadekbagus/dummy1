@@ -35,8 +35,8 @@
                            <tr>
                                 <th class="text-center"><% language.nama %> + <% language.upc %></th>
                                 <th class="text-center"><% language.jumlah %></th>
-                                <th class="text-center"><% language.hargasatuan  +'('+ currency +')'%> </th>
-                                <th class="text-center"><% language.hargatotal +'('+ currency +')'%></th>
+                                <th class="text-center"><% language.hargasatuan  +'('+ currency_symbol +')'%> </th>
+                                <th class="text-center"><% language.hargatotal +'('+ currency_symbol +')'%></th>
                            </tr>
                          </thead>
                         <tbody data-ng-repeat="(k,v) in cart"  id="tablecart">

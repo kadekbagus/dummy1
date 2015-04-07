@@ -38,6 +38,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 if(response.code == 0){
                     $scope.language = response.data.pos_language == 'id' ? id : en;
                     localStorageService.set('currency',response.data.currency)
+                    localStorageService.set('currency_symbol',response.data.currency_symbol)
                 }
          });
          serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
@@ -103,6 +104,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //get currency from local storage
         $scope.precision          = localStorageService.get('currency') == 'IDR' ? 0 : 2;
         $scope.currency           = localStorageService.get('currency') == 'IDR' ? 'IDR' : 'USD';
+        $scope.currency_symbol    = localStorageService.get('currency_symbol') == 'Rp' ? 'Rp' : '$';
 
         if(!$scope.datauser){
              window.location.assign("signin");
