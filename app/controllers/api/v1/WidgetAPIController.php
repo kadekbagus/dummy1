@@ -808,7 +808,7 @@ class WidgetAPIController extends ControllerAPI
 
             // Filter by widget type
             OrbitInput::get('types', function($types) use ($widgets) {
-                $widgets->whereIn('widgets.widget_tyoe', $types);
+                $widgets->whereIn('widgets.widget_type', $types);
             });
 
             // @To do: Replace this hacks
@@ -1012,12 +1012,31 @@ class WidgetAPIController extends ControllerAPI
 
         // Check the existstance of each widget type
         Validator::extend('orbit.exists.widget_type', function ($attribute, $value, $parameters) use ($user) {
-            
-            $widget = Widget::excludeDeleted()
-                        ->where('widget_type', $value)
-                        ->where('merchant_id', $parameters[0])
-                        ->first();
-            
+            // Available retailer to query
+            $listOfRetailerIds = [];
+            $user = $this->api->user;
+
+            $widget = Widget::joinRetailer()
+                        ->excludeDeleted()
+                        ->where('widgets.widget_type', $value)
+                        ->where('widgets.merchant_id', $parameters[0]);
+
+            // @To do: Replace this hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfRetailerIds = $user->getMyRetailerIds();
+
+                if (empty($listOfRetailerIds)) {
+                    $listOfRetailerIds = [-1];
+                }
+                $widget->whereIn('widget_retailer.retailer_id', $listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $widget->whereIn('widget_retailer.retailer_id', $listOfRetailerIds);
+                }
+            }
+
+            $widget = $widget->first();
+
             if (!empty($widget)) {
                 return FALSE;
             }
@@ -1027,12 +1046,31 @@ class WidgetAPIController extends ControllerAPI
 
         // Check the existstance of each widget type on update
         Validator::extend('orbit.exists.widget_type_but_me', function ($attribute, $value, $parameters) use ($user) {
-            
-            $widget = Widget::excludeDeleted()
-                        ->where('widget_type', $value)
-                        ->where('merchant_id', $parameters[0])
-                        ->where('widget_id', '!=', $parameters[1])
-                        ->first();
+            // Available retailer to query
+            $listOfRetailerIds = [];
+            $user = $this->api->user;
+
+            $widget = Widget::joinRetailer()
+                        ->excludeDeleted()
+                        ->where('widgets.widget_type', $value)
+                        ->where('widgets.merchant_id', $parameters[0])
+                        ->where('widgets.widget_id', '!=', $parameters[1]);
+
+            // @To do: Replace this hacks
+            if (! $user->isSuperAdmin()) {
+                $listOfRetailerIds = $user->getMyRetailerIds();
+
+                if (empty($listOfRetailerIds)) {
+                    $listOfRetailerIds = [-1];
+                }
+                $widget->whereIn('widget_retailer.retailer_id', $listOfRetailerIds);
+            } else {
+                if (! empty($listOfRetailerIds)) {
+                    $widget->whereIn('widget_retailer.retailer_id', $listOfRetailerIds);
+                }
+            }
+
+            $widget = $widget->first();
 
             if (!empty($widget)) {
                 return FALSE;
