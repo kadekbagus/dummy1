@@ -1423,6 +1423,10 @@ class CashierAPIController extends ControllerAPI
             $user = $this->api->user;
 
             $retailer = $this->getRetailerInfo();
+
+            // currency from merchant table (IDR,USD)
+            $currency = $retailer->parent->currency;
+
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
             $validator = Validator::make(
@@ -1609,9 +1613,11 @@ class CashierAPIController extends ControllerAPI
             if ($payment == 'Cash') {
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
                 $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+                $pay  .= $this->leftAndRight('Amount in', $currency);
             }
             if ($payment == 'Card') {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
+                $pay  .= $this->leftAndRight('Amount in', $currency);
             }
 
             $footer  = " \n";
@@ -3114,6 +3120,10 @@ class CashierAPIController extends ControllerAPI
             $user = $this->api->user;
 
             $retailer = $this->getRetailerInfo();
+
+            // currency from merchant table (IDR,USD)
+            $currency = $retailer->parent->currency;
+
             $transaction_id = trim(OrbitInput::post('transaction_id'));
 
             $validator = Validator::make(
@@ -3300,9 +3310,11 @@ class CashierAPIController extends ControllerAPI
             if ($payment == 'Cash') {
                 $pay  .= $this->leftAndRight('Tendered', number_format($transaction['tendered'], 2));
                 $pay  .= $this->leftAndRight('Change', number_format($transaction['change'], 2));
+                $pay  .= $this->leftAndRight('Amount in', $currency);
             }
             if ($payment == 'Card') {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
+                $pay  .= $this->leftAndRight('Amount in', $currency);
             }
 
             $footer  = " \n";

@@ -38,6 +38,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 if(response.code == 0){
                     $scope.language = response.data.pos_language == 'id' ? id : en;
                     localStorageService.set('currency',response.data.currency)
+                    localStorageService.set('currency_symbol',response.data.currency_symbol)
                 }
          });
          serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
@@ -103,6 +104,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //get currency from local storage
         $scope.precision          = localStorageService.get('currency') == 'IDR' ? 0 : 2;
         $scope.currency           = localStorageService.get('currency') == 'IDR' ? 'IDR' : 'USD';
+        $scope.currency_symbol    = localStorageService.get('currency_symbol') == 'Rp' ? 'Rp' : '$';
 
         if(!$scope.datauser){
              window.location.assign("signin");
@@ -575,7 +577,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 var temp_price = $scope.cart[i]['hargatotal'];
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
-                                console.log('tes 123');
                                 var promotionprice = 0;
                                 var couponprice    = 0;
                                 if($scope.vat_included == 'yes'){
@@ -1684,7 +1685,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }
                             }else if(response.message == 'Scanner not found'){
                                 //danger harcoded check type by message
-                                console.log('naskeleng2');
                                 if(response.message != 'Scanner not found'){
                                     angular.element("#ProductNotFound").modal();
                                 }else if(response.message == 'Scanner not found'){
