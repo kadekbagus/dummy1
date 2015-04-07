@@ -575,7 +575,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 var temp_price = $scope.cart[i]['hargatotal'];
 
                                 $scope.cart.totalitem += parseInt($scope.cart[i]['qty']);
-                                console.log('tes 123');
                                 var promotionprice = 0;
                                 var couponprice    = 0;
                                 if($scope.vat_included == 'yes'){
@@ -1684,7 +1683,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 }
                             }else if(response.message == 'Scanner not found'){
                                 //danger harcoded check type by message
-                                console.log('naskeleng2');
                                 if(response.message != 'Scanner not found'){
                                     angular.element("#ProductNotFound").modal();
                                 }else if(response.message == 'Scanner not found'){
