@@ -10,7 +10,7 @@
                 <div class="btn-group "   style="float: right; padding-top: 40px; padding-left: 10px; color:#46c2ff;" dropdown>
                      <% $parent.datauser.user.username %>&nbsp;<span class="down"  dropdown-toggle><i class="fa fa-caret-down"></i></span>
                       <ul class="dropdown-menu" style="min-width: 60px" role="menu">
-                        <li> <a href="#" data-ng-click="logoutfn()"><% language.keluar %></a></li>
+                        <li> <a ng-click="logoutfn()"><% language.keluar %></a></li>
                       </ul>
                 </div>
                 <p  style="float: right; padding-top: 40px;color:#030000" ><% guests %> | <% $parent.datetime %></p>
@@ -36,7 +36,7 @@
                                 <th class="text-center"><% language.nama %> + <% language.upc %></th>
                                 <th class="text-center"><% language.jumlah %></th>
                                 <th class="text-center"><% language.hargasatuan  +'('+ currency +')'%> </th>
-                                <th class="text-center"><% language.hargatotal %></th>
+                                <th class="text-center"><% language.hargatotal +'('+ currency +')'%></th>
                            </tr>
                          </thead>
                         <tbody data-ng-repeat="(k,v) in cart"  id="tablecart">
