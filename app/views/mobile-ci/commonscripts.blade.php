@@ -29,16 +29,16 @@
               $('#offlinemark').attr('class', 'fa fa-check fa-stack-1x').css({
                 'color': '#3c9',
                 'left': '6px',
-                'top': '2px',
-                'font-size': '.5em'
+                'top': '0px',
+                'font-size': '1em'
               });
               Offline.check();
             } else {
               $('#offlinemark').attr('class', 'fa fa-times fa-stack-1x').css({
                 'color': 'red',
                 'left': '6px',
-                'top': '2px',
-                'font-size': '.5em'
+                'top': '0px',
+                'font-size': '1em'
               });
             }
         };
