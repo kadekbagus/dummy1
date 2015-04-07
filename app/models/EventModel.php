@@ -165,4 +165,19 @@ class EventModel extends Eloquent
         return $this->hasMany('Media', 'object_id', 'event_id')
                     ->where('object_name', 'event');
     }
+
+    /**
+     * Accessor for empty product image
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @param string $value - image path
+     * @return string $value
+     */
+    public function getImageAttribute($value)
+    {
+        if (empty($value)) {
+            return 'mobile-ci/images/default_product.png';
+        }
+        return ($value);
+    }
 }

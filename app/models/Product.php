@@ -232,4 +232,19 @@ class Product extends Eloquent
 
         return FALSE;
     }
+
+    /**
+     * Accessor for empty product image
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @param string $value - image path
+     * @return string $value
+     */
+    public function getImageAttribute($value)
+    {
+        if (empty($value)) {
+            return 'mobile-ci/images/default_product.png';
+        }
+        return ($value);
+    }
 }
