@@ -1860,6 +1860,9 @@ class MobileCIAPIController extends ControllerAPI
 
             $product_on_promo = array();
             foreach ($promotions as $promotion) {
+                if (empty($promotion->promo_image)) {
+                    $promotion->promo_image = 'mobile-ci/images/default_product.png';
+                }
                 $product_on_promo[] = $promotion->product_id;
             }
 
@@ -1911,6 +1914,9 @@ class MobileCIAPIController extends ControllerAPI
             );
             $product_on_coupon = array();
             foreach ($coupons as $coupon) {
+                if (empty($coupon->promo_image)) {
+                    $coupon->promo_image = 'mobile-ci/images/default_product.png';
+                }
                 $product_on_coupon[] = $coupon->product_id;
             }
 
@@ -2179,6 +2185,12 @@ class MobileCIAPIController extends ControllerAPI
             } else {
                 $data = new stdclass();
                 $data->status = 0;
+            }
+
+            foreach ($promotions as $promotion) {
+                if (empty($promotion->promo_image)) {
+                    $promotion->promo_image = 'mobile-ci/images/default_product.png';
+                }
             }
 
             $cartitems = $this->getCartForToolbar();
@@ -3465,6 +3477,12 @@ class MobileCIAPIController extends ControllerAPI
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id)
             );
+            
+            foreach ($coupons as $coupon) {
+                if (empty($coupon->promo_image)) {
+                    $coupon->promo_image = 'mobile-ci/images/default_product.png';
+                }
+            }
 
             $this->response->message = 'success';
             $this->response->data = $coupons;
