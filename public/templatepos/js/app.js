@@ -198,7 +198,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                             //$scope.product = response.data.records;
                             $scope.enadis();
                         }else if(response.code == 13){
-                            //$scope.logoutfn();
+                            $scope.logoutfn();
                         }else{
                             //do something when error
                         }
@@ -1900,7 +1900,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                                 $scope.manualscancart = '';
 
                                 if(response.message == 'You have to login to view this page.'){
-                                  //  $scope.logoutfn();
+                                    $scope.logoutfn();
                                 }
 
                                 if(response.message == 'Scanner not found'){
