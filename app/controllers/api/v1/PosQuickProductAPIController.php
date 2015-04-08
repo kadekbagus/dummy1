@@ -65,9 +65,11 @@ class PosQuickProductAPIController extends ControllerAPI
             $merchantId = OrbitInput::post('merchant_id');
             $order = OrbitInput::post('product_order');
 
-            // @TODO temporary code.
-            // $retailerId = OrbitInput::post('retailer_id');
-            $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+            $retailerId = OrbitInput::post('retailer_id');
+            // @TODO should not be here for next version.
+            if (empty($retailerId)) {
+                $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+            }
 
             $validator = Validator::make(
                 array(
@@ -270,9 +272,11 @@ class PosQuickProductAPIController extends ControllerAPI
             $merchantId = OrbitInput::post('merchant_id');
             $order = OrbitInput::post('product_order');
 
-            // @TODO temporary code.
-            // $retailerId = OrbitInput::post('retailer_id');
-            $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+            $retailerId = OrbitInput::post('retailer_id');
+            // @TODO should not be here for next version.
+            if (empty($retailerId)) {
+                $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+            }
 
             $validator = Validator::make(
                 array(
@@ -477,9 +481,11 @@ class PosQuickProductAPIController extends ControllerAPI
             $productId = OrbitInput::post('product_id');
             $merchantId = OrbitInput::post('merchant_id');
 
-            // @TODO temporary code.
-            // $retailerId = OrbitInput::post('retailer_id');
-            $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+            $retailerId = OrbitInput::post('retailer_id');
+            // @TODO should not be here for next version.
+            if (empty($retailerId)) {
+                $retailerId = Setting::where('setting_name', 'current_retailer')->first()->setting_value;
+            }
 
             $validator = Validator::make(
                 array(
@@ -639,9 +645,9 @@ class PosQuickProductAPIController extends ControllerAPI
      * ----------------------
      * @param array         `product_ids`              (optional) - IDs of the product
      * @param array         `merchant_ids`             (optional) - IDs of the merchant
-     * @param array         `retailer_ids`             (optional) - IDs of the
-     * @param string        `sort_by`                  (optional) - column order by
-     * @param string        `sort_mode`                (optional) - asc or desc
+     * @param array         `retailer_ids`             (optional) - IDs of the retailer
+     * @param string        `sortby`                   (optional) - column order by. Valid value: id, price, name, product_order.
+     * @param string        `sortmode`                 (optional) - asc or desc
      * @param integer       `take`                     (optional) - limit
      * @param integer       `skip`                     (optional) - limit offset
      * @param string        `is_current_retailer_only` (optional) - To show current retailer product only. Valid value: Y
@@ -744,9 +750,7 @@ class PosQuickProductAPIController extends ControllerAPI
 
             // Filter by retailer ids
             OrbitInput::get('retailer_ids', function($retailerIds) use ($posQuickProducts) {
-                if ($user->isSuperAdmin()) {
-                    $posQuickProducts->whereIn('product_retailer.retailer_id', $retailerIds);
-                }
+                $posQuickProducts->whereIn('pos_quick_products.retailer_id', $retailerIds);
             });
 
             // Filter by current retailer
