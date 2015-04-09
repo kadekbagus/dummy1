@@ -5393,7 +5393,7 @@ class MobileCIAPIController extends ControllerAPI
             if ($payment=="Card") {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
             }
-
+            $pay  .= $this->leftAndRight('Amount in', $transaction->currency);
             $footer  = " \n";
             $footer .= " \n";
             $footer .= " \n";
