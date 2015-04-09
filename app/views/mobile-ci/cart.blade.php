@@ -46,7 +46,6 @@
                     <div class="single-body">
                         <p><span class="product-name" data-product="{{ $cartdetail->product->product_id }}"><b>{{ $cartdetail->product->product_name }}</b></span></p>
                         <p class="attributes">
-                            {{ $cartdetail->cart_detail_id }}
                             @if(count($cartdetail->attributes) > 0)
                             @foreach($cartdetail->attributes as $attribute)
                             <span>{{$attribute}}</span>
