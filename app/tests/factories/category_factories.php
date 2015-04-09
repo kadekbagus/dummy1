@@ -19,5 +19,8 @@ $factory('Category', [
     'merchant_id' => 'factory:Merchant',
     'created_by'  => 'factory:User',
     'modified_by' => 'factory:User',
+    'status'      => 'active',
+    'description' => $faker->words(2),
+    'category_level' => 1,
     'category_name' => $faker->word
 ]);
