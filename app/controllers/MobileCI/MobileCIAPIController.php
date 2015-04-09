@@ -1524,6 +1524,9 @@ class MobileCIAPIController extends ControllerAPI
 
             $product_on_promo = array();
             foreach ($promotions as $promotion) {
+                if (empty($promotion->promo_image)) {
+                    $promotion->promo_image = 'mobile-ci/images/default_product.png';
+                }
                 $product_on_promo[] = $promotion->product_id;
             }
 
