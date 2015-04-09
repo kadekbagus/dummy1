@@ -26,7 +26,7 @@ $appleCaptiveDomains = [
     'itools.info',
     '{all}.itools.info',
     'thinkdifferent.us',
-    'thinkdifferent.us'
+    '{all}.thinkdifferent.us'
 ];
 
 // I don't have any clue about the capabilities of Laravel routing when
