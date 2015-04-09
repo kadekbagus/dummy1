@@ -3595,7 +3595,6 @@ class MobileCIAPIController extends ControllerAPI
                 ->save();
 
             return $this->redirectIfNotLoggedIn($e);
-                            // return $e;
         }
     }
 
@@ -4161,8 +4160,7 @@ class MobileCIAPIController extends ControllerAPI
                 ->responseFailed()
                 ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-                return $e;
+            return $this->redirectIfNotLoggedIn($e);
         }
 
         return $this->render();
@@ -6141,7 +6139,6 @@ class MobileCIAPIController extends ControllerAPI
             return $cartdata;
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
-            // return $e->getMessage();
         }
     }
 
