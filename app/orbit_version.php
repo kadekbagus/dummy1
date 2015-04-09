@@ -21,7 +21,7 @@ if (! defined('ORBIT_APP_BUILD_NUMBER')) {
  *   Y: Minor version
  */
 if (! defined('ORBIT_APP_VERSION')) {
-    define('ORBIT_APP_VERSION', '0.12-dev-b640');
+    define('ORBIT_APP_VERSION', '0.12-dev-b644');
 }
 
 /**
