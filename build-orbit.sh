@@ -45,7 +45,7 @@ echo "-------------------------------------------------------"
     echo "done."
 
     echo -n "Copying files to ${ORBIT_DEPLOY_DIR}..."
-    rsync -lrvqW --no-compress --ignore-errors --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
+    rsync --delete -lrvqW --no-compress --ignore-errors --exclude=.git ./ ${ORBIT_DEPLOY_DIR}/
     echo "done."
 
     # Change the ownership back to orbitshop:git
