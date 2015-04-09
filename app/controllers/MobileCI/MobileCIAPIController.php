@@ -1524,6 +1524,9 @@ class MobileCIAPIController extends ControllerAPI
 
             $product_on_promo = array();
             foreach ($promotions as $promotion) {
+                if (empty($promotion->promo_image)) {
+                    $promotion->promo_image = 'mobile-ci/images/default_product.png';
+                }
                 $product_on_promo[] = $promotion->product_id;
             }
 
@@ -3592,7 +3595,6 @@ class MobileCIAPIController extends ControllerAPI
                 ->save();
 
             return $this->redirectIfNotLoggedIn($e);
-                            // return $e;
         }
     }
 
@@ -4158,8 +4160,7 @@ class MobileCIAPIController extends ControllerAPI
                 ->responseFailed()
                 ->save();
 
-            // return $this->redirectIfNotLoggedIn($e);
-                return $e;
+            return $this->redirectIfNotLoggedIn($e);
         }
 
         return $this->render();
@@ -5392,7 +5393,7 @@ class MobileCIAPIController extends ControllerAPI
             if ($payment=="Card") {
                 $pay  .= $this->leftAndRight('Total Paid', number_format($transaction['total_to_pay'], 2));
             }
-
+            $pay  .= $this->leftAndRight('Amount in', $transaction->currency);
             $footer  = " \n";
             $footer .= " \n";
             $footer .= " \n";
@@ -6138,7 +6139,6 @@ class MobileCIAPIController extends ControllerAPI
             return $cartdata;
         } catch (Exception $e) {
             return $this->redirectIfNotLoggedIn($e);
-            // return $e->getMessage();
         }
     }
 
