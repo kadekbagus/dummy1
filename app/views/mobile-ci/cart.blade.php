@@ -46,7 +46,6 @@
                     <div class="single-body">
                         <p><span class="product-name" data-product="{{ $cartdetail->product->product_id }}"><b>{{ $cartdetail->product->product_name }}</b></span></p>
                         <p class="attributes">
-                            {{ $cartdetail->cart_detail_id }}
                             @if(count($cartdetail->attributes) > 0)
                             @foreach($cartdetail->attributes as $attribute)
                             <span>{{$attribute}}</span>
@@ -82,7 +81,7 @@
                         </div>
                     </div>
                     <div class="single-body">
-                        <span class="@if($promo->rule_type == 'product_discount_by_percentage') percentage-num @else formatted-num @endif">{{ $promo->discount_str }}</span>
+                        <span class="@if($promo->rule_type == 'product_discount_by_percentage' || $promo->rule_type == 'cart_discount_by_percentage') percentage-num @else formatted-num @endif">{{ $promo->discount_str }}</span>
                     </div>
                     <div class="single-body text-right">
                         - <span class="formatted-num">{{ $promo->discount }}</span>
@@ -102,7 +101,7 @@
                         </div>
                     </div>
                     <div class="single-body">
-                        <span class="@if($coupon->issuedcoupon->rule_type == 'product_discount_by_percentage') percentage-num @else formatted-num @endif">{{ $coupon->discount_str }}</span>
+                        <span class="@if($coupon->issuedcoupon->rule_type == 'product_discount_by_percentage' || $coupon->issuedcoupon->rule_type == 'cart_discount_by_percentage') percentage-num @else formatted-num @endif">{{ $coupon->discount_str }}</span>
                     </div>
                     <div class="single-body text-right">
                         - <span class="formatted-num">{{ $coupon->discount }}</span>
