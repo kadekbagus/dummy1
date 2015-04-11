@@ -245,6 +245,34 @@ trait UserRoleTrait
     }
 
     /**
+     * Merchant Owner check.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * @return boolean
+     */
+    public function isMerchantOwner()
+    {
+        $role = 'merchant owner';
+
+        return strtolower($this->role->role_name) === $role;
+    }
+
+    /**
+     * Consumer check.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * @return boolean
+     */
+    public function isConsumer()
+    {
+        $role = 'consumer';
+
+        return strtolower($this->role->role_name) === $role;
+    }
+
+    /**
      * Get list of retailer ids owned by this user. This is f*cking wrong,
      * normally I hate doing loop on query.
      *
