@@ -12,6 +12,121 @@ use Illuminate\Database\QueryException;
 
 class DummyAPIController extends ControllerAPI
 {
+    public function getUserOutOfNetwork()
+    {
+        $activity = Activity::unknown('captive')
+                            ->setActivityType('network_check_out');
+
+        // Get PWU Server IP address
+        $userIP = $_SERVER['REMOTE_ADDR'];
+        $email = trim(OrbitInput::get('email', NULL));
+        $logFile = storage_path() . '/logs/pwu-call.log';
+        $pwuIPFile = storage_path() . '/logs/pwu-ip.txt';
+        $now = date('Y-m-d H:i:s');
+        $format = "[%s] %s; checkout; Email %s do network checkout; %s";
+        $httpCode = 200;
+        $message = '';
+
+        try {
+            $ips = [];
+            if (file_exists($pwuIPFile)) {
+                $ips = explode("\n", file_get_contents($pwuIPFile));
+                $ips = array_map('trim', $ips);
+                $ips = array_filter($ips);
+            }
+            $ips[] = '127.0.0.1';
+
+            if (empty($email)) {
+                $message = sprintf($format, $now, $userIP, $email, 'Failed: email is empty');
+                $httpCode = 400;
+                throw new Exception ($message, 1);
+            }
+
+            if (! in_array($userIP, $ips)) {
+                $message = sprintf($format, $now, $userIP, $email, 'Failed: IP is not allowed to access this resource');
+                $httpCode = 403;
+                throw new Exception ($message, 1);
+            }
+
+            // Successfull
+            $message = sprintf($format, $now, $userIP, $email, 'OK');
+            $this->response->message = $message;
+            $activity->setUser(NULL)
+                     ->setActivityName('Network checkout ok')
+                     ->setActivityNameLong($message)
+                     ->setModuleName('Network')
+                     ->responseOK();
+        } catch (Exception $e) {
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            $activity->setUser('guest')
+                     ->setActivityName('Network checkout failed')
+                     ->setActivityNameLong($e->getMessage())
+                     ->setNotes($e->getMessage())
+                     ->setModuleName('Network')
+                     ->responseFailed();
+        }
+
+        $activity->user_email = $email;
+        $activity->save();
+        file_put_contents($logFile, $message . "\n", FILE_APPEND);
+
+        return $this->render($httpCode);
+    }
+
+    public function getUserSignInNetwork()
+    {
+        $activity = Activity::unknown('captive')
+                            ->setActivityType('network_check_in');
+
+        // Get PWU Server IP address
+        $userIP = $_SERVER['REMOTE_ADDR'];
+        $email = trim(OrbitInput::get('email', NULL));
+        $logFile = storage_path() . '/logs/pwu-call.log';
+        $now = date('Y-m-d H:i:s');
+        $format = "[%s] %s; checkin; Email %s do network checkin; %s";
+        $httpCode = 200;
+        $message = '';
+
+        try {
+            if (empty($email)) {
+                $message = sprintf($format, $now, $userIP, $email, 'Failed: email is empty');
+                $httpCode = 400;
+                throw new Exception ($message, 1);
+            }
+
+            // Successfull
+            $message = sprintf($format, $now, $userIP, $email, 'OK');
+            $this->response->message = $message;
+            $activity->setUser(NULL)
+                     ->setActivityName('Network checkin ok')
+                     ->setActivityNameLong($message)
+                     ->setModuleName('Network')
+                     ->responseOK();
+        } catch (Exception $e) {
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            $activity->setUser('guest')
+                     ->setActivityName('Network checkin failed')
+                     ->setActivityNameLong($e->getMessage())
+                     ->setNotes($e->getMessage())
+                     ->setModuleName('Network')
+                     ->responseFailed();
+        }
+
+        $activity->user_email = $email;
+        $activity->save();
+        file_put_contents($logFile, $message . "\n", FILE_APPEND);
+
+        return $this->render($httpCode);
+    }
+
     public function IamOK()
     {
         return $this->render();

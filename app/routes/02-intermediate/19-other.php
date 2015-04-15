@@ -13,3 +13,8 @@ Route::post('/app/v1/box-control/shutdown', 'IntermediateAuthController@Shutdown
  * Reboot box
  */
 Route::post('/app/v1/box-control/reboot', 'IntermediateAuthController@Shutdown_postRebootBox');
+
+/**
+ * Lippo Mall PWU - Network checkout test
+ */
+Route::get('/app/v1/captive/user-out', 'DummyAPIController@getUserOutOfNetwork');
