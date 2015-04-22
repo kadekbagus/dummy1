@@ -221,6 +221,12 @@ return array(
         'driver' => 'file',
 
         /**
+         * Database Specific Config
+         */
+        // 'table' => 'sessions',
+        // 'pdo'   => DB::connection()->getPdo(),
+
+        /**
          * Session data available
          */
         'availability' => array(
