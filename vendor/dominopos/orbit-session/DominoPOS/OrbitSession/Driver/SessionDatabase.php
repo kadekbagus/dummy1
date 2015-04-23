@@ -1,34 +1,34 @@
 <?php namespace DominoPOS\OrbitSession\Driver;
 /**
- * Session driver using database as backend
+ * Session driver using database via pdo as backend
  *
  * @author Yudi Rahono <yudi.rahono@dominopos.com>
  *
  */
 
 use Exception;
+use DominoPOS\OrbitSession\Helper;
 use DominoPOS\OrbitSession\Session;
-use PDO;
 
 class SessionDatabase implements GenericInterface
 {
     /**
      * config object
      *
-     * @var DominoPOS\OrbitSession\SessionConfig
+     * @var \DominoPOS\OrbitSession\SessionConfig
      */
     protected $config = NULL;
 
     /**
      * pdo connection
      *
-     * @var PDO
+     * @var \PDO
      */
     protected $pdo;
 
 
     /**
-     * dirty session object
+     * dirty sessions object
      *
      * @var array
      */
@@ -37,13 +37,19 @@ class SessionDatabase implements GenericInterface
     /**
      * Constructor
      *
-     * @param DominoPOS\OrbitSession\SessionConfig
+     * @param \DominoPOS\OrbitSession\SessionConfig $config
+     * @throws Exception
      */
     public function __construct($config)
     {
+        if (!extension_loaded('pdo'))
+        {
+            throw new Exception("Extensions PDO Not Loaded", Session::ERR_UNKNOWN);
+        }
+
         $this->config = $config;
         $this->dirty  = [];
-        $this->pdo = $config->getConfig('pdo');
+        $this->pdo    = $this->createConnection($config->getConfig('connection'));
     }
 
     /**
@@ -73,7 +79,7 @@ class SessionDatabase implements GenericInterface
      * Start a session
      *
      *
-     * @param DominoPOS\OrbitSession\SessionData
+     * @param \DominoPOS\OrbitSession\SessionData $sessionData
      * @return SessionDatabase
      */
     public function start($sessionData)
@@ -86,7 +92,7 @@ class SessionDatabase implements GenericInterface
     /**
      * Update a session
      *
-     * @param DominoPOS\OrbitSession\SessionData
+     * @param \DominoPOS\OrbitSession\SessionData $sessionData
      * @return SessionDatabase
      */
     public function update($sessionData)
@@ -100,7 +106,10 @@ class SessionDatabase implements GenericInterface
      */
     public function destroy($sessionId)
     {
-        $this->dirty[$sessionId]->value = ['___delete' => true];
+        $current = $this->getCurrent($sessionId);
+        $current->value = ["__delete" => true];
+
+        $this->dirty[$sessionId] = $current;
     }
 
     /**
@@ -109,13 +118,15 @@ class SessionDatabase implements GenericInterface
      */
     public function clear($sessionId)
     {
-        $this->dirty[$sessionId]->value = ['___dirty' => true];
+        $current = $this->get($sessionId);
+        $current->value = ['__dirty' => true];
+        $this->dirty[$sessionId] = $current;
     }
 
     /**
      * Get a session
      * @param string $sessionId
-     * @return array
+     * @return \DominoPOS\OrbitSession\SessionData
      */
     public function get($sessionId)
     {
@@ -131,7 +142,7 @@ class SessionDatabase implements GenericInterface
      */
     public function write($sessionId, $key, $value)
     {
-        $current             = $this->getCurrent($sessionId);
+        $current    = $this->get($sessionId);
         $current->value[$key]       = $value;
         $current->value['___dirty'] = true;
 
@@ -148,7 +159,7 @@ class SessionDatabase implements GenericInterface
      */
     public function read($sessionId, $key)
     {
-        $current = $this->getCurrent($sessionId);
+        $current = $this->get($sessionId);
 
         return $current->value[$key];
     }
@@ -161,7 +172,8 @@ class SessionDatabase implements GenericInterface
      */
     public function remove($sessionId, $key)
     {
-        $current = $this->getCurrent($sessionId);
+        $current = $this->get($sessionId);
+
         unset($current->value[$key]);
         $current->value['___dirty'] = true;
 
@@ -179,10 +191,12 @@ class SessionDatabase implements GenericInterface
     }
 
     /**
+     * Get Current session from cache or database
+     *
      * @param string $sessionId
-     * @return mixed
+     * @return \DominoPOS\OrbitSession\SessionData
      */
-    private function getCurrent($sessionId)
+    protected function getCurrent($sessionId)
     {
         if (array_key_exists($sessionId, $this->dirty))
         {
@@ -196,18 +210,30 @@ class SessionDatabase implements GenericInterface
     }
 
     /**
+     * Get Session from database
+     *
      * @param string $sessionId
      * @return array
      * @throws Exception
      */
-    private function __getSession($sessionId)
+    protected function __getSession($sessionId)
     {
         $query = $this->pdo->query("
-            SELECT * FROM `{$this->getConfig('table')}`
+            SELECT * FROM `{$this->getConfig('path')}`
              WHERE session_id = {$this->pdo->quote($sessionId)}
         ");
 
+        if (FALSE === $query)
+        {
+            throw new Exception($this->pdo->errorInfo()[2], Session::ERR_UNKNOWN);
+        }
+
         $result = $query->fetchObject();
+
+        if (FALSE === $result)
+        {
+            throw new Exception("Session Not Found", Session::ERR_SESS_NOT_FOUND);
+        }
 
         if (FALSE === ($result = unserialize($result->session_data)))
         {
@@ -217,7 +243,13 @@ class SessionDatabase implements GenericInterface
         return $result;
     }
 
-    private function __updateSession($sessionId, $sessionData)
+    /**
+     * @param string $sessionId
+     * @param \DominoPOS\OrbitSession\SessionData $sessionData
+     * @return bool
+     * @throws Exception
+     */
+    protected function __updateSession($sessionId, $sessionData)
     {
         $data         = $this->pdo->quote(serialize($sessionData));
         $id           = $this->pdo->quote($sessionId);
@@ -225,7 +257,7 @@ class SessionDatabase implements GenericInterface
         $lastActivity = $this->pdo->quote($sessionData->lastActivityAt);
 
         $query = $this->pdo->prepare("
-            UPDATE {$this->getConfig('table')}
+            UPDATE {$this->getConfig('path')}
             SET
               session_data   = {$data},
               last_activity  = {$lastActivity},
@@ -233,10 +265,23 @@ class SessionDatabase implements GenericInterface
             WHERE session_id = {$id}
         ");
 
+        if (FALSE === $query)
+        {
+            throw new Exception($this->pdo->errorInfo()[2], Session::ERR_UNKNOWN);
+        }
+
         return $query->execute();
     }
 
-    private function __deleteSession($sessionId, $clean = false)
+    /**
+     * Delete sessions with optional clean stale sessions
+     *
+     * @param string $sessionId
+     * @param bool $clean
+     * @return bool
+     * @throws Exception
+     */
+    protected function __deleteSession($sessionId, $clean = false)
     {
 
         $id = $this->pdo->quote($sessionId);
@@ -247,54 +292,72 @@ class SessionDatabase implements GenericInterface
             $cleanStatement = "OR expire_at < {time()}";
         }
 
-        $prepared = $this->pdo->prepare("
-            DELETE FROM `{$this->getConfig('table')}`
+        $query = $this->pdo->prepare("
+            DELETE FROM `{$this->getConfig('path')}`
             WHERE session_id = {$id} {$cleanStatement}
         ");
 
-        $this->pdo->exec($prepared);
+        if (FALSE === $query)
+        {
+            throw new Exception($this->pdo->errorInfo()[2], Session::ERR_UNKNOWN);
+        }
+
+        return $query->execute();
     }
 
-
-
-    private function __insertSession($sessionData)
+    /**
+     * Insert Initial Session to Database
+     *
+     * @param \DominoPOS\OrbitSession\SessionData
+     * @return bool
+     */
+    protected function __insertSession($sessionData)
     {
 
-        $this->touch($sessionData);
+        Helper::touch($sessionData, $this->getConfig('expire'));
+
         $data         = $this->pdo->quote(serialize($sessionData));
         $id           = $this->pdo->quote($sessionData->id);
         $expireAt     = $this->pdo->quote($sessionData->expireAt);
         $lastActivity = $this->pdo->quote($sessionData->lastActivityAt);
 
         $query =$this->pdo->prepare("
-            INSERT INTO `{$this->getConfig('table')}` (session_id, session_data, expire_at, last_activity)
+            INSERT INTO `{$this->getConfig('path')}` (session_id, session_data, expire_at, last_activity)
             VALUES ({$id}, {$data}, {$expireAt}, {$lastActivity})
         ");
 
-        $query->execute();
-    }
-
-    private function getConfig($name)
-    {
-        return $this->config->getConfig($name);
+        return $query->execute();
     }
 
     /**
-     * Touch the session data to change the expiration time and last activity.
+     * Config Proxy Method
      *
-     * @author Rio Astamal <me@rioastamal.net>
-     * @param sessionData &$sessionData
-     * @return void
+     * @param string $name
+     * @param null $default
+     * @return mixed
      */
-    protected function touch(&$sessionData)
+    protected function getConfig($name, $default = null)
     {
-        // Refresh the session
-        $expire = $this->config->getConfig('expire');
-        if ($expire !== 0) {
-            $sessionData->expireAt = time() + $expire;
-        }
+        return $this->config->getConfig($name, $default);
+    }
 
-        // Last activity
-        $sessionData->lastActivityAt = time();
+    /**
+     * @param array $connection
+     * @return PDO
+     */
+    protected function createConnection($connection)
+    {
+        $host      = Helper::array_get($connection, 'host');
+        $port      = Helper::array_get($connection, 'port', '');
+        $driver    = Helper::array_get($connection, 'driver');
+        $password  = Helper::array_get($connection, 'password');
+        $database  = Helper::array_get($connection, 'database', '');
+        $username  = Helper::array_get($connection, 'username');
+        $charset   = Helper::array_get($connection, 'charset', 'utf8');
+
+        // mysql:host=localhost;port=;dbname=;charset=utf8;
+        $dsn  = "{$driver}:host={$host};port={$port};dbname={$database};charset={$charset}";
+
+        return new \PDO($dsn, $username, $password);
     }
 }
