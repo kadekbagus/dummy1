@@ -182,8 +182,10 @@ class SessionRedis implements GenericInterface
     {
         $host     = Helper::array_get($connection, 'host', 'localhost');
         $port     = Helper::array_get($connection, 'port', 6379);
+        $database = Helper::array_get($connection, 'database', 0);
 
         $this->redis->connect($host, $port);
+        $this->redis->select($database);
     }
 
     /**
