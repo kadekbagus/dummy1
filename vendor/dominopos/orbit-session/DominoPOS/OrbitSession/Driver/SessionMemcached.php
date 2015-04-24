@@ -49,6 +49,9 @@ class SessionMemcached implements GenericInterface
         $this->createConnection($config->getConfig('connection'));
     }
 
+    /**
+     * Save outstanding values to memcached
+     */
     public function __destruct()
     {
         foreach ($this->dirty as $id=>$dirty) {
@@ -180,7 +183,8 @@ class SessionMemcached implements GenericInterface
      */
     protected function createConnection($connection)
     {
-        if(! is_array($connection))
+        // check multiple host or not
+        if(array_key_exists('host', $connection))
         {
             $connection = [$connection];
         }

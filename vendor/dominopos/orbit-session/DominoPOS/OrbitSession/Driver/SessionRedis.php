@@ -49,6 +49,9 @@ class SessionRedis implements GenericInterface
         $this->createConnection($config->getConfig('connection'));
     }
 
+    /**
+     * save outstanding cached session to redis
+     */
     public function __destruct()
     {
         foreach ($this->dirty as $id=>$dirty) {
