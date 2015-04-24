@@ -343,10 +343,21 @@ class SessionDatabase implements GenericInterface
 
     /**
      * @param array $connection
-     * @return PDO
+     * @return \PDO
+     * @throws Exception
      */
     protected function createConnection($connection)
     {
+        if ($connection instanceof \PDO)
+        {
+            return $connection;
+        }
+
+        if (! is_array($connection))
+        {
+            throw new Exception("Unknown connection configuration", Session::ERR_UNKNOWN);
+        }
+
         $host      = Helper::array_get($connection, 'host');
         $port      = Helper::array_get($connection, 'port', '');
         $driver    = Helper::array_get($connection, 'driver');
