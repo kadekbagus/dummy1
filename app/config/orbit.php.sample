@@ -256,6 +256,9 @@ return array(
          *     'collation' => 'utf8_unicode_ci',
          *     'prefix'    => 'orbs_',
          * ),
+         * or can be pass direct pdo connection
+         * 'connection' => DB::connection()->getPdo(),
+         *
          * REDIS:
          * 'connection' => array(
          *     'host'     => 'localhost',
