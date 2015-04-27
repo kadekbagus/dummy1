@@ -8,6 +8,8 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 	protected static $directories;
 
+	protected $useTruncate = true;
+
 	/**
 	 * Creates the application.
 	 *
@@ -26,7 +28,9 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
     {
         parent::setUp();
 
-        $this->useTruncate = true;
+		if (! $this->useTruncate) {
+			DB::beginTransaction();
+		}
     }
 
 	public function tearDown()
@@ -41,7 +45,9 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
                     DB::table($tableName)->truncate();
                 }
             }
-        }
+        } else {
+			DB::rollback();
+		}
 
 		unset($_GET);
 		unset($_POST);
