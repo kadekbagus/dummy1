@@ -11,20 +11,25 @@ use Laracasts\TestDummy\Factory;
 class postUpdatePromotionTest extends TestCase {
     private $baseUrl  = '/api/v1/promotion/update';
 
-    public function setUp()
-    {
-        parent::setUp();
+    protected $authData;
+    protected $promotions;
+    protected $merchant;
+    protected $retailer;
 
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->promotions = Factory::times(3)->create('Promotion');
-        $this->merchant   = Factory::create('Merchant');
-        $this->retailer   = Factory::create('Retailer', ['parent_id' => $this->merchant->merchant_id]);
+    public static function prepareDatabase()
+    {
+        $merchant  = Factory::create('Merchant');
+        static::addData('authData',  Factory::create('apikey_super_admin'));
+        static::addData('promotions',  Factory::times(3)->create('Promotion'));
+        static::addData('merchant',  $merchant);
+        static::addData('retailer',  Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]));
     }
 
     public function testOK_post_update_promotion()
     {
         $promotion = Factory::create('Promotion');
         Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotionCountBefore = Promotion::count();
 
         $makeRequest = function ($changes = []) use ($promotion) {
             $_GET['apikey']       = $this->authData->api_key;
@@ -74,13 +79,14 @@ class postUpdatePromotionTest extends TestCase {
         $this->assertSame('inactive', $currentPromo->status);
 
         // should not change number of promotion
-        $this->assertSame(4, Promotion::count());
+        $this->assertSame($promotionCountBefore, Promotion::count());
     }
 
     public function testACL_post_update_promotion()
     {
         $promotion = Factory::create('Promotion');
         Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotionCountBefore = Promotion::count();
 
         $makeRequest = function ($authData) use ($promotion) {
             $_GET['apikey']       = $authData->api_key;
@@ -145,13 +151,14 @@ class postUpdatePromotionTest extends TestCase {
         $this->assertSame(Status::OK_MSG, $response->message);
 
         // should not change number of promotion
-        $this->assertSame(4, Promotion::count());
+        $this->assertSame($promotionCountBefore, Promotion::count());
     }
 
     public function testError_parameters_post_update_promotion()
     {
         $promotion = Factory::create('Promotion');
         Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotionCountBefore = Promotion::count();
 
         $makeRequest = function ($postData) {
             $_GET['apikey']       = $this->authData->api_key;
@@ -202,5 +209,8 @@ class postUpdatePromotionTest extends TestCase {
         $this->assertResponseStatus(403);
         $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
         $this->assertRegExp('/merchant.id.must.be.a.number/', $response->message);
+
+        //should not change number of promotions
+        $this->assertSame($promotionCountBefore, Promotion::count());
     }
 }

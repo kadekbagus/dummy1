@@ -8,23 +8,23 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class postUpdatePromotionTest extends TestCase {
+class postDeletePromotionTest extends TestCase {
     private $baseUrl  = '/api/v1/promotion/delete';
 
-    public function setUp()
+    public static function prepareDatabase()
     {
-        parent::setUp();
-
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->promotions = Factory::times(3)->create('Promotion');
-        $this->merchant   = Factory::create('Merchant');
-        $this->retailer   = Factory::create('Retailer', ['parent_id' => $this->merchant->merchant_id]);
+        $merchant  = Factory::create('Merchant');
+        static::addData('authData',  Factory::create('apikey_super_admin'));
+        static::addData('promotions',  Factory::times(3)->create('Promotion'));
+        static::addData('merchant',  $merchant);
+        static::addData('retailer',  Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]));
     }
 
     public function testOK_post_delete_promotion()
     {
         $promotion = Factory::create('Promotion');
         Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotionCountBefore = Promotion::count();
 
         $makeRequest = function ($changes = []) use ($promotion) {
             $_GET['apikey']       = $this->authData->api_key;
@@ -55,8 +55,8 @@ class postUpdatePromotionTest extends TestCase {
         $this->assertSame(Status::OK, $response->code);
         $this->assertRegExp('/promotion.*deleted/i', $response->message);
 
-        // should not change number of promotion
-        $this->assertSame(3, Promotion::excludeDeleted()->count());
+        // should change number of promotion
+        $this->assertSame($promotionCountBefore - 1, Promotion::excludeDeleted()->count());
     }
 
     public function testACL_post_delete_promotion()
@@ -97,7 +97,6 @@ class postUpdatePromotionTest extends TestCase {
         // should say OK
         $this->assertSame(Status::OK, $response->code);
         $this->assertRegExp('/promotion.*deleted/i', $response->message);
-
 
         // As User Without Granted Permission
         $merchant   = $promotion->merchant()->first();
