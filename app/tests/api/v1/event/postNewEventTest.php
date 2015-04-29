@@ -12,12 +12,10 @@ class postNewEventTest extends TestCase {
 
     private $baseUrl = '/api/v1/event/new';
 
-    public function setUp()
+    public static function prepareDatabase()
     {
-        parent::setUp();
-
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->events   = Factory::times(3)->create("EventModel");
+        static::addData('authData', Factory::create('apikey_super_admin'));
+        static::addData('events', Factory::times(3)->create("EventModel"));
     }
 
     public function testOK_post_new_event_with_more_than_one_link_id()
@@ -64,7 +62,7 @@ class postNewEventTest extends TestCase {
         $_GET['apitimestamp'] = time();
 
         $_POST['merchant_id']    = $merchant->merchant_id;
-        $_POST['event_name']     = 'Unique Submitted Event';
+        $_POST['event_name']     = 'Unique Submitted Event 000';
         $_POST['event_type']     = 'link';
         $_POST['status']         = 'active';
         $_POST['description']    = 'Description for event here';
