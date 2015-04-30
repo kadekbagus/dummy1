@@ -8,7 +8,8 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class getSearchCouponTest extends TestCase {
+class getSearchCouponTest extends TestCase
+{
     private $baseUrl  = '/api/v1/coupon/search';
 
     protected $useTruncate = false;
@@ -42,7 +43,6 @@ class getSearchCouponTest extends TestCase {
 
             return $response;
         };
-
 
         $response = call_user_func($makeRequest, []);
 

@@ -8,7 +8,8 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class postUpdateCouponTest extends TestCase {
+class postUpdateCouponTest extends TestCase
+{
     private $baseUrl  = '/api/v1/coupon/update';
 
     protected $authData;
