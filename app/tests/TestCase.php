@@ -30,13 +30,16 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
     {
         parent::setUp();
 
+		if (empty(static::$dataBag)) {
+			DB::beginTransaction();
+			static::prepareDatabase();
+			DB::commit();
+		}
+
 		if (! $this->useTruncate) {
 			DB::beginTransaction();
 		}
 
-		if (empty(static::$dataBag)) {
-			static::prepareDatabase();
-		}
 
 		foreach (static::$dataBag as $name=>$data)
 		{
