@@ -7,7 +7,7 @@ use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use Helper\EloquentRecordCounter as RecordCounter;
@@ -108,12 +108,12 @@ class RoleAPIController extends ControllerAPI
 
             // Filter by ids
             OrbitInput::get('role_ids', function($ids) use ($roles) {
-                $roles->whereIn('roles.role_ids', $ids);
+                $roles->whereIn('roles.role_id', $ids);
             });
 
             // Filter by role names
             OrbitInput::get('role_names', function($roleNames) use ($roles) {
-                $roles->role_name($roleNames);
+                $roles->whereIn('roles.role_name', $roleNames);
             });
 
             // Clone the query builder which still does not include the take,
@@ -228,6 +228,7 @@ class RoleAPIController extends ControllerAPI
             } else {
                 $this->response->data = null;
             }
+            $httpCode = 500;
         }
 
         $output = $this->render($httpCode);
