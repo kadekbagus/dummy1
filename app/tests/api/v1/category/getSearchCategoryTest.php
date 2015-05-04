@@ -11,22 +11,13 @@ use Laracasts\TestDummy\Factory;
 class getSearchCategoryTest extends TestCase
 {
     private $baseUrl = '/api/v1/family/search/';
+    protected $useTruncate = false;
 
     public function setUp()
     {
         parent::setUp();
-
-        DB::beginTransaction();
         $this->authData   = Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']);
         $this->categories = Factory::times(6)->create('Category');
-    }
-
-    public function tearDown()
-    {
-        DB::rollback();
-        $this->useTruncate = false;
-
-        parent::tearDown();
     }
 
     public function testError_get_without_auth_data()

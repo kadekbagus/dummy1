@@ -8,6 +8,8 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 	protected static $directories;
 
+	protected static $cachedApplication;
+
 	protected static $dataBag = [];
 
 	protected $useTruncate = true;
@@ -22,6 +24,11 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 		$unitTesting = true;
 
 		$testEnvironment = 'testing';
+
+		if (static::$cachedApplication)
+		{
+			return static::$cachedApplication;
+		}
 
 		return require __DIR__.'/../../bootstrap/start.php';
 	}
@@ -98,6 +105,11 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 		if (! static::$registered) {
 			static::$registered = spl_autoload_register(array('TestCase', 'loadTestLibrary'));
+		}
+
+		if (! static::$cachedApplication)
+		{
+			static::$cachedApplication = require __DIR__.'/../../bootstrap/start.php';
 		}
 
 		Factory::$factoriesPath = __DIR__ . '/factories';

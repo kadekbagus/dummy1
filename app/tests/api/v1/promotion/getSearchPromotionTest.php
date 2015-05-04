@@ -17,7 +17,7 @@ class getSearchPromotionTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->authData = Factory::create('apikey_super_admin');
+        $this->authData   = Factory::create('apikey_super_admin');
         $this->promotions = Factory::times(3)->create('Promotion');
         $this->merchant   = Factory::create('Merchant');
         $this->retailer   = Factory::create('Retailer', ['parent_id' => $this->merchant->merchant_id]);
