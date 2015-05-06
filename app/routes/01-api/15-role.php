@@ -6,7 +6,7 @@
 /**
  * Get list of Role
  */
-Route::post('/api/v1/role/list', function()
+Route::get('/api/v1/role/list', function()
 {
     return RoleAPIController::create()->getSearchRole();
 });

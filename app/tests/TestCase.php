@@ -8,6 +8,12 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 	protected static $directories;
 
+	protected static $cachedApplication;
+
+	protected static $dataBag = [];
+
+	protected $useTruncate = true;
+
 	/**
 	 * Creates the application.
 	 *
@@ -19,6 +25,11 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 		$testEnvironment = 'testing';
 
+		if (static::$cachedApplication)
+		{
+			return static::$cachedApplication;
+		}
+
 		return require __DIR__.'/../../bootstrap/start.php';
 	}
 
@@ -26,22 +37,29 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
     {
         parent::setUp();
 
-        $this->useTruncate = true;
+		if (empty(static::$dataBag)) {
+			DB::beginTransaction();
+			static::prepareDatabase();
+			DB::commit();
+		}
+
+		if (! $this->useTruncate) {
+			DB::beginTransaction();
+		}
+
+
+		foreach (static::$dataBag as $name=>$data)
+		{
+			$this->$name = $data;
+		}
     }
 
 	public function tearDown()
 	{
         // Truncate all tables, except migrations
-        if($this->useTruncate) {
-            $tables = DB::select('SHOW TABLES');
-            $tables_in_database = 'Tables_in_' . DB::getDatabaseName();
-            foreach ($tables as $table) {
-                if ($table->$tables_in_database !== 'migrations') {
-                    $tableName = str_replace(DB::getTablePrefix(), '', $table->$tables_in_database);
-                    DB::table($tableName)->truncate();
-                }
-            }
-        }
+        if(! $this->useTruncate)  {
+			DB::rollback();
+		}
 
 		unset($_GET);
 		unset($_POST);
@@ -53,8 +71,27 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 			$_SERVER['REQUEST_URI']
 		);
 
-
-		parent::tearDown();
+		// Clear every event dispatcher so we get no queue event on each
+		// test
+		$events = array(
+			'orbit.retailer.postnewretailer.before.auth',
+			'orbit.retailer.postnewretailer.after.auth',
+			'orbit.retailer.postnewretailer.before.authz',
+			'orbit.retailer.postnewretailer.authz.notallowed',
+			'orbit.retailer.postnewretailer.after.authz',
+			'orbit.retailer.postnewretailer.before.validation',
+			'orbit.retailer.postnewretailer.after.validation',
+			'orbit.retailer.postnewretailer.before.save',
+			'orbit.retailer.postnewretailer.after.save',
+			'orbit.retailer.postnewretailer.after.commit',
+			'orbit.retailer.postnewretailer.access.forbidden',
+			'orbit.retailer.postnewretailer.invalid.arguments',
+			'orbit.retailer.postnewretailer.general.exception',
+			'orbit.retailer.postnewretailer.before.render'
+		);
+		foreach ($events as $event) {
+			Event::forget($event);
+		}
 	}
 
 	public static function setupBeforeClass()
@@ -70,7 +107,40 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 			static::$registered = spl_autoload_register(array('TestCase', 'loadTestLibrary'));
 		}
 
+		if (! static::$cachedApplication)
+		{
+			static::$cachedApplication = require __DIR__.'/../../bootstrap/start.php';
+		}
+
 		Factory::$factoriesPath = __DIR__ . '/factories';
+	}
+
+	public static function tearDownAfterClass()
+	{
+		static::$dataBag = [];
+
+		$tables = DB::select('SHOW TABLES');
+		$prefix = DB::getTablePrefix();
+		$statement = "";
+		$tables_in_database = 'Tables_in_' . DB::getDatabaseName();
+		foreach ($tables as $table) {
+			if ($table->$tables_in_database !== "{$prefix}migrations") {
+				$statement = "{$statement}
+				TRUNCATE TABLE {$table->$tables_in_database};";
+			}
+		}
+
+		DB::unprepared($statement);
+	}
+
+	public static function prepareDatabase()
+	{
+		// Override this;
+	}
+
+	protected static function addData($name, $data)
+	{
+		static::$dataBag[$name] = $data;
 	}
 
 	public static function loadTestLibrary($className)

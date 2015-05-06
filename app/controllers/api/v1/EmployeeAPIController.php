@@ -7,7 +7,7 @@ use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use Helper\EloquentRecordCounter as RecordCounter;
@@ -277,6 +277,7 @@ class EmployeeAPIController extends ControllerAPI
                     ->setActivityNameLong('Create Employee Failed')
                     ->setNotes($e->getMessage())
                     ->responseFailed();
+            $httpCode = 500;
         }
 
         // Save the activity
@@ -551,6 +552,7 @@ class EmployeeAPIController extends ControllerAPI
                     ->setObject($employee)
                     ->setNotes($e->getMessage())
                     ->responseFailed();
+            $httpCode = 500;
         }
 
         // Save activity
@@ -1131,6 +1133,7 @@ class EmployeeAPIController extends ControllerAPI
                             ->excludeDeleted()
                             ->where('username', $value)
                             ->first();
+                $x = 1;
             } else {
                 return FALSE;
             }
