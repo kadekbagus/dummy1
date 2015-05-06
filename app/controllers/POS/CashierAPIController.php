@@ -1494,15 +1494,32 @@ class CashierAPIController extends ControllerAPI
             foreach ($details as $details_key => $details_value) {
                 if ($details_key == 0) {
                     if (empty($details_value['variant_price'])) {
-                        $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                        }
+                        
                     } else {
-                        $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['product_code']);
+                        }
                     }
                 } else {
                     if (empty($details_value['variant_price'])) {
-                        $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                        }
                     } else {
-                        $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['product_code']);
+                        }
                     }
                 }
 
@@ -3190,17 +3207,35 @@ class CashierAPIController extends ControllerAPI
             foreach ($details as $details_key => $details_value) {
                 if ($details_key == 0) {
                     if (empty($details_value['variant_price'])) {
-                        $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                        }
+                        
                     } else {
-                        $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['product_code']);
+                        }
                     }
                 } else {
                     if (empty($details_value['variant_price'])) {
-                        $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                        }
                     } else {
-                        $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        if(!empty($details_value['variant_sku'])){
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                        } else {
+                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['product_code']);
+                        }
                     }
                 }
+
                 foreach ($detailcoupon as $detailcoupon_key => $detailcoupon_value) {
                     if ($details_value['transaction_detail_id'] == $detailcoupon_value['transaction_detail_id'] && $detailcoupon_value['promotion_type'] == 'product') {
                         $product .= $this->discountListFormat(substr($detailcoupon_value['promotion_name'], 0, 25), $detailcoupon_value['value_after_percentage']);

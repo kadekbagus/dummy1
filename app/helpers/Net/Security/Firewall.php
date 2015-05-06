@@ -54,6 +54,54 @@ class Firewall
     }
 
     /**
+     * Check whether mac address is registered on iptables means it logged in.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param string $ip - The IP address which used for detecting mac address
+     * @return array
+     */
+    public function isMacLoggedIn($ip)
+    {
+        // Input for commands via STDIN
+        $stdin = sprintf("%s %s\n", $ip, 'check-mac-logged-in');
+
+        // Default return value
+        $return = array(
+            'status'    => FALSE,
+            'message'   => ''
+        );
+
+        $firewallCmd = Config::get('orbit.security.firewall.command');
+        if (empty($firewallCmd)) {
+            $return['status'] = FALSE;
+            $return['message'] = 'I could not find the orbit.firewall.command configuration.';
+
+            return $return;
+        }
+
+        $iptablesCmd = Command::Factory($firewallCmd)->run($stdin);
+        if ($iptablesCmd->getExitCode() !== 0) {
+            $return['message'] = empty($iptablesCmd->getStderr()) ? $iptablesCmd->getStdout() : $iptablesCmd->getStderr();
+
+            return $return;
+        }
+
+        if (trim($iptablesCmd->getStdout()) === "false") {
+            $return['status'] = FALSE;
+            $return['message'] = sprintf('IP address %s is not logged in.', $ip);
+            $return['object'] = $iptablesCmd;
+
+            return $return;
+        }
+
+        $return['status'] = TRUE;
+        $return['message'] = sprintf('IP address %s is already logged in.', $ip);;
+        $return['object'] = $iptablesCmd;
+
+        return $return;
+    }
+
+    /**
      * Main routine which register or deregister client mac address.
      *
      * @author Rio Astamal <me@rioastamal.net>
