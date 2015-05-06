@@ -58,6 +58,7 @@ return array(
     'AlterTableMerchantsAddColumnMobileDefaultLanguage' => $baseDir . '/app/database/migrations/2015_01_27_141333_alter_table_merchants_add_column_mobile_default_language.php',
     'AlterTableMerchantsAddColumnOmidOrid' => $baseDir . '/app/database/migrations/2014_11_24_015858_alter_table_merchants_add_column_omid_orid.php',
     'AlterTableMerchantsAddColumnPosLanguage' => $baseDir . '/app/database/migrations/2015_02_23_022721_alter_table_merchants_add_column_pos_language.php',
+    'AlterTableMerchantsAddColumnProvince' => $baseDir . '/app/database/migrations/2015_05_06_083134_alter_table_merchants_add_column_province.php',
     'AlterTableMerchantsAddNewColumns' => $baseDir . '/app/database/migrations/2014_11_19_024135_alter_table_merchants_add_new_columns.php',
     'AlterTableMerchantsAddcolumnsAndRenamecolumn' => $baseDir . '/app/database/migrations/2014_11_20_033937_alter_table_merchants_addcolumns_and_renamecolumn.php',
     'AlterTableMerchantsR201411171326' => $baseDir . '/app/database/migrations/2014_11_17_080145_alter_table_merchants_r20141117_1326.php',
@@ -79,7 +80,9 @@ return array(
     'AlterTablePromotionRulesAddCumulativeColumn' => $baseDir . '/app/database/migrations/2015_01_13_032218_alter_table_promotion_rules_add_cumulative_column.php',
     'AlterTablePromotionsChangeColumnsToNull' => $baseDir . '/app/database/migrations/2015_02_04_090532_alter_table_promotions_change_columns_to_null.php',
     'AlterTableSettingsFixSettingMissingT' => $baseDir . '/app/database/migrations/2015_02_24_023207_alter_table_settings_fix_setting_missing_t.php',
+    'AlterTableTransactionAddcolumnCurrency' => $baseDir . '/app/database/migrations/2015_04_06_132941_alter_table_transaction_addcolumn_currency.php',
     'AlterTableTransactionModifyTransactionid' => $baseDir . '/app/database/migrations/2015_01_06_094006_alter_table_transaction_modify_transactionid.php',
+    'AlterTableTransactiondetailAddcolumnCurrency' => $baseDir . '/app/database/migrations/2015_04_06_155025_alter_table_transactiondetail_addcolumn_currency.php',
     'AlterTableTransactionsAddStatus' => $baseDir . '/app/database/migrations/2015_01_15_041119_alter_table_transactions_add_status.php',
     'AlterTableTransactionsAddTimestamp' => $baseDir . '/app/database/migrations/2014_12_30_082900_alter_table_transactions_add_timestamp.php',
     'AlterTableTransactionsAddnewcolumns' => $baseDir . '/app/database/migrations/2015_01_15_093649_alter_table_transactions_addnewcolumns.php',
@@ -1932,4 +1935,5 @@ return array(
     'Zend\\Permissions\\Acl\\Role\\GenericRole' => $vendorDir . '/zendframework/zend-permissions-acl/Zend/Permissions/Acl/Role/GenericRole.php',
     'Zend\\Permissions\\Acl\\Role\\Registry' => $vendorDir . '/zendframework/zend-permissions-acl/Zend/Permissions/Acl/Role/Registry.php',
     'Zend\\Permissions\\Acl\\Role\\RoleInterface' => $vendorDir . '/zendframework/zend-permissions-acl/Zend/Permissions/Acl/Role/RoleInterface.php',
+    'merchantActivation' => $baseDir . '/app/commands/merchantActivation.php',
 );
