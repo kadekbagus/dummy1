@@ -43,6 +43,7 @@ return array(
         'email_error'           => 'Harap isi email terlebih dahulu.',
         'event_title'           => 'Events',
         'info_title'            => 'Info',
+        'error_title'           => 'Error',
         'coupon_title'          => 'Kupon Saya',
         'search_title'          => 'Cari Produk',
         'checkout_title'        => 'Checkout',
@@ -60,6 +61,7 @@ return array(
         'message_transfer_cart' => 'Tunjukkan smartphone Anda ke kasir untuk menyelesaikan checkout.',
         'message_close_cart'    => 'Keranjang Anda belum dipindahkan ke kasir. Silahkan perlihatkan barcode berikut ini kepada kasir.',
         'message_reset_cart'    => 'Apakah Anda yakin akan menghapus cart Anda?',
+        'message_error_upc'     => 'Gagal membaca barcode, silahkan mencoba lagi. Pastikan gambar barcode jelas.',
         
         'coupon_use'            => 'Gunakan',
         'coupon_ignore'         => 'Lain Kali',
