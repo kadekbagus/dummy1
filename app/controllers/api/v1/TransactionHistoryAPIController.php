@@ -452,7 +452,8 @@ class TransactionHistoryAPIController extends ControllerAPI
      * @param date      `purchase_date_end`     (optional) - filter date to: DD-MM-YYYY HH:MM:SS
      * @param string    `product_name`          (optional) - filter product name
      * @param string    `product_name_like`     (optional) - filter product name like
-     * @param string    `quantity`              (optional) - filter by purchase quantity
+     * @param integer   `unit_price`            (optional) - filter by unit price
+     * @param integer   `quantity`              (optional) - filter by purchase quantity
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
