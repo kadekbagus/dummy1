@@ -67,7 +67,7 @@
             $('#spinner').modal();
             var formElement = document.getElementById("get_camera2");
             var data = new FormData();
-            data.append('images', formElement.files[0]);
+            data.append('images[]', formElement.files[0]);
             console.log(data);
             $.ajax({
                 url: apiPath+'customer/scan?orbit_session='+$.cookie('code_session'),
