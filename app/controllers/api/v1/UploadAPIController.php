@@ -2782,4 +2782,56 @@ class UploadAPIController extends ControllerAPI
 
         return $this;
     }
+
+    /**
+     * Upload upc barcode image.
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param file|array `images`                      (required) - Images of the logo
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUploadUPCBarcode()
+    {
+        try {
+            $httpCode = 200;
+
+            // Load the orbit configuration for lucky draw upload image
+            $uploadImageConfig = Config::get('orbit.upload.barcode.main');
+            $elementName = $uploadImageConfig['name'];
+
+            // Application input
+            $images = OrbitInput::files($elementName);
+            
+            // Execute Zbarimage
+            $cmd = '"C:\\Program Files (x86)\\ZBar\\bin\\zbarimg.exe" --raw -q "' . $images['tmp_name'] . '"';
+            $result = shell_exec($cmd);
+
+            // Remove trailing zero and new-line
+            $this->response->data = substr(trim($result), 1);
+            $this->response->message = Lang::get('statuses.orbit.uploaded.barcode.main');
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postuploadupcbarcode.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (Exception $e) {
+            Event::fire('orbit.upload.postuploadupcbarcode.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postuploadupcbarcode.before.render', array($this, $output));
+
+        return $output;
+    }
 }
