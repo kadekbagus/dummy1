@@ -48,7 +48,7 @@ Route::get('/api/v1/user-profile-picture/delete', function()
  */
 Route::post('/api/v1/employee/new', function()
 {
-    return UserAPIController::create()->postNewEmployee();
+    return EmployeeAPIController::create()->postNewEmployee();
 });
 
 /**
@@ -56,7 +56,7 @@ Route::post('/api/v1/employee/new', function()
  */
 Route::post('/api/v1/employee/update', function()
 {
-    return UserAPIController::create()->postUpdateEmployee();
+    return EmployeeAPIController::create()->postUpdateEmployee();
 });
 
 /**
@@ -64,7 +64,7 @@ Route::post('/api/v1/employee/update', function()
  */
 Route::post('/api/v1/employee/delete', function()
 {
-    return UserAPIController::create()->postDeleteEmployee();
+    return EmployeeAPIController::create()->postDeleteEmployee();
 });
 
 /**
@@ -72,7 +72,7 @@ Route::post('/api/v1/employee/delete', function()
  */
 Route::get('/api/v1/employee/list', function()
 {
-    return UserAPIController::create()->getSearchEmployee();
+    return EmployeeAPIController::create()->getSearchEmployee();
 });
 
 /**

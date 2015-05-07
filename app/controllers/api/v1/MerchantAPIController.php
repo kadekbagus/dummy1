@@ -238,6 +238,7 @@ class MerchantAPIController extends ControllerAPI
      * @param integer    `postal_code`             (optional) - Postal code
      * @param integer    `city_id`                 (optional) - City id
      * @param string     `city`                    (optional) - Name of the city
+     * @param string     `province`                (optional) - Name of the province
      * @param integer    `country_id`              (optional) - Country id
      * @param string     `country`                 (optional) - Name of the country
      * @param string     `phone`                   (optional) - Phone of the merchant
@@ -311,6 +312,7 @@ class MerchantAPIController extends ControllerAPI
             $postal_code = OrbitInput::post('postal_code');
             $city_id = OrbitInput::post('city_id');
             $city = OrbitInput::post('city');
+            $province = OrbitInput::post('province');
             $country_id = OrbitInput::post('country_id');
             $country = OrbitInput::post('country');
             $phone = OrbitInput::post('phone');
@@ -408,6 +410,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->postal_code = $postal_code;
             $newmerchant->city_id = $city_id;
             $newmerchant->city = $city;
+            $newmerchant->province = $province;
             $newmerchant->country_id = $country;
             $newmerchant->country = $countryName;
             $newmerchant->phone = $phone;
@@ -572,6 +575,7 @@ class MerchantAPIController extends ControllerAPI
      * @param integer           `postal_code`                   (optional) - Postal code
      * @param string            `city_id`                       (optional)
      * @param string            `city`                          (optional)
+     * @param string            `province`                      (optional)
      * @param string            `country_id`                    (optional)
      * @param string            `country`                       (optional)
      * @param string            `phone`                         (optional)
@@ -638,7 +642,7 @@ class MerchantAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:merchant_omid,registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency,start_date_activity,total_retailer',
+                    'sort_by' => 'in:merchant_omid,registered_date,merchant_name,merchant_email,merchant_userid,merchant_description,merchantid,merchant_address1,merchant_address2,merchant_address3,merchant_cityid,merchant_city,merchant_province,merchant_countryid,merchant_country,merchant_phone,merchant_fax,merchant_status,merchant_currency,start_date_activity,total_retailer',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.merchant_sortby'),
@@ -776,6 +780,16 @@ class MerchantAPIController extends ControllerAPI
             // Filter merchant by city pattern
             OrbitInput::get('city_like', function ($city) use ($merchants) {
                 $merchants->where('merchants.city', 'like', "%$city%");
+            });
+
+            // Filter merchant by province
+            OrbitInput::get('province', function ($province) use ($merchants) {
+                $merchants->whereIn('merchants.province', $province);
+            });
+
+            // Filter merchant by province pattern
+            OrbitInput::get('province_like', function ($province) use ($merchants) {
+                $merchants->where('merchants.province', 'like', "%$province%");
             });
 
             // Filter merchant by countryID
@@ -955,6 +969,7 @@ class MerchantAPIController extends ControllerAPI
                     'merchant_address3'    => 'merchants.address_line3',
                     'merchant_cityid'      => 'merchants.city_id',
                     'merchant_city'        => 'merchants.city',
+                    'merchant_province'    => 'merchants.province',
                     'merchant_countryid'   => 'merchants.country_id',
                     'merchant_country'     => 'merchants.country',
                     'merchant_phone'       => 'merchants.phone',
@@ -1058,6 +1073,7 @@ class MerchantAPIController extends ControllerAPI
      * @param integer    `postal_code`              (optional) - Postal code
      * @param integer    `city_id`                  (optional) - City id
      * @param string     `city`                     (optional) - Name of the city
+     * @param string     `province`                 (optional) - Name of the province
      * @param integer    `country_id`               (optional) - Country id
      * @param string     `country`                  (optional) - Name of the country
      * @param string     `phone`                    (optional) - Phone of the merchant
@@ -1223,6 +1239,10 @@ class MerchantAPIController extends ControllerAPI
 
             OrbitInput::post('city', function($city) use ($updatedmerchant) {
                 $updatedmerchant->city = $city;
+            });
+
+            OrbitInput::post('province', function($province) use ($updatedmerchant) {
+                $updatedmerchant->province = $province;
             });
 
             OrbitInput::post('country', function($country_id) use ($updatedmerchant) {

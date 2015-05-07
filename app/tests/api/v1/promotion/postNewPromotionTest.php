@@ -8,45 +8,58 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class postNewPromotion extends TestCase {
+class postNewPromotionTest extends TestCase
+{
     private $baseUrl  = '/api/v1/promotion/new';
 
-    public function setUp()
-    {
-        parent::setUp();
+    protected $authData;
+    protected $promotions;
+    protected $merchant;
+    protected $retailer;
 
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->promotions = Factory::times(3)->create('Promotion');
-        $this->merchant   = Factory::create('Merchant');
-        $this->retailer   = Factory::create('Retailer', ['parent_id' => $this->merchant->merchant_id]);
+    public static function prepareDatabase()
+    {
+        $merchant = Factory::create('Merchant');
+        static::addData('authData', Factory::create('apikey_super_admin'));
+        static::addData('promotions', Factory::times(3)->create('Promotion'));
+        static::addData('merchant', $merchant);
+        static::addData('retailer', Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]));
     }
 
     public function testOK_post_new_promotion_for_product()
     {
+        $promotionCountBefore = Promotion::count();
         $product = Factory::create('Product');
 
-        $_GET['apikey']       = $this->authData->api_key;
-        $_GET['apitimestamp'] = time();
+        $makeRequest = function() use ($product)
+        {
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
 
 
-        $_POST['merchant_id'] = $this->merchant->merchant_id;
-        $_POST['promotion_name']  = 'Christmas\'s Discount';
-        $_POST['promotion_type']  = 'product';
-        $_POST['status']          = 'active';
-        $_POST['description']     = 'Discount for random product selected';
-        $_POST['discount_object_type'] = 'product';
-        $_POST['discount_object_id1']  = $product->product_id;
-        $_POST['retailer_ids']         = [$this->retailer->merchant_id];
+            $_POST['merchant_id']     = $this->merchant->merchant_id;
+            $_POST['promotion_name']  = 'Christmas\'s Discount Product New';
+            $_POST['promotion_type']  = 'product';
+            $_POST['status']          = 'active';
+            $_POST['description']     = 'Discount for random product selected';
+            $_POST['discount_object_type'] = 'product';
+            $_POST['discount_object_id1']  = $product->product_id;
+            $_POST['retailer_ids']         = [$this->retailer->merchant_id];
 
-        $url = $this->baseUrl . '?' . http_build_query($_GET);
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-        $secretKey = $this->authData->api_secret_key;
-        $_SERVER['REQUEST_METHOD']         = 'POST';
-        $_SERVER['REQUEST_URI']            = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-        $response = $this->call('POST', $url, $_POST)->getContent();
-        $response = json_decode($response);
+            $response = $this->call('POST', $url, $_POST)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $response = $makeRequest();
 
         // Should be OK
         $this->assertResponseOk();
@@ -56,35 +69,43 @@ class postNewPromotion extends TestCase {
         $this->assertSame(Status::OK_MSG, $response->message);
 
         // should increment number of promotion
-        $this->assertSame(4, Promotion::count());
+        $this->assertSame($promotionCountBefore + 1, Promotion::count());
     }
 
     public function testOK_post_new_promotion_for_family()
     {
+        $promotionCountBefore = Promotion::count();
         $category = Factory::create('Category');
 
-        $_GET['apikey']       = $this->authData->api_key;
-        $_GET['apitimestamp'] = time();
+        $makeRequest = function() use ($category)
+        {
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
 
 
-        $_POST['merchant_id'] = $this->merchant->merchant_id;
-        $_POST['promotion_name']  = 'Christmas\'s Discount';
-        $_POST['promotion_type']  = 'product';
-        $_POST['status']          = 'active';
-        $_POST['description']     = 'Discount for random family selected';
-        $_POST['discount_object_type'] = 'family';
-        $_POST['discount_object_id1']  = $category->category_id;
-        $_POST['retailer_ids']         = [$this->retailer->merchant_id];
+            $_POST['merchant_id'] = $this->merchant->merchant_id;
+            $_POST['promotion_name']  = 'Christmas\'s Discount Family';
+            $_POST['promotion_type']  = 'product';
+            $_POST['status']          = 'active';
+            $_POST['description']     = 'Discount for random family selected';
+            $_POST['discount_object_type'] = 'family';
+            $_POST['discount_object_id1']  = $category->category_id;
+            $_POST['retailer_ids']         = [$this->retailer->merchant_id];
 
-        $url = $this->baseUrl . '?' . http_build_query($_GET);
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-        $secretKey = $this->authData->api_secret_key;
-        $_SERVER['REQUEST_METHOD']         = 'POST';
-        $_SERVER['REQUEST_URI']            = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-        $response = $this->call('POST', $url, $_POST)->getContent();
-        $response = json_decode($response);
+            $response = $this->call('POST', $url, $_POST)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $response = $makeRequest();
 
         // Should be OK
         $this->assertResponseOk();
@@ -94,31 +115,41 @@ class postNewPromotion extends TestCase {
         $this->assertSame(Status::OK_MSG, $response->message);
 
         // should increment number of promotion
-        $this->assertSame(4, Promotion::count());
+        $this->assertSame($promotionCountBefore + 1, Promotion::count());
     }
 
 
     public function testOK_post_new_cart_based_promotion()
     {
-        $_GET['apikey']       = $this->authData->api_key;
-        $_GET['apitimestamp'] = time();
+        $promotionCountBefore = Promotion::count();
 
-        $_POST['merchant_id'] = $this->merchant->merchant_id;
-        $_POST['promotion_name']  = 'Christmas\'s Discount';
-        $_POST['promotion_type']  = 'cart';
-        $_POST['status']          = 'active';
-        $_POST['description']     = 'Discount for random product selected';
-        $_POST['retailer_ids']         = [$this->retailer->merchant_id];
+        $makeRequest = function()
+        {
 
-        $url = $this->baseUrl . '?' . http_build_query($_GET);
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
 
-        $secretKey = $this->authData->api_secret_key;
-        $_SERVER['REQUEST_METHOD']         = 'POST';
-        $_SERVER['REQUEST_URI']            = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+            $_POST['merchant_id'] = $this->merchant->merchant_id;
+            $_POST['promotion_name']  = 'Christmas\'s Discount Cart';
+            $_POST['promotion_type']  = 'cart';
+            $_POST['status']          = 'active';
+            $_POST['description']     = 'Discount for random product selected';
+            $_POST['retailer_ids']         = [$this->retailer->merchant_id];
 
-        $response = $this->call('POST', $url, $_POST)->getContent();
-        $response = json_decode($response);
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('POST', $url, $_POST)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $response = $makeRequest();
 
         // Should be OK
         $this->assertResponseOk();
@@ -128,7 +159,7 @@ class postNewPromotion extends TestCase {
         $this->assertSame(Status::OK_MSG, $response->message);
 
         // should increment number of promotion
-        $this->assertSame(4, Promotion::count());
+        $this->assertSame($promotionCountBefore + 1, Promotion::count());
     }
 
     public function testACL_post_new_promotion()
@@ -199,6 +230,7 @@ class postNewPromotion extends TestCase {
 
     public function testError_parameters_post_new_promotion()
     {
+        $promotionCountBefore = Promotion::count();
         $makeRequest = function ($postData) {
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
@@ -220,7 +252,7 @@ class postNewPromotion extends TestCase {
 
         $postData = array(
             'merchant_id'    => $this->merchant->merchant_id,
-            'promotion_name' => 'Christmas\'s Discount',
+            'promotion_name' => 'Christmas\'s Discount new',
             'promotion_type' => 'cart',
             'status'         => 'active',
             'description'    => 'Discount for random selected product'
@@ -267,6 +299,6 @@ class postNewPromotion extends TestCase {
         $this->assertRegExp('/promotion.name.*already.*used/', $response->message);
 
         // should not change the number of persisted promotion
-        $this->assertSame(3, Promotion::count());
+        $this->assertSame($promotionCountBefore, Promotion::count());
     }
 }

@@ -13,12 +13,10 @@ class postDeleteCategoryTest extends TestCase
 {
     private $baseUrl = '/api/v1/family/delete';
 
-    public function setUp()
+    public static function prepareDatabase()
     {
-        parent::setUp();
-
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->categories = Factory::times(3)->create('Category');
+       static::addData('authData', Factory::create('apikey_super_admin'));
+       static::addData('categories', Factory::times(3)->create('Category'));
     }
 
     public function testOK_delete_category_as_super_admin()
@@ -66,6 +64,7 @@ class postDeleteCategoryTest extends TestCase
         $category = Factory::create('Category', ['created_by' => $user->user_id, 'merchant_id' => $merchant->merchant_id]);
 
         Factory::create('PermissionRole', ['permission_id' => $permission->permission_id, 'role_id' => $role->role_id]);
+        $categoryCountBefore = Category::excludeDeleted()->count();
 
         $_GET['apikey']       = $authData->api_key;
         $_GET['apitimestamp'] = time();
@@ -83,7 +82,7 @@ class postDeleteCategoryTest extends TestCase
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
         // should have correct count before request
-        $this->assertSame(4, Category::excludeDeleted()->count());
+        $this->assertSame($categoryCountBefore, Category::excludeDeleted()->count());
 
         $response = $this->call('POST', $url, $_POST)->getContent();
         $response = json_decode($response);
@@ -97,7 +96,7 @@ class postDeleteCategoryTest extends TestCase
 
         // should decrease number of categories
         $currentCategoryCount = Category::excludeDeleted()->count();
-        $this->assertSame(3, $currentCategoryCount);
+        $this->assertSame($categoryCountBefore - 1, $currentCategoryCount);
     }
 
     public function testOK_delete_same_merchant_owner()
@@ -110,6 +109,8 @@ class postDeleteCategoryTest extends TestCase
         $category = Factory::create('Category', ['merchant_id' => $merchant->merchant_id]);
 
         Factory::create('PermissionRole', ['permission_id' => $permission->permission_id, 'role_id' => $role->role_id]);
+
+        $categoryCountBefore = Category::excludeDeleted()->count();
 
         $_GET['apikey']       = $authData->api_key;
         $_GET['apitimestamp'] = time();
@@ -138,6 +139,6 @@ class postDeleteCategoryTest extends TestCase
 
         // should decrease number of categories
         $currentCategoryCount = Category::excludeDeleted()->count();
-        $this->assertSame(3, $currentCategoryCount);
+        $this->assertSame($categoryCountBefore - 1, $currentCategoryCount);
     }
 }

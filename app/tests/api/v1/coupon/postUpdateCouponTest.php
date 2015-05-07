@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP Unit Test for PromotionApiController#postDeletePromotion
+ * PHP Unit Test for CouponApiController#postUpdateCoupon
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
@@ -8,30 +8,36 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class postUpdatePromotion extends TestCase {
-    private $baseUrl  = '/api/v1/promotion/delete';
+class postUpdateCouponTest extends TestCase
+{
+    private $baseUrl  = '/api/v1/coupon/update';
 
-    public function setUp()
+    protected $authData;
+    protected $coupons;
+    protected $merchant;
+    protected $retailer;
+
+    public static function prepareDatabase()
     {
-        parent::setUp();
-
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->promotions = Factory::times(3)->create('Promotion');
-        $this->merchant   = Factory::create('Merchant');
-        $this->retailer   = Factory::create('Retailer', ['parent_id' => $this->merchant->merchant_id]);
+        $merchant  = Factory::create('Merchant');
+        static::addData('authData',  Factory::create('apikey_super_admin'));
+        static::addData('coupons',  Factory::times(3)->create('Coupon'));
+        static::addData('merchant',  $merchant);
+        static::addData('retailer',  Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]));
     }
 
-    public function testOK_post_delete_promotion()
+    public function testOK_post_update_promotion()
     {
-        $promotion = Factory::create('Promotion');
-        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $coupon = Factory::create('Coupon');
+        Factory::create('CouponRule', ['promotion_id' => $coupon->promotion_id]);
+        $couponCountBefore = Coupon::count();
 
-        $makeRequest = function ($changes = []) use ($promotion) {
+        $makeRequest = function ($changes = []) use ($coupon) {
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
 
             $_POST = $changes;
-            $_POST['promotion_id'] = $promotion->promotion_id;
+            $_POST['promotion_id'] = $coupon->promotion_id;
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -46,33 +52,48 @@ class postUpdatePromotion extends TestCase {
             return $response;
         };
 
-        $response = call_user_func($makeRequest, ['promotion_name' => 'Changed']);
+        $response = $makeRequest(['promotion_name' => 'Changed']);
+        $currentCoupon = Coupon::where('promotion_id', $coupon->promotion_id)->first();
 
         // Should be OK
         $this->assertResponseOk();
 
         // should say OK
         $this->assertSame(Status::OK, $response->code);
-        $this->assertRegExp('/promotion.*deleted/i', $response->message);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        // should change name
+        $this->assertSame('Changed', $currentCoupon->promotion_name);
+
+
+        $response = call_user_func($makeRequest, ['status' => 'inactive']);
+        $currentCoupon = Coupon::where('promotion_id', $coupon->promotion_id)->first();
+
+        // Should be OK
+        $this->assertResponseOk();
+
+        // should say OK
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        // should change name
+        $this->assertSame('inactive', $currentCoupon->status);
 
         // should not change number of promotion
-        $this->assertSame(3, Promotion::excludeDeleted()->count());
+        $this->assertSame($couponCountBefore, Coupon::count());
     }
 
-    public function testACL_post_delete_promotion()
+    public function testACL_post_update_promotion()
     {
-        $promotion = Factory::create('Promotion');
-        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $coupon = Factory::create('Coupon');
+        Factory::create('CouponRule', ['promotion_id' => $coupon->promotion_id]);
+        $couponCountBefore = Coupon::count();
 
-        $makeRequest = function ($authData, $promo = false) use ($promotion) {
+        $makeRequest = function ($authData) use ($coupon) {
             $_GET['apikey']       = $authData->api_key;
             $_GET['apitimestamp'] = time();
 
-            if ($promo) {
-                $promotion = $promo;
-            }
-
-            $_POST['promotion_id'] = $promotion->promotion_id;
+            $_POST['promotion_id'] = $coupon->promotion_id;
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -96,11 +117,10 @@ class postUpdatePromotion extends TestCase {
 
         // should say OK
         $this->assertSame(Status::OK, $response->code);
-        $this->assertRegExp('/promotion.*deleted/i', $response->message);
-
+        $this->assertSame(Status::OK_MSG, $response->message);
 
         // As User Without Granted Permission
-        $merchant   = $promotion->merchant()->first();
+        $merchant   = $coupon->merchant()->first();
         $authData   = Factory::create('Apikey', ['user_id' => $merchant->user_id]);
 
         $response   = call_user_func($makeRequest, $authData);
@@ -115,34 +135,31 @@ class postUpdatePromotion extends TestCase {
         // As User With Permission to update promotion on their store
         $user       = Factory::create('User');
         $authData   = Factory::create('Apikey', ['user_id' => $user->user_id]);
-        $permission = Factory::create('Permission', ['permission_name' => 'delete_promotion']);
+        $permission = Factory::create('Permission', ['permission_name' => 'update_coupon']);
         $merchant   = Factory::create('Merchant', ['user_id' => $user->user_id]);
-
-        $promotion = Promotion::excludeDeleted()->first();
-        $promotion->merchant_id = $merchant->merchant_id;
-        $promotion->save();
+        $coupon->merchant_id = $merchant->merchant_id;
+        $coupon->save();
 
         Factory::create('PermissionRole', ['role_id' => $user->user_role_id, 'permission_id' => $permission->permission_id]);
 
-        $response = call_user_func($makeRequest,  $authData, $promotion);
+        $response = call_user_func($makeRequest,  $authData);
 
         // Should be OK
         $this->assertResponseOk();
 
         // should say OK
         $this->assertSame(Status::OK, $response->code);
-        $this->assertRegExp('/promotion.*deleted/i', $response->message);
-
+        $this->assertSame(Status::OK_MSG, $response->message);
 
         // should not change number of promotion
-        // we delete 2 promotions
-        $this->assertSame(2, Promotion::excludeDeleted()->count());
+        $this->assertSame($couponCountBefore, Coupon::count());
     }
 
-    public function testError_parameters_post_delete_promotion()
+    public function testError_parameters_post_update_promotion()
     {
-        $promotion = Factory::create('Promotion');
-        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotion = Factory::create('Coupon');
+        Factory::create('CouponRule', ['promotion_id' => $promotion->promotion_id]);
+        $couponCountBefore = Coupon::count();
 
         $makeRequest = function ($postData) {
             $_GET['apikey']       = $this->authData->api_key;
@@ -172,14 +189,29 @@ class postUpdatePromotion extends TestCase {
         $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
         $this->assertRegExp('/promotion.id.*is.required/', $response->message);
 
-        // post with merchant id not number
+        // post with 3 char name
         $response = call_user_func($makeRequest, [
-            'promotion_id' => 'abc'
+            'promotion_id' => $promotion->promotion_id,
+            'promotion_name' => 'abc'
         ]);
 
         // should be failed
         $this->assertResponseStatus(403);
         $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/promotion.id.must.be.a.number/', $response->message);
+        $this->assertRegExp('/promotion.name.*at.least.5/', $response->message);
+
+        // post with merchant id not number
+        $response = call_user_func($makeRequest, [
+            'promotion_id' => $promotion->promotion_id,
+            'merchant_id'  => 'abc'
+        ]);
+
+        // should be failed
+        $this->assertResponseStatus(403);
+        $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
+        $this->assertRegExp('/merchant.id.must.be.a.number/', $response->message);
+
+        //should not change number of coupons
+        $this->assertSame($couponCountBefore, Coupon::count());
     }
 }

@@ -13,12 +13,9 @@ class postNewCategoryTest extends TestCase
 {
     private $baseUrl = '/api/v1/family/new/';
 
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->authData   = Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']);
-        $this->category   = Factory::create('Category');
+    public static function prepareDatabase(){
+        static::addData('authData', Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']));
+        static::addData('category', Factory::create('Category'));
     }
 
     public function testError_post_category_without_auth_data()

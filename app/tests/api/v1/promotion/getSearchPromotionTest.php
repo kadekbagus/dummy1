@@ -8,28 +8,19 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class getSearchPromotion extends TestCase {
+class getSearchPromotionTest extends TestCase
+{
     private $baseUrl  = '/api/v1/promotion/search';
+
+    protected $useTruncate = false;
 
     public function setUp()
     {
         parent::setUp();
-
-        DB::beginTransaction();
-
-        $this->authData = Factory::create('apikey_super_admin');
+        $this->authData   = Factory::create('apikey_super_admin');
         $this->promotions = Factory::times(3)->create('Promotion');
         $this->merchant   = Factory::create('Merchant');
         $this->retailer   = Factory::create('Retailer', ['parent_id' => $this->merchant->merchant_id]);
-    }
-
-    public function tearDown()
-    {
-        DB::rollback();
-
-        $this->useTruncate = false;
-
-        parent::tearDown();
     }
 
 
@@ -70,7 +61,6 @@ class getSearchPromotion extends TestCase {
         $this->assertResponseOk();
 
         $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(Status::OK_MSG, $response->message);
     }
 
 }

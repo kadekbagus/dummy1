@@ -365,6 +365,7 @@ class MobileCIAPIController extends ControllerAPI
      * GET - Sign in page
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author Rio Astamal <me@rioastamal.net>
      *
      * @return Illuminate\View\View
      */
@@ -376,11 +377,17 @@ class MobileCIAPIController extends ControllerAPI
             return \Redirect::to('/customer/welcome');
         } catch (Exception $e) {
             $retailer = $this->getRetailerInfo();
-            $user_email = '';
+
+            // Get email from query string
+            $user_email = OrbitInput::get('email', '');
+            if (! empty($user_email)) {
+                \DummyAPIController::create()->getUserSignInNetwork();
+            }
+
             if ($e->getMessage() === 'Session error: user not found.' || $e->getMessage() === 'Invalid session data.' || $e->getMessage() === 'IP address miss match.' || $e->getMessage() === 'User agent miss match.') {
-                return View::make('mobile-ci.signin', array('retailer' => $retailer, 'user_email' => $user_email));
+                return View::make('mobile-ci.signin', array('retailer' => $retailer, 'user_email' => htmlentities($user_email)));
             } else {
-                return View::make('mobile-ci.signin', array('retailer' => $retailer, 'user_email' => $user_email));
+                return View::make('mobile-ci.signin', array('retailer' => $retailer, 'user_email' => htmlentities($user_email)));
             }
         }
     }
@@ -3487,7 +3494,7 @@ class MobileCIAPIController extends ControllerAPI
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id)
             );
-            
+
             foreach ($coupons as $coupon) {
                 if (empty($coupon->promo_image)) {
                     $coupon->promo_image = 'mobile-ci/images/default_product.png';

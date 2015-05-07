@@ -12,12 +12,10 @@ class postUpdateCategoryTest extends TestCase
 {
     private $baseUrl = '/api/v1/family/update/';
 
-    public function setUp()
+    public static function prepareDatabase()
     {
-        parent::setUp();
-
-        $this->authData = Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']);
-        $this->category = Factory::create('Category');
+        static::addData('authData', Factory::create('Apikey', ['user_id' => 'factory:user_super_admin']));
+        static::addData('category', Factory::create('Category'));
     }
 
     public function testError_update_non_owned_category()
@@ -50,11 +48,11 @@ class postUpdateCategoryTest extends TestCase
 
         // Should be failed
         // TODO: should not 200
-        // $this->assertResponseOk();
+         $this->assertResponseOk();
 
         // should say merchant not found
         // TODO: Bugs Caused By zero code
-        // $this->assertSame(Status::UNKNOWN_ERROR, $response->code);
+         $this->assertSame(Status::UNKNOWN_ERROR, $response->code);
 
         // should update the category
         $currentCategory = Category::where('category_id', $category->category_id)->first();

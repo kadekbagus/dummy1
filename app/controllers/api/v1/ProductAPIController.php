@@ -763,6 +763,8 @@ class ProductAPIController extends ControllerAPI
      * @param string     `long_description_like`    (optional)
      * @param integer    `merchant_id`              (optional)
      * @param integer    `status`                   (optional)
+     * @param datetime   `created_begin_date`       (optional) - Created begin date. Example: 2015-05-07 00:00:00
+     * @param datetime   `created_end_date`         (optional) - Created end date. Example: 2014-05-07 23:59:59
      * @param array      `merchant_tax_id1`         (optional)
      * @param array      `merchant_tax_id2`         (optional)
      * @param string     `is_current_retailer_only` (optional) - To show current retailer product only. Valid value: Y
@@ -910,6 +912,18 @@ class ProductAPIController extends ControllerAPI
             // Filter product by status
             OrbitInput::get('status', function ($status) use ($products) {
                 $products->whereIn('products.status', $status);
+            });
+
+            // Filter product by created_at for begin_date
+            OrbitInput::get('created_begin_date', function($begindate) use ($products)
+            {
+                $products->where('products.created_at', '>=', $begindate);
+            });
+
+            // Filter product by created_at for end_date
+            OrbitInput::get('created_end_date', function($enddate) use ($products)
+            {
+                $products->where('products.created_at', '<=', $enddate);
             });
 
             // Filter product by merchant_tax_id1
