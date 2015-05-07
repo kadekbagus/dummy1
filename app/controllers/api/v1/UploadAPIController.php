@@ -2683,13 +2683,14 @@ class UploadAPIController extends ControllerAPI
             }
             Event::fire('orbit.upload.postuploadupcbarcode.after.validation', array($this, $validator));
 
-            $path = realpath(Config::get('orbit.shop.zbar.path'));
+            $path = Config::get('orbit.shop.zbar.path');
+            // dd($path);
             $param = Config::get('orbit.shop.zbar.param');
 
-            if (! file_exists($path)) {
-                $errorMessage = 'Zbar binary not found.';
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
+            // if (! file_exists($path)) {
+            //     $errorMessage = 'Zbar binary not found.';
+            //     OrbitShopAPI::throwInvalidArgument($errorMessage);
+            // }
 
             if (isset($images['tmp_name']) && ! is_array($images['tmp_name'])) {
                 $errorMessage = 'Images format must be in array.';
@@ -2698,6 +2699,7 @@ class UploadAPIController extends ControllerAPI
 
             // Execute Zbarimage
             $cmd = $path . ' ' . $param . ' "' . $images['tmp_name'][0] . '"';
+            // dd($cmd);
             $result = shell_exec($cmd);
 
             // Remove trailing zero and new-line
