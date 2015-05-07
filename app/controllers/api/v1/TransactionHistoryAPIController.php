@@ -448,6 +448,12 @@ class TransactionHistoryAPIController extends ControllerAPI
      * @param array     `merchant_ids`          (optional) - IDs of Merchant
      * @param string    `sortby`                (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
      * @param string    `sortmode`              (optional) - asc or desc
+     * @param date      `purchase_date_begin`   (optional) - filter date from: DD-MM-YYYY HH:MM:SS
+     * @param date      `purchase_date_end`     (optional) - filter date to: DD-MM-YYYY HH:MM:SS
+     * @param string    `product_name`          (optional) - filter product name
+     * @param string    `product_name_like`     (optional) - filter product name like
+     * @param integer   `unit_price`            (optional) - filter by unit price
+     * @param integer   `quantity`              (optional) - filter by purchase quantity
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
      * @return Illuminate\Support\Facades\Response
@@ -529,7 +535,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             }
 
             // Builder object
-            $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction')
+            $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction', 'transaction.merchant', 'transaction.retailer')
                                              ->transactionJoin();
 
             OrbitInput::get('user_id', function($userId) use ($transactions) {
@@ -542,6 +548,42 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             OrbitInput::get('merchant_ids', function($merchantIds) use ($transactions) {
                 $transactions->whereIn('transactions.merchant_id', $merchantIds);
+            });
+
+            // Filter by date from
+            OrbitInput::get('purchase_date_begin', function ($_date_begin) use ($transactions) {
+                $transactions->where('transactions.created_at', '>', $_date_begin);
+            });
+
+            // Filter by date to
+            OrbitInput::get('purchase_date_end', function ($_date_end) use ($transactions) {
+                $transactions->where('transactions.created_at', '<', $_date_end);
+            });
+
+            // Quantity filter
+            OrbitInput::get('quantity', function ($_quantity) use ($transactions) {
+               $transactions->where('transaction_details.quantity', $_quantity);
+            });
+
+            // Product Name Filter
+            OrbitInput::get('product_name', function ($_product_name) use ($transactions) {
+                $transactions->join('products', function ($join) use ($_product_name) {
+                    $join->on('transaction_details.product_id', '=', 'products.product_id');
+                    $join->where('products.product_name', 'like', $_product_name);
+                });
+            });
+
+            // Product name like filter
+            OrbitInput::get('product_name_like', function ($_product_name) use ($transactions) {
+                $transactions->join('products', function ($join) use ($_product_name) {
+                    $join->on('transaction_details.product_id', '=', 'products.product_id');
+                    $join->where('products.product_name', 'like', "%{$_product_name}%");
+                });
+            });
+
+            // Unit Price filter
+            OrbitInput::get('unit_price', function ($_price) use ($transactions) {
+               $transactions->where('price', '=', $_price);
             });
 
             // Clone the query builder which still does not include the take,
