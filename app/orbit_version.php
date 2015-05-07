@@ -21,7 +21,11 @@ if (! defined('ORBIT_APP_BUILD_NUMBER')) {
  *   Y: Minor version
  */
 if (! defined('ORBIT_APP_VERSION')) {
-    define('ORBIT_APP_VERSION', '0.12-dev-b644');
+    if (Config::get('app.debug')) {
+        define('ORBIT_APP_VERSION', '0.12-dev-' . ORBIT_APP_BUILD_NUMBER);
+    } else {
+        define('ORBIT_APP_VERSION', '0.13');
+    }
 }
 
 /**

@@ -2625,6 +2625,102 @@ class UploadAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * Upload upc barcode image.
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param file|array `images`                      (required) - Images of the logo
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postUploadUPCBarcode()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.upload.postuploadupcbarcode.before.auth', array($this));
+
+            if (! $this->calledFrom('barcodescan'))
+            {
+                // Require authentication
+                $this->checkAuth(['blocked', 'deleted']);
+
+                Event::fire('orbit.upload.postuploadupcbarcode.after.auth', array($this));
+
+                // perform this action
+                $user = $this->api->user;
+            } else {
+                $user = App::make('orbit.upload.user');
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            // Load the orbit configuration for lucky draw upload image
+            $uploadImageConfig = Config::get('orbit.upload.barcode.main');
+            $elementName = $uploadImageConfig['name'];
+
+            // Application input
+            $images = OrbitInput::files($elementName);
+
+            $validator = Validator::make(
+                array(
+                    'images'      => $images,
+                ),
+                array(
+                    'images'      => 'required',
+                )
+            );
+
+            Event::fire('orbit.upload.postuploadupcbarcode.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postuploadupcbarcode.after.validation', array($this, $validator));
+
+            $path = realpath(Config::get('orbit.shop.zbar.path'));
+            $param = Config::get('orbit.shop.zbar.param');
+
+            if (! file_exists($path)) {
+                $errorMessage = 'Zbar binary not found.';
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if (isset($images['tmp_name']) && ! is_array($images['tmp_name'])) {
+                $errorMessage = 'Images format must be in array.';
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            // Execute Zbarimage
+            $cmd = $path . ' ' . $param . ' "' . $images['tmp_name'][0] . '"';
+            $result = shell_exec($cmd);
+
+            // Remove trailing zero and new-line
+            $this->response->data = substr(trim($result), 1);
+            $this->response->message = Lang::get('statuses.orbit.uploaded.barcode.main');
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.upload.postuploadupcbarcode.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (Exception $e) {
+            return $e;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.upload.postuploadupcbarcode.before.render', array($this, $output));
+
+        return $output;
+    }
+
     protected function registerCustomValidation()
     {
         if ($this->calledFrom('default')) {
@@ -2781,96 +2877,5 @@ class UploadAPIController extends ControllerAPI
         $this->calledFrom = $from;
 
         return $this;
-    }
-
-    /**
-     * Upload upc barcode image.
-     *
-     * @author Ahmad Anshori <ahmad@dominopos.com>
-     *
-     * List of API Parameters
-     * ----------------------
-     * @param file|array `images`                      (required) - Images of the logo
-     * @return Illuminate\Support\Facades\Response
-     */
-    public function postUploadUPCBarcode()
-    {
-        try {
-            $httpCode = 200;
-            
-            Event::fire('orbit.upload.postuploadupcbarcode.before.auth', array($this));
-
-            if (! $this->calledFrom('barcodescan'))
-            {
-                // Require authentication
-                $this->checkAuth();
-
-                Event::fire('orbit.upload.postuploadupcbarcode.after.auth', array($this));
-
-                // perform this action
-                $user = $this->api->user;
-            } else {
-                $user = App::make('orbit.upload.user');
-            }
-
-            // Register custom validation
-            $this->registerCustomValidation();
-
-            // Load the orbit configuration for lucky draw upload image
-            $uploadImageConfig = Config::get('orbit.upload.barcode.main');
-            $elementName = $uploadImageConfig['name'];
-
-            // Application input
-            $images = OrbitInput::files($elementName);
-
-            $validator = Validator::make(
-                array(
-                    'images'      => $images,
-                ),
-                array(
-                    'images'      => 'required',
-                )
-            );
-            
-            Event::fire('orbit.upload.postuploadupcbarcode.before.validation', array($this, $validator));
-
-            // Run the validation
-            if ($validator->fails()) {
-                $errorMessage = $validator->messages()->first();
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-            Event::fire('orbit.upload.postuploadupcbarcode.after.validation', array($this, $validator));
-            
-            $path = realpath(Config::get('orbit.shop.zbar.path'));
-            $param = Config::get('orbit.shop.zbar.param');
-
-            if (! file_exists($pth)) {
-                $errorMessage = 'Zbar binary not found.';
-                OrbitShopAPI::throwInvalidArgument($errorMessage);
-            }
-
-            // Execute Zbarimage
-            $cmd = $pth . ' ' . $param . ' "' . $images['tmp_name'] . '"';
-            $result = shell_exec($cmd);
-
-            // Remove trailing zero and new-line
-            $this->response->data = substr(trim($result), 1);
-            $this->response->message = Lang::get('statuses.orbit.uploaded.barcode.main');
-        } catch (InvalidArgsException $e) {
-            Event::fire('orbit.upload.postuploadupcbarcode.invalid.arguments', array($this, $e));
-
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-            $httpCode = 403;
-        } catch (Exception $e) {
-            return $e;
-        }
-
-        $output = $this->render($httpCode);
-        Event::fire('orbit.upload.postuploadupcbarcode.before.render', array($this, $output));
-
-        return $output;
     }
 }

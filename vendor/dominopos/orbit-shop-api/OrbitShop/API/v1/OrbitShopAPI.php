@@ -45,10 +45,23 @@ class OrbitShopAPI extends API
     );
 
     /**
-     * Class constructor
+     * List of forbidden status for the user.
+     *
+     * @var array
      */
-    public function __construct($clientID)
+    protected $forbiddenUserStatus = array(
+        'blocked', 'pending', 'deleted'
+    );
+
+    /**
+     * Class constructor
+     *
+     * @param string $clientID
+     * @param array $forbiddenUserStatus
+     */
+    public function __construct($clientID, $forbiddenUserStatus=['blocked', 'pending', 'deleted'])
     {
+        $this->forbiddenUserStatus = $forbiddenUserStatus;
         parent::__construct($clientID);
     }
 
@@ -61,7 +74,7 @@ class OrbitShopAPI extends API
      */
     protected function lookupClientSecretKey($clientID)
     {
-        $response = new OrbitShopLookupResponse($clientID);
+        $response = new OrbitShopLookupResponse($clientID, $this->forbiddenUserStatus);
         $this->userId = $response->getUserId();
         $this->user = $response->getUser();
 
