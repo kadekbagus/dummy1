@@ -1,10 +1,11 @@
 <header class="mobile-ci ci-header header-container">
     <div class="header-buttons-container">
-        <!-- <form id="qrform" action="#" method="post" enctype="multipart/form-data">
-            <div style='height: 0px;width:0px; overflow:hidden;'><input id="get_camera" name="qrphoto" type="file" accept="image/*;capture=camera" value="camera" /></div>
-        </form> -->
+        <form id="qrform2" action="#" method="post" enctype="multipart/form-data">
+            <div style='height: 0px;width:0px; overflow:hidden;'><input id="get_camera2" name="qrphoto2" type="file" accept="image/*;capture=camera" value="camera" /></div>
+            <canvas width="320" height="240" id="picture2" class="hide"></canvas>
+        </form>
         <ul class="buttons-list right">
-            <!-- <li><a id="barcodeBtn"><span><i class="glyphicon glyphicon-barcode"></i></span></a></li> -->
+            <li><a id="barcodeBtn2"><span><i class="glyphicon glyphicon-barcode"></i></span></a></li>
             <li><a id="searchBtn"><span><i class="glyphicon glyphicon-search"></i></span></a></li>
             <li><a href="{{ url('/customer/catalogue') }}"><span class="fa fa-list-ul"></span></a></li>
             <li>
