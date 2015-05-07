@@ -235,6 +235,7 @@ class RetailerAPIController extends ControllerAPI
      * @param integer    `postal_code`             (optional) - Postal code
      * @param integer    `city_id`                 (optional) - City id
      * @param string     `city`                    (optional) - Name of the city
+     * @param string     `province`                (optional) - Name of the province
      * @param integer    `country_id`              (optional) - Country id
      * @param string     `country`                 (optional) - Name of the country
      * @param string     `phone`                   (optional) - Phone of the retailer
@@ -306,6 +307,7 @@ class RetailerAPIController extends ControllerAPI
             $postal_code = OrbitInput::post('postal_code');
             $city_id = OrbitInput::post('city_id');
             $city = OrbitInput::post('city');
+            $province = OrbitInput::post('province');
             $country_id = OrbitInput::post('country_id');
             $country = OrbitInput::post('country');
             $phone = OrbitInput::post('phone');
@@ -403,6 +405,7 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->postal_code = $postal_code;
             $newretailer->city_id = $city_id;
             $newretailer->city = $city;
+            $newretailer->province = $province;
             $newretailer->country_id = $country;
             $newretailer->country = $countryName;
             $newretailer->phone = $phone;
@@ -549,7 +552,7 @@ class RetailerAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `merchant_id`              (required) - ID of the retailer
+     * @param integer    `retailer_id`              (required) - ID of the retailer
      * @param string     `orid`                     (optional) - ORID of the retailer
      * @param integer    `user_id`                  (optional) - User id for the retailer
      * @param string     `email`                    (optional) - Email address of the retailer
@@ -561,6 +564,7 @@ class RetailerAPIController extends ControllerAPI
      * @param integer    `postal_code`              (optional) - Postal code
      * @param integer    `city_id`                  (optional) - City id
      * @param string     `city`                     (optional) - Name of the city
+     * @param string     `province`                 (optional) - Name of the province
      * @param integer    `country_id`               (optional) - Country id
      * @param string     `country`                  (optional) - Name of the country
      * @param string     `phone`                    (optional) - Phone of the retailer
@@ -707,6 +711,10 @@ class RetailerAPIController extends ControllerAPI
 
             OrbitInput::post('city', function($city) use ($updatedretailer) {
                 $updatedretailer->city = $city;
+            });
+
+            OrbitInput::post('province', function($province) use ($updatedretailer) {
+                $updatedretailer->province = $province;
             });
 
             OrbitInput::post('country', function($country) use ($updatedretailer) {
@@ -961,6 +969,7 @@ class RetailerAPIController extends ControllerAPI
      * @param integer           `postal_code`                   (optional) - Postal code
      * @param string            `city_id`                       (optional)
      * @param string            `city`                          (optional)
+     * @param string            `province`                      (optional)
      * @param string            `country_id`                    (optional)
      * @param string            `country`                       (optional)
      * @param string            `phone`                         (optional)
@@ -1026,7 +1035,7 @@ class RetailerAPIController extends ControllerAPI
                     'sortby' => $sort_by,
                 ),
                 array(
-                    'sortby' => 'in:orid,registered_date,retailer_name,retailer_email,retailer_userid,retailer_description,retailerid,retailer_address1,retailer_address2,retailer_address3,retailer_cityid,retailer_city,retailer_countryid,retailer_country,retailer_phone,retailer_fax,retailer_status,retailer_currency,contact_person_firstname,merchant_name',
+                    'sortby' => 'in:orid,registered_date,retailer_name,retailer_email,retailer_userid,retailer_description,retailerid,retailer_address1,retailer_address2,retailer_address3,retailer_cityid,retailer_city,retailer_province,retailer_countryid,retailer_country,retailer_phone,retailer_fax,retailer_status,retailer_currency,contact_person_firstname,merchant_name',
                 ),
                 array(
                     'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
@@ -1166,6 +1175,16 @@ class RetailerAPIController extends ControllerAPI
             OrbitInput::get('city_like', function($city) use ($retailers)
             {
                 $retailers->where('merchants.city', 'like', "%$city%");
+            });
+
+            // Filter retailer by province
+            OrbitInput::get('province', function ($province) use ($retailers) {
+                $retailers->whereIn('merchants.province', $province);
+            });
+
+            // Filter retailer by province pattern
+            OrbitInput::get('province_like', function ($province) use ($retailers) {
+                $retailers->where('merchants.province', 'like', "%$province%");
             });
 
              // Filter retailer by countryID
@@ -1358,6 +1377,7 @@ class RetailerAPIController extends ControllerAPI
                   'retailer_address3' => 'merchants.address_line3',
                   'retailer_cityid' => 'merchants.city_id',
                   'retailer_city' => 'merchants.city',
+                  'retailer_province' => 'merchants.province',
                   'retailer_countryid' => 'merchants.country_id',
                   'retailer_country' => 'merchants.country',
                   'retailer_phone' => 'merchants.phone',

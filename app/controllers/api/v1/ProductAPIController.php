@@ -755,7 +755,11 @@ class ProductAPIController extends ControllerAPI
      * @param string     `with`                     (optional) - Valid value: family.
      * @param array      `product_id`               (optional) - ID of the product
      * @param string     `product_code`             (optional)
+     * @param string     `product_code_like`        (optional)
+     * @param string     `upc_code`                 (optional)
+     * @param string     `upc_code_like`            (optional)
      * @param string     `product_name`             (optional)
+     * @param string     `price`                    (optional)
      * @param string     `short_description`        (optional)
      * @param string     `long_description`         (optional)
      * @param string     `product_name_like`        (optional)
@@ -874,9 +878,24 @@ class ProductAPIController extends ControllerAPI
                 $products->whereIn('products.merchant_id', $merchantIds);
             });
 
-            // Filter product by product code
+            // Filter product by product_code
             OrbitInput::get('product_code', function ($product_code) use ($products) {
                 $products->whereIn('products.product_code', $product_code);
+            });
+
+            // Filter product by product_code pattern
+            OrbitInput::get('product_code_like', function ($product_code) use ($products) {
+                $products->where('products.product_code', 'like', "%$product_code%");
+            });
+
+            // Filter product by upc_code
+            OrbitInput::get('upc_code', function ($upc_code) use ($products) {
+                $products->whereIn('products.upc_code', $upc_code);
+            });
+
+            // Filter product by upc_code pattern
+            OrbitInput::get('upc_code_like', function ($upc_code) use ($products) {
+                $products->where('products.upc_code', 'like', "%$upc_code%");
             });
 
             // Filter product by name
@@ -887,6 +906,11 @@ class ProductAPIController extends ControllerAPI
             // Filter product by name pattern
             OrbitInput::get('product_name_like', function ($name) use ($products) {
                 $products->where('products.product_name', 'like', "%$name%");
+            });
+
+            // Filter product by price
+            OrbitInput::get('price', function ($price) use ($products) {
+                $products->whereIn('products.price', $price);
             });
 
             // Filter product by short description
@@ -924,6 +948,11 @@ class ProductAPIController extends ControllerAPI
             OrbitInput::get('created_end_date', function($enddate) use ($products)
             {
                 $products->where('products.created_at', '<=', $enddate);
+            });
+
+            // Filter product by is_new
+            OrbitInput::get('is_new', function ($is_new) use ($products, $now) {
+                $products->whereIn(DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END'), $is_new);
             });
 
             // Filter product by merchant_tax_id1
