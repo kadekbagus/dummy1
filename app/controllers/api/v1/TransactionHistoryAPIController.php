@@ -535,7 +535,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             }
 
             // Builder object
-            $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction')
+            $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction', 'transaction.merchant', 'transaction.retailer')
                                              ->transactionJoin();
 
             OrbitInput::get('user_id', function($userId) use ($transactions) {
