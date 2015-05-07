@@ -926,6 +926,11 @@ class ProductAPIController extends ControllerAPI
                 $products->where('products.created_at', '<=', $enddate);
             });
 
+            // Filter product by is_new
+            OrbitInput::get('is_new', function ($is_new) use ($products, $now) {
+                $products->whereIn(DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END'), $is_new);
+            });
+
             // Filter product by merchant_tax_id1
             OrbitInput::get('merchant_tax_id1', function ($merchant_tax_id1) use ($products) {
                 $products->whereIn('products.merchant_tax_id1', $merchant_tax_id1);
