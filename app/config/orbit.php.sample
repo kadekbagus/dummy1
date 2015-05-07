@@ -19,6 +19,13 @@ return array(
         'id'    => NULL,
         // search result limit
         'search_limit' => 300,
+        
+        'zbar' => array(
+            // zbarimage path
+            // eg: '"C:\\Program Files (x86)\\ZBar\\bin\\zbarimg.exe" --raw -q '
+            'path'      => '',
+            'param'     => '--raw -q'
+        )
     ),
 
     // General contact data
@@ -873,6 +880,79 @@ return array(
                     'default'   => array(
                         'width'     => 400,
                         'height'    => 400
+                    )
+                ),
+
+                // Crop the image
+                'crop'          => array(
+                    // Profile name
+                    'default' => array(
+                        'width'     => 100,
+                        'height'    => 100,
+                    )
+                ),
+
+                // Scale the image in percent
+                'scale'         => array(
+                    // Profile name
+                    'default'   => 50
+                ),
+
+                // Callback before saving the file
+                'before_saving' => NULL,
+
+                // Callback after saving the file
+                'after_saving'  => NULL,
+            ),
+        ),
+        
+        // -------------------------------------------------------------------//
+        // UPC scan Uploads
+        // -------------------------------------------------------------------//
+        'barcode'  => array(
+            'main' => array(
+                // Allowed Extension
+                'file_type'     => array('jpg', 'png'),
+
+                // Allowed Mimetype
+                'mime_type'     => array('image/jpeg', 'image/png'),
+
+                // Maximum file size allowed in bytes
+                'file_size'     => 1500000,
+
+                // The target path which file to be stored
+                'path'          => 'uploads/barcodetmp',
+
+                // Default HTML element name
+                'name'          => 'images',
+
+                // Force create directory when not exists
+                'create_directory'  => TRUE,
+
+                // Append year and month to the path
+                'append_year_month' => TRUE,
+
+                // Keeping the aspect ratio
+                'keep_aspect_ratio' => TRUE,
+
+                // Resize the image
+                'resize_image'      => TRUE,
+
+                // Crop the image
+                'crop_image'        => FALSE,
+
+                // Scale the image
+                'scale_image'       => FALSE,
+
+                // Name suffix of the generated image
+                'suffix'            => '',
+
+                // Resize the image
+                'resize'        => array(
+                    // Profile name
+                    'default'   => array(
+                        'width'     => 640,
+                        'height'    => 480
                     )
                 ),
 
