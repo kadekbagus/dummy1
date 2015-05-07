@@ -55,8 +55,24 @@ Route::group(
         Route::get(
             '/customer/product',
             function () {
-        
+
                 return MobileCI\MobileCIAPIController::create()->getProductView();
+            }
+        );
+
+        Route::get(
+            '/customer/productscan',
+            function () {
+                
+                return MobileCI\MobileCIAPIController::create()->getProductScanView();
+            }
+        );
+
+        Route::post(
+            '/app/v1/customer/scan',
+            function () {
+                
+                return UploadAPIController::create()->postUploadUPCBarcode();
             }
         );
 
