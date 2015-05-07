@@ -69,12 +69,14 @@ Route::group(
         );
 
         Route::post(
-            '/app/v1/customer/scan',
+            '/api/v1/customer/scan',
             function () {
                 
                 return UploadAPIController::create()->postUploadUPCBarcode();
             }
         );
+
+        Route::post('/app/v1/customer/scan', 'IntermediateAuthController@Upload_postUploadUPCBarcode');
 
         Route::get(
             '/customer/transfer',

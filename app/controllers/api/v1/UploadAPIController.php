@@ -2797,6 +2797,24 @@ class UploadAPIController extends ControllerAPI
     {
         try {
             $httpCode = 200;
+            
+            Event::fire('orbit.upload.postuploadupcbarcode.before.auth', array($this));
+
+            if (! $this->calledFrom('barcodescan'))
+            {
+                // Require authentication
+                $this->checkAuth();
+
+                Event::fire('orbit.upload.postuploadupcbarcode.after.auth', array($this));
+
+                // perform this action
+                $user = $this->api->user;
+            } else {
+                $user = App::make('orbit.upload.user');
+            }
+
+            // Register custom validation
+            $this->registerCustomValidation();
 
             // Load the orbit configuration for lucky draw upload image
             $uploadImageConfig = Config::get('orbit.upload.barcode.main');
@@ -2804,9 +2822,35 @@ class UploadAPIController extends ControllerAPI
 
             // Application input
             $images = OrbitInput::files($elementName);
+
+            $validator = Validator::make(
+                array(
+                    'images'      => $images,
+                ),
+                array(
+                    'images'      => 'required',
+                )
+            );
             
+            Event::fire('orbit.upload.postuploadupcbarcode.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.upload.postuploadupcbarcode.after.validation', array($this, $validator));
+            
+            $path = realpath(Config::get('orbit.shop.zbar.path'));
+            $param = Config::get('orbit.shop.zbar.param');
+
+            if (! file_exists($pth)) {
+                $errorMessage = 'Zbar binary not found.';
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
             // Execute Zbarimage
-            $cmd = '"C:\\Program Files (x86)\\ZBar\\bin\\zbarimg.exe" --raw -q "' . $images['tmp_name'] . '"';
+            $cmd = $pth . ' ' . $param . ' "' . $images['tmp_name'] . '"';
             $result = shell_exec($cmd);
 
             // Remove trailing zero and new-line
@@ -2821,12 +2865,7 @@ class UploadAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (Exception $e) {
-            Event::fire('orbit.upload.postuploadupcbarcode.general.exception', array($this, $e));
-
-            $this->response->code = Status::UNKNOWN_ERROR;
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = NULL;
+            return $e;
         }
 
         $output = $this->render($httpCode);
