@@ -49,16 +49,6 @@
 {{ HTML::script('mobile-ci/scripts/offline.js') }}
 {{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
-    function readCookie(name) {
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for(var i=0;i < ca.length;i++) {
-            var c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-        }
-        return null;
-    }
     $(document).ready(function(){
         $('#barcodeBtn2').click(function(){
             $('#get_camera2').click();
@@ -68,7 +58,6 @@
             var formElement = document.getElementById("get_camera2");
             var data = new FormData();
             data.append('images[]', formElement.files[0]);
-            console.log(data);
             $.ajax({
                 url: apiPath+'customer/scan?orbit_session='+$.cookie('code_session'),
                 method: 'POST',
@@ -77,7 +66,6 @@
                 contentType: false,
                 processData: false
             }).done(function(data){
-                console.log(data.data);
                 if(data.data) {
                     window.location.assign(publicPath+'/customer/productscan?upc='+data.data);
                 } else {
