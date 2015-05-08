@@ -1,5 +1,8 @@
 <?php
 
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
+use DominoPOS\OrbitSession\SessionData;
 use Laracasts\TestDummy\Factory;
 
 class TestCase extends Illuminate\Foundation\Testing\TestCase {
@@ -14,7 +17,17 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 
 	protected $useTruncate = true;
 
-	/**
+    protected $useIntermediate = false;
+    /**
+     * @var \DominoPOS\OrbitSession\Session
+     */
+    protected $session;
+    /**
+     * @var \ApiKey
+     */
+    protected $authData;
+
+    /**
 	 * Creates the application.
 	 *
 	 * @return \Symfony\Component\HttpKernel\HttpKernelInterface
@@ -52,6 +65,25 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 		{
 			$this->$name = $data;
 		}
+
+        if ($this->useIntermediate)
+        {
+            $_SERVER['HTTP_USER_AGENT'] = 'test\browser 1.0';
+            $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
+
+            $sessionConfig  = new SessionConfig(Config::get('orbit.session'));
+            if (empty($this->authData))
+            {
+                $this->authData = Factory::create('apikey_super_admin');
+            }
+            $sessionData    = new SessionData([
+                'logged_in' => TRUE,
+                'user_id'   => $this->authData->user_id,
+            ]);
+            $this->session  = new Session($sessionConfig);
+            $this->session->rawUpdate($sessionData);
+            $this->session->setSessionId($sessionData->id);
+        }
     }
 
 	public function tearDown()
