@@ -7332,7 +7332,12 @@ class MobileCIAPIController extends ControllerAPI
                 function ($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                 }
-            )->active()->where('upc_code', $upc_code)->first();
+            )->wherehas(
+                'variants', 
+                function($query2) use ($upc_code) {
+                    $query2->where('product_variants.upc', $upc_code);
+                }
+            )->active()->first();
 
             if (empty($product)) {
                 // throw new Exception('Product id ' . $product_id . ' not found');
