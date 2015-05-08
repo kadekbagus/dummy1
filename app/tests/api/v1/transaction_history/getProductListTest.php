@@ -33,9 +33,9 @@ class getProductListTest extends TestCase
             Factory::create('TransactionDetail', ['transaction_id' => $transaction->transaction_id]);
         }
 
-        $this->authData = $authData;
+        $this->authData     = $authData;
         $this->transactions = $transactions;
-        $this->faker    = $faker;
+        $this->faker        = $faker;
     }
 
     public function testOK_get_transaction_filtered_by_date_filter()
@@ -60,7 +60,7 @@ class getProductListTest extends TestCase
         };
 
         $response = call_user_func($makeRequest, [
-            'date_from' => $this->faker->dateTimeBetween('-2days', '-1day')
+            'purchase_date_begin' => $this->faker->dateTimeBetween('-2days', '-1day')
         ]);
 
         $this->assertResponseOk();
@@ -72,7 +72,7 @@ class getProductListTest extends TestCase
 
         // Date to before all records
         $response = call_user_func($makeRequest, [
-            'date_to' => $this->faker->dateTimeBetween('-2days', '-1days')
+            'purchase_date_end' => $this->faker->dateTimeBetween('-2days', '-1days')
         ]);
 
         $this->assertResponseOk();
@@ -83,8 +83,8 @@ class getProductListTest extends TestCase
 
         // Date from and to combined
         $response = call_user_func($makeRequest, [
-            'date_from' => $this->faker->dateTimeBetween('-2days', '-1days'),
-            'date_to' => $this->faker->dateTimeBetween('+1days', '+2days')
+            'purchase_date_begin' => $this->faker->dateTimeBetween('-2days', '-1days'),
+            'purchase_date_end' => $this->faker->dateTimeBetween('+1days', '+2days')
         ]);
 
         $this->assertResponseOk();
