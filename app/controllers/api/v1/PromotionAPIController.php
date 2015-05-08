@@ -925,7 +925,10 @@ class PromotionAPIController extends ControllerAPI
      * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
+     * @param datetime `created_begin_date`    (optional) - Created begin date. Example: 2015-05-07 00:00:00
+     * @param datetime `created_end_date`      (optional) - Created end date. Example: 2015-05-07 23:59:59
      * @param string   `rule_type`             (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
+     * @param string   `discount_value`        (optional) - Discount value
      * @param string   `discount_object_type`  (optional) - Discount object type. Valid value: product, family.
      * @param integer  `discount_object_id1`   (optional) - Discount object ID1 (product_id or category_id1).
      * @param integer  `discount_object_id2`   (optional) - Discount object ID2 (category_id2).
@@ -1089,10 +1092,38 @@ class PromotionAPIController extends ControllerAPI
                 $promotions->whereIn('promotions.status', $statuses);
             });
 
+            // Filter promotion by created_at for begin_date
+            OrbitInput::get('created_begin_date', function($begindate) use ($promotions)
+            {
+                $promotions->where('promotions.created_at', '>=', $begindate);
+            });
+
+            // Filter promotion by created_at for end_date
+            OrbitInput::get('created_end_date', function($enddate) use ($promotions)
+            {
+                $promotions->where('promotions.created_at', '<=', $enddate);
+            });
+
             // Filter promotion rule by rule type
             OrbitInput::get('rule_type', function ($ruleTypes) use ($promotions) {
                 $promotions->whereHas('promotionrule', function($q) use ($ruleTypes) {
                     $q->whereIn('rule_type', $ruleTypes);
+                });
+            });
+
+            // Filter promotion rule by discount_value
+            OrbitInput::get('discount_value', function ($discount_value) use ($promotions) {
+                $promotions->whereHas('promotionrule', function($q) use ($discount_value) {
+                    $q->where(function ($q) use ($discount_value) {
+                        $q->whereIn('discount_value', $discount_value);
+
+                        // to filter percentage value.
+                        $discount_value_in_percentage = array();
+                        foreach($discount_value as $a) {
+                            $discount_value_in_percentage[] = $a/100;
+                        }
+                        $q->orWhereIn('discount_value', $discount_value_in_percentage);
+                    });
                 });
             });
 
