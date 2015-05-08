@@ -1,5 +1,6 @@
 <?php
 // Transactions Factory
+use Laracasts\TestDummy\Factory;
 
 $factory('Transaction', function ($faker) {
     return [
@@ -11,9 +12,16 @@ $factory('Transaction', function ($faker) {
     ];
 });
 
-$factory('TransactionDetail', function ($faker) {
+$factory('TransactionDetail', function (\Faker\Generator $faker) {
+    $product = Factory::create('Product');
+
     return [
         'transaction_id' => 'factory:Transaction',
-        'product_id' => 'factory:Product'
+        'product_id'   =>  $product->product_id,
+        'product_name' => $product->product_name,
+        'product_code' => $product->product_code,
+        'upc'          => $product->upc_code,
+        'price'        => $product->price,
+        'quantity'     => $faker->numberBetween(1, 10)
     ];
 });
