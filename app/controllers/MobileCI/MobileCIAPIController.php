@@ -7304,6 +7304,260 @@ class MobileCIAPIController extends ControllerAPI
     }
 
     /**
+     * GET - Product detail scan page
+     *
+     * @param integer    `upc_code`        (required) - The product ID
+     *
+     * @return Illuminate\View\View
+     *
+     * @author Ahmad Anshori <ahmad@dominopos.com>
+     */
+    public function getProductScanView()
+    {
+        $user = null;
+        $upc_code = 0;
+        $activityProduct = Activity::mobileci()
+                                   ->setActivityType('view');
+        $product = null;
+        try {
+            $user = $this->getLoggedInUser();
+
+            $retailer = $this->getRetailerInfo();
+            $upc_code = trim(OrbitInput::get('upc'));
+            $product_only = Product::where('upc_code', $upc_code)->active()->first();
+            $cartitems = $this->getCartForToolbar();
+
+            $product = Product::with('variants', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5')->whereHas(
+                'retailers',
+                function ($query) use ($retailer) {
+                            $query->where('retailer_id', $retailer->merchant_id);
+                }
+            )->active()->where('upc_code', $upc_code)->first();
+
+            if (empty($product)) {
+                // throw new Exception('Product id ' . $product_id . ' not found');
+                return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
+            }
+
+            $promo_products = DB::select(
+                DB::raw(
+                    'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                WHERE prod.product_id = :productid'
+                ),
+                array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
+            );
+
+            $couponstocatchs = DB::select(
+                DB::raw(
+                    'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id)
+                    OR
+                    (
+                        (pr.rule_object_type="family") AND
+                        ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND
+                        ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
+                        ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
+                        ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
+                        ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'
+                ),
+                array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
+            );
+
+            $couponstocatchs = array_filter(
+                $couponstocatchs,
+                function ($v) use ($product) {
+                    if ($v->maximum_issued_coupon != 0) {
+                        $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
+
+                        return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued;
+                    } else {
+                        return $v->product_id == $product->product_id;
+                    }
+                }
+            );
+
+            // set coupon to catch flag
+            $product->on_couponstocatch = false;
+            foreach ($couponstocatchs as $couponstocatchsflag) {
+                if ($couponstocatchsflag->coupon_notification == 'Y') {
+                    $product->on_couponstocatch |= true;
+                } else {
+                    $product->on_couponstocatch |= false;
+                }
+            }
+
+            $coupons = DB::select(
+                DB::raw(
+                    'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
+                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'products prod on
+                (
+                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                    OR
+                    (
+                        (pr.discount_object_type="family") AND
+                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                    )
+                )
+                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
+                WHERE ic.expired_date >= "' . Carbon::now() . '" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND prod.product_id = :productid AND ic.expired_date >= "' . Carbon::now() . '"'
+                ),
+                array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product->product_id)
+            );
+
+            $attributes = DB::select(
+                DB::raw(
+                    'SELECT v.upc, v.sku, v.product_variant_id, av1.value as value1, av1.product_attribute_value_id as attr_val_id1, av2.product_attribute_value_id as attr_val_id2, av3.product_attribute_value_id as attr_val_id3, av4.product_attribute_value_id as attr_val_id4, av5.product_attribute_value_id as attr_val_id5, av2.value as value2, av3.value as value3, av4.value as value4, av5.value as value5, v.price, pa1.product_attribute_name as attr1, pa2.product_attribute_name as attr2, pa3.product_attribute_name as attr3, pa4.product_attribute_name as attr4, pa5.product_attribute_name as attr5 FROM ' . DB::getTablePrefix() . 'product_variants v
+                inner join ' . DB::getTablePrefix() . 'products p on p.product_id = v.product_id AND p.status = "active" AND v.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av1 on av1.product_attribute_value_id = v.product_attribute_value_id1 AND av1.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av2 on av2.product_attribute_value_id = v.product_attribute_value_id2 AND av2.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av3 on av3.product_attribute_value_id = v.product_attribute_value_id3 AND av3.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av4 on av4.product_attribute_value_id = v.product_attribute_value_id4 AND av4.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attribute_values as av5 on av5.product_attribute_value_id = v.product_attribute_value_id5 AND av5.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa1 on pa1.product_attribute_id = av1.product_attribute_id AND pa1.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa2 on pa2.product_attribute_id = av2.product_attribute_id AND pa2.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa3 on pa3.product_attribute_id = av3.product_attribute_id AND pa3.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa4 on pa4.product_attribute_id = av4.product_attribute_id AND pa4.status = "active"
+                left join ' . DB::getTablePrefix() . 'product_attributes as pa5 on pa5.product_attribute_id = av5.product_attribute_id AND pa5.status = "active"
+                WHERE p.product_id = :productid'
+                ),
+                array('productid' => $product->product_id)
+            );
+
+            $prices = array();
+            foreach ($product->variants as $variant) {
+                $prices[] = $variant->price;
+                $promo_price = $variant->price;
+                $temp_price = $variant->price;
+
+                if (! empty($promo_products)) {
+                    $promo_price = $variant->price;
+                    foreach ($promo_products as $promo_filter) {
+                        if ($promo_filter->rule_type == 'product_discount_by_percentage' || $promo_filter->rule_type == 'cart_discount_by_percentage') {
+                            $discount = $promo_filter->discount_value * $variant->price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_price = $promo_price - $discount;
+                        } elseif ($promo_filter->rule_type == 'product_discount_by_value' || $promo_filter->rule_type == 'cart_discount_by_value') {
+                            $discount = $promo_filter->discount_value;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_price = $promo_price - $discount;
+                        } elseif ($promo_filter->rule_type == 'new_product_price') {
+                            $new_price = $promo_filter->discount_value;
+                            $discount = $variant->price - $new_price;
+                            if ($temp_price < $discount) {
+                                $discount = $temp_price;
+                            }
+                            $promo_price = $promo_price - $discount;
+                        }
+
+                        $temp_price = $temp_price - $discount;
+                    }
+                }
+                $variant->promo_price = $promo_price;
+            }
+            // set minimum price
+            $min_price = min($prices);
+            $product->min_price = $min_price + 0;
+
+            $temp_price = $min_price;
+            $min_promo_price = $product->min_price;
+            if (! empty($promo_products)) {
+                foreach ($promo_products as $promo_filter) {
+                    if ($promo_filter->rule_type == 'product_discount_by_percentage' || $promo_filter->rule_type == 'cart_discount_by_percentage') {
+                        $discount = $promo_filter->discount_value * $product->min_price;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $min_promo_price = $min_promo_price - $discount;
+                    } elseif ($promo_filter->rule_type == 'product_discount_by_value' || $promo_filter->rule_type == 'cart_discount_by_value') {
+                        $discount = $promo_filter->discount_value;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $min_promo_price = $min_promo_price - $discount;
+                    } elseif ($promo_filter->rule_type == 'new_product_price') {
+                        $new_price = $promo_filter->discount_value;
+                        $discount = $min_price - $new_price;
+                        if ($temp_price < $discount) {
+                            $discount = $temp_price;
+                        }
+                        $min_promo_price = $min_promo_price - $discount;
+                    }
+                    $temp_price = $temp_price - $discount;
+                }
+            }
+            $product->min_promo_price = $min_promo_price;
+
+            $cartitems = $this->getCartForToolbar();
+
+            if (! empty($coupons)) {
+                $product->on_coupons = true;
+            } else {
+                $product->on_coupons = false;
+            }
+
+            $activityProductNotes = sprintf('Product viewed from scan: %s', $product->product_name);
+            $activityProduct->setUser($user)
+                ->setActivityName('view_product_scan')
+                ->setActivityNameLong('View Product Scan')
+                ->setObject($product)
+                ->setProduct($product)
+                ->setModuleName('Product')
+                ->setNotes($activityProductNotes)
+                ->responseOK()
+                ->save();
+
+            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
+
+        } catch (Exception $e) {
+            $activityProductNotes = sprintf('Product viewed from scan: %s', $upc_code);
+            $activityProduct->setUser($user)
+                ->setActivityName('view_product_scan')
+                ->setActivityNameLong('View Product Not Found')
+                ->setObject(null)
+                ->setProduct($product)
+                ->setModuleName('Product')
+                ->setNotes($e->getMessage())
+                ->responseFailed()
+                ->save();
+
+            return $this->redirectIfNotLoggedIn($e);
+        }
+    }
+
+    /**
      * String manipulation blocks
      * @param string $str - string value
      * @return string

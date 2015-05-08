@@ -43,6 +43,7 @@ return array(
         'email_error'           => 'Please enter your email first.',
         'event_title'           => 'Events',
         'info_title'            => 'Info',
+        'error_title'           => 'Error',
         'coupon_title'          => 'My Coupons',
         'search_title'          => 'Search Product',
         'checkout_title'        => 'Checkout',
@@ -60,6 +61,7 @@ return array(
         'message_transfer_cart' => 'Show this screen to the cashier to complete your checkout.',
         'message_close_cart'    => 'Your cart is not transferred to the cashier. Please show the following barcode to the cashier.',
         'message_reset_cart'    => 'Are you sure you want to reset your cart?',
+        'message_error_upc'     => 'Failed to read the barcode, please try again. Make sure the barcode image is clear.',
 
         'coupon_use'            => 'Use',
         'coupon_ignore'         => 'Later',

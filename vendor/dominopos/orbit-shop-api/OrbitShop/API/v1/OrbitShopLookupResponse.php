@@ -33,9 +33,11 @@ class OrbitShopLookupResponse implements LookupResponseInterface
     /**
      * Class constructor.
      *
+     * @param string $clientID
+     * @param array $forbiddenStatus
      * @throw An Orion\SimpleAPI\APIException if $clienID not found
      */
-    public function __construct($clientID)
+    public function __construct($clientID, $forbiddenStatus=['blocked', 'pending', 'deleted'])
     {
         $this->statusLookup = static::LOOKUP_STATUS_OK;
 
@@ -54,8 +56,7 @@ class OrbitShopLookupResponse implements LookupResponseInterface
                 // If the user's property is object, we can assume that
                 // The user is found
                 if (is_object($apiKeys->user)) {
-                    $denied = array('blocked', 'pending', 'deleted');
-                    if (in_array($apiKeys->user->status, $denied)) {
+                    if (in_array($apiKeys->user->status, $forbiddenStatus)) {
                         $this->statusLookup = static::LOOKUP_STATUS_ACCESS_DENIED;
                     } else {
                         $this->data['user_id'] = $apiKeys->user_id;

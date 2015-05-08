@@ -125,13 +125,13 @@ abstract class ControllerAPI extends Controller
      * @return void
      * @thrown Exception
      */
-    public function checkAuth()
+    public function checkAuth($forbiddenUserStatus=['blocked', 'pending', 'deleted'])
     {
         // Get the api key from query string
         $clientkey = (isset($_GET['apikey']) ? $_GET['apikey'] : '');
 
         // Instantiate the OrbitShopAPI
-        $this->api = new OrbitShopAPI($clientkey);
+        $this->api = new OrbitShopAPI($clientkey, $forbiddenUserStatus);
 
         // Set the request expires time
         $this->api->expiresTimeFrame = $this->expiresTime;

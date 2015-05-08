@@ -21,36 +21,64 @@
     </div>
 </div>
 
+<div class="modal fade" id="UPCerror" tabindex="-1" role="dialog" aria-labelledby="UPCerror" aria-hidden="true">
+    <div class="modal-dialog orbit-modal">
+        <div class="modal-content">
+            <div class="modal-header orbit-modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ Lang::get('mobileci.modals.close') }}</span></button>
+                <h4 class="modal-title">{{ Lang::get('mobileci.modals.error_title') }}</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {{ Lang::get('mobileci.modals.message_error_upc') }}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal">{{ Lang::get('mobileci.modals.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="spinner" tabindex="-1" role="dialog" aria-labelledby="spinner" aria-hidden="true" data-backdrop="static">
+    <div class="spinners">
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+    </div>
+</div>
+
 {{ HTML::script('mobile-ci/scripts/offline.js') }}
 <script type="text/javascript">
     $(document).ready(function(){
-        var run = function () {
-            if (Offline.state === 'up') {
-              $('#offlinemark').attr('class', 'fa fa-check fa-stack-1x').css({
-                'color': '#3c9',
-                'left': '6px',
-                'top': '0px',
-                'font-size': '1em'
-              });
-              Offline.check();
-            } else {
-              $('#offlinemark').attr('class', 'fa fa-times fa-stack-1x').css({
-                'color': 'red',
-                'left': '6px',
-                'top': '0px',
-                'font-size': '1em'
-              });
-            }
-        };
-        run();
-        setInterval(run, 5000);
+        $('#barcodeBtn2').click(function(){
+            $('#get_camera2').click();
+        });
+        $('#get_camera2').change(function(){
+            $('#spinner').modal();
+            var formElement = document.getElementById("get_camera2");
+            var data = new FormData();
+            data.append('images', formElement.files[0]);
+            console.log(data);
+            $.ajax({
+                url: apiPath+'customer/scan',
+                method: 'POST',
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false
+            }).done(function(data){
+                console.log(data.data);
+                if(data.data) {
+                    window.location.assign(publicPath+'/customer/productscan?upc='+data.data);
+                } else {
+                    $('#UPCerror').modal();
+                }
+            }).fail(function(){
+                $('#UPCerror').modal();
+            }).always(function(){
+                $('#spinner').modal('hide');
+            });
+        });
 
-        $('#barcodeBtn').click(function(){
-            $('#get_camera').click();
-        });
-        $('#get_camera').change(function(){
-            $('#qrform').submit();
-        });
         $('#searchBtn').click(function(){
             $('#SearchProducts').modal();
             setTimeout(function(){

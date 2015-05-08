@@ -11,6 +11,7 @@
 @section('content')
 <div class="container">
     <div class="mobile-ci home-widget widget-container">
+        <p id="textbit"></p>
         @foreach($widgets as $i => $widget)
         @if($i % 2 == 0)
         <div class="row">

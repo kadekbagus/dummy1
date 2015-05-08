@@ -80,6 +80,9 @@ return array(
                 'main'           => 'Widget image has been successfully uploaded.',
                 'delete_image'   => 'Widget image has been successfully deleted.'
             ),
+            'barcode' => array(
+                'main'           => 'Barcode has been successfully uploaded.'
+            ),
         )
     )
 );
