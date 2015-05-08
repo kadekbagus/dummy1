@@ -175,6 +175,7 @@
             }
             if(data.data){
               // console.log(data.data);
+              $.cookie('code_session', xhr.getResponseHeader("Set-X-Orbit-Mobile-Session"), { expires: 5 * 365, path: '/' });
               $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365, path: '/' });
               if(data.data.user_firstname) {
                 $.cookie('orbit_firstname', data.data.user_firstname, { expires: 5 * 365, path: '/' });
@@ -260,6 +261,7 @@
               }
               if(data.data){
                 // console.log(data.data);
+                $.cookie('code_session', xhr.getResponseHeader("Set-X-Orbit-Mobile-Session"), { expires: 5 * 365, path: '/' });
                 $.cookie('orbit_email', data.data.user_email, { expires: 5 * 365, path: '/' });
                 if(data.data.user_firstname) {
                   $.cookie('orbit_firstname', data.data.user_firstname, { expires: 5 * 365, path: '/' });
