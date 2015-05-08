@@ -2700,8 +2700,8 @@ class UploadAPIController extends ControllerAPI
             $cmd = $path . ' ' . $param . ' "' . $images['tmp_name'][0] . '"';
             $result = shell_exec($cmd);
 
-            // Remove trailing zero and new-line
-            $this->response->data = substr(trim($result), 1);
+            // Remove new-line
+            $this->response->data = trim($result);
             $this->response->message = Lang::get('statuses.orbit.uploaded.barcode.main');
         } catch (InvalidArgsException $e) {
             Event::fire('orbit.upload.postuploadupcbarcode.invalid.arguments', array($this, $e));
