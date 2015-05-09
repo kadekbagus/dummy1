@@ -194,6 +194,7 @@ class PromotionPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
+                $pageTitle = 'Promotion';
                 require app_path() . '/views/printer/list-promotion-view.php';
         }
     }

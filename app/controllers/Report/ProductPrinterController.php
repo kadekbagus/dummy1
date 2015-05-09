@@ -148,34 +148,11 @@ class ProductPrinterController extends DataPrinterController
 
             case 'print':
             default:
+                $me = $this;
+                $pageTitle = 'Product';
                 require app_path() . '/views/printer/list-product-view.php';
         }
     }
 
 
-
-    public function getRetailerInfo()
-    {
-        try {
-            $retailer_id = Config::get('orbit.shop.id');
-            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
-
-            return $retailer;
-        } catch (ACLForbiddenException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (InvalidArgsException $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        } catch (Exception $e) {
-            $this->response->code = $e->getCode();
-            $this->response->status = 'error';
-            $this->response->message = $e->getMessage();
-            $this->response->data = null;
-        }
-    }
 }

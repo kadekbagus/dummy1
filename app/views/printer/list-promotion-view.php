@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title><?php //echo $pageTitle; ?></title>
+    <title><?php echo $pageTitle; ?></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="generator" content="Orbit" />
     <style media="all">
@@ -107,31 +107,16 @@
 <div id="main">
     <h2 style="margin-bottom:0.5em;">Promotion List</h2>
     <table style="width:100%; margin-bottom:1em;" class="noborder">
-<!--         <tr>
-            <td style="width:150px">Lucky Draw</td>
-            <td style="width:10px;">:</td>
-            <td><strong><?php //echo htmlentities($luckyDraw->lucky_draw_name); ?></strong></td>
-        </tr> -->
-<!--         <tr>
-            <td>Period</td>
-            <td>:</td>
-            <td><?php //printf('<strong>%s</strong> - <strong>%s</strong>', $formatDate($luckyDraw->start_date), $formatDate($luckyDraw->end_date)); ?></td>
-        </tr> -->
+        <tr>
+            <td style="width:150px"></td>
+            <td style="width:10px;"></td>
+            <td><strong></strong></td>
+        </tr>
         <tr>
             <td>Total Promotion</td>
             <td>:</td>
             <td><strong><?php echo number_format($totalRec, 0, '.', '.'); ?></strong></td>
         </tr>
-<!--         <tr>
-            <td>Total Issued Number</td>
-            <td>:</td>
-            <td><strong><?php //echo number_format($totalIssuedLuckyDrawNumber, 0, '.', '.'); ?></strong></td>
-        </tr>
-        <tr>
-            <td>Total Number Left</td>
-            <td>:</td>
-            <td><strong><?php //echo number_format($totalLuckyDrawNumber - $totalIssuedLuckyDrawNumber, 0, '.', '.'); ?></strong></td>
-        </tr> -->
     </table>
 
     <table style="width:100%">
