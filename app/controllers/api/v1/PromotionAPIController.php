@@ -1082,6 +1082,24 @@ class PromotionAPIController extends ControllerAPI
                 $promotions->where('promotions.end_date', '>=', $enddate);
             });
 
+            // Filter promotion by end_date for begin
+            OrbitInput::get('expiration_begin_date', function($begindate) use ($promotions)
+            {
+                $promotions->where(function ($q) use ($begindate) {
+                    $q->where('promotions.end_date', '>=', $begindate)
+                      ->orWhere('promotions.is_permanent', 'Y');
+                });
+            });
+
+            // Filter promotion by end_date for end
+            OrbitInput::get('expiration_end_date', function($enddate) use ($promotions)
+            {
+                $promotions->where(function ($q) use ($enddate) {
+                    $q->where('promotions.end_date', '<=', $enddate)
+                      ->orWhere('promotions.is_permanent', 'Y');
+                });
+            });
+
             // Filter promotion by is permanent
             OrbitInput::get('is_permanent', function ($ispermanent) use ($promotions) {
                 $promotions->whereIn('promotions.is_permanent', $ispermanent);
@@ -1166,6 +1184,38 @@ class PromotionAPIController extends ControllerAPI
             OrbitInput::get('discount_object_id5', function ($discountObjectId5s) use ($promotions) {
                 $promotions->whereHas('promotionrule', function($q) use ($discountObjectId5s) {
                     $q->whereIn('discount_object_id5', $discountObjectId5s);
+                });
+            });
+
+            // Filter promotion rule by matching discount object name pattern (product or family link)
+            OrbitInput::get('discount_object_name_like', function ($discount_object_name) use ($promotions) {
+                $promotions->whereHas('promotionrule', function ($q) use ($discount_object_name) {
+                    $q->where(function($q) use ($discount_object_name) {
+                        $q->whereHas('discountproduct', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'product')
+                              ->where('product_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory1', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory2', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory3', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory4', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory5', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                    });
                 });
             });
 
