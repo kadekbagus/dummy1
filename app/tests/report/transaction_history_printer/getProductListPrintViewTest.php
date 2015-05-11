@@ -173,6 +173,62 @@ class getProductListPrintViewTest extends TestCase
         $this->assertSame(5 + $headerNum, count($response));
     }
 
+    public function testOK_get_transactions_filtered_with_retailer_name()
+    {
+        $retailer = Factory::create('Retailer', [
+            'user_id' => $this->merchant->user_id,
+            'parent_id' => $this->merchant->merchant_id,
+            'name' => 'SomeRandom Retailer'
+        ]);
+        $transactions = Factory::times(5)->create('Transaction', [
+            'merchant_id' => $this->merchant->merchant_id,
+            'retailer_id' => $retailer->merchant_id,
+            'customer_id' => $this->authData->user_id
+        ]);
+
+        foreach ($transactions as $transaction) {
+            Factory::create('TransactionDetail', ['transaction_id' => $transaction->transaction_id]);
+        }
+
+        $headerNum = 4;
+        $makeRequest = function ($getData = []) {
+            $_GET                    = $getData;
+            $_GET['export']          = 'csv';
+            $_GET['user_id']         = $this->authData->user_id;
+            $_GET['orbit_session']   = $this->session->getSessionId();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $_SERVER['REQUEST_METHOD']         = 'GET';
+            $_SERVER['REQUEST_URI']            = $url;
+
+            ob_start();
+            $this->call('GET', $url)->getContent();
+            $response = ob_get_contents();
+            ob_end_clean();
+
+            $response = array_map('str_getcsv', explode("\n", $response));
+            return $response;
+        };
+
+        $response = $makeRequest([
+            'retailer_name' => 'SomeRandom Retailer'
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(5 + $headerNum, count($response));
+
+
+        $response = $makeRequest([
+            'retailer_name_like' => 'SomeRandom'
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(5 + $headerNum, count($response));
+    }
+
     public function testOK_get_transaction_with_quantity_filter()
     {
         for ($i=0; $i<5; $i++)
