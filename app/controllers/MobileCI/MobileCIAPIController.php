@@ -7344,7 +7344,7 @@ class MobileCIAPIController extends ControllerAPI
                 return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
             }
 
-            $selected_variant = $product->variants[0];
+            $selected_variant = \ProductVariant::active()->where('upc', $upc_code)->first();
 
             $promo_products = DB::select(
                 DB::raw(
