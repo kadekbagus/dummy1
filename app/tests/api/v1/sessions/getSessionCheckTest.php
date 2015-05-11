@@ -14,8 +14,7 @@ class getSessionCheckTest extends TestCase {
     private $baseUrl = '/api/v1/session/check';
 
     protected $useTruncate = false;
-
-    private $authData;
+    protected $authData;
     private $events;
 
     public function setUp()

@@ -12,6 +12,7 @@ use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
 use PDO;
 use DB;
+use Config;
 use TransactionDetail;
 
 class TransactionHistoryPrinterController extends  DataPrinterController
