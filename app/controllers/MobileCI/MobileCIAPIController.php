@@ -7344,6 +7344,8 @@ class MobileCIAPIController extends ControllerAPI
                 return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
             }
 
+            $selected_variant = $product->variants[0];
+
             $promo_products = DB::select(
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
@@ -7544,7 +7546,7 @@ class MobileCIAPIController extends ControllerAPI
                 ->responseOK()
                 ->save();
 
-            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
+            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons, 'selected_variant' => $selected_variant));
 
         } catch (Exception $e) {
             $activityProductNotes = sprintf('Product viewed from scan: %s', $upc_code);
