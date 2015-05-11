@@ -105,7 +105,7 @@
 </div>
 
 <div id="main">
-    <h2 style="margin-bottom:0.5em;">Product List</h2>
+    <h2 style="margin-bottom:0.5em;">Cashier List</h2>
     <table style="width:100%; margin-bottom:1em;" class="noborder">
         <tr>
             <td style="width:150px"></td>
@@ -113,7 +113,7 @@
             <td><strong></strong></td>
         </tr>
         <tr>
-            <td>Total Product</td>
+            <td>Total Cashier</td>
             <td>:</td>
             <td><strong><?php echo number_format($totalRec, 0, '.', '.'); ?></strong></td>
         </tr>
@@ -121,20 +121,16 @@
 
     <table style="width:100%">
         <thead>
-            <th style="text-align:left;">SKU Number </th>
-            <th style="text-align:left;">Barcode</th>
-            <th style="text-align:left;">Name</th>
-            <th style="text-align:left;">Price</th>
-            <!-- <th style="text-align:left;">Retailer</th> -->
+            <th style="text-align:left;">Name </th>
+            <th style="text-align:left;">Login ID</th>
+            <th style="text-align:left;">Position</th>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
-                <td><?php echo ($row->product_code); ?></td>
-                <td><?php echo ($row->upc_code); ?></td>
-                <td><?php echo ($row->product_name); ?></td>
-                <td><?php echo (number_format($row->price)); ?></td>
-                <!-- <td><?php //echo ($row->membership_number); ?></td> -->
+                <td><?php echo $me->printFullName($row); ?></td>
+                <td><?php echo $row->username; ?></td>
+                <td><?php //echo $me->printExpirationDate($row); ?></td>
             </tr>
         <?php endwhile; ?>
         </tbody>
