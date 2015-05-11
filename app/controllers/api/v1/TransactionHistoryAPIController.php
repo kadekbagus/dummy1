@@ -551,33 +551,50 @@ class TransactionHistoryAPIController extends ControllerAPI
             });
 
             // Filter by date from
-            OrbitInput::get('purchase_date_begin', function ($_date_begin) use ($transactions) {
-                $transactions->where('transactions.created_at', '>', $_date_begin);
+            OrbitInput::get('purchase_date_begin', function ($dateBegin) use ($transactions) {
+                $transactions->where('transactions.created_at', '>', $dateBegin);
             });
 
             // Filter by date to
-            OrbitInput::get('purchase_date_end', function ($_date_end) use ($transactions) {
-                $transactions->where('transactions.created_at', '<', $_date_end);
+            OrbitInput::get('purchase_date_end', function ($dateEnd) use ($transactions) {
+                $transactions->where('transactions.created_at', '<', $dateEnd);
             });
 
             // Quantity filter
-            OrbitInput::get('quantity', function ($_quantity) use ($transactions) {
-               $transactions->where('transaction_details.quantity', $_quantity);
+            OrbitInput::get('quantity', function ($qty) use ($transactions) {
+               $transactions->where('transaction_details.quantity', $qty);
             });
 
             // Product Name Filter
-            OrbitInput::get('product_name', function ($_product_name) use ($transactions) {
-                $transactions->join('products', function ($join) use ($_product_name) {
+            OrbitInput::get('product_name', function ($productName) use ($transactions) {
+                $transactions->join('products', function ($join) use ($productName) {
                     $join->on('transaction_details.product_id', '=', 'products.product_id');
-                    $join->where('products.product_name', 'like', $_product_name);
+                    $join->where('products.product_name', 'like', $productName);
                 });
             });
 
             // Product name like filter
-            OrbitInput::get('product_name_like', function ($_product_name) use ($transactions) {
-                $transactions->join('products', function ($join) use ($_product_name) {
+            OrbitInput::get('product_name_like', function ($productName) use ($transactions) {
+                $transactions->join('products', function ($join) use ($productName) {
                     $join->on('transaction_details.product_id', '=', 'products.product_id');
-                    $join->where('products.product_name', 'like', "%{$_product_name}%");
+                    $join->where('products.product_name', 'like', "%{$productName}%");
+                });
+            });
+
+            $tablePrefix = DB::getTablePrefix();
+            // Retailer name filter
+            OrbitInput::get('retailer_name', function ($retailerName) use ($transactions, $tablePrefix) {
+                $transactions->join("merchants AS {$tablePrefix}retailer", function ($join) use ($retailerName) {
+                    $join->on('transactions.retailer_id', '=', 'retailer.merchant_id');
+                    $join->where('retailer.name', 'like', $retailerName);
+                });
+            });
+
+            // Retailer name like filter
+            OrbitInput::get('retailer_name_like', function ($retailerName) use ($transactions, $tablePrefix) {
+                $transactions->join("merchants AS {$tablePrefix}retailer", function ($join) use ($retailerName) {
+                    $join->on('transactions.retailer_id', '=', 'retailer.merchant_id');
+                    $join->where('retailer.name', 'like', "%{$retailerName}%");
                 });
             });
 
