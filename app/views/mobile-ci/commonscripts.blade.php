@@ -67,7 +67,7 @@
                 processData: false
             }).done(function(data){
                 if(data.data) {
-                    window.location.assign(publicPath+'/customer/productscan?upc='+data.data);
+                    window.location.assign(publicPath+'/customer/productscan?upc='+data.data+'#select-attribute');
                 } else {
                     $('#UPCerror').modal();
                 }
