@@ -141,7 +141,8 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id4'  => $discount_object_id4,
                     'discount_object_id5'  => $discount_object_id5,
                     'begin_date'           => $begin_date,
-                    'discount_value'       => $discount_value
+                    'discount_value'       => $discount_value,
+                    'coupon_validity_in_days' => $coupon_validity_in_days
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
@@ -162,7 +163,8 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id4'  => 'numeric|orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
                     'begin_date'           => 'required',
-                    'discount_value'       => 'required'
+                    'discount_value'       => 'required',
+                    'coupon_validity_in_days' => 'required'
                 )
             );
 
@@ -175,21 +177,33 @@ class CouponAPIController extends ControllerAPI
             }
 
             if ($promotion_type == 'product') {
-                $validator = Validator::make(
-                    array(
-                        'product_or_family_link'  => $discount_object_id1,
-                    ),
-                    array(
-                        'product_or_family_link'  => 'required',
-                    )
-                );
+                $rulefamilyflag = true;
+                $discountfamilyflag = true;
+                $errormessages = '';
+                $errormessages2 = '';
 
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
+                if ($rule_object_type == 'family') {
+                    $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
+                    $errormessages = 'The family to obtain field is required.';
+                } elseif ($rule_object_type == 'product') {
+                    $rulefamilyflag = ! empty($rule_object_id1);
+                    $errormessages = 'The product to obtain field is required.';
+                }
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
 
                 // Run the validation
-                if ($validator->fails()) {
-                    $errorMessage = $validator->messages()->first();
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                if (! $rulefamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages);
+                }
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
                 }
             }
             
@@ -202,8 +216,6 @@ class CouponAPIController extends ControllerAPI
                         'rule_value'  => 'required',
                     )
                 );
-
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
 
                 // Run the validation
                 if ($validator->fails()) {
@@ -587,6 +599,7 @@ class CouponAPIController extends ControllerAPI
             $begin_date = OrbitInput::post('begin_date');
             $discount_value = OrbitInput::post('discount_value');
             $rule_value = OrbitInput::post('rule_value');
+            $coupon_validity_in_days = OrbitInput::post('coupon_validity_in_days');
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -607,7 +620,8 @@ class CouponAPIController extends ControllerAPI
                 'discount_object_id4'  => $discount_object_id4,
                 'discount_object_id5'  => $discount_object_id5,
                 'begin_date'           => $begin_date,
-                'discount_value'       => $discount_value
+                'discount_value'       => $discount_value,
+                'coupon_validity_in_days' => $coupon_validity_in_days
             );
 
             // Validate promotion_name only if exists in POST.
@@ -637,7 +651,8 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id4'  => 'numeric|orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
                     'begin_date'           => 'required',
-                    'discount_value'       => 'required'
+                    'discount_value'       => 'required',
+                    'coupon_validity_in_days' => 'required'
                 ),
                 array(
                    'coupon_name_exists_but_me' => Lang::get('validation.orbit.exists.coupon_name'),
@@ -653,21 +668,33 @@ class CouponAPIController extends ControllerAPI
             }
 
             if ($promotion_type == 'product') {
-                $validator = Validator::make(
-                    array(
-                        'product_or_family_link'  => $discount_object_id1,
-                    ),
-                    array(
-                        'product_or_family_link'  => 'required',
-                    )
-                );
+                $rulefamilyflag = true;
+                $discountfamilyflag = true;
+                $errormessages = '';
+                $errormessages2 = '';
 
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
+                if ($rule_object_type == 'family') {
+                    $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
+                    $errormessages = 'The family to obtain field is required.';
+                } elseif ($rule_object_type == 'product') {
+                    $rulefamilyflag = ! empty($rule_object_id1);
+                    $errormessages = 'The product to obtain field is required.';
+                }
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
 
                 // Run the validation
-                if ($validator->fails()) {
-                    $errorMessage = $validator->messages()->first();
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                if (! $rulefamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages);
+                }
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
                 }
             }
             
@@ -680,8 +707,6 @@ class CouponAPIController extends ControllerAPI
                         'rule_value'  => 'required',
                     )
                 );
-
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
 
                 // Run the validation
                 if ($validator->fails()) {
