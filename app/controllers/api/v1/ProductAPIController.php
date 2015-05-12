@@ -1265,7 +1265,7 @@ class ProductAPIController extends ControllerAPI
             $merchant_tax_id2 = OrbitInput::post('merchant_tax_id2');
             $status = OrbitInput::post('status');
             $retailer_ids = OrbitInput::post('retailer_ids');
-            // $retailer_ids = (array) $retailer_ids;
+            $retailer_ids = (array) $retailer_ids;
             $category_id1 = OrbitInput::post('category_id1');
             $category_id2 = OrbitInput::post('category_id2');
             $category_id3 = OrbitInput::post('category_id3');
