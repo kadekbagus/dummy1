@@ -98,7 +98,6 @@ class PromotionAPIController extends ControllerAPI
                 array(
                     'merchant_id'          => $merchant_id,
                     'promotion_name'       => $promotion_name,
-                    'description'          => $description,
                     'promotion_type'       => $promotion_type,
                     'begin_date'           => $begin_date,
                     'status'               => $status,
@@ -114,7 +113,6 @@ class PromotionAPIController extends ControllerAPI
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
                     'promotion_name'       => 'required|max:100|orbit.exists.promotion_name',
-                    'description'          => 'required',
                     'promotion_type'       => 'required|orbit.empty.promotion_type',
                     'begin_date'           => 'required',
                     'status'               => 'required|orbit.empty.promotion_status',
