@@ -7332,12 +7332,19 @@ class MobileCIAPIController extends ControllerAPI
                 function ($query) use ($retailer) {
                             $query->where('retailer_id', $retailer->merchant_id);
                 }
-            )->active()->where('upc_code', $upc_code)->first();
+            )->wherehas(
+                'variants', 
+                function($query2) use ($upc_code) {
+                    $query2->where('product_variants.upc', $upc_code);
+                }
+            )->active()->first();
 
             if (empty($product)) {
                 // throw new Exception('Product id ' . $product_id . ' not found');
                 return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
             }
+
+            $selected_variant = \ProductVariant::active()->where('upc', $upc_code)->first();
 
             $promo_products = DB::select(
                 DB::raw(
@@ -7539,7 +7546,7 @@ class MobileCIAPIController extends ControllerAPI
                 ->responseOK()
                 ->save();
 
-            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons));
+            return View::make('mobile-ci.product', array('page_title' => strtoupper($product->product_name), 'retailer' => $retailer, 'product' => $product, 'cartitems' => $cartitems, 'promotions' => $promo_products, 'attributes' => $attributes, 'couponstocatchs' => $couponstocatchs, 'coupons' => $coupons, 'selected_variant' => $selected_variant));
 
         } catch (Exception $e) {
             $activityProductNotes = sprintf('Product viewed from scan: %s', $upc_code);

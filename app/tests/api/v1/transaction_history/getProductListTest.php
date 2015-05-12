@@ -10,8 +10,10 @@ use Laracasts\TestDummy\Factory;
 
 class getProductListTest extends TestCase
 {
-    protected $transactions;
     private $baseUrl = '/api/v1/consumer-transaction-history/product-list';
+
+    protected $transactions;
+    protected $merchant;
     protected $authData;
     protected $faker;
     protected $useTruncate = false;
@@ -33,9 +35,10 @@ class getProductListTest extends TestCase
             Factory::create('TransactionDetail', ['transaction_id' => $transaction->transaction_id]);
         }
 
-        $this->authData = $authData;
+        $this->authData     = $authData;
         $this->transactions = $transactions;
-        $this->faker    = $faker;
+        $this->faker        = $faker;
+        $this->merchant     = $merchant;
     }
 
     public function testOK_get_transaction_filtered_by_date_filter()
@@ -59,8 +62,8 @@ class getProductListTest extends TestCase
             return $response;
         };
 
-        $response = call_user_func($makeRequest, [
-            'date_from' => $this->faker->dateTimeBetween('-2days', '-1day')
+        $response = $makeRequest([
+            'purchase_date_begin' => $this->faker->dateTimeBetween('-2days', '-1day')
         ]);
 
         $this->assertResponseOk();
@@ -71,8 +74,8 @@ class getProductListTest extends TestCase
 
 
         // Date to before all records
-        $response = call_user_func($makeRequest, [
-            'date_to' => $this->faker->dateTimeBetween('-2days', '-1days')
+        $response = $makeRequest([
+            'purchase_date_end' => $this->faker->dateTimeBetween('-2days', '-1days')
         ]);
 
         $this->assertResponseOk();
@@ -82,9 +85,9 @@ class getProductListTest extends TestCase
         $this->assertSame(0, $response->data->returned_records);
 
         // Date from and to combined
-        $response = call_user_func($makeRequest, [
-            'date_from' => $this->faker->dateTimeBetween('-2days', '-1days'),
-            'date_to' => $this->faker->dateTimeBetween('+1days', '+2days')
+        $response = $makeRequest([
+            'purchase_date_begin' => $this->faker->dateTimeBetween('-2days', '-1days'),
+            'purchase_date_end' => $this->faker->dateTimeBetween('+1days', '+2days')
         ]);
 
         $this->assertResponseOk();
@@ -124,7 +127,7 @@ class getProductListTest extends TestCase
             return $response;
         };
 
-        $response = call_user_func($makeRequest, [
+        $response = $makeRequest([
             'product_name' => 'Transactional 1'
         ]);
 
@@ -135,7 +138,7 @@ class getProductListTest extends TestCase
         $this->assertSame(1, $response->data->returned_records);
 
 
-        $response = call_user_func($makeRequest, [
+        $response = $makeRequest([
             'product_name_like' => 'Transactional'
         ]);
 
@@ -177,7 +180,7 @@ class getProductListTest extends TestCase
             return $response;
         };
 
-        $response = call_user_func($makeRequest, [
+        $response = $makeRequest([
             'quantity' => 11
         ]);
 
@@ -220,7 +223,7 @@ class getProductListTest extends TestCase
             return $response;
         };
 
-        $response = call_user_func($makeRequest, [
+        $response = $makeRequest([
             'unit_price' => 2000
         ]);
 
@@ -229,5 +232,63 @@ class getProductListTest extends TestCase
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(1, $response->data->total_records);
         $this->assertSame(1, $response->data->returned_records);
+    }
+
+    public function testOK_get_transactions_with_retailer_filter()
+    {
+        $retailer = Factory::create('Retailer', [
+            'user_id' => $this->merchant->user_id,
+            'parent_id' => $this->merchant->merchant_id,
+            'name' => 'SomeRandom Retailer'
+        ]);
+        $transactions = Factory::times(5)->create('Transaction', [
+            'merchant_id' => $this->merchant->merchant_id,
+            'retailer_id' => $retailer->merchant_id,
+            'customer_id' => $this->authData->user_id
+        ]);
+
+        foreach ($transactions as $transaction) {
+            Factory::create('TransactionDetail', ['transaction_id' => $transaction->transaction_id]);
+        }
+
+        $makeRequest = function ($getData) {
+            $_GET                 = $getData;
+            $_GET['user_id']      = $this->authData->user_id;
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('GET', $url)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $response = $makeRequest([
+            'retailer_name' => 'SomeRandom Retailer'
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(5, $response->data->total_records);
+        $this->assertSame(5, $response->data->returned_records);
+
+
+        $response = $makeRequest([
+            'retailer_name_like' => 'SomeRandom'
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(5, $response->data->total_records);
+        $this->assertSame(5, $response->data->returned_records);
     }
 }

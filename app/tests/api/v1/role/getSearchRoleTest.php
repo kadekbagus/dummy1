@@ -13,8 +13,8 @@ class getSearchRoleTest extends TestCase
     protected $useTruncate = false;
 
     private $baseUrl = '/api/v1/role/list';
-    private $authData;
-    private $roles;
+    protected $authData;
+    protected $roles;
 
     public function setUp()
     {

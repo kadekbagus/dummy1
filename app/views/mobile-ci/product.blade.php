@@ -332,6 +332,11 @@
         var promotions = {{ json_encode($promotions) }};
         var attributes = {{ json_encode($attributes) }};
         var product = {{ json_encode($product) }};
+        @if(! empty($selected_variant))
+        var selected_variant = {{ json_encode($selected_variant) }};
+        @else
+        var selected_variant = {};
+        @endif
         var itemReady = [];
         $(document).ready(function(){
             if(variants.length < 2){
@@ -351,6 +356,7 @@
             selectedVariant.attr3 = undefined;
             selectedVariant.attr4 = undefined;
             selectedVariant.attr5 = undefined;
+
             $('.product-attributes').on('change', '.attribute_value_id', function($e){
                 selectedVal = $(this).val();
                 selectedLvl = $(this).data('attr-lvl');
@@ -387,6 +393,7 @@
                 for(var i= selectedLvl+1;i<=5;i++){
                     $('#attribute'+i).html('');
                 }
+                
                 for(var i=0; i<filteredAttr.length; i++){
                     switch(selectedLvl){
                         case 1:
@@ -435,6 +442,32 @@
                 $('#price span').text(num_format(priceafter));
             });
             
+            // Trigger attribute selection if this page is loaded from barcode scan
+            if(selected_variant.product_attribute_value_id1){
+                $('.product-attributes input[value="'+ selected_variant.product_attribute_value_id1 +'"]').trigger('click').trigger('change');
+                selectedVariant.attr1 = selected_variant.product_attribute_value_id1;
+            }
+
+            if(selected_variant.product_attribute_value_id2){
+                $('.product-attributes input[value="'+ selected_variant.product_attribute_value_id2 +'"]').trigger('click').trigger('change');
+                selectedVariant.attr2 = selected_variant.product_attribute_value_id2;
+            }
+
+            if(selected_variant.product_attribute_value_id3){
+                $('.product-attributes input[value="'+ selected_variant.product_attribute_value_id3 +'"]').trigger('click').trigger('change');
+                selectedVariant.attr3 = selected_variant.product_attribute_value_id3;
+            }
+
+            if(selected_variant.product_attribute_value_id4){
+                $('.product-attributes input[value="'+ selected_variant.product_attribute_value_id4 +'"]').trigger('click').trigger('change');
+                selectedVariant.attr4 = selected_variant.product_attribute_value_id4;
+            }
+
+            if(selected_variant.product_attribute_value_id5){
+                $('.product-attributes input[value="'+ selected_variant.product_attribute_value_id5 +'"]').trigger('click').trigger('change');
+                selectedVariant.attr5 = selected_variant.product_attribute_value_id5;
+            }
+
             $('#backBtnProduct').click(function(){
                 window.history.back()
             });
@@ -490,7 +523,6 @@
                                 }
                             }).done(function(data){
                                 // animate cart
-                                console.log('withoutcoupon');
                                 anchor.show();
                                 $('.cart-spinner').hide();
                                 var imgclone = img.clone().offset({
@@ -567,7 +599,6 @@
                         }).done(function(data){
                             // animate cart
                             if(data.status == 'success'){
-                                console.log('apply');
                                 anchor.show();
                                 $('.cart-spinner').hide();
                                 if(data.data.available_coupons.length < 1){
@@ -634,7 +665,6 @@
                         }).done(function(data){
                             // animate cart
                             if(data.status == 'success'){
-                                console.log('danycoupon');
                                 anchor.show();
                                 $('.cart-spinner').hide();
                                 if(data.data.available_coupons.length < 1){
@@ -698,7 +728,6 @@
                         }
                     }).done(function(data){
                         // animate cart
-                        console.log('nocoupon');
                         anchor.show();
                         $('.cart-spinner').hide();
                         var imgclone = img.clone().offset({

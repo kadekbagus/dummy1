@@ -47,6 +47,7 @@
 </div>
 
 {{ HTML::script('mobile-ci/scripts/offline.js') }}
+{{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
     $(document).ready(function(){
         $('#barcodeBtn2').click(function(){
@@ -56,19 +57,17 @@
             $('#spinner').modal();
             var formElement = document.getElementById("get_camera2");
             var data = new FormData();
-            data.append('images', formElement.files[0]);
-            console.log(data);
+            data.append('images[]', formElement.files[0]);
             $.ajax({
-                url: apiPath+'customer/scan',
+                url: apiPath+'customer/scan?orbit_session='+$.cookie('code_session'),
                 method: 'POST',
                 data: data,
                 cache: false,
                 contentType: false,
                 processData: false
             }).done(function(data){
-                console.log(data.data);
                 if(data.data) {
-                    window.location.assign(publicPath+'/customer/productscan?upc='+data.data);
+                    window.location.assign(publicPath+'/customer/productscan?upc='+data.data+'#select-attribute');
                 } else {
                     $('#UPCerror').modal();
                 }
