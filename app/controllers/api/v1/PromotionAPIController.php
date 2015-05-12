@@ -923,6 +923,8 @@ class PromotionAPIController extends ControllerAPI
      * @param string   `description_like`      (optional) - Description like
      * @param datetime `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param datetime `expiration_begin_date` (optional) - Expiration(promotion end date) begin date. Example: 2015-05-11 00:00:00
+     * @param datetime `expiration_end_date`   (optional) - Expiration(promotion end date) end date. Example: 2015-05-11 23:59:59
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param datetime `created_begin_date`    (optional) - Created begin date. Example: 2015-05-07 00:00:00
@@ -935,6 +937,7 @@ class PromotionAPIController extends ControllerAPI
      * @param integer  `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
      * @param integer  `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
      * @param integer  `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
+     * @param string   `discount_object_name_like`   (optional) - Product or family link name like
      * @param integer  `retailer_id`           (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
