@@ -772,7 +772,9 @@ class EmployeeAPIController extends ControllerAPI
      * @param string    `username_like`         (optional)
      * @param string    `firstname_like`        (optional)
      * @param string    `lastname_like`         (optional)
+     * @param string    `fullname_like`         (optional)
      * @param array     `employee_id_char_like` (optional)
+     * @param string    `position_like`         (optional)
      * @param integer   `take`                  (optional) - limit
      * @param integer   `skip`                  (optional) - limit offset
      * @param array     `with`                  (optional) - default to ['employee.retailers', 'userDetail']
@@ -960,6 +962,18 @@ class EmployeeAPIController extends ControllerAPI
             // Filter user by their lastname pattern
             OrbitInput::get('lastname_like', function ($firstname) use ($users) {
                 $users->where('users.user_lastname', 'like', "%$firstname%");
+            });
+
+            // Filter user by their fullname (firstname and lastname) pattern
+            OrbitInput::get('fullname_like', function ($fullname) use ($users) {
+                $users->where(DB::raw('CONCAT(user_firstname, " ", user_lastname)'), 'like', "%$fullname%");
+            });
+
+            // Filter user by employee position pattern
+            OrbitInput::get('position_like', function ($position) use ($users) {
+                $users->whereHas('employee', function ($q) use ($position) {  
+                    $q->where('position', 'like', "%$position%");
+                });
             });
 
             // Filter user by their status
