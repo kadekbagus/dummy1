@@ -350,13 +350,29 @@ class MerchantAPIController extends ControllerAPI
                     'status'        => $status,
                     'country'       => $country,
                     'url'           => $url,
+                    'address_line1' => $address_line1,
+                    'city'          => $city,
+                    'postal_code'   => $postal_code,
+                    'phone'         => $phone,
+                    'contact_person_firstname' => $contact_person_firstname,
+                    'contact_person_lastname'  => $contact_person_lastname,
+                    'contact_person_phone'  => $contact_person_phone,
+                    'contact_person_email'  => $contact_person_email,
                 ),
                 array(
                     'email'         => 'required|email|orbit.exists.email',
                     'name'          => 'required',
                     'status'        => 'required|orbit.empty.merchant_status',
                     'country'       => 'required|numeric',
-                    'url'           => 'orbit.formaterror.url.web'
+                    'url'           => 'orbit.formaterror.url.web',
+                    'address_line1' => 'required',
+                    'city'          => 'required',
+                    'postal_code'   => 'required',
+                    'phone'         => 'required',
+                    'contact_person_firstname' => 'required',
+                    'contact_person_lastname'  => 'required',
+                    'contact_person_phone'  => 'required',
+                    'contact_person_email'  => 'required',
                 )
             );
 
@@ -1151,7 +1167,16 @@ class MerchantAPIController extends ControllerAPI
             $ticket_header = OrbitInput::post('ticket_header');
             $ticket_footer = OrbitInput::post('ticket_footer');
             $url = OrbitInput::post('url');
-
+            $address_line1 = OrbitInput::post('address_line1');
+            $postal_code = OrbitInput::post('postal_code');
+            $city = OrbitInput::post('city');
+            $country = OrbitInput::post('country');
+            $phone = OrbitInput::post('phone');
+            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
+            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
+            $contact_person_phone = OrbitInput::post('contact_person_phone');
+            $contact_person_email = OrbitInput::post('contact_person_email');
+            
             $validator = Validator::make(
                 array(
                     'merchant_id'       => $merchant_id,
@@ -1162,16 +1187,32 @@ class MerchantAPIController extends ControllerAPI
                     'ticket_header'     => $ticket_header,
                     'ticket_footer'     => $ticket_footer,
                     'url'               => $url,
+                    'address_line1'     => $address_line1,
+                    'city'              => $city,
+                    'postal_code'       => $postal_code,
+                    'phone'             => $phone,
+                    'contact_person_firstname' => $contact_person_firstname,
+                    'contact_person_lastname'  => $contact_person_lastname,
+                    'contact_person_phone'  => $contact_person_phone,
+                    'contact_person_email'  => $contact_person_email,
                 ),
                 array(
                     'merchant_id'       => 'required|numeric|orbit.empty.merchant',
                     'user_id'           => 'numeric|orbit.empty.user',
-                    'email'             => 'email|email_exists_but_me',
+                    'email'             => 'required|email|email_exists_but_me',
                     'status'            => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
                     'omid'              => 'omid_exists_but_me',
                     'ticket_header'     => 'ticket_header_max_length',
                     'ticket_footer'     => 'ticket_footer_max_length',
-                    'url'               => 'orbit.formaterror.url.web'
+                    'url'               => 'orbit.formaterror.url.web',
+                    'address_line1'     => 'required',
+                    'city'              => 'required',
+                    'postal_code'       => 'required',
+                    'phone'             => 'required',
+                    'contact_person_firstname' => 'required',
+                    'contact_person_lastname'  => 'required',
+                    'contact_person_phone'  => 'required',
+                    'contact_person_email'  => 'required',
                 ),
                 array(
                    'email_exists_but_me'      => Lang::get('validation.orbit.exists.email'),
@@ -1205,8 +1246,10 @@ class MerchantAPIController extends ControllerAPI
                 // $updatedmerchant->user_id = $user_id;
             });
 
-            OrbitInput::post('email', function($email) use ($updatedmerchant) {
+            OrbitInput::post('email', function($email) use ($updatedmerchant, $user) {
                 $updatedmerchant->email = $email;
+                $user->user_email = $email;
+                $user->save();
             });
 
             OrbitInput::post('name', function($name) use ($updatedmerchant) {
