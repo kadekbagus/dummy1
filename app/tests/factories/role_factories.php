@@ -28,3 +28,9 @@ $factory('Role', 'role_guest', [
     'role_name'  => 'Guest',
     'role_order' => 1
 ]);
+
+
+$factory('Role', 'role_cashier', [
+    'role_name'  => 'Cashier',
+    'role_order' => 1
+]);
