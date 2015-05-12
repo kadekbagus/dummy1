@@ -50,8 +50,6 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 });
 
 
-            $filters = [];
-
             OrbitInput::get('user_id', function($userId) use ($transactions) {
                 $transactions->whereIn('transactions.customer_id', (array)$userId);
             });
@@ -101,7 +99,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
             // Unit Price filter
             OrbitInput::get('unit_price', function ($price) use ($transactions) {
-                $transactions->where('price', '=', $price);
+                $transactions->where('transaction_details.price', '=', $price);
             });
 
             $this->prepareUnbufferedQuery();
