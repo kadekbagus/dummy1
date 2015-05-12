@@ -39,3 +39,43 @@ Route::get('/api/v1/token/list', function()
 {
     return TokenAPIController::create()->getSearchToken();
 });
+
+/**
+ * Login route for user with role 'Super Admin'
+ */
+Route::post('/api/v1/login/admin', function()
+{
+    return LoginAPIController::create()->postLoginAdmin();
+});
+
+/**
+ * Login route for user with role 'Merchant Owner'
+ */
+Route::post('/api/v1/login/merchant', function()
+{
+    return LoginAPIController::create()->postLoginMerchant();
+});
+
+/**
+ * Login route for user with role 'Consumer'
+ */
+Route::post('/api/v1/login/customer', function()
+{
+    return LoginAPIController::create()->postLoginCustomer();
+});
+
+/**
+ * Login route for user with role 'Cashier'
+ */
+Route::post('/api/v1/login/pos', function()
+{
+    return LoginAPIController::create()->postLoginCashier();
+});
+
+/**
+ * Login route for user with role 'Consumer', for login from mobile-ci
+ */
+Route::post('/api/v1/login/mobile', function()
+{
+    return LoginAPIController::create()->postLoginMobile();
+});
