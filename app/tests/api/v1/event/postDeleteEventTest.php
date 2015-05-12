@@ -11,16 +11,14 @@ use Laracasts\TestDummy\Factory;
 class postDeleteEventTest extends TestCase {
     private $baseUrl = '/api/v1/event/delete';
 
-    private $authData;
+    protected $authData;
 
-    private $event;
+    protected $event;
 
-    public function setUp()
+    public static function prepareDatabase()
     {
-        parent::setUp();
-
-        $this->authData = Factory::create('apikey_super_admin');
-        $this->event    = Factory::create('EventModel');
+        static::addData("authData", Factory::create('apikey_super_admin'));
+        static::addData("event", Factory::create('EventModel'));
     }
 
     public function testOK_update_event_with_valid_parameters()

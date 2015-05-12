@@ -12,6 +12,7 @@ use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
 use PDO;
 use DB;
+use Config;
 use TransactionDetail;
 
 class TransactionHistoryPrinterController extends  DataPrinterController
@@ -36,6 +37,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                                                         "retailer.name as retailer_name"])
                 ->leftJoin("transactions", function ($join) {
                     $join->on("transactions.transaction_id", "=", 'transaction_details.transaction_id');
+                    $join->where('transactions.status', '=', DB::raw('paid'));
                 })
                 ->leftJoin("merchants as {$prefix}merchant", function ($join) {
                     $join->on("transactions.merchant_id", "=", "merchant.merchant_id");
