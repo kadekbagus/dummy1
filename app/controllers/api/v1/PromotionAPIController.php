@@ -136,21 +136,20 @@ class PromotionAPIController extends ControllerAPI
             }
 
             if ($promotion_type == 'product') {
-                $validator = Validator::make(
-                    array(
-                        'product_or_family_link'  => $discount_object_id1,
-                    ),
-                    array(
-                        'product_or_family_link'  => 'required',
-                    )
-                );
+                $discountfamilyflag = true;
+                $errormessages2 = '';
 
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
-
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+                
                 // Run the validation
-                if ($validator->fails()) {
-                    $errorMessage = $validator->messages()->first();
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
                 }
             }
             
@@ -163,8 +162,6 @@ class PromotionAPIController extends ControllerAPI
                         'rule_value'  => 'required',
                     )
                 );
-
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
 
                 // Run the validation
                 if ($validator->fails()) {
@@ -505,21 +502,20 @@ class PromotionAPIController extends ControllerAPI
             }
 
             if ($promotion_type == 'product') {
-                $validator = Validator::make(
-                    array(
-                        'product_or_family_link'  => $discount_object_id1,
-                    ),
-                    array(
-                        'product_or_family_link'  => 'required',
-                    )
-                );
+                $discountfamilyflag = true;
+                $errormessages2 = '';
 
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
 
                 // Run the validation
-                if ($validator->fails()) {
-                    $errorMessage = $validator->messages()->first();
-                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
                 }
             }
             
@@ -532,8 +528,6 @@ class PromotionAPIController extends ControllerAPI
                         'rule_value'  => 'required',
                     )
                 );
-
-                Event::fire('orbit.promotion.postnewpromotion.before.validation', array($this, $validator));
 
                 // Run the validation
                 if ($validator->fails()) {
