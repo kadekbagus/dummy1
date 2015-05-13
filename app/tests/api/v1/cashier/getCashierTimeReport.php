@@ -14,6 +14,7 @@ class getCashierTimeReport extends TestCase
     private  $baseUrl = "/api/v1/cashier/time-list";
     protected $users;
     protected $activities;
+    protected $merchants;
 
     public static function prepareDatabase()
     {
@@ -81,8 +82,8 @@ class getCashierTimeReport extends TestCase
             ]);
 
             $transactions = Factory::times(2)->create('Transaction', [
-                'merchant_id'  => $merchants[$user->user_id],
-                'retailer_id'  => $retailers[$user->user_id],
+                'merchant_id'  => $merchants[$user->user_id]->merchant_id,
+                'retailer_id'  => $retailers[$user->user_id]->merchant_id,
                 'cashier_id'   => $user->user_id,
                 'total_to_pay' => 100000,
                 'customer_id'  => $customer->user_id
@@ -96,6 +97,7 @@ class getCashierTimeReport extends TestCase
 
             static::addData('authData', $authData);
             static::addData('activities', $activities);
+            static::addData('merchants', $merchants);
         }
     }
 
@@ -127,6 +129,40 @@ class getCashierTimeReport extends TestCase
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(2, $response->data->total_records);
         $this->assertSame(2, $response->data->returned_records);
+    }
+
+    public function testOK_get_cashier_time_list_with_merchant_id_filters()
+    {
+        $makeRequest = function ($getData) {
+            $_GET                 = $getData;
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('GET', $url)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+
+        foreach ($this->merchants as $userId=>$merchant) {
+            $response = $makeRequest([
+                'merchant_id' => $merchant->merchant_id
+            ]);
+
+            $this->assertResponseOk();
+
+            $this->assertSame(Status::OK, $response->code);
+            $this->assertSame(1, $response->data->total_records);
+            $this->assertSame(1, $response->data->returned_records);
+        }
     }
 
     public function testOK_get_cashier_time_list_with_cashier_name_filter()

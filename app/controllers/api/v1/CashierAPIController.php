@@ -22,6 +22,7 @@ class CashierAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
+     * @param array     `merchant_id`               (required) - Merchant IDS
      * @param array     `cashier_id`                (optional) - Names of cashier
      * @param array     `cashier_name`              (optional) - Names of cashier
      * @param string    `cashier_name_like`         (optional) - Name of Cashier like
@@ -112,6 +113,10 @@ class CashierAPIController extends ControllerAPI
                 ->leftJoin(DB::raw("({$activityQuery}) as {$tablePrefix}cashier_activities"), function ($join) {
                     $join->on('activity_user_id', '=', 'transactions.cashier_id');
                 });
+
+            OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
+               $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
+            });
 
             OrbitInput::get('cashier_id', function ($cashierId) use ($transactions) {
                 $transactions->whereIn("activity_user_id", $this->getArray($cashierId));
