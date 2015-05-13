@@ -28,7 +28,7 @@ Route::get('/api/v1/consumer-transaction-history/product-list', function()
 });
 
 /**
- * Get list of receipt for particular user which has transactions
+ * Get list of receipt
  */
 Route::get('/api/v1/consumer-transaction-history/receipt-list', function()
 {
