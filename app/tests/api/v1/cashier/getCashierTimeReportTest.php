@@ -183,6 +183,41 @@ class getCashierTimeReportTest extends TestCase
         }
     }
 
+
+    public function testOK_get_cashier_time_list_with_sorting()
+    {
+        $makeRequest = function ($getData) {
+            $_GET                 = $getData;
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('GET', $url)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $validSorter = ['cashier_id', 'cashier_name', 'login_at', 'logout_at', 'transactions_count', 'transactions_total'];
+        foreach ($validSorter as $sortBy) {
+            $response = $makeRequest([
+                'sortby' => $sortBy
+            ]);
+
+            $this->assertResponseOk();
+
+            $this->assertSame(Status::OK, $response->code);
+            $this->assertSame(2, $response->data->total_records);
+            $this->assertSame(2, $response->data->returned_records);
+        }
+    }
+
     public function testOK_get_cashier_time_list_with_cashier_name_filter()
     {
         $makeRequest = function ($getData) {

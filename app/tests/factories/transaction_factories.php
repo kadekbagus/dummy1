@@ -5,6 +5,8 @@ use Laracasts\TestDummy\Factory;
 $factory('Transaction', function ($faker) {
     return [
         'cashier_id'  => 'factory:User',
+        'transaction_code' => $faker->bothify('TRX-??-####'),
+        'payment_method'  => $faker->word,
         'customer_id' => 'factory:User',
         'merchant_id' => 'factory:Merchant',
         'retailer_id' => 'factory:Merchant',
