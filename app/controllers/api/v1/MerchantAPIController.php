@@ -1248,8 +1248,13 @@ class MerchantAPIController extends ControllerAPI
 
             OrbitInput::post('email', function($email) use ($updatedmerchant, $user) {
                 $updatedmerchant->email = $email;
-                $user->user_email = $email;
-                $user->save();
+                $updateduser = User::where('user_id', $updatedmerchant->user_id)->first();
+                if(empty($updateduser)) {
+                    $errorMessage = 'User ID for this merchant is not found.';
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+                $updateduser->user_email = $email;
+                $updateduser->save();
             });
 
             OrbitInput::post('name', function($name) use ($updatedmerchant) {
