@@ -9,9 +9,10 @@ use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 use Faker\Factory as Faker;
 
-class getCashierTimeReport extends TestCase
+class getCashierTimeReportPrintViewTest extends TestCase
 {
-    private  $baseUrl = "/api/v1/cashier/time-list";
+    private  $baseUrl = "/printer/cashier/time-list";
+    protected $useIntermediate = true;
     protected $users;
     protected $activities;
     protected $merchants;
@@ -103,21 +104,23 @@ class getCashierTimeReport extends TestCase
 
     public function testOK_get_cashier_time_list_without_additional_parameters()
     {
+        $headerNum = 6;
         $makeRequest = function ($getData) {
-            $_GET                 = $getData;
-            $_GET['apikey']       = $this->authData->api_key;
-            $_GET['apitimestamp'] = time();
+            $_GET                    = array_merge($_GET, $getData);
+            $_GET['export']          = 'csv';
+            $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-            $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
-            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-            $response = $this->call('GET', $url)->getContent();
-            $response = json_decode($response);
+            ob_start();
+            $this->call('GET', $url)->getContent();
+            $response = ob_get_contents();
+            ob_end_clean();
 
+            $response = array_map('str_getcsv', explode("\n", $response));
             return $response;
         };
 
@@ -126,28 +129,28 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(2, $response->data->total_records);
-        $this->assertSame(2, $response->data->returned_records);
+        $this->assertSame(2 + $headerNum, count($response));
     }
 
     public function testOK_get_cashier_time_list_with_merchant_id_filters()
     {
+        $headerNum = 6;
         $makeRequest = function ($getData) {
-            $_GET                 = $getData;
-            $_GET['apikey']       = $this->authData->api_key;
-            $_GET['apitimestamp'] = time();
+            $_GET                    = $getData;
+            $_GET['export']          = 'csv';
+            $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-            $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
-            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-            $response = $this->call('GET', $url)->getContent();
-            $response = json_decode($response);
+            ob_start();
+            $this->call('GET', $url)->getContent();
+            $response = ob_get_contents();
+            ob_end_clean();
 
+            $response = array_map('str_getcsv', explode("\n", $response));
             return $response;
         };
 
@@ -159,32 +162,31 @@ class getCashierTimeReport extends TestCase
 
             $this->assertResponseOk();
 
-            $this->assertSame(Status::OK, $response->code);
-            $this->assertSame(1, $response->data->total_records);
-            $this->assertSame(1, $response->data->returned_records);
+            $this->assertSame(1 + $headerNum, count($response));
         }
     }
 
     public function testOK_get_cashier_time_list_with_cashier_name_filter()
     {
+        $headerNum = 6;
         $makeRequest = function ($getData) {
-            $_GET                 = $getData;
-            $_GET['apikey']       = $this->authData->api_key;
-            $_GET['apitimestamp'] = time();
+            $_GET                    = $getData;
+            $_GET['export']          = 'csv';
+            $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-            $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
-            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-            $response = $this->call('GET', $url)->getContent();
-            $response = json_decode($response);
+            ob_start();
+            $this->call('GET', $url)->getContent();
+            $response = ob_get_contents();
+            ob_end_clean();
 
+            $response = array_map('str_getcsv', explode("\n", $response));
             return $response;
         };
-
 
         $response = $makeRequest([
             'cashier_name' => 'Cashier001 Jakarta'
@@ -192,9 +194,7 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(1, $response->data->total_records);
-        $this->assertSame(1, $response->data->returned_records);
+        $this->assertSame(1 + $headerNum, count($response));
 
         $response = $makeRequest([
             'cashier_name_like' => 'Cashier'
@@ -202,9 +202,7 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(2, $response->data->total_records);
-        $this->assertSame(2, $response->data->returned_records);
+        $this->assertSame(2 + $headerNum, count($response));
 
         $response = $makeRequest([
             'cashier_name_like' => 'Bandung'
@@ -212,28 +210,28 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(1, $response->data->total_records);
-        $this->assertSame(1, $response->data->returned_records);
+        $this->assertSame(1 + $headerNum, count($response));
     }
 
     public function testOK_get_cashier_time_list_with_customer_name_filter()
     {
+        $headerNum = 6;
         $makeRequest = function ($getData) {
-            $_GET                 = $getData;
-            $_GET['apikey']       = $this->authData->api_key;
-            $_GET['apitimestamp'] = time();
+            $_GET                    = $getData;
+            $_GET['export']          = 'csv';
+            $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-            $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
-            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-            $response = $this->call('GET', $url)->getContent();
-            $response = json_decode($response);
+            ob_start();
+            $this->call('GET', $url)->getContent();
+            $response = ob_get_contents();
+            ob_end_clean();
 
+            $response = array_map('str_getcsv', explode("\n", $response));
             return $response;
         };
 
@@ -244,9 +242,7 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(1, $response->data->total_records);
-        $this->assertSame(1, $response->data->returned_records);
+        $this->assertSame(1 + $headerNum, count($response));
 
         $response = $makeRequest([
             'customer_lastname' => 'Jakarta'
@@ -254,9 +250,7 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(2, $response->data->total_records);
-        $this->assertSame(2, $response->data->returned_records);
+        $this->assertSame(2 + $headerNum, count($response));
 
         $response = $makeRequest([
             'customer_name_like' => 'Customer'
@@ -264,9 +258,7 @@ class getCashierTimeReport extends TestCase
 
         $this->assertResponseOk();
 
-        $this->assertSame(Status::OK, $response->code);
-        $this->assertSame(2, $response->data->total_records);
-        $this->assertSame(2, $response->data->returned_records);
+        $this->assertSame(2 + $headerNum, count($response));
     }
 
 }
