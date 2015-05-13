@@ -22,7 +22,7 @@ class getCashierTimeReport extends TestCase
         $admin      = Factory::create('role_admin');
         $user       = Factory::create('User', ['user_role_id' => $admin->role_id]);
         $authData   = Factory::create('Apikey', ['user_id' => $user->user_id]);
-        $permission = Factory::create('Permission', ['permission_name' => 'view_cashier']);
+        $permission = Factory::create('Permission', ['permission_name' => 'view_employee']);
         Factory::create('PermissionRole', ['role_id' => $admin->role_id, 'permission_id' => $permission->permission_id]);
         Factory::create('PermissionRole', ['role_id' => $role->role_id, 'permission_id' => $permission->permission_id]);
 
