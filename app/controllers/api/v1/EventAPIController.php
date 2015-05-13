@@ -101,6 +101,7 @@ class EventAPIController extends ControllerAPI
                     'link_object_id3'    => $link_object_id3,
                     'link_object_id4'    => $link_object_id4,
                     'link_object_id5'    => $link_object_id5,
+                    'begin_date'         => $begin_date
                 ),
                 array(
                     'merchant_id'        => 'required|numeric|orbit.empty.merchant',
@@ -113,6 +114,7 @@ class EventAPIController extends ControllerAPI
                     'link_object_id3'    => 'numeric|orbit.empty.link_object_id3',
                     'link_object_id4'    => 'numeric|orbit.empty.link_object_id4',
                     'link_object_id5'    => 'numeric|orbit.empty.link_object_id5',
+                    'begin_date'         => 'required'
                 )
             );
 
@@ -122,6 +124,23 @@ class EventAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             foreach ($retailer_ids as $retailer_id_check) {
@@ -387,6 +406,9 @@ class EventAPIController extends ControllerAPI
             $link_object_id3 = OrbitInput::post('link_object_id3');
             $link_object_id4 = OrbitInput::post('link_object_id4');
             $link_object_id5 = OrbitInput::post('link_object_id5');
+            $begin_date = OrbitInput::post('begin_date');
+            $retailer_ids = OrbitInput::post('retailer_ids');
+            $retailer_ids = (array) $retailer_ids;
 
             $data = array(
                 'event_id'         => $event_id,
@@ -399,6 +421,7 @@ class EventAPIController extends ControllerAPI
                 'link_object_id3'  => $link_object_id3,
                 'link_object_id4'  => $link_object_id4,
                 'link_object_id5'  => $link_object_id5,
+                'begin_date'       => $begin_date
             );
 
             // Validate event_name only if exists in POST.
@@ -412,14 +435,15 @@ class EventAPIController extends ControllerAPI
                     'event_id'         => 'required|numeric|orbit.empty.event',
                     'merchant_id'      => 'numeric|orbit.empty.merchant',
                     'event_name'       => 'sometimes|required|min:5|max:100|event_name_exists_but_me',
-                    'event_type'       => 'orbit.empty.event_type',
-                    'status'           => 'orbit.empty.event_status',
+                    'event_type'       => 'required|orbit.empty.event_type',
+                    'status'           => 'required|orbit.empty.event_status',
                     'link_object_type' => 'orbit.empty.link_object_type',
                     'link_object_id1'  => 'numeric|orbit.empty.link_object_id1',
                     'link_object_id2'  => 'numeric|orbit.empty.link_object_id2',
                     'link_object_id3'  => 'numeric|orbit.empty.link_object_id3',
                     'link_object_id4'  => 'numeric|orbit.empty.link_object_id4',
                     'link_object_id5'  => 'numeric|orbit.empty.link_object_id5',
+                    'begin_date'       => 'required'
                 ),
                 array(
                    'event_name_exists_but_me' => Lang::get('validation.orbit.exists.event_name'),
@@ -433,6 +457,24 @@ class EventAPIController extends ControllerAPI
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
             Event::fire('orbit.event.postupdateevent.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -1774,5 +1816,18 @@ class EventAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check array, should not be empty
+        Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
     }
 }

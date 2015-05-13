@@ -330,6 +330,10 @@ return array(
             'view_role'                 => 'lihat role',
             'view_transaction_history'  => 'lihat transaction history'
         ),
+        'req' => array(
+            'link_to_retailer'          => 'Link to retailer diperlukan.',
+            'redeem_to_retailer'        => 'Redeem to retailer diperlukan.',
+        ),
     ),
 
     /*

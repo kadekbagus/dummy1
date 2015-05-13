@@ -100,7 +100,7 @@ class EmployeeAPIController extends ControllerAPI
                 array(
                     'firstname'         => 'required',
                     'lastname'          => 'required',
-                    'birthdate'         => 'date_format:Y-m-d|before:' . $dateOfBirthLimit,
+                    'birthdate'         => 'required|date_format:Y-m-d|before:' . $dateOfBirthLimit,
                     'employee_id_char'  => 'orbit.exists.employeeid',
                     'username'          => 'required|orbit.exists.username',
                     'password'          => 'required|min:5|confirmed',
@@ -350,6 +350,8 @@ class EmployeeAPIController extends ControllerAPI
             $employeeRole = OrbitInput::post('employee_role');
             $retailerIds = OrbitInput::post('retailer_ids', []);
             $status = OrbitInput::post('status');
+            $firstName = OrbitInput::post('firstname');
+            $lastName = OrbitInput::post('lastname');
 
             $errorMessage = [
                 'orbit.empty.employee.role'         => Lang::get('validation.orbit.empty.employee.role', array(
@@ -370,8 +372,8 @@ class EmployeeAPIController extends ControllerAPI
                     'status'                => $status
                 ),
                 array(
-                    'user_id'               => 'orbit.empty.user',
-                    'birthdate'             => 'date_format:Y-m-d|before:' . $dateOfBirthLimit,
+                    'user_id'               => 'required|orbit.empty.user',
+                    'birthdate'             => 'required|date_format:Y-m-d|before:' . $dateOfBirthLimit,
                     'password'              => 'min:5|confirmed',
                     'employee_role'         => 'orbit.empty.employee.role',
                     'employee_id_char'      => 'orbit.exists.employeeid_but_me',

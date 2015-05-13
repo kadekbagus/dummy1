@@ -142,7 +142,7 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id5'  => $discount_object_id5,
                     'begin_date'           => $begin_date,
                     'discount_value'       => $discount_value,
-                    'coupon_validity_in_days' => $coupon_validity_in_days
+                    'coupon_validity_in_days' => $coupon_validity_in_days,
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
@@ -164,16 +164,35 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
                     'begin_date'           => 'required',
                     'discount_value'       => 'required',
-                    'coupon_validity_in_days' => 'required'
+                    'coupon_validity_in_days' => 'required',
                 )
             );
-
+            
             Event::fire('orbit.coupon.postnewcoupon.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'issue_retailer_ids'   => $issue_retailer_ids,
+                        'redeem_retailer_ids'  => $redeem_retailer_ids
+                    ),
+                    array(
+                        'issue_retailer_ids'   => 'orbit.req.link_to_retailer',
+                        'redeem_retailer_ids'  => 'orbit.req.redeem_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             if ($promotion_type == 'product') {
@@ -600,6 +619,10 @@ class CouponAPIController extends ControllerAPI
             $discount_value = OrbitInput::post('discount_value');
             $rule_value = OrbitInput::post('rule_value');
             $coupon_validity_in_days = OrbitInput::post('coupon_validity_in_days');
+            $issue_retailer_ids = OrbitInput::post('issue_retailer_ids');
+            $issue_retailer_ids = (array) $issue_retailer_ids;
+            $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
+            $redeem_retailer_ids = (array) $redeem_retailer_ids;
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -621,7 +644,7 @@ class CouponAPIController extends ControllerAPI
                 'discount_object_id5'  => $discount_object_id5,
                 'begin_date'           => $begin_date,
                 'discount_value'       => $discount_value,
-                'coupon_validity_in_days' => $coupon_validity_in_days
+                'coupon_validity_in_days' => $coupon_validity_in_days,
             );
 
             // Validate promotion_name only if exists in POST.
@@ -652,10 +675,10 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
                     'begin_date'           => 'required',
                     'discount_value'       => 'required',
-                    'coupon_validity_in_days' => 'required'
+                    'coupon_validity_in_days' => 'required',
                 ),
                 array(
-                   'coupon_name_exists_but_me' => Lang::get('validation.orbit.exists.coupon_name'),
+                    'coupon_name_exists_but_me' => Lang::get('validation.orbit.req.coupon_name')
                 )
             );
 
@@ -665,6 +688,25 @@ class CouponAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'issue_retailer_ids'   => $issue_retailer_ids,
+                        'redeem_retailer_ids'  => $redeem_retailer_ids
+                    ),
+                    array(
+                        'issue_retailer_ids'   => 'orbit.req.link_to_retailer',
+                        'redeem_retailer_ids'  => 'orbit.req.redeem_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             if ($promotion_type == 'product') {
@@ -2375,5 +2417,32 @@ class CouponAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check array, should not be empty
+        Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
+
+        // Check array, should not be empty
+        Validator::extend('orbit.req.redeem_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
     }
 }

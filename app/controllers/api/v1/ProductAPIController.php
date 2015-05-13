@@ -108,6 +108,8 @@ class ProductAPIController extends ControllerAPI
             $price = OrbitInput::post('price');
             $merchant_tax_1 = OrbitInput::post('merchant_tax_id1');
             $retailer_ids = OrbitInput::post('retailer_ids');
+            $status = OrbitInput::post('status');
+            $retailer_ids = (array) $retailer_ids;
 
             // Product Variants Delete
             $product_combinations_delete = OrbitInput::post('product_variants_delete');
@@ -128,7 +130,7 @@ class ProductAPIController extends ControllerAPI
                     'short_description' => $short_description,
                     'price'             => $price,
                     'merchant_tax_1'    => $merchant_tax_1,
-                    'retailer_ids'      => $retailer_ids
+                    'status'            => $status,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
@@ -145,7 +147,7 @@ class ProductAPIController extends ControllerAPI
                     'short_description' => 'required',
                     'price'             => 'required',
                     'merchant_tax_1'    => 'required',
-                    'retailer_ids'      => 'required'
+                    'status'            => 'required',
                 ),
                 array(
                     'orbit.empty.product_variant_array'     => Lang::get('validation.orbit.empty.product_attr.attribute.variant'),
@@ -165,6 +167,24 @@ class ProductAPIController extends ControllerAPI
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
             Event::fire('orbit.product.postupdateproduct.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -1287,7 +1307,6 @@ class ProductAPIController extends ControllerAPI
                     'short_description' => $short_description,
                     'price'             => $price,
                     'merchant_tax_1'    => $merchant_tax_id1,
-                    'retailer_ids'      => $retailer_ids
                 ),
                 array(
                     'merchant_id'           => 'required|numeric|orbit.empty.merchant',
@@ -1303,7 +1322,6 @@ class ProductAPIController extends ControllerAPI
                     'short_description'     => 'required',
                     'price'                 => 'required',
                     'merchant_tax_1'        => 'required',
-                    'retailer_ids'          => 'required'
                 ),
                 array(
                     // Duplicate UPC error message
@@ -1324,6 +1342,23 @@ class ProductAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             foreach ($retailer_ids as $retailer_id_check) {
@@ -2139,6 +2174,20 @@ class ProductAPIController extends ControllerAPI
             }
 
             App::instance('orbit.exists.product_have_transaction', $transactionDetailProduct);
+
+            return TRUE;
+        });
+
+        // Check array, should not be empty
+        Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
 
             return TRUE;
         });
