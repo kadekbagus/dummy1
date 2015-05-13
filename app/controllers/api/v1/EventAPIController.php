@@ -882,6 +882,8 @@ class EventAPIController extends ControllerAPI
      * @param string   `description_like`      (optional) - Description like
      * @param datetime `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param datetime `expiration_begin_date` (optional) - Expiration(event end date) begin date. Example: 2015-05-12 00:00:00
+     * @param datetime `expiration_end_date`   (optional) - Expiration(event end date) end date. Example: 2015-05-12 23:59:59
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param string   `link_object_type`      (optional) - Link object type. Valid value: product, family, promotion, widget.
@@ -1018,6 +1020,24 @@ class EventAPIController extends ControllerAPI
             OrbitInput::get('end_date', function($enddate) use ($events)
             {
                 $events->where('events.end_date', '>=', $enddate);
+            });
+
+            // Filter event by end_date for begin
+            OrbitInput::get('expiration_begin_date', function($begindate) use ($events)
+            {
+                $events->where(function ($q) use ($begindate) {
+                    $q->where('events.end_date', '>=', $begindate)
+                      ->orWhere('events.is_permanent', 'Y');
+                });
+            });
+
+            // Filter event by end_date for end
+            OrbitInput::get('expiration_end_date', function($enddate) use ($events)
+            {
+                $events->where(function ($q) use ($enddate) {
+                    $q->where('events.end_date', '<=', $enddate)
+                      ->orWhere('events.is_permanent', 'Y');
+                });
             });
 
             // Filter event by is permanent
