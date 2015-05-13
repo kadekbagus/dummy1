@@ -31,7 +31,9 @@ class CashierAPIController extends ControllerAPI
      * @param array     `customer_lastname`         (optional) - Name of Customer
      * @param string    `customer_name_like`        (optional) - Name of Customer Like
      * @param string    `payment_method`            (optional) - payment type
-     * @param string    `purchase_code`             (optional) - receipt number
+     * @param string    `transactions_code`         (optional) - receipt number
+     * @param date      `purchase_date_begin`       (optional) - Purchase Date Begin
+     * @param date      `purchase_date_end`         (optional) - Purchase Date End
      * @param integer   `take`                      (optional) - limit
      * @param integer   `skip`                      (optional) - limit offset
      * @param string    `sort_by`                   (optional) - column order by name
@@ -118,6 +120,16 @@ class CashierAPIController extends ControllerAPI
                $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
             });
 
+            // Filter by date from
+            OrbitInput::get('purchase_date_begin', function ($dateBegin) use ($transactions) {
+                $transactions->where('transactions.created_at', '>', $dateBegin);
+            });
+
+            // Filter by date to
+            OrbitInput::get('purchase_date_end', function ($dateEnd) use ($transactions) {
+                $transactions->where('transactions.created_at', '<', $dateEnd);
+            });
+
             OrbitInput::get('cashier_id', function ($cashierId) use ($transactions) {
                 $transactions->whereIn("activity_user_id", $this->getArray($cashierId));
             });
@@ -151,7 +163,7 @@ class CashierAPIController extends ControllerAPI
                 $transactions->whereIn('transactions.payment_method', $this->getArray($paymentType));
             });
 
-            OrbitInput::get('purchase_code', function ($purchaseCode) use ($transactions) {
+            OrbitInput::get('transactions_code', function ($purchaseCode) use ($transactions) {
                $transactions->whereIn('transactions.transaction_code', $this->getArray($purchaseCode));
             });
 
@@ -192,13 +204,12 @@ class CashierAPIController extends ControllerAPI
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
                 $sortByMapping = array(
-                    'cashier_id'  => 'activity_user_id',
+                    'cashier_id'   => 'activity_user_id',
                     'cashier_name' => 'activity_full_name',
-                    'customer_id'  => 'customer.user_id',
-                    'customer_firstname' => 'customer.user_firstname',
-                    'customer_lastname'  => 'customer.user_lastname',
-                    'payment_method'     => 'transactions.payment_method',
-                    'purchase_code'  => 'transactions.transaction_code'
+                    'login_at'     => 'login_at',
+                    'logout_at'    => 'logout_at',
+                    'transactions_count'  => 'transactions_count',
+                    'transactions_total'  => 'transactions_total'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -223,7 +234,7 @@ class CashierAPIController extends ControllerAPI
             $data->records = $transactionList;
 
             // Consider last pages
-            if ($perPage > ($totalTransactions - $skip))
+            if (($totalTransactions - $skip) <= $skip)
             {
                 $subTotalQuery    = $_transactions->toSql();
                 $subTotalBindings = $_transactions->getQuery();

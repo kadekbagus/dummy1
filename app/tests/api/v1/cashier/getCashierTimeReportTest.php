@@ -9,7 +9,7 @@ use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 use Faker\Factory as Faker;
 
-class getCashierTimeReport extends TestCase
+class getCashierTimeReportTest extends TestCase
 {
     private  $baseUrl = "/api/v1/cashier/time-list";
     protected $users;
@@ -129,6 +129,24 @@ class getCashierTimeReport extends TestCase
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(2, $response->data->total_records);
         $this->assertSame(2, $response->data->returned_records);
+
+        $response = $makeRequest([
+            'take' => 1,
+            'skip' => 0
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertFalse($response->data->last_page);
+
+        $response = $makeRequest([
+            'take' => 1,
+            'skip' => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertTrue($response->data->last_page);
     }
 
     public function testOK_get_cashier_time_list_with_merchant_id_filters()
@@ -162,6 +180,41 @@ class getCashierTimeReport extends TestCase
             $this->assertSame(Status::OK, $response->code);
             $this->assertSame(1, $response->data->total_records);
             $this->assertSame(1, $response->data->returned_records);
+        }
+    }
+
+
+    public function testOK_get_cashier_time_list_with_sorting()
+    {
+        $makeRequest = function ($getData) {
+            $_GET                 = $getData;
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('GET', $url)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $validSorter = ['cashier_id', 'cashier_name', 'login_at', 'logout_at', 'transactions_count', 'transactions_total'];
+        foreach ($validSorter as $sortBy) {
+            $response = $makeRequest([
+                'sortby' => $sortBy
+            ]);
+
+            $this->assertResponseOk();
+
+            $this->assertSame(Status::OK, $response->code);
+            $this->assertSame(2, $response->data->total_records);
+            $this->assertSame(2, $response->data->returned_records);
         }
     }
 
