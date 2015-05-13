@@ -99,6 +99,7 @@ class PromotionAPIController extends ControllerAPI
                     'merchant_id'          => $merchant_id,
                     'promotion_name'       => $promotion_name,
                     'promotion_type'       => $promotion_type,
+                    'begin_date'           => $begin_date,
                     'status'               => $status,
                     'rule_type'            => $rule_type,
                     'discount_object_type' => $discount_object_type,
@@ -107,19 +108,22 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => $discount_object_id3,
                     'discount_object_id4'  => $discount_object_id4,
                     'discount_object_id5'  => $discount_object_id5,
+                    'discount_value'       => $discount_value
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
                     'promotion_name'       => 'required|max:100|orbit.exists.promotion_name',
                     'promotion_type'       => 'required|orbit.empty.promotion_type',
+                    'begin_date'           => 'required',
                     'status'               => 'required|orbit.empty.promotion_status',
-                    'rule_type'            => 'orbit.empty.rule_type',
+                    'rule_type'            => 'required|orbit.empty.rule_type',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
                     'discount_object_id1'  => 'orbit.empty.discount_object_id1',
                     'discount_object_id2'  => 'orbit.empty.discount_object_id2',
                     'discount_object_id3'  => 'orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'orbit.empty.discount_object_id5',
+                    'discount_value'       => 'required'
                 )
             );
 
@@ -129,6 +133,41 @@ class PromotionAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if ($promotion_type == 'product') {
+                $discountfamilyflag = true;
+                $errormessages2 = '';
+
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+                
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
+                }
+            }
+            
+            if ($promotion_type == 'cart') {
+                $validator = Validator::make(
+                    array(
+                        'rule_value'  => $rule_value,
+                    ),
+                    array(
+                        'rule_value'  => 'required',
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             foreach ($retailer_ids as $retailer_id_check) {
@@ -406,11 +445,15 @@ class PromotionAPIController extends ControllerAPI
             $discount_object_id3 = OrbitInput::post('discount_object_id3');
             $discount_object_id4 = OrbitInput::post('discount_object_id4');
             $discount_object_id5 = OrbitInput::post('discount_object_id5');
+            $discount_value = OrbitInput::post('discount_value');
+            $begin_date = OrbitInput::post('begin_date');
+            $rule_value = OrbitInput::post('rule_value');
 
             $data = array(
                 'promotion_id'         => $promotion_id,
                 'merchant_id'          => $merchant_id,
                 'promotion_type'       => $promotion_type,
+                'begin_date'           => $begin_date,
                 'status'               => $status,
                 'rule_type'            => $rule_type,
                 'discount_object_type' => $discount_object_type,
@@ -419,6 +462,7 @@ class PromotionAPIController extends ControllerAPI
                 'discount_object_id3'  => $discount_object_id3,
                 'discount_object_id4'  => $discount_object_id4,
                 'discount_object_id5'  => $discount_object_id5,
+                'discount_value'       => $discount_value
             );
 
             // Validate promotion_name only if exists in POST.
@@ -433,6 +477,7 @@ class PromotionAPIController extends ControllerAPI
                     'merchant_id'          => 'numeric|orbit.empty.merchant',
                     'promotion_name'       => 'sometimes|required|min:5|max:100|promotion_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.promotion_type',
+                    'begin_date'           => 'required',
                     'status'               => 'orbit.empty.promotion_status',
                     'rule_type'            => 'orbit.empty.rule_type',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
@@ -441,6 +486,7 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => 'orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'orbit.empty.discount_object_id5',
+                    'discount_value'       => 'required'
                 ),
                 array(
                    'promotion_name_exists_but_me' => Lang::get('validation.orbit.exists.promotion_name'),
@@ -454,6 +500,42 @@ class PromotionAPIController extends ControllerAPI
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            if ($promotion_type == 'product') {
+                $discountfamilyflag = true;
+                $errormessages2 = '';
+
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
+                }
+            }
+            
+            if ($promotion_type == 'cart') {
+                $validator = Validator::make(
+                    array(
+                        'rule_value'  => $rule_value,
+                    ),
+                    array(
+                        'rule_value'  => 'required',
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
             Event::fire('orbit.promotion.postupdatepromotion.after.validation', array($this, $validator));
 
             // Begin database transaction
