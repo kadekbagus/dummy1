@@ -783,7 +783,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 array(
                     'retailer_ids'  => 'array|min:0',
                     'merchant_ids'  => 'array|min:0',
-                    'sort_by'       => 'in:purchase_code,payment_method,customer_name,cashier_name'
+                    'sort_by'       => 'in:transaction_id,payment_method,customer_name,cashier_name,created_at,total_to_pay'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.transactionhistory.productlist.sortby'),
@@ -908,6 +908,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     'created_at'        => 'transactions.created_at',
                     'transaction_id'    => 'transactions.transaction_id',
                     'payment_method'    => 'transactions.payment_method',
+                    'total_to_pay'      => 'transactions.total_to_pay',
                     'customer_name'     => 'customer.user_firstname',
                     'cashier_name'      => 'cashier.user_firstname'
                 );
@@ -929,6 +930,21 @@ class TransactionHistoryAPIController extends ControllerAPI
             $data->total_records = $totalTransactions;
             $data->returned_records = count($listOfTransactions);
             $data->records = $listOfTransactions;
+
+            // Consider last pages
+            if (($totalTransactions - $skip) <= $skip)
+            {
+                $subTotalQuery    = $_transactions->toSql();
+                $subTotalBindings = $_transactions->getQuery();
+                $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
+                    ->mergeBindings($subTotalBindings)
+                    ->select([
+                        DB::raw("sum(sub_total.total_to_pay) as transactions_total")
+                    ])->first();
+
+                $data->last_page  = true;
+                $data->sub_total  = $subTotal;
+            }
 
             if ($listOfTransactions === 0) {
                 $data->records = null;

@@ -376,7 +376,7 @@ class CashierPrinterController extends DataPrinterController
                     break;
                 case 'print':
                 default:
-                    require app_path() . '/views/printer/cashier/cashier-time-view.php';
+                    require app_path() . '/views/printer/list-cashier-time-view.php';
             }
         } catch(\Exception $e) {
             $responseText = Config::get("app.debug") ? $e->__toString() : "";

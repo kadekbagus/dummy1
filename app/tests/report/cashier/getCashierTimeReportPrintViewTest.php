@@ -261,4 +261,27 @@ class getCashierTimeReportPrintViewTest extends TestCase
         $this->assertSame(2 + $headerNum, count($response));
     }
 
+    public function testOK_get_print_product_list_without_additional_parameters()
+    {
+        $makeRequest = function ($getData) {
+            $_GET                    = array_merge($_GET, $getData);
+            $_GET['orbit_session']   = $this->session->getSessionId();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $_SERVER['REQUEST_METHOD']         = 'GET';
+            $_SERVER['REQUEST_URI']            = $url;
+
+            ob_start();
+            $this->call('GET', $url)->getContent();
+            $response = ob_get_contents();
+            ob_end_clean();
+
+            return $response;
+        };
+        $response = $makeRequest(['export' => 'print']);
+
+        $this->assertResponseOk();
+    }
+
 }
