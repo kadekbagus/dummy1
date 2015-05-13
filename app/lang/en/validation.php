@@ -346,6 +346,10 @@ return array(
             'view_transaction_history'  => 'view transaction history',
             'shutdown_box'              => 'shutdown or reboot'
         ),
+        'req' => array(
+            'link_to_retailer'          => 'Link to retailer is required.',
+            'redeem_to_retailer'        => 'Redeem to retailer is required.',
+        ),
     ),
 
     /*

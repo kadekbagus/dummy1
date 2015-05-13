@@ -108,7 +108,7 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => $discount_object_id3,
                     'discount_object_id4'  => $discount_object_id4,
                     'discount_object_id5'  => $discount_object_id5,
-                    'discount_value'       => $discount_value
+                    'discount_value'       => $discount_value,
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
@@ -123,7 +123,7 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => 'orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'orbit.empty.discount_object_id5',
-                    'discount_value'       => 'required'
+                    'discount_value'       => 'required', 
                 )
             );
 
@@ -133,6 +133,23 @@ class PromotionAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             if ($promotion_type == 'product') {
@@ -448,6 +465,8 @@ class PromotionAPIController extends ControllerAPI
             $discount_value = OrbitInput::post('discount_value');
             $begin_date = OrbitInput::post('begin_date');
             $rule_value = OrbitInput::post('rule_value');
+            $retailer_ids = OrbitInput::post('retailer_ids');
+            $retailer_ids = (array) $retailer_ids;
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -462,7 +481,7 @@ class PromotionAPIController extends ControllerAPI
                 'discount_object_id3'  => $discount_object_id3,
                 'discount_object_id4'  => $discount_object_id4,
                 'discount_object_id5'  => $discount_object_id5,
-                'discount_value'       => $discount_value
+                'discount_value'       => $discount_value,
             );
 
             // Validate promotion_name only if exists in POST.
@@ -486,7 +505,7 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => 'orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'orbit.empty.discount_object_id5',
-                    'discount_value'       => 'required'
+                    'discount_value'       => 'required',
                 ),
                 array(
                    'promotion_name_exists_but_me' => Lang::get('validation.orbit.exists.promotion_name'),
@@ -499,6 +518,23 @@ class PromotionAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             if ($promotion_type == 'product') {
@@ -1961,5 +1997,18 @@ class PromotionAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check array, should not be empty
+        Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
     }
 }
