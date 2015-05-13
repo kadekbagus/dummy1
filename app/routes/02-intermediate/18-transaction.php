@@ -17,3 +17,8 @@ Route::get('/app/v1/consumer-transaction-history/retailer-list', 'IntermediateAu
  * List Products for particular user which has transactions
  */
 Route::get('/app/v1/consumer-transaction-history/product-list', 'IntermediateAuthController@TransactionHistory_getProductList');
+
+/**
+ * Get list of receipt
+ */
+Route::get('/app/v1/consumer-transaction-history/product-list', 'IntermediateAuthController@TransactionHistory_getReceiptReport');

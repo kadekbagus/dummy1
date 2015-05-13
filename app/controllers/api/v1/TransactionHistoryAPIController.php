@@ -728,8 +728,7 @@ class TransactionHistoryAPIController extends ControllerAPI
      * @endpoint 'api/v1/consumer-transactions-history/receipt-list'
      * List of API Parameters
      * ----------------------
-     * @param array     `retailer_ids`          (optional) - IDs of Retailer
-     * @param array     `merchant_ids`          (optional) - IDs of Merchant
+     * @param array     `merchant_id`           (optional) - IDs of Merchant
      * @param string    `sortby`                (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
      * @param string    `sortmode`              (optional) - asc or desc
      * @param date      `purchase_date_begin`   (optional) - filter date from: DD-MM-YYYY HH:MM:SS
