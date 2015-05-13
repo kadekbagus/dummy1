@@ -129,6 +129,24 @@ class getCashierTimeReportTest extends TestCase
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(2, $response->data->total_records);
         $this->assertSame(2, $response->data->returned_records);
+
+        $response = $makeRequest([
+            'take' => 1,
+            'skip' => 0
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertFalse($response->data->last_page);
+
+        $response = $makeRequest([
+            'take' => 1,
+            'skip' => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertTrue($response->data->last_page);
     }
 
     public function testOK_get_cashier_time_list_with_merchant_id_filters()
