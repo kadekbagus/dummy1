@@ -169,14 +169,30 @@ class CashierAPIController extends ControllerAPI
      */
     public function postLogoutCashier()
     {
+        $activity = Activity::pos()->setActivityType('logout');
         try {
-            $config = new SessionConfig(Config::get('orbit.session'));
+            $config  = new SessionConfig(Config::get('orbit.session'));
             $session = new Session($config);
 
+            $user    = User::where('user_id', $session->read('user_id'))->first() || 'Guest';
             $session->start(array(), 'no-session-creation');
             $session->destroy();
+
+            // Successfull login
+            $activity->setUser($user)
+                ->setActivityName('logout_ok')
+                ->setActivityNameLong('Logout OK')
+                ->responseOK();
+
         } catch (Exception $e) {
+            $activity->setUser($user)
+                ->setActivityName('logout_failed')
+                ->setActivityNameLong('Logout Failed')
+                ->setNotes($e->getMessage())
+                ->responseFailed();
         }
+
+        $activity->save();
 
         return \Redirect::to('/pos');
     }
@@ -1499,7 +1515,7 @@ class CashierAPIController extends ControllerAPI
                         } else {
                             $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                         }
-                        
+
                     } else {
                         if(!empty($details_value['variant_sku'])){
                             $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
@@ -3212,7 +3228,7 @@ class CashierAPIController extends ControllerAPI
                         } else {
                             $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                         }
-                        
+
                     } else {
                         if(!empty($details_value['variant_sku'])){
                             $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
