@@ -51,7 +51,14 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.country as country', 
                         'merchants.name as merchant_name',
                         'user_details.last_visit_any_shop as last_visit_date',
-                        'user_details.last_spent_any_shop as last_spent_amount')
+                        'user_details.last_spent_any_shop as last_spent_amount',
+                        'user_details.relationship_status as relationship_status',
+                        'user_details.number_of_children as number_of_children',
+                        'user_details.occupation as occupation',
+                        'user_details.sector_of_activity as sector_of_activity',
+                        'user_details.last_education_degree as last_education_degree',
+                        'user_details.avg_annual_income1 as avg_annual_income1',
+                        'user_details.avg_monthly_spent1 as avg_monthly_spent1')
                     ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                     ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                     ->with(array('userDetail', 'userDetail.lastVisitedShop'))
@@ -309,7 +316,7 @@ class ConsumerPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Consumer', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Average Annual Income', 'Average Shopping Spent');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
@@ -319,7 +326,10 @@ class ConsumerPrinterController extends DataPrinterController
                     $address = $this->printAddress($row);
                     $last_visit_date = $this->printLastVisitDate($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->user_email, $gender, $address, $row->merchant_name,  $last_visit_date, number_format($row->last_spent_amount), $customer_since);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
+                        '', $row->user_email, $gender, $address, $row->merchant_name,  $last_visit_date, number_format($row->last_spent_amount), $customer_since,
+                        $row->user_firstname, $row->user_lastname, $row->relationship_status, $row->number_of_children, $row->occupation, $row->sector_of_activity,
+                        $row->last_education_degree, number_format($row->avg_annual_income1), number_format($row->avg_monthly_spent1));
                 }
                 break;
 
