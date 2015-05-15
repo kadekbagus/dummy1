@@ -1161,64 +1161,89 @@ class MerchantAPIController extends ControllerAPI
 
             $merchant_id = OrbitInput::post('merchant_id');
             $user_id = OrbitInput::post('user_id');
-            $email = OrbitInput::post('email');
             $status = OrbitInput::post('status');
             $omid = OrbitInput::post('omid');
             $ticket_header = OrbitInput::post('ticket_header');
             $ticket_footer = OrbitInput::post('ticket_footer');
             $url = OrbitInput::post('url');
-            $address_line1 = OrbitInput::post('address_line1');
-            $postal_code = OrbitInput::post('postal_code');
-            $city = OrbitInput::post('city');
-            $country = OrbitInput::post('country');
-            $phone = OrbitInput::post('phone');
-            $contact_person_firstname = OrbitInput::post('contact_person_firstname');
-            $contact_person_lastname = OrbitInput::post('contact_person_lastname');
-            $contact_person_phone = OrbitInput::post('contact_person_phone');
-            $contact_person_email = OrbitInput::post('contact_person_email');
-            
+
+            $data = array(
+                'merchant_id'                  => $merchant_id,
+                'user_id'                      => $user_id,
+                'status'                       => $status,
+                'omid'                         => $omid,
+                'ticket_header'                => $ticket_header,
+                'ticket_footer'                => $ticket_footer,
+                'url'                          => $url,
+            );
+
+            // Validate email only if exists in POST.
+            OrbitInput::post('email', function($email) use (&$data) {
+                $data['email'] = $email;
+            });
+
+            OrbitInput::post('address_line1', function($address_line1) use (&$data) {
+                $data['address_line1'] = $address_line1;
+            });
+
+            OrbitInput::post('city', function($city) use (&$data) {
+                $data['city'] = $city;
+            });
+
+            OrbitInput::post('postal_code', function($postal_code) use (&$data) {
+                $data['postal_code'] = $postal_code;
+            });
+
+            OrbitInput::post('phone', function($phone) use (&$data) {
+                $data['phone'] = $phone;
+            });
+
+            OrbitInput::post('country', function($country) use (&$data) {
+                $data['country'] = $country;
+            });
+
+            OrbitInput::post('contact_person_firstname', function($contact_person_firstname) use (&$data) {
+                $data['contact_person_firstname'] = $contact_person_firstname;
+            });
+
+            OrbitInput::post('contact_person_lastname', function($contact_person_lastname) use (&$data) {
+                $data['contact_person_lastname'] = $contact_person_lastname;
+            });
+
+            OrbitInput::post('contact_person_phone', function($contact_person_phone) use (&$data) {
+                $data['contact_person_phone'] = $contact_person_phone;
+            });
+
+            OrbitInput::post('contact_person_email', function($contact_person_email) use (&$data) {
+                $data['contact_person_email'] = $contact_person_email;
+            });
+
             $validator = Validator::make(
+                $data,
                 array(
-                    'merchant_id'       => $merchant_id,
-                    'user_id'           => $user_id,
-                    'email'             => $email,
-                    'status'            => $status,
-                    'omid'              => $omid,
-                    'ticket_header'     => $ticket_header,
-                    'ticket_footer'     => $ticket_footer,
-                    'url'               => $url,
-                    'address_line1'     => $address_line1,
-                    'city'              => $city,
-                    'postal_code'       => $postal_code,
-                    'phone'             => $phone,
-                    'contact_person_firstname' => $contact_person_firstname,
-                    'contact_person_lastname'  => $contact_person_lastname,
-                    'contact_person_phone'  => $contact_person_phone,
-                    'contact_person_email'  => $contact_person_email,
+                    'merchant_id'                => 'required|numeric|orbit.empty.merchant',
+                    'user_id'                    => 'numeric|orbit.empty.user',
+                    'email'                      => 'sometimes|required|email|email_exists_but_me',
+                    'status'                     => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
+                    'omid'                       => 'omid_exists_but_me',
+                    'ticket_header'              => 'ticket_header_max_length',
+                    'ticket_footer'              => 'ticket_footer_max_length',
+                    'url'                        => 'orbit.formaterror.url.web',
+                    'address_line1'              => 'sometimes|required',
+                    'city'                       => 'sometimes|required',
+                    'postal_code'                => 'sometimes|required',
+                    'phone'                      => 'sometimes|required',
+                    'country'                    => 'sometimes|required',
+                    'contact_person_firstname'   => 'sometimes|required',
+                    'contact_person_lastname'    => 'sometimes|required',
+                    'contact_person_phone'       => 'sometimes|required',
+                    'contact_person_email'       => 'sometimes|required',
                 ),
                 array(
-                    'merchant_id'       => 'required|numeric|orbit.empty.merchant',
-                    'user_id'           => 'numeric|orbit.empty.user',
-                    'email'             => 'required|email|email_exists_but_me',
-                    'status'            => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
-                    'omid'              => 'omid_exists_but_me',
-                    'ticket_header'     => 'ticket_header_max_length',
-                    'ticket_footer'     => 'ticket_footer_max_length',
-                    'url'               => 'orbit.formaterror.url.web',
-                    'address_line1'     => 'required',
-                    'city'              => 'required',
-                    'postal_code'       => 'required',
-                    'phone'             => 'required',
-                    'contact_person_firstname' => 'required',
-                    'contact_person_lastname'  => 'required',
-                    'contact_person_phone'  => 'required',
-                    'contact_person_email'  => 'required',
-                ),
-                array(
-                   'email_exists_but_me'      => Lang::get('validation.orbit.exists.email'),
-                   'omid_exists_but_me'       => Lang::get('validation.orbit.exists.omid'),
-                   'ticket_header_max_length' => Lang::get('validation.orbit.formaterror.merchant.ticket_header.max_length'),
-                   'ticket_footer_max_length' => Lang::get('validation.orbit.formaterror.merchant.ticket_footer.max_length')
+                   'email_exists_but_me'         => Lang::get('validation.orbit.exists.email'),
+                   'omid_exists_but_me'          => Lang::get('validation.orbit.exists.omid'),
+                   'ticket_header_max_length'    => Lang::get('validation.orbit.formaterror.merchant.ticket_header.max_length'),
+                   'ticket_footer_max_length'    => Lang::get('validation.orbit.formaterror.merchant.ticket_footer.max_length')
                )
             );
 
