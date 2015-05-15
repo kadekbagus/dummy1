@@ -113,9 +113,14 @@
             <td><strong><?php echo ($total); ?></strong></td>
         </tr>
         <tr>
+            <td style="width:150px">Total Quantity</td>
+            <td style="width:10px;">:</td>
+            <td><strong><?php echo ($subTotal->quantity_total); ?></strong></td>
+        </tr>
+        <tr>
             <td style="width:150px">Total Sales</td>
             <td style="width:10px;">:</td>
-            <td><strong><?php echo ($subTotal->transactions_total); ?></strong></td>
+            <td><strong><?php echo ($subTotal->sub_total); ?></strong></td>
         </tr>
     </table>
 
@@ -134,10 +139,14 @@
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
                 <td><?php echo (++$rowCounter); ?></td>
-                <td><?php echo ($getDate($row->created_at)); ?></td>
-                <td><?php echo ($getTime($row->created_at)); ?></td>
+                <td><?php echo ($formatDate($row->created_at)); ?></td>
                 <td><?php echo ($row->transaction_id); ?></td>
-                <td><?php echo ($row->total_to_pay); ?></td>
+                <td><?php echo ($row->product_sku); ?></td>
+                <td><?php echo ($row->product_name); ?></td>
+                <td><?php echo ($row->quantity); ?></td>
+                <td><?php echo ($row->price); ?></td>
+                <td><?php echo ($row->total_tax); ?></td>
+                <td><?php echo ($row->sub_total); ?></td>
                 <td><?php echo ($row->payment_method); ?></td>
                 <td><?php echo ($getFullName($row, 'customer')); ?></td>
                 <td><?php echo ($getFullName($row, 'cashier')); ?></td>
