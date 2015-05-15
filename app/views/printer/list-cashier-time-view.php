@@ -138,6 +138,7 @@
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
+                <td><?php echo (++$rowCounter); ?></td>
                 <td><?php echo ($row->activity_date); ?></td>
                 <td><?php echo ($row->activity_full_name); ?></td>
                 <td><?php echo ($formatDate($row->login_at)); ?></td>
