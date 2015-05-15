@@ -26,3 +26,20 @@ Route::get('/api/v1/consumer-transaction-history/product-list', function()
 {
     return TransactionHistoryAPIController::create()->getProductList();
 });
+
+/**
+ * Get list of receipt
+ */
+Route::get('/api/v1/consumer-transaction-history/receipt-list', function()
+{
+    return TransactionHistoryAPIController::create()->getReceiptReport();
+});
+
+
+/**
+ * Get list of detail sales
+ */
+Route::get('/api/v1/consumer-transaction-history/detail-sales-report', function()
+{
+    return TransactionHistoryAPIController::create()->getDetailSalesReport();
+});

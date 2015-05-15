@@ -5,6 +5,8 @@ use Laracasts\TestDummy\Factory;
 $factory('Transaction', function ($faker) {
     return [
         'cashier_id'  => 'factory:User',
+        'transaction_code' => $faker->bothify('TRX-??-####'),
+        'payment_method'  => $faker->word,
         'customer_id' => 'factory:User',
         'merchant_id' => 'factory:Merchant',
         'retailer_id' => 'factory:Merchant',
@@ -23,5 +25,13 @@ $factory('TransactionDetail', function (\Faker\Generator $faker) {
         'upc'          => $product->upc_code,
         'price'        => $product->price,
         'quantity'     => $faker->numberBetween(1, 10)
+    ];
+});
+
+
+/** @var $faker \Faker\Generator */
+$factory('TransactionDetailTax', function ($faker) {
+    return [
+        'tax_name' => $faker->word
     ];
 });

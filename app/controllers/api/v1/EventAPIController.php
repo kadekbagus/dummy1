@@ -1069,7 +1069,10 @@ class EventAPIController extends ControllerAPI
             {
                 $events->where(function ($q) use ($begindate) {
                     $q->where('events.end_date', '>=', $begindate)
-                      ->orWhere('events.is_permanent', 'Y');
+                      ->orWhere(function($q) use ($begindate) {
+                            $q->where('events.begin_date', '>=', $begindate)
+                              ->where('events.is_permanent', 'Y');
+                      });
                 });
             });
 
