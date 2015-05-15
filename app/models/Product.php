@@ -249,31 +249,4 @@ class Product extends Eloquent
     }
 
 
-    /**
-     * Scope to filter based on merchant ids
-     *
-     * @author Rio Astamal <me@rioastamal.net>
-     * @param Illuminate\Database\Query\Builder $builder
-     * @param array $merchantIds
-     * @return Illuminate\Database\Query\Builder
-     */
-    public function scopeJoinProductRetailer($builder)
-    {
-        // return $builder->select('products.*')
-        //                ->join('product_retailer', 'product_retailer.product_id', '=', 'products.product_id');
-
-        // $builder->select('products.*', 'merchants.*')
-        //     ->join('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
-        //     ->join('merchants', 'product_retailer.retailer_id', '=', 'merchants.merchant_id');
-
-        return $this->select('products.*','product_retailer.*')
-            ->join('product_retailer', function($join) {
-                $join->on('product_retailer.product_id', '=', 'products.product_id');
-                $join->on('products.status', '=', DB::raw('"active"'));
-            })
-            ->join('merchants', 'product_retailer.retailer_id', '=', 'merchants.merchant_id');
-            //->groupBy('pos_quick_products.product_id');
-
-        //return $builder;
-    }
 }

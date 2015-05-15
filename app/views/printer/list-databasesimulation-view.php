@@ -140,7 +140,7 @@
                 <td><?php echo ($row->user_email); ?></td>
                 <td><?php echo $me->printGender($row); ?></td>
                 <td><?php echo $me->printDateTime($row); ?></td>
-                <td><?php echo ($row->group); ?></td>
+                <td><?php echo (strtoupper($row->group)); ?></td>
                 <td><?php echo ($row->module_name); ?></td>
                 <td><?php echo ($row->activity_name_long); ?></td>
                 <td><?php echo ($row->product_name); ?></td>

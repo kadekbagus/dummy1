@@ -259,6 +259,7 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         });
         $activities->orderBy($sortBy, $sortMode);
 
+
         $totalRec = RecordCounter::create($_activities)->count();
 
         $this->prepareUnbufferedQuery();
@@ -277,6 +278,10 @@ class DatabaseSimulationPrinterController extends DataPrinterController
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '', '', '', '', '');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Database Simulation List', '', '', '', '', '', '', '', '', '');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Database Simulation', $totalRec, '', '', '', '', '', '', '', '');
+
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '', '', '', '', '');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", 'No', 'Customer', 'Gender', 'Date & Time', 'Origin', 'Module', 'Action', 'Product', 'Promotions', 'Coupon', 'Cashier');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '', '', '', '', '');
                 
@@ -285,7 +290,7 @@ class DatabaseSimulationPrinterController extends DataPrinterController
 
                     $gender = $this->printGender($row);
                     $date = $this->printDateTime($row);
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", $count, $row->user_email, $gender, $date, $row->group, $row->module_name, $row->activity_name_long, $row->product_name, $row->promotion_name, $row->coupon_name, $row->staff_name);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", $count, $row->user_email, $gender, $date, strtoupper($row->group), $row->module_name, $row->activity_name_long, $row->product_name, $row->promotion_name, $row->coupon_name, $row->staff_name);
                     $count++;
 
                 }
@@ -335,15 +340,18 @@ class DatabaseSimulationPrinterController extends DataPrinterController
     public function printDateTime($databasesimulation)
     {
         $return = '';
-
-        $date = $databasesimulation->created_at;
-        $date = explode(' ',$date);
-        $time = strtotime($date[0]);
-        $newformat = date('d M Y',$time);
-        $result = $newformat.' '.$date[1];
+        if($databasesimulation->created_at==NULL || empty($databasesimulation->created_at)){
+            $result = "";
+        }
+        else {
+            $date = $databasesimulation->created_at;
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d M Y',$time);
+            $result = $newformat.' '.$date[1];
+        }
 
         return $result;
     }
-
 
 }

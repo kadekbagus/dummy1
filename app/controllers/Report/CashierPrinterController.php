@@ -22,6 +22,25 @@ class CashierPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
+        // Get the maximum record
+        $maxRecord = (int) Config::get('orbit.pagination.employee.max_record');
+        if ($maxRecord <= 0) {
+            // Fallback
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+        }
+        // Get default per page (take)
+        $perPage = (int) Config::get('orbit.pagination.employee.per_page');
+        if ($perPage <= 0) {
+            // Fallback
+            $perPage = (int) Config::get('orbit.pagination.per_page');
+            if ($perPage <= 0) {
+                $perPage = 20;
+            }
+        }
+
         // Available merchant to query
         $listOfMerchantIds = [];
 
@@ -38,7 +57,8 @@ class CashierPrinterController extends DataPrinterController
             $with = array_merge($with, $_with);
         });
 
-        $users = User::excludeDeleted('users');
+        $users = User::select(DB::raw($prefix . "users.*"), DB::raw($prefix . "employees.position as position"))
+                        ->leftJoin('employees', 'employees.user_id', '=', 'users.user_id');
 
         // Filter user by Ids
         OrbitInput::get('user_ids', function ($userIds) use ($users) {
@@ -133,6 +153,18 @@ class CashierPrinterController extends DataPrinterController
             $users->where('users.user_lastname', 'like', "%$firstname%");
         });
 
+        // Filter user by their fullname (firstname and lastname) pattern
+        OrbitInput::get('fullname_like', function ($fullname) use ($users) {
+            $users->where(DB::raw('CONCAT(user_firstname, " ", user_lastname)'), 'like', "%$fullname%");
+        });
+
+        // Filter user by employee position pattern
+        OrbitInput::get('position_like', function ($position) use ($users) {
+            $users->whereHas('employee', function ($q) use ($position) {  
+                $q->where('position', 'like', "%$position%");
+            });
+        });
+
         // Filter user by their status
         OrbitInput::get('statuses', function ($status) use ($users) {
             $users->whereIn('users.status', $status);
@@ -156,6 +188,62 @@ class CashierPrinterController extends DataPrinterController
 
         $_users = clone $users;
 
+        // Get the take args
+        $take = $perPage;
+        OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+            if ($_take > $maxRecord) {
+                $_take = $maxRecord;
+            }
+            $take = $_take;
+
+            if ((int)$take <= 0) {
+                $take = $maxRecord;
+            }
+        });
+        $users->take($take);
+
+        $skip = 0;
+        OrbitInput::get('skip', function ($_skip) use (&$skip, $users) {
+            if ($_skip < 0) {
+                $_skip = 0;
+            }
+
+            $skip = $_skip;
+        });
+        $users->skip($skip);
+
+        // Default sort by
+        $sortBy = 'users.user_firstname';
+        // Default sort mode
+        $sortMode = 'asc';
+
+        OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy, $users, $joined) {
+            if ($_sortBy === 'employee_id_char' || $_sortBy === 'position') {
+                if ($joined === FALSE) {
+                    $users->prepareEmployeeRetailer();
+                }
+            }
+
+            // Map the sortby request to the real column name
+            $sortByMapping = array(
+                'registered_date'   => 'users.created_at',
+                'username'          => 'users.username',
+                'employee_id_char'  => 'employees.employee_id_char',
+                'lastname'          => 'users.user_lastname',
+                'firstname'         => 'users.user_firstname',
+                'position'          => 'employees.position'
+            );
+
+            $sortBy = $sortByMapping[$_sortBy];
+        });
+
+        OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+            if (strtolower($_sortMode) !== 'asc') {
+                $sortMode = 'desc';
+            }
+        });
+        $users->orderBy($sortBy, $sortMode);
+
         $totalRec = RecordCounter::create($_users)->count();
 
         $this->prepareUnbufferedQuery();
@@ -174,13 +262,17 @@ class CashierPrinterController extends DataPrinterController
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
                 printf("%s,%s,%s,%s\n", '', '', '', '');
-                printf("%s,%s,%s,%s\n", '', 'Name', 'Login ID', 'Position');
+                printf("%s,%s,%s,%s\n", '', 'Cashier List', '', '');
+                printf("%s,%s,%s,%s\n", '', 'Total Cashier', $totalRec, '');
+
+                printf("%s,%s,%s,%s\n", '', '', '', '');
+                printf("%s,%s,%s,%s\n", '', 'Name', 'Position', 'Login ID');
                 printf("%s,%s,%s,%s\n", '', '', '', '');
 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $fullname = $this->printFullName($row);
-                    printf("%s,%s,%s,%s\n", '', $fullname, '', '');
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $fullname, $row->position, $row->username);
                 }
                 break;
 

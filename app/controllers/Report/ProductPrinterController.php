@@ -43,11 +43,11 @@ class ProductPrinterController extends DataPrinterController
         //                     ->JoinProductRetailer()
         //                     ->select('products.*', DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'));
 
-        $products = Product::select(
+        $products = Product::excludeDeleted('products')->select(
             "products.*","merchants.name as merchant_name",
-            DB::raw('count(distinct orbs_merchants.merchant_id) as merchant_count'),
+            // DB::raw('count(distinct orbs_merchants.merchant_id) as merchant_count'),
             DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'),
-            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ') as retailer_list")
+            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list")
         )->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
         ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
         ->groupBy('products.product_id');
@@ -198,8 +198,6 @@ class ProductPrinterController extends DataPrinterController
 
         $_products = clone $products;
 
-        //var_dump($_products);
-
         // Get the take args
         $take = $perPage;
         OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
@@ -257,7 +255,6 @@ class ProductPrinterController extends DataPrinterController
                 $sortMode = 'desc';
             }
         });
-
         $products->orderBy($sortBy, $sortMode);
 
         $totalRec = RecordCounter::create($_products)->count();
@@ -270,12 +267,6 @@ class ProductPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
-        // while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
-
-        //             //var_dump($row);
-        //             print_r($row);
-        //     }
-
         switch ($mode) {
             case 'csv':
                 $filename = 'product-list-' . date('d_M_Y_HiA') . '.csv';
@@ -283,12 +274,17 @@ class ProductPrinterController extends DataPrinterController
                 @header('Content-Type: text/csv');
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '','','','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Product List', '', '', '','','','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Product', $totalRec, '', '','','','');
+
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '','','','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'SKU Number', 'Barcode', 'Name', 'Price', 'Retailer', 'New', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '','','','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, '', $row->is_new, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, '', $row->is_new, $row->status);
                 }
                 break;
 

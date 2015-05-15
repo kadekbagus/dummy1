@@ -385,14 +385,17 @@ class RetailerPrinterController extends DataPrinterController
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
                 printf("%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '');
+                printf("%s,%s,%s,%s,%s,%s\n", '', 'Retailer List', '', '', '', '');
+                printf("%s,%s,%s,%s,%s,%s\n", '', 'Total Retailer', $totalRec, '', '', '');
+
+                printf("%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '');
                 printf("%s,%s,%s,%s,%s,%s\n", '', 'Retailer Name', 'Contact Person (Name)', 'Retailer ID', 'Merchant Name', 'Status');
                 printf("%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                     $contact = $this->printContactPersonName($row);
-                    // $starting_date = $this->printStartingDate($row);
-                    printf("\"%s\",%s,\"%s\",%s,%s,%s\n", '', $row->name, $contact, $row->merchant_id, $row->merchant_name, $row->status);
+                    $contact = $this->printContactPersonName($row);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->name, $contact, $row->merchant_id, $row->merchant_name, $row->status);
 
                 }
                 break;

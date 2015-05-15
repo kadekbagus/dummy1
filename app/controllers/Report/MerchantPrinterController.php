@@ -40,7 +40,10 @@ class MerchantPrinterController extends DataPrinterController
 
         $merchants = Merchant::excludeDeleted('merchants')
                             ->allowedForUser($user)
-                            ->select('merchants.*', DB::raw('count(retailer.merchant_id) AS total_retailer'))
+                            ->select('merchants.*',
+                                DB::raw('count(distinct retailer.merchant_id) as merchant_count'), 
+                                //DB::raw('count(retailer.merchant_id) AS total_retailer'),
+                                DB::raw("GROUP_CONCAT(`retailer`.`name`,' ',`retailer`.`city` SEPARATOR ' , ') as retailer_list"))
                             ->leftJoin('merchants AS retailer', function($join) {
                                     $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
                                         ->where(DB::raw('retailer.status'), '!=', 'deleted');
@@ -368,6 +371,10 @@ class MerchantPrinterController extends DataPrinterController
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
                 printf("%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '');
+                printf("%s,%s,%s,%s,%s,%s,%s\n", '', 'Merchant List', '', '', '', '', '');
+                printf("%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Merchant', $totalRec, '', '', '', '');
+
+                printf("%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '');
                 printf("%s,%s,%s,%s,%s,%s,%s\n", '', 'Merchant Name', 'Location', 'Starting Date', 'Number of Retailer', 'Retailer', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '');
                 
@@ -375,7 +382,7 @@ class MerchantPrinterController extends DataPrinterController
 
                     $location = $this->printLocation($row);
                     $starting_date = $this->printStartingDate($row);
-                    printf("\"%s\",%s,\"%s\",%s,%s,%s,%s\n", '', $row->name, $location, $starting_date, '', '', $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $row->name, $location, $starting_date, $row->merchant_count, $row->retailer_list, $row->status);
 
                 }
                 break;
@@ -425,11 +432,16 @@ class MerchantPrinterController extends DataPrinterController
     {
         $return = '';
 
-        $date = $merchant->start_date_activity;
-        $date = explode(' ',$date);
-        $time = strtotime($date[0]);
-        $newformat = date('d M Y',$time);
-        $result = $newformat;
+        if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity))
+        {
+            $result = "";
+        } else {
+            $date = $merchant->start_date_activity;
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d M Y',$time);
+            $result = $newformat;
+        }
 
         return $result;
     }
