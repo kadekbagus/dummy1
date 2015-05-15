@@ -620,6 +620,8 @@ class MerchantAPIController extends ControllerAPI
      * @param string            `slavebox_number`               (optional) - Slavebox number
      * @param string            `mobile_default_language`       (optional) - Mobile default language
      * @param string            `pos_language`                  (optional) - POS language
+     * @param datetime          `start_activity_begin_date`     (optional) - Start activity begin date. Example: 2015-05-15 00:00:00
+     * @param datetime          `start_activity_end_date`       (optional) - Start activity end date. Example: 2015-05-15 23:59:59
      * @param string|array      `with`                          (optional) - Relation which need to be included
      * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      *
@@ -916,6 +918,18 @@ class MerchantAPIController extends ControllerAPI
             // Filter merchant by pos_language
             OrbitInput::get('pos_language', function ($pos_language) use ($merchants) {
                 $merchants->whereIn('merchants.pos_language', $pos_language);
+            });
+
+            // Filter merchant by start_date_activity for begin_date
+            OrbitInput::get('start_activity_begin_date', function($begindate) use ($merchants)
+            {
+                $merchants->where('merchants.start_date_activity', '>=', $begindate);
+            });
+
+            // Filter merchant by start_date_activity for end_date
+            OrbitInput::get('start_activity_end_date', function($enddate) use ($merchants)
+            {
+                $merchants->where('merchants.start_date_activity', '<=', $enddate);
             });
 
             // Add new relation based on request
