@@ -1208,7 +1208,10 @@ class PromotionAPIController extends ControllerAPI
             {
                 $promotions->where(function ($q) use ($begindate) {
                     $q->where('promotions.end_date', '>=', $begindate)
-                      ->orWhere('promotions.is_permanent', 'Y');
+                      ->orWhere(function($q) use ($begindate) {
+                            $q->where('promotions.begin_date', '>=', $begindate)
+                              ->where('promotions.is_permanent', 'Y');
+                      });
                 });
             });
 
