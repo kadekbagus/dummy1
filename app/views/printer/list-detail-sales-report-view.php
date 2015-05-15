@@ -126,14 +126,18 @@
 
     <table style="width:100%">
         <thead>
-        <th style="text-align: left;">'No.'</th>
-        <th style="text-align: left;">'Date'</th>
-        <th style="text-align: left;">'Time'</th>
-        <th style="text-align: left;">'Receipt Number'</th>
-        <th style="text-align: left;">'Total Value'</th>
-        <th style="text-align: left;">'Payment Type'</th>
-        <th style="text-align: left;">'Customer (if known)'</th>
-        <th style="text-align: left;">'Cashier'</th>
+        <th style="text-align: left; ">No.</th>
+        <th style="text-align: left; ">Date</th>
+        <th style="text-align: left; ">Receipt Number</th>
+        <th style="text-align: left; ">Product SKU</th>
+        <th style="text-align: left; ">Product Name</th>
+        <th style="text-align: left; ">Quantity</th>
+        <th style="text-align: left; ">Unit Price</th>
+        <th style="text-align: left; ">Tax Value</th>
+        <th style="text-align: left; ">Sub Total</th>
+        <th style="text-align: left; ">Payment Type</th>
+        <th style="text-align: left; ">Customer</th>
+        <th style="text-align: left; ">Cashier</th>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
