@@ -1138,8 +1138,16 @@ class UserAPIController extends ControllerAPI
      * @param string        `status`            (optional)
      * @param string        `username_like`     (optional)
      * @param string        `email_like`        (optional)
+     * @param string        `gender`            (optional)
      * @param string        `firstname_like`    (optional)
      * @param string        `lastname_like`     (optional)
+     * @param string        `location_like`     (optional)
+     * @param string        `city_like`         (optional)
+     * @param string        `last_visit_shop_name_like` (optional)
+     * @param datetime      `last_visit_begin_date`     (optional) - Last visit begin date. Example: 2015-05-12 00:00:00
+     * @param datetime      `last_visit_end_date`       (optional) - Last visit end date. Example: 2015-05-12 23:59:59
+     * @param datetime      `created_begin_date`        (optional) - Created begin date. Example: 2015-05-12 00:00:00
+     * @param datetime      `created_end_date`          (optional) - Created end date. Example: 2014-05-12 23:59:59
      * @param array|string  `merchant_id`       (optional) - Id of the merchant, could be array or string with comma separated value
      * @param array|string  `retailer_id`       (optional) - Id of the retailer (Shop), could be array or string with comma separated value
      * @param integer       `take`              (optional) - limit
@@ -1348,6 +1356,64 @@ class UserAPIController extends ControllerAPI
             // Filter user by their status
             OrbitInput::get('status', function ($status) use ($users) {
                 $users->whereIn('users.status', $status);
+            });
+
+            // Filter user by gender
+            OrbitInput::get('gender', function ($gender) use ($users) {
+                $users->whereHas('userdetail', function ($q) use ($gender) {
+                    $q->whereIn('gender', $gender);
+                });
+            });
+
+            // Filter user by their location('city, country') pattern
+            OrbitInput::get('location_like', function ($location) use ($users) {
+                $users->whereHas('userdetail', function ($q) use ($location) {
+                    $q->where(DB::raw('CONCAT(city, ", ", country)'), 'like', "%$location%");
+                });
+            });
+
+            // Filter user by their city pattern
+            OrbitInput::get('city_like', function ($city) use ($users) {
+                $users->whereHas('userdetail', function ($q) use ($city) {
+                    $q->where('city', 'like', "%$city%");
+                });
+            });
+
+            // Filter user by their last_visit_shop pattern
+            OrbitInput::get('last_visit_shop_name_like', function ($shopName) use ($users) {
+                $users->whereHas('userdetail', function ($q) use ($shopName) {
+                    $q->whereHas('lastVisitedShop', function ($q) use ($shopName) {
+                        $q->where('name', 'like', "%$shopName%");
+                    });
+                });
+            });
+
+            // Filter user by last_visit_begin_date
+            OrbitInput::get('last_visit_begin_date', function($begindate) use ($users)
+            {
+                $users->whereHas('userdetail', function ($q) use ($begindate) {
+                    $q->where('last_visit_any_shop', '>=', $begindate);
+                });
+            });
+
+            // Filter user by last_visit_end_date
+            OrbitInput::get('last_visit_end_date', function($enddate) use ($users)
+            {
+                $users->whereHas('userdetail', function ($q) use ($enddate) {
+                    $q->where('last_visit_any_shop', '<=', $enddate);
+                });
+            });
+
+            // Filter user by created_at for begin_date
+            OrbitInput::get('created_begin_date', function($begindate) use ($users)
+            {
+                $users->where('users.created_at', '>=', $begindate);
+            });
+
+            // Filter user by created_at for end_date
+            OrbitInput::get('created_end_date', function($enddate) use ($users)
+            {
+                $users->where('users.created_at', '<=', $enddate);
             });
 
             // Clone the query builder which still does not include the take,
