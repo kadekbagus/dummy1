@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP Unit Test for TransactionHistroyAPIController#gerReceiptReport
+ * PHP Unit Test for TransactionHistroyAPIController#getDetailSalesReport
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
@@ -8,9 +8,9 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class getReceiptReportListTest extends TestCase
+class getDetailSalesReportTest extends TestCase
 {
-    private $baseUrl = '/api/v1/consumer-transaction-history/receipt-list';
+    private $baseUrl = '/api/v1/consumer-transaction-history/detail-sales-report';
 
     protected $transactions;
     protected $merchant;
@@ -130,7 +130,7 @@ class getReceiptReportListTest extends TestCase
 
 
         $response = $makeRequest([
-            'transaction_id' => 2
+            'transaction_id' => $this->transactions[0]->transaction_id
         ]);
 
         $this->assertResponseOk();
@@ -225,6 +225,75 @@ class getReceiptReportListTest extends TestCase
 
         $response = $makeRequest([
             'customer_name_like' => $this->authData->user->user_lastname
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(5, $response->data->total_records);
+        $this->assertSame(5, $response->data->returned_records);
+    }
+
+    public function testOK_get_transactions_filtered_with_product()
+    {
+        $product = null;
+        foreach ($this->transactions as $i=>$transaction)
+        {
+            $product = Factory::create('Product', ['product_name' => "Transactional {$i}"]);
+            $detail  = Factory::create('TransactionDetail',  [
+                'transaction_id' => $transaction->transaction_id,
+                'product_id'     => $product->product_id,
+                'product_name'   => $product->product_name,
+                'price'          => $product->price,
+                'upc'            => $product->upc_code
+            ]);
+            Factory::create('TransactionDetailTax', [
+                'tax_name'  => 'VAT',
+                'tax_value' => 0.1000,
+                'total_tax' => 0.1 * $detail->price,
+                'transaction_id' => $detail->transaction_id,
+                'transaction_detail_id' => $detail->transaction_detail_id
+            ]);
+
+            Factory::create('TransactionDetailTax', [
+                'tax_name'  => 'Services',
+                'tax_value' => 0.0500,
+                'total_tax' => 0.05 * $detail->price,
+                'transaction_id' => $detail->transaction_id,
+                'transaction_detail_id' => $detail->transaction_detail_id
+            ]);
+        }
+
+        $makeRequest = function ($getData) {
+            $_GET                 = $getData;
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('GET', $url)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $response = $makeRequest([
+            'upc_code' => $product->upc_code
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(1, $response->data->total_records);
+        $this->assertSame(1, $response->data->returned_records);
+
+        $response = $makeRequest([
+            'product_name_like' => 'Transactional'
         ]);
 
         $this->assertResponseOk();

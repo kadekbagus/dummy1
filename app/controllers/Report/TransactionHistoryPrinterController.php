@@ -176,8 +176,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 })
                 ->join("users as {$tablePrefix}cashier", function ($join) {
                     $join->on('cashier.user_id', '=', 'transactions.cashier_id');
-                })
-                ->with('user', 'cashier');
+                });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
                 $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
