@@ -1113,7 +1113,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     'transactions.payment_method',
                     'transaction_details.created_at',
                     DB::raw("date({$tablePrefix}transaction_details.created_at) as created_at_date"),
-                    DB::raw("sum({$tablePrefix}tax.total_tax) as total_tax"),
+                    DB::raw("sum(ifnull({$tablePrefix}tax.total_tax, 0)) as total_tax"),
                     DB::raw("(quantity * (price + total_tax)) as sub_total"),
                     'cashier.user_firstname as cashier_user_firstname',
                     'cashier.user_lastname as cashier_user_lastname',
@@ -1249,7 +1249,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             $data->records = $listOfTransactions;
 
             // Consider last pages
-            if (($totalTransactions - $skip) <= $skip)
+            if (($totalTransactions - $take) <= $skip)
             {
                 $subTotalQuery    = $_transactions->toSql();
                 $subTotalBindings = $_transactions->getQuery();
