@@ -928,11 +928,12 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             $data = new stdclass();
             $data->total_records = $totalTransactions;
+            $data->last_page     = false;
             $data->returned_records = count($listOfTransactions);
             $data->records = $listOfTransactions;
 
             // Consider last pages
-            if (($totalTransactions - $skip) <= $skip)
+            if (($totalTransactions - $take) <= $skip)
             {
                 $subTotalQuery    = $_transactions->toSql();
                 $subTotalBindings = $_transactions->getQuery();
@@ -1068,7 +1069,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 array(
                     'retailer_ids'  => 'array|min:0',
                     'merchant_ids'  => 'array|min:0',
-                    'sort_by'       => 'in:transaction_id,payment_method,customer_name,cashier_name,created_at,upc_code,product_name'
+                    'sort_by'       => 'in:transaction_id,product_sku,quantity,price,payment_method,created_at,total_tax,sub_total,cashier_name,customer_name'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.transactionhistory.productlist.sortby'),
@@ -1105,16 +1106,15 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             $tablePrefix  = DB::getTablePrefix();
             $transactions = TransactionDetail::select(
-                    "transactions.transaction_id",
+                    'transactions.transaction_id',
                     'transaction_details.upc as product_sku',
                     'transaction_details.product_name',
                     'transaction_details.quantity',
                     'transaction_details.price',
                     'transactions.payment_method',
                     'transaction_details.created_at',
-                    DB::raw("date({$tablePrefix}transaction_details.created_at) as created_at_date"),
                     DB::raw("sum(ifnull({$tablePrefix}tax.total_tax, 0)) as total_tax"),
-                    DB::raw("(quantity * (price + total_tax)) as sub_total"),
+                    DB::raw("(quantity * (price + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
                     'cashier.user_firstname as cashier_user_firstname',
                     'cashier.user_lastname as cashier_user_lastname',
                     'customer.user_firstname as customer_user_firstname',
@@ -1144,7 +1144,6 @@ class TransactionHistoryAPIController extends ControllerAPI
             OrbitInput::get('upc_code', function ($upcCode) use ($transactions) {
                 $transactions->whereIn('upc', $this->getArray($upcCode));
             });
-
 
             OrbitInput::get('payment_method', function ($payementMethod) use ($transactions) {
                 $transactions->whereIn('transactions.payment_method', $this->getArray($payementMethod));
@@ -1222,12 +1221,16 @@ class TransactionHistoryAPIController extends ControllerAPI
             OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
                 // Map the sortby request to the real column name
                 $sortByMapping = array(
-                    'created_at'        => 'transactions.created_at',
-                    'transaction_id'    => 'transactions.transaction_id',
-                    'payment_method'    => 'transactions.payment_method',
-                    'total_to_pay'      => 'transactions.total_to_pay',
-                    'customer_name'     => 'customer.user_firstname',
-                    'cashier_name'      => 'cashier.user_firstname'
+                    'transaction_id'  => 'transactions.transaction_id',
+                    'product_sku'     => 'transaction_details.upc',
+                    'quantity'        => 'transaction_details.quantity',
+                    'price'           => 'transaction_details.price',
+                    'payment_method'  => 'transactions.payment_method',
+                    'created_at'      => 'transaction_details.created_at',
+                    'total_tax'       => 'total_tax',
+                    'sub_total'       => 'sub_total',
+                    'cashier_name'    => 'cashier.user_firstname',
+                    'customer_name'   => 'customer.user_firstname'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -1246,6 +1249,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             $data = new stdclass();
             $data->total_records = $totalTransactions;
             $data->returned_records = count($listOfTransactions);
+            $data->last_page = false;
             $data->records = $listOfTransactions;
 
             // Consider last pages
@@ -1256,8 +1260,8 @@ class TransactionHistoryAPIController extends ControllerAPI
                 $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
                     ->mergeBindings($subTotalBindings)
                     ->select([
-                        DB::raw("sum(sub_total.quantity) as transaction_count"),
-                        DB::raw("sum(sub_total.price) as transactions_total")
+                        DB::raw("sum(sub_total.quantity) as quantity_total"),
+                        DB::raw("sum(sub_total.sub_total) as sub_total")
                     ])->first();
 
                 $data->last_page  = true;
