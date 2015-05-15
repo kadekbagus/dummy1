@@ -34,7 +34,23 @@ class getDetailSalesReportTest extends TestCase
         ]);
 
         foreach ($transactions as $transaction) {
-            Factory::create('TransactionDetail', ['transaction_id' => $transaction->transaction_id]);
+            $detail = Factory::create('TransactionDetail', ['transaction_id' => $transaction->transaction_id]);
+
+            Factory::create('TransactionDetailTax', [
+                'tax_name'  => 'VAT',
+                'tax_value' => 0.1000,
+                'total_tax' => 0.1 * $detail->price,
+                'transaction_id' => $detail->transaction_id,
+                'transaction_detail_id' => $detail->transaction_detail_id
+            ]);
+
+            Factory::create('TransactionDetailTax', [
+                'tax_name'  => 'Services',
+                'tax_value' => 0.0500,
+                'total_tax' => 0.05 * $detail->price,
+                'transaction_id' => $detail->transaction_id,
+                'transaction_detail_id' => $detail->transaction_detail_id
+            ]);
         }
 
         static::addData('authData', $authData);
