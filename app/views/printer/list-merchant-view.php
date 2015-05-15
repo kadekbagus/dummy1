@@ -134,8 +134,8 @@
                 <td><?php echo ($row->name); ?></td>
                 <td><?php echo $me->printLocation($row); ?></td>
                 <td><?php echo $me->printStartingDate($row); ?></td>
-                <td><?php //echo $me->printDiscountType($row); ?></td>
-                <td><?php //echo (number_format($row->price)); ?></td>
+                <td><?php echo ($row->merchant_count); ?></td>
+                <td><?php echo ($row->retailer_list); ?></td>
                 <td><?php echo ($row->status); ?></td>
             </tr>
         <?php endwhile; ?>

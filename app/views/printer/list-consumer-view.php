@@ -133,11 +133,11 @@
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
                 <td><?php echo ($row->user_email); ?></td>
-                <td><?php //echo ($row->gender); ?></td>
-                <td><?php //echo $me->printAddress($row); ?></td>
-                <td><?php //echo $me->printDiscountType($row); ?></td>
-                <td><?php //echo (number_format($row->price)); ?></td>
-                <td><?php //echo (number_format($row->price)); ?></td>
+                <td><?php echo $me->printGender($row); ?></td>
+                <td><?php echo $me->printAddress($row); ?></td>
+                <td><?php echo ($row->merchant_name); ?></td>
+                <td><?php echo $me->printLastVisitDate($row); ?></td>
+                <td><?php echo (number_format($row->last_spent_amount)); ?></td>
                 <td><?php echo $me->printDateFormat($row); ?></td>
             </tr>
         <?php endwhile; ?>

@@ -92,7 +92,7 @@
             <option value="17">17</option>
             <option value="18">18</option>
             <option value="19">19</option>
-            <option value="20">20</option>
+            <option value="20">20</option> 
             <option value="17">21</option>
             <option value="18">22</option>
             <option value="19">23</option>
@@ -121,11 +121,13 @@
 
     <table style="width:100%">
         <thead>
-            <th style="text-align:left;">SKU Number </th>
+            <th style="text-align:left;">SKU Number (default) </th>
             <th style="text-align:left;">Barcode</th>
             <th style="text-align:left;">Name</th>
-            <th style="text-align:left;">Price</th>
-            <!-- <th style="text-align:left;">Retailer</th> -->
+            <th style="text-align:left;">Price USD (default)</th>
+            <th style="text-align:left;">Retailer</th>
+            <th style="text-align:left;">New</th>
+            <th style="text-align:left;">Status</th> 
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
@@ -134,7 +136,9 @@
                 <td><?php echo ($row->upc_code); ?></td>
                 <td><?php echo ($row->product_name); ?></td>
                 <td><?php echo (number_format($row->price)); ?></td>
-                <!-- <td><?php //echo ($row->membership_number); ?></td> -->
+                <td><?php echo ($row->retailer_list); ?></td>
+                <td><?php echo ($row->is_new); ?></td>
+                <td><?php echo ($row->status); ?></td>
             </tr>
         <?php endwhile; ?>
         </tbody>

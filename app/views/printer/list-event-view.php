@@ -134,7 +134,7 @@
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
                 <td><?php echo ($row->event_name); ?></td>
                 <td><?php echo $me->printExpirationDate($row); ?></td>
-                <td><?php ?></td>
+                <td><?php echo ($row->retailer_list); ?></td>
                 <td><?php echo ($row->event_type); ?></td>
                 <td><?php echo ($row->link_object_type); ?></td>
                 <td><?php echo ($row->widget_object_type); ?></td>
