@@ -34,3 +34,12 @@ Route::get('/api/v1/consumer-transaction-history/receipt-list', function()
 {
     return TransactionHistoryAPIController::create()->getReceiptReport();
 });
+
+
+/**
+ * Get list of detail sales
+ */
+Route::get('/api/v1/consumer-transaction-history/detail-sales-report', function()
+{
+    return TransactionHistoryAPIController::create()->getDetailSalesReport();
+});

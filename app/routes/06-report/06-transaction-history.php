@@ -4,3 +4,5 @@
  */
 
 Route::get('/printer/consumer-transaction-history/product-list', 'Report\TransactionHistoryPrinterController@getProductListPrintView');
+
+Route::get('/printer/consumer-transaction-history/receipt-report', 'Report\TransactionHistoryPrinterController@getReceiptReportPrintView');

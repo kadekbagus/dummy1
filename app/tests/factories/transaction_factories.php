@@ -27,3 +27,11 @@ $factory('TransactionDetail', function (\Faker\Generator $faker) {
         'quantity'     => $faker->numberBetween(1, 10)
     ];
 });
+
+
+/** @var $faker \Faker\Generator */
+$factory('TransactionDetailTax', function ($faker) {
+    return [
+        'tax_name' => $faker->word
+    ];
+});

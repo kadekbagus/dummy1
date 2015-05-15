@@ -783,7 +783,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 array(
                     'retailer_ids'  => 'array|min:0',
                     'merchant_ids'  => 'array|min:0',
-                    'sort_by'       => 'in:purchase_code,payment_method,customer_name,cashier_name'
+                    'sort_by'       => 'in:transaction_id,payment_method,customer_name,cashier_name,created_at,total_to_pay'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.transactionhistory.productlist.sortby'),
@@ -908,6 +908,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     'created_at'        => 'transactions.created_at',
                     'transaction_id'    => 'transactions.transaction_id',
                     'payment_method'    => 'transactions.payment_method',
+                    'total_to_pay'      => 'transactions.total_to_pay',
                     'customer_name'     => 'customer.user_firstname',
                     'cashier_name'      => 'cashier.user_firstname'
                 );
@@ -929,6 +930,21 @@ class TransactionHistoryAPIController extends ControllerAPI
             $data->total_records = $totalTransactions;
             $data->returned_records = count($listOfTransactions);
             $data->records = $listOfTransactions;
+
+            // Consider last pages
+            if (($totalTransactions - $skip) <= $skip)
+            {
+                $subTotalQuery    = $_transactions->toSql();
+                $subTotalBindings = $_transactions->getQuery();
+                $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
+                    ->mergeBindings($subTotalBindings)
+                    ->select([
+                        DB::raw("sum(sub_total.total_to_pay) as transactions_total")
+                    ])->first();
+
+                $data->last_page  = true;
+                $data->sub_total  = $subTotal;
+            }
 
             if ($listOfTransactions === 0) {
                 $data->records = null;
@@ -986,6 +1002,324 @@ class TransactionHistoryAPIController extends ControllerAPI
 
         $output = $this->render($httpCode);
         Event::fire('orbit.transactionhistory.getreceiptreport.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+    /**
+     * GET - Transactions History Detail Sales Report Report
+     * @endpoint 'api/v1/consumer-transactions-history/detail-sales-report'
+     * List of API Parameters
+     * ----------------------
+     * @param array     `merchant_id`           (optional) - IDs of Merchant
+     * @param string    `sortby`                (optional) - column order by, e.g: 'product_name,last_transaction,qty,price'
+     * @param string    `sortmode`              (optional) - asc or desc
+     * @param date      `purchase_date_begin`   (optional) - filter date from: DD-MM-YYYY HH:MM:SS
+     * @param date      `purchase_date_end`     (optional) - filter date to: DD-MM-YYYY HH:MM:SS
+     * @param array     `cashier_id`            (optional) - filter Cashier id
+     * @param array     `customer_id`           (optional) - filter customer id
+     * @param string    `cashier_name_like`     (optional) - filter customer name
+     * @param string    `customer_name_like`    (optional) - filter cashier name
+     * @param integer   `transaction_id`        (optional) - filter by transaction code
+     * @param string    `product_name_like`     (optional) - filter by product name
+     * @param string    `upc_code`              (optional) - filter by product upc
+     * @param integer   `payment_method`        (optional) - filter by payment method
+     * @param integer   `take`                  (optional) - limit
+     * @param integer   `skip`                  (optional) - limit offset
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getDetailSalesReport()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.before.authz', array($this, $user));
+
+            $user_id = OrbitInput::get('user_id');
+            if (! ACL::create($user)->isAllowed('view_transaction_history')) {
+                if ((string)$user_id !== (string)$user->user_id) {
+                    Event::fire('orbit.transactionhistory.getdetailsalesreport.authz.notallowed', array($this, $user));
+
+                    $errorMessage = Lang::get('validation.orbit.actionlist.view_transaction_history');
+                    $message = Lang::get('validation.orbit.access.view_activity', array('action' => $errorMessage));
+
+                    ACL::throwAccessForbidden($message);
+                }
+            }
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.after.authz', array($this, $user));
+
+            $sort_by = OrbitInput::get('sortby');
+            $retailer_ids = OrbitInput::get('retailer_ids');
+            $validator = Validator::make(
+                array(
+                    'sort_by'       => $sort_by,
+                    'user_id'       => $user_id
+                ),
+                array(
+                    'retailer_ids'  => 'array|min:0',
+                    'merchant_ids'  => 'array|min:0',
+                    'sort_by'       => 'in:transaction_id,payment_method,customer_name,cashier_name,created_at,upc_code,product_name'
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.transactionhistory.productlist.sortby'),
+                )
+            );
+
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.transaction_history.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.transaction_history.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $tablePrefix  = DB::getTablePrefix();
+            $transactions = TransactionDetail::select(
+                    "transactions.transaction_id",
+                    'transaction_details.upc as product_sku',
+                    'transaction_details.product_name',
+                    'transaction_details.quantity',
+                    'transaction_details.price',
+                    'transactions.payment_method',
+                    'transaction_details.created_at',
+                    DB::raw("date({$tablePrefix}transaction_details.created_at) as created_at_date"),
+                    DB::raw("sum({$tablePrefix}tax.total_tax) as total_tax"),
+                    DB::raw("(quantity * (price + total_tax)) as sub_total"),
+                    'cashier.user_firstname as cashier_user_firstname',
+                    'cashier.user_lastname as cashier_user_lastname',
+                    'customer.user_firstname as customer_user_firstname',
+                    'customer.user_lastname as customer_user_lastname'
+                )
+                ->join("transactions", function ($join) {
+                    $join->on("transactions.transaction_id", '=', "transaction_details.transaction_id");
+                })
+                ->join("transaction_detail_taxes as {$tablePrefix}tax", function ($join) {
+                    $join->on("transaction_details.transaction_detail_id", '=', 'tax.transaction_detail_id');
+                })
+                ->join("users as {$tablePrefix}customer", function ($join) {
+                    $join->on('customer.user_id', '=', 'transactions.customer_id');
+                })
+                ->join("users as {$tablePrefix}cashier", function ($join) {
+                    $join->on('cashier.user_id', '=', 'transactions.cashier_id');
+                });
+
+            OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
+                $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
+            });
+
+            OrbitInput::get('transaction_id', function ($transactionCode) use ($transactions) {
+                $transactions->whereIn('transactions.transaction_id', $this->getArray($transactionCode));
+            });
+
+            OrbitInput::get('upc_code', function ($upcCode) use ($transactions) {
+                $transactions->whereIn('upc', $this->getArray($upcCode));
+            });
+
+
+            OrbitInput::get('payment_method', function ($payementMethod) use ($transactions) {
+                $transactions->whereIn('transactions.payment_method', $this->getArray($payementMethod));
+            });
+
+            // Filter by date from
+            OrbitInput::get('purchase_date_begin', function ($dateBegin) use ($transactions) {
+                $transactions->where('transactions.created_at', '>', $dateBegin);
+            });
+
+            // Filter by date to
+            OrbitInput::get('purchase_date_end', function ($dateEnd) use ($transactions) {
+                $transactions->where('transactions.created_at', '<', $dateEnd);
+            });
+
+            OrbitInput::get('cashier_id', function ($cashierId) use ($transactions) {
+                $transactions->whereIn('cashier.user_id', $this->getArray($cashierId));
+            });
+
+            OrbitInput::get('customer_id', function ($cashierId) use ($transactions) {
+                $transactions->whereIn('customer.user_id', $this->getArray($cashierId));
+            });
+
+            // filter by cashier either first or last name
+            OrbitInput::get('product_name_like', function ($productName) use ($transactions) {
+                $transactions->where('product_name', 'like', "%{$productName}%");
+            });
+
+            // filter by cashier either first or last name
+            OrbitInput::get('cashier_name_like', function ($cashierName) use ($transactions) {
+                $transactions->where('cashier.user_firstname', 'like', "%{$cashierName}%")
+                    ->orWhere('cashier.user_lastname', 'like', "%{$cashierName}%");
+            });
+
+            OrbitInput::get('customer_name_like', function ($customerName) use ($transactions) {
+                $transactions->where('customer.user_firstname', 'like', "%{$customerName}%")
+                    ->orWhere('customer.user_lastname', 'like', "%{$customerName}%");
+            });
+
+            $transactions->groupBy('transaction_details.transaction_detail_id');
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_transactions = clone $transactions;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $transactions->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $transactions) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $transactions->skip($skip);
+
+            // Default sort by
+            $sortBy = 'transactions.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'created_at'        => 'transactions.created_at',
+                    'transaction_id'    => 'transactions.transaction_id',
+                    'payment_method'    => 'transactions.payment_method',
+                    'total_to_pay'      => 'transactions.total_to_pay',
+                    'customer_name'     => 'customer.user_firstname',
+                    'cashier_name'      => 'cashier.user_firstname'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
+
+            $totalTransactions = RecordCounter::create($_transactions)->count();
+            $listOfTransactions = $transactions->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalTransactions;
+            $data->returned_records = count($listOfTransactions);
+            $data->records = $listOfTransactions;
+
+            // Consider last pages
+            if (($totalTransactions - $skip) <= $skip)
+            {
+                $subTotalQuery    = $_transactions->toSql();
+                $subTotalBindings = $_transactions->getQuery();
+                $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
+                    ->mergeBindings($subTotalBindings)
+                    ->select([
+                        DB::raw("sum(sub_total.quantity) as transaction_count"),
+                        DB::raw("sum(sub_total.price) as transactions_total")
+                    ])->first();
+
+                $data->last_page  = true;
+                $data->sub_total  = $subTotal;
+            }
+
+            if ($listOfTransactions === 0) {
+                $data->records = null;
+                $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.transactionhistory.getdetailsalesreport.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+
+            if (Config::get('app.debug')) {
+                $this->response->data = $e->__toString();
+            } else {
+                $this->response->data = null;
+            }
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.transactionhistory.getdetailsalesreport.before.render', array($this, &$output));
 
         return $output;
     }
