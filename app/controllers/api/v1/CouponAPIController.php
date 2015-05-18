@@ -1516,8 +1516,15 @@ class CouponAPIController extends ControllerAPI
             OrbitInput::get('expiration_end_date', function($enddate) use ($coupons)
             {
                 $coupons->where(function ($q) use ($enddate) {
-                    $q->where('promotions.end_date', '<=', $enddate)
-                      ->orWhere('promotions.is_permanent', 'Y');
+                    $q->where(function($q) use ($enddate) {
+                        $q->where('promotions.end_date', '<=', $enddate)
+                          ->where('promotions.begin_date', '<=', $enddate)
+                          ->where('promotions.is_permanent', 'N');
+                      })
+                      ->orWhere(function($q) use ($enddate) {
+                            $q->where('promotions.begin_date', '<=', $enddate)
+                              ->where('promotions.is_permanent', 'Y');
+                      });
                 });
             });
 
