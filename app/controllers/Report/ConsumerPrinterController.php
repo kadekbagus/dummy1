@@ -350,8 +350,19 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printAddress($consumer)
     {
-        $return = '';
-        $result = $consumer->city.','.$consumer->country;
+        if(!empty($consumer->city) && !empty($consumer->country)){
+            $result = $consumer->city.','.$consumer->country;
+        }
+        else if(empty($consumer->city) && !empty($consumer->country)){
+            $result = $consumer->country;
+        }
+        else if(!empty($consumer->city) && empty($consumer->country)){
+            $result = $consumer->city;
+        }
+        else if(empty($consumer->city) && empty($consumer->country)){
+            $result = '';
+        }
+
         return $result;
     }
 
@@ -364,7 +375,6 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printGender($consumer)
     {
-        $return = '';
         $gender = $consumer->gender;
         $gender = strtolower($gender);
         switch ($gender) {
@@ -391,7 +401,6 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printDateFormat($consumer)
     {
-        $return = '';
         if($consumer->created_at==NULL || empty($consumer->created_at)){
             $result = "";
         }
@@ -416,7 +425,6 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastVisitDate($consumer)
     {
-        $return = '';
         $date = $consumer->last_visit_date;
         if($consumer->last_visit_date==NULL || empty($consumer->last_visit_date)){
             $result = ""; 
