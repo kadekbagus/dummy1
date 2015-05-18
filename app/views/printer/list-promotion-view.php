@@ -137,7 +137,7 @@
                 <td><?php echo ($row->retailer_list); ?></td>
                 <td><?php echo $me->printDiscountType($row); ?></td>
                 <td><?php echo $me->printDiscountValue($row); ?></td>
-                <td><?php //echo ($row->display_discount_type); ?></td>
+                <td><?php echo ($row->product_name); ?></td>
                 <td><?php echo ($row->status); ?></td>
             </tr>
         <?php endwhile; ?>

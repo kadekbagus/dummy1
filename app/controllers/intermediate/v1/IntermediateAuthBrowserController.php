@@ -67,6 +67,8 @@ class IntermediateAuthBrowserController extends IntermediateBaseController
 
                 $this->loggedUser = $user;
 
+                $this->afterAuth();
+
             } catch (ACLForbiddenException $e) {
                 if (Config::get('app.debug')) {
                     return $e;
@@ -92,5 +94,10 @@ class IntermediateAuthBrowserController extends IntermediateBaseController
     {
         // @Todo: Should be check the protocol also
         return 'http://portal.' . $this->getBaseDomain();
+    }
+
+    protected function afterAuth()
+    {
+        // do nothing
     }
 }

@@ -18,34 +18,10 @@ class ProductPrinterController extends DataPrinterController
         $mode = OrbitInput::get('export', 'print');
         $user = $this->loggedUser;
 
-        // Get the maximum record
-        // $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
-        // if ($maxRecord <= 0) {
-        //     // Fallback
-        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
-        //     if ($maxRecord <= 0) {
-        //         $maxRecord = 20;
-        //     }
-        // }
-        // // Get default per page (take)
-        // $perPage = (int) Config::get('orbit.pagination.product.per_page');
-        // if ($perPage <= 0) {
-        //     // Fallback
-        //     $perPage = (int) Config::get('orbit.pagination.per_page');
-        //     if ($perPage <= 0) {
-        //         $perPage = 20;
-        //     }
-        // }
-
         $now = date('Y-m-d H:i:s');
-        // $products = Product::
-        //                     allowedForUser($user)
-        //                     ->JoinProductRetailer()
-        //                     ->select('products.*', DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'));
 
         $products = Product::excludeDeleted('products')->select(
             "products.*","merchants.name as merchant_name",
-            // DB::raw('count(distinct orbs_merchants.merchant_id) as merchant_count'),
             DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'),
             DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list")
         )->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
@@ -198,30 +174,6 @@ class ProductPrinterController extends DataPrinterController
 
         $_products = clone $products;
 
-        // Get the take args
-        // $take = $perPage;
-        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-        //     if ($_take > $maxRecord) {
-        //         $_take = $maxRecord;
-        //     }
-        //     $take = $_take;
-
-        //     if ((int)$take <= 0) {
-        //         $take = $maxRecord;
-        //     }
-        // });
-        // $products->take($take);
-
-        // $skip = 0;
-        // OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
-        //     if ($_skip < 0) {
-        //         $_skip = 0;
-        //     }
-
-        //     $skip = $_skip;
-        // });
-        // $products->skip($skip);
-
         // Default sort by
         $sortBy = 'products.product_name';
         // Default sort mode
@@ -284,7 +236,7 @@ class ProductPrinterController extends DataPrinterController
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, '', $row->is_new, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, $row->retailer_list, $row->is_new, $row->status);
                 }
                 break;
 
@@ -294,6 +246,59 @@ class ProductPrinterController extends DataPrinterController
                 $pageTitle = 'Product';
                 require app_path() . '/views/printer/list-product-view.php';
         }
+    }
+
+
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+
+    /**
+     * Print Currency friendly name.
+     *
+     * @param $product $product
+     * @return string
+     */
+    public function printCurrency()
+    {
+        $return = '';
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->currency);
+        switch ($currency) {
+            case 'usd':
+                $result = 'USD';
+                break;
+
+            case 'idr':
+                $result = 'IDR';
+                break;
+            default:
+                $result = '';
+        }
+
+        return $result;
     }
 
 

@@ -20,25 +20,6 @@ class ConsumerPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
-        // Get the maximum record
-        // $maxRecord = (int) Config::get('orbit.pagination.user.max_record');
-        // if ($maxRecord <= 0) {
-        //     // Fallback
-        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
-        //     if ($maxRecord <= 0) {
-        //         $maxRecord = 20;
-        //     }
-        // }
-        // // Get default per page (take)
-        // $perPage = (int) Config::get('orbit.pagination.user.per_page');
-        // if ($perPage <= 0) {
-        //     // Fallback
-        //     $perPage = (int) Config::get('orbit.pagination.per_page');
-        //     if ($perPage <= 0) {
-        //         $perPage = 20;
-        //     }
-        // }
-
         // Available merchant to query
         $listOfMerchantIds = [];
 
@@ -47,9 +28,11 @@ class ConsumerPrinterController extends DataPrinterController
 
         // Builder object
         $users = User::Consumers()
-                    ->select('users.*', 'user_details.gender as gender', 'user_details.city as city', 
-                        'user_details.country as country', 
+                    ->select('users.*',   
                         'merchants.name as merchant_name',
+                        'user_details.city as city',
+                        'user_details.gender as gender',
+                        'user_details.country as country',
                         'user_details.last_visit_any_shop as last_visit_date',
                         'user_details.last_spent_any_shop as last_spent_amount',
                         'user_details.relationship_status as relationship_status',
@@ -58,10 +41,13 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.sector_of_activity as sector_of_activity',
                         'user_details.last_education_degree as last_education_degree',
                         'user_details.avg_annual_income1 as avg_annual_income1',
-                        'user_details.avg_monthly_spent1 as avg_monthly_spent1')
+                        'user_details.avg_monthly_spent1 as avg_monthly_spent1',
+                        'user_details.preferred_language as preferred_language',
+                        'personal_interests.personal_interest_value as personal_interest_value')
                     ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                     ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
-                    ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+                    ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                    ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
                     ->excludeDeleted('users');
 
         //$users = User::excludeDeleted('users');
@@ -240,30 +226,6 @@ class ConsumerPrinterController extends DataPrinterController
         // skip, and order by
         $_users = clone $users;
 
-        // Get the take args
-        // $take = $perPage;
-        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-        //     if ($_take > $maxRecord) {
-        //         $_take = $maxRecord;
-        //     }
-        //     $take = $_take;
-
-        //     if ((int)$take <= 0) {
-        //         $take = $maxRecord;
-        //     }
-        // });
-        // $users->take($take);
-
-        // $skip = 0;
-        // OrbitInput::get('skip', function ($_skip) use (&$skip, $users) {
-        //     if ($_skip < 0) {
-        //         $_skip = 0;
-        //     }
-
-        //     $skip = $_skip;
-        // });
-        // $users->skip($skip);
-
         // Default sort by
         $sortBy = 'users.user_email';
         // Default sort mode
@@ -316,7 +278,7 @@ class ConsumerPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Consumer', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Average Annual Income', 'Average Shopping Spent');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Spoken Language', 'Average Annual Income', 'Average Shopping Spent', 'Personal Interest');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
@@ -325,11 +287,12 @@ class ConsumerPrinterController extends DataPrinterController
                     $gender = $this->printGender($row);
                     $address = $this->printAddress($row);
                     $last_visit_date = $this->printLastVisitDate($row);
+                    $preferred_language = $this->printLanguage($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
                         '', $row->user_email, $gender, $address, $row->merchant_name,  $last_visit_date, number_format($row->last_spent_amount), $customer_since,
                         $row->user_firstname, $row->user_lastname, $row->relationship_status, $row->number_of_children, $row->occupation, $row->sector_of_activity,
-                        $row->last_education_degree, number_format($row->avg_annual_income1), number_format($row->avg_monthly_spent1));
+                        $row->last_education_degree, $preferred_language, number_format($row->avg_annual_income1), number_format($row->avg_monthly_spent1), $row->personal_interest_value);
                 }
                 break;
 
@@ -350,8 +313,19 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printAddress($consumer)
     {
-        $return = '';
-        $result = $consumer->city.','.$consumer->country;
+        if(!empty($consumer->city) && !empty($consumer->country)){
+            $result = $consumer->city.','.$consumer->country;
+        }
+        else if(empty($consumer->city) && !empty($consumer->country)){
+            $result = $consumer->country;
+        }
+        else if(!empty($consumer->city) && empty($consumer->country)){
+            $result = $consumer->city;
+        }
+        else if(empty($consumer->city) && empty($consumer->country)){
+            $result = '';
+        }
+
         return $result;
     }
 
@@ -364,7 +338,6 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printGender($consumer)
     {
-        $return = '';
         $gender = $consumer->gender;
         $gender = strtolower($gender);
         switch ($gender) {
@@ -382,6 +355,31 @@ class ConsumerPrinterController extends DataPrinterController
         return $result;
     }
 
+    /**
+     * Print gender friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printLanguage($consumer)
+    {
+        $lang = $consumer->preferred_language;
+        $lang = strtolower($lang);
+        switch ($lang) {
+            case 'en':
+                $result = 'English';
+                break;
+
+            case 'id':
+                $result = 'Indonesian';
+                break;
+            default:
+                $result = $lang;
+        }
+
+        return $result;
+    }
+
 
     /**
      * Print date friendly name.
@@ -391,7 +389,6 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printDateFormat($consumer)
     {
-        $return = '';
         if($consumer->created_at==NULL || empty($consumer->created_at)){
             $result = "";
         }
@@ -416,7 +413,6 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastVisitDate($consumer)
     {
-        $return = '';
         $date = $consumer->last_visit_date;
         if($consumer->last_visit_date==NULL || empty($consumer->last_visit_date)){
             $result = ""; 

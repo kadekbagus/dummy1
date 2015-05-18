@@ -20,25 +20,6 @@ class PromotionPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
-        // Get the maximum record
-        // $maxRecord = (int) Config::get('orbit.pagination.promotion.max_record');
-        // if ($maxRecord <= 0) {
-        //     // Fallback
-        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
-        //     if ($maxRecord <= 0) {
-        //         $maxRecord = 20;
-        //     }
-        // }
-        // // Get default per page (take)
-        // $perPage = (int) Config::get('orbit.pagination.promotion.per_page');
-        // if ($perPage <= 0) {
-        //     // Fallback
-        //     $perPage = (int) Config::get('orbit.pagination.per_page');
-        //     if ($perPage <= 0) {
-        //         $perPage = 20;
-        //     }
-        // }
-
         $promotions = Promotion::excludeDeleted('promotions')
             ->select(DB::raw($prefix . "promotions.*, 
                 CASE rule_type
@@ -54,11 +35,13 @@ class PromotionPrinterController extends DataPrinterController
                     ELSE discount_value
                 END AS 'display_discount_value'
                 "), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"),
-                    "promotion_rules.discount_value as discount_value"
+                    "promotion_rules.discount_value as discount_value",
+                    "products.product_name as product_name"
             )
             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
             ->leftJoin('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
+            ->leftJoin('products', 'products.product_id', '=', 'promotion_rules.discount_object_id1')
             ->groupBy('promotions.promotion_id');
 
         // Filter promotion by Ids
@@ -275,33 +258,6 @@ class PromotionPrinterController extends DataPrinterController
 
         $_promotions = clone $promotions;
 
-        // Get the take args
-        // $take = $perPage;
-        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-        //     if ($_take > $maxRecord) {
-        //         $_take = $maxRecord;
-        //     }
-        //     $take = $_take;
-
-        //     if ((int)$take <= 0) {
-        //         $take = $maxRecord;
-        //     }
-        // });
-        // $promotions->take($take);
-
-        // $skip = 0;
-        // OrbitInput::get('skip', function($_skip) use (&$skip, $promotions)
-        // {
-        //     if ($_skip < 0) {
-        //         $_skip = 0;
-        //     }
-
-        //     $skip = $_skip;
-        // });
-        // if (($take > 0) && ($skip > 0)) {
-        //     $promotions->skip($skip);
-        // }
-
         // Default sort by
         $sortBy = 'promotions.promotion_name';
         // Default sort mode
@@ -368,10 +324,11 @@ class PromotionPrinterController extends DataPrinterController
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                    $discount_type = $this->printDiscountType($row);
                     $expiration_date = $this->printExpirationDate($row);
+                    $discount_type = $this->printDiscountType($row);
+                    $discount_value = $this->printDiscountValue($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, '', $discount_type, '', '', $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $discount_value, $row->product_name, $row->status);
                 }
                 break;
 
