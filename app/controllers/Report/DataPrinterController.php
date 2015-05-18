@@ -22,6 +22,32 @@ class DataPrinterController extends IntermediateAuthBrowserController
      */
     protected $pdo = NULL;
 
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $loggedUser = $this->loggedUser;
+
+        $this->beforeFilter(function() use ($loggedUser)
+        {
+            $user = $this->loggedUser;
+
+            // Make sure user who access this resource has 'view_report' privilege
+            if (! ACL::create($loggedUser)->isAllowed('view_report')) {
+                $action = Lang::get('validation.orbit.actionlist.view_report');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $action));
+
+                if (Config::get('app.debug')) {
+                    return $message;
+                }
+
+                return Redirect::to( $this->getPortalUrl() . '/?acl-forbidden' );
+            }
+        });
+    }
 
     /**
      * Method to prepare the PDO Object.
