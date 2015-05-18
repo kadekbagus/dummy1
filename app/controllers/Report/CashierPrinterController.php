@@ -23,23 +23,23 @@ class CashierPrinterController extends DataPrinterController
         $now = date('Y-m-d H:i:s');
 
         // Get the maximum record
-        $maxRecord = (int) Config::get('orbit.pagination.employee.max_record');
-        if ($maxRecord <= 0) {
-            // Fallback
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
-            if ($maxRecord <= 0) {
-                $maxRecord = 20;
-            }
-        }
-        // Get default per page (take)
-        $perPage = (int) Config::get('orbit.pagination.employee.per_page');
-        if ($perPage <= 0) {
-            // Fallback
-            $perPage = (int) Config::get('orbit.pagination.per_page');
-            if ($perPage <= 0) {
-                $perPage = 20;
-            }
-        }
+        // $maxRecord = (int) Config::get('orbit.pagination.employee.max_record');
+        // if ($maxRecord <= 0) {
+        //     // Fallback
+        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
+        //     if ($maxRecord <= 0) {
+        //         $maxRecord = 20;
+        //     }
+        // }
+        // // Get default per page (take)
+        // $perPage = (int) Config::get('orbit.pagination.employee.per_page');
+        // if ($perPage <= 0) {
+        //     // Fallback
+        //     $perPage = (int) Config::get('orbit.pagination.per_page');
+        //     if ($perPage <= 0) {
+        //         $perPage = 20;
+        //     }
+        // }
 
         // Available merchant to query
         $listOfMerchantIds = [];
@@ -189,28 +189,28 @@ class CashierPrinterController extends DataPrinterController
         $_users = clone $users;
 
         // Get the take args
-        $take = $perPage;
-        OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-            if ($_take > $maxRecord) {
-                $_take = $maxRecord;
-            }
-            $take = $_take;
+        // $take = $perPage;
+        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+        //     if ($_take > $maxRecord) {
+        //         $_take = $maxRecord;
+        //     }
+        //     $take = $_take;
 
-            if ((int)$take <= 0) {
-                $take = $maxRecord;
-            }
-        });
-        $users->take($take);
+        //     if ((int)$take <= 0) {
+        //         $take = $maxRecord;
+        //     }
+        // });
+        // $users->take($take);
 
-        $skip = 0;
-        OrbitInput::get('skip', function ($_skip) use (&$skip, $users) {
-            if ($_skip < 0) {
-                $_skip = 0;
-            }
+        // $skip = 0;
+        // OrbitInput::get('skip', function ($_skip) use (&$skip, $users) {
+        //     if ($_skip < 0) {
+        //         $_skip = 0;
+        //     }
 
-            $skip = $_skip;
-        });
-        $users->skip($skip);
+        //     $skip = $_skip;
+        // });
+        // $users->skip($skip);
 
         // Default sort by
         $sortBy = 'users.user_firstname';
