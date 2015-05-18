@@ -19,25 +19,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
-        // Get the maximum record
-        // $maxRecord = (int) Config::get('orbit.pagination.activity.max_record');
-        // if ($maxRecord <= 0) {
-        //     // Fallback
-        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
-        //     if ($maxRecord <= 0) {
-        //         $maxRecord = 20;
-        //     }
-        // }
-        // // Get default per page (take)
-        // $perPage = (int) Config::get('orbit.pagination.activity.per_page');
-        // if ($perPage <= 0) {
-        //     // Fallback
-        //     $perPage = (int) Config::get('orbit.pagination.per_page');
-        //     if ($perPage <= 0) {
-        //         $perPage = 20;
-        //     }
-        // }
-
         // Builder object
         $with = array('user', 'retailer', 'promotion', 'coupon', 'product', 'productVariant', 'children', 'staff');
         // Include other relationship
@@ -195,30 +176,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         // Clone the query builder which still does not include the take,
         // skip, and order by
         $_activities = clone $activities;
-
-        // Get the take args
-        // $take = $perPage;
-        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-        //     if ($_take > $maxRecord) {
-        //         $_take = $maxRecord;
-        //     }
-        //     $take = $_take;
-
-        //     if ((int)$take <= 0) {
-        //         $take = $maxRecord;
-        //     }
-        // });
-        // $activities->take($take);
-
-        // $skip = 0;
-        // OrbitInput::get('skip', function ($_skip) use (&$skip, $activities) {
-        //     if ($_skip < 0) {
-        //         $_skip = 0;
-        //     }
-
-        //     $skip = $_skip;
-        // });
-        // $activities->skip($skip);
 
         // Default sort by
         $sortBy = 'activities.created_at';

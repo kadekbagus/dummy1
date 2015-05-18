@@ -19,25 +19,6 @@ class EventPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
-        // Get the maximum record
-        // $maxRecord = (int) Config::get('orbit.pagination.event.max_record');
-        // if ($maxRecord <= 0) {
-        //     // Fallback
-        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
-        //     if ($maxRecord <= 0) {
-        //         $maxRecord = 20;
-        //     }
-        // }
-        // // Get default per page (take)
-        // $perPage = (int) Config::get('orbit.pagination.event.per_page');
-        // if ($perPage <= 0) {
-        //     // Fallback
-        //     $perPage = (int) Config::get('orbit.pagination.per_page');
-        //     if ($perPage <= 0) {
-        //         $perPage = 20;
-        //     }
-        // }
-
         // Builder object
         $events = EventModel::
                             select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
@@ -189,31 +170,6 @@ class EventPrinterController extends DataPrinterController
 
         $_events = clone $events;
 
-        // Get the take args
-        // $take = $perPage;
-        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-        //     if ($_take > $maxRecord) {
-        //         $_take = $maxRecord;
-        //     }
-        //     $take = $_take;
-
-        //     if ((int)$take <= 0) {
-        //         $take = $maxRecord;
-        //     }
-        // });
-        // $events->take($take);
-
-        // $skip = 0;
-        // OrbitInput::get('skip', function($_skip) use (&$skip, $events)
-        // {
-        //     if ($_skip < 0) {
-        //         $_skip = 0;
-        //     }
-
-        //     $skip = $_skip;
-        // });
-        // $events->skip($skip);
-
         // Default sort by
         $sortBy = 'events.event_name';
         // Default sort mode
@@ -272,7 +228,7 @@ class EventPrinterController extends DataPrinterController
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, '', $row->event_type, $row->link_object_type, $row->widget_object_type, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $row->widget_object_type, $row->status);
                 }
                 break;
 
