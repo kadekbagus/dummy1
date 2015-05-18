@@ -1068,11 +1068,15 @@ class EventAPIController extends ControllerAPI
             OrbitInput::get('expiration_begin_date', function($begindate) use ($events)
             {
                 $events->where(function ($q) use ($begindate) {
-                    $q->where('events.end_date', '>=', $begindate)
-                      ->orWhere(function($q) use ($begindate) {
-                            $q->where('events.begin_date', '>=', $begindate)
-                              ->where('events.is_permanent', 'Y');
-                      });
+                    $q->where(function ($q) use ($begindate) {
+                        $q->where('events.end_date', '>=', $begindate)
+                          ->where('events.begin_date', '>=', $begindate)
+                          ->where('events.is_permanent', 'N');
+                    })
+                    ->orWhere(function ($q) use ($begindate) {
+                        $q->where('events.begin_date', '>=', $begindate)
+                          ->where('events.is_permanent', 'Y');
+                    });
                 });
             });
 

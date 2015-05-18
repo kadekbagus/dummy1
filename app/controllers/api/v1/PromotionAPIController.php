@@ -1207,11 +1207,15 @@ class PromotionAPIController extends ControllerAPI
             OrbitInput::get('expiration_begin_date', function($begindate) use ($promotions)
             {
                 $promotions->where(function ($q) use ($begindate) {
-                    $q->where('promotions.end_date', '>=', $begindate)
-                      ->orWhere(function($q) use ($begindate) {
-                            $q->where('promotions.begin_date', '>=', $begindate)
-                              ->where('promotions.is_permanent', 'Y');
-                      });
+                    $q->where(function($q) use ($begindate) {
+                        $q->where('promotions.end_date', '>=', $begindate)
+                          ->where('promotions.begin_date', '>=', $begindate)
+                          ->where('promotions.is_permanent', 'N');
+                    })
+                    ->orWhere(function($q) use ($begindate) {
+                        $q->where('promotions.begin_date', '>=', $begindate)
+                          ->where('promotions.is_permanent', 'Y');
+                    });
                 });
             });
 
@@ -1223,11 +1227,11 @@ class PromotionAPIController extends ControllerAPI
                         $q->where('promotions.end_date', '<=', $enddate)
                           ->where('promotions.begin_date', '<=', $enddate)
                           ->where('promotions.is_permanent', 'N');
-                      })
-                      ->orWhere(function($q) use ($enddate) {
-                            $q->where('promotions.begin_date', '<=', $enddate)
-                              ->where('promotions.is_permanent', 'Y');
-                      });
+                    })
+                    ->orWhere(function($q) use ($enddate) {
+                        $q->where('promotions.begin_date', '<=', $enddate)
+                          ->where('promotions.is_permanent', 'Y');
+                    });
                 });
             });
 
