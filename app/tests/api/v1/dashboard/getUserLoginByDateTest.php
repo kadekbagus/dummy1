@@ -86,4 +86,45 @@ class getUserLoginByDateTest extends TestCase
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(Status::OK_MSG, $response->message);
     }
+
+
+
+    public function testOK_get_top_user_login_filtered_by_date()
+    {
+        $makeRequest = function ($getData) {
+            $_GET                 = $getData;
+            $_GET['merchant_id']  = [$this->merchant->merchant_id];
+            $_GET['apikey']       = $this->authData->api_key;
+            $_GET['apitimestamp'] = time();
+
+            $url = $this->baseUrl . '?' . http_build_query($_GET);
+
+            $secretKey = $this->authData->api_secret_key;
+            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+            $response = $this->call('GET', $url)->getContent();
+            $response = json_decode($response);
+
+            return $response;
+        };
+
+        $response = $makeRequest([
+            'begin_date' => date('Y-m-d H:i:s', time())
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+
+        $response = $makeRequest([
+            'end_date' => date('Y-m-d H:i:s', time())
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+    }
 }

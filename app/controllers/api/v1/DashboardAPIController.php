@@ -23,6 +23,8 @@ class DashboardAPIController extends ControllerAPI
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
      * @param integer `merchant_id`   (optional) - limit by merchant id
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
      */
     public function getTopProduct()
@@ -108,6 +110,14 @@ class DashboardAPIController extends ControllerAPI
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($products) {
                $products->whereIn('products.merchant_id', $this->getArray($merchantId));
+            });
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($products) {
+               $products->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($products) {
+               $products->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -203,6 +213,8 @@ class DashboardAPIController extends ControllerAPI
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
      * @param integer `merchant_id`   (optional) - limit by merchant id
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
      */
     public function getTopProductAttribute()
@@ -304,6 +316,14 @@ class DashboardAPIController extends ControllerAPI
                 $products->whereIn('products.merchant_id', $this->getArray($merchantId));
             });
 
+            OrbitInput::get('begin_date', function ($beginDate) use ($products) {
+                $products->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($products) {
+                $products->where('activities.created_at', '<=', $endDate);
+            });
+
             // Clone the query builder which still does not include the take,
             // skip, and order by
             $_products = clone $products;
@@ -397,6 +417,8 @@ class DashboardAPIController extends ControllerAPI
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
      * @param integer `merchant_id`   (optional) - limit by merchant id
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
      */
     public function getTopProductFamily()
@@ -482,11 +504,17 @@ class DashboardAPIController extends ControllerAPI
                 $categories->whereIn('categories.merchant_id', $this->getArray($merchantId));
             });
 
+            OrbitInput::get('begin_date', function ($beginDate) use ($categories) {
+                $categories->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($categories) {
+                $categories->where('activities.created_at', '<=', $endDate);
+            });
+
             // Clone the query builder which still does not include the take,
             // skip, and order by
             $_products = clone $categories;
-
-            $debugQuery = $categories->toSql();
 
             $categories->orderBy('view_count', 'desc');
 
@@ -577,6 +605,8 @@ class DashboardAPIController extends ControllerAPI
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
      * @param integer `merchant_id`   (optional) - limit by merchant id
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
      */
     public function getTopWidgetClick()
@@ -660,6 +690,14 @@ class DashboardAPIController extends ControllerAPI
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($widgets) {
                 $widgets->whereIn('widgets.merchant_id', $this->getArray($merchantId));
+            });
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($widgets) {
+                $widgets->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($widgets) {
+                $widgets->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -754,6 +792,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
      */
     public function getUserLoginByDate()
@@ -835,6 +875,14 @@ class DashboardAPIController extends ControllerAPI
                     $join->on(DB::raw("date(new_users.created_at)"), '>=', DB::raw("date({$tablePrefix}activities.created_at)"));
                 })
                 ->groupBy('last_login');
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($users) {
+                $users->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($users) {
+                $users->where('activities.created_at', '<=', $endDate);
+            });
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
