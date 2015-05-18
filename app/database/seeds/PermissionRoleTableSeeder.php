@@ -133,6 +133,10 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Consumer'  =>  [
@@ -255,6 +259,10 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 19
                 'tax'  => [
+                    'view'  => 'yes',
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],
@@ -385,6 +393,10 @@ class PermissionRoleTableSeeder extends Seeder
                 'setting'   => [
                     'view'  => 'yes',
                 ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Retailer Owner'  =>  [
@@ -507,6 +519,10 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 19
                 'tax'   => [
+                    'view'  => 'yes',
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],
@@ -633,6 +649,10 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Supervisor'  =>  [
@@ -757,6 +777,10 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Cashier'  =>  [
@@ -879,6 +903,10 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 19
                 'tax'   => [
+                    'view'  => 'yes',
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],
