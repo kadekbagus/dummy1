@@ -297,4 +297,57 @@ class ProductPrinterController extends DataPrinterController
     }
 
 
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
+
+
+    /**
+     * Print Currency friendly name.
+     *
+     * @param $product $product
+     * @return string
+     */
+    public function printCurrency()
+    {
+        $return = '';
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->currency);
+        switch ($currency) {
+            case 'usd':
+                $result = 'USD';
+                break;
+
+            case 'idr':
+                $result = 'IDR';
+                break;
+            default:
+                $result = '';
+        }
+
+        return $result;
+    }
+
+
 }
