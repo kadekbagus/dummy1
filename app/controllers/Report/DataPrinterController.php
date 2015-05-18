@@ -12,6 +12,8 @@ use Retailer;
 use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
+use DominoPOS\OrbitACL\ACL;
+use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
 
 class DataPrinterController extends IntermediateAuthBrowserController
 {
@@ -21,33 +23,6 @@ class DataPrinterController extends IntermediateAuthBrowserController
      * @var PDO
      */
     protected $pdo = NULL;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $loggedUser = $this->loggedUser;
-
-        $this->beforeFilter(function() use ($loggedUser)
-        {
-            $user = $this->loggedUser;
-
-            // Make sure user who access this resource has 'view_report' privilege
-            if (! ACL::create($loggedUser)->isAllowed('view_report')) {
-                $action = Lang::get('validation.orbit.actionlist.view_report');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $action));
-
-                if (Config::get('app.debug')) {
-                    return $message;
-                }
-
-                return Redirect::to( $this->getPortalUrl() . '/?acl-forbidden' );
-            }
-        });
-    }
 
     /**
      * Method to prepare the PDO Object.
@@ -100,5 +75,32 @@ class DataPrinterController extends IntermediateAuthBrowserController
         }
 
         return implode($separator, $result);
+    }
+
+    /**
+     * Do some authorization check for the user.
+     *
+     * @return void
+     */
+    protected function afterAuth()
+    {
+        $loggedUser = $this->loggedUser;
+
+        $this->beforeFilter(function() use ($loggedUser)
+        {
+            $user = $this->loggedUser;
+
+            // Make sure user who access this resource has 'view_report' privilege
+            if (! ACL::create($loggedUser)->isAllowed('view_report')) {
+                $action = Lang::get('validation.orbit.actionlist.view_report');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $action));
+
+                if (Config::get('app.debug')) {
+                    return $message;
+                }
+
+                return Redirect::to( $this->getPortalUrl() . '/?acl-forbidden' );
+            }
+        });
     }
 }
