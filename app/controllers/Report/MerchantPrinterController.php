@@ -455,8 +455,18 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printLocation($merchant)
     {
-        $return = '';
-        $result = $merchant->city . ',' . $merchant->country;
+        if(!empty($merchant->city) && !empty($merchant->country)){
+            $result = $merchant->city.','.$merchant->country;
+        }
+        else if(empty($merchant->city) && !empty($merchant->country)){
+            $result = $merchant->country;
+        }
+        else if(!empty($merchant->city) && empty($merchant->country)){
+            $result = $merchant->city;
+        }
+        else if(empty($merchant->city) && empty($merchant->country)){
+            $result = '';
+        }
         return $result;
     }
 
