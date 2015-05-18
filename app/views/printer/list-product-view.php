@@ -124,7 +124,7 @@
             <th style="text-align:left;">SKU Number (default) </th>
             <th style="text-align:left;">Barcode</th>
             <th style="text-align:left;">Name</th>
-            <th style="text-align:left;">Price USD (default)</th>
+            <th style="text-align:left;">Price <?php echo $me->printCurrency(); ?> (default)</th>
             <th style="text-align:left;">Retailer</th>
             <th style="text-align:left;">New</th>
             <th style="text-align:left;">Status</th> 
