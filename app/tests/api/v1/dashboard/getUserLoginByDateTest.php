@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP Unit Test for DashboardAPIController#getTopProductFamily
+ * PHP Unit Test for DashboardAPIController#getUserLoginByDate
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
@@ -9,54 +9,56 @@ use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 use Faker\Factory as Faker;
 
-class getTopProductFamilyTest extends TestCase
+class getUserLoginByDateTest extends TestCase
 {
-    private $baseUrl = '/api/v1/dashboard/top-product-family';
+    private $baseUrl = '/api/v1/dashboard/user-login-by-date';
 
     protected $authData;
     protected $merchant;
 
     public static function prepareDatabase()
     {
-        $faker      = Faker::create();
-        $merchant   = Factory::create('Merchant');
-        $categories = [];
-        for($i=5;$i>0;$i--)
+        $faker       = Faker::create();
+        $merchant = Factory::create('Merchant');
+        $newUsers    = Factory::times(5)->create('User');
+        $oldUser     = Factory::times(5)->create('User', ['created_at' => $faker->dateTimeBetween('-2days', '-1day')]);
+
+        $users = [];
+        foreach ($newUsers as $user)
         {
-            $cat = Factory::times(5)->create('Category', [
-                'merchant_id'    => $merchant->merchant_id,
-                'category_level' => $i
-            ]);
-            foreach ($cat as $c)
-            {
-                array_push($categories, $c);
-            }
+            array_push($users, $user);
         }
+
+        foreach ($oldUser as $user)
+        {
+            array_push($users, $user);
+        }
+
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `user_id`, `created_at`) VALUES";
         $id=1;
-        foreach ($categories as $category)
+        foreach ($users as $user)
         {
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id},'view_category', {$category->category_id}),";
+                    ({$id},'login_ok', {$user->user_id}, '{$faker->dateTimeBetween('-1hours')->format('Y-m-d H:i:s')}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(5000, 'view_category', null);";
+        $insert .= "(1000, 'widget_click', null, null);";
 
         DB::statement($insert);
 
-        static::addData('categories', $categories);
+        static::addData('users', $users);
         static::addData('merchant', $merchant);
         static::addData('authData', Factory::create('apikey_super_admin'));
     }
 
-    public function testOK_get_top_widget_click()
+    public function testOK_get_user_login_by_date()
     {
         $makeRequest = function ($getData) {
             $_GET                 = $getData;
@@ -67,7 +69,7 @@ class getTopProductFamilyTest extends TestCase
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
             $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
             $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -85,4 +87,3 @@ class getTopProductFamilyTest extends TestCase
         $this->assertSame(Status::OK_MSG, $response->message);
     }
 }
-

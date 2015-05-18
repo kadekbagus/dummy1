@@ -1,57 +1,54 @@
 <?php
 /**
- * PHP Unit Test for DashboardAPIController#getTopProductFamily
+ * PHP Unit Test for DashboardAPIController#getTopWidgetClick
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
-use Faker\Factory as Faker;
 
-class getTopProductFamilyTest extends TestCase
+class getTopWidgetClickTest extends TestCase
 {
-    private $baseUrl = '/api/v1/dashboard/top-product-family';
+    private $baseUrl = '/api/v1/dashboard/top-widget';
 
     protected $authData;
     protected $merchant;
 
     public static function prepareDatabase()
     {
-        $faker      = Faker::create();
-        $merchant   = Factory::create('Merchant');
-        $categories = [];
-        for($i=5;$i>0;$i--)
+        $merchant = Factory::create('Merchant');
+        $widgets  = [];
+        $widgetTypes = ['new_product', 'catalogue', 'promotion', 'coupon'];
+
+        foreach ($widgetTypes as $type)
         {
-            $cat = Factory::times(5)->create('Category', [
-                'merchant_id'    => $merchant->merchant_id,
-                'category_level' => $i
-            ]);
-            foreach ($cat as $c)
-            {
-                array_push($categories, $c);
-            }
+            array_push($widgets, Factory::create('Widget', [
+                'merchant_id' => $merchant->merchant_id,
+                'widget_type' => $type
+            ]));
         }
+
         $i=1;
         $prefix = DB::getTablePrefix();
         $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`) VALUES";
         $id=1;
-        foreach ($categories as $category)
+        foreach ($widgets as $widget)
         {
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id},'view_category', {$category->category_id}),";
+                    ({$id},'widget_click', {$widget->widget_id}),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(5000, 'view_category', null);";
+        $insert .= "(500, 'widget_click', null);";
 
         DB::statement($insert);
 
-        static::addData('categories', $categories);
+        static::addData('widgets', $widgets);
         static::addData('merchant', $merchant);
         static::addData('authData', Factory::create('apikey_super_admin'));
     }
@@ -67,7 +64,7 @@ class getTopProductFamilyTest extends TestCase
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
             $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
             $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -85,4 +82,3 @@ class getTopProductFamilyTest extends TestCase
         $this->assertSame(Status::OK_MSG, $response->message);
     }
 }
-
