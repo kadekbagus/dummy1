@@ -110,7 +110,8 @@ class ProductAPIController extends ControllerAPI
             $retailer_ids = OrbitInput::post('retailer_ids');
             $status = OrbitInput::post('status');
             $retailer_ids = (array) $retailer_ids;
-
+            $product_variants_delete = OrbitInput::post('product_variants_delete');
+            $product_variants_delete = (array) $product_variants_delete;
             // Product Variants Delete
             $product_combinations_delete = OrbitInput::post('product_variants_delete');
 
@@ -126,16 +127,11 @@ class ProductAPIController extends ControllerAPI
                     'category_id4'      => $category_id4,
                     'category_id5'      => $category_id5,
                     'product_variants_delete'    => $product_combinations_delete,
-                    'product_name'      => $product_name,
-                    'short_description' => $short_description,
-                    'price'             => $price,
-                    'merchant_tax_1'    => $merchant_tax_1,
-                    'status'            => $status,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'upc_code'          => 'orbit.exists.product.upc_code_but_me',
-                    'product_code'      => 'required|orbit.exists.product.sku_code_but_me',
+                    'product_code'      => 'orbit.exists.product.sku_code_but_me',
                     'merchant_id'       => 'numeric|orbit.empty.merchant',
                     'category_id1'      => 'numeric|orbit.empty.category_id1',
                     'category_id2'      => 'numeric|orbit.empty.category_id2',
@@ -143,11 +139,6 @@ class ProductAPIController extends ControllerAPI
                     'category_id4'      => 'numeric|orbit.empty.category_id4',
                     'category_id5'      => 'numeric|orbit.empty.category_id5',
                     'product_variants_delete'   => 'array|orbit.empty.product_variant_array',
-                    'product_name'      => 'required',
-                    'short_description' => 'required',
-                    'price'             => 'required',
-                    'merchant_tax_1'    => 'required',
-                    'status'            => 'required',
                 ),
                 array(
                     'orbit.empty.product_variant_array'     => Lang::get('validation.orbit.empty.product_attr.attribute.variant'),
@@ -168,13 +159,40 @@ class ProductAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            if($status == 'active') {
+            if ($status == 'active') {
                 $validator = Validator::make(
                     array(
                         'retailer_ids'         => $retailer_ids
                     ),
                     array(
                         'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if (empty($product_variants_delete)) {
+                $validator = Validator::make(
+                    array(
+                        'product_code'      => $product_code,
+                        'product_name'      => $product_name,
+                        'short_description' => $short_description,
+                        'price'             => $price,
+                        'merchant_tax_1'    => $merchant_tax_1,
+                        'status'            => $status,
+                    ),
+                    array(
+                        'product_code'      => 'required',
+                        'product_name'      => 'required',
+                        'short_description' => 'required',
+                        'price'             => 'required',
+                        'merchant_tax_1'    => 'required',
+                        'status'            => 'required',
                     )
                 );
 
