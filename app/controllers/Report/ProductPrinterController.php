@@ -19,23 +19,23 @@ class ProductPrinterController extends DataPrinterController
         $user = $this->loggedUser;
 
         // Get the maximum record
-        $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
-        if ($maxRecord <= 0) {
-            // Fallback
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
-            if ($maxRecord <= 0) {
-                $maxRecord = 20;
-            }
-        }
-        // Get default per page (take)
-        $perPage = (int) Config::get('orbit.pagination.product.per_page');
-        if ($perPage <= 0) {
-            // Fallback
-            $perPage = (int) Config::get('orbit.pagination.per_page');
-            if ($perPage <= 0) {
-                $perPage = 20;
-            }
-        }
+        // $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+        // if ($maxRecord <= 0) {
+        //     // Fallback
+        //     $maxRecord = (int) Config::get('orbit.pagination.max_record');
+        //     if ($maxRecord <= 0) {
+        //         $maxRecord = 20;
+        //     }
+        // }
+        // // Get default per page (take)
+        // $perPage = (int) Config::get('orbit.pagination.product.per_page');
+        // if ($perPage <= 0) {
+        //     // Fallback
+        //     $perPage = (int) Config::get('orbit.pagination.per_page');
+        //     if ($perPage <= 0) {
+        //         $perPage = 20;
+        //     }
+        // }
 
         $now = date('Y-m-d H:i:s');
         // $products = Product::
@@ -199,28 +199,28 @@ class ProductPrinterController extends DataPrinterController
         $_products = clone $products;
 
         // Get the take args
-        $take = $perPage;
-        OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-            if ($_take > $maxRecord) {
-                $_take = $maxRecord;
-            }
-            $take = $_take;
+        // $take = $perPage;
+        // OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+        //     if ($_take > $maxRecord) {
+        //         $_take = $maxRecord;
+        //     }
+        //     $take = $_take;
 
-            if ((int)$take <= 0) {
-                $take = $maxRecord;
-            }
-        });
-        $products->take($take);
+        //     if ((int)$take <= 0) {
+        //         $take = $maxRecord;
+        //     }
+        // });
+        // $products->take($take);
 
-        $skip = 0;
-        OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
-            if ($_skip < 0) {
-                $_skip = 0;
-            }
+        // $skip = 0;
+        // OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
+        //     if ($_skip < 0) {
+        //         $_skip = 0;
+        //     }
 
-            $skip = $_skip;
-        });
-        $products->skip($skip);
+        //     $skip = $_skip;
+        // });
+        // $products->skip($skip);
 
         // Default sort by
         $sortBy = 'products.product_name';
