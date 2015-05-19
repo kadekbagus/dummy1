@@ -1,45 +1,48 @@
 <?php
 /**
- * PHP Unit Test for DashboardAPIController#getTopProduct
+ * PHP Unit Test for DashboardAPIController#getHourlyUserLogin
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
+use Faker\Factory as Faker;
 
-class getTopProductTest extends TestCase
+class getHourlyUserLogin extends TestCase
 {
-    private $baseUrl = '/api/v1/dashboard/top-product';
+    private $baseUrl = '/api/v1/dashboard/user-hourly-login';
 
     protected $authData;
     protected $merchant;
 
     public static function prepareDatabase()
     {
+        $faker    = Faker::create();
         $merchant = Factory::create('Merchant');
-        $products = Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+        $users = Factory::times(15)->create('User');
 
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `product_id`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `user_id`, `created_at`) VALUES";
         $id=1;
-        foreach ($products as $product)
+        foreach ($users as $user)
         {
+            $loginTime = $faker->dateTimeBetween('-10hours', '+15hours')->format('Y-m-d H:i:s');
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id},'view_product', {$product->product_id}),";
+                    ({$id},'login_ok', {$user->user_id}, '{$loginTime}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(500, 'view_product', null);";
+        $insert .= "(5000, 'login_ok', null, null);";
 
         DB::statement($insert);
 
-        static::addData('products', $products);
+        static::addData('users', $users);
         static::addData('merchant', $merchant);
         static::addData('authData', Factory::create('apikey_super_admin'));
     }
@@ -66,6 +69,15 @@ class getTopProductTest extends TestCase
         };
 
         $response = $makeRequest([]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'detail_report' => 1
+        ]);
 
         $this->assertResponseOk();
 

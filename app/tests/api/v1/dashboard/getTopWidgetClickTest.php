@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP Unit Test for DashboardAPIController#getTopProduct
+ * PHP Unit Test for DashboardAPIController#getTopWidgetClick
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
@@ -8,9 +8,9 @@ use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 
-class getTopProductTest extends TestCase
+class getTopWidgetClickTest extends TestCase
 {
-    private $baseUrl = '/api/v1/dashboard/top-product';
+    private $baseUrl = '/api/v1/dashboard/top-widget';
 
     protected $authData;
     protected $merchant;
@@ -18,33 +18,42 @@ class getTopProductTest extends TestCase
     public static function prepareDatabase()
     {
         $merchant = Factory::create('Merchant');
-        $products = Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+        $widgets  = [];
+        $widgetTypes = ['new_product', 'catalogue', 'promotion', 'coupon'];
+
+        foreach ($widgetTypes as $type)
+        {
+            array_push($widgets, Factory::create('Widget', [
+                'merchant_id' => $merchant->merchant_id,
+                'widget_type' => $type
+            ]));
+        }
 
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `product_id`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`) VALUES";
         $id=1;
-        foreach ($products as $product)
+        foreach ($widgets as $widget)
         {
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id},'view_product', {$product->product_id}),";
+                    ({$id},'widget_click', {$widget->widget_id}),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(500, 'view_product', null);";
+        $insert .= "(500, 'widget_click', null);";
 
         DB::statement($insert);
 
-        static::addData('products', $products);
+        static::addData('widgets', $widgets);
         static::addData('merchant', $merchant);
         static::addData('authData', Factory::create('apikey_super_admin'));
     }
 
-    public function testOK_get_top_product()
+    public function testOK_get_top_widget_click()
     {
         $makeRequest = function ($getData) {
             $_GET                 = $getData;
@@ -55,7 +64,7 @@ class getTopProductTest extends TestCase
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
             $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
             $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -75,7 +84,7 @@ class getTopProductTest extends TestCase
 
 
 
-    public function testOK_get_top_product_filtered_by_date()
+    public function testOK_get_top_widgets_filtered_by_date()
     {
         $makeRequest = function ($getData) {
             $_GET                 = $getData;

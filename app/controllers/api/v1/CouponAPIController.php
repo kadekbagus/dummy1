@@ -1503,29 +1503,15 @@ class CouponAPIController extends ControllerAPI
             // Filter coupon by end_date for begin
             OrbitInput::get('expiration_begin_date', function($begindate) use ($coupons)
             {
-                $coupons->where(function ($q) use ($begindate) {
-                    $q->where('promotions.end_date', '>=', $begindate)
-                      ->orWhere(function($q) use ($begindate) {
-                            $q->where('promotions.begin_date', '>=', $begindate)
-                              ->where('promotions.is_permanent', 'Y');
-                      });
-                });
+                $coupons->where('promotions.end_date', '>=', $begindate)
+                        ->where('promotions.is_permanent', 'N');
             });
 
             // Filter coupon by end_date for end
             OrbitInput::get('expiration_end_date', function($enddate) use ($coupons)
             {
-                $coupons->where(function ($q) use ($enddate) {
-                    $q->where(function($q) use ($enddate) {
-                        $q->where('promotions.end_date', '<=', $enddate)
-                          ->where('promotions.begin_date', '<=', $enddate)
-                          ->where('promotions.is_permanent', 'N');
-                      })
-                      ->orWhere(function($q) use ($enddate) {
-                            $q->where('promotions.begin_date', '<=', $enddate)
-                              ->where('promotions.is_permanent', 'Y');
-                      });
-                });
+                $coupons->where('promotions.end_date', '<=', $enddate)
+                        ->where('promotions.is_permanent', 'N');
             });
 
             // Filter coupon by is permanent

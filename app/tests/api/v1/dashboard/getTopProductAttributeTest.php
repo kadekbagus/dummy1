@@ -1,24 +1,64 @@
 <?php
 /**
- * PHP Unit Test for DashboardAPIController#getTopProduct
+ * PHP Unit Test for DashboardAPIController#getTopProductFamily
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
+use Faker\Factory as Faker;
 
-class getTopProductTest extends TestCase
+class getTopProductAttributeTest extends TestCase
 {
-    private $baseUrl = '/api/v1/dashboard/top-product';
+    private $baseUrl = '/api/v1/dashboard/top-product-attribute';
 
     protected $authData;
     protected $merchant;
 
     public static function prepareDatabase()
     {
-        $merchant = Factory::create('Merchant');
-        $products = Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+        $faker      = Faker::create();
+        $merchant   = Factory::create('Merchant');
+        $products   = Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+
+        $product_attributes = Factory::times(4)->create('ProductAttribute', [
+            'merchant_id' => $merchant->merchant_id,
+        ]);
+
+        foreach ($product_attributes as $attr) {
+            for ($i = 0; $i <= 5; $i++) {
+                $name = $faker->word(2);
+                $name = "{$attr->product_attribute_name} : {$name}";
+                Factory::create('ProductAttributeValue', [
+                    'value' => $name,
+                    'product_attribute_id' => $attr->product_attribute_id,
+                ]);
+            }
+        }
+
+        $createVariant = function ($product, $attributes, $nums)
+        {
+            $nums = min($nums, count($attributes));
+            $variant = Factory::build('ProductVariant');
+            $variant->product_id = $product->product_id;
+            $variant->price = $product->price;
+            $variant->upc = $product->upc_code;
+            $variant->sku = $product->product_code;
+            $variant->merchant_id = $product->merchant_id;
+            $variant->created_by = $product->created_by;
+            $variant->modified_by = $product->modified_by;
+            for ($i = 0; $i <= $nums - 1; $i++) {
+                $seq         = $i+1;
+                $attr_seq    = "attribute_id{$seq}";
+                $variant_seq = "product_attribute_value_id{$seq}";
+                $product->$attr_seq = $attributes[$i]->product_attribute_id;
+                $value       = $attributes[$i]->values()->orderBy(DB::raw('RAND()'))->first();
+                $variant->$variant_seq = $value->product_attribute_value_id;
+            }
+            $variant->save();
+            $product->save();
+        };
 
         $i=1;
         $prefix = DB::getTablePrefix();
@@ -26,6 +66,8 @@ class getTopProductTest extends TestCase
         $id=1;
         foreach ($products as $product)
         {
+            ProductVariant::createDefaultVariant($product);
+            $createVariant($product, $product_attributes, $i);
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
@@ -72,8 +114,6 @@ class getTopProductTest extends TestCase
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(Status::OK_MSG, $response->message);
     }
-
-
 
     public function testOK_get_top_product_filtered_by_date()
     {

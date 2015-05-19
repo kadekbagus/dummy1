@@ -1,61 +1,70 @@
 <?php
 /**
- * PHP Unit Test for DashboardAPIController#getTopProduct
+ * PHP Unit Test for DashboardAPIController#getUserByGender
  *
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
+use Faker\Factory as Faker;
 
-class getTopProductTest extends TestCase
+class getUserByGenderTest extends TestCase
 {
-    private $baseUrl = '/api/v1/dashboard/top-product';
+    private $baseUrl = '/api/v1/dashboard/user-by-gender';
 
     protected $authData;
     protected $merchant;
 
     public static function prepareDatabase()
     {
-        $merchant = Factory::create('Merchant');
-        $products = Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+        $faker         = Faker::create();
+        $_users        = Factory::times(5)->create('User');
+        $male_users    = Factory::times(5)->create('User');
+        $female_users  = Factory::times(5)->create('User', ['created_at' => $faker->dateTimeBetween('-2days', '-1day')]);
 
-        $i=1;
-        $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `product_id`) VALUES";
-        $id=1;
-        foreach ($products as $product)
+        $users = [];
+
+        foreach($_users as $user)
         {
-            $count = $i * 10;
-            for ($j=0; $j<$count; $j++)
-            {
-                $insert .= "
-                    ({$id},'view_product', {$product->product_id}),";
-                $id++;
-            }
-            $i++;
+            array_push($users, $user);
         }
-        $insert .= "(500, 'view_product', null);";
 
-        DB::statement($insert);
+        foreach ($male_users as $user)
+        {
+            Factory::create('UserDetail', [
+                'user_id' => $user->user_id,
+                'gender'  => 'm'
+            ]);
 
-        static::addData('products', $products);
-        static::addData('merchant', $merchant);
+            array_push($users, $user);
+        }
+
+        foreach ($female_users as $user)
+        {
+            Factory::create('UserDetail', [
+                'user_id' => $user->user_id,
+                'gender'  => 'f'
+            ]);
+            array_push($users, $user);
+        }
+
+
+        static::addData('users', $users);
         static::addData('authData', Factory::create('apikey_super_admin'));
     }
 
-    public function testOK_get_top_product()
+    public function testOK_get_user_by_gender()
     {
         $makeRequest = function ($getData) {
             $_GET                 = $getData;
-            $_GET['merchant_id']  = [$this->merchant->merchant_id];
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
             $secretKey = $this->authData->api_secret_key;
-            $_SERVER['REQUEST_METHOD']         = 'POST';
+            $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
             $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
@@ -75,11 +84,10 @@ class getTopProductTest extends TestCase
 
 
 
-    public function testOK_get_top_product_filtered_by_date()
+    public function testOK_get_top_user_login_filtered_by_date()
     {
         $makeRequest = function ($getData) {
             $_GET                 = $getData;
-            $_GET['merchant_id']  = [$this->merchant->merchant_id];
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
 

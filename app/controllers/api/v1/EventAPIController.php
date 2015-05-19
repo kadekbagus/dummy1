@@ -1067,29 +1067,15 @@ class EventAPIController extends ControllerAPI
             // Filter event by end_date for begin
             OrbitInput::get('expiration_begin_date', function($begindate) use ($events)
             {
-                $events->where(function ($q) use ($begindate) {
-                    $q->where('events.end_date', '>=', $begindate)
-                      ->orWhere(function($q) use ($begindate) {
-                            $q->where('events.begin_date', '>=', $begindate)
-                              ->where('events.is_permanent', 'Y');
-                      });
-                });
+                $events->where('events.end_date', '>=', $begindate)
+                       ->where('events.is_permanent', 'N');
             });
 
             // Filter event by end_date for end
             OrbitInput::get('expiration_end_date', function($enddate) use ($events)
             {
-                $events->where(function ($q) use ($enddate) {
-                    $q->where(function($q) use ($enddate) {
-                        $q->where('events.end_date', '<=', $enddate)
-                          ->where('events.begin_date', '<=', $enddate)
-                          ->where('events.is_permanent', 'N');
-                      })
-                      ->orWhere(function($q) use ($enddate) {
-                            $q->where('events.begin_date', '<=', $enddate)
-                              ->where('events.is_permanent', 'Y');
-                      });
-                });
+                $events->where('events.end_date', '<=', $enddate)
+                       ->where('events.is_permanent', 'N');
             });
 
             // Filter event by is permanent
