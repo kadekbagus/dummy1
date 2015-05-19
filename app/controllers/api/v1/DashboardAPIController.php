@@ -1229,11 +1229,20 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
+            $calculateAge = "(date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
+                    (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d')))";
+
             $users = User::select(
-                DB::raw("ifnull(
-                    date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
-                    (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d'))
-                , 'Unspecified') as user_age"),
+                DB::raw("(
+                    case
+                        when {$calculateAge} < 15 then 'Unknown'
+                        when {$calculateAge} < 20 then '15-20'
+                        when {$calculateAge} < 25 then '20-25'
+                        when {$calculateAge} < 30 then '25-30'
+                        when {$calculateAge} < 40 then '30-40'
+                        when {$calculateAge} >= 40 then '40+'
+                        else 'Unknown'
+                    end) as user_age"),
                 DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
             )
                 ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
