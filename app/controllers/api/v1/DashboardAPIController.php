@@ -968,6 +968,370 @@ class DashboardAPIController extends ControllerAPI
         return $output;
     }
 
+    /**
+     * GET - TOP User By Gender
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     *
+     * List Of Parameters
+     * ------------------
+     * @param integer `take`          (optional) - Per Page limit
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getUserByGender()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.dashboard.getuserbygender.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.dashboard.getuserbygender.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.dashboard.getuserbygender.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.dashboard.getuserbygender.authz.notallowed', array($this, $user));
+                $viewCouponLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewCouponLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.dashboard.getuserbygender.after.authz', array($this, $user));
+
+            $take = OrbitInput::get('take');
+            $validator = Validator::make(
+                array(
+                    'take' => $take
+                ),
+                array(
+                    'take' => 'numeric'
+                )
+            );
+
+            Event::fire('orbit.dashboard.getuserbygender.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.dashboard.getuserbygender.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $tablePrefix = DB::getTablePrefix();
+
+            $users = User::select(
+                DB::raw("(
+                    case {$tablePrefix}details.gender
+                        when 'f' then 'Female'
+                        when 'm' then 'Male'
+                        else 'Unspecified'
+                    end
+                ) as user_gender"),
+                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
+            )
+                ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
+                    $join->on('details.user_id', '=', 'users.user_id');
+                })
+                ->groupBy('details.gender');
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($users) {
+                $users->where('users.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($users) {
+                $users->where('users.created_at', '<=', $endDate);
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_users = clone $users;
+
+            $users->orderBy('user_count', 'desc');
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $users->take($take);
+
+            $widgetTotal = RecordCounter::create($_users)->count();
+            $widgetList = $users->get();
+
+            $data = new stdclass();
+            $data->total_records = $widgetTotal;
+            $data->returned_records = count($widgetList);
+            $data->records = $widgetList;
+
+            if ($widgetTotal === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.product');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.dashboard.getuserbygender.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.dashboard.getuserbygender.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.dashboard.getuserbygender.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            $httpCode = 500;
+            Event::fire('orbit.dashboard.getuserbygender.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.dashboard.getuserbygender.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+    /**
+     * GET - TOP User By Age
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     *
+     * List Of Parameters
+     * ------------------
+     * @param integer `take`          (optional) - Per Page limit
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getUserByAge()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.dashboard.getuserbygender.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.dashboard.getuserbygender.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.dashboard.getuserbygender.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.dashboard.getuserbygender.authz.notallowed', array($this, $user));
+                $viewCouponLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewCouponLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.dashboard.getuserbygender.after.authz', array($this, $user));
+
+            $take = OrbitInput::get('take');
+            $validator = Validator::make(
+                array(
+                    'take' => $take
+                ),
+                array(
+                    'take' => 'numeric'
+                )
+            );
+
+            Event::fire('orbit.dashboard.getuserbygender.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.dashboard.getuserbygender.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $tablePrefix = DB::getTablePrefix();
+
+            $users = User::select(
+                DB::raw("ifnull(
+                    date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
+                    (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d'))
+                , 'Unspecified') as user_age"),
+                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
+            )
+                ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
+                    $join->on('details.user_id', '=', 'users.user_id');
+                })
+                ->groupBy('user_age');
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($users) {
+                $users->where('users.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($users) {
+                $users->where('users.created_at', '<=', $endDate);
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_users = clone $users;
+
+            $users->orderBy('user_count', 'desc');
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $users->take($take);
+
+            $widgetTotal = RecordCounter::create($_users)->count();
+            $widgetList = $users->get();
+
+            $data = new stdclass();
+            $data->total_records = $widgetTotal;
+            $data->returned_records = count($widgetList);
+            $data->records = $widgetList;
+
+            if ($widgetTotal === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.product');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.dashboard.getuserbygender.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.dashboard.getuserbygender.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.dashboard.getuserbygender.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            $httpCode = 500;
+            Event::fire('orbit.dashboard.getuserbygender.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.dashboard.getuserbygender.before.render', array($this, &$output));
+
+        return $output;
+    }
 
     /**
      * @param mixed $mixed
