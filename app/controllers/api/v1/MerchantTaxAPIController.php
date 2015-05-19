@@ -17,6 +17,7 @@ class MerchantTaxAPIController extends ControllerAPI
      * GET - Search Merchant Tax
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
+     * @author kadek <kadek@dominopos.com>
      *
      * List of API Parameters
      * ----------------------
@@ -29,6 +30,7 @@ class MerchantTaxAPIController extends ControllerAPI
      * @param string            `tax_name`                      (optional) - Tax name
      * @param string            `tax_name_like`                 (optional) - Tax name like pattern
      * @param string            `tax_type`                      (optional) - Tax type. Valid value: government, service, luxury.
+     * @param string            `include_transaction_status`    (optional) - Include transaction status. valid value: yes, no.
      * @param decimal           `tax_value`                     (optional) - Tax value
      * @param integer           `tax_order`                     (optional) - Tax order
      */
@@ -101,7 +103,14 @@ class MerchantTaxAPIController extends ControllerAPI
                 }
             }
 
-            $taxes = MerchantTax::excludeDeleted()->allowedForUser($user);
+            $taxes = MerchantTax::excludeDeleted('merchant_taxes')->allowedForUser($user);
+
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($taxes) {
+                if($include_transaction_status==='yes'){
+                    $taxes->IncludeTransactionStatus();
+                }
+            });
 
             // Filter Merchant Tax by Ids
             OrbitInput::get('merchant_tax_id', function($merchantTaxId) use ($taxes)
