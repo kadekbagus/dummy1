@@ -21,3 +21,9 @@ Route::get('/api/v1/dashboard/user-by-gender', "DashboardAPIController@getUserBy
 
 // Get Dashboard user by age
 Route::get('/api/v1/dashboard/user-by-age', "DashboardAPIController@getUserByAge");
+
+// Get Dashboard user login time
+Route::get('/api/v1/dashboard/user-hourly-login', "DashboardAPIController@getHourlyUserLogin");
+
+// Get Dashboard user login time
+Route::get('/api/v1/dashboard/user-connect-time', "DashboardAPIController@getUserConnectTime");

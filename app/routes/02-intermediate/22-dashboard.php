@@ -22,3 +22,9 @@ Route::get('/app/v1/dashboard/user-by-gender', "IntermediateAuthController@Dashb
 
 // Get Dashboard user by age
 Route::get('/app/v1/dashboard/user-by-age', "IntermediateAuthController@Dashboard_getUserByAge");
+
+// Get Dashboard user login time
+Route::get('/app/v1/dashboard/user-hourly-login', "IntermediateAuthController@Dashboard_getHourlyUserLogin");
+
+// Get Dashboard user login time
+Route::get('/app/v1/dashboard/user-connect-time', "IntermediateAuthController@Dashboard_getUserConnectTime");
