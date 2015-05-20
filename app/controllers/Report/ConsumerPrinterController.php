@@ -31,6 +31,7 @@ class ConsumerPrinterController extends DataPrinterController
                     ->select('users.*',   
                         'merchants.name as merchant_name',
                         'user_details.city as city',
+                        'user_details.birthdate as birthdate',
                         'user_details.gender as gender',
                         'user_details.country as country',
                         'user_details.last_visit_any_shop as last_visit_date',
@@ -278,7 +279,7 @@ class ConsumerPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Consumer', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Spoken Language', 'Average Annual Income', 'Average Shopping Spent', 'Personal Interest');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Relationship Status', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Spoken Language', 'Average Annual Income', 'Average Shopping Spent', 'Personal Interest');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
@@ -286,12 +287,14 @@ class ConsumerPrinterController extends DataPrinterController
                     $customer_since = $this->printDateFormat($row);
                     $gender = $this->printGender($row);
                     $address = $this->printAddress($row);
+                    $birthdate = $this->printBirthDate($row);
                     $last_visit_date = $this->printLastVisitDate($row);
+                    $last_spent_amount = $this->printLastSpentAmount($row);
                     $preferred_language = $this->printLanguage($row);
 
                     printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
-                        '', $row->user_email, $gender, $address, $row->merchant_name,  $last_visit_date, number_format($row->last_spent_amount), $customer_since,
-                        $row->user_firstname, $row->user_lastname, $row->relationship_status, $row->number_of_children, $row->occupation, $row->sector_of_activity,
+                        '', $row->user_email, $gender, $address, $row->merchant_name, $last_visit_date, $last_spent_amount, $customer_since,
+                        $row->user_firstname, $row->user_lastname, $birthdate, $row->relationship_status, $row->number_of_children, $row->occupation, $row->sector_of_activity,
                         $row->last_education_degree, $preferred_language, number_format($row->avg_annual_income1), number_format($row->avg_monthly_spent1), $row->personal_interest_value);
                 }
                 break;
@@ -331,7 +334,7 @@ class ConsumerPrinterController extends DataPrinterController
 
 
     /**
-     * Print gender friendly name.
+     * Print Gender friendly name.
      *
      * @param $consumer $consumer
      * @return string
@@ -356,7 +359,7 @@ class ConsumerPrinterController extends DataPrinterController
     }
 
     /**
-     * Print gender friendly name.
+     * Print Language friendly name.
      *
      * @param $consumer $consumer
      * @return string
@@ -406,6 +409,29 @@ class ConsumerPrinterController extends DataPrinterController
 
 
     /**
+     * Print Birthdate friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printBirthDate($consumer)
+    {
+        if($consumer->birthdate==NULL || empty($consumer->birthdate)){
+            $result = "";
+        }
+        else {
+            $date = $consumer->birthdate;
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d M Y',$time);
+            $result = $newformat;
+        }
+
+        return $result;
+    }   
+
+
+    /**
      * Print last visit date friendly name.
      *
      * @param $consumer $consumer
@@ -423,9 +449,24 @@ class ConsumerPrinterController extends DataPrinterController
             $result = $newformat;
         }
 
-
         return $result;
     } 
 
+    /**
+     * Print Last Spent Amount friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printLastSpentAmount($consumer)
+    {
+        if($consumer->last_spent_amount!=0){
+            $result = number_format($consumer->last_spent_amount, 2);
+        } else {
+            $result = number_format($consumer->last_spent_amount);
+        }
+
+        return $result;
+    }
 
 }
