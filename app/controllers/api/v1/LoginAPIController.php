@@ -22,6 +22,8 @@ class LoginAPIController extends ControllerAPI
      * @author Tian <tian@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      *
+     * @deprecated
+     *
      * List of API Parameters
      * ----------------------
      * @param string    `email`                 (required) - Email address of the user
@@ -46,7 +48,7 @@ class LoginAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('userdetail', 'role')
                         ->active()
                         ->where('user_email', $email)
                         ->first();
@@ -139,7 +141,7 @@ class LoginAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('userdetail', 'role')
                         ->active()
                         ->where('user_email', $email)
                         ->first();
@@ -238,7 +240,7 @@ class LoginAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('userdetail', 'role', 'merchants')
                         ->active()
                         ->where('user_email', $email)
                         ->first();
@@ -337,7 +339,7 @@ class LoginAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('userdetail', 'role')
                         ->active()
                         ->where('user_email', $email)
                         ->first();
@@ -460,7 +462,7 @@ class LoginAPIController extends ControllerAPI
                 ACL::throwAccessForbidden($message);
             }
 
-            $user = User::with('apikey', 'role', 'employee')
+            $user = User::with('role', 'employee')
                         ->active('users')
                         ->where('username', $username)
                         ->where('user_role_id', $role->role_id)
@@ -576,7 +578,7 @@ class LoginAPIController extends ControllerAPI
             }
             $retailer = $this->getRetailerInfo();
 
-            $user = User::with('apikey', 'userdetail', 'role')
+            $user = User::with('userdetail', 'role')
                         ->excludeDeleted()
                         ->where('user_email', $email)
                         ->whereHas(
