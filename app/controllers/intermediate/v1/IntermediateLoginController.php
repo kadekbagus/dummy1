@@ -55,6 +55,96 @@ class IntermediateLoginController extends IntermediateBaseController
     }
 
     /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginAdmin
+     * @return Response
+     */
+    public function postLoginAdmin()
+    {
+        $response = LoginAPIController::create('raw')->postLoginAdmin();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginMerchant
+     * @return Response
+     */
+    public function postLoginMerchant()
+    {
+        $response = LoginAPIController::create('raw')->postLoginMerchant();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginCustomer
+     * @return Response
+     */
+    public function postLoginCustomer()
+    {
+        $response = LoginAPIController::create('raw')->postLoginCustomer();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
      * Clear the session
      *
      * @author Rio Astamal <me@rioastamal.net>
