@@ -228,7 +228,8 @@ class EventPrinterController extends DataPrinterController
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $row->widget_object_type, $row->status);
+                    $event_link = $this->printEventLink($row);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $event_link, $row->status);
                 }
                 break;
 
@@ -245,12 +246,11 @@ class EventPrinterController extends DataPrinterController
     /**
      * Print expiration date type friendly name.
      *
-     * @param $promotion $promotion
+     * @param $event $event
      * @return string
      */
     public function printExpirationDate($event)
     {
-        $return = '';
         switch ($event->is_permanent) {
             case 'Y':
                 $result = 'Permanent';
@@ -267,4 +267,18 @@ class EventPrinterController extends DataPrinterController
 
         return $result;
     }
+
+
+    /**
+     * Print event link friendly name.
+     *
+     * @param $event $event
+     * @return string
+     */
+    public function printEventLink($event)
+    {
+        $result = str_replace("_"," ",$event->widget_object_type); 
+        return $result;
+    }
+
 }

@@ -319,7 +319,7 @@ class PromotionPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Promotion', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product Family Link', 'Status');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product or Family Link', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
