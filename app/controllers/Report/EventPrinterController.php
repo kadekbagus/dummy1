@@ -20,11 +20,11 @@ class EventPrinterController extends DataPrinterController
         $now = date('Y-m-d H:i:s');
 
         // Builder object
-        $events = EventModel::
-                            select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
+        $events = EventModel::select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
                             ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
                             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
-                            ->groupBy('events.event_id');
+                            ->groupBy('events.event_id')
+                            ->excludeDeleted('events');
 
         // Filter event by Ids
         OrbitInput::get('event_id', function($eventIds) use ($events)
