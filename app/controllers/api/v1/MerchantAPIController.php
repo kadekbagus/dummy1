@@ -707,7 +707,7 @@ class MerchantAPIController extends ControllerAPI
 
             // Check the value of `include_transaction_status` argument
             OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($merchants) {
-                if($include_transaction_status==='yes'){
+                if ($include_transaction_status === 'yes') {
                     $merchants->IncludeTransactionStatus();
                 }
             });
