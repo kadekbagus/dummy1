@@ -340,4 +340,25 @@ class Merchant extends Eloquent
                                      ->lists('merchant_id');
     }
 
+
+    /**
+     * Scope to determine merchant with transaction and add custom
+     * attribute named 'has_transaction' which hold value 'yes' or 'no'.
+     *
+     * @author Kadek 
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeIncludeTransactionStatus($builder)
+    {
+        $prefix = DB::getTablePrefix();
+        return $builder->select('merchants.*', DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+                        ->leftJoin('transactions', function($join) {
+                             $join->on('transactions.status', '!=', DB::Raw("'deleted'"));
+                             $join->on('transactions.currency', '=', 'merchants.currency');
+                             $join->on('transactions.merchant_id', '=', 'merchants.merchant_id');
+                        })
+                       ->groupBy('merchants.merchant_id');
+    }
+
 }
