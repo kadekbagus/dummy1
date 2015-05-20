@@ -316,7 +316,7 @@ class PromotionPrinterController extends DataPrinterController
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Promotion List', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Promotion', '', '', '', '', '','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Promotion', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product Family Link', 'Status');
