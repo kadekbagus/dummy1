@@ -373,7 +373,6 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountType($promotion)
     {
-        $return = '';
         switch ($promotion->promotion_type) {
             case 'cart':
                 $result = 'Cart Discount By ' . ucfirst($promotion->display_discount_type);
@@ -396,7 +395,6 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printExpirationDate($promotion)
     {
-        $return = '';
         switch ($promotion->is_permanent) {
             case 'Y':
                 $result = 'Permanent';
@@ -404,7 +402,7 @@ class PromotionPrinterController extends DataPrinterController
 
             case 'N':
             default:
-                if($promotion->end_date==NULL | empty($promotion->end_date)){
+                if($promotion->end_date==NULL || empty($promotion->end_date)){
                     $result = "";
                 } else {
                     $date = $promotion->end_date;
@@ -428,10 +426,9 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountValue($promotion)
     {
-        $return = '';
         switch ($promotion->display_discount_type) {
             case 'value':
-                $result = number_format($promotion->discount_value);
+                $result = number_format($promotion->discount_value, 2);
                 break;
 
             case 'percentage':
@@ -440,7 +437,7 @@ class PromotionPrinterController extends DataPrinterController
                 break;
                 
             default:
-                $result = number_format($promotion->discount_value);
+                $result = number_format($promotion->discount_value, 2);
         }
 
         return $result;
