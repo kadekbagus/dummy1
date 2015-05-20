@@ -76,7 +76,7 @@ class getHourlyUserLogin extends TestCase
         $this->assertSame(Status::OK_MSG, $response->message);
 
         $response = $makeRequest([
-            'detail_report' => 1
+            'is_report' => 1
         ]);
 
         $this->assertResponseOk();
