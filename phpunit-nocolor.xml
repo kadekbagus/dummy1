@@ -11,6 +11,9 @@
          stopOnError="true"
          syntaxCheck="false"
 >
+    <php>
+        <server name="ORBIT_APP_ENV" value="testing" />
+    </php>
     <testsuites>
         <testsuite name="Model Test Suite">
             <directory>./app/tests/models/</directory>

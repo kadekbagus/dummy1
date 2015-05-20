@@ -1442,6 +1442,18 @@ class DashboardAPIController extends ControllerAPI
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('time_range');
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $activities) {
+               if ($_isReport)
+               {
+                   $activities->addSelect(
+                       DB::raw('date(created_at) as created_at_date')
+                   );
+                   $activities->groupBy(['time_range', 'created_at_date']);
+                   $isReport = true;
+               }
+            });
+
             OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
                 $activities->where('activities.created_at', '>=', $beginDate);
             });
@@ -1470,8 +1482,31 @@ class DashboardAPIController extends ControllerAPI
             });
             $activities->take($take);
 
+            if ($isReport)
+            {
+                $toSelect = [DB::raw("report.created_at_date")];
+
+                for ($x=9; $x<23; $x++)
+                {
+                    $name = sprintf("%s-%s", $x, $x+1);
+                    array_push(
+                        $toSelect,
+                        DB::raw("(case report.time_range when '{$name}' then report.login_count end) as '{$name}'")
+                    );
+                }
+
+                $activityReportQuery = $_activities->getQuery();
+                $activityReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                    ->mergeBindings($activityReportQuery)
+                    ->select($toSelect)
+                    ->groupBy(DB::raw('report.created_at_date'));
+                
+                $activityList = $activityReport->get();
+            } else {
+                $activityList = $activities->get();
+            }
+
             $activityTotal = RecordCounter::create($_activities)->count();
-            $activityList = $activities->get();
 
             $data = new stdclass();
             $data->total_records = $activityTotal;
