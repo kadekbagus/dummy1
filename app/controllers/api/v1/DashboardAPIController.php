@@ -499,6 +499,17 @@ class DashboardAPIController extends ControllerAPI
                 })
                 ->groupBy('categories.category_level');
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $categories, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $categories->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $categories->groupBy(['categories.category_level', 'created_at_date']);
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($categories) {
                 $categories->whereIn('categories.merchant_id', $this->getArray($merchantId));
@@ -514,7 +525,7 @@ class DashboardAPIController extends ControllerAPI
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
-            $_products = clone $categories;
+            $_categories = clone $categories;
 
             $categories->orderBy('view_count', 'desc');
 
@@ -530,14 +541,58 @@ class DashboardAPIController extends ControllerAPI
                     $take = $maxRecord;
                 }
             });
-            $categories->take($take);
 
-            $categoryTotal = RecordCounter::create($_products)->count();
-            $categoryList = $categories->get();
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            if ($isReport)
+            {
+                $defaultSelect = [
+                    DB::raw("sum(case category_level when 1 then view_count end) as '1'"),
+                    DB::raw("sum(case category_level when 2 then view_count end) as '2'"),
+                    DB::raw("sum(case category_level when 3 then view_count end) as '3'"),
+                    DB::raw("sum(case category_level when 4 then view_count end) as '4'"),
+                    DB::raw("sum(case category_level when 5 then view_count end) as '5'")
+                ];
+                $toSelect = array_merge($defaultSelect, ['created_at_date']);
+
+                $categoryReportQuery = $_categories->getQuery();
+                $categoryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
+                    ->mergeBindings($categoryReportQuery)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $_categoryReport = clone $categoryReport;
+
+                $categoryReport->take($take)->skip($skip);
+
+                $summaryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
+                    ->mergeBindings($categoryReportQuery)
+                    ->select($defaultSelect);
+
+                $totalReport = DB::table(DB::raw("({$_categoryReport->toSql()}) as total_report"))
+                    ->mergeBindings($_categoryReport);
+
+                $categoryList  = $categoryReport->get();
+                $categoryTotal = $totalReport->count();
+                $summary       = $summaryReport->first();
+            } else {
+                $categories->take($take);
+                $categoryTotal = RecordCounter::create($_categories)->count();
+                $categoryList = $categories->get();
+                $summary = null;
+            }
 
             $data = new stdclass();
             $data->total_records = $categoryTotal;
             $data->returned_records = count($categoryList);
+            $data->summary = $summary;
             $data->records = $categoryList;
 
             if ($categoryTotal === 0) {
@@ -687,6 +742,17 @@ class DashboardAPIController extends ControllerAPI
                 })
                 ->groupBy('widgets.widget_type');
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $widgets, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $widgets->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $widgets->groupBy(['widgets.widget_type', 'created_at_date']);
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($widgets) {
                 $widgets->whereIn('widgets.merchant_id', $this->getArray($merchantId));
@@ -718,14 +784,59 @@ class DashboardAPIController extends ControllerAPI
                     $take = $maxRecord;
                 }
             });
-            $widgets->take($take);
 
-            $widgetTotal = RecordCounter::create($_widgets)->count();
-            $widgetList = $widgets->get();
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            if ($isReport)
+            {
+                $widgetReportQuery = $_widgets->getQuery();
+
+                $defaultSelect = [
+                    DB::raw("sum(case widget_type when 'coupon' then click_count end) as 'coupon'"),
+                    DB::raw("sum(case widget_type when 'promotion' then click_count end) as 'promotion'"),
+                    DB::raw("sum(case widget_type when 'new_product' then click_count end) as 'new_product'"),
+                    DB::raw("sum(case widget_type when 'catalogue' then click_count end) as 'catalogue'")
+                ];
+
+                $toSelect     = array_merge($defaultSelect, ["created_at_date"]);
+                $widgetReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
+                    ->mergeBindings($widgetReportQuery)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $_widgetReport = clone $widgetReport;
+
+                $widgetReport->take($take)->skip($skip);
+
+                $summaryReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
+                    ->mergeBindings($widgetReportQuery)
+                    ->select($defaultSelect);
+
+                $totalReport = DB::table(DB::raw("({$_widgetReport->toSql()}) as total_report"))
+                    ->mergeBindings($_widgetReport);
+
+                $widgetTotal = $totalReport->count();
+                $widgetList  = $widgetReport->get();
+                $summary     = $summaryReport->first();
+            } else {
+                $widgets->take($take);
+                $widgetTotal = RecordCounter::create($_widgets)->count();
+                $widgetList  = $widgets->get();
+                $summary     = null;
+            }
+
 
             $data = new stdclass();
             $data->total_records = $widgetTotal;
             $data->returned_records = count($widgetList);
+            $data->summary = $summary;
             $data->records = $widgetList;
 
             if ($widgetTotal === 0) {
@@ -1161,16 +1272,18 @@ class DashboardAPIController extends ControllerAPI
                 $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($toSelect)
-                    ->groupBy('created_at_date')
-                    ->take($take)
-                    ->skip($skip);
+                    ->groupBy('created_at_date');
+
+                $_userReport = clone $userReport;
+
+                $userReport->take($take)->skip($skip);
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($defaultSelect);
 
-                $totalReport = DB::table(DB::raw("({$userReport->toSql()}) as total_report"))
-                    ->mergeBindings($userReport);
+                $totalReport = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
+                    ->mergeBindings($_userReport);
 
                 $userList  = $userReport->get();
                 $userTotal = $totalReport->count();
@@ -1412,16 +1525,18 @@ class DashboardAPIController extends ControllerAPI
                     ->mergeBindings($userReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date')
-                    ->orderBy('created_at_date', 'desc')
-                    ->take($take)
-                    ->skip($skip);
+                    ->orderBy('created_at_date', 'desc');
+
+                $_userReport   = clone $userReport;
+
+                $userReport->take($take)->skip($skip);
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($defaultSelect);
 
-                $totalReport   = DB::table(DB::raw("({$userReport->toSql()}) as total_report"))
-                    ->mergeBindings($userReport);
+                $totalReport   = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
+                    ->mergeBindings($_userReport);
 
                 $userList      = $userReport->get();
                 $userTotal     = $totalReport->count();
@@ -1666,16 +1781,18 @@ class DashboardAPIController extends ControllerAPI
                     ->mergeBindings($activityReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date')
-                    ->orderBy('created_at_date', 'desc')
-                    ->take($take)
-                    ->skip($skip);
+                    ->orderBy('created_at_date', 'desc');
+
+                $_activityReport = clone $activityReport;
+
+                $activityReport->take($take)->skip($skip);
 
                 $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
                     ->mergeBindings($activityReportQuery)
                     ->select($defaultSelect);
 
-                $totalReport   = DB::table(DB::raw("({$activityReport->toSql()}) as total_report"))
-                                    ->mergeBindings($activityReport);
+                $totalReport   = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
+                                    ->mergeBindings($_activityReport);
 
                 $activityList  = $activityReport->get();
                 $activityTotal = $totalReport->count();
