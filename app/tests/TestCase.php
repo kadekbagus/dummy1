@@ -157,7 +157,7 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 		$tables_in_database = 'Tables_in_' . DB::getDatabaseName();
 		foreach ($tables as $table) {
 			if ($table->$tables_in_database !== "{$prefix}migrations") {
-				$statement = "{$statement}
+				$statement .= "
 				TRUNCATE TABLE {$table->$tables_in_database};";
 			}
 		}

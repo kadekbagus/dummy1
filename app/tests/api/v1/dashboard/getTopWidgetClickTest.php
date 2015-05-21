@@ -7,6 +7,7 @@
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
+use Faker\Factory as Faker;
 
 class getTopWidgetClickTest extends TestCase
 {
@@ -20,6 +21,7 @@ class getTopWidgetClickTest extends TestCase
         $merchant = Factory::create('Merchant');
         $widgets  = [];
         $widgetTypes = ['new_product', 'catalogue', 'promotion', 'coupon'];
+        $faker    = Faker::create();
 
         foreach ($widgetTypes as $type)
         {
@@ -31,20 +33,21 @@ class getTopWidgetClickTest extends TestCase
 
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`, `created_at`) VALUES";
         $id=1;
         foreach ($widgets as $widget)
         {
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
+                $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id},'widget_click', {$widget->widget_id}),";
+                    ({$id},'widget_click', {$widget->widget_id}, '{$created_at}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(500, 'widget_click', null);";
+        $insert .= "(500, 'widget_click', null, null);";
 
         DB::statement($insert);
 
@@ -75,6 +78,15 @@ class getTopWidgetClickTest extends TestCase
         };
 
         $response = $makeRequest([]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'is_report' => 1
+        ]);
 
         $this->assertResponseOk();
 
@@ -115,6 +127,25 @@ class getTopWidgetClickTest extends TestCase
 
         $response = $makeRequest([
             'end_date' => date('Y-m-d H:i:s', time())
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'begin_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+
+        $response = $makeRequest([
+            'end_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
         ]);
 
         $this->assertResponseOk();
