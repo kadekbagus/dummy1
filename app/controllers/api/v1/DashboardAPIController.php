@@ -75,7 +75,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopproduct.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -84,7 +84,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -107,6 +107,19 @@ class DashboardAPIController extends ControllerAPI
                         })
                         ->groupBy('products.product_id');
 
+
+            $isReport = false;
+            $topNames = clone $products;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $products, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $products->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $products->groupBy(['products.product_id', 'created_at_date']);
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($products) {
                $products->whereIn('products.merchant_id', $this->getArray($merchantId));
@@ -138,14 +151,61 @@ class DashboardAPIController extends ControllerAPI
                     $take = $maxRecord;
                 }
             });
-            $products->take($take);
 
-            $productTotal = RecordCounter::create($_products)->count();
-            $productList = $products->get();
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            if ($isReport)
+            {
+
+                $productNames = $topNames->take(20)->get();
+                $defaultSelect = [];
+
+                foreach ($productNames as $product)
+                {
+                    $name = htmlspecialchars($product->product_name, ENT_QUOTES);
+                    array_push($defaultSelect, DB::raw("sum(case product_id when {$product->product_id} then view_count end) as '{$name}'"));
+                }
+
+                $toSelect  = array_merge($defaultSelect, ['created_at_date']);
+
+                $productReportQuery = $_products->getQuery();
+                $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                    ->mergeBindings($productReportQuery)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $_productReport = clone $productReport;
+
+                $productReport->take($take)->skip($skip);
+
+                $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
+                    ->mergeBindings($_productReport);
+
+                $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                    ->mergeBindings($productReportQuery)
+                    ->select($defaultSelect);
+
+                $productTotal = $totalReport->count();
+                $productList  = $productReport->get();
+                $summary      = $summaryReport->first();
+            } else {
+                $products->take(20);
+                $productTotal = RecordCounter::create($_products)->count();
+                $productList = $products->get();
+                $summary    = null;
+            }
 
             $data = new stdclass();
             $data->total_records = $productTotal;
             $data->returned_records = count($productList);
+            $data->summary = $summary;
             $data->records = $productList;
 
             if ($productTotal === 0) {
@@ -265,7 +325,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopproductfamily.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -274,7 +334,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -469,7 +529,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopproductfamily.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -478,7 +538,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -489,16 +549,27 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $categories = Category::select(
+            $categories = Activity::select(
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
-                ->leftJoin("activities", function ($join) {
+                ->leftJoin("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
                     $join->where('activities.activity_name', '=', 'view_category');
                 })
                 ->groupBy('categories.category_level');
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $categories, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $categories->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $categories->groupBy(['categories.category_level', 'created_at_date']);
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($categories) {
                 $categories->whereIn('categories.merchant_id', $this->getArray($merchantId));
@@ -514,7 +585,7 @@ class DashboardAPIController extends ControllerAPI
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
-            $_products = clone $categories;
+            $_categories = clone $categories;
 
             $categories->orderBy('view_count', 'desc');
 
@@ -530,14 +601,58 @@ class DashboardAPIController extends ControllerAPI
                     $take = $maxRecord;
                 }
             });
-            $categories->take($take);
 
-            $categoryTotal = RecordCounter::create($_products)->count();
-            $categoryList = $categories->get();
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            if ($isReport)
+            {
+                $defaultSelect = [
+                    DB::raw("sum(case category_level when 1 then view_count end) as '1'"),
+                    DB::raw("sum(case category_level when 2 then view_count end) as '2'"),
+                    DB::raw("sum(case category_level when 3 then view_count end) as '3'"),
+                    DB::raw("sum(case category_level when 4 then view_count end) as '4'"),
+                    DB::raw("sum(case category_level when 5 then view_count end) as '5'")
+                ];
+                $toSelect = array_merge($defaultSelect, ['created_at_date']);
+
+                $categoryReportQuery = $_categories->getQuery();
+                $categoryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
+                    ->mergeBindings($categoryReportQuery)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $_categoryReport = clone $categoryReport;
+
+                $categoryReport->take($take)->skip($skip);
+
+                $summaryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
+                    ->mergeBindings($categoryReportQuery)
+                    ->select($defaultSelect);
+
+                $totalReport = DB::table(DB::raw("({$_categoryReport->toSql()}) as total_report"))
+                    ->mergeBindings($_categoryReport);
+
+                $categoryList  = $categoryReport->get();
+                $categoryTotal = $totalReport->count();
+                $summary       = $summaryReport->first();
+            } else {
+                $categories->take($take);
+                $categoryTotal = RecordCounter::create($_categories)->count();
+                $categoryList = $categories->get();
+                $summary = null;
+            }
 
             $data = new stdclass();
             $data->total_records = $categoryTotal;
             $data->returned_records = count($categoryList);
+            $data->summary = $summary;
             $data->records = $categoryList;
 
             if ($categoryTotal === 0) {
@@ -657,7 +772,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopwidgetclick.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -666,7 +781,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -677,16 +792,27 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $widgets = Widget::select(
+            $widgets = Activity::select(
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
-                ->leftJoin('activities', function ($join) {
+                ->leftJoin('widgets', function ($join) {
                     $join->on('activities.object_id', '=', 'widgets.widget_id');
                     $join->where('activities.activity_name', '=', 'widget_click');
                 })
                 ->groupBy('widgets.widget_type');
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $widgets, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $widgets->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $widgets->groupBy('created_at_date');
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($widgets) {
                 $widgets->whereIn('widgets.merchant_id', $this->getArray($merchantId));
@@ -718,14 +844,59 @@ class DashboardAPIController extends ControllerAPI
                     $take = $maxRecord;
                 }
             });
-            $widgets->take($take);
 
-            $widgetTotal = RecordCounter::create($_widgets)->count();
-            $widgetList = $widgets->get();
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            if ($isReport)
+            {
+                $widgetReportQuery = $_widgets->getQuery();
+
+                $defaultSelect = [
+                    DB::raw("sum(case widget_type when 'coupon' then click_count end) as 'coupon'"),
+                    DB::raw("sum(case widget_type when 'promotion' then click_count end) as 'promotion'"),
+                    DB::raw("sum(case widget_type when 'new_product' then click_count end) as 'new_product'"),
+                    DB::raw("sum(case widget_type when 'catalogue' then click_count end) as 'catalogue'")
+                ];
+
+                $toSelect     = array_merge($defaultSelect, ["created_at_date"]);
+                $widgetReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
+                    ->mergeBindings($widgetReportQuery)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $_widgetReport = clone $widgetReport;
+
+                $widgetReport->take($take)->skip($skip);
+
+                $summaryReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
+                    ->mergeBindings($widgetReportQuery)
+                    ->select($defaultSelect);
+
+                $totalReport = DB::table(DB::raw("({$_widgetReport->toSql()}) as total_report"))
+                    ->mergeBindings($_widgetReport);
+
+                $widgetTotal = $totalReport->count();
+                $widgetList  = $widgetReport->get();
+                $summary     = $summaryReport->first();
+            } else {
+                $widgets->take($take);
+                $widgetTotal = RecordCounter::create($_widgets)->count();
+                $widgetList  = $widgets->get();
+                $summary     = null;
+            }
+
 
             $data = new stdclass();
             $data->total_records = $widgetTotal;
             $data->returned_records = count($widgetList);
+            $data->summary = $summary;
             $data->records = $widgetList;
 
             if ($widgetTotal === 0) {
@@ -841,7 +1012,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserloginbydate.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -850,7 +1021,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -861,13 +1032,13 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = User::select(
+            $users = Activity::select(
                 DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
                 DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
                 DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
                 DB::raw("count(distinct new_users.user_id) as new_user_count")
             )
-                ->leftJoin('activities', function ($join) {
+                ->leftJoin('users', function ($join) {
                     $join->on('activities.user_id', '=', 'users.user_id');
                     $join->where('activities.activity_name', '=', 'login_ok');
                 })
@@ -1061,7 +1232,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserbygender.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1070,7 +1241,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1161,16 +1332,18 @@ class DashboardAPIController extends ControllerAPI
                 $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($toSelect)
-                    ->groupBy('created_at_date')
-                    ->take($take)
-                    ->skip($skip);
+                    ->groupBy('created_at_date');
+
+                $_userReport = clone $userReport;
+
+                $userReport->take($take)->skip($skip);
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($defaultSelect);
 
-                $totalReport = DB::table(DB::raw("({$userReport->toSql()}) as total_report"))
-                    ->mergeBindings($userReport);
+                $totalReport = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
+                    ->mergeBindings($_userReport);
 
                 $userList  = $userReport->get();
                 $userTotal = $totalReport->count();
@@ -1302,7 +1475,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserbyage.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1311,7 +1484,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1412,16 +1585,18 @@ class DashboardAPIController extends ControllerAPI
                     ->mergeBindings($userReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date')
-                    ->orderBy('created_at_date', 'desc')
-                    ->take($take)
-                    ->skip($skip);
+                    ->orderBy('created_at_date', 'desc');
+
+                $_userReport   = clone $userReport;
+
+                $userReport->take($take)->skip($skip);
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($defaultSelect);
 
-                $totalReport   = DB::table(DB::raw("({$userReport->toSql()}) as total_report"))
-                    ->mergeBindings($userReport);
+                $totalReport   = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
+                    ->mergeBindings($_userReport);
 
                 $userList      = $userReport->get();
                 $userTotal     = $totalReport->count();
@@ -1553,7 +1728,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettimeduserlogin.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1562,7 +1737,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1666,16 +1841,18 @@ class DashboardAPIController extends ControllerAPI
                     ->mergeBindings($activityReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date')
-                    ->orderBy('created_at_date', 'desc')
-                    ->take($take)
-                    ->skip($skip);
+                    ->orderBy('created_at_date', 'desc');
+
+                $_activityReport = clone $activityReport;
+
+                $activityReport->take($take)->skip($skip);
 
                 $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
                     ->mergeBindings($activityReportQuery)
                     ->select($defaultSelect);
 
-                $totalReport   = DB::table(DB::raw("({$activityReport->toSql()}) as total_report"))
-                                    ->mergeBindings($activityReport);
+                $totalReport   = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
+                                    ->mergeBindings($_activityReport);
 
                 $activityList  = $activityReport->get();
                 $activityTotal = $totalReport->count();
@@ -1807,7 +1984,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserconnecttime.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1816,7 +1993,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1835,52 +2012,59 @@ class DashboardAPIController extends ControllerAPI
                             max(case activity_name when 'logout_ok' then created_at end)
                         ) as minute_connect
                     "),
-                    DB::raw('date(created_at) as activity_date'),
+                    DB::raw('date(created_at) as created_at_date'),
                     DB::raw('count(distinct user_id) as user_count')
                 )
-                ->groupBy(['user_id', 'activity_date']);
+                ->groupBy(['user_id', 'created_at_date']);
 
 
             $activities = DB::table(DB::raw("({$userActivities->toSql()}) as {$tablePrefix}timed"))
                             ->select(
-                                DB::raw("
+                                DB::raw("avg(
                                     case
-                                        when {$tablePrefix}timed.minute_connect < 5 then '<5'
-                                        when {$tablePrefix}timed.minute_connect < 10 then '5-10'
-                                        when {$tablePrefix}timed.minute_connect < 20 then '10-20'
-                                        when {$tablePrefix}timed.minute_connect < 30 then '20-30'
-                                        when {$tablePrefix}timed.minute_connect < 40 then '30-40'
-                                        when {$tablePrefix}timed.minute_connect < 50 then '40-50'
-                                        when {$tablePrefix}timed.minute_connect < 60 then '50-60'
-                                        when {$tablePrefix}timed.minute_connect >= 60 then '60+'
-                                        else 'Unrecorded'
-                                    end as connect_time_range
-                                "),
-                                DB::raw("sum(ifnull({$tablePrefix}timed.user_count, 0)) as total_user")
+                                        when {$tablePrefix}timed.minute_connect < 60 then {$tablePrefix}timed.minute_connect
+                                        else 60
+                                    end) as average_time_connect"
+                                )
                             );
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use ($activities, &$isReport, $tablePrefix) {
+                if ($_isReport) {
+                    $activities->select(
+                        DB::raw("
+                            case
+                                  when minute_connect < 5 then '<5'
+                                  when minute_connect < 10 then '5-10'
+                                  when minute_connect < 20 then '10-20'
+                                  when minute_connect < 30 then '20-30'
+                                  when minute_connect < 40 then '30-40'
+                                  when minute_connect < 50 then '40-50'
+                                  when minute_connect < 60 then '50-60'
+                                  when minute_connect >= 60 then '60+'
+                                  else 'Unrecorded'
+                            end as time_range"),
+                        DB::raw("sum(ifnull(user_count, 0)) as user_count"),
+                        "created_at_date"
+                    );
 
-            $averageQuery = clone $activities;
+                    $activities->groupBy(['time_range', 'created_at_date']);
 
-            $activities->groupBy('connect_time_range');
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
-                $activities->where('timed.activity_date', '>=', $beginDate);
+                $activities->where('timed.created_at_date', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($activities) {
-                $activities->where('timed.activity_date', '<=', $endDate);
+                $activities->where('timed.created_at_date', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
             $_activities = clone $activities;
-
-            $averageQuery->select(
-                DB::raw("avg(case when {$tablePrefix}timed.minute_connect < 60 then {$tablePrefix}timed.minute_connect else 60 end) as average_time_connect")
-            );
-
-            $activities->orderBy('total_user', 'desc');
 
             // Get the take args
             $take = $perPage;
@@ -1904,21 +2088,57 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
-            $activities->take($take);
+            $averageTimeConnect = false;
+            $summary = null;
+            if ($isReport)
+            {
+                $defaultSelect = [
+                    DB::raw("sum(case time_range when '<5' then user_count end) as '<5'"),
+                    DB::raw("sum(case time_range when '5-10' then user_count end) as '5-10'"),
+                    DB::raw("sum(case time_range when '10-20' then user_count end) as '10-20'"),
+                    DB::raw("sum(case time_range when '20-30' then user_count end) as '20-30'"),
+                    DB::raw("sum(case time_range when '30-40' then user_count end) as '30-40'"),
+                    DB::raw("sum(case time_range when '40-50' then user_count end) as '40-50'"),
+                    DB::raw("sum(case time_range when '50-60' then user_count end) as '50-60'"),
+                    DB::raw("sum(case time_range when '60+' then user_count end) as '60+'"),
+                    DB::raw("sum(case time_range when 'Unrecorded' then user_count end) as 'Unrecorded'")
+                ];
 
-            $activityList  = [];
-            OrbitInput::get('detail_report', function($u) use (&$activityList, $activities) {
-                $activityList = $activities->get();
-            });
+                $toSelect = array_merge($defaultSelect, ['created_at_date']);
+                $activityReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                    ->mergeBindings($_activities)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $summaryReport  = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                    ->mergeBindings($_activities)
+                    ->select($defaultSelect);
+
+                $_activityReport = clone $activityReport;
+
+                $activityReport->take($take)->skip($skip);
+
+                $totalReport = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
+                    ->mergeBindings($_activityReport);
+
+                $activityList  = $activityReport->get();
+                $activityTotal = $totalReport->count();
+                $summary       = $summaryReport->first();
+            } else {
+                $averageTimeConnect = $activities->first()->average_time_connect;
+                $activityTotal = 0;
+                $activityList  = NULL;
+            }
 
             $data = new stdclass();
-            $data->total_records = count($activityList);
+            $data->total_records    = $activityTotal;
             $data->returned_records = count($activityList);
-            $data->records = $activityList;
+            $data->records          = $activityList;
 
-            if (count($activityList) === 0) {
-                $data->average_time_connect = $averageQuery->first()->average_time_connect;
-                $data->records = NULL;
+            if ($averageTimeConnect) {
+                $data->average_time_connect = $averageTimeConnect;
+            } else {
+                $data->summary = $summary;
             }
 
             $this->response->data = $data;
