@@ -9,7 +9,7 @@ use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 use Faker\Factory as Faker;
 
-class getUserByGenderTest extends TestCase
+class getUserByAgeTest extends TestCase
 {
     private $baseUrl = '/api/v1/dashboard/user-by-age';
 
