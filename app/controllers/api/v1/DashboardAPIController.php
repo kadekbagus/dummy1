@@ -75,7 +75,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopproduct.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -84,7 +84,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -107,6 +107,19 @@ class DashboardAPIController extends ControllerAPI
                         })
                         ->groupBy('products.product_id');
 
+
+            $isReport = false;
+            $topNames = clone $products;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $products, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $products->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $products->groupBy(['products.product_id', 'created_at_date']);
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($products) {
                $products->whereIn('products.merchant_id', $this->getArray($merchantId));
@@ -138,14 +151,58 @@ class DashboardAPIController extends ControllerAPI
                     $take = $maxRecord;
                 }
             });
-            $products->take($take);
 
-            $productTotal = RecordCounter::create($_products)->count();
-            $productList = $products->get();
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            if ($isReport)
+            {
+
+                $productNames = $topNames->take($take)->get();
+                $defaultSelect = [];
+
+                foreach ($productNames as $product)
+                {
+                    array_push($defaultSelect, DB::raw("sum(case product_id when {$product->product_id} then view_count end) as '{$product->product_name}'"));
+                }
+
+                $toSelect  = array_merge($defaultSelect, ['created_at_date']);
+
+                $productReportQuery = $_products->getQuery();
+                $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                    ->mergeBindings($productReportQuery)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $_productReport = clone $productReport;
+
+                $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
+                    ->mergeBindings($_productReport);
+
+                $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                    ->mergeBindings($productReportQuery)
+                    ->select($defaultSelect);
+
+                $productTotal = $totalReport->count();
+                $productList  = $productReport->get();
+                $summary      = $summaryReport->first();
+            } else {
+                $products->take($take);
+                $productTotal = RecordCounter::create($_products)->count();
+                $productList = $products->get();
+                $summary    = null;
+            }
 
             $data = new stdclass();
             $data->total_records = $productTotal;
             $data->returned_records = count($productList);
+            $data->summary = $summary;
             $data->records = $productList;
 
             if ($productTotal === 0) {
@@ -265,7 +322,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopproductfamily.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -274,7 +331,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -469,7 +526,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopproductfamily.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -478,7 +535,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -712,7 +769,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettopwidgetclick.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -721,7 +778,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -952,7 +1009,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserloginbydate.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -961,7 +1018,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1172,7 +1229,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserbygender.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1181,7 +1238,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1415,7 +1472,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserbyage.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1424,7 +1481,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1668,7 +1725,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.gettimeduserlogin.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1677,7 +1734,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
@@ -1924,7 +1981,7 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getuserconnecttime.after.validation', array($this, $validator));
 
             // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
             if ($maxRecord <= 0) {
                 // Fallback
                 $maxRecord = (int) Config::get('orbit.pagination.max_record');
@@ -1933,7 +1990,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
             // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
             if ($perPage <= 0) {
                 // Fallback
                 $perPage = (int) Config::get('orbit.pagination.per_page');
