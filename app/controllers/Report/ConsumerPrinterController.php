@@ -49,6 +49,7 @@ class ConsumerPrinterController extends DataPrinterController
                     ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                     ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
                     ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
+                    ->with(array('userDetail', 'userDetail.lastVisitedShop'))
                     ->excludeDeleted('users');
 
         //$users = User::excludeDeleted('users');
