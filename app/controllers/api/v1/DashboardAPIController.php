@@ -101,7 +101,7 @@ class DashboardAPIController extends ControllerAPI
                             "products.product_name",
                             DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                         )
-                        ->leftJoin("activities", function ($join) {
+                        ->join("activities", function ($join) {
                             $join->on('products.product_id', '=', 'activities.product_id');
                             $join->where('activities.activity_name', '=', 'view_product');
                         })
@@ -183,7 +183,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_productReport = clone $productReport;
 
-                $productReport->take($take)->skip($skip);
+                $productReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
                     ->mergeBindings($_productReport);
@@ -630,7 +630,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_categoryReport = clone $categoryReport;
 
-                $categoryReport->take($take)->skip($skip);
+                $categoryReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $summaryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
                     ->mergeBindings($categoryReportQuery)
@@ -873,7 +873,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_widgetReport = clone $widgetReport;
 
-                $widgetReport->take($take)->skip($skip);
+                $widgetReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $summaryReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
                     ->mergeBindings($widgetReportQuery)
@@ -1336,7 +1336,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_userReport = clone $userReport;
 
-                $userReport->take($take)->skip($skip);
+                $userReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
@@ -1589,7 +1589,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_userReport   = clone $userReport;
 
-                $userReport->take($take)->skip($skip);
+                $userReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
@@ -1845,7 +1845,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_activityReport = clone $activityReport;
 
-                $activityReport->take($take)->skip($skip);
+                $activityReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
                     ->mergeBindings($activityReportQuery)
@@ -2116,7 +2116,7 @@ class DashboardAPIController extends ControllerAPI
 
                 $_activityReport = clone $activityReport;
 
-                $activityReport->take($take)->skip($skip);
+                $activityReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $totalReport = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
                     ->mergeBindings($_activityReport);
