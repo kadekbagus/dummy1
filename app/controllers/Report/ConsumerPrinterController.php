@@ -279,7 +279,7 @@ class ConsumerPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Consumer', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Relationship Status', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Spoken Language', 'Average Annual Income', 'Average Shopping Spent', 'Personal Interest');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Relationship Status', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Preferred Language', 'Annual Income (IDR)', 'Average Monthly Shopping Spent', 'Personal Interest');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
@@ -291,11 +291,15 @@ class ConsumerPrinterController extends DataPrinterController
                     $last_visit_date = $this->printLastVisitDate($row);
                     $last_spent_amount = $this->printLastSpentAmount($row);
                     $preferred_language = $this->printLanguage($row);
+                    $occupation = $this->printOccupation($row);
+                    $sector_of_activity = $this->printSectorOfActivity($row);
+                    $avg_annual_income = $this->printAverageAnnualIncome($row);
+                    $avg_monthly_spent = $this->printAverageShopping($row);
 
                     printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
                         '', $row->user_email, $gender, $address, $row->merchant_name, $last_visit_date, $last_spent_amount, $customer_since,
-                        $row->user_firstname, $row->user_lastname, $birthdate, $row->relationship_status, $row->number_of_children, $row->occupation, $row->sector_of_activity,
-                        $row->last_education_degree, $preferred_language, number_format($row->avg_annual_income1), number_format($row->avg_monthly_spent1), $row->personal_interest_value);
+                        $row->user_firstname, $row->user_lastname, $birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
+                        $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_value);
                 }
                 break;
 
@@ -464,6 +468,234 @@ class ConsumerPrinterController extends DataPrinterController
             $result = number_format($consumer->last_spent_amount, 2);
         } else {
             $result = number_format($consumer->last_spent_amount);
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Print Occupation friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printOccupation($consumer)
+    {
+        $occupation = $consumer->occupation;
+        switch ($occupation) {
+            case 'p':
+                $result = 'Part-Time';
+                break;
+
+            case 'f':
+                $result = 'Full Time Employee';
+                break;
+
+            case 'v':
+                $result = 'Voluntary';
+                break;
+            
+            case 'u':
+                $result = 'Unemployed';
+                break;
+
+            case 'r':
+                $result = 'Retired';
+                break;
+
+            case 's':
+                $result = 'Student';
+                break;
+
+            default:
+                $result = $occupation;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Print Sector of Activity friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printSectorOfActivity($consumer)
+    {
+        $sector_of_activity = $consumer->sector_of_activity;
+        switch ($sector_of_activity) {
+            case 'ma':
+                $result = 'Management';
+                break;
+
+            case 'bf':
+                $result = 'Business and Financial Operations';
+                break;
+
+            case 'cm':
+                $result = 'Computer and Mathematical';
+                break;
+            
+            case 'ae':
+                $result = 'Architecture and Engineering';
+                break;
+
+            case 'lp':
+                $result = 'Life, Physical, and Social Science';
+                break;
+
+            case 'cs':
+                $result = 'Community and Social Service';
+                break;
+
+            case 'lg':
+                $result = 'Legal';
+                break;
+
+            case 'et':
+                $result = 'Education, Training, and Library';
+                break;
+
+            case 'ad':
+                $result = 'Arts, Design, Entertainment, Sports, and Media';
+                break;
+            
+            case 'hp':
+                $result = 'Healthcare Practitioners and Technical';
+                break;
+
+            case 'hs':
+                $result = 'Healthcare Support';
+                break;
+
+            case 'ps':
+                $result = 'Protective Service';
+                break;
+
+            case 'fp':
+                $result = 'Food Preparation and Serving Related';
+                break;
+
+            case 'bg':
+                $result = 'Building and Grounds Cleaning and Maintenance';
+                break;
+
+            case 'pc':
+                $result = 'Personal Care and Services';
+                break;
+            
+            case 'sr':
+                $result = 'Sales and Related';
+                break;
+
+            case 'oa':
+                $result = 'Office and Administrative Support';
+                break;
+
+            case 'ff':
+                $result = 'Farming, Fishing, and Forestry';
+                break;
+
+            case 'ce':
+                $result = 'Construction and Extraction';
+                break;
+
+            case 'im':
+                $result = 'Installation, Maintenance, and Repair';
+                break;
+
+            case 'pr':
+                $result = 'Production';
+                break;
+
+            case 'tm':
+                $result = 'Transportation and Material Moving';
+                break;
+
+            default:
+                $result = $sector_of_activity;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Print Average Annual Income friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printAverageAnnualIncome($consumer)
+    {
+        $avg_income = $consumer->avg_annual_income1;
+        switch ($avg_income) {
+            case ($avg_income <= 20000000 ):
+                $result = '< 20.000.000';
+                break;
+
+            case ($avg_income > 20000000 && $avg_income <= 50000000):
+                $result = '20.000.000 - 50.000.000';
+                break;
+
+            case ($avg_income > 50000000 && $avg_income <= 100000000):
+                $result = '50.000.000 - 100.000.000';
+                break;
+            
+            case ($avg_income > 100000000 && $avg_income <= 200000000):
+                $result = '100.000.000 - 200.000.000';
+                break;
+
+            case ($avg_income > 200000000):
+                $result = '200.000.000 +++';
+                break;
+
+            default:
+                $result = $avg_income;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Print Average Shopping friendly name.
+     *
+     * @param $consumer $consumer
+     * @return string
+     */
+    public function printAverageShopping($consumer)
+    {
+        $avg_monthly_spent = $consumer->avg_monthly_spent1;
+        switch ($avg_monthly_spent) {
+            case ($avg_monthly_spent <= 200000 ):
+                $result = '< 200.000';
+                break;
+
+            case ($avg_monthly_spent > 200000 && $avg_monthly_spent <= 500000):
+                $result = '200.000 - 500.000';
+                break;
+
+            case ($avg_monthly_spent > 500000 && $avg_monthly_spent <= 1000000):
+                $result = '500.000 - 1.000.000';
+                break;
+            
+            case ($avg_monthly_spent > 1000000 && $avg_monthly_spent <= 2000000):
+                $result = '1.000.000 - 2.000.000';
+                break;
+
+            case ($avg_monthly_spent > 2000000 && $avg_monthly_spent <= 5000000):
+                $result = '2.000.000 - 5.000.000';
+                break;
+
+            case ($avg_monthly_spent > 5000000):
+                $result = '5.000.000 +++';
+                break;
+
+            default:
+                $result = $avg_monthly_spent;
         }
 
         return $result;
