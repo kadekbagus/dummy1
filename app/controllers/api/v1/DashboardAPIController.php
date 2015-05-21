@@ -164,7 +164,7 @@ class DashboardAPIController extends ControllerAPI
             if ($isReport)
             {
 
-                $productNames = $topNames->take($take)->get();
+                $productNames = $topNames->take(20)->get();
                 $defaultSelect = [];
 
                 foreach ($productNames as $product)
@@ -183,6 +183,8 @@ class DashboardAPIController extends ControllerAPI
 
                 $_productReport = clone $productReport;
 
+                $productReport->take($take)->skip($skip);
+
                 $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
                     ->mergeBindings($_productReport);
 
@@ -194,7 +196,7 @@ class DashboardAPIController extends ControllerAPI
                 $productList  = $productReport->get();
                 $summary      = $summaryReport->first();
             } else {
-                $products->take($take);
+                $products->take(20);
                 $productTotal = RecordCounter::create($_products)->count();
                 $productList = $products->get();
                 $summary    = null;
