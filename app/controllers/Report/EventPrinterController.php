@@ -20,11 +20,11 @@ class EventPrinterController extends DataPrinterController
         $now = date('Y-m-d H:i:s');
 
         // Builder object
-        $events = EventModel::
-                            select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
+        $events = EventModel::select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
                             ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
                             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
-                            ->groupBy('events.event_id');
+                            ->groupBy('events.event_id')
+                            ->excludeDeleted('events');
 
         // Filter event by Ids
         OrbitInput::get('event_id', function($eventIds) use ($events)
@@ -82,19 +82,15 @@ class EventPrinterController extends DataPrinterController
         // Filter event by end_date for begin
         OrbitInput::get('expiration_begin_date', function($begindate) use ($events)
         {
-            $events->where(function ($q) use ($begindate) {
-                $q->where('events.end_date', '>=', $begindate)
-                  ->orWhere('events.is_permanent', 'Y');
-            });
+            $events->where('events.end_date', '>=', $begindate)
+                   ->where('events.is_permanent', 'N');
         });
 
         // Filter event by end_date for end
         OrbitInput::get('expiration_end_date', function($enddate) use ($events)
         {
-            $events->where(function ($q) use ($enddate) {
-                $q->where('events.end_date', '<=', $enddate)
-                  ->orWhere('events.is_permanent', 'Y');
-            });
+            $events->where('events.end_date', '<=', $enddate)
+                   ->where('events.is_permanent', 'N');
         });
 
         // Filter event by is permanent
@@ -168,6 +164,8 @@ class EventPrinterController extends DataPrinterController
             }
         });
 
+        // Clone the query builder which still does not include the take,
+        // skip, and order by
         $_events = clone $events;
 
         // Default sort by
@@ -228,7 +226,8 @@ class EventPrinterController extends DataPrinterController
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $row->widget_object_type, $row->status);
+                    $event_link = $this->printEventLink($row);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $event_link, $row->status);
                 }
                 break;
 
@@ -245,12 +244,11 @@ class EventPrinterController extends DataPrinterController
     /**
      * Print expiration date type friendly name.
      *
-     * @param $promotion $promotion
+     * @param $event $event
      * @return string
      */
     public function printExpirationDate($event)
     {
-        $return = '';
         switch ($event->is_permanent) {
             case 'Y':
                 $result = 'Permanent';
@@ -267,4 +265,18 @@ class EventPrinterController extends DataPrinterController
 
         return $result;
     }
+
+
+    /**
+     * Print event link friendly name.
+     *
+     * @param $event $event
+     * @return string
+     */
+    public function printEventLink($event)
+    {
+        $result = str_replace("_"," ",$event->widget_object_type); 
+        return $result;
+    }
+
 }

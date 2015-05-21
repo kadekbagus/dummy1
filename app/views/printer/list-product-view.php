@@ -135,7 +135,7 @@
                 <td><?php echo ($row->product_code); ?></td>
                 <td><?php echo ($row->upc_code); ?></td>
                 <td><?php echo ($row->product_name); ?></td>
-                <td><?php echo (number_format($row->price)); ?></td>
+                <td><?php echo $me->printPrice($row); ?></td>
                 <td><?php echo ($row->retailer_list); ?></td>
                 <td><?php echo ($row->is_new); ?></td>
                 <td><?php echo ($row->status); ?></td>
