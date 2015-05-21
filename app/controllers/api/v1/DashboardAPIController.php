@@ -2009,52 +2009,59 @@ class DashboardAPIController extends ControllerAPI
                             max(case activity_name when 'logout_ok' then created_at end)
                         ) as minute_connect
                     "),
-                    DB::raw('date(created_at) as activity_date'),
+                    DB::raw('date(created_at) as created_at_date'),
                     DB::raw('count(distinct user_id) as user_count')
                 )
-                ->groupBy(['user_id', 'activity_date']);
+                ->groupBy(['user_id', 'created_at_date']);
 
 
             $activities = DB::table(DB::raw("({$userActivities->toSql()}) as {$tablePrefix}timed"))
                             ->select(
-                                DB::raw("
+                                DB::raw("avg(
                                     case
-                                        when {$tablePrefix}timed.minute_connect < 5 then '<5'
-                                        when {$tablePrefix}timed.minute_connect < 10 then '5-10'
-                                        when {$tablePrefix}timed.minute_connect < 20 then '10-20'
-                                        when {$tablePrefix}timed.minute_connect < 30 then '20-30'
-                                        when {$tablePrefix}timed.minute_connect < 40 then '30-40'
-                                        when {$tablePrefix}timed.minute_connect < 50 then '40-50'
-                                        when {$tablePrefix}timed.minute_connect < 60 then '50-60'
-                                        when {$tablePrefix}timed.minute_connect >= 60 then '60+'
-                                        else 'Unrecorded'
-                                    end as connect_time_range
-                                "),
-                                DB::raw("sum(ifnull({$tablePrefix}timed.user_count, 0)) as total_user")
+                                        when {$tablePrefix}timed.minute_connect < 60 then {$tablePrefix}timed.minute_connect
+                                        else 60
+                                    end) as average_time_connect"
+                                )
                             );
 
+            $isReport = false;
+            OrbitInput::get('is_report', function ($_isReport) use ($activities, &$isReport, $tablePrefix) {
+                if ($_isReport) {
+                    $activities->select(
+                        DB::raw("
+                            case
+                                  when minute_connect < 5 then '<5'
+                                  when minute_connect < 10 then '5-10'
+                                  when minute_connect < 20 then '10-20'
+                                  when minute_connect < 30 then '20-30'
+                                  when minute_connect < 40 then '30-40'
+                                  when minute_connect < 50 then '40-50'
+                                  when minute_connect < 60 then '50-60'
+                                  when minute_connect >= 60 then '60+'
+                                  else 'Unrecorded'
+                            end as time_range"),
+                        DB::raw("sum(ifnull(user_count, 0)) as user_count"),
+                        "created_at_date"
+                    );
 
-            $averageQuery = clone $activities;
+                    $activities->groupBy(['time_range', 'created_at_date']);
 
-            $activities->groupBy('connect_time_range');
+                    $isReport = true;
+                }
+            });
 
             OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
-                $activities->where('timed.activity_date', '>=', $beginDate);
+                $activities->where('timed.created_at_date', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($activities) {
-                $activities->where('timed.activity_date', '<=', $endDate);
+                $activities->where('timed.created_at_date', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
             // skip, and order by
             $_activities = clone $activities;
-
-            $averageQuery->select(
-                DB::raw("avg(case when {$tablePrefix}timed.minute_connect < 60 then {$tablePrefix}timed.minute_connect else 60 end) as average_time_connect")
-            );
-
-            $activities->orderBy('total_user', 'desc');
 
             // Get the take args
             $take = $perPage;
@@ -2078,21 +2085,57 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
-            $activities->take($take);
+            $averageTimeConnect = false;
+            $summary = null;
+            if ($isReport)
+            {
+                $defaultSelect = [
+                    DB::raw("sum(case time_range when '<5' then user_count end) as '<5'"),
+                    DB::raw("sum(case time_range when '5-10' then user_count end) as '5-10'"),
+                    DB::raw("sum(case time_range when '10-20' then user_count end) as '10-20'"),
+                    DB::raw("sum(case time_range when '20-30' then user_count end) as '20-30'"),
+                    DB::raw("sum(case time_range when '30-40' then user_count end) as '30-40'"),
+                    DB::raw("sum(case time_range when '40-50' then user_count end) as '40-50'"),
+                    DB::raw("sum(case time_range when '50-60' then user_count end) as '50-60'"),
+                    DB::raw("sum(case time_range when '60+' then user_count end) as '60+'"),
+                    DB::raw("sum(case time_range when 'Unrecorded' then user_count end) as 'Unrecorded'")
+                ];
 
-            $activityList  = [];
-            OrbitInput::get('detail_report', function($u) use (&$activityList, $activities) {
-                $activityList = $activities->get();
-            });
+                $toSelect = array_merge($defaultSelect, ['created_at_date']);
+                $activityReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                    ->mergeBindings($_activities)
+                    ->select($toSelect)
+                    ->groupBy('created_at_date');
+
+                $summaryReport  = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                    ->mergeBindings($_activities)
+                    ->select($defaultSelect);
+
+                $_activityReport = clone $activityReport;
+
+                $activityReport->take($take)->skip($skip);
+
+                $totalReport = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
+                    ->mergeBindings($_activityReport);
+
+                $activityList  = $activityReport->get();
+                $activityTotal = $totalReport->count();
+                $summary       = $summaryReport->first();
+            } else {
+                $averageTimeConnect = $activities->first()->average_time_connect;
+                $activityTotal = 0;
+                $activityList  = NULL;
+            }
 
             $data = new stdclass();
-            $data->total_records = count($activityList);
+            $data->total_records    = $activityTotal;
             $data->returned_records = count($activityList);
-            $data->records = $activityList;
+            $data->records          = $activityList;
 
-            if (count($activityList) === 0) {
-                $data->average_time_connect = $averageQuery->first()->average_time_connect;
-                $data->records = NULL;
+            if ($averageTimeConnect) {
+                $data->average_time_connect = $averageTimeConnect;
+            } else {
+                $data->summary = $summary;
             }
 
             $this->response->data = $data;
