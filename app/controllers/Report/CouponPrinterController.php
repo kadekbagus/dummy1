@@ -102,19 +102,15 @@ class CouponPrinterController extends DataPrinterController
         // Filter coupon by end_date for begin
         OrbitInput::get('expiration_begin_date', function($begindate) use ($coupons)
         {
-            $coupons->where(function ($q) use ($begindate) {
-                $q->where('promotions.end_date', '>=', $begindate)
-                  ->orWhere('promotions.is_permanent', 'Y');
-            });
+            $coupons->where('promotions.end_date', '>=', $begindate)
+                    ->where('promotions.is_permanent', 'N');
         });
 
         // Filter coupon by end_date for end
         OrbitInput::get('expiration_end_date', function($enddate) use ($coupons)
         {
-            $coupons->where(function ($q) use ($enddate) {
-                $q->where('promotions.end_date', '<=', $enddate)
-                  ->orWhere('promotions.is_permanent', 'Y');
-            });
+            $coupons->where('promotions.end_date', '<=', $enddate)
+                    ->where('promotions.is_permanent', 'N');
         });
 
         // Filter coupon by is permanent
@@ -284,6 +280,8 @@ class CouponPrinterController extends DataPrinterController
             }
         });
 
+        // Clone the query builder which still does not include the take,
+        // skip, and order by
         $_coupons = clone $coupons;
 
         // Default sort by
