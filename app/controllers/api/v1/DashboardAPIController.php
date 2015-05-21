@@ -546,11 +546,11 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $categories = Category::select(
+            $categories = Activity::select(
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
-                ->leftJoin("activities", function ($join) {
+                ->leftJoin("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
                     $join->where('activities.activity_name', '=', 'view_category');
                 })
@@ -789,11 +789,11 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $widgets = Widget::select(
+            $widgets = Activity::select(
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
-                ->leftJoin('activities', function ($join) {
+                ->leftJoin('widgets', function ($join) {
                     $join->on('activities.object_id', '=', 'widgets.widget_id');
                     $join->where('activities.activity_name', '=', 'widget_click');
                 })
@@ -806,7 +806,7 @@ class DashboardAPIController extends ControllerAPI
                     $widgets->addSelect(
                         DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                     );
-                    $widgets->groupBy(['widgets.widget_type', 'created_at_date']);
+                    $widgets->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -1029,13 +1029,13 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = User::select(
+            $users = Activity::select(
                 DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
                 DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
                 DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
                 DB::raw("count(distinct new_users.user_id) as new_user_count")
             )
-                ->leftJoin('activities', function ($join) {
+                ->leftJoin('users', function ($join) {
                     $join->on('activities.user_id', '=', 'users.user_id');
                     $join->where('activities.activity_name', '=', 'login_ok');
                 })
