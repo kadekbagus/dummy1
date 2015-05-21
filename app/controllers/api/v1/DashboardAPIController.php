@@ -116,7 +116,7 @@ class DashboardAPIController extends ControllerAPI
                     $products->addSelect(
                         DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                     );
-                    $products->groupBy(['products.product_id', 'created_at_date']);
+                    $products->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -164,21 +164,26 @@ class DashboardAPIController extends ControllerAPI
             if ($isReport)
             {
 
-                $productNames = $topNames->take(20)->get();
+                $productNames = $topNames->orderBy('view_count', 'desc')->take(20)->get();
                 $defaultSelect = [];
+                $productIds    = [];
 
                 foreach ($productNames as $product)
                 {
+                    array_push($productIds, $product->product_id);
                     $name = htmlspecialchars($product->product_name, ENT_QUOTES);
                     array_push($defaultSelect, DB::raw("sum(case product_id when {$product->product_id} then view_count end) as '{$name}'"));
                 }
 
                 $toSelect  = array_merge($defaultSelect, ['created_at_date']);
 
+                $_products->whereIn('activities.product_id', $productIds);
+
                 $productReportQuery = $_products->getQuery();
                 $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
                     ->mergeBindings($productReportQuery)
                     ->select($toSelect)
+                    ->whereIn('product_id', $productIds)
                     ->groupBy('created_at_date');
 
                 $_productReport = clone $productReport;
