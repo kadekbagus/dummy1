@@ -159,13 +159,19 @@ class ProductAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            if ($status == 'active') {
+            if($status == 'active') {
                 $validator = Validator::make(
                     array(
-                        'retailer_ids'         => $retailer_ids
+                        'price'             => $price,
+                        'merchant_tax_1'    => $merchant_tax_id1,
+                        'sku'               => $product_code,
+                        'retailer_ids'      => $retailer_ids,
                     ),
                     array(
-                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                        'price'             => 'required',
+                        'merchant_tax_1'    => 'required',
+                        'sku'               => 'required',
+                        'retailer_ids'      => 'orbit.req.link_to_retailer',
                     )
                 );
 
@@ -1323,23 +1329,19 @@ class ProductAPIController extends ControllerAPI
                     'category_id4'      => $category_id4,
                     'category_id5'      => $category_id5,
                     'short_description' => $short_description,
-                    'price'             => $price,
-                    'merchant_tax_1'    => $merchant_tax_id1,
                 ),
                 array(
                     'merchant_id'           => 'required|numeric|orbit.empty.merchant',
                     'product_name'          => 'required',
                     'status'                => 'required|orbit.empty.product_status',
                     'upc_code'              => 'orbit.exists.product.upc_code',
-                    'sku'                   => 'required|orbit.exists.product.sku_code',
+                    'sku'                   => 'orbit.exists.product.sku_code',
                     'category_id1'          => 'numeric|orbit.empty.category_id1',
                     'category_id2'          => 'numeric|orbit.empty.category_id2',
                     'category_id3'          => 'numeric|orbit.empty.category_id3',
                     'category_id4'          => 'numeric|orbit.empty.category_id4',
                     'category_id5'          => 'numeric|orbit.empty.category_id5',
                     'short_description'     => 'required',
-                    'price'                 => 'required',
-                    'merchant_tax_1'        => 'required',
                 ),
                 array(
                     // Duplicate UPC error message
@@ -1365,10 +1367,16 @@ class ProductAPIController extends ControllerAPI
             if($status == 'active') {
                 $validator = Validator::make(
                     array(
-                        'retailer_ids'         => $retailer_ids
+                        'price'             => $price,
+                        'merchant_tax_1'    => $merchant_tax_id1,
+                        'sku'               => $sku,
+                        'retailer_ids'      => $retailer_ids,
                     ),
                     array(
-                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                        'price'             => 'required',
+                        'merchant_tax_1'    => 'required',
+                        'sku'               => 'required',
+                        'retailer_ids'      => 'orbit.req.link_to_retailer',
                     )
                 );
 
