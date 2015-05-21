@@ -169,7 +169,8 @@ class DashboardAPIController extends ControllerAPI
 
                 foreach ($productNames as $product)
                 {
-                    array_push($defaultSelect, DB::raw("sum(case product_id when {$product->product_id} then view_count end) as '{$product->product_name}'"));
+                    $name = htmlspecialchars($product->product_name, ENT_QUOTES);
+                    array_push($defaultSelect, DB::raw("sum(case product_id when {$product->product_id} then view_count end) as '{$name}'"));
                 }
 
                 $toSelect  = array_merge($defaultSelect, ['created_at_date']);

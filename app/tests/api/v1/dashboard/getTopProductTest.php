@@ -19,7 +19,14 @@ class getTopProductTest extends TestCase
     public static function prepareDatabase()
     {
         $merchant = Factory::create('Merchant');
-        $products = Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+        Factory::times(5)->create('Product', ['merchant_id' => $merchant->merchant_id]);
+        Factory::create('Product', [
+            'merchant_id' => $merchant->merchant_id,
+            'product_name' => 'd\'quote d\'eh'
+        ]);
+
+        $products = Product::all();
+
         $faker    = Faker::create();
 
         $i=1;
