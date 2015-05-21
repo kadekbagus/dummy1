@@ -28,11 +28,11 @@ class getUserConnectTimeTest extends TestCase
         $id=1;
         foreach ($users as $user)
         {
-            $loginTime = $faker->dateTimeBetween('-1hours', '-2minutes')->format('Y-m-d H:i:s');
-            $logoutTime= $faker->dateTimeBetween('+2minutes', '+1hours')->format('Y-m-d H:i:s');
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
+                $loginTime = $faker->dateTimeBetween("-{$j}days -1hours", "-{$j}days -2minutes")->format('Y-m-d H:i:s');
+                $logoutTime= $faker->dateTimeBetween("-{$j}days +2minutes", "-{$j}days +1hours")->format('Y-m-d H:i:s');
                 $insert .= "
                     ({$id},'login_ok', {$user->user_id}, '{$loginTime}'),";
                 $id++;
@@ -80,7 +80,7 @@ class getUserConnectTimeTest extends TestCase
         $this->assertSame(Status::OK_MSG, $response->message);
 
         $response = $makeRequest([
-            'detail_report' => 1
+            'is_report' => 1
         ]);
 
         $this->assertResponseOk();
@@ -122,6 +122,25 @@ class getUserConnectTimeTest extends TestCase
 
         $response = $makeRequest([
             'end_date' => date('Y-m-d H:i:s', time())
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'begin_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+
+        $response = $makeRequest([
+            'end_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
         ]);
 
         $this->assertResponseOk();
