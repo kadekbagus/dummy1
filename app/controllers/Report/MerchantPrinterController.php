@@ -245,6 +245,18 @@ class MerchantPrinterController extends DataPrinterController
             $merchants->whereIn('merchants.pos_language', $pos_language);
         });
 
+        // Filter merchant by start_date_activity for begin_date
+        OrbitInput::get('start_activity_begin_date', function($begindate) use ($merchants)
+        {
+            $merchants->where('merchants.start_date_activity', '>=', $begindate);
+        });
+
+        // Filter merchant by start_date_activity for end_date
+        OrbitInput::get('start_activity_end_date', function($enddate) use ($merchants)
+        {
+            $merchants->where('merchants.start_date_activity', '<=', $enddate);
+        });
+
         // Add new relation based on request
         OrbitInput::get('with', function ($with) use ($merchants) {
             $with = (array) $with;
