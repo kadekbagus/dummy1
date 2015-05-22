@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "93dfe9d11652aeba99229ac1c53ca8b5",
+    "hash": "f686a12a702a08c6c5f9c12f274f0207",
     "packages": [
         {
             "name": "barryvdh/laravel-debugbar",
@@ -450,16 +450,16 @@
         },
         {
             "name": "maatwebsite/excel",
-            "version": "v1.3.0",
+            "version": "v1.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Maatwebsite/Laravel-Excel.git",
-                "reference": "b108babda9f0375b5deb9abbd2252044b84a0ddd"
+                "reference": "c3fbdc9d7f8a02138b4cf05d34a2a0a2d8abfc93"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Maatwebsite/Laravel-Excel/zipball/b108babda9f0375b5deb9abbd2252044b84a0ddd",
-                "reference": "b108babda9f0375b5deb9abbd2252044b84a0ddd",
+                "url": "https://api.github.com/repos/Maatwebsite/Laravel-Excel/zipball/c3fbdc9d7f8a02138b4cf05d34a2a0a2d8abfc93",
+                "reference": "c3fbdc9d7f8a02138b4cf05d34a2a0a2d8abfc93",
                 "shasum": ""
             },
             "require": {
@@ -513,7 +513,7 @@
                 "import",
                 "laravel"
             ],
-            "time": "2015-01-30 15:39:03"
+            "time": "2015-05-02 18:59:31"
         },
         {
             "name": "maximebf/debugbar",
