@@ -48,12 +48,8 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 })
                 ->leftJoin("products", function ($join) {
                     $join->on("transaction_details.product_id", "=", "products.product_id");
-                });
-
-
-            OrbitInput::get('user_id', function($userId) use ($transactions) {
-                $transactions->whereIn('transactions.customer_id', (array)$userId);
-            });
+                })
+                ->where('transactions.customer_id', '=', $user->user_id);
 
             OrbitInput::get('retailer_ids', function($retailerIds) use ($transactions) {
                 $transactions->whereIn('transactions.retailer_id', $retailerIds);
@@ -137,7 +133,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                     printf("%s,%s,%s,%s,%s,%s", 'No.', 'Product Name', 'Quantity', 'Store Name', 'Unit Price', 'Purchase Date');
 
                     while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
-                        printf("\n%s,%s,%s,%s,%s,%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, $row->price, $formatDate($row->created_at));
+                        printf("\n%s,%s,%s,%s,%s,%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, number_format($row->price), $formatDate($row->created_at));
                     }
                     break;
                 case 'print':
