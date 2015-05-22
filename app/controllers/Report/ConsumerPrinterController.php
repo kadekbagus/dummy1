@@ -44,7 +44,7 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.avg_annual_income1 as avg_annual_income1',
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
                         'user_details.preferred_language as preferred_language',
-                        'personal_interests.personal_interest_value as personal_interest_value')
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ' , ') as personal_interest_list"))
                     ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                     ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                     ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
@@ -298,10 +298,10 @@ class ConsumerPrinterController extends DataPrinterController
                     $avg_annual_income = $this->printAverageAnnualIncome($row);
                     $avg_monthly_spent = $this->printAverageShopping($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
                         '', $row->user_email, $gender, $address, $row->merchant_name, $last_visit_date, $last_spent_amount, $customer_since,
                         $row->user_firstname, $row->user_lastname, $birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
-                        $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_value);
+                        $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_list);
                 }
                 break;
 
