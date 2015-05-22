@@ -206,7 +206,7 @@ class SessionFile implements GenericInterface
         if (! is_writable($path))
         {
             $code = Session::ERR_SAVE_ERROR;
-            throw new Exception(sprintf('Could not write to session file %s.', $fname), $code);
+            throw new Exception(sprintf('Could not write to session file %s.', $path), $code);
         }
 
         $this->touch($sessionData);

@@ -122,15 +122,15 @@
     <table style="width:100%">
         <thead>
             <th style="text-align:left;">Name </th>
-            <th style="text-align:left;">Login ID</th>
             <th style="text-align:left;">Position</th>
+            <th style="text-align:left;">Login ID</th>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
                 <td><?php echo $me->printFullName($row); ?></td>
-                <td><?php echo $row->username; ?></td>
-                <td><?php //echo $me->printExpirationDate($row); ?></td>
+                <td><?php echo ($row->position); ?></td>
+                <td><?php echo ($row->username); ?></td>
             </tr>
         <?php endwhile; ?>
         </tbody>

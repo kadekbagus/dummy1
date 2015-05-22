@@ -1,7 +1,7 @@
 <header class="mobile-ci ci-header header-container">
     <div class="header-buttons-container">
         <form id="qrform2" action="#" method="post" enctype="multipart/form-data">
-            <div style='height: 0px;width:0px; overflow:hidden;'><input id="get_camera2" name="qrphoto2" type="file" accept="image/*;capture=camera" value="camera" /></div>
+            <div style='height: 0px;width:0px; overflow:hidden;'><input id="get_camera2" name="qrphoto2" type="file" accept="image/*" capture/></div>
             <canvas width="320" height="240" id="picture2" class="hide"></canvas>
         </form>
         <ul class="buttons-list right">

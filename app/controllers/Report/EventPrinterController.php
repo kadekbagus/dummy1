@@ -20,8 +20,11 @@ class EventPrinterController extends DataPrinterController
         $now = date('Y-m-d H:i:s');
 
         // Builder object
-        $events = EventModel::excludeDeleted()
-                            ->allowedForViewOnly($user);
+        $events = EventModel::select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
+                            ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
+                            ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
+                            ->groupBy('events.event_id')
+                            ->excludeDeleted('events');
 
         // Filter event by Ids
         OrbitInput::get('event_id', function($eventIds) use ($events)
@@ -76,6 +79,20 @@ class EventPrinterController extends DataPrinterController
             $events->where('events.end_date', '>=', $enddate);
         });
 
+        // Filter event by end_date for begin
+        OrbitInput::get('expiration_begin_date', function($begindate) use ($events)
+        {
+            $events->where('events.end_date', '>=', $begindate)
+                   ->where('events.is_permanent', 'N');
+        });
+
+        // Filter event by end_date for end
+        OrbitInput::get('expiration_end_date', function($enddate) use ($events)
+        {
+            $events->where('events.end_date', '<=', $enddate)
+                   ->where('events.is_permanent', 'N');
+        });
+
         // Filter event by is permanent
         OrbitInput::get('is_permanent', function ($ispermanent) use ($events) {
             $events->whereIn('events.is_permanent', $ispermanent);
@@ -128,7 +145,58 @@ class EventPrinterController extends DataPrinterController
             });
         });
 
+        // Add new relation based on request
+        OrbitInput::get('with', function ($with) use ($events) {
+            $with = (array) $with;
+
+            foreach ($with as $relation) {
+                if ($relation === 'retailers') {
+                    $events->with('retailers');
+                } elseif ($relation === 'product') {
+                    $events->with('linkproduct');
+                } elseif ($relation === 'family') {
+                    $events->with('linkcategory1', 'linkcategory2', 'linkcategory3', 'linkcategory4', 'linkcategory5');
+                } elseif ($relation === 'promotion') {
+                    $events->with('linkpromotion');
+                } elseif ($relation === 'widget') {
+                    $events->with('linkwidget');
+                }
+            }
+        });
+
+        // Clone the query builder which still does not include the take,
+        // skip, and order by
         $_events = clone $events;
+
+        // Default sort by
+        $sortBy = 'events.event_name';
+        // Default sort mode
+        $sortMode = 'asc';
+
+        OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+        {
+            // Map the sortby request to the real column name
+            $sortByMapping = array(
+                'registered_date'   => 'events.created_at',
+                'event_name'        => 'events.event_name',
+                'event_type'        => 'events.event_type',
+                'description'       => 'events.description',
+                'begin_date'        => 'events.begin_date',
+                'end_date'          => 'events.end_date',
+                'is_permanent'      => 'events.is_permanent',
+                'status'            => 'events.status'
+            );
+
+            $sortBy = $sortByMapping[$_sortBy];
+        });
+
+        OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+        {
+            if (strtolower($_sortMode) !== 'asc') {
+                $sortMode = 'desc';
+            }
+        });
+        $events->orderBy($sortBy, $sortMode);
 
         $totalRec = RecordCounter::create($_events)->count();
 
@@ -148,14 +216,18 @@ class EventPrinterController extends DataPrinterController
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Event List', '', '', '', '', '','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Event', $totalRec, '', '', '', '','');
+
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date & Time', 'Retailer', 'Event Type', 'Event Redirected To', 'Event Link', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
-
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', $row->event_name, $expiration_date, '', $row->event_type, $row->link_object_type, $row->widget_object_type, $row->status);
+                    $event_link = $this->printEventLink($row);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $event_link, $row->status);
                 }
                 break;
 
@@ -172,12 +244,11 @@ class EventPrinterController extends DataPrinterController
     /**
      * Print expiration date type friendly name.
      *
-     * @param $promotion $promotion
+     * @param $event $event
      * @return string
      */
     public function printExpirationDate($event)
     {
-        $return = '';
         switch ($event->is_permanent) {
             case 'Y':
                 $result = 'Permanent';
@@ -194,4 +265,18 @@ class EventPrinterController extends DataPrinterController
 
         return $result;
     }
+
+
+    /**
+     * Print event link friendly name.
+     *
+     * @param $event $event
+     * @return string
+     */
+    public function printEventLink($event)
+    {
+        $result = str_replace("_"," ",$event->widget_object_type); 
+        return $result;
+    }
+
 }

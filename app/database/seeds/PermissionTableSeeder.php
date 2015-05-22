@@ -137,6 +137,11 @@ class PermissionTableSeeder extends Seeder
                 'order' => 20,
                 'perm'  => ['create', 'view', 'update', 'delete']
             ],
+            'Report'  => [
+                'name'  => 'report',
+                'order' => 21,
+                'perm'  => ['view']
+            ],
         ];
 
         $permissions = [];

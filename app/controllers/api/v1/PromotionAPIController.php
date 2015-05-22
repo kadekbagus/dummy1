@@ -99,6 +99,7 @@ class PromotionAPIController extends ControllerAPI
                     'merchant_id'          => $merchant_id,
                     'promotion_name'       => $promotion_name,
                     'promotion_type'       => $promotion_type,
+                    'begin_date'           => $begin_date,
                     'status'               => $status,
                     'rule_type'            => $rule_type,
                     'discount_object_type' => $discount_object_type,
@@ -107,19 +108,22 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => $discount_object_id3,
                     'discount_object_id4'  => $discount_object_id4,
                     'discount_object_id5'  => $discount_object_id5,
+                    'discount_value'       => $discount_value,
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
                     'promotion_name'       => 'required|max:100|orbit.exists.promotion_name',
                     'promotion_type'       => 'required|orbit.empty.promotion_type',
+                    'begin_date'           => 'required',
                     'status'               => 'required|orbit.empty.promotion_status',
-                    'rule_type'            => 'orbit.empty.rule_type',
+                    'rule_type'            => 'required|orbit.empty.rule_type',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
                     'discount_object_id1'  => 'orbit.empty.discount_object_id1',
                     'discount_object_id2'  => 'orbit.empty.discount_object_id2',
                     'discount_object_id3'  => 'orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'orbit.empty.discount_object_id5',
+                    'discount_value'       => 'required', 
                 )
             );
 
@@ -129,6 +133,58 @@ class PromotionAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if ($promotion_type == 'product') {
+                $discountfamilyflag = true;
+                $errormessages2 = '';
+
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+                
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
+                }
+            }
+            
+            if ($promotion_type == 'cart') {
+                $validator = Validator::make(
+                    array(
+                        'rule_value'  => $rule_value,
+                    ),
+                    array(
+                        'rule_value'  => 'required',
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             foreach ($retailer_ids as $retailer_id_check) {
@@ -406,11 +462,17 @@ class PromotionAPIController extends ControllerAPI
             $discount_object_id3 = OrbitInput::post('discount_object_id3');
             $discount_object_id4 = OrbitInput::post('discount_object_id4');
             $discount_object_id5 = OrbitInput::post('discount_object_id5');
+            $discount_value = OrbitInput::post('discount_value');
+            $begin_date = OrbitInput::post('begin_date');
+            $rule_value = OrbitInput::post('rule_value');
+            $retailer_ids = OrbitInput::post('retailer_ids');
+            $retailer_ids = (array) $retailer_ids;
 
             $data = array(
                 'promotion_id'         => $promotion_id,
                 'merchant_id'          => $merchant_id,
                 'promotion_type'       => $promotion_type,
+                'begin_date'           => $begin_date,
                 'status'               => $status,
                 'rule_type'            => $rule_type,
                 'discount_object_type' => $discount_object_type,
@@ -419,6 +481,7 @@ class PromotionAPIController extends ControllerAPI
                 'discount_object_id3'  => $discount_object_id3,
                 'discount_object_id4'  => $discount_object_id4,
                 'discount_object_id5'  => $discount_object_id5,
+                'discount_value'       => $discount_value,
             );
 
             // Validate promotion_name only if exists in POST.
@@ -433,6 +496,7 @@ class PromotionAPIController extends ControllerAPI
                     'merchant_id'          => 'numeric|orbit.empty.merchant',
                     'promotion_name'       => 'sometimes|required|min:5|max:100|promotion_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.promotion_type',
+                    'begin_date'           => 'required',
                     'status'               => 'orbit.empty.promotion_status',
                     'rule_type'            => 'orbit.empty.rule_type',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
@@ -441,6 +505,7 @@ class PromotionAPIController extends ControllerAPI
                     'discount_object_id3'  => 'orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'orbit.empty.discount_object_id5',
+                    'discount_value'       => 'required',
                 ),
                 array(
                    'promotion_name_exists_but_me' => Lang::get('validation.orbit.exists.promotion_name'),
@@ -454,6 +519,59 @@ class PromotionAPIController extends ControllerAPI
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'retailer_ids'         => $retailer_ids
+                    ),
+                    array(
+                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if ($promotion_type == 'product') {
+                $discountfamilyflag = true;
+                $errormessages2 = '';
+
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
+                }
+            }
+            
+            if ($promotion_type == 'cart') {
+                $validator = Validator::make(
+                    array(
+                        'rule_value'  => $rule_value,
+                    ),
+                    array(
+                        'rule_value'  => 'required',
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
             Event::fire('orbit.promotion.postupdatepromotion.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -923,6 +1041,8 @@ class PromotionAPIController extends ControllerAPI
      * @param string   `description_like`      (optional) - Description like
      * @param datetime `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param datetime `expiration_begin_date` (optional) - Expiration(promotion end date) begin date. Example: 2015-05-11 00:00:00
+     * @param datetime `expiration_end_date`   (optional) - Expiration(promotion end date) end date. Example: 2015-05-11 23:59:59
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param datetime `created_begin_date`    (optional) - Created begin date. Example: 2015-05-07 00:00:00
@@ -935,6 +1055,7 @@ class PromotionAPIController extends ControllerAPI
      * @param integer  `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
      * @param integer  `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
      * @param integer  `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
+     * @param string   `discount_object_name_like`   (optional) - Product or family link name like
      * @param integer  `retailer_id`           (optional) - Retailer IDs
      *
      * @return Illuminate\Support\Facades\Response
@@ -1011,7 +1132,7 @@ class PromotionAPIController extends ControllerAPI
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
-                ->excludeDeleted()
+                ->excludeDeleted('promotions')
                 ->select(DB::raw($table_prefix . "promotions.*,
                     CASE rule_type
                         WHEN 'cart_discount_by_percentage' THEN 'percentage'
@@ -1028,6 +1149,13 @@ class PromotionAPIController extends ControllerAPI
                     ")
                 )
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($promotions) {
+                if ($include_transaction_status === 'yes') {
+                    $promotions->IncludeTransactionStatus();
+                }
+            });
 
             // Filter promotion by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)
@@ -1080,6 +1208,20 @@ class PromotionAPIController extends ControllerAPI
             OrbitInput::get('end_date', function($enddate) use ($promotions)
             {
                 $promotions->where('promotions.end_date', '>=', $enddate);
+            });
+
+            // Filter promotion by end_date for begin
+            OrbitInput::get('expiration_begin_date', function($begindate) use ($promotions)
+            {
+                $promotions->where('promotions.end_date', '>=', $begindate)
+                           ->where('promotions.is_permanent', 'N');
+            });
+
+            // Filter promotion by end_date for end
+            OrbitInput::get('expiration_end_date', function($enddate) use ($promotions)
+            {
+                $promotions->where('promotions.end_date', '<=', $enddate)
+                           ->where('promotions.is_permanent', 'N');
             });
 
             // Filter promotion by is permanent
@@ -1166,6 +1308,38 @@ class PromotionAPIController extends ControllerAPI
             OrbitInput::get('discount_object_id5', function ($discountObjectId5s) use ($promotions) {
                 $promotions->whereHas('promotionrule', function($q) use ($discountObjectId5s) {
                     $q->whereIn('discount_object_id5', $discountObjectId5s);
+                });
+            });
+
+            // Filter promotion rule by matching discount object name pattern (product or family link)
+            OrbitInput::get('discount_object_name_like', function ($discount_object_name) use ($promotions) {
+                $promotions->whereHas('promotionrule', function ($q) use ($discount_object_name) {
+                    $q->where(function($q) use ($discount_object_name) {
+                        $q->whereHas('discountproduct', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'product')
+                              ->where('product_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory1', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory2', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory3', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory4', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory5', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                    });
                 });
             });
 
@@ -1826,5 +2000,18 @@ class PromotionAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check array, should not be empty
+        Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
     }
 }

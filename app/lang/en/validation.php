@@ -131,6 +131,7 @@ return array(
         ),
         'access' => array(
             'forbidden'              => 'You do not have permission to :action.',
+            'forbidden_role'         => 'Your role is not allowed to access this portal.',
             'needtologin'            => 'You have to login to view this page.',
             'loginfailed'            => 'Your email or password is incorrect.',
             'tokenmissmatch'         => 'CSRF protection token missmatch.',
@@ -344,6 +345,10 @@ return array(
             'view_role'                 => 'view role',
             'view_transaction_history'  => 'view transaction history',
             'shutdown_box'              => 'shutdown or reboot'
+        ),
+        'req' => array(
+            'link_to_retailer'          => 'Link to retailer is required.',
+            'redeem_to_retailer'        => 'Redeem to retailer is required.',
         ),
     ),
 

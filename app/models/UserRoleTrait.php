@@ -127,7 +127,7 @@ trait UserRoleTrait
         // Set the flag to TRUE, so it will not be called multiple times implicitly
         $this->prepareEmployeeRetailerCalled = TRUE;
 
-        return $query->select('users.*')
+        return $query->select('users.*', 'employees.position')
                      ->join('employees', 'employees.user_id', '=', 'users.user_id')
                      ->join('employee_retailer', 'employees.employee_id', '=', 'employee_retailer.employee_id');
     }
@@ -242,6 +242,34 @@ trait UserRoleTrait
         $superAdmin = 'super admin';
 
         return strtolower($this->role->role_name) === $superAdmin;
+    }
+
+    /**
+     * Merchant Owner check.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * @return boolean
+     */
+    public function isMerchantOwner()
+    {
+        $role = 'merchant owner';
+
+        return strtolower($this->role->role_name) === $role;
+    }
+
+    /**
+     * Consumer check.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * @return boolean
+     */
+    public function isConsumer()
+    {
+        $role = 'consumer';
+
+        return strtolower($this->role->role_name) === $role;
     }
 
     /**

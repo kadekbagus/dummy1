@@ -66,4 +66,24 @@ class MerchantTax extends Eloquent
 
         return $builder;
     }
+
+    /**
+     * Scope to determine merchant tax with transaction detail tax and add custom
+     * attribute named 'has_transaction' which hold value 'yes' or 'no'.
+     *
+     * @author kadek <kadek@dominopos.com>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeIncludeTransactionStatus($builder)
+    {
+        $prefix = DB::getTablePrefix();
+        return $builder->select('merchant_taxes.*', DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+                       ->leftJoin('transaction_detail_taxes', 'transaction_detail_taxes.tax_id', '=', 'merchant_taxes.merchant_tax_id')
+                        ->leftJoin('transactions', function($join) {
+                             $join->on('transactions.status', '!=', DB::Raw("'deleted'"));
+                             $join->on('transactions.transaction_id', '=', 'transaction_detail_taxes.transaction_id');
+                        })
+                       ->groupBy('merchant_taxes.merchant_tax_id');
+    }
 }

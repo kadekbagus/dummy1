@@ -140,13 +140,16 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id3'  => $discount_object_id3,
                     'discount_object_id4'  => $discount_object_id4,
                     'discount_object_id5'  => $discount_object_id5,
+                    'begin_date'           => $begin_date,
+                    'discount_value'       => $discount_value,
+                    'coupon_validity_in_days' => $coupon_validity_in_days,
                 ),
                 array(
                     'merchant_id'          => 'required|numeric|orbit.empty.merchant',
                     'promotion_name'       => 'required|max:100|orbit.exists.coupon_name',
                     'promotion_type'       => 'required|orbit.empty.coupon_type',
                     'status'               => 'required|orbit.empty.coupon_status',
-                    'rule_type'            => 'orbit.empty.rule_type',
+                    'rule_type'            => 'required|orbit.empty.rule_type',
                     'rule_object_type'     => 'orbit.empty.rule_object_type',
                     'rule_object_id1'      => 'numeric|orbit.empty.rule_object_id1',
                     'rule_object_id2'      => 'numeric|orbit.empty.rule_object_id2',
@@ -159,15 +162,85 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id3'  => 'numeric|orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'numeric|orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
+                    'begin_date'           => 'required',
+                    'discount_value'       => 'required',
+                    'coupon_validity_in_days' => 'required',
                 )
             );
-
+            
             Event::fire('orbit.coupon.postnewcoupon.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'issue_retailer_ids'   => $issue_retailer_ids,
+                        'redeem_retailer_ids'  => $redeem_retailer_ids
+                    ),
+                    array(
+                        'issue_retailer_ids'   => 'orbit.req.link_to_retailer',
+                        'redeem_retailer_ids'  => 'orbit.req.redeem_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if ($promotion_type == 'product') {
+                $rulefamilyflag = true;
+                $discountfamilyflag = true;
+                $errormessages = '';
+                $errormessages2 = '';
+
+                if ($rule_object_type == 'family') {
+                    $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
+                    $errormessages = 'The family to obtain field is required.';
+                } elseif ($rule_object_type == 'product') {
+                    $rulefamilyflag = ! empty($rule_object_id1);
+                    $errormessages = 'The product to obtain field is required.';
+                }
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+
+                // Run the validation
+                if (! $rulefamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages);
+                }
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
+                }
+            }
+            
+            if ($promotion_type == 'cart') {
+                $validator = Validator::make(
+                    array(
+                        'rule_value'  => $rule_value,
+                    ),
+                    array(
+                        'rule_value'  => 'required',
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
             }
 
             // validating issue_retailer_ids.
@@ -542,6 +615,14 @@ class CouponAPIController extends ControllerAPI
             $discount_object_id3 = OrbitInput::post('discount_object_id3');
             $discount_object_id4 = OrbitInput::post('discount_object_id4');
             $discount_object_id5 = OrbitInput::post('discount_object_id5');
+            $begin_date = OrbitInput::post('begin_date');
+            $discount_value = OrbitInput::post('discount_value');
+            $rule_value = OrbitInput::post('rule_value');
+            $coupon_validity_in_days = OrbitInput::post('coupon_validity_in_days');
+            $issue_retailer_ids = OrbitInput::post('issue_retailer_ids');
+            $issue_retailer_ids = (array) $issue_retailer_ids;
+            $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
+            $redeem_retailer_ids = (array) $redeem_retailer_ids;
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -561,6 +642,9 @@ class CouponAPIController extends ControllerAPI
                 'discount_object_id3'  => $discount_object_id3,
                 'discount_object_id4'  => $discount_object_id4,
                 'discount_object_id5'  => $discount_object_id5,
+                'begin_date'           => $begin_date,
+                'discount_value'       => $discount_value,
+                'coupon_validity_in_days' => $coupon_validity_in_days,
             );
 
             // Validate promotion_name only if exists in POST.
@@ -574,8 +658,8 @@ class CouponAPIController extends ControllerAPI
                     'promotion_id'         => 'required|numeric|orbit.empty.coupon',
                     'merchant_id'          => 'numeric|orbit.empty.merchant',
                     'promotion_name'       => 'sometimes|required|min:5|max:100|coupon_name_exists_but_me',
-                    'promotion_type'       => 'orbit.empty.coupon_type',
-                    'status'               => 'orbit.empty.coupon_status',
+                    'promotion_type'       => 'required|orbit.empty.coupon_type',
+                    'status'               => 'required|orbit.empty.coupon_status',
                     'rule_type'            => 'orbit.empty.rule_type',
                     'rule_object_type'     => 'orbit.empty.rule_object_type',
                     'rule_object_id1'      => 'numeric|orbit.empty.rule_object_id1',
@@ -589,9 +673,12 @@ class CouponAPIController extends ControllerAPI
                     'discount_object_id3'  => 'numeric|orbit.empty.discount_object_id3',
                     'discount_object_id4'  => 'numeric|orbit.empty.discount_object_id4',
                     'discount_object_id5'  => 'numeric|orbit.empty.discount_object_id5',
+                    'begin_date'           => 'required',
+                    'discount_value'       => 'required',
+                    'coupon_validity_in_days' => 'required',
                 ),
                 array(
-                   'coupon_name_exists_but_me' => Lang::get('validation.orbit.exists.coupon_name'),
+                    'coupon_name_exists_but_me' => Lang::get('validation.orbit.req.coupon_name')
                 )
             );
 
@@ -602,6 +689,74 @@ class CouponAPIController extends ControllerAPI
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
+
+            if($status == 'active') {
+                $validator = Validator::make(
+                    array(
+                        'issue_retailer_ids'   => $issue_retailer_ids,
+                        'redeem_retailer_ids'  => $redeem_retailer_ids
+                    ),
+                    array(
+                        'issue_retailer_ids'   => 'orbit.req.link_to_retailer',
+                        'redeem_retailer_ids'  => 'orbit.req.redeem_to_retailer'
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
+            if ($promotion_type == 'product') {
+                $rulefamilyflag = true;
+                $discountfamilyflag = true;
+                $errormessages = '';
+                $errormessages2 = '';
+
+                if ($rule_object_type == 'family') {
+                    $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
+                    $errormessages = 'The family to obtain field is required.';
+                } elseif ($rule_object_type == 'product') {
+                    $rulefamilyflag = ! empty($rule_object_id1);
+                    $errormessages = 'The product to obtain field is required.';
+                }
+                if ($discount_object_type == 'family') {
+                    $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
+                    $errormessages2 = 'The discounted family field is required.';
+                } elseif ($discount_object_type == 'product') {
+                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $errormessages2 = 'The discounted product field is required.';
+                }
+
+                // Run the validation
+                if (! $rulefamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages);
+                }
+                // Run the validation
+                if (! $discountfamilyflag) {
+                    OrbitShopAPI::throwInvalidArgument($errormessages2);
+                }
+            }
+            
+            if ($promotion_type == 'cart') {
+                $validator = Validator::make(
+                    array(
+                        'rule_value'  => $rule_value,
+                    ),
+                    array(
+                        'rule_value'  => 'required',
+                    )
+                );
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+            }
+
             Event::fire('orbit.coupon.postupdatecoupon.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -1177,6 +1332,8 @@ class CouponAPIController extends ControllerAPI
      * @param string   `description_like`      (optional) - Description like
      * @param datetime `begin_date`            (optional) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime `end_date`              (optional) - End date. Example: 2014-12-31 23:59:59
+     * @param datetime `expiration_begin_date` (optional) - Expiration(promotion end date) begin date. Example: 2015-05-11 00:00:00
+     * @param datetime `expiration_end_date`   (optional) - Expiration(promotion end date) end date. Example: 2015-05-11 23:59:59
      * @param string   `is_permanent`          (optional) - Is permanent. Valid value: Y, N.
      * @param string   `coupon_notification`   (optional) - Coupon notification. Valid value: Y, N.
      * @param string   `status`                (optional) - Status. Valid value: active, inactive, pending, blocked, deleted.
@@ -1193,6 +1350,7 @@ class CouponAPIController extends ControllerAPI
      * @param integer  `discount_object_id3`   (optional) - Discount object ID3 (category_id3).
      * @param integer  `discount_object_id4`   (optional) - Discount object ID4 (category_id4).
      * @param integer  `discount_object_id5`   (optional) - Discount object ID5 (category_id5).
+     * @param string   `discount_object_name_like`   (optional) - Product or family link name like
      * @param integer  `issue_retailer_id`     (optional) - Issue Retailer IDs
      * @param integer  `redeem_retailer_id`    (optional) - Redeem Retailer IDs
      *
@@ -1270,7 +1428,7 @@ class CouponAPIController extends ControllerAPI
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
-                ->excludeDeleted()
+                ->excludeDeleted('promotions')
                 ->allowedForViewOnly($user)
                 ->select(DB::raw($table_prefix . "promotions.*,
                     CASE rule_type
@@ -1288,6 +1446,13 @@ class CouponAPIController extends ControllerAPI
                     ")
                 )
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($coupons) {
+                if ($include_transaction_status === 'yes') {
+                    $coupons->IncludeTransactionStatus();
+                }
+            });
 
             // Filter coupon by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($coupons)
@@ -1340,6 +1505,20 @@ class CouponAPIController extends ControllerAPI
             OrbitInput::get('end_date', function($endDate) use ($coupons)
             {
                 $coupons->where('promotions.end_date', '>=', $endDate);
+            });
+
+            // Filter coupon by end_date for begin
+            OrbitInput::get('expiration_begin_date', function($begindate) use ($coupons)
+            {
+                $coupons->where('promotions.end_date', '>=', $begindate)
+                        ->where('promotions.is_permanent', 'N');
+            });
+
+            // Filter coupon by end_date for end
+            OrbitInput::get('expiration_end_date', function($enddate) use ($coupons)
+            {
+                $coupons->where('promotions.end_date', '<=', $enddate)
+                        ->where('promotions.is_permanent', 'N');
             });
 
             // Filter coupon by is permanent
@@ -1445,6 +1624,38 @@ class CouponAPIController extends ControllerAPI
             OrbitInput::get('discount_object_id5', function ($discountObjectId5s) use ($coupons) {
                 $coupons->whereHas('couponrule', function($q) use ($discountObjectId5s) {
                     $q->whereIn('discount_object_id5', $discountObjectId5s);
+                });
+            });
+
+            // Filter coupon rule by matching discount object name pattern (product or family link)
+            OrbitInput::get('discount_object_name_like', function ($discount_object_name) use ($coupons) {
+                $coupons->whereHas('couponrule', function ($q) use ($discount_object_name) {
+                    $q->where(function($q) use ($discount_object_name) {
+                        $q->whereHas('discountproduct', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'product')
+                              ->where('product_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory1', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory2', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory3', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory4', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                        $q->orWhereHas('discountcategory5', function ($q) use ($discount_object_name) {
+                            $q->where('discount_object_type', 'family')
+                              ->where('category_name', 'like', "%$discount_object_name%");
+                        });
+                    });
                 });
             });
 
@@ -2209,5 +2420,32 @@ class CouponAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check array, should not be empty
+        Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
+
+        // Check array, should not be empty
+        Validator::extend('orbit.req.redeem_to_retailer', function ($attribute, $value, $parameters) {
+            // dd($value);
+            if (empty($value)) {
+                return FALSE;
+            } else {
+                if (empty($value[0])) {
+                    return FALSE;
+                }
+            }
+
+            return TRUE;
+        });
     }
 }

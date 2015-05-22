@@ -133,6 +133,17 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 20
+                'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Consumer'  =>  [
@@ -255,6 +266,17 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 19
                 'tax'  => [
+                    'view'  => 'yes',
+                ],
+                // 20
+                'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],
@@ -383,6 +405,13 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 20
                 'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],
@@ -509,6 +538,17 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 20
+                'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Manager'  =>  [
@@ -631,6 +671,17 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 19
                 'tax'   => [
+                    'view'  => 'yes',
+                ],
+                // 20
+                'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],
@@ -757,6 +808,17 @@ class PermissionRoleTableSeeder extends Seeder
                 'tax'   => [
                     'view'  => 'yes',
                 ],
+                // 20
+                'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
+                    'view'  => 'yes',
+                ],
             ],
 
             'Cashier'  =>  [
@@ -879,6 +941,17 @@ class PermissionRoleTableSeeder extends Seeder
                 ],
                 // 19
                 'tax'   => [
+                    'view'  => 'yes',
+                ],
+                // 20
+                'setting'   => [
+                    'create'    => 'yes',
+                    'view'      => 'yes',
+                    'update'    => 'yes',
+                    'delete'    => 'yes'
+                ],
+                // 21
+                'report'   => [
                     'view'  => 'yes',
                 ],
             ],

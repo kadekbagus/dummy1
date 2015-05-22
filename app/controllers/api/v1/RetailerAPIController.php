@@ -997,6 +997,9 @@ class RetailerAPIController extends ControllerAPI
      * @param string            `masterbox_number`              (optional) - Masterbox number
      * @param string            `slavebox_number`               (optional) - Slavebox number
      * @param integer           `parent_id`                     (optional) - Merchant id for the retailer
+     * @param string            `merchant_name_like`            (optional) - Merchant name like
+     * @param datetime          `start_activity_begin_date`     (optional) - Start activity begin date. Example: 2015-05-15 00:00:00
+     * @param datetime          `start_activity_end_date`       (optional) - Start activity end date. Example: 2015-05-15 23:59:59
      * @param string|array      `with`                          (optional) - Relation which need to be included
      * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      * @return Illuminate\Support\Facades\Response
@@ -1304,6 +1307,24 @@ class RetailerAPIController extends ControllerAPI
             OrbitInput::get('parent_id', function($parentIds) use ($retailers)
             {
                 $retailers->whereIn('merchants.parent_id', $parentIds);
+            });
+
+            // Filter retailer by matching merchant name pattern
+            OrbitInput::get('merchant_name_like', function($name) use ($retailers)
+            {
+                $retailers->where(DB::raw('m.name'), 'like', "%$name%");
+            });
+
+            // Filter retailer by start_date_activity for begin_date
+            OrbitInput::get('start_activity_begin_date', function($begindate) use ($retailers)
+            {
+                $retailers->where('merchants.start_date_activity', '>=', $begindate);
+            });
+
+            // Filter retailer by start_date_activity for end_date
+            OrbitInput::get('start_activity_end_date', function($enddate) use ($retailers)
+            {
+                $retailers->where('merchants.start_date_activity', '<=', $enddate);
             });
 
             // Add new relation based on request

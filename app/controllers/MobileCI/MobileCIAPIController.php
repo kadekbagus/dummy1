@@ -5348,7 +5348,8 @@ class MobileCIAPIController extends ControllerAPI
                 $payment='Paypal';
             }
 
-            $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
+            // $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
+            $date = date('d M Y H:i:s', strtotime($transaction['created_at']));
 
             if ($transaction['user']==null) {
                 $customer = "Guest";
@@ -7344,7 +7345,7 @@ class MobileCIAPIController extends ControllerAPI
                 return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
             }
 
-            $selected_variant = $product->variants[0];
+            $selected_variant = \ProductVariant::active()->where('upc', $upc_code)->first();
 
             $promo_products = DB::select(
                 DB::raw(

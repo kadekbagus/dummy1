@@ -11,6 +11,12 @@ Route::post('/app/v1/login', 'IntermediateLoginController@postLogin');
 Route::get('/app/v1/logout', 'IntermediateLoginController@getLogout');
 Route::get('/app/v1/session', 'IntermediateLoginController@getSession');
 
+Route::post('/app/v1/login/admin', 'IntermediateLoginController@postLoginAdmin');
+Route::post('/app/v1/login/merchant', 'IntermediateLoginController@postLoginMerchant');
+Route::post('/app/v1/login/customer', 'IntermediateLoginController@postLoginCustomer');
+Route::post('/app/v1/login/pos', array('before' => 'orbit-settings', 'uses' => 'IntermediateLoginController@Login_postLoginCashier'));
+Route::post('/app/v1/login/mobile', array('before' => 'orbit-settings', 'uses' => 'IntermediateLoginController@postLoginMobile'));
+
 /**
  * Customer registration
  */

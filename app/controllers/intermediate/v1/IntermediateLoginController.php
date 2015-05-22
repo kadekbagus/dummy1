@@ -55,6 +55,96 @@ class IntermediateLoginController extends IntermediateBaseController
     }
 
     /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginAdmin
+     * @return Response
+     */
+    public function postLoginAdmin()
+    {
+        $response = LoginAPIController::create('raw')->postLoginAdmin();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginMerchant
+     * @return Response
+     */
+    public function postLoginMerchant()
+    {
+        $response = LoginAPIController::create('raw')->postLoginMerchant();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginCustomer
+     * @return Response
+     */
+    public function postLoginCustomer()
+    {
+        $response = LoginAPIController::create('raw')->postLoginCustomer();
+        if ($response->code === 0)
+        {
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
      * Clear the session
      *
      * @author Rio Astamal <me@rioastamal.net>
@@ -234,6 +324,83 @@ class IntermediateLoginController extends IntermediateBaseController
 
                 // Call logout to clear session
                 MobileCIAPIController::create('raw')->getLogoutInShop();
+
+                return $this->render($response);
+            }
+
+            $user = $response->data;
+            $user->setHidden(array('user_password', 'apikey'));
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->getSessionConfig()->setConfig('session_origin.header.name', $this->mobileCISessionName['header']);
+            $this->session->getSessionConfig()->setConfig('session_origin.query_string.name', $this->mobileCISessionName['query_string']);
+            $this->session->getSessionConfig()->setConfig('session_origin.cookie.name', $this->mobileCISessionName['cookie']);
+            $this->session->enableForceNew()->start($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+
+            // Successfull login
+            $activity->setUser($user)
+                     ->setActivityName('login_ok')
+                     ->setActivityNameLong('Sign In')
+                     ->responseOK();
+        } else {
+            // Login Failed
+            $activity->setUser('guest')
+                     ->setActivityName('login_failed')
+                     ->setActivityNameLong('Sign In Failed')
+                     ->setModuleName('Application')
+                     ->setNotes($response->message)
+                     ->responseFailed();
+        }
+
+        // Save the activity
+        $activity->setModuleName('Application')->save();
+
+        return $this->render($response);
+    }
+
+    /**
+     * Mobile-CI Intermediate call by registering client mac address when login
+     * succeed.
+     *
+     * @param @see LoginAPIController::postLoginMobile()
+     * @return Response
+     */
+    public function postLoginMobile()
+    {
+        $activity = Activity::mobileci()
+                            ->setActivityType('login');
+
+        $response = LoginAPIController::create('raw')->postLoginMobile();
+        if ($response->code === 0)
+        {
+            // Register User Mac Address to the Router
+            $registerMac = Firewall::create()->grantMacByIP($_SERVER['REMOTE_ADDR']);
+            if (! $registerMac['status']) {
+                $exitCode = 1;
+                if (isset($registerMac['object'])) {
+                    $exitCode = $registerMac['object']->getExitCode();
+                }
+                $response->message = $registerMac['message'];
+
+                // Login Failed
+                $activity->setUser('guest')
+                         ->setActivityName('login_failed')
+                         ->setActivityNameLong('Login failed - Fails to register mac address')
+                         ->setNotes($response->message)
+                         ->setModuleName('Application')
+                         ->responseFailed();
+
+                // Call logout to clear session
+                LoginAPIController::create('raw')->getLogoutMobile();
 
                 return $this->render($response);
             }

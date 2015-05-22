@@ -20,10 +20,8 @@ class PromotionPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
-
-        $promotions = Promotion::with('promotionrule')
-            ->excludeDeleted()
-            ->select(DB::raw($prefix . "promotions.*,
+        $promotions = Promotion::excludeDeleted('promotions')
+            ->select(DB::raw($prefix . "promotions.*, 
                 CASE rule_type
                     WHEN 'cart_discount_by_percentage' THEN 'percentage'
                     WHEN 'product_discount_by_percentage' THEN 'percentage'
@@ -36,9 +34,15 @@ class PromotionPrinterController extends DataPrinterController
                     WHEN 'product_discount_by_percentage' THEN discount_value * 100
                     ELSE discount_value
                 END AS 'display_discount_value'
-                ")
+                "), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"),
+                    "promotion_rules.discount_value as discount_value",
+                    "products.product_name as product_name"
             )
-            ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+            ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
+            ->leftJoin('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
+            ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
+            ->leftJoin('products', 'products.product_id', '=', 'promotion_rules.discount_object_id1')
+            ->groupBy('promotions.promotion_id');
 
         // Filter promotion by Ids
         OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)
@@ -93,6 +97,20 @@ class PromotionPrinterController extends DataPrinterController
             $promotions->where('promotions.end_date', '>=', $enddate);
         });
 
+        // Filter promotion by end_date for begin
+        OrbitInput::get('expiration_begin_date', function($begindate) use ($promotions)
+        {
+            $promotions->where('promotions.end_date', '>=', $begindate)
+                       ->where('promotions.is_permanent', 'N');
+        });
+
+        // Filter promotion by end_date for end
+        OrbitInput::get('expiration_end_date', function($enddate) use ($promotions)
+        {
+            $promotions->where('promotions.end_date', '<=', $enddate)
+                       ->where('promotions.is_permanent', 'N');
+        });
+
         // Filter promotion by is permanent
         OrbitInput::get('is_permanent', function ($ispermanent) use ($promotions) {
             $promotions->whereIn('promotions.is_permanent', $ispermanent);
@@ -103,10 +121,38 @@ class PromotionPrinterController extends DataPrinterController
             $promotions->whereIn('promotions.status', $statuses);
         });
 
+        // Filter promotion by created_at for begin_date
+        OrbitInput::get('created_begin_date', function($begindate) use ($promotions)
+        {
+            $promotions->where('promotions.created_at', '>=', $begindate);
+        });
+
+        // Filter promotion by created_at for end_date
+        OrbitInput::get('created_end_date', function($enddate) use ($promotions)
+        {
+            $promotions->where('promotions.created_at', '<=', $enddate);
+        });
+
         // Filter promotion rule by rule type
         OrbitInput::get('rule_type', function ($ruleTypes) use ($promotions) {
             $promotions->whereHas('promotionrule', function($q) use ($ruleTypes) {
                 $q->whereIn('rule_type', $ruleTypes);
+            });
+        });
+
+        // Filter promotion rule by discount_value
+        OrbitInput::get('discount_value', function ($discount_value) use ($promotions) {
+            $promotions->whereHas('promotionrule', function($q) use ($discount_value) {
+                $q->where(function ($q) use ($discount_value) {
+                    $q->whereIn('discount_value', $discount_value);
+
+                    // to filter percentage value.
+                    $discount_value_in_percentage = array();
+                    foreach($discount_value as $a) {
+                        $discount_value_in_percentage[] = $a/100;
+                    }
+                    $q->orWhereIn('discount_value', $discount_value_in_percentage);
+                });
             });
         });
 
@@ -152,6 +198,38 @@ class PromotionPrinterController extends DataPrinterController
             });
         });
 
+        // Filter promotion rule by matching discount object name pattern (product or family link)
+        OrbitInput::get('discount_object_name_like', function ($discount_object_name) use ($promotions) {
+            $promotions->whereHas('promotionrule', function ($q) use ($discount_object_name) {
+                $q->where(function($q) use ($discount_object_name) {
+                    $q->whereHas('discountproduct', function ($q) use ($discount_object_name) {
+                        $q->where('discount_object_type', 'product')
+                          ->where('product_name', 'like', "%$discount_object_name%");
+                    });
+                    $q->orWhereHas('discountcategory1', function ($q) use ($discount_object_name) {
+                        $q->where('discount_object_type', 'family')
+                          ->where('category_name', 'like', "%$discount_object_name%");
+                    });
+                    $q->orWhereHas('discountcategory2', function ($q) use ($discount_object_name) {
+                        $q->where('discount_object_type', 'family')
+                          ->where('category_name', 'like', "%$discount_object_name%");
+                    });
+                    $q->orWhereHas('discountcategory3', function ($q) use ($discount_object_name) {
+                        $q->where('discount_object_type', 'family')
+                          ->where('category_name', 'like', "%$discount_object_name%");
+                    });
+                    $q->orWhereHas('discountcategory4', function ($q) use ($discount_object_name) {
+                        $q->where('discount_object_type', 'family')
+                          ->where('category_name', 'like', "%$discount_object_name%");
+                    });
+                    $q->orWhereHas('discountcategory5', function ($q) use ($discount_object_name) {
+                        $q->where('discount_object_type', 'family')
+                          ->where('category_name', 'like', "%$discount_object_name%");
+                    });
+                });
+            });
+        });
+
         // Filter promotion retailer by retailer id
         OrbitInput::get('retailer_id', function ($retailerIds) use ($promotions) {
             $promotions->whereHas('retailers', function($q) use ($retailerIds) {
@@ -159,7 +237,63 @@ class PromotionPrinterController extends DataPrinterController
             });
         });
 
+        // Add new relation based on request
+        OrbitInput::get('with', function ($with) use ($promotions) {
+            $with = (array) $with;
+
+            foreach ($with as $relation) {
+                if ($relation === 'retailers') {
+                    $promotions->with('retailers');
+                } elseif ($relation === 'product') {
+                    $promotions->with('promotionrule.discountproduct');
+                } elseif ($relation === 'family') {
+                    $promotions->with('promotionrule.discountcategory1', 'promotionrule.discountcategory2', 'promotionrule.discountcategory3', 'promotionrule.discountcategory4', 'promotionrule.discountcategory5');
+                }
+            }
+        });
+
+        // Clone the query builder which still does not include the take,
+        // skip, and order by
         $_promotions = clone $promotions;
+
+        // Default sort by
+        $sortBy = 'promotions.promotion_name';
+        // Default sort mode
+        $sortMode = 'asc';
+
+        OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+        {
+            // Map the sortby request to the real column name
+            $sortByMapping = array(
+                'registered_date'          => 'promotions.created_at',
+                'promotion_name'           => 'promotions.promotion_name',
+                'promotion_type'           => 'promotions.promotion_type',
+                'description'              => 'promotions.description',
+                'begin_date'               => 'promotions.begin_date',
+                'end_date'                 => 'promotions.end_date',
+                'is_permanent'             => 'promotions.is_permanent',
+                'status'                   => 'promotions.status',
+                'rule_type'                => 'rule_type',
+                'display_discount_value'   => 'display_discount_value' // only to avoid error 'Undefined index'
+            );
+
+            $sortBy = $sortByMapping[$_sortBy];
+        });
+
+        OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+        {
+            if (strtolower($_sortMode) !== 'asc') {
+                $sortMode = 'desc';
+            }
+        });
+
+        if (trim(OrbitInput::get('sortby')) === 'display_discount_value') {
+            $promotions->orderBy('display_discount_type', $sortMode);
+            $promotions->orderBy('display_discount_value', $sortMode);
+        } else {
+            $promotions->orderBy($sortBy, $sortMode);
+        }
+
 
         $totalRec = RecordCounter::create($_promotions)->count();
 
@@ -179,15 +313,20 @@ class PromotionPrinterController extends DataPrinterController
                 @header('Content-Disposition: attachment; filename=' . $filename);
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product Family Link', 'Status');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Promotion List', '', '', '', '', '','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Promotion', $totalRec, '', '', '', '','');
+
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product or Family Link', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                    $discount_type = $this->printDiscountType($row);
                     $expiration_date = $this->printExpirationDate($row);
+                    $discount_type = $this->printDiscountType($row);
+                    $discount_value = $this->printDiscountValue($row);
 
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', $row->promotion_name, $expiration_date, '', $discount_type, '', '', $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $discount_value, $row->product_name, $row->status);
                 }
                 break;
 
@@ -232,7 +371,6 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountType($promotion)
     {
-        $return = '';
         switch ($promotion->promotion_type) {
             case 'cart':
                 $result = 'Cart Discount By ' . ucfirst($promotion->display_discount_type);
@@ -255,7 +393,6 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printExpirationDate($promotion)
     {
-        $return = '';
         switch ($promotion->is_permanent) {
             case 'Y':
                 $result = 'Permanent';
@@ -263,11 +400,42 @@ class PromotionPrinterController extends DataPrinterController
 
             case 'N':
             default:
-                $date = $promotion->end_date;
-                $date = explode(' ',$date);
-                $time = strtotime($date[0]);
-                $newformat = date('d M Y',$time);
-                $result = $newformat;
+                if($promotion->end_date==NULL || empty($promotion->end_date)){
+                    $result = "";
+                } else {
+                    $date = $promotion->end_date;
+                    $date = explode(' ',$date);
+                    $time = strtotime($date[0]);
+                    $newformat = date('d M Y',$time);
+                    $result = $newformat;
+                }
+
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Print expiration date type friendly name.
+     *
+     * @param $promotion $promotion
+     * @return string
+     */
+    public function printDiscountValue($promotion)
+    {
+        switch ($promotion->display_discount_type) {
+            case 'value':
+                $result = number_format($promotion->discount_value, 2);
+                break;
+
+            case 'percentage':
+                $discount =  $promotion->discount_value*100;
+                $result = $discount."%";
+                break;
+                
+            default:
+                $result = number_format($promotion->discount_value, 2);
         }
 
         return $result;

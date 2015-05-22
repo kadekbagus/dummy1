@@ -247,4 +247,6 @@ class Product extends Eloquent
         }
         return ($value);
     }
+
+
 }
