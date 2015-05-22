@@ -9,7 +9,7 @@ use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 use Faker\Factory as Faker;
 
-class getUserByGenderTest extends TestCase
+class getUserByAgeTest extends TestCase
 {
     private $baseUrl = '/api/v1/dashboard/user-by-age';
 
@@ -86,6 +86,15 @@ class getUserByGenderTest extends TestCase
 
         $this->assertSame(Status::OK, $response->code);
         $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'is_report' => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
     }
 
 
@@ -120,6 +129,25 @@ class getUserByGenderTest extends TestCase
 
         $response = $makeRequest([
             'end_date' => date('Y-m-d H:i:s', time())
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'begin_date' => date('Y-m-d H:i:s', time()),
+            'is_report'  => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+
+        $response = $makeRequest([
+            'end_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
         ]);
 
         $this->assertResponseOk();

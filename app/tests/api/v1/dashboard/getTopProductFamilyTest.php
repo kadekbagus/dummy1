@@ -34,20 +34,21 @@ class getTopProductFamilyTest extends TestCase
         }
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`, `created_at`) VALUES";
         $id=1;
         foreach ($categories as $category)
         {
             $count = $i * 10;
             for ($j=0; $j<$count; $j++)
             {
+                $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id},'view_category', {$category->category_id}),";
+                    ({$id},'view_category', {$category->category_id}, '{$created_at}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(5000, 'view_category', null);";
+        $insert .= "(5000, 'view_category', null, null);";
 
         DB::statement($insert);
 
@@ -78,6 +79,15 @@ class getTopProductFamilyTest extends TestCase
         };
 
         $response = $makeRequest([]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'is_report' => 1
+        ]);
 
         $this->assertResponseOk();
 
@@ -117,6 +127,25 @@ class getTopProductFamilyTest extends TestCase
 
         $response = $makeRequest([
             'end_date' => date('Y-m-d H:i:s', time())
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+        $this->assertSame(Status::OK_MSG, $response->message);
+
+        $response = $makeRequest([
+            'begin_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
+        ]);
+
+        $this->assertResponseOk();
+
+        $this->assertSame(Status::OK, $response->code);
+
+        $response = $makeRequest([
+            'end_date' => date('Y-m-d H:i:s', time()),
+            'is_report' => 1
         ]);
 
         $this->assertResponseOk();

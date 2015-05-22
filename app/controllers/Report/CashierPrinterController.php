@@ -38,8 +38,9 @@ class CashierPrinterController extends DataPrinterController
             $with = array_merge($with, $_with);
         });
 
-        $users = User::select(DB::raw($prefix . "users.*"), DB::raw($prefix . "employees.position as position"))
-                        ->leftJoin('employees', 'employees.user_id', '=', 'users.user_id');
+        $users = User::select(DB::raw($prefix . "users.*"), DB::raw($prefix . "user_employee.position as position"))
+                        ->leftJoin("employees as {$prefix}user_employee", 'user_employee.user_id', '=', 'users.user_id')
+                        ->excludeDeleted('users');
 
         // Filter user by Ids
         OrbitInput::get('user_ids', function ($userIds) use ($users) {
@@ -213,7 +214,7 @@ class CashierPrinterController extends DataPrinterController
 
         switch ($mode) {
             case 'csv':
-                $filename = 'event-list-' . date('d_M_Y_HiA') . '.csv';
+                $filename = 'cashier-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
                 @header('Content-Disposition: attachment; filename=' . $filename);
@@ -437,7 +438,7 @@ class CashierPrinterController extends DataPrinterController
     /**
      * Print expiration date type friendly name.
      *
-     * @param $promotion $promotion
+     * @param $cashier $cashier
      * @return string
      */
     public function printFullName($cashier)

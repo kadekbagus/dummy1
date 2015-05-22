@@ -1132,7 +1132,7 @@ class PromotionAPIController extends ControllerAPI
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
-                ->excludeDeleted()
+                ->excludeDeleted('promotions')
                 ->select(DB::raw($table_prefix . "promotions.*,
                     CASE rule_type
                         WHEN 'cart_discount_by_percentage' THEN 'percentage'
@@ -1149,6 +1149,13 @@ class PromotionAPIController extends ControllerAPI
                     ")
                 )
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($promotions) {
+                if ($include_transaction_status === 'yes') {
+                    $promotions->IncludeTransactionStatus();
+                }
+            });
 
             // Filter promotion by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)

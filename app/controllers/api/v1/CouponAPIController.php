@@ -1428,7 +1428,7 @@ class CouponAPIController extends ControllerAPI
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
-                ->excludeDeleted()
+                ->excludeDeleted('promotions')
                 ->allowedForViewOnly($user)
                 ->select(DB::raw($table_prefix . "promotions.*,
                     CASE rule_type
@@ -1446,6 +1446,13 @@ class CouponAPIController extends ControllerAPI
                     ")
                 )
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($coupons) {
+                if ($include_transaction_status === 'yes') {
+                    $coupons->IncludeTransactionStatus();
+                }
+            });
 
             // Filter coupon by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($coupons)

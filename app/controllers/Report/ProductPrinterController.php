@@ -236,7 +236,9 @@ class ProductPrinterController extends DataPrinterController
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, $row->retailer_list, $row->is_new, $row->status);
+                    $price = $this->printPrice($row);
+                    
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $price, $row->retailer_list, $row->is_new, $row->status);
                 }
                 break;
 
@@ -278,12 +280,10 @@ class ProductPrinterController extends DataPrinterController
     /**
      * Print Currency friendly name.
      *
-     * @param $product $product
      * @return string
      */
     public function printCurrency()
     {
-        $return = '';
         $retailer = $this->getRetailerInfo();
         $currency = strtolower($retailer->currency);
         switch ($currency) {
@@ -297,6 +297,20 @@ class ProductPrinterController extends DataPrinterController
             default:
                 $result = '';
         }
+
+        return $result;
+    }
+
+
+    /**
+     * Print Price friendly name.
+     *
+     * @param $product $product
+     * @return string
+     */
+    public function printPrice($product)
+    {
+        $result = number_format($product->price, 2);
 
         return $result;
     }

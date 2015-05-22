@@ -705,6 +705,13 @@ class MerchantAPIController extends ControllerAPI
                                     })
                                 ->groupBy('merchants.merchant_id');
 
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($merchants) {
+                if ($include_transaction_status === 'yes') {
+                    $merchants->IncludeTransactionStatus();
+                }
+            });
+
             // Filter merchant by Ids
             OrbitInput::get('merchant_id', function ($merchantIds) use ($merchants) {
                 $merchants->whereIn('merchants.merchant_id', $merchantIds);

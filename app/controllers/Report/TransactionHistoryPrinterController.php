@@ -127,7 +127,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
                     // TITLE HEADER
-                    printf("%s,%s,%s,%s,%s,%s\n", '', $user->getFullName(), '', $pageTitle, '', '');
+                    printf("%s,%s,%s,%s,%s,%s\n", '', '', '', $pageTitle, '', '');
                     printf("%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '');
 
                     // Total Purchase
