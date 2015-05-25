@@ -105,33 +105,36 @@
 </div>
 
 <div id="main">
-    <h2 style="margin-bottom:0.5em;">Purchase History Report</h2>
+    <h2 style="margin-bottom:0.5em;">Cashier Time Table Report</h2>
     <table style="width:100%; margin-bottom:1em;" class="noborder">
         <tr>
-            <td style="width:150px">Total Purchase</td>
+            <td style="width:150px">Total Records</td>
             <td style="width:10px;">:</td>
             <td><strong><?php echo ($total); ?></strong></td>
         </tr>
+        <?php foreach ($summaryHeaders as $name => $title): ?>
+        <tr>
+            <td style="width:150px"><?php echo $title; ?></td>
+            <td style="width:10px;">:</td>
+            <td><strong><?php echo ($summary->$name); ?></strong></td>
+        </tr>
+        <?php endforeach; ?>
     </table>
 
     <table style="width:100%">
         <thead>
-        <th style="text-align:left;">No</th>
-        <th style="text-align:left;">Product Name</th>
-        <th style="text-align:left;">Quantity</th>
-        <th style="text-align:left;">Store Name</th>
-        <th style="text-align:left;">Unit Price</th>
-        <th style="text-align:left;">Purchase Date</th>
+        <th style="text-align: left;">No.</th>
+        <?php foreach ($rowFormatter as $name => $x): ?>
+            <th style="text-align: left;"><?php echo $rowNames["{$name}"]; ?></th>
+        <?php endforeach; ?>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
-            <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
+            <tr class="<?php echo $rowCounter % 2 === 0 ? 'zebra' : '' ?>">
                 <td><?php echo (++$rowCounter); ?></td>
-                <td><?php echo ($row->product_name); ?></td>
-                <td><?php echo ($row->quantity); ?></td>
-                <td><?php echo ($row->retailer_name); ?></td>
-                <td><?php echo number_format($row->price); ?></td>
-                <td><?php echo $formatDate($row->created_at); ?></td>
+                <?php foreach ($rowFormatter as $name => $formatter): ?>
+                <td><?php echo $formatter ? $formatter($row->$name) : $row->$name; ?></td>
+                <?php endforeach; ?>
             </tr>
         <?php endwhile; ?>
         </tbody>

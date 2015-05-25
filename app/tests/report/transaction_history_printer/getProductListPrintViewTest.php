@@ -47,7 +47,6 @@ class getProductListPrintViewTest extends TestCase
     {
         $makeRequest = function ($getData) {
             $_GET                    = array_merge($_GET, $getData);
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -77,7 +76,6 @@ class getProductListPrintViewTest extends TestCase
         $makeRequest = function ($getData = []) {
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -138,7 +136,6 @@ class getProductListPrintViewTest extends TestCase
         $makeRequest = function ($getData = []) {
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -194,7 +191,6 @@ class getProductListPrintViewTest extends TestCase
         $makeRequest = function ($getData = []) {
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -245,7 +241,6 @@ class getProductListPrintViewTest extends TestCase
         $makeRequest = function ($getData) {
             $_GET                    = array_merge($_GET, $getData);
             $_GET['export']          = 'csv';
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -288,7 +283,6 @@ class getProductListPrintViewTest extends TestCase
         $makeRequest = function ($getData) {
             $_GET                    = array_merge($_GET, $getData);
             $_GET['export']          = 'csv';
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -319,7 +313,6 @@ class getProductListPrintViewTest extends TestCase
     {
         $makeRequest = function ($getData) {
             $_GET                    = array_merge($_GET, $getData);
-            $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
