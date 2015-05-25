@@ -107,6 +107,17 @@ class DashboardAPIController extends ControllerAPI
                         })
                         ->groupBy('products.product_id');
 
+            OrbitInput::get('merchant_id', function ($merchantId) use ($products) {
+               $products->whereIn('products.merchant_id', $this->getArray($merchantId));
+            });
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($products) {
+               $products->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($products) {
+               $products->where('activities.created_at', '<=', $endDate);
+            });
 
             $isReport = false;
             $topNames = clone $products;
@@ -119,18 +130,6 @@ class DashboardAPIController extends ControllerAPI
                     $products->groupBy('created_at_date');
                     $isReport = true;
                 }
-            });
-
-            OrbitInput::get('merchant_id', function ($merchantId) use ($products) {
-               $products->whereIn('products.merchant_id', $this->getArray($merchantId));
-            });
-
-            OrbitInput::get('begin_date', function ($beginDate) use ($products) {
-               $products->where('activities.created_at', '>=', $beginDate);
-            });
-
-            OrbitInput::get('end_date', function ($endDate) use ($products) {
-               $products->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -564,7 +563,7 @@ class DashboardAPIController extends ControllerAPI
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
-                ->leftJoin("categories", function ($join) {
+                ->join("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
                     $join->where('activities.activity_name', '=', 'view_category');
                 })
@@ -577,7 +576,7 @@ class DashboardAPIController extends ControllerAPI
                     $categories->addSelect(
                         DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                     );
-                    $categories->groupBy(['categories.category_level', 'created_at_date']);
+                    $categories->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -815,7 +814,7 @@ class DashboardAPIController extends ControllerAPI
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
-                ->leftJoin('widgets', function ($join) {
+                ->join('widgets', function ($join) {
                     $join->on('activities.object_id', '=', 'widgets.widget_id');
                     $join->where('activities.activity_name', '=', 'widget_click');
                 })
@@ -1307,7 +1306,7 @@ class DashboardAPIController extends ControllerAPI
                     $users->addSelect(
                         DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
                     );
-                    $users->groupBy(['details.gender', 'created_at_date']);
+                    $users->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -1562,7 +1561,7 @@ class DashboardAPIController extends ControllerAPI
                     $users->addSelect(
                         DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
                     );
-                    $users->groupBy(['user_age', 'created_at_date']);
+                    $users->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -1822,7 +1821,7 @@ class DashboardAPIController extends ControllerAPI
                    $activities->addSelect(
                        DB::raw('date(created_at) as created_at_date')
                    );
-                   $activities->groupBy(['time_range', 'created_at_date']);
+                   $activities->groupBy('created_at_date');
                    $isReport = true;
                }
             });
