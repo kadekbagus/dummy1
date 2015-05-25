@@ -53,8 +53,6 @@ class ConsumerPrinterController extends DataPrinterController
                     ->excludeDeleted('users')
                     ->groupBy('users.user_id');
 
-        //$users = User::excludeDeleted('users');
-
         // Filter by merchant ids
         OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
             // $users->merchantIds($merchantIds);

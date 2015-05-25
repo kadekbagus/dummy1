@@ -157,7 +157,8 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                     printf("%s,%s,%s,%s,%s,%s", 'No.', 'Product Name', 'Quantity', 'Store Name', 'Unit Price', 'Purchase Date');
 
                     while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
-                        printf("\n%s,%s,%s,%s,%s,%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, number_format($row->price), $formatDate($row->created_at));
+                        $price = $this->printPrice($row->price);
+                        printf("\n%s,%s,%s,%s,%s,%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, $price, $formatDate($row->created_at));
                     }
                     break;
                 case 'print':
@@ -579,6 +580,20 @@ class TransactionHistoryPrinterController extends  DataPrinterController
         }
 
         return $arr;
+    }
+
+    /**
+     * Print Price friendly name.
+     *
+     * @param $price $price
+     * @return string
+     */
+    public function printPrice($price)
+    {
+        $result = number_format($price, 2);
+        $result .= chr(27);
+        
+        return $result;
     }
 }
 
