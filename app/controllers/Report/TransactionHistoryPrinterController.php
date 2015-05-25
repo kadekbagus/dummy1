@@ -158,7 +158,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
                     while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
                         $price = $this->printPrice($row->price);
-                        printf("\n%s,%s,%s,%s,%s,%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, $price, $formatDate($row->created_at));
+                        printf("\n%s,%s,%s,%s,\"%s\",%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, $price, $formatDate($row->created_at));
                     }
                     break;
                 case 'print':
