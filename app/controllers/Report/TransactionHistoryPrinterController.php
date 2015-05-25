@@ -102,6 +102,30 @@ class TransactionHistoryPrinterController extends  DataPrinterController
             $this->prepareUnbufferedQuery();
             $_transactions = clone $transactions;
 
+            // Default sort by
+            $sortBy = 'transaction_details.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'product_name'      => 'transaction_details.product_name',
+                    'last_transaction'  => 'transaction_details.created_at',
+                    'qty'               => 'transaction_details.quantity',
+                    'price'             => 'transaction_details.price'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
+
             $query      = $transactions->toSql();
             $bindings   = $transactions->getBindings();
 
@@ -488,13 +512,13 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
                     // TITLE HEADER
-                    printf("\t,\t,%s,\t,\t,\t,\t,\t,\t,\t,\t,\t\n", $pageTitle);
-                    printf("\t,\t,\t,\t,\t,\t,\t,\t,\t,\t,\t,\t\n");
+                    printf(" , ,%s, , , , , , , , , \n", $pageTitle);
+                    printf(" , , , , , , , , , , , \n");
 
                     // Total Purchase
-                    printf("\t,\t,%s,%s,%s,\t,\t,\t,\t,\t,\t,\t\n", 'Total Records', ':', $total);
-                    printf("\t,\t,%s,%s,%s,\t,\t,\t,\t,\t,\t,\t\n", 'Total Quantity', ':', $subTotal->quantity_total);
-                    printf("\t,\t,%s,%s,%s,\t,\t,\t,\t,\t,\t,\t\n", 'Total Sales', ':', $subTotal->sub_total);
+                    printf(" , ,%s,%s,%s, , , , , , , \n", 'Total Records', ':', $total);
+                    printf(" , ,%s,%s,%s, , , , , , , \n", 'Total Quantity', ':', $subTotal->quantity_total);
+                    printf(" , ,%s,%s,%s, , , , , , , \n", 'Total Sales', ':', $subTotal->sub_total);
 
                     // ROW HEADER
                     printf(
