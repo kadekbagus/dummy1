@@ -373,16 +373,16 @@ class DashboardPrinterController extends DataPrinterController
             $pageTitle = 'Dashboard List Top Widget Click';
 
             $summaryHeaders = [
-                'coupon'      => 'Coupon',
                 'promotion'   => 'Promotion',
+                'coupon'      => 'Coupon',
                 'new_product' => 'New Product',
                 'catalogue'   => 'Catalogue'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
-                'coupon'      => 'Coupon',
                 'promotion'   => 'Promotion',
+                'coupon'      => 'Coupon',
                 'new_product' => 'New Product',
                 'catalogue'   => 'Catalogue'
             ];
@@ -393,8 +393,8 @@ class DashboardPrinterController extends DataPrinterController
 
             $rowFormatter  = [
                 'created_at_date' => $dateFormatter,
-                'coupon'      => false,
                 'promotion'   => false,
+                'coupon'      => false,
                 'new_product' => false,
                 'catalogue'   => false
             ];
@@ -647,14 +647,14 @@ class DashboardPrinterController extends DataPrinterController
             $summaryHeaders = [
                 'Female'      => 'Female',
                 'Male'        => 'Male',
-                'Unspecified' => 'Unspecified'
+                'Unspecified' => 'Unknown'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
-                'Female'          => 'Female',
                 'Male'            => 'Male',
-                'Unspecified'     => 'Unspecified'
+                'Female'          => 'Female',
+                'Unspecified'     => 'Unknown'
             ];
 
             $dateFormatter = function ($date) {
@@ -663,8 +663,8 @@ class DashboardPrinterController extends DataPrinterController
 
             $rowFormatter  = [
                 'created_at_date' => $dateFormatter,
-                'Female'          => false,
                 'Male'            => false,
+                'Female'          => false,
                 'Unspecified'     => false,
             ];
 
@@ -1122,8 +1122,7 @@ class DashboardPrinterController extends DataPrinterController
                 '30-40' => '30-40',
                 '40-50' => '40-50',
                 '50-60' => '50-60',
-                '60+'  => '60+' ,
-                'Unrecorded' => 'Unrecorded'
+                '60+'  => '60+'
             ];
 
             $rowNames = [
@@ -1135,8 +1134,7 @@ class DashboardPrinterController extends DataPrinterController
                 '30-40' => '30-40',
                 '40-50' => '40-50',
                 '50-60' => '50-60',
-                '60+'  => '60+' ,
-                'Unrecorded' => 'Unrecorded'
+                '60+'  => '60+'
             ];
 
             $dateFormatter = function ($date) {
@@ -1152,8 +1150,7 @@ class DashboardPrinterController extends DataPrinterController
                 '30-40' => false,
                 '40-50' => false,
                 '50-60' => false,
-                '60+'   => false,
-                'Unrecorded' => false
+                '60+'   => false
             ];
 
             $rowCounter = 0;
@@ -1216,18 +1213,5 @@ class DashboardPrinterController extends DataPrinterController
         }
 
         return $arr;
-    }
-
-    /**
-     * @param array $row
-     * @param array $formatter\
-     * @return array
-     */
-    private function getRow($row, $formatter)
-    {
-        return array_map(function($i) use ($row, $formatter) {
-            $c = $formatter[$i];
-            return $c ? $c($row->$i) : $row->$i;
-        }, array_keys($formatter));
     }
 }
