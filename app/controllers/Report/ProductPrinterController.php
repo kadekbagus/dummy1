@@ -311,7 +311,8 @@ class ProductPrinterController extends DataPrinterController
     public function printPrice($product)
     {
         $result = number_format($product->price, 2);
-
+        $result .= chr(27);
+        
         return $result;
     }
 

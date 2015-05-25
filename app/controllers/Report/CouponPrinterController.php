@@ -432,6 +432,7 @@ class CouponPrinterController extends DataPrinterController
         switch ($promotion->display_discount_type) {
             case 'value':
                 $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
                 break;
 
             case 'percentage':
@@ -441,6 +442,7 @@ class CouponPrinterController extends DataPrinterController
                 
             default:
                 $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
         }
 
         return $result;
