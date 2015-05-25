@@ -101,25 +101,11 @@ class DashboardAPIController extends ControllerAPI
                             "products.product_name",
                             DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                         )
-                        ->leftJoin("activities", function ($join) {
+                        ->join("activities", function ($join) {
                             $join->on('products.product_id', '=', 'activities.product_id');
                             $join->where('activities.activity_name', '=', 'view_product');
                         })
                         ->groupBy('products.product_id');
-
-
-            $isReport = false;
-            $topNames = clone $products;
-            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $products, $tablePrefix) {
-                if ($_isReport)
-                {
-                    $products->addSelect(
-                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
-                    );
-                    $products->groupBy(['products.product_id', 'created_at_date']);
-                    $isReport = true;
-                }
-            });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($products) {
                $products->whereIn('products.merchant_id', $this->getArray($merchantId));
@@ -131,6 +117,19 @@ class DashboardAPIController extends ControllerAPI
 
             OrbitInput::get('end_date', function ($endDate) use ($products) {
                $products->where('activities.created_at', '<=', $endDate);
+            });
+
+            $isReport = false;
+            $topNames = clone $products;
+            OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $products, $tablePrefix) {
+                if ($_isReport)
+                {
+                    $products->addSelect(
+                        DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                    );
+                    $products->groupBy('created_at_date');
+                    $isReport = true;
+                }
             });
 
             // Clone the query builder which still does not include the take,
@@ -161,52 +160,63 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $summary  = NULL;
+            $lastPage = false;
             if ($isReport)
             {
 
-                $productNames = $topNames->take(20)->get();
+                $productNames = $topNames->orderBy('view_count', 'desc')->take(20)->get();
                 $defaultSelect = [];
+                $productIds    = [];
 
                 foreach ($productNames as $product)
                 {
+                    array_push($productIds, $product->product_id);
                     $name = htmlspecialchars($product->product_name, ENT_QUOTES);
                     array_push($defaultSelect, DB::raw("sum(case product_id when {$product->product_id} then view_count end) as '{$name}'"));
                 }
 
                 $toSelect  = array_merge($defaultSelect, ['created_at_date']);
 
+                $_products->whereIn('activities.product_id', $productIds);
+
                 $productReportQuery = $_products->getQuery();
                 $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
                     ->mergeBindings($productReportQuery)
                     ->select($toSelect)
+                    ->whereIn('product_id', $productIds)
                     ->groupBy('created_at_date');
 
                 $_productReport = clone $productReport;
 
-                $productReport->take($take)->skip($skip);
+                $productReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
                     ->mergeBindings($_productReport);
 
-                $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
-                    ->mergeBindings($productReportQuery)
-                    ->select($defaultSelect);
-
                 $productTotal = $totalReport->count();
                 $productList  = $productReport->get();
-                $summary      = $summaryReport->first();
+
+                if (($productTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                        ->mergeBindings($productReportQuery)
+                        ->select($defaultSelect);
+                    $summary  = $summaryReport->first();
+                    $lastPage = true;
+                }
             } else {
                 $products->take(20);
                 $productTotal = RecordCounter::create($_products)->count();
                 $productList = $products->get();
-                $summary    = null;
             }
 
             $data = new stdclass();
             $data->total_records = $productTotal;
             $data->returned_records = count($productList);
-            $data->summary = $summary;
-            $data->records = $productList;
+            $data->last_page = $lastPage;
+            $data->summary   = $summary;
+            $data->records   = $productList;
 
             if ($productTotal === 0) {
                 $data->records = NULL;
@@ -553,7 +563,7 @@ class DashboardAPIController extends ControllerAPI
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
-                ->leftJoin("categories", function ($join) {
+                ->join("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
                     $join->where('activities.activity_name', '=', 'view_category');
                 })
@@ -566,7 +576,7 @@ class DashboardAPIController extends ControllerAPI
                     $categories->addSelect(
                         DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                     );
-                    $categories->groupBy(['categories.category_level', 'created_at_date']);
+                    $categories->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -611,6 +621,8 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $summary  = NULL;
+            $lastPage = false;
             if ($isReport)
             {
                 $defaultSelect = [
@@ -630,18 +642,23 @@ class DashboardAPIController extends ControllerAPI
 
                 $_categoryReport = clone $categoryReport;
 
-                $categoryReport->take($take)->skip($skip);
+                $categoryReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
-                $summaryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
-                    ->mergeBindings($categoryReportQuery)
-                    ->select($defaultSelect);
 
                 $totalReport = DB::table(DB::raw("({$_categoryReport->toSql()}) as total_report"))
                     ->mergeBindings($_categoryReport);
 
                 $categoryList  = $categoryReport->get();
                 $categoryTotal = $totalReport->count();
-                $summary       = $summaryReport->first();
+
+                if (($categoryTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_categories->toSql()}) as report"))
+                        ->mergeBindings($categoryReportQuery)
+                        ->select($defaultSelect);
+                    $summary  = $summaryReport->first();
+                    $lastPage = true;
+                }
             } else {
                 $categories->take($take);
                 $categoryTotal = RecordCounter::create($_categories)->count();
@@ -652,8 +669,9 @@ class DashboardAPIController extends ControllerAPI
             $data = new stdclass();
             $data->total_records = $categoryTotal;
             $data->returned_records = count($categoryList);
-            $data->summary = $summary;
-            $data->records = $categoryList;
+            $data->last_page = $lastPage;
+            $data->summary   = $summary;
+            $data->records   = $categoryList;
 
             if ($categoryTotal === 0) {
                 $data->records = NULL;
@@ -796,7 +814,7 @@ class DashboardAPIController extends ControllerAPI
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
-                ->leftJoin('widgets', function ($join) {
+                ->join('widgets', function ($join) {
                     $join->on('activities.object_id', '=', 'widgets.widget_id');
                     $join->where('activities.activity_name', '=', 'widget_click');
                 })
@@ -854,6 +872,8 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $summary  = NULL;
+            $lastPage = false;
             if ($isReport)
             {
                 $widgetReportQuery = $_widgets->getQuery();
@@ -873,31 +893,38 @@ class DashboardAPIController extends ControllerAPI
 
                 $_widgetReport = clone $widgetReport;
 
-                $widgetReport->take($take)->skip($skip);
+                $widgetReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
-                $summaryReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
-                    ->mergeBindings($widgetReportQuery)
-                    ->select($defaultSelect);
 
                 $totalReport = DB::table(DB::raw("({$_widgetReport->toSql()}) as total_report"))
                     ->mergeBindings($_widgetReport);
 
                 $widgetTotal = $totalReport->count();
                 $widgetList  = $widgetReport->get();
-                $summary     = $summaryReport->first();
+
+                // Consider Last Page
+                if (($widgetTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_widgets->toSql()}) as report"))
+                        ->mergeBindings($widgetReportQuery)
+                        ->select($defaultSelect);
+                    $summary  = $summaryReport->first();
+                    $lastPage = true;
+                }
+
             } else {
                 $widgets->take($take);
                 $widgetTotal = RecordCounter::create($_widgets)->count();
                 $widgetList  = $widgets->get();
-                $summary     = null;
             }
 
 
             $data = new stdclass();
             $data->total_records = $widgetTotal;
             $data->returned_records = count($widgetList);
-            $data->summary = $summary;
-            $data->records = $widgetList;
+            $data->last_page = $lastPage;
+            $data->summary   = $summary;
+            $data->records   = $widgetList;
 
             if ($widgetTotal === 0) {
                 $data->records = NULL;
@@ -1090,34 +1117,39 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $summary   = NULL;
+            $lastPage  = false;
+            $userTotal = RecordCounter::create($_users)->count();
             if ($isReport)
             {
                 $users->take($take)
                     ->skip($skip);
-
-                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as total_report"))
-                    ->mergeBindings($_users->getQuery())
-                    ->select(
-                        DB::raw("sum(new_user_count) as new_user_count"),
-                        DB::raw("sum(returning_user_count) as returning_user_count"),
-                        DB::raw("sum(user_count) as user_count")
-                    );
-
                 $userList  = $users->get();
-                $summary   = $summaryReport->first();
+
+                // Consider Last Page
+                if (($userTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as total_report"))
+                        ->mergeBindings($_users->getQuery())
+                        ->select(
+                            DB::raw("sum(new_user_count) as new_user_count"),
+                            DB::raw("sum(returning_user_count) as returning_user_count"),
+                            DB::raw("sum(user_count) as user_count")
+                        );
+                    $summary   = $summaryReport->first();
+                    $lastPage = true;
+                }
             } else {
                 $users->take($take);
                 $userList  = $users->get();
-                $summary   = null;
             }
-
-            $userTotal = RecordCounter::create($_users)->count();
 
             $data = new stdclass();
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
-            $data->summary = $summary;
-            $data->records = $userList;
+            $data->last_page = $lastPage;
+            $data->summary   = $summary;
+            $data->records   = $userList;
 
             if ($userTotal === 0) {
                 $data->records = NULL;
@@ -1274,7 +1306,7 @@ class DashboardAPIController extends ControllerAPI
                     $users->addSelect(
                         DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
                     );
-                    $users->groupBy(['details.gender', 'created_at_date']);
+                    $users->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -1315,7 +1347,8 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
-
+            $summary   = NULL;
+            $lastPage  = false;
             if ($isReport)
             {
                 $defaultSelect = [
@@ -1336,30 +1369,35 @@ class DashboardAPIController extends ControllerAPI
 
                 $_userReport = clone $userReport;
 
-                $userReport->take($take)->skip($skip);
+                $userReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
-                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                    ->mergeBindings($userReportQuery)
-                    ->select($defaultSelect);
 
                 $totalReport = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
                     ->mergeBindings($_userReport);
 
                 $userList  = $userReport->get();
                 $userTotal = $totalReport->count();
-                $summary   = $summaryReport->first();
+
+                if (($userTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                        ->mergeBindings($userReportQuery)
+                        ->select($defaultSelect);
+                    $summary   = $summaryReport->first();
+                    $lastPage  = true;
+                }
             } else {
                 $users->take($take);
                 $userTotal = RecordCounter::create($_users)->count();
                 $userList  = $users->get();
-                $summary   = null;
             }
 
             $data = new stdclass();
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
-            $data->summary = $summary;
-            $data->records = $userList;
+            $data->summary   = $summary;
+            $data->last_page = $lastPage;
+            $data->records   = $userList;
 
             if ($userTotal === 0) {
                 $data->records = NULL;
@@ -1523,7 +1561,7 @@ class DashboardAPIController extends ControllerAPI
                     $users->addSelect(
                         DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
                     );
-                    $users->groupBy(['user_age', 'created_at_date']);
+                    $users->groupBy('created_at_date');
                     $isReport = true;
                 }
             });
@@ -1564,8 +1602,9 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
-            if ($isReport)
-            {
+            $summary   = NULL;
+            $lastPage  = false;
+            if ($isReport) {
                 $userReportQuery = $_users->getQuery();
                 $defaultSelect = [
                     DB::raw("sum(case report.user_age when '15-20' then report.user_count end) as '15-20'"),
@@ -1581,38 +1620,42 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('report.created_at_date as created_at_date')
                 ]);
 
-                $userReport    = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date')
                     ->orderBy('created_at_date', 'desc');
 
-                $_userReport   = clone $userReport;
+                $_userReport = clone $userReport;
 
-                $userReport->take($take)->skip($skip);
+                $userReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
-                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                    ->mergeBindings($userReportQuery)
-                    ->select($defaultSelect);
-
-                $totalReport   = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
+                $totalReport = DB::table(DB::raw("({$_userReport->toSql()}) as total_report"))
                     ->mergeBindings($_userReport);
 
-                $userList      = $userReport->get();
-                $userTotal     = $totalReport->count();
-                $summary       = $summaryReport->first();
+                $userList = $userReport->get();
+                $userTotal = $totalReport->count();
+
+                if (($userTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                        ->mergeBindings($userReportQuery)
+                        ->select($defaultSelect);
+                    $summary    = $summaryReport->first();
+                    $lastPage   = true;
+                }
             } else {
                 $users->take($take);
                 $userList  = $users->get();
                 $userTotal = RecordCounter::create($_users)->count();
-                $summary   = null;
             }
 
             $data = new stdclass();
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
-            $data->summary = $summary;
-            $data->records = $userList;
+            $data->last_page = $lastPage;
+            $data->summary   = $summary;
+            $data->records   = $userList;
 
             if ($userTotal === 0) {
                 $data->records = NULL;
@@ -1778,7 +1821,7 @@ class DashboardAPIController extends ControllerAPI
                    $activities->addSelect(
                        DB::raw('date(created_at) as created_at_date')
                    );
-                   $activities->groupBy(['time_range', 'created_at_date']);
+                   $activities->groupBy('created_at_date');
                    $isReport = true;
                }
             });
@@ -1819,6 +1862,8 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $summary = NULL;
+            $lastPage = false;
             if ($isReport)
             {
                 $defaultSelect = [];
@@ -1845,30 +1890,33 @@ class DashboardAPIController extends ControllerAPI
 
                 $_activityReport = clone $activityReport;
 
-                $activityReport->take($take)->skip($skip);
-
-                $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
-                    ->mergeBindings($activityReportQuery)
-                    ->select($defaultSelect);
+                $activityReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $totalReport   = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
                                     ->mergeBindings($_activityReport);
 
                 $activityList  = $activityReport->get();
                 $activityTotal = $totalReport->count();
-                $summary       = $summaryReport->first();
+                if (($activityTotal - $take) <= $skip)
+                {
+                    $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                        ->mergeBindings($activityReportQuery)
+                        ->select($defaultSelect);
+                    $summary  = $summaryReport->first();
+                    $lastPage = true;
+                }
             } else {
                 $activities->take($take);
                 $activityList  = $activities->get();
                 $activityTotal = RecordCounter::create($_activities)->count();
-                $summary       = null;
             }
 
             $data = new stdclass();
             $data->total_records = $activityTotal;
             $data->returned_records = count($activityList);
-            $data->records = $activityList;
-            $data->summary = $summary;
+            $data->records   = $activityList;
+            $data->last_page = $lastPage;
+            $data->summary   = $summary;
 
             if ($activityTotal === 0) {
                 $data->records = NULL;
@@ -2089,7 +2137,8 @@ class DashboardAPIController extends ControllerAPI
             });
 
             $averageTimeConnect = false;
-            $summary = null;
+            $summary  = null;
+            $lastPage = false;
             if ($isReport)
             {
                 $defaultSelect = [
@@ -2110,20 +2159,24 @@ class DashboardAPIController extends ControllerAPI
                     ->select($toSelect)
                     ->groupBy('created_at_date');
 
-                $summaryReport  = DB::table(DB::raw("({$_activities->toSql()}) as report"))
-                    ->mergeBindings($_activities)
-                    ->select($defaultSelect);
-
                 $_activityReport = clone $activityReport;
 
-                $activityReport->take($take)->skip($skip);
+                $activityReport->take($take)->skip($skip)->orderBy('created_at_date', 'desc');
 
                 $totalReport = DB::table(DB::raw("({$_activityReport->toSql()}) as total_report"))
                     ->mergeBindings($_activityReport);
 
                 $activityList  = $activityReport->get();
                 $activityTotal = $totalReport->count();
-                $summary       = $summaryReport->first();
+
+                if (($activityTotal - $take) <= $skip)
+                {
+                    $summaryReport  = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                        ->mergeBindings($_activities)
+                        ->select($defaultSelect);
+                    $summary  = $summaryReport->first();
+                    $lastPage = true;
+                }
             } else {
                 $averageTimeConnect = $activities->first()->average_time_connect;
                 $activityTotal = 0;
@@ -2138,7 +2191,8 @@ class DashboardAPIController extends ControllerAPI
             if ($averageTimeConnect) {
                 $data->average_time_connect = $averageTimeConnect;
             } else {
-                $data->summary = $summary;
+                $data->last_page = $lastPage;
+                $data->summary   = $summary;
             }
 
             $this->response->data = $data;
