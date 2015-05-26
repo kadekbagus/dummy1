@@ -495,7 +495,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 ])->first();
 
             $formatDate = function ($time) {
-              return date('Y-m-d H:i:s', strtotime($time));
+              return date('d-M-Y H:i:s', strtotime($time));
             };
 
             $getFullName = function ($row, $type) {
