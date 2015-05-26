@@ -142,7 +142,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
             switch ($mode) {
                 case 'csv':
-                    $filename = 'transaction-product-list-' . $now . '.csv';
+                    $filename = 'transaction-product-list-' . date('d_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -157,8 +157,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                     printf("%s,%s,%s,%s,%s,%s", 'No.', 'Product Name', 'Quantity', 'Store Name', 'Unit Price', 'Purchase Date');
 
                     while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
-                        $price = $this->printPrice($row->price);
-                        printf("\n%s,%s,%s,%s,\"%s\",%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, $price, $formatDate($row->created_at));
+                        printf("\n%s,%s,%s,%s,%s,%s", ++$rowCounter, $row->product_name, $row->quantity, $row->retailer_name, $row->price, $formatDate($row->created_at));
                     }
                     break;
                 case 'print':
@@ -305,7 +304,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
             switch ($mode) {
                 case 'csv':
-                    $filename = 'transaction-product-list-' . $now . '.csv';
+                    $filename = 'transaction-product-list-' . date('d_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -508,7 +507,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
             switch ($mode) {
                 case 'csv':
-                    $filename = 'list-detail-sales-report-' . $now . '.csv';
+                    $filename = 'list-detail-sales-report-' . date('d_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);

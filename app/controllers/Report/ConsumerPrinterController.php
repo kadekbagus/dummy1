@@ -289,15 +289,14 @@ class ConsumerPrinterController extends DataPrinterController
                     $address = $this->printAddress($row);
                     $birthdate = $this->printBirthDate($row);
                     $last_visit_date = $this->printLastVisitDate($row);
-                    $last_spent_amount = $this->printLastSpentAmount($row);
                     $preferred_language = $this->printLanguage($row);
                     $occupation = $this->printOccupation($row);
                     $sector_of_activity = $this->printSectorOfActivity($row);
                     $avg_annual_income = $this->printAverageAnnualIncome($row);
                     $avg_monthly_spent = $this->printAverageShopping($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
-                        '', $row->user_email, $gender, $address, $row->merchant_name, $last_visit_date, $last_spent_amount, $customer_since,
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
+                        '', $row->user_email, $gender, $address, $row->merchant_name, $last_visit_date, $row->last_spent_amount, $customer_since,
                         $row->user_firstname, $row->user_lastname, $birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
                         $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_list);
                 }
