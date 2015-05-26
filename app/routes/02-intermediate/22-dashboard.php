@@ -26,5 +26,11 @@ Route::get('/app/v1/dashboard/user-by-age', "IntermediateAuthController@Dashboar
 // Get Dashboard user login time
 Route::get('/app/v1/dashboard/user-hourly-login', "IntermediateAuthController@Dashboard_getHourlyUserLogin");
 
-// Get Dashboard user login time
+// Get Dashboard user connect time
 Route::get('/app/v1/dashboard/user-connect-time', "IntermediateAuthController@Dashboard_getUserConnectTime");
+
+// Get Dashboard user customer last visit
+Route::get('/app/v1/dashboard/customer-last-visit', "IntermediateAuthController@Dashboard_getUserLastVisit");
+
+// Get Dashboard user customer merchant summary
+Route::get('/app/v1/dashboard/customer-merchant-summary', "IntermediateAuthController@Dashboard_getUserMerchantSummary");
