@@ -409,7 +409,9 @@ class MobileCIAPIController extends ControllerAPI
         try {
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
-            $families = Category::has('product1')->where('merchant_id', $retailer->parent_id)->active()->get();
+            $families = Category::whereHas('product1', function($q) {
+                    $q->where('products.status', 'active');
+                })->where('merchant_id', $retailer->parent_id)->active()->get();
 
             $cartitems = $this->getCartForToolbar();
 
