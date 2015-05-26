@@ -2353,13 +2353,11 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("max({$tablePrefix}activities.created_at) as created_at")
                 )
                 ->join("merchants", function ($join) {
-                    $join->on('merchants.merchant_id', '=', 'transactions.merchant_id');
-                })
-                ->join("merchants as retailer", function ($join) {
-                    $join->on(DB::raw("retailer.parent_id"), '=', 'merchants.merchant_id');
+                    $join->on('merchants.merchant_id', '=', 'transactions.retailer_id');
                 })
                 ->join("activities", function ($join) {
-                    $join->on("activities.location_id", '=', DB::raw('retailer.merchant_id'));
+                    $join->on("activities.location_id", '=', 'transactions.retailer_id');
+                    $join->where('activities.activity_name', '=', 'login_ok');
                 })
                 ->groupBy('transactions.customer_id')
                 ->orderBy('activities.created_at', 'desc');
@@ -2385,6 +2383,7 @@ class DashboardAPIController extends ControllerAPI
                 ->leftJoin('transaction_detail_promotions as promotions', function ($join) {
                     $join->on(DB::raw('promotions.transaction_id'), '=', 'transactions.transaction_id');
                 })
+                ->mergeBindings($lastVisitedMerchantByCustomer->getQuery())
                 ->where('transactions.customer_id', '=', $this->api->getUserId());
 
             OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
@@ -2482,10 +2481,13 @@ class DashboardAPIController extends ControllerAPI
      *
      * List Of Parameters
      * ------------------
-     * @param integer `take`          (optional) - Per Page limit
-     * @param integer `skip`          (optional) - paging skip for limit
-     * @param date    `begin_date`    (optional) - filter date begin
-     * @param date    `end_date`      (optional) - filter date end
+     * @param integer `take`               (optional) - Per Page limit
+     * @param integer `skip`               (optional) - paging skip for limit
+     * @param string  `retailer_name_like` (optional) filter by retailer name
+     * @param integer `transaction_count`  (optional) transaction count filter
+     * @param integer `transaction_total`  (optional) transaction total filter
+     * @param date    `begin_date`         (optional) - filter date begin
+     * @param date    `end_date`           (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
      */
     public function getUserMerchantSummary()
@@ -2554,30 +2556,42 @@ class DashboardAPIController extends ControllerAPI
             $tablePrefix = DB::getTablePrefix();
 
             $transactions = Transaction::select(
-                    'transactions.merchant_id',
-                    'merchants.name as merchant_name',
-                    'merchants.logo as merchant_logo',
+                    'transactions.retailer_id',
+                    'merchants.name as retailer_name',
+                    DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
                     DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as visit_count"),
                     DB::raw("max({$tablePrefix}activities.created_at) as last_visit")
                 )
-                ->join('merchants', 'merchants.merchant_id', '=', 'transactions.merchant_id')
-                ->join('merchants as retailer', 'merchants.merchant_id', '=', DB::raw("retailer.parent_id"))
+                ->join('merchants', 'merchants.merchant_id', '=', 'transactions.retailer_id')
+                ->join('merchants as parent', DB::raw('parent.merchant_id'), '=', 'transactions.merchant_id')
                 ->leftJoin('activities', function ($join) {
-                    $join->on('activities.user_id', '=', 'transactions.customer_id');
-                    $join->where('activities.location_id', '=', DB::raw('retailer.merchant_id'));
+                    $join->on('activities.location_id', '=', 'transactions.retailer_id');
+                    $join->where('activities.user_id', '=', $this->api->getUserId());
                     $join->where('activities.activity_name', '=', 'login_ok');
                 })
                 ->where('transactions.customer_id', '=', $this->api->getUserId())
-                ->groupBy('transactions.merchant_id');
+                ->groupBy('transactions.retailer_id');
 
             OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
-                $transactions->where('transactions.created_at', '>=', $beginDate);
+                $transactions->where('activities.created_at', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($transactions) {
-                $transactions->where('transactions.created_at', '<=', $endDate);
+                $transactions->where('activities.created_at', '<=', $endDate);
+            });
+
+            OrbitInput::get('retailer_name_like', function($retailerName) use ($transactions) {
+                $transactions->where('merchants.name', 'like', "%{$retailerName}%");
+            });
+
+            OrbitInput::get('transaction_count', function($trxCount) use ($transactions) {
+                $transactions->having('transaction_count', '=', $trxCount);
+            });
+
+            OrbitInput::get('transaction_total', function($trxTotal) use ($transactions) {
+                $transactions->having('transaction_total', '=', $trxTotal);
             });
 
             $_transactions = clone $transactions;
