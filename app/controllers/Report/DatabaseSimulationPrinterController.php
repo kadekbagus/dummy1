@@ -53,6 +53,11 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             $activities->whereIn('activities.activity_name_long', $nameLongs);
         });
 
+        // Filter by matching activity_name_long pattern
+        OrbitInput::get('activity_name_long_like', function($name) use ($activities) {
+            $activities->where('activities.activity_name_long', 'like', "%$name%");
+        });
+
         // Filter by merchant ids
         OrbitInput::get('merchant_ids', function($merchantIds) use ($activities) {
             $activities->merchantIds($merchantIds);
@@ -68,6 +73,16 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             $activities->whereIn('activities.user_email', $emails);
         });
 
+        // Filter by matching user_email pattern
+        OrbitInput::get('user_email_like', function($userEmail) use ($activities) {
+            $activities->where('activities.user_email', 'like', "%$userEmail%");
+        });
+
+        // Filter by gender
+        OrbitInput::get('genders', function($genders) use ($activities) {
+            $activities->whereIn('activities.gender', $genders);
+        });
+
         // Filter by groups
         if (! empty($_GET['groups'])) {
             OrbitInput::get('groups', function($groups) use ($activities) {
@@ -76,6 +91,11 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         } else {
             $activities->whereIn('activities.group', ['mobile-ci', 'pos']);
         }
+
+        // Filter by matching group pattern
+        OrbitInput::get('group_like', function($group) use ($activities) {
+            $activities->where('activities.group', 'like', "%$group%");
+        });
 
         // Filter by role_ids
         OrbitInput::get('role_ids', function($roleIds) use ($activities) {
@@ -92,25 +112,55 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             $activities->whereIn('activities.object_name', $names);
         });
 
+        // Filter by matching object_name pattern
+        OrbitInput::get('object_name_like', function($name) use ($activities) {
+            $activities->where('activities.object_name', 'like', "%$name%");
+        });
+
         OrbitInput::get('product_names', function($names) use ($activities) {
             $activities->whereIn('activities.product_name', $names);
+        });
+
+        // Filter by matching product_name pattern
+        OrbitInput::get('product_name_like', function($name) use ($activities) {
+            $activities->where('activities.product_name', 'like', "%$name%");
         });
 
         OrbitInput::get('promotion_names', function($names) use ($activities) {
             $activities->whereIn('activities.promotion_name', $names);
         });
 
+        // Filter by matching promotion_name pattern
+        OrbitInput::get('promotion_name_like', function($name) use ($activities) {
+            $activities->where('activities.promotion_name', 'like', "%$name%");
+        });
+
         OrbitInput::get('coupon_names', function($names) use ($activities) {
             $activities->whereIn('activities.coupon_name', $names);
+        });
+
+        // Filter by matching coupon_name pattern
+        OrbitInput::get('coupon_name_like', function($name) use ($activities) {
+            $activities->where('activities.coupon_name', 'like', "%$name%");
         });
 
         OrbitInput::get('event_names', function($names) use ($activities) {
             $activities->whereIn('activities.event_name', $names);
         });
 
+        // Filter by matching event_name pattern
+        OrbitInput::get('event_name_like', function($name) use ($activities) {
+            $activities->where('activities.event_name', 'like', "%$name%");
+        });
+
         // Filter by staff Ids
         OrbitInput::get('staff_ids', function($staff) use ($activities) {
             $activities->whereIn('activities.staff_id', $staff);
+        });
+
+        // Filter by matching staff_name pattern
+        OrbitInput::get('staff_name_like', function($name) use ($activities) {
+            $activities->where('activities.staff_name', 'like', "%$name%");
         });
 
         // Filter by status
@@ -215,7 +265,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             }
         });
         $activities->orderBy($sortBy, $sortMode);
-
 
         $totalRec = RecordCounter::create($_activities)->count();
 
