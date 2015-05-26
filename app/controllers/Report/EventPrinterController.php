@@ -257,10 +257,14 @@ class EventPrinterController extends DataPrinterController
             case 'N':
             default:
                 $date = $event->end_date;
-                $date = explode(' ',$date);
-                $time = strtotime($date[0]);
-                $newformat = date('d M Y',$time);
-                $result = $newformat.' '.$date[1];
+                if($date==NULL || empty($date)){
+                    $result = "";
+                } else {
+                    $date = explode(' ',$date);
+                    $time = strtotime($date[0]);
+                    $newformat = date('d M Y',$time);
+                    $result = $newformat.' '.$date[1];
+                }
         }
 
         return $result;
