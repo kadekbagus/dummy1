@@ -119,7 +119,7 @@
         <tr>
             <td style="width:150px">Total Sales</td>
             <td style="width:10px;">:</td>
-            <td><strong><?php echo ($subTotal->transactions_total); ?></strong></td>
+            <td><strong><?php echo $me->printNumberFormat($subTotal->transactions_total); ?></strong></td>
         </tr>
     </table>
 
@@ -138,13 +138,13 @@
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="<?php echo $rowCounter % 2 === 0 ? 'zebra' : '' ?>">
                 <td><?php echo (++$rowCounter); ?></td>
-                <td><?php echo ($row->activity_date); ?></td>
+                <td><?php echo $me->printActivityDate($row); ?></td>
                 <td><?php echo ($row->activity_full_name); ?></td>
-                <td><?php echo ($formatDate($row->login_at)); ?></td>
-                <td><?php echo ($formatDate($row->logout_at)); ?></td>
+                <td><?php echo $me->printDateTime($row->login_at); ?></td>
+                <td><?php echo $me->printDateTime($row->logout_at); ?></td>
                 <td><?php echo ($totalTime($row->login_at, $row->logout_at)); ?></td>
                 <td><?php echo ($row->transactions_count); ?></td>
-                <td><?php echo number_format($row->transactions_total, 2); ?></td>
+                <td><?php echo $me->printNumberFormat($row->transactions_total); ?></td>
             </tr>
         <?php endwhile; ?>
         </tbody>
