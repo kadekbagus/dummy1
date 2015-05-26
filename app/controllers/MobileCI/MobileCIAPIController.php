@@ -5348,8 +5348,8 @@ class MobileCIAPIController extends ControllerAPI
                 $payment='Paypal';
             }
 
-            // $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
-            $date = date('d M Y H:i:s', strtotime($transaction['created_at']));
+            $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
+            // $date = date('d M Y H:i:s', strtotime($transaction['created_at']));
 
             if ($transaction['user']==null) {
                 $customer = "Guest";
