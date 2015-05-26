@@ -2516,12 +2516,15 @@ class DashboardAPIController extends ControllerAPI
             Event::fire('orbit.dashboard.getusermerchantsummary.after.authz', array($this, $user));
 
             $take = OrbitInput::get('take');
+            $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
                 array(
-                    'take' => $take
+                    'take' => $take,
+                    'sort_by' => $sort_by
                 ),
                 array(
-                    'take' => 'numeric'
+                    'take' => 'numeric',
+                    'sort_by' => 'in:retailer_name,transaction_count,transaction_total,visit_count,last_visit'
                 )
             );
 
@@ -2609,6 +2612,8 @@ class DashboardAPIController extends ControllerAPI
                 }
             });
 
+            $transactions->take($take);
+
             $skip = 0;
             OrbitInput::get('skip', function ($_skip) use (&$skip) {
                 if ($_skip < 0) {
@@ -2618,7 +2623,32 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
-            $transactions->skip($skip)->take($take);
+            $transactions->skip($skip);
+
+            // Default sort by
+            $sortBy = 'activities.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'retailer_name'      => 'retailer_name',
+                    'transaction_count'  => 'transaction_count',
+                    'transaction_total'  => 'transaction_total',
+                    'visit_count'        => 'visit_count',
+                    'last_visit'         => 'last_visit'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
 
             $transactionTotal = RecordCounter::create($_transactions)->count();
             $transactionList = $transactions->get();
