@@ -2561,6 +2561,8 @@ class DashboardAPIController extends ControllerAPI
             $transactions = Transaction::select(
                     'transactions.retailer_id',
                     'merchants.name as retailer_name',
+                    'transactions.currency',
+                    'transactions.currency_symbol',
                     DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
                     DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
@@ -2594,7 +2596,7 @@ class DashboardAPIController extends ControllerAPI
             });
 
             OrbitInput::get('transaction_total', function($trxTotal) use ($transactions) {
-                $transactions->having('transaction_total', '=', $trxTotal);
+                $transactions->having('transaction_total', 'like', "'{$trxTotal}'");
             });
 
             $_transactions = clone $transactions;
