@@ -3438,7 +3438,7 @@ class CashierAPIController extends ControllerAPI
             $customer_email = $transaction->user->user_email;
 
             Mail::send($mailviews, array('user' => $transaction->user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details, 'transaction' => $transaction), function ($message) use ($base64img, $user, $filepath, $attachment_name, $write, $customer_email, $transaction) {
-                $message->to('sembarang@vm.orbit-shop.rio', $transaction->user->getFullName())->subject('Orbit Receipt');
+                $message->to($customer_email, $transaction->user->getFullName())->subject('Orbit Receipt');
                 $message->attachData(base64_decode($base64img), $attachment_name, ['mime' => 'img/png']);
             });
 
