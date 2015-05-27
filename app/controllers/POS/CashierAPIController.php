@@ -1486,6 +1486,7 @@ class CashierAPIController extends ControllerAPI
             $acquired_coupon = null;
 
             foreach ($_issuedcoupon as $key => $value) {
+                $datex = Carbon::parse($value['expired_date'])->timezone(Config::get('app.timezone'))->format('d M Y H:i');
                 if ($key == 0) {
                   $acquired_coupon .= " \n";
                   $acquired_coupon .= '----------------------------------------'." \n";
@@ -1493,14 +1494,14 @@ class CashierAPIController extends ControllerAPI
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
-                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                  $acquired_coupon .= $this->just40CharMid("Coupon Code " . $value['issued_coupon_code']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until " . $datex);
                 } else {
                   $acquired_coupon .= '----------------------------------------'." \n";
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                   $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
-                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
+                  $acquired_coupon .= $this->just40CharMid("Coupon Code " . $value['issued_coupon_code']);
+                  $acquired_coupon .= $this->just40CharMid("Valid until " . $datex);
                   if ($key == $total_issuedcoupon-1) {
                     $acquired_coupon .= '----------------------------------------'." \n";
                   }
@@ -1601,7 +1602,7 @@ class CashierAPIController extends ControllerAPI
             if ($payment == 'cash') {$payment='Cash';}
             if ($payment == 'card') {$payment='Card';}
 
-            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+            $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
 
             if ($transaction['user'] == NULL) {
                 $customer = "Guest";
@@ -3199,24 +3200,25 @@ class CashierAPIController extends ControllerAPI
             $acquired_coupon = null;
 
             foreach ($_issuedcoupon as $key => $value) {
+                $datex = Carbon::parse($value['expired_date'])->timezone(Config::get('app.timezone'))->format('d M Y H:i');
                 if ($key == 0) {
-                  $acquired_coupon .= " \n";
-                  $acquired_coupon .= '----------------------------------------'." \n";
-                  $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
-                  $acquired_coupon .= '----------------------------------------'." \n";
-                  $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
-                  $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
-                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
-                } else {
-                  $acquired_coupon .= '----------------------------------------'." \n";
-                  $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
-                  $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
-                  $acquired_coupon .= $this->just40CharMid("Coupon Code ".$value['issued_coupon_code']);
-                  $acquired_coupon .= $this->just40CharMid("Valid until ".$value['expired_date']);
-                  if ($key == $total_issuedcoupon-1) {
+                    $acquired_coupon .= " \n";
                     $acquired_coupon .= '----------------------------------------'." \n";
-                  }
+                    $acquired_coupon .=  $this->just40CharMid('Acquired Coupon');
+                    $acquired_coupon .= '----------------------------------------'." \n";
+                    $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+                    $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+                    $acquired_coupon .= $this->just40CharMid("Coupon Code " . $value['issued_coupon_code']);
+                    $acquired_coupon .= $this->just40CharMid("Valid until " . $datex);
+                } else {
+                    $acquired_coupon .= '----------------------------------------'." \n";
+                    $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
+                    $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
+                    $acquired_coupon .= $this->just40CharMid("Coupon Code " . $value['issued_coupon_code']);
+                    $acquired_coupon .= $this->just40CharMid("Valid until " . $datex);
+                    if ($key == $total_issuedcoupon-1) {
+                        $acquired_coupon .= '----------------------------------------'." \n";
+                    }
                 }
             }
 
@@ -3314,7 +3316,7 @@ class CashierAPIController extends ControllerAPI
             if ($payment == 'cash') {$payment = 'Cash';}
             if ($payment == 'card') {$payment = 'Card';}
 
-            $date  =  $transaction['created_at']->timezone('Asia/Jakarta')->format('d M Y H:i:s');
+            $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
 
             if ($transaction['user'] == NULL) {
                 $customer = "Guest";
@@ -3436,7 +3438,7 @@ class CashierAPIController extends ControllerAPI
             $customer_email = $transaction->user->user_email;
 
             Mail::send($mailviews, array('user' => $transaction->user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details, 'transaction' => $transaction), function ($message) use ($base64img, $user, $filepath, $attachment_name, $write, $customer_email, $transaction) {
-                $message->to($customer_email, $transaction->user->getFullName())->subject('Orbit Receipt');
+                $message->to('sembarang@vm.orbit-shop.rio', $transaction->user->getFullName())->subject('Orbit Receipt');
                 $message->attachData(base64_decode($base64img), $attachment_name, ['mime' => 'img/png']);
             });
 
