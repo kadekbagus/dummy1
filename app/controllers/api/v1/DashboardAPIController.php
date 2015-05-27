@@ -571,7 +571,8 @@ class DashboardAPIController extends ControllerAPI
                 )
                 ->join("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
-                    $join->where('activities.activity_name', '=', 'view_category');
+                    $join->where('activities.activity_name', '=', 'view_catalogue');
+                    $join->where('activities.object_name', '=', 'Category');
                 })
                 ->groupBy('categories.category_level');
 
