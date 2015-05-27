@@ -173,7 +173,7 @@ class Coupon extends Eloquent
     public function scopeIncludeTransactionStatus($builder)
     {
         $prefix = DB::getTablePrefix();
-        return $builder->select('promotions.*', DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+        return $builder->addSelect(DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
                        ->leftJoin('transaction_detail_coupons', 'transaction_detail_coupons.promotion_id', '=', 'promotions.promotion_id')
                         ->leftJoin('transactions', function($join) {
                              $join->on('transactions.status', '!=', DB::Raw("'deleted'"));

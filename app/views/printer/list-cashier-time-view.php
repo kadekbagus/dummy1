@@ -99,6 +99,7 @@
             <option value="20">24</option>
         </select>
         <button id="printbtn" style="padding:0 6px;" onclick="window.print()">Print Page</button>
+        <button id="printbtn" style="padding:0 6px;" onclick="window.exportToCSV()">Export to CSV</button>
     </div>
     <div id="loadingbar">Loading all the data, please wait...</div>
 </div>
@@ -125,18 +126,18 @@
 
     <table style="width:100%">
         <thead>
-        <th style="text-align: left;">No.</th>
-        <th style="text-align: left;">Date</th>
-        <th style="text-align: left;">Employee Name</th>
-        <th style="text-align: left;">Clock In</th>
-        <th style="text-align: left;">Clock Out</th>
-        <th style="text-align: left;">Total Time</th>
-        <th style="text-align: left;">Number Of Receipt</th>
-        <th style="text-align: left;">Total Sales</th>
+        <th style="text-align: left;">'No.'</th>
+        <th style="text-align: left;">'Date'</th>
+        <th style="text-align: left;">'Employee Name'</th>
+        <th style="text-align: left;">'Clock In'</th>
+        <th style="text-align: left;">'Clock Out'</th>
+        <th style="text-align: left;">'Total Time'</th>
+        <th style="text-align: left;">'Number Of Receipt'</th>
+        <th style="text-align: left;">'Total Sales'</th>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
-            <tr class="<?php echo $rowCounter % 2 === 0 ? 'zebra' : '' ?>">
+            <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
                 <td><?php echo (++$rowCounter); ?></td>
                 <td><?php echo $me->printActivityDate($row); ?></td>
                 <td><?php echo ($row->activity_full_name); ?></td>
@@ -167,6 +168,13 @@
         document.getElementById('main').style.fontFamily = "Arial";
         document.getElementById('main').style.fontSize = "12px";
         document.getElementById('loadingbar').style.display = 'none';
+    }
+
+    function exportToCSV() {
+        // Replace the redundant query string argument 'export'
+        var url = window.location.href.replace('&export=print', '').replace('&export=csv', '');
+
+        window.location.href = url + '&export=csv';
     }
 </script>
 
