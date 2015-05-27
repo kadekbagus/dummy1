@@ -324,9 +324,8 @@ class PromotionPrinterController extends DataPrinterController
 
                     $expiration_date = $this->printExpirationDate($row);
                     $discount_type = $this->printDiscountType($row);
-                    $discount_value = $this->printDiscountValue($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $discount_value, $row->product_name, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $row->discount_value, $row->product_name, $row->status);
                 }
                 break;
 
@@ -427,6 +426,7 @@ class PromotionPrinterController extends DataPrinterController
         switch ($promotion->display_discount_type) {
             case 'value':
                 $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
                 break;
 
             case 'percentage':
@@ -436,6 +436,7 @@ class PromotionPrinterController extends DataPrinterController
                 
             default:
                 $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
         }
 
         return $result;

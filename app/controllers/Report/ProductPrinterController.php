@@ -235,10 +235,8 @@ class ProductPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '','','','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
-
-                    $price = $this->printPrice($row);
                     
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $price, $row->retailer_list, $row->is_new, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, $row->retailer_list, $row->is_new, $row->status);
                 }
                 break;
 
@@ -311,7 +309,7 @@ class ProductPrinterController extends DataPrinterController
     public function printPrice($product)
     {
         $result = number_format($product->price, 2);
-
+        
         return $result;
     }
 

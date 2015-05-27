@@ -10,6 +10,7 @@ use Helper\EloquentRecordCounter as RecordCounter;
 use User;
 use Role;
 use Transaction;
+use Activity;
 
 class CashierPrinterController extends DataPrinterController
 {
@@ -142,7 +143,7 @@ class CashierPrinterController extends DataPrinterController
 
         // Filter user by employee position pattern
         OrbitInput::get('position_like', function ($position) use ($users) {
-            $users->whereHas('employee', function ($q) use ($position) {  
+            $users->whereHas('employee', function ($q) use ($position) {
                 $q->where('position', 'like', "%$position%");
             });
         });
@@ -252,33 +253,40 @@ class CashierPrinterController extends DataPrinterController
 
             $tablePrefix = DB::getTablePrefix();
 
-            $activityQuery = DB::raw("
-                SELECT
-                    `user_id` as activity_user_id,
-                    `full_name` as activity_full_name,
-                    `role` as activity_role,
-                    `group` as activity_group,
-                    date(`created_at`) as activity_date,
-                    min(case activity_type when 'login' then `created_at` end) as login_at,
-                    max(case activity_type when 'logout' then `created_at` end) as logout_at
-                FROM {$tablePrefix}activities
-                WHERE `role`          like 'cashier'
-                AND   `group`         = 'pos'
-                AND   `activity_type` IN ('login', 'logout')
-                GROUP BY `activity_date`, `activity_user_id`");
+            $activities  = Activity::select(
+                    'user_id as activity_user_id',
+                    'full_name as activity_full_name',
+                    'role as activity_role',
+                    'group as activity_group',
+                    DB::raw('date(created_at) as activity_date'),
+                    DB::raw("min(case activity_name when 'login_ok' then created_at end) as login_at"),
+                    DB::raw("max(case activity_name when 'logout_ok' then created_at end) as logout_at")
+                )
+                ->where('role', 'like', 'cashier')
+                ->where('group', '=', 'pos')
+                ->whereIn('activity_name', ['login_ok', 'logout_ok'])
+                ->groupBy('activity_date', 'activity_user_id');
+            $activitiesQuery = $activities->getQuery();
 
-            $transactions = Transaction::select([
-                'cashier_activities.*',
-                DB::raw("count(distinct transaction_id) as transactions_count"),
-                DB::raw('sum(total_to_pay) as transactions_total')])
+            $transactionByDate = Transaction::select(
+                    DB::raw('count(distinct transaction_id) as transactions_count'),
+                    DB::raw('sum(total_to_pay) as transactions_total'),
+                    DB::raw('date(created_at) as transaction_date'),
+                    'merchant_id',
+                    'cashier_id',
+                    'customer_id'
+                )
+                ->groupBy('transaction_date', 'cashier_id');
+            $transactionByDateQuery = $transactionByDate->getQuery();
 
-                ->leftJoin("users as {$tablePrefix}customer", function ($join) {
-                    $join->on('customer.user_id', '=', 'transactions.customer_id');
+            $transactions = DB::table(DB::raw("({$activities->toSql()}) as {$tablePrefix}activities"))
+                ->mergeBindings($activitiesQuery)
+                ->leftJoin(DB::raw("({$transactionByDate->toSql()}) as {$tablePrefix}transactions"), function ($join) {
+                    $join->on('activity_user_id', '=','cashier_id');
+                    $join->on('activity_date', '=','transaction_date');
                 })
-
-                ->leftJoin(DB::raw("({$activityQuery}) as {$tablePrefix}cashier_activities"), function ($join) {
-                    $join->on('activity_user_id', '=', 'transactions.cashier_id');
-                });
+                ->mergeBindings($transactionByDateQuery)
+                ->groupBy('activity_date', 'cashier_id');
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
                 $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
@@ -296,47 +304,21 @@ class CashierPrinterController extends DataPrinterController
                 $transactions->where("activity_full_name", 'like', "%{$cashierName}%");
             });
 
-            OrbitInput::get('customer_id', function ($customerId) use ($transactions) {
-                $transactions->whereIn("customer.user_id", $this->getArray($customerId));
-            });
-
-            OrbitInput::get('customer_firstname', function ($customerName) use ($transactions) {
-                $transactions->whereIn("customer.user_firstname", $this->getArray($customerName));
-            });
-
-            OrbitInput::get('customer_lastname', function ($customerName) use ($transactions) {
-                $transactions->whereIn("customer.user_lastname", $this->getArray($customerName));
-            });
-
-            OrbitInput::get('customer_name_like', function ($customerName) use ($transactions) {
-                $transactions->where("customer.user_firstname", 'like', "%{$customerName}%")
-                    ->whereOr("customer.user_lastname", 'like', "%{$customerName}%");
-            });
-
-            OrbitInput::get('payment_method', function ($paymentType) use ($transactions) {
-                $transactions->whereIn('transactions.payment_method', $this->getArray($paymentType));
-            });
-
-            OrbitInput::get('purchase_code', function ($purchaseCode) use ($transactions) {
-                $transactions->whereIn('transactions.transaction_code', $this->getArray($purchaseCode));
-            });
-
-            $transactions->groupBy(['transactions.cashier_id', 'cashier_activities.activity_date']);
+            $transactions->groupBy(['transactions.cashier_id', 'activities.activity_date']);
             // Default sort by
-            $sortBy = 'transactions.created_at';
+            $sortBy = 'transactions.transaction_date';
             // Default sort mode
             $sortMode = 'asc';
 
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
                 $sortByMapping = array(
-                    'cashier_id'  => 'activity_user_id',
+                    'cashier_id'   => 'activity_user_id',
                     'cashier_name' => 'activity_full_name',
-                    'customer_id'  => 'customer.user_id',
-                    'customer_firstname' => 'customer.user_firstname',
-                    'customer_lastname'  => 'customer.user_lastname',
-                    'payment_method'     => 'transactions.payment_method',
-                    'purchase_code'  => 'transactions.transaction_code'
+                    'login_at'     => 'login_at',
+                    'logout_at'    => 'logout_at',
+                    'transactions_count'  => 'transactions_count',
+                    'transactions_total'  => 'transactions_total'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -360,10 +342,12 @@ class CashierPrinterController extends DataPrinterController
             $statement  = $this->pdo->prepare($query);
             $statement->execute($bindings);
 
-            $total      = RecordCounter::create($_transactions)->count();
+            $total      = DB::table(DB::raw("({$_transactions->toSql()}) as sub"))
+                ->mergeBindings($_transactions)
+                ->count();
 
             $subTotalQuery    = $_transactions->toSql();
-            $subTotalBindings = $_transactions->getQuery();
+            $subTotalBindings = $_transactions;
             $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
                 ->mergeBindings($subTotalBindings)
                 ->select([
@@ -375,12 +359,21 @@ class CashierPrinterController extends DataPrinterController
             $pageTitle  = 'Report Cashier Time Table';
 
             $formatDate = function($time) {
-                return date('d-M-Y H:i:s', strtotime($time));
+                $time = strtotime($time);
+                if ($time <= 1) {
+                    return '-';
+                }
+                return date('d-M-Y H:i:s', $time);
             };
 
             $totalTime = function($start, $end) {
-                $time = strtotime($end) - strtotime($start);
-                return date('d-M-Y H:i:s', $time);
+                $start = strtotime($start);
+                $end   = strtotime($end);
+                if ($end <= 1 || $start <= 1)
+                {
+                    return '-';
+                }
+                return $end - $start;
             };
 
             switch ($mode) {
@@ -426,6 +419,7 @@ class CashierPrinterController extends DataPrinterController
                     break;
                 case 'print':
                 default:
+                    $me = $this;
                     require app_path() . '/views/printer/list-cashier-time-view.php';
             }
         } catch(\Exception $e) {
@@ -465,5 +459,58 @@ class CashierPrinterController extends DataPrinterController
         return $arr;
     }
 
+
+    /**
+     * Print activity date type friendly name.
+     *
+     * @param $cashier $cashier
+     * @return string
+     */
+    public function printActivityDate($cashier)
+    {
+        if($cashier->activity_date==NULL || empty($cashier->activity_date)){
+            $result = "";
+        } else {
+            $date = $cashier->activity_date;
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d M Y',$time);
+            $result = $newformat;
+        }
+        return $result;
+    }
+
+
+    /**
+     * Print date time friendly name.
+     *
+     * @param $date $date
+     * @return string
+     */
+    public function printDateTime($date)
+    {
+        if($date==NULL || empty($date)){
+            $result = "";
+        } else {
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d M Y',$time);
+            $result = $newformat.' '.$date[1];
+        }
+        return $result;
+    }
+
+
+    /**
+     * Print number format friendly name.
+     *
+     * @param $number $number
+     * @return string
+     */
+    public function printNumberFormat($number)
+    {
+        $result = number_format($number, 2);
+        return $result;
+    }
 
 }
