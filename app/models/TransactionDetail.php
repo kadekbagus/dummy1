@@ -108,4 +108,43 @@ class TransactionDetail extends Eloquent
                     ) transpose_variant"), DB::raw('`transpose_variant`.`product_variant_id`'), '=', 'product_variants.product_variant_id')
                     ->whereIn(DB::raw('`transpose_variant`.`value_id`'), $ids);
     }
+
+    /**
+     * Get Transactions Detail Report Based
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     */
+    public function scopeDetailSalesReport($builder)
+    {
+        $tablePrefix  = DB::getTablePrefix();
+        $transactions = $builder->select(
+                'transactions.transaction_id',
+                'transaction_details.product_code as product_sku',
+                'transaction_details.product_name',
+                'transaction_details.quantity',
+                'transaction_details.price',
+                'transactions.payment_method',
+                'transaction_details.created_at',
+                DB::raw("sum(ifnull({$tablePrefix}tax.total_tax, 0)) as total_tax"),
+                DB::raw("(quantity * (price + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
+                'cashier.user_firstname as cashier_user_firstname',
+                'cashier.user_lastname as cashier_user_lastname',
+                'customer.user_firstname as customer_user_firstname',
+                'customer.user_lastname as customer_user_lastname',
+                'customer.user_email as customer_user_email'
+            )
+            ->join("transactions", function ($join) {
+                $join->on("transactions.transaction_id", '=', "transaction_details.transaction_id");
+            })
+            ->join("transaction_detail_taxes as {$tablePrefix}tax", function ($join) {
+                $join->on("transaction_details.transaction_detail_id", '=', 'tax.transaction_detail_id');
+            })
+            ->join("users as {$tablePrefix}customer", function ($join) {
+                $join->on('customer.user_id', '=', 'transactions.customer_id');
+            })
+            ->join("users as {$tablePrefix}cashier", function ($join) {
+                $join->on('cashier.user_id', '=', 'transactions.cashier_id');
+            });
+
+        return $transactions;
+    }
 }
