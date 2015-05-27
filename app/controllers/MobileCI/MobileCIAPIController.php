@@ -5249,6 +5249,8 @@ class MobileCIAPIController extends ControllerAPI
             $acquired_coupon = null;
 
             foreach ($_issuedcoupon as $key => $value) {
+                // $date  =  $transaction['created_at']->timezone(Config::get('app.timezone'))->format('d M Y H:i:s');
+                $datex = Carbon::parse($value['expired_date'])->timezone(Config::get('app.timezone'))->format('d M Y H:i');
                 if ($key == 0) {
                     $acquired_coupon .= " \n";
                     $acquired_coupon .= '----------------------------------------' . " \n";
@@ -5257,13 +5259,13 @@ class MobileCIAPIController extends ControllerAPI
                     $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                     $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                     $acquired_coupon .= $this->just40CharMid("Coupon Code " . $value['issued_coupon_code']);
-                    $acquired_coupon .= $this->just40CharMid("Valid until " . date('d M Y H:i', strtotime($value['expired_date'])));
+                    $acquired_coupon .= $this->just40CharMid("Valid until " . $datex);
                 } else {
                     $acquired_coupon .= '----------------------------------------' . " \n";
                     $acquired_coupon .= $this->just40CharMid($value['coupon']['promotion_name']);
                     $acquired_coupon .= $this->just40CharMid($value['coupon']['description']);
                     $acquired_coupon .= $this->just40CharMid("Coupon Code " . $value['issued_coupon_code']);
-                    $acquired_coupon .= $this->just40CharMid("Valid until " . date('d M Y H:i', strtotime($value['expired_date'])));
+                    $acquired_coupon .= $this->just40CharMid("Valid until " . $datex);
                     if ($key == $total_issuedcoupon-1) {
                         $acquired_coupon .= '----------------------------------------' . " \n";
                     }

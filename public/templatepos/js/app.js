@@ -1602,6 +1602,9 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     }else{
                         $scope.messagesendemail = $scope.language.emailgagal;
                     }
+                    $timeout(function(){
+                        $scope.messagesendemail = '';
+                    }, 3000);
              };
              //Ticket Print
              $scope.ticketprint = function(){

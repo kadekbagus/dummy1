@@ -419,7 +419,6 @@ class CashierPrinterController extends DataPrinterController
                     break;
                 case 'print':
                 default:
-                    $me = $this;
                     require app_path() . '/views/printer/list-cashier-time-view.php';
             }
         } catch(\Exception $e) {
@@ -459,58 +458,5 @@ class CashierPrinterController extends DataPrinterController
         return $arr;
     }
 
-
-    /**
-     * Print activity date type friendly name.
-     *
-     * @param $cashier $cashier
-     * @return string
-     */
-    public function printActivityDate($cashier)
-    {
-        if($cashier->activity_date==NULL || empty($cashier->activity_date)){
-            $result = "";
-        } else {
-            $date = $cashier->activity_date;
-            $date = explode(' ',$date);
-            $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
-            $result = $newformat;
-        }
-        return $result;
-    }
-
-
-    /**
-     * Print date time friendly name.
-     *
-     * @param $date $date
-     * @return string
-     */
-    public function printDateTime($date)
-    {
-        if($date==NULL || empty($date)){
-            $result = "";
-        } else {
-            $date = explode(' ',$date);
-            $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
-            $result = $newformat.' '.$date[1];
-        }
-        return $result;
-    }
-
-
-    /**
-     * Print number format friendly name.
-     *
-     * @param $number $number
-     * @return string
-     */
-    public function printNumberFormat($number)
-    {
-        $result = number_format($number, 2);
-        return $result;
-    }
 
 }

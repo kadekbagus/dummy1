@@ -578,7 +578,7 @@ class Activity extends Eloquent
     public function save(array $options = array())
     {
         $force = array_key_exists('force', $options) && $options['force'];
-        if ((! $force) || App::environment() === 'testing') {
+        if (App::environment() === 'testing') {
             // Skip saving
             return 1;
         }

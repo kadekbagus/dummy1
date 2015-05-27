@@ -571,7 +571,8 @@ class DashboardAPIController extends ControllerAPI
                 )
                 ->join("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
-                    $join->where('activities.activity_name', '=', 'view_category');
+                    $join->where('activities.activity_name', '=', 'view_catalogue');
+                    $join->where('activities.object_name', '=', 'Category');
                 })
                 ->groupBy('categories.category_level');
 
@@ -2561,6 +2562,8 @@ class DashboardAPIController extends ControllerAPI
             $transactions = Transaction::select(
                     'transactions.retailer_id',
                     'merchants.name as retailer_name',
+                    'transactions.currency',
+                    'transactions.currency_symbol',
                     DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
                     DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
@@ -2593,8 +2596,25 @@ class DashboardAPIController extends ControllerAPI
                 $transactions->having('transaction_count', '=', $trxCount);
             });
 
-            OrbitInput::get('transaction_total', function($trxTotal) use ($transactions) {
-                $transactions->having('transaction_total', '=', $trxTotal);
+            $transactionFilterMapping = [
+                '1M' => sprintf('< %s', 1e6),
+                '2M' => sprintf('between %s and %s', 1e6, 2e6),
+                '3M' => sprintf('between %s and %s', 2e6, 3e6),
+                '4M' => sprintf('between %s and %s', 3e6, 4e6),
+                '5M' => sprintf('between %s and %s', 4e6, 5e6),
+                '6M' => sprintf('> %s', 5e6),
+            ];
+            OrbitInput::get('transaction_total_range', function ($trxTotal) use ($transactions, $transactionFilterMapping) {
+                $range  = $transactionFilterMapping[$trxTotal];
+                $transactions->havingRaw('transaction_total ' . $range);
+            });
+
+            OrbitInput::get('transaction_total_gte', function ($trxTotal) use ($transactions) {
+               $transactions->having('transaction_total', '>=', $trxTotal);
+            });
+
+            OrbitInput::get('transaction_total_lte', function ($trxTotal) use ($transactions) {
+                $transactions->having('transaction_total', '<=', $trxTotal);
             });
 
             $_transactions = clone $transactions;
