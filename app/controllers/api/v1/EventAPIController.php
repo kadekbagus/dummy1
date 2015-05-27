@@ -972,7 +972,7 @@ class EventAPIController extends ControllerAPI
                     'sort_by' => $sort_by,
                 ),
                 array(
-                    'sort_by' => 'in:registered_date,event_name,event_type,description,begin_date,end_date,is_permanent,status',
+                    'sort_by' => 'in:registered_date,event_name,event_type,description,begin_date,end_date,is_permanent,status,event_redirected_to',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.event_sortby'),
@@ -1009,7 +1009,12 @@ class EventAPIController extends ControllerAPI
 
             // Builder object
             $events = EventModel::excludeDeleted()
-                                ->allowedForViewOnly($user);
+                                ->allowedForViewOnly($user)
+                                ->select('events.*', DB::raw("CASE link_object_type
+                                        WHEN 'widget' THEN 'page'
+                                        ELSE link_object_type
+                                    END AS 'event_redirected_to'
+                                "));
 
             // Filter event by Ids
             OrbitInput::get('event_id', function($eventIds) use ($events)
@@ -1194,7 +1199,8 @@ class EventAPIController extends ControllerAPI
                     'begin_date'        => 'events.begin_date',
                     'end_date'          => 'events.end_date',
                     'is_permanent'      => 'events.is_permanent',
-                    'status'            => 'events.status'
+                    'status'            => 'events.status',
+                    'event_redirected_to' => 'event_redirected_to'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
