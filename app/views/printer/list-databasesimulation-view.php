@@ -143,9 +143,9 @@
                 <td><?php echo (strtoupper($row->group)); ?></td>
                 <td><?php echo ($row->module_name); ?></td>
                 <td><?php echo ($row->activity_name_long); ?></td>
-                <td><?php echo ($row->product_name); ?></td>
-                <td><?php echo ($row->promotion_name); ?></td>
-                <td><?php echo ($row->coupon_name); ?></td>
+                <td><?php echo $me->printUtf8($row->product_name); ?></td>
+                <td><?php echo $me->printUtf8($row->promotion_name); ?></td>
+                <td><?php echo $me->printUtf8($row->coupon_name); ?></td>
                 <td><?php echo ($row->staff_name); ?></td>
             </tr>
         <?php $count++; endwhile; ?>

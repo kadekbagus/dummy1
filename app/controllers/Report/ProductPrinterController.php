@@ -23,7 +23,7 @@ class ProductPrinterController extends DataPrinterController
         $products = Product::excludeDeleted('products')->select(
             "products.*","merchants.name as merchant_name",
             DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'),
-            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list")
+            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ', ') as retailer_list")
         )->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
         ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
         ->groupBy('products.product_id');
@@ -236,7 +236,7 @@ class ProductPrinterController extends DataPrinterController
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
                     
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, $row->retailer_list, $row->is_new, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $this->printUtf8($row->product_name), $row->price, $this->printUtf8($row->retailer_list), $row->is_new, $row->status);
                 }
                 break;
 
@@ -314,4 +314,14 @@ class ProductPrinterController extends DataPrinterController
     }
 
 
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
+    }
 }

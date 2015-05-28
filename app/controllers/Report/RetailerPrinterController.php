@@ -369,7 +369,7 @@ class RetailerPrinterController extends DataPrinterController
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $contact = $this->printContactPersonName($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->name, $contact, $row->merchant_id, $row->merchant_name, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $this->printUtf8($row->name), $contact, $row->merchant_id, $this->printUtf8($row->merchant_name), $row->status);
 
                 }
                 break;
@@ -391,7 +391,6 @@ class RetailerPrinterController extends DataPrinterController
      */
     public function printGender($retailer)
     {
-        $return = '';
         $gender = $retailer->gender;
         $gender = strtolower($gender);
         switch ($gender) {
@@ -417,8 +416,6 @@ class RetailerPrinterController extends DataPrinterController
      */
     public function printStartingDate($retailer)
     {
-        $return = '';
-
         $date = $retailer->start_date_activity;
         $date = explode(' ',$date);
         $time = strtotime($date[0]);
@@ -437,9 +434,19 @@ class RetailerPrinterController extends DataPrinterController
      */
     public function printContactPersonName($retailer)
     {
-        $return = '';
         $result = $retailer->contact_person_firstname . ' ' . $retailer->contact_person_lastname;
-        return $result;
+        return $this->printUtf8($result);
+    }
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 
 }

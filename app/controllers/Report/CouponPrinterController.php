@@ -37,7 +37,7 @@ class CouponPrinterController extends DataPrinterController
                         ELSE discount_value
                     END AS 'display_discount_value'
                     "), 
-                    DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"),
+                    DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ', ') as retailer_list"),
                     DB::raw('cat1.category_name as family_name1'),
                     DB::raw('cat2.category_name as family_name2'),
                     DB::raw('cat3.category_name as family_name3'),
@@ -383,7 +383,7 @@ class CouponPrinterController extends DataPrinterController
                     $discount_type = $this->printDiscountType($row);
                     $productfamilylink = $this->printProductFamilyLink($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $row->discount_value, $productfamilylink, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $this->printUtf8($row->promotion_name), $expiration_date, $this->printUtf8($row->retailer_list), $discount_type, $row->discount_value, $productfamilylink, $row->status);
                 }
                 break;
 
@@ -507,5 +507,16 @@ class CouponPrinterController extends DataPrinterController
         }
         
         return $result;
+    }
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 }
