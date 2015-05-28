@@ -104,42 +104,36 @@
 </div>
 
 <div id="main">
-    <h2 style="margin-bottom:0.5em;">Cashier Time Table Report</h2>
+    <h2 style="margin-bottom:0.5em;"><?php echo $pageTitle; ?></h2>
     <table style="width:100%; margin-bottom:1em;" class="noborder">
         <tr>
             <td style="width:150px">Total Records</td>
             <td style="width:10px;">:</td>
             <td><strong><?php echo ($total); ?></strong></td>
         </tr>
-        <tr>
-            <td style="width:150px">Total Sales</td>
-            <td style="width:10px;">:</td>
-            <td><strong><?php echo ($subTotal->transactions_total); ?></strong></td>
-        </tr>
+        <?php foreach ($summaryHeaders as $name => $title): ?>
+            <tr>
+                <td style="width:150px"><?php echo $title; ?></td>
+                <td style="width:10px;">:</td>
+                <td><strong><?php echo ($summary->$name); ?></strong></td>
+            </tr>
+        <?php endforeach; ?>
     </table>
 
     <table style="width:100%">
         <thead>
         <th style="text-align: left;">No.</th>
-        <th style="text-align: left;">Date</th>
-        <th style="text-align: left;">Time</th>
-        <th style="text-align: left;">Receipt Number</th>
-        <th style="text-align: left;">Total Value</th>
-        <th style="text-align: left;">Payment Type</th>
-        <th style="text-align: left;">Customer (if known)</th>
-        <th style="text-align: left;">Cashier</th>
+        <?php foreach ($rowFormatter as $name => $x): ?>
+            <th style="text-align: left;"><?php echo $rowNames["{$name}"]; ?></th>
+        <?php endforeach; ?>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="<?php echo $rowCounter % 2 === 0 ? 'zebra' : '' ?>">
                 <td><?php echo (++$rowCounter); ?></td>
-                <td><?php echo ($getDate($row->created_at)); ?></td>
-                <td><?php echo ($getTime($row->created_at)); ?></td>
-                <td><?php echo ($row->transaction_id); ?></td>
-                <td><?php echo number_format($row->total_to_pay, 2); ?></td>
-                <td><?php echo ($row->payment_method); ?></td>
-                <td><?php echo ($getFullName($row, 'customer')); ?></td>
-                <td><?php echo ($getFullName($row, 'cashier')); ?></td>
+                <?php foreach ($rowFormatter as $name => $formatter): ?>
+                    <td><?php echo $formatter ? call_user_func($formatter, $row->$name) : $row->$name; ?></td>
+                <?php endforeach; ?>
             </tr>
         <?php endwhile; ?>
         </tbody>
