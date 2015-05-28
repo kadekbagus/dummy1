@@ -333,13 +333,17 @@ abstract class ControllerAPI extends Controller
 
     /**
      * Bleeding edge feature that return query builder from controller
-     * @param \Illuminate\Database\Eloquent\Builder  $builder
+     * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param \Illuminate\Database\Eloquent\Builder $unsorted
+     * @param array $options
      * @return object
      */
-    public function builderObject($builder, $unsorted)
+    public function builderObject($builder, $unsorted, $options = [])
     {
-        return OrbitBuilder::create()->setBuilder($builder)->setUnsorted($unsorted);
+        return OrbitBuilder::create()
+            ->setBuilder($builder)
+            ->setUnsorted($unsorted)
+            ->setOptions($options);
     }
 
     /**

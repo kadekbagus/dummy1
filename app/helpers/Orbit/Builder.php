@@ -20,6 +20,12 @@ class Builder {
      */
     private $unsorted;
 
+    /**
+     * Additional Options that can be shared across builder
+     * @var object $options
+     */
+    private $options;
+
     public static function create()
     {
         return new static();
@@ -39,6 +45,13 @@ class Builder {
         return $this;
     }
 
+    public function setOptions($options)
+    {
+        $this->options = (object) $options;
+
+        return $this;
+    }
+
     public function getBuilder()
     {
         return $this->builder;
@@ -47,5 +60,10 @@ class Builder {
     public function getUnsorted()
     {
         return $this->unsorted;
+    }
+
+    public function getOptions()
+    {
+        return $this->options;
     }
 }
