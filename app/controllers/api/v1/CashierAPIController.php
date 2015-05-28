@@ -228,7 +228,7 @@ class CashierAPIController extends ControllerAPI
             $data->records = $transactionList;
 
             // Consider last pages
-            if (($totalTransactions - $skip) <= $skip)
+            if (($totalTransactions - $take) <= $skip)
             {
                 $subTotalQuery    = $_transactions->toSql();
                 $subTotalBindings = $_transactions;
