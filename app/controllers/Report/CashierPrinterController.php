@@ -283,6 +283,11 @@ class CashierPrinterController extends DataPrinterController
                 'transactions_total' => 'Total Sales'
             ];
 
+            $summaryFormatter = [
+                'transactions_count' => false,
+                'transactions_total' => array('Orbit\\Text', 'formatNumber')
+            ];
+
             $rowNames = [
                 'activity_date' => 'Date',
                 'activity_full_name' => 'Employee Name',
