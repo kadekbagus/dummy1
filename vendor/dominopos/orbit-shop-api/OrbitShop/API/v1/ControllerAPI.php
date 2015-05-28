@@ -4,10 +4,12 @@
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
+use Exception;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
+use Orbit\Builder as OrbitBuilder;
 use PDO;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 
@@ -84,6 +86,13 @@ abstract class ControllerAPI extends Controller
     public $prettyPrintJSON = FALSE;
 
     /**
+     * Bleeding Edge Feature that controller can return only the query for print and export purposes
+     * @see #getBuilderFor()
+     * @var boolean $builderOnly
+     */
+    protected $builderOnly = FALSE;
+
+    /**
      * Contructor
      *
      * @param string $contentType - HTTP content type that would be sent to client
@@ -145,7 +154,7 @@ abstract class ControllerAPI extends Controller
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param int $httpCode - The HTTP status code response.
-     * @return OrbitShop\API\v1\ResponseProvider | string
+     * @return \OrbitShop\API\v1\ResponseProvider | string
      */
     public function render($httpCode=200)
     {
@@ -210,7 +219,7 @@ abstract class ControllerAPI extends Controller
      * @author Rio Astamal <me@rioastamal.net>
      * @param string $method - The method name
      * @param array $args - The arguments
-     * @return OrbitShop\API\v1\ResponseProvider | string
+     * @return \OrbitShop\API\v1\ResponseProvider | string
      */
     public function __call($method, $args)
     {
@@ -300,6 +309,37 @@ abstract class ControllerAPI extends Controller
         $this->prettyPrintJSON = TRUE;
 
         return $info;
+    }
+
+    /**
+     * Bleeding edge feature that return query builder from controller
+     * @param string $action controller action name
+     * @return \Orbit\Builder
+     * @throws Exception
+     */
+    public function getBuilderFor($action)
+    {
+        $this->builderOnly = true;
+        $builder = call_user_func(array($this, $action));
+        $this->builderOnly = false;
+
+        if (! ($builder instanceof OrbitBuilder))
+        {
+            throw new Exception('Action do not return builder instance please make sure to check and return builder only from action', 0);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Bleeding edge feature that return query builder from controller
+     * @param \Illuminate\Database\Eloquent\Builder  $builder
+     * @param \Illuminate\Database\Eloquent\Builder $unsorted
+     * @return object
+     */
+    public function builderObject($builder, $unsorted)
+    {
+        return OrbitBuilder::create()->setBuilder($builder)->setUnsorted($unsorted);
     }
 
     /**

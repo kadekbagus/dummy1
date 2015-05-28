@@ -7,7 +7,7 @@ use OrbitShop\API\v1\OrbitShopAPI;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use OrbitShop\API\v1\Exception\InvalidArgsException;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use Illuminate\Database\QueryException;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
 use Helper\EloquentRecordCounter as RecordCounter;
@@ -819,11 +819,16 @@ class TransactionHistoryAPIController extends ControllerAPI
             }
 
             $tablePrefix  = DB::getTablePrefix();
-            $transactions = Transaction::select("transactions.*")
-                ->join("users as {$tablePrefix}customer", function ($join) {
+            $transactions = Transaction::select(
+                    "transactions.*",
+                    DB::raw("date({$tablePrefix}transactions.created_at) as created_at_date"),
+                    DB::raw("concat({$tablePrefix}customer.user_firstname, ' ', {$tablePrefix}customer.user_lastname) as customer_full_name"),
+                    DB::raw("concat({$tablePrefix}cashier.user_firstname, ' ', {$tablePrefix}cashier.user_lastname) as cashier_full_name")
+                )
+                ->leftJoin("users as {$tablePrefix}customer", function ($join) {
                     $join->on('customer.user_id', '=', 'transactions.customer_id');
                 })
-                ->join("users as {$tablePrefix}cashier", function ($join) {
+                ->leftJoin("users as {$tablePrefix}cashier", function ($join) {
                     $join->on('cashier.user_id', '=', 'transactions.cashier_id');
                 })
                 ->with('user', 'cashier');
@@ -873,6 +878,30 @@ class TransactionHistoryAPIController extends ControllerAPI
             // skip, and order by
             $_transactions = clone $transactions;
 
+            // Default sort by
+            $sortBy = 'transactions.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'created_at'        => 'transactions.created_at',
+                    'transaction_id'    => 'transactions.transaction_id',
+                    'payment_method'    => 'transactions.payment_method',
+                    'total_to_pay'      => 'transactions.total_to_pay',
+                    'customer_name'     => 'customer.user_firstname',
+                    'cashier_name'      => 'cashier.user_firstname'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            if ($this->builderOnly)
+            {
+                return $this->builderObject($transactions, $_transactions);
+            }
+
             // Get the take args
             $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
@@ -897,24 +926,6 @@ class TransactionHistoryAPIController extends ControllerAPI
             });
             $transactions->skip($skip);
 
-            // Default sort by
-            $sortBy = 'transactions.created_at';
-            // Default sort mode
-            $sortMode = 'desc';
-
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
-                // Map the sortby request to the real column name
-                $sortByMapping = array(
-                    'created_at'        => 'transactions.created_at',
-                    'transaction_id'    => 'transactions.transaction_id',
-                    'payment_method'    => 'transactions.payment_method',
-                    'total_to_pay'      => 'transactions.total_to_pay',
-                    'customer_name'     => 'customer.user_firstname',
-                    'cashier_name'      => 'cashier.user_firstname'
-                );
-
-                $sortBy = $sortByMapping[$_sortBy];
-            });
 
             OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
                 if (strtolower($_sortMode) !== 'desc') {
@@ -1069,7 +1080,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 array(
                     'retailer_ids'  => 'array|min:0',
                     'merchant_ids'  => 'array|min:0',
-                    'sort_by'       => 'in:transaction_id,product_sku,quantity,price,payment_method,created_at,total_tax,sub_total,cashier_name,customer_name'
+                    'sort_by'       => 'in:transaction_id,product_sku,product_name,customer_user_email,quantity,price,payment_method,created_at,total_tax,sub_total,cashier_name,customer_name'
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.transactionhistory.productlist.sortby'),
@@ -1104,34 +1115,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 }
             }
 
-            $tablePrefix  = DB::getTablePrefix();
-            $transactions = TransactionDetail::select(
-                    'transactions.transaction_id',
-                    'transaction_details.upc as product_sku',
-                    'transaction_details.product_name',
-                    'transaction_details.quantity',
-                    'transaction_details.price',
-                    'transactions.payment_method',
-                    'transaction_details.created_at',
-                    DB::raw("sum(ifnull({$tablePrefix}tax.total_tax, 0)) as total_tax"),
-                    DB::raw("(quantity * (price + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
-                    'cashier.user_firstname as cashier_user_firstname',
-                    'cashier.user_lastname as cashier_user_lastname',
-                    'customer.user_firstname as customer_user_firstname',
-                    'customer.user_lastname as customer_user_lastname'
-                )
-                ->join("transactions", function ($join) {
-                    $join->on("transactions.transaction_id", '=', "transaction_details.transaction_id");
-                })
-                ->join("transaction_detail_taxes as {$tablePrefix}tax", function ($join) {
-                    $join->on("transaction_details.transaction_detail_id", '=', 'tax.transaction_detail_id');
-                })
-                ->join("users as {$tablePrefix}customer", function ($join) {
-                    $join->on('customer.user_id', '=', 'transactions.customer_id');
-                })
-                ->join("users as {$tablePrefix}cashier", function ($join) {
-                    $join->on('cashier.user_id', '=', 'transactions.cashier_id');
-                });
+            $transactions = TransactionDetail::detailSalesReport();
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
                 $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
@@ -1141,8 +1125,8 @@ class TransactionHistoryAPIController extends ControllerAPI
                 $transactions->whereIn('transactions.transaction_id', $this->getArray($transactionCode));
             });
 
-            OrbitInput::get('upc_code', function ($upcCode) use ($transactions) {
-                $transactions->whereIn('upc', $this->getArray($upcCode));
+            OrbitInput::get('product_sku', function ($productSKU) use ($transactions) {
+                $transactions->whereIn('transaction_details.product_code', $this->getArray($productSKU));
             });
 
             OrbitInput::get('payment_method', function ($payementMethod) use ($transactions) {
@@ -1151,12 +1135,12 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // Filter by date from
             OrbitInput::get('purchase_date_begin', function ($dateBegin) use ($transactions) {
-                $transactions->where('transactions.created_at', '>', $dateBegin);
+                $transactions->where('transactions.created_at', '>=', $dateBegin);
             });
 
             // Filter by date to
             OrbitInput::get('purchase_date_end', function ($dateEnd) use ($transactions) {
-                $transactions->where('transactions.created_at', '<', $dateEnd);
+                $transactions->where('transactions.created_at', '<=', $dateEnd);
             });
 
             OrbitInput::get('cashier_id', function ($cashierId) use ($transactions) {
@@ -1189,6 +1173,43 @@ class TransactionHistoryAPIController extends ControllerAPI
             // skip, and order by
             $_transactions = clone $transactions;
 
+            // Default sort by
+            $sortBy = 'transactions.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'transaction_id'  => 'transactions.transaction_id',
+                    'product_sku'     => 'transaction_details.product_code',
+                    'product_name'    => 'transaction_details.product_name',
+                    'quantity'        => 'transaction_details.quantity',
+                    'price'           => 'transaction_details.price',
+                    'payment_method'  => 'transactions.payment_method',
+                    'created_at'      => 'transaction_details.created_at',
+                    'total_tax'       => 'total_tax',
+                    'sub_total'       => 'sub_total',
+                    'cashier_name'    => 'cashier.user_firstname',
+                    'customer_name'   => 'customer.user_firstname',
+                    'customer_user_email' => 'customer.user_email'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
+
+            if ($this->builderOnly)
+            {
+                return $this->builderObject($transactions, $_transactions);
+            }
+
             // Get the take args
             $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
@@ -1212,36 +1233,6 @@ class TransactionHistoryAPIController extends ControllerAPI
                 $skip = $_skip;
             });
             $transactions->skip($skip);
-
-            // Default sort by
-            $sortBy = 'transactions.created_at';
-            // Default sort mode
-            $sortMode = 'desc';
-
-            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
-                // Map the sortby request to the real column name
-                $sortByMapping = array(
-                    'transaction_id'  => 'transactions.transaction_id',
-                    'product_sku'     => 'transaction_details.upc',
-                    'quantity'        => 'transaction_details.quantity',
-                    'price'           => 'transaction_details.price',
-                    'payment_method'  => 'transactions.payment_method',
-                    'created_at'      => 'transaction_details.created_at',
-                    'total_tax'       => 'total_tax',
-                    'sub_total'       => 'sub_total',
-                    'cashier_name'    => 'cashier.user_firstname',
-                    'customer_name'   => 'customer.user_firstname'
-                );
-
-                $sortBy = $sortByMapping[$_sortBy];
-            });
-
-            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
-                }
-            });
-            $transactions->orderBy($sortBy, $sortMode);
 
             $totalTransactions = RecordCounter::create($_transactions)->count();
             $listOfTransactions = $transactions->get();
