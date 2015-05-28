@@ -4,15 +4,15 @@
  * @package Report
  */
 
-use OrbitShop\API\v1\Helper\Input as OrbitInput;
-use Helper\EloquentRecordCounter as RecordCounter;
-use DB;
-use PDO;
-use User;
-use Str;
-use Product;
-use Activity;
+use Config;
 use DashboardAPIController as API;
+use DB;
+use Exception;
+use Helper\EloquentRecordCounter as RecordCounter;
+use Illuminate\Support\Facades\Response;
+use OrbitShop\API\v1\Helper\Input as OrbitInput;
+use PDO;
+use Str;
 
 class DashboardPrinterController extends DataPrinterController
 {
@@ -760,22 +760,5 @@ class DashboardPrinterController extends DataPrinterController
             $responseText = Config::get("app.debug") ? $e->__toString() : "";
             return Response::make($responseText, 500);
         }
-    }
-
-
-    /**
-     * @param mixed $mixed
-     * @return array
-     */
-    private function getArray($mixed)
-    {
-        $arr = [];
-        if (is_array($mixed)) {
-            $arr = array_merge($arr, $mixed);
-        } else {
-            array_push($arr, $mixed);
-        }
-
-        return $arr;
     }
 }
