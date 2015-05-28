@@ -128,6 +128,7 @@ class TransactionDetail extends Eloquent
                 DB::raw("(quantity * (price + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
                 'cashier.user_firstname as cashier_user_firstname',
                 'cashier.user_lastname as cashier_user_lastname',
+                DB::raw("concat({$tablePrefix}cashier.user_firstname, ' ', {$tablePrefix}cashier.user_lastname) as cashier_user_fullname"),
                 'customer.user_firstname as customer_user_firstname',
                 'customer.user_lastname as customer_user_lastname',
                 'customer.user_email as customer_user_email'
