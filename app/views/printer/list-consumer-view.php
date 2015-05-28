@@ -123,8 +123,8 @@
         <thead>
             <th style="text-align:left;">Email </th>
             <th style="text-align:left;">Gender</th>
-            <th style="text-align:left;">Address</th>
-            <th style="text-align:left;">Last Visited Retailer</th>
+            <th style="text-align:left;">Location</th>
+            <th style="text-align:left;">Last Visited Store</th>
             <th style="text-align:left;">Last Visit Date</th>
             <th style="text-align:left;">Last Spent Amount</th>
             <th style="text-align:left;">Customer Since</th>
