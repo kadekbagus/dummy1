@@ -419,7 +419,7 @@ class RetailerPrinterController extends DataPrinterController
         $date = $retailer->start_date_activity;
         $date = explode(' ',$date);
         $time = strtotime($date[0]);
-        $newformat = date('d M Y',$time);
+        $newformat = date('d F Y',$time);
         $result = $newformat;
 
         return $result;

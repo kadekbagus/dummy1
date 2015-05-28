@@ -367,7 +367,6 @@ class CashierPrinterController extends DataPrinterController
      */
     public function printFullName($cashier)
     {
-        $return = '';
         $result = $cashier->user_firstname.' '.$cashier->user_lastname;
         return $result;
     }
@@ -387,7 +386,7 @@ class CashierPrinterController extends DataPrinterController
             $date = $cashier->activity_date;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat;
         }
         return $result;
@@ -407,7 +406,7 @@ class CashierPrinterController extends DataPrinterController
         } else {
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat.' '.$date[1];
         }
         return $result;
