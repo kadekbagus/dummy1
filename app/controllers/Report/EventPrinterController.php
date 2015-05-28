@@ -306,7 +306,7 @@ class EventPrinterController extends DataPrinterController
                 } else {
                     $date = explode(' ',$date);
                     $time = strtotime($date[0]);
-                    $newformat = date('d M Y',$time);
+                    $newformat = date('d F Y',$time);
                     $result = $newformat.' '.$date[1];
                 }
         }
