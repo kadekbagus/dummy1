@@ -237,7 +237,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HIA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -356,7 +356,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HIA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
