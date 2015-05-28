@@ -207,6 +207,10 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 'transactions_total' => 'Total Sales'
             ];
 
+            $summaryFormatter = [
+                'transactions_total' => array('Orbit\\Text', 'formatNumber')
+            ];
+
             $rowNames = [
                 'created_at_date' => 'Date',
                 'created_at' =>  'Time',
@@ -312,6 +316,11 @@ class TransactionHistoryPrinterController extends  DataPrinterController
             $summaryHeaders = [
                 'quantity_total' => 'Total Quantity',
                 'sub_total' => 'Total Sales'
+            ];
+
+            $summaryFormatter = [
+                'quantity_total' => false,
+                'sub_total' => array('Orbit\\Text', 'formatNumber')
             ];
 
             $rowNames = [

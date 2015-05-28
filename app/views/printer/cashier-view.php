@@ -112,10 +112,11 @@
             <td><strong><?php echo ($total); ?></strong></td>
         </tr>
         <?php foreach ($summaryHeaders as $name => $title): ?>
+            <?php $formatter = $summaryFormatter[$name]; ?>
             <tr>
                 <td style="width:150px"><?php echo $title; ?></td>
                 <td style="width:10px;">:</td>
-                <td><strong><?php echo ($summary->$name); ?></strong></td>
+                <td><strong><?php echo $formatter ? call_user_func($formatter, $summary->$name) : $summary->$name; ?></strong></td>
             </tr>
         <?php endforeach; ?>
     </table>
