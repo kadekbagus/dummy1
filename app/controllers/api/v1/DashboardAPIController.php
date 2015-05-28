@@ -22,6 +22,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param integer `merchant_id`   (optional) - limit by merchant id
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -282,6 +284,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param integer `merchant_id`   (optional) - limit by merchant id
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -486,6 +490,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param integer `merchant_id`   (optional) - limit by merchant id
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -565,7 +571,8 @@ class DashboardAPIController extends ControllerAPI
                 )
                 ->join("categories", function ($join) {
                     $join->on('activities.object_id', '=', 'categories.category_id');
-                    $join->where('activities.activity_name', '=', 'view_category');
+                    $join->where('activities.activity_name', '=', 'view_catalogue');
+                    $join->where('activities.object_name', '=', 'Category');
                 })
                 ->groupBy('categories.category_level');
 
@@ -737,6 +744,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param integer `merchant_id`   (optional) - limit by merchant id
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -990,6 +999,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
@@ -1215,6 +1226,8 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
      * @return Illuminate\Support\Facades\Response
@@ -1463,6 +1476,7 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
      * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -1721,6 +1735,7 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
      * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -1982,6 +1997,7 @@ class DashboardAPIController extends ControllerAPI
      * List Of Parameters
      * ------------------
      * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
      * @param boolean `is_report`     (optional) - display graphical or tabular data
      * @param date    `begin_date`    (optional) - filter date begin
      * @param date    `end_date`      (optional) - filter date end
@@ -2242,6 +2258,478 @@ class DashboardAPIController extends ControllerAPI
 
         $output = $this->render($httpCode);
         Event::fire('orbit.dashboard.getuserconnecttime.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+    /**
+     * GET - Customer Last Visit Dashboard
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     *
+     * List Of Parameters
+     * ------------------
+     * @param integer `take`          (optional) - Per Page limit
+     * @param integer `skip`          (optional) - paging skip for limit
+     * @param date    `begin_date`    (optional) - filter date begin
+     * @param date    `end_date`      (optional) - filter date end
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getUserLastVisit()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.dashboard.getuserlastvisit.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.dashboard.getuserlastvisit.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.dashboard.getuserlastvisit.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.dashboard.getuserlastvisit.authz.notallowed', array($this, $user));
+                $viewCouponLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewCouponLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.dashboard.getuserlastvisit.after.authz', array($this, $user));
+
+            $take = OrbitInput::get('take');
+            $validator = Validator::make(
+                array(
+                    'take' => $take
+                ),
+                array(
+                    'take' => 'numeric'
+                )
+            );
+
+            Event::fire('orbit.dashboard.getuserlastvisit.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.dashboard.getuserlastvisit.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $tablePrefix = DB::getTablePrefix();
+
+            $monthlyTransactionsByCustomer = Transaction::select(
+                    'customer_id',
+                    DB::raw("count(distinct merchant_id) as merchant_count"),
+                    DB::raw("date_format(created_at, '%m') as created_at_month")
+                )
+                ->groupBy('customer_id', 'created_at_month');
+
+            $lastVisitedMerchantByCustomer = Transaction::select(
+                    'transactions.customer_id',
+                    'merchants.name as merchant_name',
+                    'merchants.merchant_id',
+                    DB::raw("max({$tablePrefix}activities.created_at) as created_at")
+                )
+                ->join("merchants", function ($join) {
+                    $join->on('merchants.merchant_id', '=', 'transactions.retailer_id');
+                })
+                ->join("activities", function ($join) {
+                    $join->on("activities.location_id", '=', 'transactions.retailer_id');
+                    $join->where('activities.activity_name', '=', 'login_ok');
+                })
+                ->groupBy('transactions.customer_id')
+                ->orderBy('activities.created_at', 'desc');
+
+            $transactions = Transaction::select(
+                    DB::raw("sum({$tablePrefix}transactions.total_to_pay) as total_spent"),
+                    DB::raw("ceil(avg(months.merchant_count)) as monthly_merchant_count"),
+                    DB::raw("max(months.merchant_count) as merchant_count"),
+                    DB::raw("date(last_visited.created_at) as last_visit_date"),
+                    DB::raw("last_visited.merchant_name as last_visit_merchant_name"),
+                    DB::raw("last_visited.merchant_id as last_visit_merchant_id"),
+                    DB::raw("sum(ifnull(coupons.value_after_percentage, 0)) + sum(ifnull(promotions.value_after_percentage, 0)) as total_saving")
+                )
+                ->leftJoin(DB::raw("({$monthlyTransactionsByCustomer->toSql()}) as months"), function ($join) {
+                    $join->on(DB::raw("months.customer_id"), '=', 'transactions.customer_id');
+                })
+                ->leftJoin(DB::raw("({$lastVisitedMerchantByCustomer->toSql()}) as last_visited"), function ($join) {
+                    $join->on(DB::raw("last_visited.customer_id"), '=', 'transactions.customer_id');
+                })
+                ->leftJoin('transaction_detail_coupons as coupons', function ($join) {
+                    $join->on(DB::raw('coupons.transaction_id'), '=', 'transactions.transaction_id');
+                })
+                ->leftJoin('transaction_detail_promotions as promotions', function ($join) {
+                    $join->on(DB::raw('promotions.transaction_id'), '=', 'transactions.transaction_id');
+                })
+                ->mergeBindings($lastVisitedMerchantByCustomer->getQuery())
+                ->where('transactions.customer_id', '=', $this->api->getUserId());
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
+                $transactions->where('transactions.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($transactions) {
+                $transactions->where('transactions.created_at', '<=', $endDate);
+            });
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            $transaction = $transactions->first();
+
+            $data = new stdclass();
+            $data->total_records = 1;
+            $data->returned_records = 1;
+            $data->records   = $transaction;
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.dashboard.getuserlastvisit.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.dashboard.getuserlastvisit.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.dashboard.getuserlastvisit.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            $httpCode = 500;
+            Event::fire('orbit.dashboard.getuserlastvisit.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.dashboard.getuserlastvisit.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+    /**
+     * GET - Customer Purchase Summary Dashboard
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     *
+     * List Of Parameters
+     * ------------------
+     * @param integer `take`               (optional) - Per Page limit
+     * @param integer `skip`               (optional) - paging skip for limit
+     * @param string  `retailer_name_like` (optional) filter by retailer name
+     * @param integer `transaction_count`  (optional) transaction count filter
+     * @param integer `transaction_total`  (optional) transaction total filter
+     * @param date    `begin_date`         (optional) - filter date begin
+     * @param date    `end_date`           (optional) - filter date end
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getUserMerchantSummary()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.dashboard.getusermerchantsummary.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.dashboard.getusermerchantsummary.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.dashboard.getusermerchantsummary.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.dashboard.getusermerchantsummary.authz.notallowed', array($this, $user));
+                $viewCouponLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewCouponLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.dashboard.getusermerchantsummary.after.authz', array($this, $user));
+
+            $take = OrbitInput::get('take');
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'take' => $take,
+                    'sort_by' => $sort_by
+                ),
+                array(
+                    'take' => 'numeric',
+                    'sort_by' => 'in:retailer_name,transaction_count,transaction_total,visit_count,last_visit'
+                )
+            );
+
+            Event::fire('orbit.dashboard.getusermerchantsummary.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.dashboard.getusermerchantsummary.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.dashboard.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.dashboard.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $tablePrefix = DB::getTablePrefix();
+
+            $transactions = Transaction::select(
+                    'transactions.retailer_id',
+                    'merchants.name as retailer_name',
+                    'transactions.currency',
+                    'transactions.currency_symbol',
+                    DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
+                    DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
+                    DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
+                    DB::raw("count(distinct {$tablePrefix}activities.activity_id) as visit_count"),
+                    DB::raw("max({$tablePrefix}activities.created_at) as last_visit")
+                )
+                ->join('merchants', 'merchants.merchant_id', '=', 'transactions.retailer_id')
+                ->join('merchants as parent', DB::raw('parent.merchant_id'), '=', 'transactions.merchant_id')
+                ->leftJoin('activities', function ($join) {
+                    $join->on('activities.location_id', '=', 'transactions.retailer_id');
+                    $join->where('activities.user_id', '=', $this->api->getUserId());
+                    $join->where('activities.activity_name', '=', 'login_ok');
+                })
+                ->where('transactions.customer_id', '=', $this->api->getUserId())
+                ->groupBy('transactions.retailer_id');
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
+                $transactions->where('activities.created_at', '>=', $beginDate);
+            });
+
+            OrbitInput::get('end_date', function ($endDate) use ($transactions) {
+                $transactions->where('activities.created_at', '<=', $endDate);
+            });
+
+            OrbitInput::get('retailer_name_like', function($retailerName) use ($transactions) {
+                $transactions->where('merchants.name', 'like', "%{$retailerName}%");
+            });
+
+            OrbitInput::get('transaction_count', function($trxCount) use ($transactions) {
+                $transactions->having('transaction_count', '=', $trxCount);
+            });
+
+            $transactionFilterMapping = [
+                '1M' => sprintf('< %s', 1e6),
+                '2M' => sprintf('between %s and %s', 1e6, 2e6),
+                '3M' => sprintf('between %s and %s', 2e6, 3e6),
+                '4M' => sprintf('between %s and %s', 3e6, 4e6),
+                '5M' => sprintf('between %s and %s', 4e6, 5e6),
+                '6M' => sprintf('> %s', 5e6),
+            ];
+            OrbitInput::get('transaction_total_range', function ($trxTotal) use ($transactions, $transactionFilterMapping) {
+                $range  = $transactionFilterMapping[$trxTotal];
+                $transactions->havingRaw('transaction_total ' . $range);
+            });
+
+            OrbitInput::get('transaction_total_gte', function ($trxTotal) use ($transactions) {
+               $transactions->having('transaction_total', '>=', $trxTotal);
+            });
+
+            OrbitInput::get('transaction_total_lte', function ($trxTotal) use ($transactions) {
+                $transactions->having('transaction_total', '<=', $trxTotal);
+            });
+
+            $_transactions = clone $transactions;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+
+            $transactions->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+
+            $transactions->skip($skip);
+
+            // Default sort by
+            $sortBy = 'activities.created_at';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'retailer_name'      => 'retailer_name',
+                    'transaction_count'  => 'transaction_count',
+                    'transaction_total'  => 'transaction_total',
+                    'visit_count'        => 'visit_count',
+                    'last_visit'         => 'last_visit'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
+
+            $transactionTotal = RecordCounter::create($_transactions)->count();
+            $transactionList = $transactions->get();
+
+            $data = new stdclass();
+            $data->total_records    = $transactionTotal;
+            $data->returned_records = count($transactionList);
+            $data->records          = $transactionList;
+
+            if ($transactionTotal === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.product');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.dashboard.getusermerchantsummary.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.dashboard.getusermerchantsummary.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.dashboard.getusermerchantsummary.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            $httpCode = 500;
+            Event::fire('orbit.dashboard.getusermerchantsummary.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.dashboard.getusermerchantsummary.before.render', array($this, &$output));
 
         return $output;
     }

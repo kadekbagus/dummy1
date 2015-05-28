@@ -25,5 +25,11 @@ Route::get('/api/v1/dashboard/user-by-age', "DashboardAPIController@getUserByAge
 // Get Dashboard user login time
 Route::get('/api/v1/dashboard/user-hourly-login', "DashboardAPIController@getHourlyUserLogin");
 
-// Get Dashboard user login time
+// Get Dashboard user connect time
 Route::get('/api/v1/dashboard/user-connect-time', "DashboardAPIController@getUserConnectTime");
+
+// Get Dashboard user customer last visit
+Route::get('/api/v1/dashboard/customer-last-visit', "DashboardAPIController@getUserLastVisit");
+
+// Get Dashboard user customer merchant summary
+Route::get('/api/v1/dashboard/customer-merchant-summary', "DashboardAPIController@getUserMerchantSummary");

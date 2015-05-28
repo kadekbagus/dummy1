@@ -119,7 +119,7 @@ class ProductAPIController extends ControllerAPI
                 array(
                     'product_id'        => $product_id,
                     'merchant_id'       => $merchant_id,
-                    'product_code'      => $product_code,
+                    'sku'               => $product_code,
                     'upc_code'          => $upc_code,
                     'category_id1'      => $category_id1,
                     'category_id2'      => $category_id2,
@@ -131,7 +131,7 @@ class ProductAPIController extends ControllerAPI
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
                     'upc_code'          => 'orbit.exists.product.upc_code_but_me',
-                    'product_code'      => 'orbit.exists.product.sku_code_but_me',
+                    'sku'               => 'orbit.exists.product.sku_code_but_me',
                     'merchant_id'       => 'numeric|orbit.empty.merchant',
                     'category_id1'      => 'numeric|orbit.empty.category_id1',
                     'category_id2'      => 'numeric|orbit.empty.category_id2',
@@ -163,7 +163,7 @@ class ProductAPIController extends ControllerAPI
                 $validator = Validator::make(
                     array(
                         'price'             => $price,
-                        'merchant_tax_1'    => $merchant_tax_id1,
+                        'merchant_tax_1'    => $merchant_tax_1,
                         'sku'               => $product_code,
                         'retailer_ids'      => $retailer_ids,
                     ),
@@ -185,19 +185,13 @@ class ProductAPIController extends ControllerAPI
             if (empty($product_variants_delete)) {
                 $validator = Validator::make(
                     array(
-                        'product_code'      => $product_code,
                         'product_name'      => $product_name,
                         'short_description' => $short_description,
-                        'price'             => $price,
-                        'merchant_tax_1'    => $merchant_tax_1,
                         'status'            => $status,
                     ),
                     array(
-                        'product_code'      => 'required',
                         'product_name'      => 'required',
                         'short_description' => 'required',
-                        'price'             => 'required',
-                        'merchant_tax_1'    => 'required',
                         'status'            => 'required',
                     )
                 );
@@ -615,10 +609,10 @@ class ProductAPIController extends ControllerAPI
                         return $variant->sku;
                     };
 
-                    // Return the default upc if the variant upc is empty
+                    // Return the empty upc if the variant upc is empty
                     $upc = function() use ($variant, $has_transaction, $product_variant) {
                         if (empty($variant->upc)) {
-                            return $product_variant->upc;
+                            return NULL;
                         }
 
                         if ($has_transaction) {
@@ -1369,7 +1363,7 @@ class ProductAPIController extends ControllerAPI
                     array(
                         'price'             => $price,
                         'merchant_tax_1'    => $merchant_tax_id1,
-                        'sku'               => $sku,
+                        'sku'               => $product_code,
                         'retailer_ids'      => $retailer_ids,
                     ),
                     array(
