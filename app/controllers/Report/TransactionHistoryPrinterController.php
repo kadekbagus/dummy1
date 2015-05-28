@@ -391,23 +391,6 @@ class TransactionHistoryPrinterController extends  DataPrinterController
             return Response::make($responseText, 500);
         }
     }
-
-    /**
-     * @param mixed $mixed
-     * @return array
-     */
-    private function getArray($mixed)
-    {
-        $arr = [];
-        if (is_array($mixed)) {
-            $arr = array_merge($arr, $mixed);
-        } else {
-            array_push($arr, $mixed);
-        }
-
-        return $arr;
-    }
-
     /**
      * Print Price friendly name.
      *

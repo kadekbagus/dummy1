@@ -11,7 +11,19 @@ class Text
      */
     public static function formatDateTime($dateString, $format = 'd M Y H:i:s')
     {
-        return date($format, strtotime($dateString));
+        // Consider Null
+        if (! $dateString) {
+            return '-';
+        }
+
+        $time = strtotime($dateString);
+
+        // Consider Unknown date or null
+        if ($time < 1)
+        {
+            return '-';
+        }
+        return date($format, $time);
     }
 
     /**

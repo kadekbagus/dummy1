@@ -99,7 +99,6 @@
             <option value="20">24</option>
         </select>
         <button id="printbtn" style="padding:0 6px;" onclick="window.print()">Print Page</button>
-        <button id="printbtn" style="padding:0 6px;" onclick="window.exportToCSV()">Export to CSV</button>
     </div>
     <div id="loadingbar">Loading all the data, please wait...</div>
 </div>
@@ -112,40 +111,29 @@
             <td style="width:10px;">:</td>
             <td><strong><?php echo ($total); ?></strong></td>
         </tr>
-        <tr>
-            <td style="width:150px">Total Transactions</td>
-            <td style="width:10px;">:</td>
-            <td><strong><?php echo ($subTotal->transactions_count); ?></strong></td>
-        </tr>
-        <tr>
-            <td style="width:150px">Total Sales</td>
-            <td style="width:10px;">:</td>
-            <td><strong><?php echo $me->printNumberFormat($subTotal->transactions_total); ?></strong></td>
-        </tr>
+        <?php foreach ($summaryHeaders as $name => $title): ?>
+            <tr>
+                <td style="width:150px"><?php echo $title; ?></td>
+                <td style="width:10px;">:</td>
+                <td><strong><?php echo ($summary->$name); ?></strong></td>
+            </tr>
+        <?php endforeach; ?>
     </table>
 
     <table style="width:100%">
         <thead>
-        <th style="text-align: left;">'No.'</th>
-        <th style="text-align: left;">'Date'</th>
-        <th style="text-align: left;">'Employee Name'</th>
-        <th style="text-align: left;">'Clock In'</th>
-        <th style="text-align: left;">'Clock Out'</th>
-        <th style="text-align: left;">'Total Time'</th>
-        <th style="text-align: left;">'Number Of Receipt'</th>
-        <th style="text-align: left;">'Total Sales'</th>
+        <th style="text-align: left;">No.</th>
+        <?php foreach ($rowFormatter as $name => $x): ?>
+            <th style="text-align: left;"><?php echo $rowNames["{$name}"]; ?></th>
+        <?php endforeach; ?>
         </thead>
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
-            <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
+            <tr class="<?php echo $rowCounter % 2 === 0 ? 'zebra' : '' ?>">
                 <td><?php echo (++$rowCounter); ?></td>
-                <td><?php echo $me->printActivityDate($row); ?></td>
-                <td><?php echo ($row->activity_full_name); ?></td>
-                <td><?php echo $me->printDateTime($row->login_at); ?></td>
-                <td><?php echo $me->printDateTime($row->logout_at); ?></td>
-                <td><?php echo ($totalTime($row->login_at, $row->logout_at)); ?></td>
-                <td><?php echo ($row->transactions_count); ?></td>
-                <td><?php echo $me->printNumberFormat($row->transactions_total); ?></td>
+                <?php foreach ($rowFormatter as $name => $formatter): ?>
+                    <td><?php echo $formatter ? call_user_func($formatter, $row->$name) : $row->$name; ?></td>
+                <?php endforeach; ?>
             </tr>
         <?php endwhile; ?>
         </tbody>
@@ -168,13 +156,6 @@
         document.getElementById('main').style.fontFamily = "Arial";
         document.getElementById('main').style.fontSize = "12px";
         document.getElementById('loadingbar').style.display = 'none';
-    }
-
-    function exportToCSV() {
-        // Replace the redundant query string argument 'export'
-        var url = window.location.href.replace('&export=print', '').replace('&export=csv', '');
-
-        window.location.href = url + '&export=csv';
     }
 </script>
 
