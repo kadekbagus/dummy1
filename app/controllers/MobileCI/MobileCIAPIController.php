@@ -5777,7 +5777,7 @@ class MobileCIAPIController extends ControllerAPI
                 $mailviews,
                 array('user' => $user, 'retailer' => $retailer, 'transactiondetails' => $transaction->details, 'transaction' => $transaction),
                 function ($message) use ($user, $image, $filename) {
-                    $message->to('sembarang@vm.orbit-shop.rio', $user->getFullName())->subject('Orbit Receipt');
+                    $message->to($user->user_email, $user->getFullName())->subject('Orbit Receipt');
                     $message->attachData($image, $filename, array('mime' => 'image/png'));
                 }
             );

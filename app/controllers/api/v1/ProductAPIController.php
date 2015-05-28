@@ -609,10 +609,10 @@ class ProductAPIController extends ControllerAPI
                         return $variant->sku;
                     };
 
-                    // Return the default upc if the variant upc is empty
+                    // Return the empty upc if the variant upc is empty
                     $upc = function() use ($variant, $has_transaction, $product_variant) {
                         if (empty($variant->upc)) {
-                            return $product_variant->upc;
+                            return NULL;
                         }
 
                         if ($has_transaction) {
