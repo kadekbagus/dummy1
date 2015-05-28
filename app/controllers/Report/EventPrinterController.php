@@ -27,6 +27,11 @@ class EventPrinterController extends DataPrinterController
                                      DB::raw('cat3.category_name as family_name3'),
                                      DB::raw('cat4.category_name as family_name4'),
                                      DB::raw('cat5.category_name as family_name5'),
+                                     DB::raw("CASE link_object_type
+                                            WHEN 'widget' THEN 'page'
+                                                ELSE link_object_type
+                                            END AS 'event_redirected_to'
+                                        "),
                                      "promotions.promotion_name as promotion_name",
                                      "products.product_name as product_name"
                                      )
@@ -221,7 +226,8 @@ class EventPrinterController extends DataPrinterController
                 'begin_date'        => 'events.begin_date',
                 'end_date'          => 'events.end_date',
                 'is_permanent'      => 'events.is_permanent',
-                'status'            => 'events.status'
+                'status'            => 'events.status',
+                'event_redirected_to' => 'event_redirected_to'
             );
 
             $sortBy = $sortByMapping[$_sortBy];
