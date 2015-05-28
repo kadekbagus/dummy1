@@ -9,7 +9,7 @@ class Text
      * @param string $format
      * @return bool|string
      */
-    public static function formatDateTime($dateString, $format = 'd M Y H:i:s')
+    public static function formatDateTime($dateString, $format = 'd F Y H:i:s')
     {
         // Consider Null
         if (! $dateString) {
@@ -41,7 +41,7 @@ class Text
      * @param string $format
      * @return bool|string
      */
-    public static function formatDate($dateString, $format = 'd M Y')
+    public static function formatDate($dateString, $format = 'd F Y')
     {
         return static::formatDateTime($dateString, $format);
     }
