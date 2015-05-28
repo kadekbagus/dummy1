@@ -301,8 +301,8 @@ class CashierPrinterController extends DataPrinterController
             $rowFormatter = [
                 'activity_date' => array('Orbit\\Text', 'formatDate'),
                 'activity_full_name' => false,
-                'login_at' => array('Orbit\\Text', 'formatDate'),
-                'logout_at' => array('Orbit\\Text', 'formatDate'),
+                'login_at' => array('Orbit\\Text', 'formatTime'),
+                'logout_at' => array('Orbit\\Text', 'formatTime'),
                 'total_time' => false,
                 'transactions_count' => false,
                 'transactions_total' => array('Orbit\\Text', 'formatNumber')
@@ -313,7 +313,7 @@ class CashierPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HIA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
