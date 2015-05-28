@@ -897,6 +897,13 @@ class TransactionHistoryAPIController extends ControllerAPI
                 $sortBy = $sortByMapping[$_sortBy];
             });
 
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+            $transactions->orderBy($sortBy, $sortMode);
+
             if ($this->builderOnly)
             {
                 return $this->builderObject($transactions, $_transactions);
@@ -925,14 +932,6 @@ class TransactionHistoryAPIController extends ControllerAPI
                 $skip = $_skip;
             });
             $transactions->skip($skip);
-
-
-            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
-                if (strtolower($_sortMode) !== 'desc') {
-                    $sortMode = 'asc';
-                }
-            });
-            $transactions->orderBy($sortBy, $sortMode);
 
             $totalTransactions = RecordCounter::create($_transactions)->count();
             $listOfTransactions = $transactions->get();
