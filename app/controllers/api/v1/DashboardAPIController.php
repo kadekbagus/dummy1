@@ -1702,6 +1702,22 @@ class DashboardAPIController extends ControllerAPI
 
             $summary = NULL;
             $lastPage = false;
+            $defaultSelect = [];
+
+            for ($x=9; $x<23; $x++)
+            {
+                $name = sprintf("%s-%s", $x, $x+1);
+                array_push(
+                    $defaultSelect,
+                    DB::raw("ifnull(sum(case report.time_range when '{$name}' then report.login_count end), 0) as '{$name}'")
+                );
+            }
+
+            $activityReportQuery = $_activities->getQuery();
+            $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
+                ->mergeBindings($activityReportQuery)
+                ->select($defaultSelect);
+
             if ($isReport)
             {
                 $_activities->addSelect(
@@ -1709,31 +1725,18 @@ class DashboardAPIController extends ControllerAPI
                 );
                 $_activities->groupBy('created_at_date');
 
-                $defaultSelect = [];
 
-                for ($x=9; $x<23; $x++)
-                {
-                    $name = sprintf("%s-%s", $x, $x+1);
-                    array_push(
-                        $defaultSelect,
-                        DB::raw("ifnull(sum(case report.time_range when '{$name}' then report.login_count end), 0) as '{$name}'")
-                    );
-                }
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("report.created_at_date")
                 ]);
 
-                $activityReportQuery = $_activities->getQuery();
+
                 $activityReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
                     ->mergeBindings($activityReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date')
                     ->orderBy('created_at_date', 'desc');
-
-                $summaryReport = DB::table(DB::raw("({$_activities->toSql()}) as report"))
-                    ->mergeBindings($activityReportQuery)
-                    ->select($defaultSelect);
 
                 $_activityReport = clone $activityReport;
 
@@ -1757,8 +1760,8 @@ class DashboardAPIController extends ControllerAPI
                     $lastPage = true;
                 }
             } else {
-                $activities->take($take);
                 $activityList  = $activities->get();
+                $summary = $summaryReport->first();
                 $activityTotal = RecordCounter::create($_activities)->count();
             }
 
