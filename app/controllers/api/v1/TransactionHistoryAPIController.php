@@ -825,10 +825,10 @@ class TransactionHistoryAPIController extends ControllerAPI
                     DB::raw("concat({$tablePrefix}customer.user_firstname, ' ', {$tablePrefix}customer.user_lastname) as customer_full_name"),
                     DB::raw("concat({$tablePrefix}cashier.user_firstname, ' ', {$tablePrefix}cashier.user_lastname) as cashier_full_name")
                 )
-                ->join("users as {$tablePrefix}customer", function ($join) {
+                ->leftJoin("users as {$tablePrefix}customer", function ($join) {
                     $join->on('customer.user_id', '=', 'transactions.customer_id');
                 })
-                ->join("users as {$tablePrefix}cashier", function ($join) {
+                ->leftJoin("users as {$tablePrefix}cashier", function ($join) {
                     $join->on('cashier.user_id', '=', 'transactions.cashier_id');
                 })
                 ->with('user', 'cashier');
@@ -1135,12 +1135,12 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // Filter by date from
             OrbitInput::get('purchase_date_begin', function ($dateBegin) use ($transactions) {
-                $transactions->where('transactions.created_at', '>', $dateBegin);
+                $transactions->where('transactions.created_at', '>=', $dateBegin);
             });
 
             // Filter by date to
             OrbitInput::get('purchase_date_end', function ($dateEnd) use ($transactions) {
-                $transactions->where('transactions.created_at', '<', $dateEnd);
+                $transactions->where('transactions.created_at', '<=', $dateEnd);
             });
 
             OrbitInput::get('cashier_id', function ($cashierId) use ($transactions) {
