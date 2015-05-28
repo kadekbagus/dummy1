@@ -23,7 +23,7 @@ class MerchantPrinterController extends DataPrinterController
                             ->allowedForUser($user)
                             ->select('merchants.*',
                                 DB::raw('count(distinct retailer.merchant_id) as merchant_count'), 
-                                DB::raw("GROUP_CONCAT(`retailer`.`name`,' ',`retailer`.`city` SEPARATOR ' , ') as retailer_list"))
+                                DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ' , ') as retailer_list"))
                             ->leftJoin('merchants AS retailer', function($join) {
                                     $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
                                         ->where(DB::raw('retailer.status'), '!=', 'deleted');
