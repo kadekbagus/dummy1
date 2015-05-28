@@ -372,7 +372,6 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printGender($merchant)
     {
-        $return = '';
         $gender = $merchant->gender;
         $gender = strtolower($gender);
         switch ($gender) {
@@ -398,8 +397,6 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printStartingDate($merchant)
     {
-        $return = '';
-
         if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity))
         {
             $result = "";
@@ -435,7 +432,7 @@ class MerchantPrinterController extends DataPrinterController
         else if(empty($merchant->city) && empty($merchant->country)){
             $result = '';
         }
-        return $result;
+        return utf8_encode($result);
     }
 
 }
