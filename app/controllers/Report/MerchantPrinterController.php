@@ -23,7 +23,7 @@ class MerchantPrinterController extends DataPrinterController
                             ->allowedForUser($user)
                             ->select('merchants.*',
                                 DB::raw('count(distinct retailer.merchant_id) as merchant_count'), 
-                                DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ' , ') as retailer_list"))
+                                DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ', ') as retailer_list"))
                             ->leftJoin('merchants AS retailer', function($join) {
                                     $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
                                         ->where(DB::raw('retailer.status'), '!=', 'deleted');
@@ -350,7 +350,7 @@ class MerchantPrinterController extends DataPrinterController
 
                     $location = $this->printLocation($row);
                     $starting_date = $this->printStartingDate($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $row->name, $location, $starting_date, $row->merchant_count, $row->retailer_list, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $this->printUtf8($row->name), $location, $starting_date, $row->merchant_count, $this->printUtf8($row->retailer_list), $row->status);
 
                 }
                 break;
@@ -404,7 +404,7 @@ class MerchantPrinterController extends DataPrinterController
             $date = $merchant->start_date_activity;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d-F-Y',$time);
             $result = $newformat;
         }
 
@@ -432,7 +432,18 @@ class MerchantPrinterController extends DataPrinterController
         else if(empty($merchant->city) && empty($merchant->country)){
             $result = '';
         }
-        return utf8_encode($result);
+        return $this->printUtf8($result);
+    }
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 
 }
