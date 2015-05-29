@@ -1434,6 +1434,21 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $defaultSelect = [
+                DB::raw("ifnull(sum(case report.user_age when '15-20' then report.user_count end), 0) as '15-20'"),
+                DB::raw("ifnull(sum(case report.user_age when '20-25' then report.user_count end), 0) as '20-25'"),
+                DB::raw("ifnull(sum(case report.user_age when '25-30' then report.user_count end), 0) as '25-30'"),
+                DB::raw("ifnull(sum(case report.user_age when '30-35' then report.user_count end), 0) as '30-35'"),
+                DB::raw("ifnull(sum(case report.user_age when '35-40' then report.user_count end), 0) as '35-40'"),
+                DB::raw("ifnull(sum(case report.user_age when '40+' then report.user_count end), 0) as '40+'"),
+                DB::raw("ifnull(sum(case report.user_age when 'Unknown' then report.user_count end), 0) as 'Unknown'")
+            ];
+
+
+            $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                ->mergeBindings($_users->getQuery())
+                ->select($defaultSelect);
+
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport) {
@@ -1443,15 +1458,6 @@ class DashboardAPIController extends ControllerAPI
                 $_users->groupBy('created_at_date');
 
                 $userReportQuery = $_users->getQuery();
-                $defaultSelect = [
-                    DB::raw("ifnull(sum(case report.user_age when '15-20' then report.user_count end), 0) as '15-20'"),
-                    DB::raw("ifnull(sum(case report.user_age when '20-25' then report.user_count end), 0) as '20-25'"),
-                    DB::raw("ifnull(sum(case report.user_age when '25-30' then report.user_count end), 0) as '25-30'"),
-                    DB::raw("ifnull(sum(case report.user_age when '30-35' then report.user_count end), 0) as '30-35'"),
-                    DB::raw("ifnull(sum(case report.user_age when '35-40' then report.user_count end), 0) as '35-40'"),
-                    DB::raw("ifnull(sum(case report.user_age when '40+' then report.user_count end), 0) as '40+'"),
-                    DB::raw("ifnull(sum(case report.user_age when 'Unknown' then report.user_count end), 0) as 'Unknown'")
-                ];
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw('report.created_at_date as created_at_date')
@@ -1462,10 +1468,6 @@ class DashboardAPIController extends ControllerAPI
                     ->select($toSelect)
                     ->groupBy('created_at_date')
                     ->orderBy('created_at_date', 'desc');
-
-                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                    ->mergeBindings($userReportQuery)
-                    ->select($defaultSelect);
 
                 $_userReport = clone $userReport;
                 $userReport->orderBy('created_at_date', 'desc');
@@ -1489,6 +1491,7 @@ class DashboardAPIController extends ControllerAPI
                     $lastPage   = true;
                 }
             } else {
+                $summary = $summaryReport->first();
                 $users->take($take);
                 $userList  = $users->get();
                 $userTotal = RecordCounter::create($_users)->count();
