@@ -283,7 +283,7 @@ class ProductPrinterController extends DataPrinterController
     public function printCurrency()
     {
         $retailer = $this->getRetailerInfo();
-        $currency = strtolower($retailer->currency);
+        $currency = strtolower($retailer->parent->currency);
         switch ($currency) {
             case 'usd':
                 $result = 'USD';
@@ -308,7 +308,19 @@ class ProductPrinterController extends DataPrinterController
      */
     public function printPrice($product)
     {
-        $result = number_format($product->price, 2);
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
+        switch ($currency) {
+            case 'usd':
+                $result = number_format($product->price, 2);
+                break;
+
+            case 'idr':
+                $result = number_format($product->price);
+                break;
+            default:
+                $result = number_format($product->price);
+        }
         
         return $result;
     }
