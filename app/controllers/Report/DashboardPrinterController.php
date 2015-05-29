@@ -489,23 +489,23 @@ class DashboardPrinterController extends DataPrinterController
             $statement->execute($userReport->getBindings());
 
             $summaryHeaders = [
-                '15-20' => '15-20',
-                '20-25' => '20-25',
-                '25-30' => '25-30',
-                '30-35' => '30-35',
-                '35-40' => '35-40',
-                '40+' => '40+',
+                '15-20' => '15 - 20 Years old',
+                '20-25' => '20 - 25 Years old',
+                '25-30' => '25 - 30 Years old',
+                '30-35' => '30 - 35 Years old',
+                '35-40' => '35 - 40 Years old',
+                '40+' => '40+ Years old',
                 'Unknown' => 'Unknown'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
-                '15-20' => '15-20',
-                '20-25' => '20-25',
-                '25-30' => '25-30',
-                '30-35' => '30-35',
-                '35-40' => '35-40',
-                '40+' => '40+',
+                '15-20' => '15 - 20 Years old',
+                '20-25' => '20 - 25 Years old',
+                '25-30' => '25 - 30 Years old',
+                '30-35' => '30 - 35 Years old',
+                '35-40' => '35 - 40 Years old',
+                '40+' => '40+ Years old',
                 'Unknown' => 'Unknown'
             ];
 
@@ -600,8 +600,9 @@ class DashboardPrinterController extends DataPrinterController
             for ($x=9; $x<23; $x++)
             {
                 $name = sprintf("%s-%s", $x, $x+1);
+                $label = sprintf("%s:00 - %s:00", $x, $x+1);
                 $summaryHeaders[$name] = $name;
-                $rowNames[$name]       = $name;
+                $rowNames[$name]       = $label;
                 $rowFormatter[$name]   = false;
             }
 
@@ -678,26 +679,26 @@ class DashboardPrinterController extends DataPrinterController
             $statement->execute($activityReport->getBindings());
 
             $summaryHeaders = [
-                '<5'  => '<5' ,
-                '5-10' => '5-10',
-                '10-20' => '10-20',
-                '20-30' => '20-30',
-                '30-40' => '30-40',
-                '40-50' => '40-50',
-                '50-60' => '50-60',
-                '60+'  => '60+'
+                '<5'  => '< 5 (mins)' ,
+                '5-10' => '5 - 10 (mins)',
+                '10-20' => '10 - 20 (mins)',
+                '20-30' => '20 - 30 (mins)',
+                '30-40' => '30 - 40 (mins)',
+                '40-50' => '40 - 50 (mins)',
+                '50-60' => '50 - 60 (mins)',
+                '60+'  => '60+ (mins)'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
-                '<5'  => '<5' ,
-                '5-10' => '5-10',
-                '10-20' => '10-20',
-                '20-30' => '20-30',
-                '30-40' => '30-40',
-                '40-50' => '40-50',
-                '50-60' => '50-60',
-                '60+'  => '60+'
+                '<5'  => '< 5 (mins)',
+                '5-10' => '5 - 10 (mins)',
+                '10-20' => '10 - 20 (mins)',
+                '20-30' => '20 - 30 (mins)',
+                '30-40' => '30 - 40 (mins)',
+                '40-50' => '40 - 50 (mins)',
+                '50-60' => '50 - 60 (mins)',
+                '60+'  => '60+ (mins)'
             ];
 
             $rowFormatter = [
