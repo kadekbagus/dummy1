@@ -220,7 +220,11 @@ class IntermediateBaseController extends Controller
     protected function getTargetAPIController($method)
     {
         // Remove the 'Intermediate' string
-        list($controller, $method) = explode('_', $method);
+        try {
+            list($controller, $method) = explode('_', $method);
+        } catch(Exception $e) {
+            throw new Exception("Unknown Method {$method}", $e->getCode(), $e);
+        }
 
         // Append the controller with 'APIController', e.g:
         // 'Merchant' would be 'MerchantAPIController'

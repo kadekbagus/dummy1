@@ -26,6 +26,7 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
      * @var \ApiKey
      */
     protected $authData;
+    protected $eventNameSpace;
 
     /**
 	 * Creates the application.
@@ -106,20 +107,20 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 		// Clear every event dispatcher so we get no queue event on each
 		// test
 		$events = array(
-			'orbit.retailer.postnewretailer.before.auth',
-			'orbit.retailer.postnewretailer.after.auth',
-			'orbit.retailer.postnewretailer.before.authz',
-			'orbit.retailer.postnewretailer.authz.notallowed',
-			'orbit.retailer.postnewretailer.after.authz',
-			'orbit.retailer.postnewretailer.before.validation',
-			'orbit.retailer.postnewretailer.after.validation',
-			'orbit.retailer.postnewretailer.before.save',
-			'orbit.retailer.postnewretailer.after.save',
-			'orbit.retailer.postnewretailer.after.commit',
-			'orbit.retailer.postnewretailer.access.forbidden',
-			'orbit.retailer.postnewretailer.invalid.arguments',
-			'orbit.retailer.postnewretailer.general.exception',
-			'orbit.retailer.postnewretailer.before.render'
+			"orbit.{$this->eventNameSpace}.before.auth",
+			"orbit.{$this->eventNameSpace}.after.auth",
+			"orbit.{$this->eventNameSpace}.before.authz",
+			"orbit.{$this->eventNameSpace}.authz.notallowed",
+			"orbit.{$this->eventNameSpace}.after.authz",
+			"orbit.{$this->eventNameSpace}.before.validation",
+			"orbit.{$this->eventNameSpace}.after.validation",
+			"orbit.{$this->eventNameSpace}.before.save",
+			"orbit.{$this->eventNameSpace}.after.save",
+			"orbit.{$this->eventNameSpace}.after.commit",
+			"orbit.{$this->eventNameSpace}.access.forbidden",
+			"orbit.{$this->eventNameSpace}.invalid.arguments",
+			"orbit.{$this->eventNameSpace}.general.exception",
+			"orbit.{$this->eventNameSpace}.before.render"
 		);
 		foreach ($events as $event) {
 			Event::forget($event);
