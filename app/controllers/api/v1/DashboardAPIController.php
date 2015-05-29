@@ -2593,7 +2593,7 @@ class DashboardAPIController extends ControllerAPI
 
     public static function calculateSummaryPercentage($summary = array(), $totalField = 'total')
     {
-        if (! ($summary && array_key_exists($totalField, $summary)))
+        if (! ($summary && property_exists((object) $summary, $totalField)))
         {
             return $summary;
         }
