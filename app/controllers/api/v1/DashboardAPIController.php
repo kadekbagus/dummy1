@@ -1237,7 +1237,7 @@ class DashboardAPIController extends ControllerAPI
             $data = new stdclass();
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
-            $data->summary   = $summary;
+            $data->summary   = static::calculateSummaryPercentage($summary);
             $data->last_page = $lastPage;
             $data->records   = $userList;
 
@@ -1506,7 +1506,7 @@ class DashboardAPIController extends ControllerAPI
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
             $data->last_page = $lastPage;
-            $data->summary   = $summary;
+            $data->summary   = $summary ? static::calculateSummaryPercentage($summary) : $summary;
             $data->records   = $userList;
 
             if ($userTotal === 0) {
@@ -2589,6 +2589,25 @@ class DashboardAPIController extends ControllerAPI
         Event::fire('orbit.dashboard.getusermerchantsummary.before.render', array($this, &$output));
 
         return $output;
+    }
+
+    public static function calculateSummaryPercentage($summary = array(), $totalField = 'total')
+    {
+        if (! ($summary && array_key_exists($totalField, $summary)))
+        {
+            return $summary;
+        }
+
+        $summary = (array) $summary;
+
+        $total      = $summary[$totalField];
+        foreach ($summary as $name => $value)
+        {
+            $percent = ceil(($value / $total) * 100);
+            $summary[$name.'_percentage'] = "{$percent} %";
+        }
+
+        return (object) $summary;
     }
 
     /**

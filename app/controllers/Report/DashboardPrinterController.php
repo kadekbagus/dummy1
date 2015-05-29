@@ -397,7 +397,7 @@ class DashboardPrinterController extends DataPrinterController
             $total = $totalReport->count();
 
             $summaryReport = $builder->getUnsorted();
-            $summary   = $summaryReport->first();
+            $summary   = API::calculateSummaryPercentage($summaryReport->first());
 
             $this->prepareUnbufferedQuery();
             $statement = $this->pdo->prepare($userReport->toSql());
@@ -442,7 +442,8 @@ class DashboardPrinterController extends DataPrinterController
                     printf(" ,Total Records,:,%s\n", $total);
                     foreach ($summaryHeaders as $name => $title)
                     {
-                        printf(" ,%s,:,%s\n", $title, $summary->$name);
+                        $percentageField = $name.'_percentage';
+                        printf(" ,%s,:,%s\n", $title, $summary->$name . " ({$summary->$percentageField})");
                     }
 
                     $rowHeader = ['No.'];
@@ -490,7 +491,7 @@ class DashboardPrinterController extends DataPrinterController
             $total = $totalReport->count();
 
             $summaryReport = $builder->getUnsorted();
-            $summary    = $summaryReport->first();
+            $summary    = API::calculateSummaryPercentage($summaryReport->first());
 
             $this->prepareUnbufferedQuery();
 
@@ -548,7 +549,8 @@ class DashboardPrinterController extends DataPrinterController
                     printf(" ,Total Records,:,%s\n", $total);
                     foreach ($summaryHeaders as $name => $title)
                     {
-                        printf(" ,%s,:,%s\n", $title, $summary->$name);
+                        $percentageField = $name.'_percentage';
+                        printf(" ,%s,:,%s\n", $title, $summary->$name . " ({$summary->$percentageField})");
                     }
 
                     $rowHeader = ['No.'];
