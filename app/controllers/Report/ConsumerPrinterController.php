@@ -310,6 +310,30 @@ class ConsumerPrinterController extends DataPrinterController
         }
     }
 
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
 
     /**
      * Print expiration date type friendly name.
@@ -463,8 +487,14 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastSpentAmount($consumer)
     {
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
         if($consumer->last_spent_amount!=0){
-            $result = number_format($consumer->last_spent_amount, 2);
+            if($currency=='usd'){
+                $result = number_format($consumer->last_spent_amount, 2);
+            } else {
+                $result = number_format($consumer->last_spent_amount);
+            }
         } else {
             $result = number_format($consumer->last_spent_amount);
         }
