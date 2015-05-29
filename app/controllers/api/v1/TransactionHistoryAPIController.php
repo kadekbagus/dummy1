@@ -536,7 +536,7 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // Builder object
             $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction', 'transaction.merchant', 'transaction.retailer')
-                                             ->transactionJoin();
+                                             ->transactionJoin($this->builderOnly);
 
             OrbitInput::get('user_id', function($userId) use ($transactions) {
                 $transactions->whereIn('transactions.customer_id', (array)$userId);
@@ -607,30 +607,6 @@ class TransactionHistoryAPIController extends ControllerAPI
             // skip, and order by
             $_transactions = clone $transactions;
 
-            // Get the take args
-            $take = $perPage;
-            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord) {
-                    $_take = $maxRecord;
-                }
-                $take = $_take;
-
-                if ((int)$take <= 0) {
-                    $take = $maxRecord;
-                }
-            });
-            $transactions->take($take);
-
-            $skip = 0;
-            OrbitInput::get('skip', function ($_skip) use (&$skip, $transactions) {
-                if ($_skip < 0) {
-                    $_skip = 0;
-                }
-
-                $skip = $_skip;
-            });
-            $transactions->skip($skip);
-
             // Default sort by
             $sortBy = 'transaction_details.created_at';
             // Default sort mode
@@ -654,6 +630,34 @@ class TransactionHistoryAPIController extends ControllerAPI
                 }
             });
             $transactions->orderBy($sortBy, $sortMode);
+
+            if ($this->builderOnly)
+            {
+                return $this->builderObject($transactions, $_transactions);
+            }
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $transactions->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $transactions) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $transactions->skip($skip);
 
             $totalTransactions = RecordCounter::create($_transactions)->count();
             $listOfTransactions = $transactions->get();

@@ -36,17 +36,33 @@ class TransactionDetail extends Eloquent
      * Simple join with transaction table
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param \Illuminate\Database\Eloquent\Builder  $builder
-     * @param array|int $valueId - List of value ids
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param bool $print
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeTransactionJoin($builder)
+    public function scopeTransactionJoin($builder, $print = false)
     {
-        return $builder->select('transaction_details.*')
-                       ->join('transactions', function($join) {
-                            $join->on('transactions.transaction_id', '=', 'transaction_details.transaction_id');
-                            $join->where('transactions.status', '=', DB::raw('paid'));
-                       });
+        $tablePrefix = DB::getTablePrefix();
+        $builder->select("transaction_details.*")
+            ->leftJoin("transactions", function ($join) {
+                $join->on("transactions.transaction_id", "=", 'transaction_details.transaction_id');
+                $join->where('transactions.status', '=', DB::raw('paid'));
+            });
+
+            if ($print) {
+                $builder
+                    ->leftJoin("merchants as {$tablePrefix}merchant", function ($join) {
+                        $join->on("transactions.merchant_id", "=", "merchant.merchant_id");
+                    })
+                    ->leftJoin("merchants as {$tablePrefix}retailer", function ($join) {
+                        $join->on("transactions.retailer_id", "=", "retailer.merchant_id");
+                    })
+                    ->leftJoin("products", function ($join) {
+                        $join->on("transaction_details.product_id", "=", "products.product_id");
+                    });
+            }
+
+        return $builder;
     }
 
     /**
