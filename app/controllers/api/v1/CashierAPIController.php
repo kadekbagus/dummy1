@@ -159,7 +159,7 @@ class CashierAPIController extends ControllerAPI
             // Default sort by
             $sortBy = 'transaction_date';
             // Default sort mode
-            $sortMode = 'asc';
+            $sortMode = 'desc';
 
             OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
             {
