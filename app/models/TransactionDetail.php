@@ -133,11 +133,20 @@ class TransactionDetail extends Eloquent
                 'transaction_details.product_id',
                 'transaction_details.product_name',
                 'transaction_details.quantity',
-                'transaction_details.price',
+                DB::raw("ifnull({$tablePrefix}transaction_details.variant_price ,{$tablePrefix}transaction_details.price) as price"),
                 'transactions.payment_method',
+                DB::raw("(
+                        case payment_method
+                           when 'cash' then 'Cash'
+                           when 'online_payment' then 'Online Payment'
+                           when 'paypal' then 'Paypal'
+                           when 'card' then 'Card'
+                           else payment_method
+                        end
+                    ) as payment_type"),
                 'transaction_details.created_at',
                 DB::raw("sum(ifnull({$tablePrefix}tax.total_tax, 0)) as total_tax"),
-                DB::raw("(quantity * (price + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
+                DB::raw("(quantity * (ifnull({$tablePrefix}transaction_details.variant_price ,{$tablePrefix}transaction_details.price) + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
                 'cashier.user_firstname as cashier_user_firstname',
                 'cashier.user_lastname as cashier_user_lastname',
                 DB::raw("concat({$tablePrefix}cashier.user_firstname, ' ', {$tablePrefix}cashier.user_lastname) as cashier_user_fullname"),
