@@ -282,7 +282,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 'price'          => 'Unit Price',
                 'total_tax'      => 'Tax Value',
                 'sub_total'      => 'Total',
-                'payment_method' => 'Payment Type',
+                'payment_type'   => 'Payment Type',
                 'customer_user_email'   => 'Customer Email',
                 'cashier_user_fullname' => 'Cashier'
             ];
@@ -296,7 +296,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 'price'     => array('Orbit\\Text', 'formatNumber'),
                 'total_tax' => array('Orbit\\Text', 'formatNumber'),
                 'sub_total' => array('Orbit\\Text', 'formatNumber'),
-                'payment_method'       => false,
+                'payment_type'         => false,
                 'customer_user_email'  => false,
                 'cashier_user_fullname' => false
             ];
