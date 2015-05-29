@@ -395,6 +395,30 @@ class CouponPrinterController extends DataPrinterController
         }
     }
 
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
 
     /**
      * Print discount type friendly name.
@@ -456,18 +480,20 @@ class CouponPrinterController extends DataPrinterController
      */
     public function printDiscountValue($promotion)
     {
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
         switch ($promotion->display_discount_type) {
-            case 'value':
-                $result = number_format($promotion->discount_value, 2);
-                break;
-
             case 'percentage':
                 $discount =  $promotion->discount_value*100;
                 $result = $discount."%";
                 break;
                 
             default:
-                $result = number_format($promotion->discount_value, 2);
+                if($currency=='usd'){
+                    $result = number_format($promotion->discount_value, 2);
+                } else {
+                    $result = number_format($promotion->discount_value);
+                }
         }
 
         return $result;

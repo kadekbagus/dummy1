@@ -453,18 +453,20 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountValue($promotion)
     {
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
         switch ($promotion->display_discount_type) {
-            case 'value':
-                $result = number_format($promotion->discount_value, 2);
-                break;
-
             case 'percentage':
                 $discount =  $promotion->discount_value*100;
                 $result = $discount."%";
                 break;
                 
             default:
-                $result = number_format($promotion->discount_value, 2);
+                if($currency=='usd'){
+                    $result = number_format($promotion->discount_value, 2);
+                } else {
+                    $result = number_format($promotion->discount_value);
+                }
         }
 
         return $result;
