@@ -95,7 +95,9 @@ class CashierAPIController extends ControllerAPI
                     'group as activity_group',
                     DB::raw('date(created_at) as activity_date'),
                     DB::raw("min(case activity_name when 'login_ok' then created_at end) as login_at"),
+                    DB::raw("date_format(min(case activity_name when 'login_ok' then created_at end), '%H:%i:%s') as login_at_hour"),
                     DB::raw("max(case activity_name when 'logout_ok' then created_at end) as logout_at"),
+                    DB::raw("date_format(max(case activity_name when 'logout_ok' then created_at end), '%H:%i:%s')  as logout_at_hour"),
                     DB::raw("timestampdiff(MINUTE, min(case activity_name when 'login_ok' then created_at end), max(case activity_name when 'logout_ok' then created_at end)) as total_time")
                 )
                 ->where('role', 'like', 'cashier')
@@ -167,8 +169,8 @@ class CashierAPIController extends ControllerAPI
                     'activity_date' => 'activity_date',
                     'cashier_id'    => 'activity_user_id',
                     'cashier_name'  => 'activity_full_name',
-                    'login_at'      => DB::raw("date_format(login_at, '%H:%i:%s')"),
-                    'logout_at'     => DB::raw("date_format(logout_at, '%H:%i:%s')"),
+                    'login_at'      => 'login_at_hour',
+                    'logout_at'     => 'logout_at_hour',
                     'transactions_count'  => 'transactions_count',
                     'transactions_total'  => 'transactions_total',
                     'total_time' => 'total_time'
