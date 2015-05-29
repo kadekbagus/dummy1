@@ -36,3 +36,6 @@ vendor/laracasts/
 
 # Export directory
 export-import/data/**
+
+# Import Data
+app/storage/imports/
