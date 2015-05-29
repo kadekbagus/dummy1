@@ -137,7 +137,7 @@
                 <td><?php echo $me->printAddress($row); ?></td>
                 <td><?php echo ($row->merchant_name); ?></td>
                 <td><?php echo $me->printLastVisitDate($row); ?></td>
-                <td><?php echo (number_format($row->last_spent_amount)); ?></td>
+                <td><?php echo $me->printLastSpentAmount($row); ?></td>
                 <td><?php echo $me->printDateFormat($row); ?></td>
             </tr>
         <?php endwhile; ?>

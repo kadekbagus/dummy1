@@ -127,7 +127,7 @@ trait UserRoleTrait
         // Set the flag to TRUE, so it will not be called multiple times implicitly
         $this->prepareEmployeeRetailerCalled = TRUE;
 
-        return $query->select('users.*')
+        return $query->select('users.*', 'employees.position')
                      ->join('employees', 'employees.user_id', '=', 'users.user_id')
                      ->join('employee_retailer', 'employees.employee_id', '=', 'employee_retailer.employee_id');
     }

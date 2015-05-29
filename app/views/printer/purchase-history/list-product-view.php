@@ -99,13 +99,12 @@
             <option value="20">24</option>
         </select>
         <button id="printbtn" style="padding:0 6px;" onclick="window.print()">Print Page</button>
-        <button id="printbtn" style="padding:0 6px;" onclick="window.exportToCSV()">Export to CSV</button>
     </div>
     <div id="loadingbar">Loading all the data, please wait...</div>
 </div>
 
 <div id="main">
-    <h2 style="margin-bottom:0.5em;"><?php echo ($user->getFullName()); ?> - Purchase History Report</h2>
+    <h2 style="margin-bottom:0.5em;">Purchase History Report</h2>
     <table style="width:100%; margin-bottom:1em;" class="noborder">
         <tr>
             <td style="width:150px">Total Purchase</td>
@@ -130,7 +129,7 @@
                 <td><?php echo ($row->product_name); ?></td>
                 <td><?php echo ($row->quantity); ?></td>
                 <td><?php echo ($row->retailer_name); ?></td>
-                <td><?php echo ($row->price); ?></td>
+                <td><?php echo number_format($row->price, 2); ?></td>
                 <td><?php echo $formatDate($row->created_at); ?></td>
             </tr>
         <?php endwhile; ?>

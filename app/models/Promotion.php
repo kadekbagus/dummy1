@@ -131,4 +131,24 @@ class Promotion extends Eloquent
         }
         return ($value);
     }
+
+    /**
+     * Scope to determine promotion with transaction detail promotion and add custom
+     * attribute named 'has_transaction' which hold value 'yes' or 'no'.
+     *
+     * @author kadek <kadek@dominopos.com>
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeIncludeTransactionStatus($builder)
+    {
+        $prefix = DB::getTablePrefix();
+        return $builder->addSelect(DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+                       ->leftJoin('transaction_detail_promotions', 'transaction_detail_promotions.promotion_id', '=', 'promotions.promotion_id')
+                        ->leftJoin('transactions', function($join) {
+                             $join->on('transactions.status', '!=', DB::Raw("'deleted'"));
+                             $join->on('transactions.transaction_id', '=', 'transaction_detail_promotions.transaction_id');
+                        })
+                       ->groupBy('promotions.promotion_id');
+    }
 }

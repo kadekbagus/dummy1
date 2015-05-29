@@ -88,33 +88,41 @@ class CashierAPIController extends ControllerAPI
                 }
             }
 
-            $activityQuery = DB::raw("
-                SELECT
-                    `user_id` as activity_user_id,
-                    `full_name` as activity_full_name,
-                    `role` as activity_role,
-                    `group` as activity_group,
-                    date(`created_at`) as activity_date,
-                    min(case activity_type when 'login' then `created_at` end) as login_at,
-                    max(case activity_type when 'logout' then `created_at` end) as logout_at
-                FROM {$tablePrefix}activities
-                WHERE `role`          like 'cashier'
-                AND   `group`         = 'pos'
-                AND   `activity_type` IN ('login', 'logout')
-                GROUP BY `activity_date`, `activity_user_id`");
+            $activities  = Activity::select(
+                'user_id as activity_user_id',
+                'full_name as activity_full_name',
+                'role as activity_role',
+                'group as activity_group',
+                DB::raw('date(created_at) as activity_date'),
+                DB::raw("min(case activity_name when 'login_ok' then created_at end) as login_at"),
+                DB::raw("max(case activity_name when 'logout_ok' then created_at end) as logout_at")
+            )
+                ->where('role', 'like', 'cashier')
+                ->where('group', '=', 'pos')
+                ->whereIn('activity_name', ['login_ok', 'logout_ok'])
+                ->groupBy('activity_date', 'activity_user_id');
+            $activitiesQuery = $activities->getQuery();
 
-            $transactions = Transaction::select([
-                    'cashier_activities.*',
-                    DB::raw("count(distinct transaction_id) as transactions_count"),
-                    DB::raw('sum(total_to_pay) as transactions_total')])
+            $transactionByDate = Transaction::select(
+                DB::raw('count(distinct transaction_id) as transactions_count'),
+                DB::raw('sum(total_to_pay) as transactions_total'),
+                DB::raw('date(created_at) as transaction_date'),
+                'merchant_id',
+                'cashier_id',
+                'customer_id'
+            )
+                ->groupBy('transaction_date', 'cashier_id');
+            $transactionByDateQuery = $transactionByDate->getQuery();
 
-                ->leftJoin("users as {$tablePrefix}customer", function ($join) {
-                    $join->on('customer.user_id', '=', 'transactions.customer_id');
+            $transactions = DB::table(DB::raw("({$activities->toSql()}) as {$tablePrefix}activities"))
+                ->mergeBindings($activitiesQuery)
+                ->leftJoin(DB::raw("({$transactionByDate->toSql()}) as {$tablePrefix}transactions"), function ($join) {
+                    $join->on('activity_user_id', '=','cashier_id');
+                    $join->on('activity_date', '=','transaction_date');
                 })
+                ->mergeBindings($transactionByDateQuery)
+                ->groupBy('activity_date', 'cashier_id');
 
-                ->leftJoin(DB::raw("({$activityQuery}) as {$tablePrefix}cashier_activities"), function ($join) {
-                    $join->on('activity_user_id', '=', 'transactions.cashier_id');
-                });
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
                $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
@@ -142,32 +150,7 @@ class CashierAPIController extends ControllerAPI
                 $transactions->where("activity_full_name", 'like', "%{$cashierName}%");
             });
 
-            OrbitInput::get('customer_id', function ($customerId) use ($transactions) {
-                $transactions->whereIn("customer.user_id", $this->getArray($customerId));
-            });
-
-            OrbitInput::get('customer_firstname', function ($customerName) use ($transactions) {
-                $transactions->whereIn("customer.user_firstname", $this->getArray($customerName));
-            });
-
-            OrbitInput::get('customer_lastname', function ($customerName) use ($transactions) {
-                $transactions->whereIn("customer.user_lastname", $this->getArray($customerName));
-            });
-
-            OrbitInput::get('customer_name_like', function ($customerName) use ($transactions) {
-                $transactions->where("customer.user_firstname", 'like', "%{$customerName}%")
-                             ->whereOr("customer.user_lastname", 'like', "%{$customerName}%");
-            });
-
-            OrbitInput::get('payment_method', function ($paymentType) use ($transactions) {
-                $transactions->whereIn('transactions.payment_method', $this->getArray($paymentType));
-            });
-
-            OrbitInput::get('transactions_code', function ($purchaseCode) use ($transactions) {
-               $transactions->whereIn('transactions.transaction_code', $this->getArray($purchaseCode));
-            });
-
-            $transactions->groupBy(['transactions.cashier_id', 'cashier_activities.activity_date']);
+            $transactions->groupBy(['transactions.cashier_id', 'activities.activity_date']);
 
             $_transactions = clone $transactions;
 
@@ -197,7 +180,7 @@ class CashierAPIController extends ControllerAPI
             $transactions->skip($skip);
 
             // Default sort by
-            $sortBy = 'transactions.created_at';
+            $sortBy = 'transaction_date';
             // Default sort mode
             $sortMode = 'asc';
 
@@ -224,7 +207,9 @@ class CashierAPIController extends ControllerAPI
 
             $transactions->orderBy($sortBy, $sortMode);
 
-            $totalTransactions = RecordCounter::create($_transactions)->count();
+            $totalTransactions = DB::table(DB::raw("({$_transactions->toSql()}) as sub"))
+                ->mergeBindings($_transactions)
+                ->count();
             $transactionList    = $transactions->get();
 
             $data = new stdclass();
@@ -237,7 +222,7 @@ class CashierAPIController extends ControllerAPI
             if (($totalTransactions - $skip) <= $skip)
             {
                 $subTotalQuery    = $_transactions->toSql();
-                $subTotalBindings = $_transactions->getQuery();
+                $subTotalBindings = $_transactions;
                 $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
                                 ->mergeBindings($subTotalBindings)
                                 ->select([

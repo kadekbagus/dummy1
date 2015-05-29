@@ -1132,23 +1132,30 @@ class PromotionAPIController extends ControllerAPI
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
-                ->excludeDeleted()
+                ->excludeDeleted('promotions')
                 ->select(DB::raw($table_prefix . "promotions.*,
-                    CASE rule_type
+                    CASE {$table_prefix}promotion_rules.rule_type
                         WHEN 'cart_discount_by_percentage' THEN 'percentage'
                         WHEN 'product_discount_by_percentage' THEN 'percentage'
                         WHEN 'cart_discount_by_value' THEN 'value'
                         WHEN 'product_discount_by_value' THEN 'value'
                         ELSE NULL
                     END AS 'display_discount_type',
-                    CASE rule_type
-                        WHEN 'cart_discount_by_percentage' THEN discount_value * 100
-                        WHEN 'product_discount_by_percentage' THEN discount_value * 100
-                        ELSE discount_value
+                    CASE {$table_prefix}promotion_rules.rule_type
+                        WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                        WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                        ELSE {$table_prefix}promotion_rules.discount_value
                     END AS 'display_discount_value'
                     ")
                 )
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+
+            // Check the value of `include_transaction_status` argument
+            OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($promotions) {
+                if ($include_transaction_status === 'yes') {
+                    $promotions->IncludeTransactionStatus();
+                }
+            });
 
             // Filter promotion by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($promotions)
@@ -1406,7 +1413,7 @@ class PromotionAPIController extends ControllerAPI
                     'end_date'                 => 'promotions.end_date',
                     'is_permanent'             => 'promotions.is_permanent',
                     'status'                   => 'promotions.status',
-                    'rule_type'                => 'rule_type',
+                    'rule_type'                => 'promotion_rules.rule_type',
                     'display_discount_value'   => 'display_discount_value' // only to avoid error 'Undefined index'
                 );
 

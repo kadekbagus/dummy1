@@ -255,6 +255,24 @@ class RetailerPrinterController extends DataPrinterController
             $retailers->whereIn('merchants.parent_id', $parentIds);
         });
 
+        // Filter retailer by matching merchant name pattern
+        OrbitInput::get('merchant_name_like', function($name) use ($retailers)
+        {
+            $retailers->where(DB::raw('m.name'), 'like', "%$name%");
+        });
+
+        // Filter retailer by start_date_activity for begin_date
+        OrbitInput::get('start_activity_begin_date', function($begindate) use ($retailers)
+        {
+            $retailers->where('merchants.start_date_activity', '>=', $begindate);
+        });
+
+        // Filter retailer by start_date_activity for end_date
+        OrbitInput::get('start_activity_end_date', function($enddate) use ($retailers)
+        {
+            $retailers->where('merchants.start_date_activity', '<=', $enddate);
+        });
+
         // Add new relation based on request
         OrbitInput::get('with', function($with) use ($retailers) {
             $with = (array)$with;

@@ -102,19 +102,15 @@ class CouponPrinterController extends DataPrinterController
         // Filter coupon by end_date for begin
         OrbitInput::get('expiration_begin_date', function($begindate) use ($coupons)
         {
-            $coupons->where(function ($q) use ($begindate) {
-                $q->where('promotions.end_date', '>=', $begindate)
-                  ->orWhere('promotions.is_permanent', 'Y');
-            });
+            $coupons->where('promotions.end_date', '>=', $begindate)
+                    ->where('promotions.is_permanent', 'N');
         });
 
         // Filter coupon by end_date for end
         OrbitInput::get('expiration_end_date', function($enddate) use ($coupons)
         {
-            $coupons->where(function ($q) use ($enddate) {
-                $q->where('promotions.end_date', '<=', $enddate)
-                  ->orWhere('promotions.is_permanent', 'Y');
-            });
+            $coupons->where('promotions.end_date', '<=', $enddate)
+                    ->where('promotions.is_permanent', 'N');
         });
 
         // Filter coupon by is permanent
@@ -284,6 +280,8 @@ class CouponPrinterController extends DataPrinterController
             }
         });
 
+        // Clone the query builder which still does not include the take,
+        // skip, and order by
         $_coupons = clone $coupons;
 
         // Default sort by
@@ -353,9 +351,8 @@ class CouponPrinterController extends DataPrinterController
 
                     $expiration_date = $this->printExpirationDate($row);
                     $discount_type = $this->printDiscountType($row);
-                    $discount_value = $this->printDiscountValue($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $discount_value, $row->product_name, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $row->discount_value, $row->product_name, $row->status);
                 }
                 break;
 
@@ -433,7 +430,8 @@ class CouponPrinterController extends DataPrinterController
         $return = '';
         switch ($promotion->display_discount_type) {
             case 'value':
-                $result = number_format($promotion->discount_value);
+                $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
                 break;
 
             case 'percentage':
@@ -442,7 +440,8 @@ class CouponPrinterController extends DataPrinterController
                 break;
                 
             default:
-                $result = number_format($promotion->discount_value);
+                $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
         }
 
         return $result;

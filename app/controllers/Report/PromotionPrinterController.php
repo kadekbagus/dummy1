@@ -100,19 +100,15 @@ class PromotionPrinterController extends DataPrinterController
         // Filter promotion by end_date for begin
         OrbitInput::get('expiration_begin_date', function($begindate) use ($promotions)
         {
-            $promotions->where(function ($q) use ($begindate) {
-                $q->where('promotions.end_date', '>=', $begindate)
-                  ->orWhere('promotions.is_permanent', 'Y');
-            });
+            $promotions->where('promotions.end_date', '>=', $begindate)
+                       ->where('promotions.is_permanent', 'N');
         });
 
         // Filter promotion by end_date for end
         OrbitInput::get('expiration_end_date', function($enddate) use ($promotions)
         {
-            $promotions->where(function ($q) use ($enddate) {
-                $q->where('promotions.end_date', '<=', $enddate)
-                  ->orWhere('promotions.is_permanent', 'Y');
-            });
+            $promotions->where('promotions.end_date', '<=', $enddate)
+                       ->where('promotions.is_permanent', 'N');
         });
 
         // Filter promotion by is permanent
@@ -256,6 +252,8 @@ class PromotionPrinterController extends DataPrinterController
             }
         });
 
+        // Clone the query builder which still does not include the take,
+        // skip, and order by
         $_promotions = clone $promotions;
 
         // Default sort by
@@ -316,19 +314,18 @@ class PromotionPrinterController extends DataPrinterController
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Promotion List', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Promotion', '', '', '', '', '','');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Promotion', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product Family Link', 'Status');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product or Family Link', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
                     $discount_type = $this->printDiscountType($row);
-                    $discount_value = $this->printDiscountValue($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $discount_value, $row->product_name, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $row->discount_value, $row->product_name, $row->status);
                 }
                 break;
 
@@ -373,7 +370,6 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountType($promotion)
     {
-        $return = '';
         switch ($promotion->promotion_type) {
             case 'cart':
                 $result = 'Cart Discount By ' . ucfirst($promotion->display_discount_type);
@@ -396,7 +392,6 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printExpirationDate($promotion)
     {
-        $return = '';
         switch ($promotion->is_permanent) {
             case 'Y':
                 $result = 'Permanent';
@@ -404,7 +399,7 @@ class PromotionPrinterController extends DataPrinterController
 
             case 'N':
             default:
-                if($promotion->end_date==NULL | empty($promotion->end_date)){
+                if($promotion->end_date==NULL || empty($promotion->end_date)){
                     $result = "";
                 } else {
                     $date = $promotion->end_date;
@@ -428,10 +423,10 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountValue($promotion)
     {
-        $return = '';
         switch ($promotion->display_discount_type) {
             case 'value':
-                $result = number_format($promotion->discount_value);
+                $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
                 break;
 
             case 'percentage':
@@ -440,7 +435,8 @@ class PromotionPrinterController extends DataPrinterController
                 break;
                 
             default:
-                $result = number_format($promotion->discount_value);
+                $result = number_format($promotion->discount_value, 2);
+                $result .= chr(27);
         }
 
         return $result;
