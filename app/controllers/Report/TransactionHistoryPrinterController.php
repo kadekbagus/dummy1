@@ -166,7 +166,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 'created_at' =>  'Time',
                 'transaction_id' =>  'Receipt Number',
                 'total_to_pay' =>  'Total Value',
-                'payment_method' => 'Payment Type',
+                'payment_type' => 'Payment Type',
                 'customer_full_name' => 'Customer (if known)',
                 'cashier_full_name' => 'Cashier'
             ];
@@ -177,7 +177,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
                 'created_at' =>  array('Orbit\\Text', 'formatTime'),
                 'transaction_id' =>  false,
                 'total_to_pay' =>  array('Orbit\\Text', 'formatNumber'),
-                'payment_method' => false,
+                'payment_type' => false,
                 'customer_full_name' => false,
                 'cashier_full_name' => false
             ];

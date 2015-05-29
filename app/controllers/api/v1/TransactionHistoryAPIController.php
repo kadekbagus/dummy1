@@ -811,6 +811,15 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             $tablePrefix  = DB::getTablePrefix();
             $transactions = Transaction::select(
+                    DB::raw("(
+                        case payment_method
+                           when 'cash' then 'Cash'
+                           when 'online_payment' then 'Online Payment'
+                           when 'paypal' then 'Paypal'
+                           when 'card' then 'Card'
+                           else payment_method
+                        end
+                    ) as payment_type"),
                     "transactions.*",
                     DB::raw("date({$tablePrefix}transactions.created_at) as created_at_date"),
                     DB::raw("concat({$tablePrefix}customer.user_firstname, ' ', {$tablePrefix}customer.user_lastname) as customer_full_name"),
