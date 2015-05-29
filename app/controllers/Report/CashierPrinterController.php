@@ -291,8 +291,8 @@ class CashierPrinterController extends DataPrinterController
             $rowNames = [
                 'activity_date' => 'Date',
                 'activity_full_name' => 'Employee Name',
-                'login_at' => 'Clock In',
-                'logout_at' => 'Clock Out',
+                'login_at_hour' => 'Clock In',
+                'logout_at_hour' => 'Clock Out',
                 'total_time' => 'Total Time',
                 'transactions_count' => 'Number of Receipt',
                 'transactions_total' => 'Total Sales'
@@ -301,8 +301,8 @@ class CashierPrinterController extends DataPrinterController
             $rowFormatter = [
                 'activity_date' => array('Orbit\\Text', 'formatDate'),
                 'activity_full_name' => false,
-                'login_at' => array('Orbit\\Text', 'formatTime'),
-                'logout_at' => array('Orbit\\Text', 'formatTime'),
+                'login_at_hour' => array('Orbit\\Text', 'formatTime'),
+                'logout_at_hour' => array('Orbit\\Text', 'formatTime'),
                 'total_time' => false,
                 'transactions_count' => false,
                 'transactions_total' => array('Orbit\\Text', 'formatNumber')
