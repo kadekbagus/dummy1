@@ -400,21 +400,21 @@ class DashboardPrinterController extends DataPrinterController
             $summaryHeaders = [
                 'Female'      => 'Female',
                 'Male'        => 'Male',
-                'Unspecified' => 'Unknown'
+                'Unknown'     => 'Unknown'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
                 'Male'            => 'Male',
                 'Female'          => 'Female',
-                'Unspecified'     => 'Unknown'
+                'Unknown'         => 'Unknown'
             ];
 
             $rowFormatter  = [
                 'created_at_date' => array('Orbit\\Text', 'formatDate'),
                 'Male'            => false,
                 'Female'          => false,
-                'Unspecified'     => false,
+                'Unknown'         => false,
             ];
 
             $rowCounter = 0;
