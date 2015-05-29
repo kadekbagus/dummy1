@@ -1122,7 +1122,7 @@ class DashboardAPIController extends ControllerAPI
                         case {$tablePrefix}details.gender
                             when 'f' then 'Female'
                             when 'm' then 'Male'
-                            else 'Unspecified'
+                            else 'Unknown'
                         end
                     ) as user_gender"),
                     DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
@@ -1173,6 +1173,16 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
+            $defaultSelect = [
+                DB::raw("ifnull(sum(case user_gender when 'Male' then user_count end), 0) as 'Male'"),
+                DB::raw("ifnull(sum(case user_gender when 'Female' then user_count end), 0) as 'Female'"),
+                DB::raw("ifnull(sum(case user_gender when 'Unknown' then user_count end), 0) as 'Unknown'")
+            ];
+
+            $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                ->mergeBindings($_users->getQuery())
+                ->select($defaultSelect);
+
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport)
@@ -1181,12 +1191,6 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
                 );
                 $_users->groupBy('created_at_date');
-
-                $defaultSelect = [
-                    DB::raw("ifnull(sum(case user_gender when 'Female' then user_count end), 0) as 'Female'"),
-                    DB::raw("ifnull(sum(case user_gender when 'Male' then user_count end), 0) as 'Male'"),
-                    DB::raw("ifnull(sum(case user_gender when 'Unspecified' then user_count end), 0) as 'Unspecified'")
-                ];
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("created_at_date")
@@ -1197,10 +1201,6 @@ class DashboardAPIController extends ControllerAPI
                     ->mergeBindings($userReportQuery)
                     ->select($toSelect)
                     ->groupBy('created_at_date');
-
-                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                    ->mergeBindings($userReportQuery)
-                    ->select($defaultSelect);
 
                 $_userReport = clone $userReport;
 
@@ -1226,6 +1226,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             } else {
                 $users->take($take);
+                $summary   = $summaryReport->first();
                 $userTotal = RecordCounter::create($_users)->count();
                 $userList  = $users->get();
             }
