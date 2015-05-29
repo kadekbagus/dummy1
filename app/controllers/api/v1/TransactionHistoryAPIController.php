@@ -536,7 +536,7 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // Builder object
             $transactions = TransactionDetail::with('product.media', 'productVariant', 'transaction', 'transaction.merchant', 'transaction.retailer')
-                                             ->transactionJoin($this->builderOnly);
+                                             ->transactionJoin();
 
             OrbitInput::get('user_id', function($userId) use ($transactions) {
                 $transactions->whereIn('transactions.customer_id', (array)$userId);
@@ -567,35 +567,22 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // Product Name Filter
             OrbitInput::get('product_name', function ($productName) use ($transactions) {
-                $transactions->join('products', function ($join) use ($productName) {
-                    $join->on('transaction_details.product_id', '=', 'products.product_id');
-                    $join->where('products.product_name', 'like', $productName);
-                });
+                 $transactions->where('products.product_name', 'like', $productName);
             });
 
             // Product name like filter
             OrbitInput::get('product_name_like', function ($productName) use ($transactions) {
-                $transactions->join('products', function ($join) use ($productName) {
-                    $join->on('transaction_details.product_id', '=', 'products.product_id');
-                    $join->where('products.product_name', 'like', "%{$productName}%");
-                });
+                $transactions->where('products.product_name', 'like', "%{$productName}%");
             });
 
-            $tablePrefix = DB::getTablePrefix();
             // Retailer name filter
-            OrbitInput::get('retailer_name', function ($retailerName) use ($transactions, $tablePrefix) {
-                $transactions->join("merchants AS {$tablePrefix}retailer", function ($join) use ($retailerName) {
-                    $join->on('transactions.retailer_id', '=', 'retailer.merchant_id');
-                    $join->where('retailer.name', 'like', $retailerName);
-                });
+            OrbitInput::get('retailer_name', function ($retailerName) use ($transactions) {
+                $transactions->where('retailer.name', 'like', $retailerName);
             });
 
             // Retailer name like filter
-            OrbitInput::get('retailer_name_like', function ($retailerName) use ($transactions, $tablePrefix) {
-                $transactions->join("merchants AS {$tablePrefix}retailer", function ($join) use ($retailerName) {
-                    $join->on('transactions.retailer_id', '=', 'retailer.merchant_id');
-                    $join->where('retailer.name', 'like', "%{$retailerName}%");
-                });
+            OrbitInput::get('retailer_name_like', function ($retailerName) use ($transactions) {
+                $transactions->where('retailer.name', 'like', "%{$retailerName}%");
             });
 
             // Unit Price filter
