@@ -597,7 +597,7 @@ class DashboardPrinterController extends DataPrinterController
             $rowNames       = ['created_at_date' => 'Date'];
             $rowFormatter   = ['created_at_date' => array('Orbit\\Text', 'formatDate')];
 
-            for ($x=9; $x<23; $x++)
+            for ($x=9; $x<22; $x++)
             {
                 $name = sprintf("%s-%s", $x, $x+1);
                 $label = sprintf("%s:00 - %s:00", $x, $x+1);

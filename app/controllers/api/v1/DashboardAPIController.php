@@ -1704,7 +1704,7 @@ class DashboardAPIController extends ControllerAPI
             $lastPage = false;
             $defaultSelect = [];
 
-            for ($x=9; $x<23; $x++)
+            for ($x=9; $x<22; $x++)
             {
                 $name = sprintf("%s-%s", $x, $x+1);
                 array_push(
