@@ -1170,7 +1170,10 @@ class TransactionHistoryAPIController extends ControllerAPI
                     ->orWhere('customer.user_lastname', 'like', "%{$customerName}%");
             });
 
-            $transactions->groupBy('transaction_details.transaction_detail_id');
+            $transactions->groupBy(
+                'transaction_details.product_id',
+                'transaction_details.transaction_detail_id'
+            );
 
             // Clone the query builder which still does not include the take,
             // skip, and order by

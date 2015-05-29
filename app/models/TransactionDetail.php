@@ -135,6 +135,7 @@ class TransactionDetail extends Eloquent
         $transactions = $builder->select(
                 'transactions.transaction_id',
                 'transaction_details.product_code as product_sku',
+                'transaction_details.product_id',
                 'transaction_details.product_name',
                 'transaction_details.quantity',
                 'transaction_details.price',
@@ -152,13 +153,13 @@ class TransactionDetail extends Eloquent
             ->join("transactions", function ($join) {
                 $join->on("transactions.transaction_id", '=', "transaction_details.transaction_id");
             })
-            ->join("transaction_detail_taxes as {$tablePrefix}tax", function ($join) {
+            ->leftJoin("transaction_detail_taxes as {$tablePrefix}tax", function ($join) {
                 $join->on("transaction_details.transaction_detail_id", '=', 'tax.transaction_detail_id');
             })
-            ->join("users as {$tablePrefix}customer", function ($join) {
+            ->leftJoin("users as {$tablePrefix}customer", function ($join) {
                 $join->on('customer.user_id', '=', 'transactions.customer_id');
             })
-            ->join("users as {$tablePrefix}cashier", function ($join) {
+            ->leftJoin("users as {$tablePrefix}cashier", function ($join) {
                 $join->on('cashier.user_id', '=', 'transactions.cashier_id');
             });
 
