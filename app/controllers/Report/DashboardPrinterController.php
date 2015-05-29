@@ -306,16 +306,16 @@ class DashboardPrinterController extends DataPrinterController
             $statement->execute($users->getBindings());
 
             $summaryHeaders = [
-                'new_user_count'       => 'New User',
-                'returning_user_count' => 'Returning User',
-                'user_count'           => 'Total User'
+                'new_user_count'       => 'New Users',
+                'returning_user_count' => 'Returning Users',
+                'user_count'           => 'Total Users'
             ];
 
             $rowNames = [
                 'last_login'           => 'Date',
-                'new_user_count'       => 'New User',
-                'returning_user_count' => 'Returning User',
-                'user_count'           => 'Total User'
+                'new_user_count'       => 'New Users',
+                'returning_user_count' => 'Returning Users',
+                'user_count'           => 'Total Users'
             ];
 
             $rowFormatter  = [
