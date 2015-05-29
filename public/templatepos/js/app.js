@@ -2053,7 +2053,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         //logout
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.getDataFromServer('/logout').then(function(response){
+            serviceAjax.getDataFromServer('/logout?_orbit_logout_from=pos').then(function(response){
                 if(response.code == 0){
                     localStorageService.remove('user');
                     window.location.assign("signin");

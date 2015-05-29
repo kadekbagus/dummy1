@@ -124,7 +124,7 @@
             <th style="text-align:left;">Name </th>
             <th style="text-align:left;width:20%;">Expiration Date & Time</th>
             <th style="text-align:left;">Retailer</th>
-            <th style="text-align:left;">Event Type</th>
+            <th style="text-align:left;width:10%;">Event Type</th>
             <th style="text-align:left;width:20%;">Event Redirected To</th>
             <th style="text-align:left;">Event Link</th>
             <th style="text-align:left;">Status</th>

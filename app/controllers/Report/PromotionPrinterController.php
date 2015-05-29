@@ -41,6 +41,7 @@ class PromotionPrinterController extends DataPrinterController
                     DB::raw('cat3.category_name as family_name3'),
                     DB::raw('cat4.category_name as family_name4'),
                     DB::raw('cat5.category_name as family_name5'),
+                    "promotion_rules.rule_type as rule_type",
                     "promotion_rules.discount_value as discount_value",
                     "promotion_rules.discount_object_type as discount_object_type",
                     "products.product_name as product_name"
@@ -401,14 +402,29 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountType($promotion)
     {
-        switch ($promotion->promotion_type) {
-            case 'cart':
-                $result = 'Cart Discount By ' . ucfirst($promotion->display_discount_type);
+        switch ($promotion->rule_type) {
+            case 'cart_discount_by_value':
+                $result = 'Cart Discount By Value';
                 break;
 
-            case 'product':
+            case 'cart_discount_by_percentage':
+                $result = 'Cart Discount By Percentage';
+                break;
+
+            case 'product_discount_by_value':
+                $result = 'Product Discount By Value';
+                break;
+
+            case 'product_discount_by_percentage':
+                $result = 'Product Discount By Percentage';
+                break;
+
+            case 'new_product_price':
+                $result = 'New Product Price';
+                break;
+
             default:
-                $result = 'Product Discount By ' . ucfirst($promotion->display_discount_type);
+                $result = '';
         }
 
         return $result;
