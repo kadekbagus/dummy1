@@ -23,7 +23,7 @@ class MerchantPrinterController extends DataPrinterController
                             ->allowedForUser($user)
                             ->select('merchants.*',
                                 DB::raw('count(distinct retailer.merchant_id) as merchant_count'), 
-                                DB::raw("GROUP_CONCAT(`retailer`.`name`,' ',`retailer`.`city` SEPARATOR ' , ') as retailer_list"))
+                                DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ' , ') as retailer_list"))
                             ->leftJoin('merchants AS retailer', function($join) {
                                     $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
                                         ->where(DB::raw('retailer.status'), '!=', 'deleted');
@@ -372,7 +372,6 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printGender($merchant)
     {
-        $return = '';
         $gender = $merchant->gender;
         $gender = strtolower($gender);
         switch ($gender) {
@@ -398,8 +397,6 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printStartingDate($merchant)
     {
-        $return = '';
-
         if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity))
         {
             $result = "";
@@ -435,7 +432,7 @@ class MerchantPrinterController extends DataPrinterController
         else if(empty($merchant->city) && empty($merchant->country)){
             $result = '';
         }
-        return $result;
+        return utf8_encode($result);
     }
 
 }
