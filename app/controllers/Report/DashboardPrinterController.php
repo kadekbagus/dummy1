@@ -49,11 +49,11 @@ class DashboardPrinterController extends DataPrinterController
             $statement->execute($productReport->getBindings());
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Top 20 Products';
+            $pageTitle  = 'Orbit Top 20 Products Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -145,11 +145,11 @@ class DashboardPrinterController extends DataPrinterController
             ];
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Product Family';
+            $pageTitle  = 'Orbit Product Family Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -241,7 +241,7 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -326,11 +326,11 @@ class DashboardPrinterController extends DataPrinterController
             ];
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Customers';
+            $pageTitle  = 'Orbit Customers Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -418,11 +418,11 @@ class DashboardPrinterController extends DataPrinterController
             ];
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Customer Type (Gender)';
+            $pageTitle  = 'Orbit Customer Type (Gender) Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -521,11 +521,11 @@ class DashboardPrinterController extends DataPrinterController
             ];
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Customer Type (Age)';
+            $pageTitle  = 'Orbit Customer Type (Age) Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -606,11 +606,11 @@ class DashboardPrinterController extends DataPrinterController
             }
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Customer Sign in Number';
+            $pageTitle  = 'Orbit Customer Sign in Number Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
@@ -713,11 +713,11 @@ class DashboardPrinterController extends DataPrinterController
             ];
 
             $rowCounter = 0;
-            $pageTitle  = 'Connecting Average Time';
+            $pageTitle  = 'Orbit Connecting Average Time Report';
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'dashboard-list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);

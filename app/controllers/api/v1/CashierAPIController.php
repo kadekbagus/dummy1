@@ -105,14 +105,14 @@ class CashierAPIController extends ControllerAPI
             $activitiesQuery = $activities->getQuery();
 
             $transactionByDate = Transaction::select(
-                DB::raw('count(distinct transaction_id) as transactions_count'),
-                DB::raw('sum(total_to_pay) as transactions_total'),
-                DB::raw('date(created_at) as transaction_date'),
-                'created_at',
-                'merchant_id',
-                'cashier_id',
-                'customer_id'
-            )
+                    DB::raw('count(distinct transaction_id) as transactions_count'),
+                    DB::raw('sum(total_to_pay) as transactions_total'),
+                    DB::raw('date(created_at) as transaction_date'),
+                    'created_at',
+                    'merchant_id',
+                    'cashier_id',
+                    'customer_id'
+                )
                 ->groupBy('transaction_date', 'cashier_id');
             $transactionByDateQuery = $transactionByDate->getQuery();
 
@@ -167,8 +167,8 @@ class CashierAPIController extends ControllerAPI
                     'activity_date' => 'activity_date',
                     'cashier_id'    => 'activity_user_id',
                     'cashier_name'  => 'activity_full_name',
-                    'login_at'      => 'login_at',
-                    'logout_at'     => 'logout_at',
+                    'login_at'      => DB::raw("date_format(login_at, '%H:%i:%s')"),
+                    'logout_at'     => DB::raw("date_format(logout_at, '%H:%i:%s')"),
                     'transactions_count'  => 'transactions_count',
                     'transactions_total'  => 'transactions_total',
                     'total_time' => 'total_time'
@@ -176,6 +176,15 @@ class CashierAPIController extends ControllerAPI
 
                 $sortBy = $sortByMapping[$_sortBy];
             });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+
+            $transactions->orderBy($sortBy, $sortMode);
 
             if ($this->builderOnly)
             {
@@ -205,16 +214,6 @@ class CashierAPIController extends ControllerAPI
                 $skip = $_skip;
             });
             $transactions->skip($skip);
-
-
-            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
-            {
-                if (strtolower($_sortMode) !== 'asc') {
-                    $sortMode = 'desc';
-                }
-            });
-
-            $transactions->orderBy($sortBy, $sortMode);
 
             $totalTransactions = DB::table(DB::raw("({$_transactions->toSql()}) as sub"))
                 ->mergeBindings($_transactions)
