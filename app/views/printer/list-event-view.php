@@ -122,10 +122,10 @@
     <table style="width:100%">
         <thead>
             <th style="text-align:left;">Name </th>
-            <th style="text-align:left;">Expiration Date & Time</th>
+            <th style="text-align:left;width:20%;">Expiration Date & Time</th>
             <th style="text-align:left;">Retailer</th>
-            <th style="text-align:left;">Event Type</th>
-            <th style="text-align:left;">Event Redirected To</th>
+            <th style="text-align:left;width:10%;">Event Type</th>
+            <th style="text-align:left;width:20%;">Event Redirected To</th>
             <th style="text-align:left;">Event Link</th>
             <th style="text-align:left;">Status</th>
         </thead>
@@ -136,7 +136,7 @@
                 <td><?php echo $me->printExpirationDate($row); ?></td>
                 <td><?php echo ($row->retailer_list); ?></td>
                 <td><?php echo ($row->event_type); ?></td>
-                <td><?php echo ($row->link_object_type); ?></td>
+                <td><?php echo $me->printLinkObjectType($row); ?></td>
                 <td><?php echo $me->printEventLink($row); ?></td>
                 <td><?php echo ($row->status); ?></td>
             </tr>

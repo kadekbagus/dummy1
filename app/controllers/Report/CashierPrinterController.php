@@ -9,8 +9,8 @@ use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
 use User;
 use Role;
-use Transaction;
-use Activity;
+use Str;
+use CashierAPIController as CashierAPI;
 
 class CashierPrinterController extends DataPrinterController
 {
@@ -251,90 +251,12 @@ class CashierPrinterController extends DataPrinterController
             $user = $this->loggedUser;
             $now  = date('Y-m-d H:i:s');
 
-            $tablePrefix = DB::getTablePrefix();
-
-            $activities  = Activity::select(
-                    'user_id as activity_user_id',
-                    'full_name as activity_full_name',
-                    'role as activity_role',
-                    'group as activity_group',
-                    DB::raw('date(created_at) as activity_date'),
-                    DB::raw("min(case activity_name when 'login_ok' then created_at end) as login_at"),
-                    DB::raw("max(case activity_name when 'logout_ok' then created_at end) as logout_at")
-                )
-                ->where('role', 'like', 'cashier')
-                ->where('group', '=', 'pos')
-                ->whereIn('activity_name', ['login_ok', 'logout_ok'])
-                ->groupBy('activity_date', 'activity_user_id');
-            $activitiesQuery = $activities->getQuery();
-
-            $transactionByDate = Transaction::select(
-                    DB::raw('count(distinct transaction_id) as transactions_count'),
-                    DB::raw('sum(total_to_pay) as transactions_total'),
-                    DB::raw('date(created_at) as transaction_date'),
-                    'merchant_id',
-                    'cashier_id',
-                    'customer_id'
-                )
-                ->groupBy('transaction_date', 'cashier_id');
-            $transactionByDateQuery = $transactionByDate->getQuery();
-
-            $transactions = DB::table(DB::raw("({$activities->toSql()}) as {$tablePrefix}activities"))
-                ->mergeBindings($activitiesQuery)
-                ->leftJoin(DB::raw("({$transactionByDate->toSql()}) as {$tablePrefix}transactions"), function ($join) {
-                    $join->on('activity_user_id', '=','cashier_id');
-                    $join->on('activity_date', '=','transaction_date');
-                })
-                ->mergeBindings($transactionByDateQuery)
-                ->groupBy('activity_date', 'cashier_id');
-
-            OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
-                $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
-            });
-
-            OrbitInput::get('cashier_id', function ($cashierId) use ($transactions) {
-                $transactions->whereIn("activity_user_id", $this->getArray($cashierId));
-            });
-
-            OrbitInput::get('cashier_name', function ($cashierName) use ($transactions) {
-                $transactions->whereIn("activity_full_name", $this->getArray($cashierName));
-            });
-
-            OrbitInput::get('cashier_name_like', function ($cashierName) use ($transactions) {
-                $transactions->where("activity_full_name", 'like', "%{$cashierName}%");
-            });
-
-            $transactions->groupBy(['transactions.cashier_id', 'activities.activity_date']);
-            // Default sort by
-            $sortBy = 'transactions.transaction_date';
-            // Default sort mode
-            $sortMode = 'asc';
-
-            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
-            {
-                $sortByMapping = array(
-                    'cashier_id'   => 'activity_user_id',
-                    'cashier_name' => 'activity_full_name',
-                    'login_at'     => 'login_at',
-                    'logout_at'    => 'logout_at',
-                    'transactions_count'  => 'transactions_count',
-                    'transactions_total'  => 'transactions_total'
-                );
-
-                $sortBy = $sortByMapping[$_sortBy];
-            });
-
-            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
-            {
-                if (strtolower($_sortMode) !== 'asc') {
-                    $sortMode = 'desc';
-                }
-            });
-
-            $transactions->orderBy($sortBy, $sortMode);
+            $builder = CashierAPI::create()->getBuilderFor('getCashierTimeReport');
 
             $this->prepareUnbufferedQuery();
-            $_transactions = clone $transactions;
+
+            $transactions = $builder->getBuilder();
+            $_transactions = $builder->getUnsorted();
 
             $query      = $transactions->toSql();
             $bindings   = $transactions->getBindings();
@@ -342,84 +264,93 @@ class CashierPrinterController extends DataPrinterController
             $statement  = $this->pdo->prepare($query);
             $statement->execute($bindings);
 
-            $total      = DB::table(DB::raw("({$_transactions->toSql()}) as sub"))
+
+            $subTotalQuery    = $_transactions->toSql();
+            $total      = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
                 ->mergeBindings($_transactions)
                 ->count();
 
-            $subTotalQuery    = $_transactions->toSql();
-            $subTotalBindings = $_transactions;
-            $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
-                ->mergeBindings($subTotalBindings)
+
+            $summary = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
+                ->mergeBindings($_transactions)
                 ->select([
                     DB::raw("sum(sub_total.transactions_count) as transactions_count"),
                     DB::raw("sum(sub_total.transactions_total) as transactions_total")
                 ])->first();
 
+            $summaryHeaders = [
+                'transactions_count' => 'Total Receipts',
+                'transactions_total' => 'Total Sales'
+            ];
+
+            $summaryFormatter = [
+                'transactions_count' => false,
+                'transactions_total' => array('Orbit\\Text', 'formatNumber')
+            ];
+
+            $rowNames = [
+                'activity_date' => 'Date',
+                'activity_full_name' => 'Employee Name',
+                'login_at_hour' => 'Clock In',
+                'logout_at_hour' => 'Clock Out',
+                'total_time' => 'Total Time',
+                'transactions_count' => 'Number of Receipt',
+                'transactions_total' => 'Total Sales'
+            ];
+
+            $rowFormatter = [
+                'activity_date' => array('Orbit\\Text', 'formatDate'),
+                'activity_full_name' => false,
+                'login_at_hour' => array('Orbit\\Text', 'formatTime'),
+                'logout_at_hour' => array('Orbit\\Text', 'formatTime'),
+                'total_time' => false,
+                'transactions_count' => false,
+                'transactions_total' => array('Orbit\\Text', 'formatNumber')
+            ];
+
             $rowCounter = 0;
-            $pageTitle  = 'Report Cashier Time Table';
-
-            $formatDate = function($time) {
-                $time = strtotime($time);
-                if ($time <= 1) {
-                    return '-';
-                }
-                return date('d-M-Y H:i:s', $time);
-            };
-
-            $totalTime = function($start, $end) {
-                $start = strtotime($start);
-                $end   = strtotime($end);
-                if ($end <= 1 || $start <= 1)
-                {
-                    return '-';
-                }
-                return $end - $start;
-            };
-
-            switch ($mode) {
+            $pageTitle  = 'Cashier Report';
+            switch($mode)
+            {
                 case 'csv':
-                    $filename = 'transaction-product-list-' . $now . '.csv';
+                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
                     @header('Content-Disposition: attachment; filename=' . $filename);
-                    // TITLE HEADER
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '','',$pageTitle,'','','','','');
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '', '');
 
-                    // Total Purchase
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', 'Total Records', ':', $total, '', '', '');
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', 'Total Transactions', ':', $subTotal->transactions_count, '', '', '');
-                    printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', 'Total Sales', ':', $subTotal->transactions_total, '', '', '', '');
+                    printf(" ,%s\n", $pageTitle);
+                    printf(" ,\n");
 
-                    // ROW HEADER
-                    printf(
-                        "%s,%s,%s,%s,%s,%s,%s,%s",
-                        'No.', // 1
-                        'Date', // 2
-                        'Employee Name', // 3
-                        'Clock In', // 4
-                        'Clock Out', // 5
-                        'Total Time', // 6
-                        'Number Of Receipt', // 7
-                        'Total Sales'  // 8
-                    );
+                    printf(" ,Total Records,:,%s\n", $total);
+                    foreach ($summaryHeaders as $name => $title)
+                    {
+                        printf(" ,%s,:,%s\n", $title, $summary->$name);
+                    }
 
+                    $rowHeader = ['No.'];
+                    $strFormat = ["%s"];
+                    foreach ($rowFormatter as $name => $i)
+                    {
+                        array_push($strFormat, "%s");
+                        array_push($rowHeader, $rowNames[$name]);
+                    }
+                    $strFormat = implode(',', $strFormat) . "\n";
+
+                    vprintf($strFormat, $rowHeader);
                     while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
-                        printf("\n%s,%s,%s,%s,%s,%s,%s,%s",
-                            ++$rowCounter, // 1
-                            $row->activity_date, // 2
-                            $row->activity_full_name, // 3
-                            $formatDate($row->login_at), // 4
-                            $formatDate($row->logout_at), // 5
-                            $totalTime($row->login_at, $row->logout_at), // 6
-                            $row->transactions_count, // 7
-                            $row->transactions_total // 8
-                        );
+                        $current = [++$rowCounter];
+                        foreach ($rowFormatter as $name => $u)
+                        {
+                            // array_push($current, $format ? $format($row->$name) : $row->$name);
+                            // CSV use as it is from database so no formatting
+                            array_push($current, $row->$name);
+                        }
+                        vprintf($strFormat, $current);
                     }
                     break;
                 case 'print':
                 default:
-                    require app_path() . '/views/printer/list-cashier-time-view.php';
+                    require app_path() . '/views/printer/cashier-view.php';
             }
         } catch(\Exception $e) {
             $responseText = Config::get("app.debug") ? $e->__toString() : "";
@@ -436,27 +367,62 @@ class CashierPrinterController extends DataPrinterController
      */
     public function printFullName($cashier)
     {
-        $return = '';
         $result = $cashier->user_firstname.' '.$cashier->user_lastname;
         return $result;
     }
 
-    /**
-     * Make a variable always array
-     * @param mixed $mixed
-     * @return array
-     */
-    private function getArray($mixed)
-    {
-        $arr = [];
-        if (is_array($mixed)) {
-            $arr = array_merge($arr, $mixed);
-        } else {
-            array_push($arr, $mixed);
-        }
 
-        return $arr;
+    /**
+     * Print activity date type friendly name.
+     *
+     * @param $cashier $cashier
+     * @return string
+     */
+    public function printActivityDate($cashier)
+    {
+        if($cashier->activity_date==NULL || empty($cashier->activity_date)){
+            $result = "";
+        } else {
+            $date = $cashier->activity_date;
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d F Y',$time);
+            $result = $newformat;
+        }
+        return $result;
     }
 
+
+    /**
+     * Print date time friendly name.
+     *
+     * @param $date $date
+     * @return string
+     */
+    public function printDateTime($date)
+    {
+        if($date==NULL || empty($date)){
+            $result = "";
+        } else {
+            $date = explode(' ',$date);
+            $time = strtotime($date[0]);
+            $newformat = date('d F Y',$time);
+            $result = $newformat.' '.$date[1];
+        }
+        return $result;
+    }
+
+
+    /**
+     * Print number format friendly name.
+     *
+     * @param $number $number
+     * @return string
+     */
+    public function printNumberFormat($number)
+    {
+        $result = number_format($number, 2);
+        return $result;
+    }
 
 }

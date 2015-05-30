@@ -130,10 +130,10 @@
         <tbody>
         <?php while ($row = $statement->fetch(PDO::FETCH_OBJ)) : ?>
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
-                <td><?php echo ($row->name); ?></td>
+                <td><?php echo $me->printUtf8($row->name); ?></td>
                 <td><?php echo $me->printContactPersonName($row); ?></td>
                 <td><?php echo ($row->merchant_id); ?></td>
-                <td><?php echo ($row->merchant_name); ?></td>
+                <td><?php echo $me->printUtf8($row->merchant_name); ?></td>
                 <td><?php echo ($row->status); ?></td>
             </tr>
         <?php endwhile; ?>

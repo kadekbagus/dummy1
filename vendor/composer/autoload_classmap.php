@@ -793,6 +793,8 @@ return array(
     'OrbitVersionAPIController' => $baseDir . '/app/controllers/OrbitVersionAPIController.php',
     'Orbit\\OS\\Shutdown' => $baseDir . '/app/helpers/Orbit/OS/Shutdown.php',
     'Orbit\\Setting' => $baseDir . '/app/helpers/Orbit/Setting.php',
+    'Orbit\\Text' => $baseDir . '/app/helpers/Orbit/Text.php',
+    'Orbit\\Builder' => $baseDir . '/app/helpers/Orbit/Builder.php',
     'PHPParser_Autoloader' => $vendorDir . '/nikic/php-parser/lib/PHPParser/Autoloader.php',
     'PHPParser_Builder' => $vendorDir . '/nikic/php-parser/lib/PHPParser/Builder.php',
     'PHPParser_BuilderAbstract' => $vendorDir . '/nikic/php-parser/lib/PHPParser/BuilderAbstract.php',

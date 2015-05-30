@@ -10,7 +10,7 @@
             padding: 0;
         }
         tr.zebra {
-            background-color: #f1f1f1;
+            /*background-color: #f1f1f1;*/
         }
         .hide {
             display: none;
@@ -104,7 +104,15 @@
 </div>
 
 <div id="main">
-    <h2 style="margin-bottom:0.5em;">Cashier Time Table Report</h2>
+    <h2 style="margin-bottom:0.5em;"><?php echo $pageTitle; ?></h2>
+    <?php
+        $printPercentageField = function ($name) use ($summary) {
+            $percent = $name . '_percentage';
+            if (property_exists($summary, $percent)) {
+                echo "({$summary->$percent})";
+            }
+        }
+    ?>
     <table style="width:100%; margin-bottom:1em;" class="noborder">
         <tr>
             <td style="width:150px">Total Records</td>
@@ -115,7 +123,7 @@
         <tr>
             <td style="width:150px"><?php echo $title; ?></td>
             <td style="width:10px;">:</td>
-            <td><strong><?php echo ($summary->$name); ?></strong></td>
+            <td><strong><?php echo ($summary->$name); ?> <?php $printPercentageField($name); ?></strong></td>
         </tr>
         <?php endforeach; ?>
     </table>
@@ -132,7 +140,7 @@
             <tr class="<?php echo $rowCounter % 2 === 0 ? 'zebra' : '' ?>">
                 <td><?php echo (++$rowCounter); ?></td>
                 <?php foreach ($rowFormatter as $name => $formatter): ?>
-                <td><?php echo $formatter ? $formatter($row->$name) : $row->$name; ?></td>
+                <td><?php echo $formatter ? call_user_func($formatter, $row->$name) : $row->$name; ?></td>
                 <?php endforeach; ?>
             </tr>
         <?php endwhile; ?>
