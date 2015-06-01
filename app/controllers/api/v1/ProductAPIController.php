@@ -217,7 +217,7 @@ class ProductAPIController extends ControllerAPI
             // Check inside transaction details to see if this product has
             // a transaction
             $transactionDetailProduct = TransactionDetail::transactionJoin()
-                                                         ->where('product_id', $updatedproduct->product_id)
+                                                         ->where('transaction_details.product_id', $updatedproduct->product_id)
                                                          ->excludeDeleted('transactions')
                                                          ->first();
             if (is_object($transactionDetailProduct)) {
