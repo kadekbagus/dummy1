@@ -80,9 +80,11 @@
 											<div class="col-xs-12">
 												<h3>{{ $product->product_name }}</h3>
 											</div>
+											@if(! empty($product->upc_code))
 											<div class="col-xs-12">
 												<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product->upc_code }}</h4>
 											</div>
+											@endif
 											<div class="col-xs-12 price">
 												@if(count($product->variants) > 1)
 												<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
@@ -173,9 +175,11 @@
 																<div class="col-xs-12">
 																	<h3>{{ $product2->product_name }}</h3>
 																</div>
+																@if(! empty($product2->upc_code))
 																<div class="col-xs-12">
 																	<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product2->upc_code }}</h4>
 																</div>
+																@endif
 																<div class="col-xs-12 price">
 																	@if(count($product2->variants) > 1)
 																	<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
@@ -266,9 +270,11 @@
 																					<div class="col-xs-12">
 																						<h3>{{ $product3->product_name }}</h3>
 																					</div>
+																					@if(! empty($product3->upc_code))
 																					<div class="col-xs-12">
 																						<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product3->upc_code }}</h4>
 																					</div>
+																					@endif
 																					<div class="col-xs-12 price">
 																						@if(count($product3->variants) > 1)
 																						<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
@@ -359,9 +365,11 @@
 																										<div class="col-xs-12">
 																											<h3>{{ $product4->product_name }}</h3>
 																										</div>
+																										@if(! empty($product4->upc_code))
 																										<div class="col-xs-12">
 																											<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product4->upc_code }}</h4>
 																										</div>
+																										@endif
 																										<div class="col-xs-12 price">
 																											@if(count($product4->variants) > 1)
 																											<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
@@ -452,9 +460,11 @@
 																															<div class="col-xs-12">
 																																<h3>{{ $product5->product_name }}</h3>
 																															</div>
+																															@if(! empty($product5->upc_code))
 																															<div class="col-xs-12">
 																																<h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product5->upc_code }}</h4>
 																															</div>
+																															@endif
 																															<div class="col-xs-12 price">
 																																@if(count($product5->variants) > 1)
 																																<small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>

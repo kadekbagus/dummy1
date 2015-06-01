@@ -208,7 +208,9 @@
     <div class="col-xs-12 product-bottom main-theme ">
         <div class="row">
             <div class="col-xs-6">
+                @if($product->upc_code)
                 <h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product->upc_code }}</h4>
+                @endif
             </div>
             <div class="col-xs-6 text-right" id="starting-from">
                 <h4><small>{{ Lang::get('mobileci.catalogue.starting_from') }} :</small></h4>
@@ -428,11 +430,23 @@
                 });
                 var pricebefore, priceafter;
                 if(itemReady.length > 0){
+                    if(itemReady[0].price == null || itemReady[0].price == undefined) {
+                        itemReady[0].price = 0;
+                    }
+                    if(itemReady[0].promo_price == null || itemReady[0].promo_price == undefined) {
+                        itemReady[0].promo_price = 0;
+                    }
                     pricebefore = parseFloat(itemReady[0].price);
                     priceafter = parseFloat(itemReady[0].promo_price);
                     $('.add-to-cart-button').removeClass('btn-disabled').attr('id', 'addToCartButton');
                     $('#starting-from').hide();
                 }else{
+                    if(product.min_price == null || product.min_price == undefined) {
+                        product.min_price = 0;      
+                    }
+                    if(product.min_promo_price == null || product.min_promo_price == undefined) {
+                        product.min_promo_price = 0;      
+                    }
                     pricebefore = parseFloat(product.min_price);
                     priceafter = parseFloat(product.min_promo_price);
                     $('#starting-from').show();

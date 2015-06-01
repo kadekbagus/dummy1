@@ -125,9 +125,11 @@
                                     <div class="col-xs-12">
                                         <h3>{{ $product->product_name }}</h3>
                                     </div>
+                                    @if(! empty($product->upc_code))
                                     <div class="col-xs-12">
                                         <h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product->upc_code }}</h4>
-                                    </div>                  
+                                    </div>
+                                    @endif
                                     <div class="col-xs-12 price">
                                         @if(count($product->variants) > 1)
                                         <small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
