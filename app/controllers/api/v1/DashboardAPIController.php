@@ -439,7 +439,8 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("ifnull(sum(case category_level when 2 then view_count end), 0) as '2'"),
                     DB::raw("ifnull(sum(case category_level when 3 then view_count end), 0) as '3'"),
                     DB::raw("ifnull(sum(case category_level when 4 then view_count end), 0) as '4'"),
-                    DB::raw("ifnull(sum(case category_level when 5 then view_count end), 0) as '5'")
+                    DB::raw("ifnull(sum(case category_level when 5 then view_count end), 0) as '5'"),
+                    DB::raw("ifnull(sum(view_count), 0) as total")
                 ];
                 $toSelect = array_merge($defaultSelect, ['created_at_date']);
 
@@ -698,7 +699,8 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("ifnull(sum(case widget_type when 'coupon' then click_count end), 0) as 'coupon'"),
                     DB::raw("ifnull(sum(case widget_type when 'promotion' then click_count end), 0) as 'promotion'"),
                     DB::raw("ifnull(sum(case widget_type when 'new_product' then click_count end), 0) as 'new_product'"),
-                    DB::raw("ifnull(sum(case widget_type when 'catalogue' then click_count end), 0) as 'catalogue'")
+                    DB::raw("ifnull(sum(case widget_type when 'catalogue' then click_count end), 0) as 'catalogue'"),
+                    DB::raw("ifnull(sum(click_count), 0) as 'total'")
                 ];
 
                 $toSelect     = array_merge($defaultSelect, ["created_at_date"]);
@@ -1176,7 +1178,8 @@ class DashboardAPIController extends ControllerAPI
             $defaultSelect = [
                 DB::raw("ifnull(sum(case user_gender when 'Male' then user_count end), 0) as 'Male'"),
                 DB::raw("ifnull(sum(case user_gender when 'Female' then user_count end), 0) as 'Female'"),
-                DB::raw("ifnull(sum(case user_gender when 'Unknown' then user_count end), 0) as 'Unknown'")
+                DB::raw("ifnull(sum(case user_gender when 'Unknown' then user_count end), 0) as 'Unknown'"),
+                DB::raw("ifnull(sum(user_count), 0) as 'total'")
             ];
 
             $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
@@ -1234,7 +1237,7 @@ class DashboardAPIController extends ControllerAPI
             $data = new stdclass();
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
-            $data->summary   = $summary;
+            $data->summary   = static::calculateSummaryPercentage($summary);
             $data->last_page = $lastPage;
             $data->records   = $userList;
 
@@ -1442,7 +1445,8 @@ class DashboardAPIController extends ControllerAPI
                 DB::raw("ifnull(sum(case report.user_age when '30-35' then report.user_count end), 0) as '30-35'"),
                 DB::raw("ifnull(sum(case report.user_age when '35-40' then report.user_count end), 0) as '35-40'"),
                 DB::raw("ifnull(sum(case report.user_age when '40+' then report.user_count end), 0) as '40+'"),
-                DB::raw("ifnull(sum(case report.user_age when 'Unknown' then report.user_count end), 0) as 'Unknown'")
+                DB::raw("ifnull(sum(case report.user_age when 'Unknown' then report.user_count end), 0) as 'Unknown'"),
+                DB::raw("ifnull(sum(report.user_count), 0) as 'total'")
             ];
 
 
@@ -1502,7 +1506,7 @@ class DashboardAPIController extends ControllerAPI
             $data->total_records = $userTotal;
             $data->returned_records = count($userList);
             $data->last_page = $lastPage;
-            $data->summary   = $summary;
+            $data->summary   = $summary ? static::calculateSummaryPercentage($summary) : $summary;
             $data->records   = $userList;
 
             if ($userTotal === 0) {
@@ -1706,7 +1710,9 @@ class DashboardAPIController extends ControllerAPI
 
             $summary = NULL;
             $lastPage = false;
-            $defaultSelect = [];
+            $defaultSelect = [
+                DB::raw("ifnull(sum(report.login_count), 0) as 'total'")
+            ];
 
             for ($x=9; $x<22; $x++)
             {
@@ -2008,7 +2014,8 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("ifnull(sum(case time_range when '40-50' then user_count end), 0) as '40-50'"),
                     DB::raw("ifnull(sum(case time_range when '50-60' then user_count end), 0) as '50-60'"),
                     DB::raw("ifnull(sum(case time_range when '60+' then user_count end), 0) as '60+'"),
-                    DB::raw("ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0) as 'Unrecorded'")
+                    DB::raw("ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0) as 'Unrecorded'"),
+                    DB::raw("ifnull(sum(user_count) - ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0), 0) as 'total'")
                 ];
 
                 $toSelect = array_merge($defaultSelect, ['created_at_date']);
@@ -2582,6 +2589,25 @@ class DashboardAPIController extends ControllerAPI
         Event::fire('orbit.dashboard.getusermerchantsummary.before.render', array($this, &$output));
 
         return $output;
+    }
+
+    public static function calculateSummaryPercentage($summary = array(), $totalField = 'total')
+    {
+        if (! ($summary && property_exists((object) $summary, $totalField)))
+        {
+            return $summary;
+        }
+
+        $summary = (array) $summary;
+
+        $total      = $summary[$totalField];
+        foreach ($summary as $name => $value)
+        {
+            $percent = ceil(($value / $total) * 100);
+            $summary[$name.'_percentage'] = "{$percent} %";
+        }
+
+        return (object) $summary;
     }
 
     /**

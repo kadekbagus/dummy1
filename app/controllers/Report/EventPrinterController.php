@@ -21,7 +21,7 @@ class EventPrinterController extends DataPrinterController
 
         // Builder object
         $events = EventModel::select(DB::raw($prefix . "events.*"), 
-                                     DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"),
+                                     DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ') as retailer_list"),
                                      DB::raw('cat1.category_name as family_name1'),
                                      DB::raw('cat2.category_name as family_name2'),
                                      DB::raw('cat3.category_name as family_name3'),
@@ -306,7 +306,7 @@ class EventPrinterController extends DataPrinterController
                 } else {
                     $date = explode(' ',$date);
                     $time = strtotime($date[0]);
-                    $newformat = date('d M Y',$time);
+                    $newformat = date('d F Y',$time);
                     $result = $newformat.' '.$date[1];
                 }
         }

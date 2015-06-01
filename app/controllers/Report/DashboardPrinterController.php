@@ -123,7 +123,8 @@ class DashboardPrinterController extends DataPrinterController
                 '2' => 'Family Level 2',
                 '3' => 'Family Level 3',
                 '4' => 'Family Level 4',
-                '5' => 'Family Level 5'
+                '5' => 'Family Level 5',
+                'total'       => 'Total'
             );
 
             $rowNames  = array(
@@ -132,7 +133,8 @@ class DashboardPrinterController extends DataPrinterController
                 '2' => 'Family Level 2',
                 '3' => 'Family Level 3',
                 '4' => 'Family Level 4',
-                '5' => 'Family Level 5'
+                '5' => 'Family Level 5',
+                'total'       => 'Total'
             );
 
             $rowFormatter  = [
@@ -141,7 +143,8 @@ class DashboardPrinterController extends DataPrinterController
                 '2' => false,
                 '3' => false,
                 '4' => false,
-                '5' => false
+                '5' => false,
+                'total' => false
             ];
 
             $rowCounter = 0;
@@ -214,18 +217,20 @@ class DashboardPrinterController extends DataPrinterController
             $statement->execute($widgetReport->getBindings());
 
             $summaryHeaders = [
-                'promotion'   => 'Promotion',
-                'coupon'      => 'Coupon',
-                'new_product' => 'New Product',
-                'catalogue'   => 'Catalogue'
+                'promotion'   => 'Promotions',
+                'coupon'      => 'Coupons',
+                'new_product' => 'New Products',
+                'catalogue'   => 'Catalogue',
+                'total'       => 'Total'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
-                'promotion'   => 'Promotion',
-                'coupon'      => 'Coupon',
-                'new_product' => 'New Product',
-                'catalogue'   => 'Catalogue'
+                'promotion'   => 'Promotions',
+                'coupon'      => 'Coupons',
+                'new_product' => 'New Products',
+                'catalogue'   => 'Catalogue',
+                'total'       => 'Total'
             ];
 
             $rowFormatter  = [
@@ -233,7 +238,8 @@ class DashboardPrinterController extends DataPrinterController
                 'promotion'   => false,
                 'coupon'      => false,
                 'new_product' => false,
-                'catalogue'   => false
+                'catalogue'   => false,
+                'total'       => false
             ];
 
             $rowCounter = 0;
@@ -306,16 +312,16 @@ class DashboardPrinterController extends DataPrinterController
             $statement->execute($users->getBindings());
 
             $summaryHeaders = [
-                'new_user_count'       => 'New User',
-                'returning_user_count' => 'Returning User',
-                'user_count'           => 'Total User'
+                'new_user_count'       => 'New Users',
+                'returning_user_count' => 'Returning Users',
+                'user_count'           => 'Total Users'
             ];
 
             $rowNames = [
                 'last_login'           => 'Date',
-                'new_user_count'       => 'New User',
-                'returning_user_count' => 'Returning User',
-                'user_count'           => 'Total User'
+                'new_user_count'       => 'New Users',
+                'returning_user_count' => 'Returning Users',
+                'user_count'           => 'Total Users'
             ];
 
             $rowFormatter  = [
@@ -391,7 +397,7 @@ class DashboardPrinterController extends DataPrinterController
             $total = $totalReport->count();
 
             $summaryReport = $builder->getUnsorted();
-            $summary   = $summaryReport->first();
+            $summary   = API::calculateSummaryPercentage($summaryReport->first());
 
             $this->prepareUnbufferedQuery();
             $statement = $this->pdo->prepare($userReport->toSql());
@@ -400,14 +406,16 @@ class DashboardPrinterController extends DataPrinterController
             $summaryHeaders = [
                 'Female'      => 'Female',
                 'Male'        => 'Male',
-                'Unknown'     => 'Unknown'
+                'Unknown'     => 'Unknown',
+                'total'       => 'Total'
             ];
 
             $rowNames = [
                 'created_at_date' => 'Date',
                 'Male'            => 'Male',
                 'Female'          => 'Female',
-                'Unknown'         => 'Unknown'
+                'Unknown'         => 'Unknown',
+                'total'           => 'Total'
             ];
 
             $rowFormatter  = [
@@ -415,6 +423,7 @@ class DashboardPrinterController extends DataPrinterController
                 'Male'            => false,
                 'Female'          => false,
                 'Unknown'         => false,
+                'total'           => false
             ];
 
             $rowCounter = 0;
@@ -433,7 +442,8 @@ class DashboardPrinterController extends DataPrinterController
                     printf(" ,Total Records,:,%s\n", $total);
                     foreach ($summaryHeaders as $name => $title)
                     {
-                        printf(" ,%s,:,%s\n", $title, $summary->$name);
+                        $percentageField = $name.'_percentage';
+                        printf(" ,%s,:,%s\n", $title, $summary->$name . " ({$summary->$percentageField})");
                     }
 
                     $rowHeader = ['No.'];
@@ -481,7 +491,7 @@ class DashboardPrinterController extends DataPrinterController
             $total = $totalReport->count();
 
             $summaryReport = $builder->getUnsorted();
-            $summary    = $summaryReport->first();
+            $summary    = API::calculateSummaryPercentage($summaryReport->first());
 
             $this->prepareUnbufferedQuery();
 
@@ -495,7 +505,8 @@ class DashboardPrinterController extends DataPrinterController
                 '30-35' => '30 - 35 Years old',
                 '35-40' => '35 - 40 Years old',
                 '40+' => '40+ Years old',
-                'Unknown' => 'Unknown'
+                'Unknown' => 'Unknown',
+                'total'   => 'Total'
             ];
 
             $rowNames = [
@@ -506,7 +517,8 @@ class DashboardPrinterController extends DataPrinterController
                 '30-35' => '30 - 35 Years old',
                 '35-40' => '35 - 40 Years old',
                 '40+' => '40+ Years old',
-                'Unknown' => 'Unknown'
+                'Unknown' => 'Unknown',
+                'total'   => 'Total'
             ];
 
             $rowFormatter  = [
@@ -517,7 +529,8 @@ class DashboardPrinterController extends DataPrinterController
                 '30-35' => false,
                 '35-40' => false,
                 '40+' => false,
-                'Unknown' => false
+                'Unknown' => false,
+                'total'   => false
             ];
 
             $rowCounter = 0;
@@ -536,7 +549,8 @@ class DashboardPrinterController extends DataPrinterController
                     printf(" ,Total Records,:,%s\n", $total);
                     foreach ($summaryHeaders as $name => $title)
                     {
-                        printf(" ,%s,:,%s\n", $title, $summary->$name);
+                        $percentageField = $name.'_percentage';
+                        printf(" ,%s,:,%s\n", $title, $summary->$name . " ({$summary->$percentageField})");
                     }
 
                     $rowHeader = ['No.'];
@@ -605,6 +619,10 @@ class DashboardPrinterController extends DataPrinterController
                 $rowNames[$name]       = $label;
                 $rowFormatter[$name]   = false;
             }
+
+            $summaryHeaders['total']  = 'Total';
+            $rowFormatter['total']    = false;
+            $rowNames['total']        = 'Total';
 
             $rowCounter = 0;
             $pageTitle  = 'Orbit Customer Sign in Number Report';
@@ -686,7 +704,8 @@ class DashboardPrinterController extends DataPrinterController
                 '30-40' => '30 - 40 (mins)',
                 '40-50' => '40 - 50 (mins)',
                 '50-60' => '50 - 60 (mins)',
-                '60+'  => '60+ (mins)'
+                '60+'  => '60+ (mins)',
+                'total' => 'Total'
             ];
 
             $rowNames = [
@@ -698,7 +717,8 @@ class DashboardPrinterController extends DataPrinterController
                 '30-40' => '30 - 40 (mins)',
                 '40-50' => '40 - 50 (mins)',
                 '50-60' => '50 - 60 (mins)',
-                '60+'  => '60+ (mins)'
+                '60+'  => '60+ (mins)',
+                'total' => 'Total'
             ];
 
             $rowFormatter = [
@@ -710,7 +730,8 @@ class DashboardPrinterController extends DataPrinterController
                 '30-40' => false,
                 '40-50' => false,
                 '50-60' => false,
-                '60+'   => false
+                '60+'   => false,
+                'total' => false
             ];
 
             $rowCounter = 0;
