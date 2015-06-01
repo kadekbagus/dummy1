@@ -64,7 +64,13 @@
                         </div>
                     </div>
                     <div class="single-body">
-                        <span class="formatted-num">{{ $cartdetail->variant->price }}</span>
+                        <span class="formatted-num">
+                            @if(empty($cartdetail->variant->price))
+                            {{ 0 }}
+                            @else
+                            {{ $cartdetail->variant->price }}
+                            @endif
+                        </span>
                     </div>
                     <div class="single-body text-right">
                         <span class="formatted-num">{{ $cartdetail->original_ammount }}</span>
