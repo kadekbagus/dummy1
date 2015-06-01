@@ -2603,7 +2603,10 @@ class DashboardAPIController extends ControllerAPI
         $total      = $summary[$totalField];
         foreach ($summary as $name => $value)
         {
-            $percent = floor(($value / $total) * 1e4) / 100;
+            $percent = 0;
+            if ($total > 0) {
+                $percent = floor(($value / $total) * 1e4) / 100;
+            }
             $summary[$name.'_percentage'] = "{$percent} %";
         }
 
