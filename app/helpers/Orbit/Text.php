@@ -59,6 +59,6 @@ class Text
 
     public static function exportFilename($pageTitle, $ext = ".csv")
     {
-        return 'orbit-export-' . Str::slug($pageTitle) . '-' . date('D_M_Y_Hi') . $ext;
+        return 'orbit-export-' . Str::slug($pageTitle) . '-' . date('D_d_M_Y_Hi') . $ext;
     }
 }
