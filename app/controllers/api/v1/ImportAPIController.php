@@ -200,31 +200,30 @@ class ImportAPIController extends ControllerAPI
             Array No.   Column Name         Data Type
             0           Default SKU         string
             1           Product Name        string
-            2           Image               string
-            3           Short Description   string
-            4           Long Description    string
-            5           Default Price       decimal
-            6           Tax1 Name           string
-            7           Tax2 Name           string
-            8           Default Barcode     string
-            9           Family1 Name        string
-            10          Family2 Name        string
-            11          Family3 Name        string
-            12          Family4 Name        string
-            13          Family5 Name        string
-            14          Variant1 Name       string
-            15          Variant2 Name       string
-            16          Variant3 Name       string
-            17          Variant4 Name       string
-            18          Variant5 Name       string
-            19          Variant1 Value      string
-            20          Variant2 Value      string
-            21          Variant3 Value      string
-            22          Variant4 Value      string
-            23          Variant5 Value      string
-            24          Variant SKU         string
-            25          Variant Barcode     string
-            26          Variant Price       decimal
+            2           Short Description   string
+            3           Long Description    string
+            4           Default Price       decimal
+            5           Tax1 Name           string
+            6           Tax2 Name           string
+            7           Default Barcode     string
+            8           Family1 Name        string
+            9           Family2 Name        string
+            10          Family3 Name        string
+            11          Family4 Name        string
+            12          Family5 Name        string
+            13          Variant1 Name       string
+            14          Variant2 Name       string
+            15          Variant3 Name       string
+            16          Variant4 Name       string
+            17          Variant5 Name       string
+            18          Variant1 Value      string
+            19          Variant2 Value      string
+            20          Variant3 Value      string
+            21          Variant4 Value      string
+            22          Variant5 Value      string
+            23          Variant SKU         string
+            24          Variant Barcode     string
+            25          Variant Price       decimal
             */
 
             // get csv file
@@ -236,89 +235,121 @@ class ImportAPIController extends ControllerAPI
             // get error log max config
             $errorLogMax = $importProductConfig['error_log_max'];
 
+            // error log
+            $errorLog = array();
+
+            // row counter for user error message row number
+            $rowCounter = 0;
+
+            // for condition if default_sku need to be checked for uniqueness in each row
+            $previous_row_default_sku = '';
+
             // start validation
-            Excel::filter('chunk')->load($file)->noHeading()->chunk($chunkSize, function($results) use ($errorLogMax)
+            Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku)
             {
-                $errorLog = array();
-
-                foreach($results as $row)
+                foreach($rows as $row)
                 {
-                    var_dump($row->toArray());
+                    // increase row counter by 1
+                    $rowCounter++;
 
+echo($rowCounter . '<br />');
+var_dump($row->toArray());
+
+                    // validate product
+                    $default_sku = $row['default_sku']; // product_code
+                    $product_name = $row['product_name'];
+                    // $short_desc = $row[2];
+                    // $long_desc = $row[3];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+                    // $default_sku = $row[0];
+
+//dd($default_sku);
                     // validation rule
                     $validator = Validator::make(
                         array(
-                            'merchant_id'       => $merchant_id,
-                            'product_name'      => $product_name,
-                            'upc_code'          => $upc_code,
-                            'sku'               => $product_code,
-                            'status'            => $status,
-                            'category_id1'      => $category_id1,
-                            'category_id2'      => $category_id2,
-                            'category_id3'      => $category_id3,
-                            'category_id4'      => $category_id4,
-                            'category_id5'      => $category_id5,
-                            'short_description' => $short_description,
-                            'price'             => $price,
-                            'merchant_tax_1'    => $merchant_tax_id1,
+                            'default_sku'           => $default_sku,
+                            'product_name'          => $product_name,
+                            // 'status'                => $status,
+                            // 'category_id1'          => $category_id1,
+                            // 'category_id2'          => $category_id2,
+                            // 'category_id3'          => $category_id3,
+                            // 'category_id4'          => $category_id4,
+                            // 'category_id5'          => $category_id5,
+                            // 'short_description'     => $short_description,
+                            // 'price'                 => $price,
+                            // 'merchant_tax_1'        => $merchant_tax_id1,
                         ),
                         array(
-                            'merchant_id'           => 'required|numeric|orbit.empty.merchant',
+                            'default_sku'           => "required|orbit.exists.product.sku_code:{$previous_row_default_sku},{$default_sku}",
                             'product_name'          => 'required',
-                            'status'                => 'required|orbit.empty.product_status',
-                            'upc_code'              => 'orbit.exists.product.upc_code',
-                            'sku'                   => 'required|orbit.exists.product.sku_code',
-                            'category_id1'          => 'numeric|orbit.empty.category_id1',
-                            'category_id2'          => 'numeric|orbit.empty.category_id2',
-                            'category_id3'          => 'numeric|orbit.empty.category_id3',
-                            'category_id4'          => 'numeric|orbit.empty.category_id4',
-                            'category_id5'          => 'numeric|orbit.empty.category_id5',
-                            'short_description'     => 'required',
-                            'price'                 => 'required',
-                            'merchant_tax_1'        => 'required',
+                            // 'status'                => 'required|orbit.empty.product_status',
+                            // 'category_id1'          => 'numeric|orbit.empty.category_id1',
+                            // 'category_id2'          => 'numeric|orbit.empty.category_id2',
+                            // 'category_id3'          => 'numeric|orbit.empty.category_id3',
+                            // 'category_id4'          => 'numeric|orbit.empty.category_id4',
+                            // 'category_id5'          => 'numeric|orbit.empty.category_id5',
+                            // 'short_description'     => 'required',
+                            // 'price'                 => 'required',
+                            // 'merchant_tax_1'        => 'required',
                         ),
                         array(
-                            // Duplicate UPC error message
-                            'orbit.exists.product.upc_code' => Lang::get('validation.orbit.exists.product.upc_code', [
-                                'upc' => $upc_code
-                            ]),
-
                             // Duplicate SKU error message
                             'orbit.exists.product.sku_code' => Lang::get('validation.orbit.exists.product.sku_code', [
-                                'sku' => $product_code
+                                'sku' => $default_sku
                             ])
                         )
                     );
 
                     // Run the validation
                     if ($validator->fails()) {
-                        // log error message to array
-                        $errorMessage = array(
-                            'row'       => 'a',
-                            'message'   => $validator->messages()->first()
-                        );
-                        $errorLog[] = $errorMessage;
+                        foreach($validator->messages()->all() as $msg)
+                        {
+                            // log error message to array
+                            $errorMessage = array(
+                                'row'       => $rowCounter,
+                                'message'   => $msg
+                            );
+                            $errorLog[] = $errorMessage;
 
-                        // if total error reach max error, then throw exception
-                        if (count($errorLog) === $errorLogMax) {
-                            OrbitShopAPI::throwInvalidArgument($errorLog);
+                            // if total error reach max error, then throw exception
+                            if (count($errorLog) === $errorLogMax) {
+                                $this->response->data = $errorLog; // !!!
+                                OrbitShopAPI::throwInvalidArgument('error');
+                            }
                         }
+var_dump($errorLog);
                     }
+
+                    // validate product variant (combination)
+                    $variant1_value = $row['variant1_value'];
+                    // $variant1_value = $row[18];
+                    // $variant1_value = $row[18];
+                    // $variant1_value = $row[18];
+
+                    // set to current default_sku
+                    $previous_row_default_sku = $default_sku;
                 };
-                echo "CHUNKED";
+echo "CHUNKED". '<br />';
 
             });
-
+dd('a');
             // start creating data
-            Excel::filter('chunk')->load($file)->noHeading()->chunk($chunkSize, function($results)
+            Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows)
             {
                 $this->beginTransaction();
 
-                foreach($results as $row)
+                foreach($rows as $row)
                 {
-                    var_dump($row->toArray());
+var_dump($row->toArray());
                 };
-                echo "a";
+echo "a";
 
                 $this->commit();
             });
@@ -343,7 +374,7 @@ class ImportAPIController extends ControllerAPI
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
             $this->response->message = $e->getMessage();
-            $this->response->data = null;
+//$this->response->data = null;         !!!
             $httpCode = 403;
 
             // Rollback the changes
@@ -405,6 +436,40 @@ class ImportAPIController extends ControllerAPI
                 return FALSE;
             }
 
+            return TRUE;
+        });
+
+        // Check product_code (SKU), it should not exists
+        Validator::extend('orbit.exists.product.sku_code', function ($attribute, $value, $parameters) {
+            $previous_row_default_sku = $parameters[0];
+            $default_sku = $parameters[1];
+//echo ($previous_row_default_sku.'==='.$default_sku.'<br />');
+            // check if default_sku need to be checked for uniqueness in each row
+            if ($previous_row_default_sku !== $default_sku) {
+                $merchant = App::make('orbit.empty.merchant');
+//echo('checking sku');
+                // Check also the UPC on product variant
+                $productVariant = ProductVariant::excludeDeleted()
+                                                ->where('merchant_id', $merchant->merchant_id)
+                                                ->where('sku', $value)
+                                                ->first();
+
+                if (! empty($productVariant)) {
+                    return FALSE;
+                }
+
+                $product = Product::excludeDeleted()
+                                  ->where('product_code', $value)
+                                  ->where('merchant_id', $merchant->merchant_id)
+                                  ->first();
+
+                if (! empty($product)) {
+                    return FALSE;
+                }
+
+                App::instance('orbit.exists.product.sku_code', $product);
+            }
+//echo('NOT checking sku');
             return TRUE;
         });
 
