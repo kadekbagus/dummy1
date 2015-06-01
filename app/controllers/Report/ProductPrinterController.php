@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use Product;
 
 class ProductPrinterController extends DataPrinterController
@@ -219,12 +220,12 @@ class ProductPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Product';
         switch ($mode) {
             case 'csv':
-                $filename = 'product-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '','','','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Product List', '', '', '','','','');
@@ -243,7 +244,6 @@ class ProductPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Product';
                 require app_path() . '/views/printer/list-product-view.php';
         }
     }
