@@ -162,7 +162,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
             $rowNames = [
                 'created_at_date' => 'Date',
-                'created_at' =>  'Time',
+                'created_at_time' =>  'Time',
                 'transaction_id' =>  'Receipt Number',
                 'total_to_pay' =>  'Total Value',
                 'payment_type' => 'Payment Type',
@@ -173,7 +173,7 @@ class TransactionHistoryPrinterController extends  DataPrinterController
 
             $rowFormatter = [
                 'created_at_date' => array('Orbit\\Text', 'formatDate'),
-                'created_at' =>  array('Orbit\\Text', 'formatTime'),
+                'created_at_time' =>  array('Orbit\\Text', 'formatTime'),
                 'transaction_id' =>  false,
                 'total_to_pay' =>  array('Orbit\\Text', 'formatNumber'),
                 'payment_type' => false,

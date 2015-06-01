@@ -822,6 +822,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                     ) as payment_type"),
                     "transactions.*",
                     DB::raw("date({$tablePrefix}transactions.created_at) as created_at_date"),
+                    DB::raw("time({$tablePrefix}transactions.created_at) as created_at_time"),
                     DB::raw("concat({$tablePrefix}customer.user_firstname, ' ', {$tablePrefix}customer.user_lastname) as customer_full_name"),
                     DB::raw("concat({$tablePrefix}cashier.user_firstname, ' ', {$tablePrefix}cashier.user_lastname) as cashier_full_name")
                 )
