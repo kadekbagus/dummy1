@@ -9,7 +9,7 @@ use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
 use User;
 use Role;
-use Str;
+use Orbit\Text as OrbitText;
 use CashierAPIController as CashierAPI;
 
 class CashierPrinterController extends DataPrinterController
@@ -313,10 +313,9 @@ class CashierPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
