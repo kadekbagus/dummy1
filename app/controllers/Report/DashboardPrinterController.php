@@ -12,7 +12,7 @@ use Helper\EloquentRecordCounter as RecordCounter;
 use Illuminate\Support\Facades\Response;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use PDO;
-use Str;
+use Orbit\Text as OrbitText;
 
 class DashboardPrinterController extends DataPrinterController
 {
@@ -53,10 +53,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -152,10 +151,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -247,10 +245,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -336,10 +333,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -431,10 +427,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -538,10 +533,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -629,10 +623,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
@@ -739,10 +732,9 @@ class DashboardPrinterController extends DataPrinterController
             switch($mode)
             {
                 case 'csv':
-                    $filename   = 'list-' . Str::slug($pageTitle) . '-' . date('D_M_Y_HiA') . '.csv';
                     @header('Content-Description: File Transfer');
                     @header('Content-Type: text/csv');
-                    @header('Content-Disposition: attachment; filename=' . $filename);
+                    @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
