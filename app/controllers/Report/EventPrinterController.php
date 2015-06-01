@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use EventModel;
 
 class EventPrinterController extends DataPrinterController
@@ -251,12 +252,12 @@ class EventPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Event';
         switch ($mode) {
             case 'csv':
-                $filename = 'event-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Event List', '', '', '', '', '','');
@@ -278,7 +279,6 @@ class EventPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Event';
                 require app_path() . '/views/printer/list-event-view.php';
         }
     }

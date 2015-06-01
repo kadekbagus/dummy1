@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use Activity;
 
 class DatabaseSimulationPrinterController extends DataPrinterController
@@ -276,12 +277,12 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Database Simulation';
         switch ($mode) {
             case 'csv':
-                $filename = 'databasesimulation-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '', '', '', '', '');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Database Simulation List', '', '', '', '', '', '', '', '', '');
@@ -305,7 +306,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Database Simulation';
                 require app_path() . '/views/printer/list-databasesimulation-view.php';
         }
     }
