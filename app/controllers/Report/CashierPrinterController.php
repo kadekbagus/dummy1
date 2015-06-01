@@ -213,12 +213,12 @@ class CashierPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Cashier';
         switch ($mode) {
             case 'csv':
-                $filename = 'cashier-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s\n", '', '', '', '');
                 printf("%s,%s,%s,%s\n", '', 'Cashier List', '', '');
@@ -238,7 +238,6 @@ class CashierPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Cashier';
                 require app_path() . '/views/printer/list-cashier-view.php';
         }
     }
@@ -366,7 +365,6 @@ class CashierPrinterController extends DataPrinterController
      */
     public function printFullName($cashier)
     {
-        $return = '';
         $result = $cashier->user_firstname.' '.$cashier->user_lastname;
         return $result;
     }
@@ -386,7 +384,7 @@ class CashierPrinterController extends DataPrinterController
             $date = $cashier->activity_date;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat;
         }
         return $result;
@@ -406,7 +404,7 @@ class CashierPrinterController extends DataPrinterController
         } else {
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat.' '.$date[1];
         }
         return $result;

@@ -400,32 +400,35 @@ class ProductAPIController extends ControllerAPI
             // Save new product variants (combination)
             $variants = array();
             OrbitInput::post('product_variants', function($product_combinations)
-            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber)
+            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber, $status)
             {
                 $variant_decode = $this->JSONValidate($product_combinations);
                 $attribute_values = $this->checkVariant($variant_decode);
                 $merchant_id = $updatedproduct->merchant_id;
 
                 foreach ($variant_decode as $variant_index=>$variant) {
-                    $validator = Validator::make(
-                        array(
-                            'combination_sku'   => $variant->sku,
+                    if($status == 'active') {
+                        $validator = Validator::make(
+                            array(
+                                'combination_sku'   => $variant->sku,
 
-                        ),
-                        array(
-                            'combination_sku'   => 'required',
-                        )
-                    );
+                            ),
+                            array(
+                                'combination_sku'   => 'required',
+                            )
+                        );
 
-                    Event::fire('orbit.product.postupdateproduct.before.variantvalidation', array($this, $validator));
+                        Event::fire('orbit.product.postupdateproduct.before.variantvalidation', array($this, $validator));
 
-                    // Run the validation
-                    if ($validator->fails()) {
-                        $errorMessage = $validator->messages()->first();
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
+                        // Run the validation
+                        if ($validator->fails()) {
+                            $errorMessage = $validator->messages()->first();
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
 
-                    Event::fire('orbit.product.postupdateproduct.after.variantvalidation', array($this, $validator));
+                        Event::fire('orbit.product.postupdateproduct.after.variantvalidation', array($this, $validator));
+
+                    };
 
                     // Return the default price if the variant price is empty
                     $vprice = function() use ($variant, $updatedproduct) {
@@ -527,7 +530,7 @@ class ProductAPIController extends ControllerAPI
 
             // Save existing product variants (combination)
             OrbitInput::post('product_variants_update', function($product_combinations_update)
-            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber)
+            use ($user, $updatedproduct, &$variants, $lastAttributeIndexNumber, $status)
             {
                 $variant_decode = $this->JSONValidate($product_combinations_update);
                 $attribute_values = $this->checkVariant($variant_decode, 'update');
@@ -545,25 +548,28 @@ class ProductAPIController extends ControllerAPI
                 };
 
                 foreach ($variant_decode as $variant_index=>$variant) {
-                    $validator = Validator::make(
-                        array(
-                            'combination_sku'   => $variant->sku,
+                    if($status == 'active') {
+                        $validator = Validator::make(
+                            array(
+                                'combination_sku'   => $variant->sku,
 
-                        ),
-                        array(
-                            'combination_sku'   => 'required',
-                        )
-                    );
+                            ),
+                            array(
+                                'combination_sku'   => 'required',
+                            )
+                        );
 
-                    Event::fire('orbit.product.postupdateproduct.before.variantvalidation', array($this, $validator));
+                        Event::fire('orbit.product.postupdateproduct.before.variantvalidation', array($this, $validator));
 
-                    // Run the validation
-                    if ($validator->fails()) {
-                        $errorMessage = $validator->messages()->first();
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
+                        // Run the validation
+                        if ($validator->fails()) {
+                            $errorMessage = $validator->messages()->first();
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
 
-                    Event::fire('orbit.product.postupdateproduct.after.variantvalidation', array($this, $validator));
+                        Event::fire('orbit.product.postupdateproduct.after.variantvalidation', array($this, $validator));
+
+                    };
 
                     // Flag for particular product variant which should be edited
                     $has_transaction = FALSE;
@@ -583,7 +589,8 @@ class ProductAPIController extends ControllerAPI
                     // Return the default price if the variant price is empty
                     $price = function() use ($variant, $has_transaction, $product_variant) {
                         if (empty($variant->price)) {
-                            return $product_variant->price;
+                            // return $product_variant->price;
+                            return NULL;
                         }
 
                         return $variant->price;
@@ -592,7 +599,8 @@ class ProductAPIController extends ControllerAPI
                     // Return the default sku if the variant sku is empty
                     $sku = function() use ($variant, $has_transaction, $product_variant) {
                         if (empty($variant->sku)) {
-                            return $product_variant->sku;
+                            // return $product_variant->sku;
+                            return NULL;
                         }
 
                         if ($has_transaction) {

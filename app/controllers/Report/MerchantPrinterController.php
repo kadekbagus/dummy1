@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use Merchant;
 
 class MerchantPrinterController extends DataPrinterController
@@ -23,7 +24,7 @@ class MerchantPrinterController extends DataPrinterController
                             ->allowedForUser($user)
                             ->select('merchants.*',
                                 DB::raw('count(distinct retailer.merchant_id) as merchant_count'), 
-                                DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ' , ') as retailer_list"))
+                                DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ', ') as retailer_list"))
                             ->leftJoin('merchants AS retailer', function($join) {
                                     $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
                                         ->where(DB::raw('retailer.status'), '!=', 'deleted');
@@ -331,12 +332,12 @@ class MerchantPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Merchant';
         switch ($mode) {
             case 'csv':
-                $filename = 'merchant-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '');
                 printf("%s,%s,%s,%s,%s,%s,%s\n", '', 'Merchant List', '', '', '', '', '');
@@ -350,7 +351,7 @@ class MerchantPrinterController extends DataPrinterController
 
                     $location = $this->printLocation($row);
                     $starting_date = $this->printStartingDate($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $row->name, $location, $starting_date, $row->merchant_count, $row->retailer_list, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $this->printUtf8($row->name), $location, $starting_date, $row->merchant_count, $this->printUtf8($row->retailer_list), $row->status);
 
                 }
                 break;
@@ -358,7 +359,6 @@ class MerchantPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Merchant';
                 require app_path() . '/views/printer/list-merchant-view.php';
         }
     }
@@ -404,7 +404,7 @@ class MerchantPrinterController extends DataPrinterController
             $date = $merchant->start_date_activity;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d-F-Y',$time);
             $result = $newformat;
         }
 
@@ -432,7 +432,18 @@ class MerchantPrinterController extends DataPrinterController
         else if(empty($merchant->city) && empty($merchant->country)){
             $result = '';
         }
-        return utf8_encode($result);
+        return $this->printUtf8($result);
+    }
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 
 }

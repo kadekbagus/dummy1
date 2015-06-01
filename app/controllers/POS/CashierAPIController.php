@@ -867,45 +867,61 @@ class CashierAPIController extends ControllerAPI
                         $transactiondetail->variant_sku         = $cart_value['variants']['sku'];
                     }
 
-                    if(!empty($cart_value['variants']['attr_val_id1']) ||
-                       !empty($cart_value['variants']['attr_val_id2']) ||
-                       !empty($cart_value['variants']['attr_val_id3']) ||
-                       !empty($cart_value['variants']['attr_val_id4']) ||
-                       !empty($cart_value['variants']['attr_val_id5'])
-                    ){
-                        $transactiondetail->product_attribute_value_id1 = $cart_value['variants']['attr_val_id1'];
-                        $transactiondetail->product_attribute_value_id2 = $cart_value['variants']['attr_val_id2'];
-                        $transactiondetail->product_attribute_value_id3 = $cart_value['variants']['attr_val_id3'];
-                        $transactiondetail->product_attribute_value_id4 = $cart_value['variants']['attr_val_id4'];
-                        $transactiondetail->product_attribute_value_id5 = $cart_value['variants']['attr_val_id5'];
+                    if (! empty($cart_value['variants']['product_attribute_value_id1'])) {
+                        $transactiondetail->product_attribute_value_id1 = $cart_value['variants']['product_attribute_value_id1'];
+                        $product_attribute_name1 = \ProductAttributeValue::with('attribute')->where('product_attribute_value_id', $cart_value['variants']['product_attribute_value_id1'])->first()->attribute->product_attribute_name;
+                        if (! empty($product_attribute_name1)) {
+                            $transactiondetail->product_attribute_name1 = $product_attribute_name1;
+                        }
+                    }
+                    if (! empty($cart_value['variants']['product_attribute_value_id2'])) {
+                        $transactiondetail->product_attribute_value_id2 = $cart_value['variants']['product_attribute_value_id2'];
+                        $product_attribute_name2 = \ProductAttributeValue::with('attribute')->where('product_attribute_value_id', $cart_value['variants']['product_attribute_value_id2'])->first()->attribute->product_attribute_name;
+                        if (! empty($product_attribute_name2)) {
+                            $transactiondetail->product_attribute_name2 = $product_attribute_name2;
+                        }
+                    }
+                    if (! empty($cart_value['variants']['product_attribute_value_id3'])) {
+                        $transactiondetail->product_attribute_value_id3 = $cart_value['variants']['product_attribute_value_id3'];
+                        $product_attribute_name3 = \ProductAttributeValue::with('attribute')->where('product_attribute_value_id', $cart_value['variants']['product_attribute_value_id3'])->first()->attribute->product_attribute_name;
+                        if (! empty($product_attribute_name3)) {
+                            $transactiondetail->product_attribute_name3 = $product_attribute_name3;
+                        }
+                    }
+                    if (! empty($cart_value['variants']['product_attribute_value_id4'])) {
+                        $transactiondetail->product_attribute_value_id4 = $cart_value['variants']['product_attribute_value_id4'];
+                        $product_attribute_name4 = \ProductAttributeValue::with('attribute')->where('product_attribute_value_id', $cart_value['variants']['product_attribute_value_id4'])->first()->attribute->product_attribute_name;
+                        if (! empty($product_attribute_name4)) {
+                            $transactiondetail->product_attribute_name4 = $product_attribute_name4;
+                        }
+                    }
+                    if (! empty($cart_value['variants']['product_attribute_value_id5'])) {
+                        $transactiondetail->product_attribute_value_id5 = $cart_value['variants']['product_attribute_value_id5'];
+                        $product_attribute_name5 = \ProductAttributeValue::with('attribute')->where('product_attribute_value_id', $cart_value['variants']['product_attribute_value_id5'])->first()->attribute->product_attribute_name;
+                        if (! empty($product_attribute_name5)) {
+                            $transactiondetail->product_attribute_name5 = $product_attribute_name5;
+                        }
                     }
 
-                    if(!empty($cart_value['variants']['value1']) ||
-                       !empty($cart_value['variants']['value2']) ||
-                       !empty($cart_value['variants']['value3']) ||
-                       !empty($cart_value['variants']['value4']) ||
-                       !empty($cart_value['variants']['value5'])
-                    ){
-                        $transactiondetail->product_attribute_value1    = $cart_value['variants']['value1'];
-                        $transactiondetail->product_attribute_value2    = $cart_value['variants']['value2'];
-                        $transactiondetail->product_attribute_value3    = $cart_value['variants']['value3'];
-                        $transactiondetail->product_attribute_value4    = $cart_value['variants']['value4'];
-                        $transactiondetail->product_attribute_value5    = $cart_value['variants']['value5'];
+                    if (! empty($cart_value['attributes'][0])) {
+                        $transactiondetail->product_attribute_value1 = $cart_value['attributes'][0];
                     }
 
-                    if(!empty($cart_value['variants']['attr1']) ||
-                       !empty($cart_value['variants']['attr2']) ||
-                       !empty($cart_value['variants']['attr3']) ||
-                       !empty($cart_value['variants']['attr4']) ||
-                       !empty($cart_value['variants']['attr5'])
-                    ){
-                        $transactiondetail->product_attribute_name1     = $cart_value['variants']['attr1'];
-                        $transactiondetail->product_attribute_name2     = $cart_value['variants']['attr2'];
-                        $transactiondetail->product_attribute_name3     = $cart_value['variants']['attr3'];
-                        $transactiondetail->product_attribute_name4     = $cart_value['variants']['attr4'];
-                        $transactiondetail->product_attribute_name5     = $cart_value['variants']['attr5'];
+                    if (! empty($cart_value['attributes'][1])) {
+                        $transactiondetail->product_attribute_value2 = $cart_value['attributes'][1];
                     }
 
+                    if (! empty($cart_value['attributes'][2])) {
+                        $transactiondetail->product_attribute_value3 = $cart_value['attributes'][2];
+                    }
+
+                    if (! empty($cart_value['attributes'][3])) {
+                        $transactiondetail->product_attribute_value4 = $cart_value['attributes'][3];
+                    }
+
+                    if (! empty($cart_value['attributes'][4])) {
+                        $transactiondetail->product_attribute_value5 = $cart_value['attributes'][4];
+                    }
                 }
 
                 if (!empty($cart_value['product_details']['merchant_tax_id1'])) {
@@ -1279,11 +1295,10 @@ class CashierAPIController extends ControllerAPI
                         )
                         WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '), array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id));
 
-                        // dd($coupons);
                         if ($coupons != NULL) {
                             foreach ($coupons as $c) {
                                 $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
-                                // dd($issued);
+
                                 if ($issued < $c->maximum_issued_coupon) {
                                     $issue_coupon = new IssuedCoupon();
                                     $issue_coupon->promotion_id = $c->promotion_id;
@@ -1312,7 +1327,7 @@ class CashierAPIController extends ControllerAPI
                     $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
                 })
                 ->get();
-                // dd($coupon_carts);
+
                 if (!empty($coupon_carts)) {
                     foreach ($coupon_carts as $kupon) {
                         $issued = IssuedCoupon::where('promotion_id', $kupon->promotion_id)->count();

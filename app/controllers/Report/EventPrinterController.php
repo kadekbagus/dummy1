@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use EventModel;
 
 class EventPrinterController extends DataPrinterController
@@ -21,7 +22,7 @@ class EventPrinterController extends DataPrinterController
 
         // Builder object
         $events = EventModel::select(DB::raw($prefix . "events.*"), 
-                                     DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"),
+                                     DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ') as retailer_list"),
                                      DB::raw('cat1.category_name as family_name1'),
                                      DB::raw('cat2.category_name as family_name2'),
                                      DB::raw('cat3.category_name as family_name3'),
@@ -251,12 +252,12 @@ class EventPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Event';
         switch ($mode) {
             case 'csv':
-                $filename = 'event-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Event List', '', '', '', '', '','');
@@ -278,7 +279,6 @@ class EventPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Event';
                 require app_path() . '/views/printer/list-event-view.php';
         }
     }
@@ -306,7 +306,7 @@ class EventPrinterController extends DataPrinterController
                 } else {
                     $date = explode(' ',$date);
                     $time = strtotime($date[0]);
-                    $newformat = date('d M Y',$time);
+                    $newformat = date('d F Y',$time);
                     $result = $newformat.' '.$date[1];
                 }
         }
