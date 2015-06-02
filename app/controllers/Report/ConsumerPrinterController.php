@@ -489,16 +489,11 @@ class ConsumerPrinterController extends DataPrinterController
     {
         $retailer = $this->getRetailerInfo();
         $currency = strtolower($retailer->parent->currency);
-        if($consumer->last_spent_amount!=0){
-            if($currency=='usd'){
-                $result = number_format($consumer->last_spent_amount, 2);
-            } else {
-                $result = number_format($consumer->last_spent_amount);
-            }
+        if($currency=='usd'){
+            $result = number_format($consumer->last_spent_amount, 2);
         } else {
             $result = number_format($consumer->last_spent_amount);
         }
-
         return $result;
     }
 
