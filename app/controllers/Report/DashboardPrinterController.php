@@ -728,7 +728,7 @@ class DashboardPrinterController extends DataPrinterController
             ];
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Connecting Average Time Report';
+            $pageTitle  = 'Orbit Average Connection Time Report';
             switch($mode)
             {
                 case 'csv':
