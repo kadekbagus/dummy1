@@ -397,7 +397,7 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printStartingDate($merchant)
     {
-        if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity))
+        if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity) || $merchant->start_date_activity=="0000-00-00 00:00:00")
         {
             $result = "";
         } else {
