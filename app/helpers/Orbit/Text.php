@@ -1,5 +1,7 @@
 <?php namespace Orbit;
 
+use Str;
+
 class Text
 {
 
@@ -53,5 +55,10 @@ class Text
     public static function formatNumber($number, $precision = 2)
     {
         return number_format($number, $precision);
+    }
+
+    public static function exportFilename($pageTitle, $ext = ".csv")
+    {
+        return 'orbit-export-' . Str::slug($pageTitle) . '-' . date('D_d_M_Y_Hi') . $ext;
     }
 }

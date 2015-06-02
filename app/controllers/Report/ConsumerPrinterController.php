@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use User;
 use Role;
 
@@ -267,12 +268,12 @@ class ConsumerPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Consumer';
         switch ($mode) {
             case 'csv':
-                $filename = 'consumer-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Consumer List', '', '', '', '', '','');
@@ -305,7 +306,6 @@ class ConsumerPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Consumer';
                 require app_path() . '/views/printer/list-consumer-view.php';
         }
     }
@@ -489,16 +489,11 @@ class ConsumerPrinterController extends DataPrinterController
     {
         $retailer = $this->getRetailerInfo();
         $currency = strtolower($retailer->parent->currency);
-        if($consumer->last_spent_amount!=0){
-            if($currency=='usd'){
-                $result = number_format($consumer->last_spent_amount, 2);
-            } else {
-                $result = number_format($consumer->last_spent_amount);
-            }
+        if($currency=='usd'){
+            $result = number_format($consumer->last_spent_amount, 2);
         } else {
             $result = number_format($consumer->last_spent_amount);
         }
-
         return $result;
     }
 
