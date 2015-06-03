@@ -241,6 +241,7 @@ class CashierAPIController extends ControllerAPI
                 $subTotal = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
                                 ->mergeBindings($subTotalBindings)
                                 ->select([
+                                    DB::raw("sum(sub_total.total_time) as total_time"),
                                     DB::raw("sum(sub_total.transactions_count) as transactions_count"),
                                     DB::raw("sum(sub_total.transactions_total) as transactions_total")
                                 ])->first();
@@ -249,7 +250,7 @@ class CashierAPIController extends ControllerAPI
                 $data->sub_total  = $subTotal;
             }
 
-            if ($transactionList === 0) {
+            if ($totalTransactions === 0) {
                 $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
             }
