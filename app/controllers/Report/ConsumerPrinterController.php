@@ -244,8 +244,8 @@ class ConsumerPrinterController extends DataPrinterController
                 'gender'                  => 'user_details.gender',
                 'city'                    => 'user_details.city',
                 'last_visit_shop'         => 'merchants.name',
-                'last_visit_date'         => 'user_details.last_visit_any_shop',
-                'last_spent_amount'       => 'user_details.last_spent_any_shop'
+                'last_visit_date'         => 'last_visit_date',
+                'last_spent_amount'       => 'last_spent_amount'
             );
 
             $sortBy = $sortByMapping[$_sortBy];
