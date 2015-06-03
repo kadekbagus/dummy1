@@ -88,16 +88,18 @@ class MobileCIAPIController extends ControllerAPI
             $user_detail->last_visit_any_shop = Carbon::now();
             $user_detail->save();
 
-            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-            if (is_null($cart)) {
-                $cart = new Cart();
-                $cart->customer_id = $user->user_id;
-                $cart->merchant_id = $retailer->parent_id;
-                $cart->retailer_id = $retailer->merchant_id;
-                $cart->status = 'active';
-                $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
-                $cart->save();
+            if ($retailer->parent->enable_shopping_cart == 'yes') {
+                $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+                if (is_null($cart)) {
+                    $cart = new Cart();
+                    $cart->customer_id = $user->user_id;
+                    $cart->merchant_id = $retailer->parent_id;
+                    $cart->retailer_id = $retailer->merchant_id;
+                    $cart->status = 'active';
+                    $cart->save();
+                    $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                    $cart->save();
+                }
             }
 
             $user->setHidden(array('user_password', 'apikey'));
@@ -6070,19 +6072,24 @@ class MobileCIAPIController extends ControllerAPI
     {
         $user = $this->getLoggedInUser();
         $retailer = $this->getRetailerInfo();
-        $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
-        if (is_null($cart)) {
-            $cart = new Cart();
-            $cart->customer_id = $user->user_id;
-            $cart->merchant_id = $retailer->parent_id;
-            $cart->retailer_id = $retailer->merchant_id;
-            $cart->status = 'active';
-            $cart->save();
-            $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
-            $cart->save();
+        if ($retailer->parent->enable_shopping_cart == 'yes') {
+            $cart = Cart::where('status', 'active')->where('customer_id', $user->user_id)->where('retailer_id', $retailer->merchant_id)->first();
+            if (is_null($cart)) {
+                $cart = new Cart();
+                $cart->customer_id = $user->user_id;
+                $cart->merchant_id = $retailer->parent_id;
+                $cart->retailer_id = $retailer->merchant_id;
+                $cart->status = 'active';
+                $cart->save();
+                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->save();
+            }
+            return $cart->total_item;
+        } else {
+            return 0;
         }
 
-        return $cart->total_item;
+        
     }
 
     /**
