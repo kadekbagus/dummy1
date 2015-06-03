@@ -243,7 +243,7 @@ class ConsumerPrinterController extends DataPrinterController
                 'firstname'               => 'users.user_firstname',
                 'gender'                  => 'user_details.gender',
                 'city'                    => 'user_details.city',
-                'last_visit_shop'         => 'merchants.name',
+                'last_visit_shop'         => 'merchant_name',
                 'last_visit_date'         => 'last_visit_date',
                 'last_spent_amount'       => 'last_spent_amount'
             );
