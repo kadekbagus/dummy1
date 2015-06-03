@@ -108,23 +108,33 @@
 											<a href="{{ url('customer/product?id='.$product->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 										</div>
 									</div>
-									@if(count($product->variants) <= 1)
-									<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
-										<div class="circlet btn-blue cart-btn text-center">
-											<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}" >
-												<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-											</a>
+									@if($retailer->parent->enable_shopping_cart == 'yes')
+										@if(count($product->variants) <= 1)
+										<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+											<div class="circlet btn-blue cart-btn text-center">
+												<a class="product-add-to-cart" data-hascoupon="{{$product->on_coupons}}" data-product-id="{{ $product->product_id }}" data-product-variant-id="{{ $product->variants[0]->product_variant_id }}" >
+													<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+												</a>
+											</div>
 										</div>
-									</div>
+										@else
+										<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+											<div class="circlet btn-blue cart-btn text-center">
+												<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
+													<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+												</a>
+											</div>
+										</div>
+										@endif
 									@else
-									<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-										<div class="circlet btn-blue cart-btn text-center">
-											<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product->product_id.'#select-attribute') }}">
-												<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-											</a>
-										</div>
-									</div>
-									@endif
+						                <div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+						                    <div class="circlet btn-blue cart-btn text-center btn-disabled">
+						                        <a class="product-add-to-cart">
+						                            <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+						                        </a>
+						                    </div>
+						                </div>
+						            @endif
 								</div>
 							</div>
 						@endforeach
@@ -203,23 +213,33 @@
 																<a href="{{ url('customer/product?id='.$product2->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 															</div>
 														</div>
-														@if(count($product2->variants) <= 1)
-														<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
-															<div class="circlet btn-blue cart-btn text-center">
-																<a class="product-add-to-cart" data-hascoupon="{{$product2->on_coupons}}" data-product-id="{{ $product2->product_id }}" data-product-variant-id="{{ $product2->variants[0]->product_variant_id }}" >
-																	<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																</a>
+														@if($retailer->parent->enable_shopping_cart == 'yes')
+															@if(count($product2->variants) <= 1)
+															<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																<div class="circlet btn-blue cart-btn text-center">
+																	<a class="product-add-to-cart" data-hascoupon="{{$product2->on_coupons}}" data-product-id="{{ $product2->product_id }}" data-product-variant-id="{{ $product2->variants[0]->product_variant_id }}" >
+																		<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																	</a>
+																</div>
 															</div>
-														</div>
+															@else
+															<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																<div class="circlet btn-blue cart-btn text-center">
+																	<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product2->product_id.'#select-attribute') }}">
+																		<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																	</a>
+																</div>
+															</div>
+															@endif
 														@else
-														<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-															<div class="circlet btn-blue cart-btn text-center">
-																<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product2->product_id.'#select-attribute') }}">
-																	<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																</a>
-															</div>
-														</div>
-														@endif
+											                <div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+											                    <div class="circlet btn-blue cart-btn text-center btn-disabled">
+											                        <a class="product-add-to-cart">
+											                            <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+											                        </a>
+											                    </div>
+											                </div>
+											            @endif
 													</div>
 												</div>
 											@endforeach
@@ -298,23 +318,33 @@
 																					<a href="{{ url('customer/product?id='.$product3->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 																				</div>
 																			</div>
-																			@if(count($product3->variants) <= 1)
-																			<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
-																				<div class="circlet btn-blue cart-btn text-center">
-																					<a class="product-add-to-cart" data-hascoupon="{{$product3->on_coupons}}" data-product-id="{{ $product3->product_id }}" data-product-variant-id="{{ $product3->variants[0]->product_variant_id }}" >
-																						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																					</a>
+																			@if($retailer->parent->enable_shopping_cart == 'yes')
+																				@if(count($product3->variants) <= 1)
+																				<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																					<div class="circlet btn-blue cart-btn text-center">
+																						<a class="product-add-to-cart" data-hascoupon="{{$product3->on_coupons}}" data-product-id="{{ $product3->product_id }}" data-product-variant-id="{{ $product3->variants[0]->product_variant_id }}" >
+																							<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																						</a>
+																					</div>
 																				</div>
-																			</div>
+																				@else
+																				<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																					<div class="circlet btn-blue cart-btn text-center">
+																						<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product3->product_id.'#select-attribute') }}">
+																							<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																						</a>
+																					</div>
+																				</div>
+																				@endif
 																			@else
-																			<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-																				<div class="circlet btn-blue cart-btn text-center">
-																					<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product3->product_id.'#select-attribute') }}">
-																						<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																					</a>
-																				</div>
-																			</div>
-																			@endif
+																                <div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																                    <div class="circlet btn-blue cart-btn text-center btn-disabled">
+																                        <a class="product-add-to-cart">
+																                            <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																                        </a>
+																                    </div>
+																                </div>
+																            @endif
 																		</div>
 																	</div>
 																@endforeach
@@ -393,23 +423,33 @@
 																										<a href="{{ url('customer/product?id='.$product4->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 																									</div>
 																								</div>
-																								@if(count($product4->variants) <= 1)
-																								<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
-																									<div class="circlet btn-blue cart-btn text-center">
-																										<a class="product-add-to-cart" data-hascoupon="{{$product4->on_coupons}}" data-product-id="{{ $product4->product_id }}" data-product-variant-id="{{ $product4->variants[0]->product_variant_id }}" >
-																											<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																										</a>
+																								@if($retailer->parent->enable_shopping_cart == 'yes')
+																									@if(count($product4->variants) <= 1)
+																									<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																										<div class="circlet btn-blue cart-btn text-center">
+																											<a class="product-add-to-cart" data-hascoupon="{{$product4->on_coupons}}" data-product-id="{{ $product4->product_id }}" data-product-variant-id="{{ $product4->variants[0]->product_variant_id }}" >
+																												<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																											</a>
+																										</div>
 																									</div>
-																								</div>
+																									@else
+																									<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																										<div class="circlet btn-blue cart-btn text-center">
+																											<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product4->product_id.'#select-attribute') }}">
+																												<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																											</a>
+																										</div>
+																									</div>
+																									@endif
 																								@else
-																								<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-																									<div class="circlet btn-blue cart-btn text-center">
-																										<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product4->product_id.'#select-attribute') }}">
-																											<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																										</a>
-																									</div>
-																								</div>
-																								@endif
+																					                <div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																					                    <div class="circlet btn-blue cart-btn text-center btn-disabled">
+																					                        <a class="product-add-to-cart">
+																					                            <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																					                        </a>
+																					                    </div>
+																					                </div>
+																					            @endif
 																							</div>
 																						</div>
 																					@endforeach
@@ -488,23 +528,33 @@
 																															<a href="{{ url('customer/product?id='.$product5->product_id) }}"><span class="link-spanner"></span><i class="fa fa-ellipsis-h"></i></a>
 																														</div>
 																													</div>
-																													@if(count($product5->variants) <= 1)
-																													<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
-																														<div class="circlet btn-blue cart-btn text-center">
-																															<a class="product-add-to-cart" data-hascoupon="{{$product5->on_coupons}}" data-product-id="{{ $product5->product_id }}" data-product-variant-id="{{ $product5->variants[0]->product_variant_id }}" >
-																																<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																															</a>
+																													@if($retailer->parent->enable_shopping_cart == 'yes')
+																														@if(count($product5->variants) <= 1)
+																														<div class="col-xs-2 col-xs-offset-1 catalogue-control price ">
+																															<div class="circlet btn-blue cart-btn text-center">
+																																<a class="product-add-to-cart" data-hascoupon="{{$product5->on_coupons}}" data-product-id="{{ $product5->product_id }}" data-product-variant-id="{{ $product5->variants[0]->product_variant_id }}" >
+																																	<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																																</a>
+																															</div>
 																														</div>
-																													</div>
+																														@else
+																														<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																															<div class="circlet btn-blue cart-btn text-center">
+																																<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product5->product_id.'#select-attribute') }}">
+																																	<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																																</a>
+																															</div>
+																														</div>
+																														@endif
 																													@else
-																													<div class="col-xs-2 col-xs-offset-1 catalogue-control price">
-																														<div class="circlet btn-blue cart-btn text-center">
-																															<a class="product-add-to-cart" href="{{ url('customer/product?id='.$product5->product_id.'#select-attribute') }}">
-																																<span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
-																															</a>
-																														</div>
-																													</div>
-																													@endif
+																										                <div class="col-xs-2 col-xs-offset-1 catalogue-control price">
+																										                    <div class="circlet btn-blue cart-btn text-center btn-disabled">
+																										                        <a class="product-add-to-cart">
+																										                            <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+																										                        </a>
+																										                    </div>
+																										                </div>
+																										            @endif
 																												</div>
 																											</div>
 																										@endforeach
