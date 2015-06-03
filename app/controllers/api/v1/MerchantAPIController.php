@@ -1283,7 +1283,8 @@ class MerchantAPIController extends ControllerAPI
             $updatedmerchant = Merchant::with('taxes')->excludeDeleted()->allowedForUser($user)->where('merchant_id', $merchant_id)->first();
 
             OrbitInput::post('omid', function($omid) use ($updatedmerchant) {
-                $updatedmerchant->omid = $omid;
+                // Merchant ID (OMID) is not updateable.
+                // $updatedmerchant->omid = $omid;
             });
 
             OrbitInput::post('user_id', function($user_id) use ($updatedmerchant) {
