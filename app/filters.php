@@ -125,3 +125,10 @@ Route::filter('orbit-settings', function()
         }
     }
 });
+
+Route::filter('enable-cart', function()
+{
+    if (Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->excludeDeleted()->first()->parent->enable_shopping_cart != 'yes') {
+        return Redirect::route('home');
+    }
+});
