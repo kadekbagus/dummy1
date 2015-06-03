@@ -609,7 +609,7 @@ class DashboardPrinterController extends DataPrinterController
             {
                 $name = sprintf("%s-%s", $x, $x+1);
                 $label = sprintf("%s:00 - %s:00", $x, $x+1);
-                $summaryHeaders[$name] = $name;
+                $summaryHeaders[$name] = $label;
                 $rowNames[$name]       = $label;
                 $rowFormatter[$name]   = false;
             }
