@@ -292,7 +292,7 @@ class CashierPrinterController extends DataPrinterController
                 'activity_full_name' => 'Employee Name',
                 'login_at_hour' => 'Clock In',
                 'logout_at_hour' => 'Clock Out',
-                'total_time' => 'Total Time',
+                'total_time' => 'Total Time (mins)',
                 'transactions_count' => 'Number of Receipt',
                 'transactions_total' => 'Total Sales'
             ];
