@@ -1189,10 +1189,6 @@ class DashboardAPIController extends ControllerAPI
                 DB::raw("ifnull(sum(user_count), 0) as 'total'")
             ];
 
-            $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                ->mergeBindings($_users->getQuery())
-                ->select($defaultSelect);
-
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport)
@@ -1205,6 +1201,10 @@ class DashboardAPIController extends ControllerAPI
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("created_at_date")
                 ]);
+
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
 
                 $userReportQuery = $_users->getQuery();
                 $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
@@ -1236,6 +1236,9 @@ class DashboardAPIController extends ControllerAPI
                 }
             } else {
                 $users->take($take);
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
                 $summary   = $summaryReport->first();
                 $userTotal = RecordCounter::create($_users)->count();
                 $userList  = $users->get();
@@ -1461,10 +1464,6 @@ class DashboardAPIController extends ControllerAPI
             ];
 
 
-            $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                ->mergeBindings($_users->getQuery())
-                ->select($defaultSelect);
-
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport) {
@@ -1478,6 +1477,11 @@ class DashboardAPIController extends ControllerAPI
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw('report.created_at_date as created_at_date')
                 ]);
+
+
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
 
                 $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
@@ -1507,6 +1511,9 @@ class DashboardAPIController extends ControllerAPI
                     $lastPage   = true;
                 }
             } else {
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
                 $summary = $summaryReport->first();
                 $users->take($take);
                 $userList  = $users->get();
