@@ -887,14 +887,17 @@ class DashboardAPIController extends ControllerAPI
             $tablePrefix = DB::getTablePrefix();
 
             $users = Activity::select(
-                DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
-                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
-                DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
-                DB::raw("count(distinct new_users.user_id) as new_user_count")
-            )
+                    DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
+                    DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
+                    DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
+                    DB::raw("count(distinct new_users.user_id) as new_user_count")
+                )
+                ->where(function ($jq) {
+                    $jq->where('activities.activity_name', '=', 'login_ok');
+                    $jq->orWhere('activities.activity_name', '=', 'registration_ok');
+                })
                 ->leftJoin('users', function ($join) {
                     $join->on('activities.user_id', '=', 'users.user_id');
-                    $join->where('activities.activity_name', '=', 'login_ok');
                 })
                 ->leftJoin("users as new_users", function ($join) use ($tablePrefix) {
                     $join->on(DB::raw("new_users.user_id"), '=', 'users.user_id');
@@ -1119,7 +1122,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = User::select(
+            $users = Activity::select(
                     DB::raw("(
                         case {$tablePrefix}details.gender
                             when 'f' then 'Female'
@@ -1127,10 +1130,14 @@ class DashboardAPIController extends ControllerAPI
                             else 'Unknown'
                         end
                     ) as user_gender"),
-                    DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count")
                 )
+                ->where(function ($jq) {
+                    $jq->where('activity_name', '=', 'login_ok');
+                    $jq->orWhere('activity_name', '=', 'registration_ok');
+                })
                 ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
-                    $join->on('details.user_id', '=', 'users.user_id');
+                    $join->on('details.user_id', '=', 'activities.user_id');
                 })
                 ->groupBy('details.gender');
 
@@ -1140,11 +1147,11 @@ class DashboardAPIController extends ControllerAPI
             });
 
             OrbitInput::get('begin_date', function ($beginDate) use ($users) {
-                $users->where('users.created_at', '>=', $beginDate);
+                $users->where('activities.created_at', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($users) {
-                $users->where('users.created_at', '<=', $endDate);
+                $users->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -1191,7 +1198,7 @@ class DashboardAPIController extends ControllerAPI
             if ($isReport)
             {
                 $_users->addSelect(
-                    DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
+                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                 );
                 $_users->groupBy('created_at_date');
 
@@ -1379,21 +1386,25 @@ class DashboardAPIController extends ControllerAPI
             $calculateAge = "(date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
                     (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d')))";
 
-            $users = User::select(
-                DB::raw("(
-                    case
-                        when {$calculateAge} < 15 then 'Unknown'
-                        when {$calculateAge} < 20 then '15-20'
-                        when {$calculateAge} < 25 then '20-25'
-                        when {$calculateAge} < 30 then '25-30'
-                        when {$calculateAge} < 40 then '30-40'
-                        when {$calculateAge} >= 40 then '40+'
-                        else 'Unknown'
-                    end) as user_age"),
-                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
-            )
+            $users = Activity::select(
+                    DB::raw("(
+                        case
+                            when {$calculateAge} < 15 then 'Unknown'
+                            when {$calculateAge} < 20 then '15-20'
+                            when {$calculateAge} < 25 then '20-25'
+                            when {$calculateAge} < 30 then '25-30'
+                            when {$calculateAge} < 40 then '30-40'
+                            when {$calculateAge} >= 40 then '40+'
+                            else 'Unknown'
+                        end) as user_age"),
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count")
+                )
+                ->where(function ($jq) {
+                    $jq->where('activities.activity_name', '=', 'registration_ok');
+                    $jq->orWhere('activities.activity_name', '=', 'login_ok');
+                })
                 ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
-                    $join->on('details.user_id', '=', 'users.user_id');
+                    $join->on('details.user_id', '=', 'activities.user_id');
                 })
                 ->groupBy('user_age');
 
@@ -1403,11 +1414,11 @@ class DashboardAPIController extends ControllerAPI
             });
 
             OrbitInput::get('begin_date', function ($beginDate) use ($users) {
-                $users->where('users.created_at', '>=', $beginDate);
+                $users->where('activities.created_at', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($users) {
-                $users->where('users.created_at', '<=', $endDate);
+                $users->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -1458,7 +1469,7 @@ class DashboardAPIController extends ControllerAPI
             $lastPage  = false;
             if ($isReport) {
                 $_users->addSelect(
-                    DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
+                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                 );
                 $_users->groupBy('created_at_date');
 
