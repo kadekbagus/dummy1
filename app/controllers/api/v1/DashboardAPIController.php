@@ -887,17 +887,17 @@ class DashboardAPIController extends ControllerAPI
             $tablePrefix = DB::getTablePrefix();
 
             $users = Activity::select(
-                DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
-                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
-                DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
-                DB::raw("count(distinct new_users.user_id) as new_user_count")
-            )
+                    DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
+                    DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
+                    DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
+                    DB::raw("count(distinct new_users.user_id) as new_user_count")
+                )
+                ->where(function ($jq) {
+                    $jq->where('activities.activity_name', '=', 'login_ok');
+                    $jq->orWhere('activities.activity_name', '=', 'registration_ok');
+                })
                 ->leftJoin('users', function ($join) {
                     $join->on('activities.user_id', '=', 'users.user_id');
-                    $join->where(function ($jq) {
-                        $jq->where('activities.activity_name', '=', 'login_ok');
-                        $jq->orWhere('activities.activity_name', '=', 'registration_ok');
-                    });
                 })
                 ->leftJoin("users as new_users", function ($join) use ($tablePrefix) {
                     $join->on(DB::raw("new_users.user_id"), '=', 'users.user_id');
