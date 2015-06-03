@@ -102,7 +102,10 @@ class CashierAPIController extends ControllerAPI
                 )
                 ->where('role', 'like', 'cashier')
                 ->where('group', '=', 'pos')
-                ->whereIn('activity_name', ['login_ok', 'logout_ok'])
+                ->where(function($q) {
+                    $q->where('activity_name', 'like', 'login_ok');
+                    $q->orWhere('activity_name', 'like', 'logout_ok');
+                })
                 ->groupBy('activity_date', 'activity_user_id');
             $activitiesQuery = $activities->getQuery();
 
