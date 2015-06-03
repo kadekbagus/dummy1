@@ -181,19 +181,19 @@ Route::group(
             })
         );
 
-        // recognize me
-        Route::get(
-            '/customer/me',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getMeView();
-            }
-        );
-
         Route::group(
             array('before' => 'enable-cart'),
             function () {
 
+            // recognize me
+            Route::get(
+                '/customer/me',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getMeView();
+                }
+            );
+        
             // track save receipt click activity
             Route::post(
                 '/app/v1/customer/savereceiptclickactivity',
