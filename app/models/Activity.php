@@ -527,6 +527,20 @@ class Activity extends Eloquent
     }
 
     /**
+     * scope to consider activity from users
+     *
+     * @author Yudi Rahono <yudi@rahono.com>
+     * @param Illuminate\Database\Query\Builder $builder
+     * @return Illuminate\Database\Query\Builder
+     */
+    public function scopeConsiderCustomer($builder)
+    {
+        $builder->whereNotIn('group', array('pos', 'portal'));
+
+        return $builder;
+    }
+
+    /**
      * Define an inverse one-to-one or many relationship.
      *
      * @author Rio Astamal <me@rioastamal.net>

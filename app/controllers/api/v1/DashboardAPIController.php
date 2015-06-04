@@ -369,7 +369,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $categories = Activity::select(
+            $categories = Activity::considerCustomer()->select(
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
@@ -629,7 +629,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $widgets = Activity::select(
+            $widgets = Activity::considerCustomer()->select(
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
@@ -886,7 +886,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = Activity::select(
+            $users = Activity::considerCustomer()->select(
                     DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
                     DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
                     DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
@@ -1122,7 +1122,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = Activity::select(
+            $users = Activity::considerCustomer()->select(
                     DB::raw("(
                         case {$tablePrefix}details.gender
                             when 'f' then 'Female'
@@ -1385,7 +1385,7 @@ class DashboardAPIController extends ControllerAPI
             $calculateAge = "(date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
                     (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d')))";
 
-            $users = Activity::select(
+            $users = Activity::considerCustomer()->select(
                     DB::raw("(
                         case
                             when {$calculateAge} < 15 then 'Unknown'
@@ -1652,7 +1652,7 @@ class DashboardAPIController extends ControllerAPI
 
             $formatDate = "(date_format(created_at, '%H'))";
 
-            $activities = Activity::select(
+            $activities = Activity::considerCustomer()->select(
                     DB::raw("(
                         case
                             when {$formatDate} < 10 then '9-10'
@@ -1742,8 +1742,6 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('date(created_at) as created_at_date')
                 );
                 $_activities->groupBy('created_at_date');
-
-
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("report.created_at_date")
@@ -1925,7 +1923,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $userActivities = Activity::select(
+            $userActivities = Activity::considerCustomer()->select(
                     DB::raw("
                         timestampdiff(
                             MINUTE,
@@ -1947,7 +1945,8 @@ class DashboardAPIController extends ControllerAPI
                                         else 60
                                     end) as average_time_connect"
                                 )
-                            );
+                            )
+                            ->mergeBindings($userActivities->getQuery());
 
             $isReport = $this->builderOnly;
             OrbitInput::get('is_report', function ($_isReport) use ($activities, &$isReport, $tablePrefix) {
@@ -2005,7 +2004,7 @@ class DashboardAPIController extends ControllerAPI
                                   when minute_connect < 50 then '40-50'
                                   when minute_connect < 60 then '50-60'
                                   when minute_connect >= 60 then '60+'
-                                  else 'Unrecorded'
+                                  else '<5'
                             end as time_range"),
                     DB::raw("sum(ifnull(user_count, 0)) as user_count"),
                     "created_at_date"
