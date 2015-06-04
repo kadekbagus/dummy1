@@ -243,7 +243,7 @@ class LoginAPIController extends ControllerAPI
             $user = User::with('userdetail', 'role', 'merchants')
                         ->active()
                         ->whereHas('role', function($q) {
-                            $q->where('role_name', 'Merchant Owner');
+                            $q->whereIn('role_name', ['Super Admin', 'Merchant Owner']);
                         })
                         ->where('user_email', $email)
                         ->first();
