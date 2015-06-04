@@ -38,8 +38,9 @@ Route::get('/api/v1/consumer-transaction-history/receipt-list', function()
 
 /**
  * Get list of detail sales
- */
-Route::get('/api/v1/consumer-transaction-history/detail-sales-report', function()
-{
-    return TransactionHistoryAPIController::create()->getDetailSalesReport();
-});
+ * TBD: routing
+ * Route::get('/api/v1/consumer-transaction-history/detail-sales-report', function()
+ * {
+ *   return TransactionHistoryAPIController::create()->getDetailSalesReport();
+ * });
+*/

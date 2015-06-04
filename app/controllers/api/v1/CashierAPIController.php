@@ -89,20 +89,26 @@ class CashierAPIController extends ControllerAPI
             }
 
             $activities  = Activity::select(
-                    'user_id as activity_user_id',
-                    'full_name as activity_full_name',
-                    'role as activity_role',
-                    'group as activity_group',
-                    DB::raw('date(created_at) as activity_date'),
-                    DB::raw("min(case activity_name when 'login_ok' then created_at end) as login_at"),
-                    DB::raw("date_format(min(case activity_name when 'login_ok' then created_at end), '%H:%i:%s') as login_at_hour"),
-                    DB::raw("max(case activity_name when 'logout_ok' then created_at end) as logout_at"),
-                    DB::raw("date_format(max(case activity_name when 'logout_ok' then created_at end), '%H:%i:%s')  as logout_at_hour"),
-                    DB::raw("timestampdiff(MINUTE, min(case activity_name when 'login_ok' then created_at end), max(case activity_name when 'logout_ok' then created_at end)) as total_time")
+                    'activities.user_id as activity_user_id',
+                    'activities.full_name as activity_full_name',
+                    'activities.role as activity_role',
+                    'activities.group as activity_group',
+                    DB::raw("date({$tablePrefix}activities.created_at) as activity_date"),
+                    DB::raw("min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end) as login_at"),
+                    DB::raw("date_format(min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end), '%H:%i:%s') as login_at_hour"),
+                    DB::raw("max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end) as logout_at"),
+                    DB::raw("date_format(max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end), '%H:%i:%s')  as logout_at_hour"),
+                    DB::raw("timestampdiff(MINUTE, min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end), max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end)) as total_time"),
+                    'retailer.merchant_id as retailer_id',
+                    'retailer.parent_id as merchant_id'
                 )
                 ->where('role', 'like', 'cashier')
                 ->where('group', '=', 'pos')
-                ->whereIn('activity_name', ['login_ok', 'logout_ok'])
+                ->where(function($q) {
+                    $q->where('activity_name', 'like', 'login_ok');
+                    $q->orWhere('activity_name', 'like', 'logout_ok');
+                })
+                ->leftJoin("merchants as {$tablePrefix}retailer", 'retailer.merchant_id', '=', 'activities.location_id')
                 ->groupBy('activity_date', 'activity_user_id');
             $activitiesQuery = $activities->getQuery();
 
@@ -111,7 +117,6 @@ class CashierAPIController extends ControllerAPI
                     DB::raw('sum(total_to_pay) as transactions_total'),
                     DB::raw('date(created_at) as transaction_date'),
                     'created_at',
-                    'merchant_id',
                     'cashier_id',
                     'customer_id'
                 )
@@ -129,7 +134,7 @@ class CashierAPIController extends ControllerAPI
 
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
-               $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
+               $transactions->whereIn('activities.merchant_id', $this->getArray($merchantId));
             });
 
             // Filter by date from
@@ -159,7 +164,7 @@ class CashierAPIController extends ControllerAPI
             $_transactions = clone $transactions;
 
             // Default sort by
-            $sortBy = 'transaction_date';
+            $sortBy = 'activity_date';
             // Default sort mode
             $sortMode = 'desc';
 
