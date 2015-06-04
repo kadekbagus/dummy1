@@ -138,7 +138,10 @@ class ActivityAPIController extends ControllerAPI
             });
             $tablePrefix = DB::getTablePrefix();
             $activities = Activity::with($with)->select('activities.*',
-                                                        DB::Raw("DATE_FORMAT({$tablePrefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"));
+                                                        DB::Raw("DATE_FORMAT({$tablePrefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"),
+                                                        'user_details.gender as customer_gender'))
+                                                ->leftJoin('user_details', 'user_details.user_id', '=', 'activities.user_id')
+                                                ->groupBy('activities.activity_id');
 
             // Filter by ids
             OrbitInput::get('id', function($activityIds) use ($activities) {

@@ -29,10 +29,7 @@ class DatabaseSimulationPrinterController extends DataPrinterController
 
         $activities = Activity::with($with)->select('activities.*',
                                                     DB::Raw("DATE_FORMAT({$prefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"),
-                                                    DB::raw("CASE {$prefix}activities.user_email
-                                                        WHEN 'guest' THEN {$prefix}activities.gender
-                                                            ELSE {$prefix}user_details.gender
-                                                        END AS customer_gender"))
+                                                    'user_details.gender as customer_gender')
                                             ->leftJoin('user_details', 'user_details.user_id', '=', 'activities.user_id')
                                             ->groupBy('activities.activity_id');
 
@@ -325,10 +322,10 @@ class DatabaseSimulationPrinterController extends DataPrinterController
      */
     public function printGender($databasesimulation)
     {     
-        if(!empty($databasesimulation->customer_gender)){
-            $gender = $databasesimulation->customer_gender;
-        } else {
+        if(!empty($databasesimulation->user_email=="guest")){
             $gender = $databasesimulation->gender;
+        } else {
+            $gender = $databasesimulation->customer_gender;
         }
         $gender = strtolower($gender);
         switch ($gender) {
