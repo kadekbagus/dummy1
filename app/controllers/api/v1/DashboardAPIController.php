@@ -2213,8 +2213,8 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("count(distinct location_id) as monthly_merchant_count"),
                     DB::raw("(case when max(created_at) >= created_at then location_id end) as location_id")
                 )
-                ->where('activity_name', 'login_ok')
-                ->groupBy('activities.user_id');
+                ->where('activity_name', '=', 'login_ok')
+                ->groupBy('activities.user_id', 'created_at_month');
 
 
             $activities = DB::table(DB::raw("({$monthlyActivity->toSql()}) as {$tablePrefix}activities"))
