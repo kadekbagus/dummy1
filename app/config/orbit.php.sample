@@ -1071,4 +1071,47 @@ return array(
             'path'  => '/opt/scripts/helpers/screen-display.sh'
         )
     ),
+
+    'import' => array(
+       'product' => array(
+            'main' => array(
+                // Allowed Extension
+                'file_type'     => array('csv'),
+
+                // Allowed Mimetype
+                'mime_type'     => array('text/csv', 'text/plain'),
+
+                // Maximum file size allowed in bytes
+                'file_size'     => 20971520, // 20 MB
+
+                // The target path which file to be stored
+                'path'          => storage_path('imports'),
+
+                // Default HTML element name
+                'name'          => 'products',
+
+                // first line total column
+                'total_column'  => 26,
+
+                // chunk size
+                'chunk_size'    => 1,
+
+                // error log max
+                'error_log_max' => 50,
+
+                // Force create directory when not exists
+                'create_directory'  => TRUE,
+
+                // Append year and month to the path
+                'append_year_month' => FALSE,
+
+                // Callback before saving the file
+                'before_saving' => NULL,
+
+                // Callback after saving the file
+                'after_saving'  => NULL,
+            ),
+        ),
+    ),
+
 );

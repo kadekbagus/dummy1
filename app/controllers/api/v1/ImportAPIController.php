@@ -297,6 +297,7 @@ class ImportAPIController extends ControllerAPI
             // start validation
             Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($columnIndex, $totalColumn, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku)
             {
+//var_dump($rows);
                 foreach($rows as $row)
                 {
                     // increase row counter by 1
