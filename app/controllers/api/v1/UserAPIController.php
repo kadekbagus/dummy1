@@ -1238,13 +1238,18 @@ class UserAPIController extends ControllerAPI
             // Available retailer to query
             $listOfRetailerIds = [];
 
+            $prefix = DB::getTablePrefix();
+
             // Builder object
             $users = User::Consumers()
-                        ->select('users.*')
+                        ->select('users.*', DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
                         ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                         ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
+                        ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                        ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                        ->excludeDeleted('users');
+                        ->excludeDeleted('users')
+                        ->groupBy('users.user_id');
 
             // Filter by merchant ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
