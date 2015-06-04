@@ -325,7 +325,11 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         if($databasesimulation->user_email=="guest"){
             $gender = $databasesimulation->gender;
         } else {
-            $gender = $databasesimulation->customer_gender;
+            if($databasesimulation->customer_gender!=NULL || !empty($databasesimulation->customer_gender)){
+                $gender = $databasesimulation->customer_gender;
+            } else {
+                $gender = '';
+            }
         }
         $gender = strtolower($gender);
         switch ($gender) {
