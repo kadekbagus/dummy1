@@ -258,6 +258,9 @@ class ImportAPIController extends ControllerAPI
             // get csv file
             $file = $importProductConfig['path'] . DIRECTORY_SEPARATOR . $mediaList[0]['original']['file_name'];
 
+            // first line total column
+            $totalColumn = $importProductConfig['total_column'];
+
             // get chunk size config
             $chunkSize = $importProductConfig['chunk_size'];
 
@@ -273,8 +276,26 @@ class ImportAPIController extends ControllerAPI
             // for condition if default_sku need to be checked for uniqueness in each row
             $previous_row_default_sku = '';
 
+            // validate first line total column
+            Excel::filter('chunk')->load($file)->chunk(1, function($rows) use ($totalColumn, &$errorLog)
+            {
+                foreach($rows as $row)
+                {
+                    if (count($row) != $totalColumn) {
+                        // log error message to array
+                        $errorMessage = array(
+                            'row'       => 1,
+                            'message'   => 'First line should have ' . $totalColumn . ' columns.'
+                        );
+                        $errorLog[] = $errorMessage;
+                        $this->response->data = $errorLog;
+                        OrbitShopAPI::throwInvalidArgument('error');
+                    }
+                }
+            });
+
             // start validation
-            Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($columnIndex, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku)
+            Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($columnIndex, $totalColumn, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku)
             {
                 foreach($rows as $row)
                 {
@@ -283,12 +304,6 @@ class ImportAPIController extends ControllerAPI
 
 //echo($rowCounter . '<br />');
 //var_dump($row->toArray());
-                    dd(count($row));
-                    // count total column
-                    if (count($row) != 26) {
-
-                        break;
-                    }
 
                     // validate product
                     $default_sku = $row[$columnIndex['default_sku']]; // product_code
@@ -445,13 +460,13 @@ class ImportAPIController extends ControllerAPI
 //echo "CHUNKED". '<br />';
 
             });
-//dd('a');
+
             // if have error, then throw exception
             if (count($errorLog) <> 0) {
                 $this->response->data = $errorLog;
                 OrbitShopAPI::throwInvalidArgument('error');
             }
-
+dd('done validation');
             // start creating data
             $errorLog = array();
             $rowCounter = 0;
@@ -499,12 +514,10 @@ class ImportAPIController extends ControllerAPI
                     $variant_barcode = $row[$columnIndex['variant_barcode']];
                     $variant_price = $row[$columnIndex['variant_price']];
 
-
-
-
+                    $merchant = App::make('orbit.empty.merchant');
 
                     $newproduct = new Product();
-                    $newproduct->merchant_id = $merchant_id;
+                    $newproduct->merchant_id = $merchant->merchant_id;
                     $newproduct->product_code = $product_code;
                     $newproduct->upc_code = $upc_code;
                     $newproduct->product_name = $product_name;
