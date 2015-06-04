@@ -28,7 +28,13 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         });
 
         $activities = Activity::with($with)->select('activities.*',
-                                                    DB::Raw("DATE_FORMAT({$prefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"));
+                                                    DB::Raw("DATE_FORMAT({$prefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"),
+                                                    DB::raw("CASE {$prefix}activities.user_email
+                                                        WHEN 'guest' THEN {$prefix}activities.gender
+                                                            ELSE {$prefix}user_details.gender
+                                                        END AS customer_gender"))
+                                            ->leftJoin('user_details', 'user_details.user_id', '=', 'activities.user_id')
+                                            ->groupBy('activities.activity_id');
 
         // Filter by ids
         OrbitInput::get('id', function($activityIds) use ($activities) {
@@ -318,8 +324,12 @@ class DatabaseSimulationPrinterController extends DataPrinterController
      * @return string
      */
     public function printGender($databasesimulation)
-    {
-        $gender = $databasesimulation->gender;
+    {     
+        if(!empty($databasesimulation->customer_gender)){
+            $gender = $databasesimulation->customer_gender;
+        } else {
+            $gender = $databasesimulation->gender;
+        }
         $gender = strtolower($gender);
         switch ($gender) {
             case 'm':
