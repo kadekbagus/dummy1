@@ -276,6 +276,19 @@ class ImportAPIController extends ControllerAPI
             // for condition if default_sku need to be checked for uniqueness in each row
             $previous_row_default_sku = '';
 
+            // validate if merchant have retailers, at least should have one retailer
+            $retailer_ids = $merchant->getMyRetailerIds();
+            if (count($retailer_ids) === 0) {
+                // log error message to array
+                $errorMessage = array(
+                    'row'       => 1,
+                    'message'   => 'Merchant should at least have one retailer.'
+                );
+                $errorLog[] = $errorMessage;
+                $this->response->data = $errorLog;
+                OrbitShopAPI::throwInvalidArgument('error');
+            }
+
             // validate first line total column
             Excel::filter('chunk')->load($file)->chunk(1, function($rows) use ($totalColumn, &$errorLog)
             {
@@ -314,7 +327,7 @@ class ImportAPIController extends ControllerAPI
                     $default_price = $row[$columnIndex['default_price']];
                     $tax1_name = $row[$columnIndex['tax1_name']];
                     $tax2_name = $row[$columnIndex['tax2_name']];
-                    $default_barcode = $row[$columnIndex['tax2_name']]; // upc_code
+                    $default_barcode = $row[$columnIndex['default_barcode']]; // upc_code
                     $family1_name = $row[$columnIndex['family1_name']];
                     $family2_name = $row[$columnIndex['family2_name']];
                     $family3_name = $row[$columnIndex['family3_name']];
@@ -386,7 +399,7 @@ class ImportAPIController extends ControllerAPI
                             'variant3_value'        => 'orbit.empty.variant_value_name:'.$variant3_name,
                             'variant4_value'        => 'orbit.empty.variant_value_name:'.$variant4_name,
                             'variant5_value'        => 'orbit.empty.variant_value_name:'.$variant5_name,
-                            'variant_sku'           => "orbit.exists.product.sku_code",
+                            'variant_sku'           => 'required|orbit.exists.product.sku_code',
                             'variant_price'         => 'numeric',
                         ),
                         array(
@@ -467,7 +480,7 @@ class ImportAPIController extends ControllerAPI
                 $this->response->data = $errorLog;
                 OrbitShopAPI::throwInvalidArgument('error');
             }
-dd('done validation');
+//dd('done validation');
             // start creating data
             $errorLog = array();
             $rowCounter = 0;
@@ -475,116 +488,237 @@ dd('done validation');
 
             $this->beginTransaction();
 
-            Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($columnIndex, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku)
+            Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($merchant, $retailer_ids, $columnIndex, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku)
             {
                 // increase row counter by 1
                 $rowCounter++;
 
-//echo($rowCounter . '<br />');
-//var_dump($row->toArray());
-
                 foreach($rows as $row)
                 {
-//var_dump($row->toArray());
+                    $default_sku = $row[$columnIndex['default_sku']];
 
-                    $default_sku = $row[$columnIndex['default_sku']]; // product_code
-                    $product_name = $row[$columnIndex['product_name']];
-                    $short_description = $row[$columnIndex['short_description']];
-                    $long_description = $row[$columnIndex['long_description']];
-                    $default_price = $row[$columnIndex['default_price']];
-                    $tax1_name = $row[$columnIndex['tax1_name']];
-                    $tax2_name = $row[$columnIndex['tax2_name']];
-                    $default_barcode = $row[$columnIndex['tax2_name']]; // upc_code
-                    $family1_name = $row[$columnIndex['family1_name']];
-                    $family2_name = $row[$columnIndex['family2_name']];
-                    $family3_name = $row[$columnIndex['family3_name']];
-                    $family4_name = $row[$columnIndex['family4_name']];
-                    $family5_name = $row[$columnIndex['family5_name']];
-                    $variant1_name = $row[$columnIndex['variant1_name']];
-                    $variant2_name = $row[$columnIndex['variant2_name']];
-                    $variant3_name = $row[$columnIndex['variant3_name']];
-                    $variant4_name = $row[$columnIndex['variant4_name']];
-                    $variant5_name = $row[$columnIndex['variant5_name']];
-                    // validate product variant (combination)
-                    $variant1_value = $row[$columnIndex['variant1_value']];
-                    $variant2_value = $row[$columnIndex['variant2_value']];
-                    $variant3_value = $row[$columnIndex['variant3_value']];
-                    $variant4_value = $row[$columnIndex['variant4_value']];
-                    $variant5_value = $row[$columnIndex['variant5_value']];
-                    $variant_sku = $row[$columnIndex['variant_sku']];
-                    $variant_barcode = $row[$columnIndex['variant_barcode']];
-                    $variant_price = $row[$columnIndex['variant_price']];
+                    $newproduct = null;
 
-                    $merchant = App::make('orbit.empty.merchant');
+                    // insert product
+                    if ($previous_row_default_sku !== $default_sku) {
 
-                    $newproduct = new Product();
-                    $newproduct->merchant_id = $merchant->merchant_id;
-                    $newproduct->product_code = $product_code;
-                    $newproduct->upc_code = $upc_code;
-                    $newproduct->product_name = $product_name;
-                    $newproduct->image = $image;
-                    $newproduct->short_description = $short_description;
-                    $newproduct->long_description = $long_description;
-                    $newproduct->is_featured = $is_featured;
-                    $newproduct->new_from = $new_from;
-                    $newproduct->new_until = $new_until;
-                    $newproduct->in_store_localization = $in_store_localization;
-                    $newproduct->post_sales_url = $post_sales_url;
-                    $newproduct->price = $price;
-                    $newproduct->merchant_tax_id1 = $merchant_tax_id1;
-                    $newproduct->merchant_tax_id2 = $merchant_tax_id2;
-                    $newproduct->status = $status;
-                    $newproduct->created_by = $this->api->user->user_id;
-                    $newproduct->modified_by = $this->api->user->user_id;
-                    $newproduct->category_id1 = $category_id1;
-                    $newproduct->category_id2 = $category_id2;
-                    $newproduct->category_id3 = $category_id3;
-                    $newproduct->category_id4 = $category_id4;
-                    $newproduct->category_id5 = $category_id5;
+                        // TODO validasi check sku unique !!!
 
+                        $newproduct = new Product();
+                        $newproduct->merchant_id = $merchant->merchant_id;
+                        $newproduct->product_code = $default_sku;
+                        $newproduct->product_name = $row[$columnIndex['product_name']];
+                        $newproduct->short_description = $row[$columnIndex['short_description']];
+                        $newproduct->long_description = $row[$columnIndex['long_description']];
+                        $newproduct->price = $row[$columnIndex['default_price']];
+                        $newproduct->new_from = 0;
+                        $newproduct->new_until = 0;
 
-
-
-
-
-
-
-                    $validator = Validator::make(
-                        array(
-                            'variant_value_unique_fields' => $default_sku,
-                        ),
-                        array(
-                            'variant_value_unique_fields' => 'variant_value_unique:'.$variant1_value.','.$variant2_value.','.$variant3_value.','.$variant4_value.','.$variant5_value,
-                        ),
-                        array(
-                            'variant_value_unique' => Lang::get('validation.orbit.exists.product.all_variant_unique'),
-                        )
-                    );
-
-                    // Run the validation
-                    if ($validator->fails()) {
-                        foreach($validator->messages()->all() as $msg)
-                        {
-                            // log error message to array
-                            $errorMessage = array(
-                                'row'       => $rowCounter,
-                                'message'   => $msg
-                            );
-                            $errorLog[] = $errorMessage;
-
-                            // if total error reach max error, then throw exception
-                            if (count($errorLog) === $errorLogMax) {
-                                $this->response->data = $errorLog;
-                                OrbitShopAPI::throwInvalidArgument('error');
-                            }
+                        // tax1
+                        $tax1_name = trim($row[$columnIndex['tax1_name']]);
+                        if ($tax1_name !== '') {
+                            $tax1 = MerchantTax::excludeDeleted()
+                                               ->where('tax_name', $tax1_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->merchant_tax_id1 = $tax1->merchant_tax_id;
                         }
-//var_dump($errorLog);
+
+                        // tax2
+                        $tax2_name = trim($row[$columnIndex['tax2_name']]);
+                        if ($tax2_name !== '') {
+                            $tax2 = MerchantTax::excludeDeleted()
+                                               ->where('tax_name', $tax2_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->merchant_tax_id2 = $tax2->merchant_tax_id;;
+                        }
+
+                        $newproduct->upc_code = $row[$columnIndex['default_barcode']];
+
+                        // family1
+                        $family1_name = trim($row[$columnIndex['family1_name']]);
+                        if ($family1_name !== '') {
+                            $family1 = Category::excludeDeleted()
+                                               ->where('category_name', $family1_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->category_id1 = $family1->category_id;
+                        }
+
+                        // family2
+                        $family2_name = trim($row[$columnIndex['family2_name']]);
+                        if ($family2_name !== '') {
+                            $family2 = Category::excludeDeleted()
+                                               ->where('category_name', $family2_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->category_id2 = $family2->category_id;
+                        }
+
+                        // family3
+                        $family3_name = trim($row[$columnIndex['family3_name']]);
+                        if ($family3_name !== '') {
+                            $family3 = Category::excludeDeleted()
+                                               ->where('category_name', $family3_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->category_id3 = $family3->category_id;
+                        }
+
+                        // family4
+                        $family4_name = trim($row[$columnIndex['family4_name']]);
+                        if ($family4_name !== '') {
+                            $family4 = Category::excludeDeleted()
+                                               ->where('category_name', $family4_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->category_id4 = $family4->category_id;
+                        }
+
+                        // family5
+                        $family5_name = trim($row[$columnIndex['family5_name']]);
+                        if ($family5_name !== '') {
+                            $family5 = Category::excludeDeleted()
+                                               ->where('category_name', $family5_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->category_id5 = $family5->category_id;
+                        }
+
+                        // variant1
+                        $variant1_name = trim($row[$columnIndex['variant1_name']]);
+                        if ($variant1_name !== '') {
+                            $variant1 = ProductAttribute::excludeDeleted()
+                                               ->where('product_attribute_name', $variant1_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->attribute_id1 = $variant1->product_attribute_id;
+                        }
+
+                        // variant2
+                        $variant2_name = trim($row[$columnIndex['variant2_name']]);
+                        if ($variant2_name !== '') {
+                            $variant2 = ProductAttribute::excludeDeleted()
+                                               ->where('product_attribute_name', $variant2_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->attribute_id2 = $variant2->product_attribute_id;
+                        }
+
+                        // variant3
+                        $variant3_name = trim($row[$columnIndex['variant3_name']]);
+                        if ($variant3_name !== '') {
+                            $variant3 = ProductAttribute::excludeDeleted()
+                                               ->where('product_attribute_name', $variant3_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->attribute_id3 = $variant3->product_attribute_id;
+                        }
+
+                        // variant4
+                        $variant4_name = trim($row[$columnIndex['variant4_name']]);
+                        if ($variant4_name !== '') {
+                            $variant4 = ProductAttribute::excludeDeleted()
+                                               ->where('product_attribute_name', $variant4_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->attribute_id4 = $variant4->product_attribute_id;
+                        }
+
+                        // variant5
+                        $variant5_name = trim($row[$columnIndex['variant5_name']]);
+                        if ($variant5_name !== '') {
+                            $variant5 = ProductAttribute::excludeDeleted()
+                                               ->where('product_attribute_name', $variant5_name)
+                                               ->where('merchant_id', $merchant->merchant_id)
+                                               ->first();
+                            $newproduct->attribute_id5 = $variant5->product_attribute_id;
+                        }
+
+                        $newproduct->is_featured = 'n';
+                        $newproduct->status = 'active';
+                        $newproduct->created_by = $this->api->user->user_id;
+                        $newproduct->save();
+
+                        // create default variant
+                        ProductVariant::createDefaultVariant($newproduct);
+
+                        // link product to all retailers
+                        foreach ($retailer_ids as $retailer_id) {
+                            $productretailer = new ProductRetailer();
+                            $productretailer->retailer_id = $retailer_id;
+                            $productretailer->product_id = $newproduct->product_id;
+                            $productretailer->save();
+                        }
+                    } else {
+                        $newproduct = Product::excludeDeleted()
+                                             ->where('merchant_id', $merchant->merchant_id)
+                                             ->where('product_code', $default_sku)
+                                             ->first();
                     }
+
+                    // create variant
+                    $product_variant = new ProductVariant();
+                    $product_variant->merchant_id = $merchant->merchant_id;
+                    $product_variant->product_id = $newproduct->product_id;
+
+                    // variant1_value
+                    for ($i=1; $i<=5; $i++) {
+                        $variant_value = trim($row[$columnIndex["variant{$i}_value"]]);
+                        if ($variant_value !== '') {
+                            $value = ProductAttributeValue::excludeDeleted()
+                                                          ->where('value', $variant_value)
+                                                          ->where('product_attribute_id', $newproduct->{'attribute_id' . $i})
+                                                          ->first();
+                            $product_variant->{'product_attribute_value_id' . $i} = $value->product_attribute_value_id;
+                        }
+                    }
+
+                    $product_variant->sku = trim($row[$columnIndex['variant_sku']]);
+                    $product_variant->upc = trim($row[$columnIndex['variant_barcode']]);
+                    $product_variant->price = $row[$columnIndex['variant_price']];
+                    $product_variant->default_variant = 'no';
+                    $product_variant->status = 'active';
+                    $product_variant->created_by = $this->api->user->user_id;
+                    $product_variant->save();
+
+
+
+                    // $validator = Validator::make(
+                    //     array(
+                    //         'variant_value_unique_fields' => $default_sku,
+                    //     ),
+                    //     array(
+                    //         'variant_value_unique_fields' => 'variant_value_unique:'.$variant1_value.','.$variant2_value.','.$variant3_value.','.$variant4_value.','.$variant5_value,
+                    //     ),
+                    //     array(
+                    //         'variant_value_unique' => Lang::get('validation.orbit.exists.product.all_variant_unique'),
+                    //     )
+                    // );
+
+                    // // Run the validation
+                    // if ($validator->fails()) {
+                    //     foreach($validator->messages()->all() as $msg)
+                    //     {
+                    //         // log error message to array
+                    //         $errorMessage = array(
+                    //             'row'       => $rowCounter,
+                    //             'message'   => $msg
+                    //         );
+                    //         $errorLog[] = $errorMessage;
+
+                    //         // if total error reach max error, then throw exception
+                    //         if (count($errorLog) === $errorLogMax) {
+                    //             $this->response->data = $errorLog;
+                    //             OrbitShopAPI::throwInvalidArgument('error');
+                    //         }
+                    //     }
+                    // }
 
                     // set to current default_sku
                     $previous_row_default_sku = $default_sku;
                 };
-//echo "a";
 
             });
 
@@ -682,7 +816,6 @@ dd('done validation');
 
         // Check product_code (SKU), it should not exists
         Validator::extend('orbit.exists.product.sku_code', function ($attribute, $value, $parameters) {
-//echo ($previous_row_default_sku.'==='.$default_sku.'<br />');
             $sku = $value;
 
             if (! empty($parameters)) {
@@ -695,7 +828,7 @@ dd('done validation');
             }
 
             $merchant = App::make('orbit.empty.merchant');
-//echo('checking sku');
+
             // Check also the UPC on product variant
             $productVariant = ProductVariant::excludeDeleted()
                                             ->where('merchant_id', $merchant->merchant_id)
@@ -717,7 +850,6 @@ dd('done validation');
 
             App::instance('orbit.exists.product.sku_code', $product);
 
-//echo('NOT checking sku');
             return TRUE;
         });
 
