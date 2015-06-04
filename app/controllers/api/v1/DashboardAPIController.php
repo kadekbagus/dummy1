@@ -1130,7 +1130,8 @@ class DashboardAPIController extends ControllerAPI
                             else 'Unknown'
                         end
                     ) as user_gender"),
-                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count")
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count"),
+                    DB::raw("date({$tablePrefix}activities.created_at) created_at_date")
                 )
                 ->where(function ($jq) {
                     $jq->where('activity_name', '=', 'login_ok');
@@ -1139,7 +1140,7 @@ class DashboardAPIController extends ControllerAPI
                 ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
                     $join->on('details.user_id', '=', 'activities.user_id');
                 })
-                ->groupBy('details.gender');
+                ->groupBy('details.gender', 'created_at_date');
 
             $isReport = $this->builderOnly;
             OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $users, $tablePrefix) {
@@ -1193,11 +1194,6 @@ class DashboardAPIController extends ControllerAPI
             $lastPage  = false;
             if ($isReport)
             {
-                $_users->addSelect(
-                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
-                );
-                $_users->groupBy('created_at_date');
-
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("created_at_date")
                 ]);
@@ -1400,7 +1396,8 @@ class DashboardAPIController extends ControllerAPI
                             when {$calculateAge} >= 40 then '40+'
                             else 'Unknown'
                         end) as user_age"),
-                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count")
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count"),
+                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                 )
                 ->where(function ($jq) {
                     $jq->where('activities.activity_name', '=', 'registration_ok');
@@ -1409,7 +1406,7 @@ class DashboardAPIController extends ControllerAPI
                 ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
                     $join->on('details.user_id', '=', 'activities.user_id');
                 })
-                ->groupBy('user_age');
+                ->groupBy('user_age', 'created_at_date');
 
             $isReport = $this->builderOnly;
             OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $users, $tablePrefix) {
@@ -1463,21 +1460,14 @@ class DashboardAPIController extends ControllerAPI
                 DB::raw("ifnull(sum(report.user_count), 0) as 'total'")
             ];
 
-
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport) {
-                $_users->addSelect(
-                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
-                );
-                $_users->groupBy('created_at_date');
-
                 $userReportQuery = $_users->getQuery();
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw('report.created_at_date as created_at_date')
                 ]);
-
 
                 $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($_users->getQuery())
