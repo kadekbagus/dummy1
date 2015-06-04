@@ -292,7 +292,7 @@ class CashierPrinterController extends DataPrinterController
 
             $rowNames = [
                 'activity_date' => 'Date',
-                'activity_full_name' => 'Employee Name',
+                'activity_full_name' => 'Cashier',
                 'login_at_hour' => 'Clock In',
                 'logout_at_hour' => 'Clock Out',
                 'total_time' => 'Total Time (mins)',
