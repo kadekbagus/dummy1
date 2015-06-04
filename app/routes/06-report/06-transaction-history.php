@@ -15,8 +15,13 @@ Route::get('/printer/consumer-transaction-history/receipt-report', [
     'uses'    => 'Report\TransactionHistoryPrinterController@getReceiptReportPrintView'
 ]);
 
+/**
+ * TBD: transaction detail sales report
+ */
+/*
 Route::get('/printer/consumer-transaction-history/detail-sales-report', [
     'as'      => 'printer-customer-transaction-history-detail-sales-report',
     'before'  => 'orbit-settings',
     'uses'    => 'Report\TransactionHistoryPrinterController@getDetailReportPrintView'
 ]);
+*/

@@ -89,28 +89,37 @@ class CashierAPIController extends ControllerAPI
             }
 
             $activities  = Activity::select(
-                'user_id as activity_user_id',
-                'full_name as activity_full_name',
-                'role as activity_role',
-                'group as activity_group',
-                DB::raw('date(created_at) as activity_date'),
-                DB::raw("min(case activity_name when 'login_ok' then created_at end) as login_at"),
-                DB::raw("max(case activity_name when 'logout_ok' then created_at end) as logout_at")
-            )
+                    'activities.user_id as activity_user_id',
+                    'activities.full_name as activity_full_name',
+                    'activities.role as activity_role',
+                    'activities.group as activity_group',
+                    DB::raw("date({$tablePrefix}activities.created_at) as activity_date"),
+                    DB::raw("min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end) as login_at"),
+                    DB::raw("date_format(min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end), '%H:%i:%s') as login_at_hour"),
+                    DB::raw("max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end) as logout_at"),
+                    DB::raw("date_format(max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end), '%H:%i:%s')  as logout_at_hour"),
+                    DB::raw("timestampdiff(MINUTE, min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end), max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end)) as total_time"),
+                    'retailer.merchant_id as retailer_id',
+                    'retailer.parent_id as merchant_id'
+                )
                 ->where('role', 'like', 'cashier')
                 ->where('group', '=', 'pos')
-                ->whereIn('activity_name', ['login_ok', 'logout_ok'])
+                ->where(function($q) {
+                    $q->where('activity_name', 'like', 'login_ok');
+                    $q->orWhere('activity_name', 'like', 'logout_ok');
+                })
+                ->leftJoin("merchants as {$tablePrefix}retailer", 'retailer.merchant_id', '=', 'activities.location_id')
                 ->groupBy('activity_date', 'activity_user_id');
             $activitiesQuery = $activities->getQuery();
 
             $transactionByDate = Transaction::select(
-                DB::raw('count(distinct transaction_id) as transactions_count'),
-                DB::raw('sum(total_to_pay) as transactions_total'),
-                DB::raw('date(created_at) as transaction_date'),
-                'merchant_id',
-                'cashier_id',
-                'customer_id'
-            )
+                    DB::raw('count(distinct transaction_id) as transactions_count'),
+                    DB::raw('sum(total_to_pay) as transactions_total'),
+                    DB::raw('date(created_at) as transaction_date'),
+                    'created_at',
+                    'cashier_id',
+                    'customer_id'
+                )
                 ->groupBy('transaction_date', 'cashier_id');
             $transactionByDateQuery = $transactionByDate->getQuery();
 
@@ -125,7 +134,7 @@ class CashierAPIController extends ControllerAPI
 
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {
-               $transactions->whereIn('transactions.merchant_id', $this->getArray($merchantId));
+               $transactions->whereIn('activities.merchant_id', $this->getArray($merchantId));
             });
 
             // Filter by date from
@@ -154,6 +163,40 @@ class CashierAPIController extends ControllerAPI
 
             $_transactions = clone $transactions;
 
+            // Default sort by
+            $sortBy = 'activity_date';
+            // Default sort mode
+            $sortMode = 'desc';
+
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+            {
+                $sortByMapping = array(
+                    'activity_date' => 'activity_date',
+                    'cashier_id'    => 'activity_user_id',
+                    'cashier_name'  => 'activity_full_name',
+                    'login_at'      => 'login_at_hour',
+                    'logout_at'     => 'logout_at_hour',
+                    'transactions_count'  => 'transactions_count',
+                    'transactions_total'  => 'transactions_total',
+                    'total_time' => 'total_time'
+                );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'desc') {
+                    $sortMode = 'asc';
+                }
+            });
+
+            $transactions->orderBy($sortBy, $sortMode);
+
+            if ($this->builderOnly)
+            {
+                return $this->builderObject($transactions, $_transactions);
+            }
             // Get the take args
             $take = $perPage;
             OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
@@ -179,34 +222,6 @@ class CashierAPIController extends ControllerAPI
             });
             $transactions->skip($skip);
 
-            // Default sort by
-            $sortBy = 'transaction_date';
-            // Default sort mode
-            $sortMode = 'asc';
-
-            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
-            {
-                $sortByMapping = array(
-                    'cashier_id'   => 'activity_user_id',
-                    'cashier_name' => 'activity_full_name',
-                    'login_at'     => 'login_at',
-                    'logout_at'    => 'logout_at',
-                    'transactions_count'  => 'transactions_count',
-                    'transactions_total'  => 'transactions_total'
-                );
-
-                $sortBy = $sortByMapping[$_sortBy];
-            });
-
-            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
-            {
-                if (strtolower($_sortMode) !== 'asc') {
-                    $sortMode = 'desc';
-                }
-            });
-
-            $transactions->orderBy($sortBy, $sortMode);
-
             $totalTransactions = DB::table(DB::raw("({$_transactions->toSql()}) as sub"))
                 ->mergeBindings($_transactions)
                 ->count();
@@ -219,7 +234,7 @@ class CashierAPIController extends ControllerAPI
             $data->records = $transactionList;
 
             // Consider last pages
-            if (($totalTransactions - $skip) <= $skip)
+            if (($totalTransactions - $take) <= $skip)
             {
                 $subTotalQuery    = $_transactions->toSql();
                 $subTotalBindings = $_transactions;

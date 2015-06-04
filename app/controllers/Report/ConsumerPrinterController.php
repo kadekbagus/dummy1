@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use User;
 use Role;
 
@@ -44,7 +45,7 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.avg_annual_income1 as avg_annual_income1',
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
                         'user_details.preferred_language as preferred_language',
-                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ' , ') as personal_interest_list"))
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
                     ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                     ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                     ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
@@ -242,9 +243,9 @@ class ConsumerPrinterController extends DataPrinterController
                 'firstname'               => 'users.user_firstname',
                 'gender'                  => 'user_details.gender',
                 'city'                    => 'user_details.city',
-                'last_visit_shop'         => 'merchants.name',
-                'last_visit_date'         => 'user_details.last_visit_any_shop',
-                'last_spent_amount'       => 'user_details.last_spent_any_shop'
+                'last_visit_shop'         => 'merchant_name',
+                'last_visit_date'         => 'last_visit_date',
+                'last_spent_amount'       => 'last_spent_amount'
             );
 
             $sortBy = $sortByMapping[$_sortBy];
@@ -267,24 +268,24 @@ class ConsumerPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Consumer';
         switch ($mode) {
             case 'csv':
-                $filename = 'consumer-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Consumer List', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Total Consumer', $totalRec, '', '', '', '','');
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Address', 'Last Visited Retailer', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Relationship Status', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Preferred Language', 'Annual Income (IDR)', 'Average Monthly Shopping Spent', 'Personal Interest');
+                printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Email', 'Gender', 'Location', 'Last Visited Store', 'Last Visit Date', 'Last Spent Amount', 'Customer Since', 'First Name', 'Last Name', 'Date of Birth', 'Relationship Status', 'Number of Children', 'Occupation', 'Sector of Activity', 'Education Level', 'Preferred Language', 'Annual Income (IDR)', 'Average Monthly Shopping Spent', 'Personal Interest');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
-                    $customer_since = $this->printDateFormat($row);
+                    $customer_since = $this->printCustomerSince($row);
                     $gender = $this->printGender($row);
                     $address = $this->printAddress($row);
                     $birthdate = $this->printBirthDate($row);
@@ -296,8 +297,8 @@ class ConsumerPrinterController extends DataPrinterController
                     $avg_monthly_spent = $this->printAverageShopping($row);
 
                     printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
-                        '', $row->user_email, $gender, $address, $row->merchant_name, $last_visit_date, $row->last_spent_amount, $customer_since,
-                        $row->user_firstname, $row->user_lastname, $birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
+                        '', $row->user_email, $gender, $address, $this->printUtf8($row->merchant_name), $row->last_visit_date, $row->last_spent_amount, $row->created_at,
+                        $this->printUtf8($row->user_firstname), $this->printUtf8($row->user_lastname), $row->birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
                         $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_list);
                 }
                 break;
@@ -305,11 +306,34 @@ class ConsumerPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Consumer';
                 require app_path() . '/views/printer/list-consumer-view.php';
         }
     }
 
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+    }
 
     /**
      * Print expiration date type friendly name.
@@ -320,7 +344,7 @@ class ConsumerPrinterController extends DataPrinterController
     public function printAddress($consumer)
     {
         if(!empty($consumer->city) && !empty($consumer->country)){
-            $result = $consumer->city.','.$consumer->country;
+            $result = $consumer->city.', '.$consumer->country;
         }
         else if(empty($consumer->city) && !empty($consumer->country)){
             $result = $consumer->country;
@@ -332,7 +356,7 @@ class ConsumerPrinterController extends DataPrinterController
             $result = '';
         }
 
-        return $result;
+        return $this->printUtf8($result);
     }
 
 
@@ -393,7 +417,7 @@ class ConsumerPrinterController extends DataPrinterController
      * @param $consumer $consumer
      * @return string
      */
-    public function printDateFormat($consumer)
+    public function printCustomerSince($consumer)
     {
         if($consumer->created_at==NULL || empty($consumer->created_at)){
             $result = "";
@@ -402,7 +426,7 @@ class ConsumerPrinterController extends DataPrinterController
             $date = $consumer->created_at;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat;
         }
 
@@ -426,7 +450,7 @@ class ConsumerPrinterController extends DataPrinterController
             $date = $consumer->birthdate;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat;
         }
 
@@ -448,7 +472,7 @@ class ConsumerPrinterController extends DataPrinterController
         }else {
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat;
         }
 
@@ -463,12 +487,13 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastSpentAmount($consumer)
     {
-        if($consumer->last_spent_amount!=0){
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
+        if($currency=='usd'){
             $result = number_format($consumer->last_spent_amount, 2);
         } else {
             $result = number_format($consumer->last_spent_amount);
         }
-
         return $result;
     }
 
@@ -698,6 +723,18 @@ class ConsumerPrinterController extends DataPrinterController
         }
 
         return $result;
+    }
+
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 
 }

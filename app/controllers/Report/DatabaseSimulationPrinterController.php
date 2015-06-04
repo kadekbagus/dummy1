@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use Activity;
 
 class DatabaseSimulationPrinterController extends DataPrinterController
@@ -276,12 +277,12 @@ class DatabaseSimulationPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Database Simulation';
         switch ($mode) {
             case 'csv':
-                $filename = 'databasesimulation-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '', '', '', '', '');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Database Simulation List', '', '', '', '', '', '', '', '', '');
@@ -296,7 +297,7 @@ class DatabaseSimulationPrinterController extends DataPrinterController
 
                     $gender = $this->printGender($row);
                     $date = $this->printDateTime($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", $count, $row->user_email, $gender, $date, strtoupper($row->group), $row->module_name, $row->activity_name_long, $row->product_name, $row->promotion_name, $row->coupon_name, $row->staff_name);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", $count, $row->user_email, $gender, $row->created_at, strtoupper($row->group), $row->module_name, $row->activity_name_long, $this->printUtf8($row->product_name), $this->printUtf8($row->promotion_name), $this->printUtf8($row->coupon_name), $this->printUtf8($row->staff_name));
                     $count++;
 
                 }
@@ -305,7 +306,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Database Simulation';
                 require app_path() . '/views/printer/list-databasesimulation-view.php';
         }
     }
@@ -319,7 +319,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
      */
     public function printGender($databasesimulation)
     {
-        $return = '';
         $gender = $databasesimulation->gender;
         $gender = strtolower($gender);
         switch ($gender) {
@@ -345,7 +344,6 @@ class DatabaseSimulationPrinterController extends DataPrinterController
      */
     public function printDateTime($databasesimulation)
     {
-        $return = '';
         if($databasesimulation->created_at==NULL || empty($databasesimulation->created_at)){
             $result = "";
         }
@@ -353,11 +351,23 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             $date = $databasesimulation->created_at;
             $date = explode(' ',$date);
             $time = strtotime($date[0]);
-            $newformat = date('d M Y',$time);
+            $newformat = date('d F Y',$time);
             $result = $newformat.' '.$date[1];
         }
 
         return $result;
+    }
+
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 
 }

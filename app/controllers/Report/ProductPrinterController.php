@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use Product;
 
 class ProductPrinterController extends DataPrinterController
@@ -23,7 +24,7 @@ class ProductPrinterController extends DataPrinterController
         $products = Product::excludeDeleted('products')->select(
             "products.*","merchants.name as merchant_name",
             DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'),
-            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list")
+            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ', ') as retailer_list")
         )->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
         ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
         ->groupBy('products.product_id');
@@ -219,12 +220,12 @@ class ProductPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Product';
         switch ($mode) {
             case 'csv':
-                $filename = 'product-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '','','','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Product List', '', '', '','','','');
@@ -236,14 +237,13 @@ class ProductPrinterController extends DataPrinterController
                 
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
                     
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $row->product_name, $row->price, $row->retailer_list, $row->is_new, $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\"\n", '', $row->product_code, $row->upc_code, $this->printUtf8($row->product_name), $row->price, $this->printUtf8($row->retailer_list), $row->is_new, $row->status);
                 }
                 break;
 
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Product';
                 require app_path() . '/views/printer/list-product-view.php';
         }
     }
@@ -283,7 +283,7 @@ class ProductPrinterController extends DataPrinterController
     public function printCurrency()
     {
         $retailer = $this->getRetailerInfo();
-        $currency = strtolower($retailer->currency);
+        $currency = strtolower($retailer->parent->currency);
         switch ($currency) {
             case 'usd':
                 $result = 'USD';
@@ -308,10 +308,32 @@ class ProductPrinterController extends DataPrinterController
      */
     public function printPrice($product)
     {
-        $result = number_format($product->price, 2);
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
+        switch ($currency) {
+            case 'usd':
+                $result = number_format($product->price, 2);
+                break;
+
+            case 'idr':
+                $result = number_format($product->price);
+                break;
+            default:
+                $result = number_format($product->price);
+        }
         
         return $result;
     }
 
 
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
+    }
 }

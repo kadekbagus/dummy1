@@ -123,8 +123,8 @@
         <thead>
             <th style="text-align:left;">Email </th>
             <th style="text-align:left;">Gender</th>
-            <th style="text-align:left;">Address</th>
-            <th style="text-align:left;">Last Visited Retailer</th>
+            <th style="text-align:left;">Location</th>
+            <th style="text-align:left;">Last Visited Store</th>
             <th style="text-align:left;">Last Visit Date</th>
             <th style="text-align:left;">Last Spent Amount</th>
             <th style="text-align:left;">Customer Since</th>
@@ -135,10 +135,10 @@
                 <td><?php echo ($row->user_email); ?></td>
                 <td><?php echo $me->printGender($row); ?></td>
                 <td><?php echo $me->printAddress($row); ?></td>
-                <td><?php echo ($row->merchant_name); ?></td>
+                <td><?php echo $me->printUtf8($row->merchant_name); ?></td>
                 <td><?php echo $me->printLastVisitDate($row); ?></td>
                 <td><?php echo $me->printLastSpentAmount($row); ?></td>
-                <td><?php echo $me->printDateFormat($row); ?></td>
+                <td><?php echo $me->printCustomerSince($row); ?></td>
             </tr>
         <?php endwhile; ?>
         </tbody>

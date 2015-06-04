@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use EventModel;
 
 class EventPrinterController extends DataPrinterController
@@ -20,9 +21,51 @@ class EventPrinterController extends DataPrinterController
         $now = date('Y-m-d H:i:s');
 
         // Builder object
-        $events = EventModel::select(DB::raw($prefix . "events.*"), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"))
+        $events = EventModel::select(DB::raw($prefix . "events.*"), 
+                                     DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ') as retailer_list"),
+                                     DB::raw('cat1.category_name as family_name1'),
+                                     DB::raw('cat2.category_name as family_name2'),
+                                     DB::raw('cat3.category_name as family_name3'),
+                                     DB::raw('cat4.category_name as family_name4'),
+                                     DB::raw('cat5.category_name as family_name5'),
+                                     DB::raw("CASE link_object_type
+                                            WHEN 'widget' THEN 'page'
+                                                ELSE link_object_type
+                                            END AS 'event_redirected_to'
+                                        "),
+                                     "promotions.promotion_name as promotion_name",
+                                     "products.product_name as product_name"
+                                     )
                             ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
                             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
+                            ->leftJoin(DB::raw("{$prefix}promotions"), function($join) {
+                                $join->on('promotions.promotion_id', '=', 'events.link_object_id1');
+                                $join->on('events.link_object_type', '=', DB::raw("'promotion'"));
+                            })
+                            ->leftJoin(DB::raw("{$prefix}products"), function($join) {
+                                $join->on('products.product_id', '=', 'events.link_object_id1');
+                                $join->on('events.link_object_type', '=', DB::raw("'product'"));
+                            })
+                            ->leftJoin(DB::raw("{$prefix}categories cat1"), function($join) {
+                                $join->on(DB::raw('cat1.category_id'), '=', 'events.link_object_id1');
+                                $join->on('events.link_object_type', '=', DB::raw("'family'"));
+                            })
+                            ->leftJoin(DB::raw("{$prefix}categories cat2"), function($join) {
+                                $join->on(DB::raw('cat2.category_id'), '=', 'events.link_object_id2');
+                                $join->on('events.link_object_type', '=', DB::raw("'family'"));
+                            }) 
+                            ->leftJoin(DB::raw("{$prefix}categories cat3"), function($join) {
+                                $join->on(DB::raw('cat3.category_id'), '=', 'events.link_object_id3');
+                                $join->on('events.link_object_type', '=', DB::raw("'family'"));
+                            })
+                            ->leftJoin(DB::raw("{$prefix}categories cat4"), function($join) {
+                                $join->on(DB::raw('cat4.category_id'), '=', 'events.link_object_id4');
+                                $join->on('events.link_object_type', '=', DB::raw("'family'"));
+                            })
+                            ->leftJoin(DB::raw("{$prefix}categories cat5"), function($join) {
+                                $join->on(DB::raw('cat5.category_id'), '=', 'events.link_object_id5');
+                                $join->on('events.link_object_type', '=', DB::raw("'family'"));
+                            })
                             ->groupBy('events.event_id')
                             ->excludeDeleted('events');
 
@@ -184,7 +227,8 @@ class EventPrinterController extends DataPrinterController
                 'begin_date'        => 'events.begin_date',
                 'end_date'          => 'events.end_date',
                 'is_permanent'      => 'events.is_permanent',
-                'status'            => 'events.status'
+                'status'            => 'events.status',
+                'event_redirected_to' => 'event_redirected_to'
             );
 
             $sortBy = $sortByMapping[$_sortBy];
@@ -208,12 +252,12 @@ class EventPrinterController extends DataPrinterController
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
 
+        $pageTitle = 'Event';
         switch ($mode) {
             case 'csv':
-                $filename = 'event-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Event List', '', '', '', '', '','');
@@ -227,14 +271,14 @@ class EventPrinterController extends DataPrinterController
 
                     $expiration_date = $this->printExpirationDate($row);
                     $event_link = $this->printEventLink($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $row->link_object_type, $event_link, $row->status);
+                    $link_object_type = $this->printLinkObjectType($row);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", '', $row->event_name, $expiration_date, $row->retailer_list, $row->event_type, $link_object_type, $event_link, $row->status);
                 }
                 break;
 
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Event';
                 require app_path() . '/views/printer/list-event-view.php';
         }
     }
@@ -262,7 +306,7 @@ class EventPrinterController extends DataPrinterController
                 } else {
                     $date = explode(' ',$date);
                     $time = strtotime($date[0]);
-                    $newformat = date('d M Y',$time);
+                    $newformat = date('d F Y',$time);
                     $result = $newformat.' '.$date[1];
                 }
         }
@@ -279,7 +323,50 @@ class EventPrinterController extends DataPrinterController
      */
     public function printEventLink($event)
     {
-        $result = str_replace("_"," ",$event->widget_object_type); 
+        switch($event->link_object_type){
+            case 'promotion':
+                $result = $event->promotion_name;
+                break;
+            case 'product':
+                $result = $event->product_name;
+                break;
+            case 'family':
+                $families = [];
+                $families[] = $event->family_name1;
+                $families[] = $event->family_name2;
+                $families[] = $event->family_name3;
+                $families[] = $event->family_name4;
+                $families[] = $event->family_name5;
+
+                // Remove empty array
+                $families = array_filter($families);
+
+                // Join with comma separator
+                $families = implode(', ', $families);
+
+                $result = $families;
+                break;
+            default:
+                $result = str_replace("_"," ",$event->widget_object_type); 
+        }
+        
+        return $result;
+    }
+
+
+    /**
+     * Print link object type friendly name.
+     *
+     * @param $event $event
+     * @return string
+     */
+    public function printLinkObjectType($event)
+    {
+        if($event->link_object_type === 'widget'){
+            $result = 'page';
+        } else {
+            $result = $event->link_object_type;
+        }
         return $result;
     }
 

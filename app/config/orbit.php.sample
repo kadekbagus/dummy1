@@ -19,11 +19,11 @@ return array(
         'id'    => NULL,
         // search result limit
         'search_limit' => 300,
-        
+
         'zbar' => array(
-            // zbarimage path
-            // eg: '"C:\\Program Files (x86)\\ZBar\\bin\\zbarimg.exe" --raw -q '
-            'path'      => '',
+            // ZBar Libary
+            // Path to the zbarimg binary
+            'path'      => '/usr/bin/zbarimg',
             'param'     => '--raw -q'
         )
     ),
@@ -31,7 +31,7 @@ return array(
     // General contact data
     'contact_information' => array(
         'customer_service'  => array(
-            'email' => 'cs@localhost.org',
+            'email' => 'cs@myorbit.com',
             'name'  => 'Orbit Customer Service',
             'phone' => '+62123456789',
             'fax'   => '+62123456789',
@@ -182,19 +182,19 @@ return array(
 
             // Sender
             'sender' => array(
-                'email' => 'no-reply@localhost.org',
-                'name'  => 'DominoPOS'
+                'email' => 'no-reply@myorbit.com',
+                'name'  => 'Orbit'
             ),
 
             // Activation URL
             // This should be frontend URL not backend
-            'activation_base_url' => 'http://orbit-shop.here/#/activate-account?token=%s',
+            'activation_base_url' => 'http://customer.box/#/activate-account?token=%s',
 
             // Number of days the activation link will expires
             'activation_expire' => 365,
 
             // Sign in URL
-            'signin_url' => 'http://orbit-shop.here/signin',
+            'signin_url' => 'http://customer.box',
 
             // Fake registration means it does not save the data, only sends
             // the welcome email
@@ -367,18 +367,18 @@ return array(
             'fake_call' => TRUE,
 
             // Command to register or deregister client Mac address
-            'command'   => 'sudo /home/orbit/scripts/firewall/register_mac.sh'
+            'command'   => 'sudo /opt/scripts/firewall/register-mac-v2.sh'
         ),
 
         // Box management related commands
         'commands' => array(
             // The shutdown command, the caller should send the "shutdown"
             // string via STDIN
-            'shutdown'  => 'sudo /home/orbit/scripts/helpers/shutdown.sh',
+            'shutdown'  => 'sudo /opt/scripts/helpers/shutdown.sh',
 
             // The reboot command, the caller should send the "reboot" string
             // via STDIN
-            'reboot'    => 'sudo /home/orbit/scripts/helpers/shutdown.sh'
+            'reboot'    => 'sudo /opt/scripts/helpers/shutdown.sh'
         ),
     ),
 
@@ -964,7 +964,7 @@ return array(
                 'after_saving'  => NULL,
             ),
         ),
-        
+
         // -------------------------------------------------------------------//
         // UPC scan Uploads
         // -------------------------------------------------------------------//
@@ -1041,18 +1041,18 @@ return array(
 
     'devices'  => array(
         'barcode'    => array(
-            'path'   => '/home/dominopos1/drivers/64bits/barcode',
+            'path'   => '/opt/programs/device-drivers/x86_64/barcode',
             'params' => '/dev/domino/scanner'
         ),
 
         'edc'        => array(
-            'path'   => '/home/dominopos1/drivers/edc_ict220_V102/ict220',
+            'path'   => '/opt/programs/device-drivers/x86_64/ict220',
             'params' => '/dev/ttyUSB0'
         ),
 
         'cdisplay'   => array(
-            'path'   => '/home/dominopos1/drivers/64bits/cdisplay_newborn',
-            'params' => '/dev/ttyACM0'
+            'path'   => '/opt/programs/device-drivers/x86_64/display',
+            'params' => '/dev/domino/display'
         ),
 
         'printer'    => array(
@@ -1060,15 +1060,15 @@ return array(
         ),
 
         'cutpaper'   => array(
-            'path'   => '/home/dominopos1/drivers/64bits/cut_paper'
+            'path'   => '/opt/programs/device-drivers/x86_64/cut_paper'
         ),
 
         'cashdrawer' => array(
-            'path'   => '/home/dominopos1/drivers/64bits/cash_drawer'
+            'path'   => '/opt/programs/device-drivers/x86_64/cash_drawer'
         ),
 
         'prepare_screen'    => array(
-            'path'  => '/home/orbitadmin/scripts/helpers/screen-display.sh'
+            'path'  => '/opt/scripts/helpers/screen-display.sh'
         )
     ),
 );

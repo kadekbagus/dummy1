@@ -6,6 +6,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
+use Orbit\Text as OrbitText;
 use Product;
 use Promotion;
 
@@ -22,26 +23,57 @@ class PromotionPrinterController extends DataPrinterController
 
         $promotions = Promotion::excludeDeleted('promotions')
             ->select(DB::raw($prefix . "promotions.*, 
-                CASE rule_type
-                    WHEN 'cart_discount_by_percentage' THEN 'percentage'
-                    WHEN 'product_discount_by_percentage' THEN 'percentage'
-                    WHEN 'cart_discount_by_value' THEN 'value'
-                    WHEN 'product_discount_by_value' THEN 'value'
-                    ELSE NULL
-                END AS 'display_discount_type',
-                CASE rule_type
-                    WHEN 'cart_discount_by_percentage' THEN discount_value * 100
-                    WHEN 'product_discount_by_percentage' THEN discount_value * 100
-                    ELSE discount_value
-                END AS 'display_discount_value'
-                "), DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ' , ') as retailer_list"),
+                    CASE rule_type
+                        WHEN 'cart_discount_by_percentage' THEN 'percentage'
+                        WHEN 'product_discount_by_percentage' THEN 'percentage'
+                        WHEN 'cart_discount_by_value' THEN 'value'
+                        WHEN 'product_discount_by_value' THEN 'value'
+                        ELSE NULL
+                    END AS 'display_discount_type',
+                    CASE rule_type
+                        WHEN 'cart_discount_by_percentage' THEN discount_value * 100
+                        WHEN 'product_discount_by_percentage' THEN discount_value * 100
+                        ELSE discount_value
+                    END AS 'display_discount_value'
+                    "), 
+                    DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ') as retailer_list"),
+                    DB::raw('cat1.category_name as family_name1'),
+                    DB::raw('cat2.category_name as family_name2'),
+                    DB::raw('cat3.category_name as family_name3'),
+                    DB::raw('cat4.category_name as family_name4'),
+                    DB::raw('cat5.category_name as family_name5'),
+                    "promotion_rules.rule_type as rule_type",
                     "promotion_rules.discount_value as discount_value",
+                    "promotion_rules.discount_object_type as discount_object_type",
                     "products.product_name as product_name"
             )
             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
             ->leftJoin('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
-            ->leftJoin('products', 'products.product_id', '=', 'promotion_rules.discount_object_id1')
+            ->leftJoin(DB::raw("{$prefix}products"), function($join) {
+                $join->on('products.product_id', '=', 'promotion_rules.discount_object_id1');
+                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'product'"));
+            })
+            ->leftJoin(DB::raw("{$prefix}categories cat1"), function($join) {
+                $join->on(DB::raw('cat1.category_id'), '=', 'promotion_rules.discount_object_id1');
+                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
+            })
+            ->leftJoin(DB::raw("{$prefix}categories cat2"), function($join) {
+                $join->on(DB::raw('cat2.category_id'), '=', 'promotion_rules.discount_object_id2');
+                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
+            }) 
+            ->leftJoin(DB::raw("{$prefix}categories cat3"), function($join) {
+                $join->on(DB::raw('cat3.category_id'), '=', 'promotion_rules.discount_object_id3');
+                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
+            })
+            ->leftJoin(DB::raw("{$prefix}categories cat4"), function($join) {
+                $join->on(DB::raw('cat4.category_id'), '=', 'promotion_rules.discount_object_id4');
+                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
+            })
+            ->leftJoin(DB::raw("{$prefix}categories cat5"), function($join) {
+                $join->on(DB::raw('cat5.category_id'), '=', 'promotion_rules.discount_object_id5');
+                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
+            })
             ->groupBy('promotions.promotion_id');
 
         // Filter promotion by Ids
@@ -304,13 +336,13 @@ class PromotionPrinterController extends DataPrinterController
 
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
-
+        
+        $pageTitle = 'Promotion';
         switch ($mode) {
             case 'csv':
-                $filename = 'promotion-list-' . date('d_M_Y_HiA') . '.csv';
                 @header('Content-Description: File Transfer');
                 @header('Content-Type: text/csv');
-                @header('Content-Disposition: attachment; filename=' . $filename);
+                @header('Content-Disposition: attachment; filename=' . OrbitText::exportFilename($pageTitle));
 
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Promotion List', '', '', '', '', '','');
@@ -324,15 +356,15 @@ class PromotionPrinterController extends DataPrinterController
 
                     $expiration_date = $this->printExpirationDate($row);
                     $discount_type = $this->printDiscountType($row);
+                    $productfamilylink = $this->printProductFamilyLink($row);
 
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $row->promotion_name, $expiration_date, $row->retailer_list, $discount_type, $row->discount_value, $row->product_name, $row->status);
+                    printf("\"%s\",\"%s\", %s,\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $this->printUtf8($row->promotion_name), $expiration_date, $this->printUtf8($row->retailer_list), $discount_type, $row->discount_value, $productfamilylink, $row->status);
                 }
                 break;
 
             case 'print':
             default:
                 $me = $this;
-                $pageTitle = 'Promotion';
                 require app_path() . '/views/printer/list-promotion-view.php';
         }
     }
@@ -370,14 +402,29 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountType($promotion)
     {
-        switch ($promotion->promotion_type) {
-            case 'cart':
-                $result = 'Cart Discount By ' . ucfirst($promotion->display_discount_type);
+        switch ($promotion->rule_type) {
+            case 'cart_discount_by_value':
+                $result = 'Cart Discount By Value';
                 break;
 
-            case 'product':
+            case 'cart_discount_by_percentage':
+                $result = 'Cart Discount By Percentage';
+                break;
+
+            case 'product_discount_by_value':
+                $result = 'Product Discount By Value';
+                break;
+
+            case 'product_discount_by_percentage':
+                $result = 'Product Discount By Percentage';
+                break;
+
+            case 'new_product_price':
+                $result = 'New Product Price';
+                break;
+
             default:
-                $result = 'Product Discount By ' . ucfirst($promotion->display_discount_type);
+                $result = '';
         }
 
         return $result;
@@ -405,10 +452,9 @@ class PromotionPrinterController extends DataPrinterController
                     $date = $promotion->end_date;
                     $date = explode(' ',$date);
                     $time = strtotime($date[0]);
-                    $newformat = date('d M Y',$time);
+                    $newformat = date('d F Y',$time);
                     $result = $newformat;
                 }
-
         }
 
         return $result;
@@ -423,22 +469,70 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function printDiscountValue($promotion)
     {
+        $retailer = $this->getRetailerInfo();
+        $currency = strtolower($retailer->parent->currency);
         switch ($promotion->display_discount_type) {
-            case 'value':
-                $result = number_format($promotion->discount_value, 2);
-                $result .= chr(27);
-                break;
-
             case 'percentage':
                 $discount =  $promotion->discount_value*100;
                 $result = $discount."%";
                 break;
                 
             default:
-                $result = number_format($promotion->discount_value, 2);
-                $result .= chr(27);
+                if($currency=='usd'){
+                    $result = number_format($promotion->discount_value, 2);
+                } else {
+                    $result = number_format($promotion->discount_value);
+                }
         }
 
         return $result;
+    }
+
+
+    /**
+     * Print product or family link friendly name.
+     *
+     * @param $promotion $promotion
+     * @return string
+     */
+    public function printProductFamilyLink($promotion)
+    {
+        switch($promotion->discount_object_type){
+            case 'product':
+                $result = $promotion->product_name;
+                break;
+            case 'family':
+                $families = [];
+                $families[] = $promotion->family_name1;
+                $families[] = $promotion->family_name2;
+                $families[] = $promotion->family_name3;
+                $families[] = $promotion->family_name4;
+                $families[] = $promotion->family_name5;
+
+                // Remove empty array
+                $families = array_filter($families);
+
+                // Join with comma separator
+                $families = implode(', ', $families);
+
+                $result = $families;
+                break;
+            default:
+                $result = ''; 
+        }
+        
+        return $result;
+    }
+
+
+    /**
+     * output utf8.
+     *
+     * @param string $input
+     * @return string
+     */
+    public function printUtf8($input)
+    {
+        return utf8_encode($input);
     }
 }

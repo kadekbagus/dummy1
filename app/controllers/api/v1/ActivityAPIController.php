@@ -169,6 +169,16 @@ class ActivityAPIController extends ControllerAPI
                 $activities->where('activities.activity_name_long', 'like', "%$name%");
             });
 
+            // Filter by module_name
+            OrbitInput::get('module_names', function($names) use ($activities) {
+                $activities->whereIn('activities.module_name', $names);
+            });
+
+            // Filter by matching module_name pattern
+            OrbitInput::get('module_name_like', function($name) use ($activities) {
+                $activities->where('activities.module_name', 'like', "%{$name}%");
+            });
+
             // Filter by merchant ids
             OrbitInput::get('merchant_ids', function($merchantIds) use ($activities) {
                 $activities->merchantIds($merchantIds);
@@ -225,7 +235,7 @@ class ActivityAPIController extends ControllerAPI
 
             // Filter by matching object_name pattern
             OrbitInput::get('object_name_like', function($name) use ($activities) {
-                $activities->where('activities.object_name', 'like', "%$name%");
+                $activities->where('activities.object_name', 'like', "%{$name}%");
             });
 
             OrbitInput::get('product_names', function($names) use ($activities) {

@@ -36,17 +36,28 @@ class TransactionDetail extends Eloquent
      * Simple join with transaction table
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param \Illuminate\Database\Eloquent\Builder  $builder
-     * @param array|int $valueId - List of value ids
+     * @param \Illuminate\Database\Eloquent\Builder $builder
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeTransactionJoin($builder)
     {
-        return $builder->select('transaction_details.*')
-                       ->join('transactions', function($join) {
-                            $join->on('transactions.transaction_id', '=', 'transaction_details.transaction_id');
-                            $join->where('transactions.status', '=', DB::raw('paid'));
-                       });
+        $tablePrefix = DB::getTablePrefix();
+        $builder->select("transaction_details.*")
+            ->leftJoin("transactions", function ($join) {
+                $join->on("transactions.transaction_id", "=", 'transaction_details.transaction_id');
+                $join->where('transactions.status', '=', DB::raw('paid'));
+            })
+            ->leftJoin("merchants as {$tablePrefix}merchant", function ($join) {
+                $join->on("transactions.merchant_id", "=", "merchant.merchant_id");
+            })
+            ->leftJoin("merchants as {$tablePrefix}retailer", function ($join) {
+                $join->on("transactions.retailer_id", "=", "retailer.merchant_id");
+            })
+            ->leftJoin("products", function ($join) {
+                $join->on("transaction_details.product_id", "=", "products.product_id");
+            });
+
+        return $builder;
     }
 
     /**
@@ -107,5 +118,55 @@ class TransactionDetail extends Eloquent
                             where vr.value_id is not null
                     ) transpose_variant"), DB::raw('`transpose_variant`.`product_variant_id`'), '=', 'product_variants.product_variant_id')
                     ->whereIn(DB::raw('`transpose_variant`.`value_id`'), $ids);
+    }
+
+    /**
+     * Get Transactions Detail Report Based
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     */
+    public function scopeDetailSalesReport($builder)
+    {
+        $tablePrefix  = DB::getTablePrefix();
+        $transactions = $builder->select(
+                'transactions.transaction_id',
+                'transaction_details.product_code as product_sku',
+                'transaction_details.product_id',
+                'transaction_details.product_name',
+                'transaction_details.quantity',
+                DB::raw("ifnull({$tablePrefix}transaction_details.variant_price ,{$tablePrefix}transaction_details.price) as price"),
+                'transactions.payment_method',
+                DB::raw("(
+                        case payment_method
+                           when 'cash' then 'Cash'
+                           when 'online_payment' then 'Online Payment'
+                           when 'paypal' then 'Paypal'
+                           when 'card' then 'Card'
+                           else payment_method
+                        end
+                    ) as payment_type"),
+                'transaction_details.created_at',
+                DB::raw("sum(ifnull({$tablePrefix}tax.total_tax, 0)) as total_tax"),
+                DB::raw("(quantity * (ifnull({$tablePrefix}transaction_details.variant_price ,{$tablePrefix}transaction_details.price) + sum(ifnull({$tablePrefix}tax.total_tax, 0)))) as sub_total"),
+                'cashier.user_firstname as cashier_user_firstname',
+                'cashier.user_lastname as cashier_user_lastname',
+                DB::raw("concat({$tablePrefix}cashier.user_firstname, ' ', {$tablePrefix}cashier.user_lastname) as cashier_user_fullname"),
+                'customer.user_firstname as customer_user_firstname',
+                'customer.user_lastname as customer_user_lastname',
+                'customer.user_email as customer_user_email'
+            )
+            ->join("transactions", function ($join) {
+                $join->on("transactions.transaction_id", '=', "transaction_details.transaction_id");
+            })
+            ->leftJoin("transaction_detail_taxes as {$tablePrefix}tax", function ($join) {
+                $join->on("transaction_details.transaction_detail_id", '=', 'tax.transaction_detail_id');
+            })
+            ->leftJoin("users as {$tablePrefix}customer", function ($join) {
+                $join->on('customer.user_id', '=', 'transactions.customer_id');
+            })
+            ->leftJoin("users as {$tablePrefix}cashier", function ($join) {
+                $join->on('cashier.user_id', '=', 'transactions.cashier_id');
+            });
+
+        return $transactions;
     }
 }

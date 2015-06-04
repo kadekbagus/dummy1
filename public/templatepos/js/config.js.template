@@ -1,7 +1,9 @@
 /**
- * config
- *  all config for the application
+ * Config
+ * ------
+ * All config for the application
  * @author Agung (agung.julisman@yahoo.com)
+ * @author Rio Astamal <me@rioastamal.net>
  */
 
 "use strict";
@@ -10,12 +12,12 @@ define([
 
 ], function () {
     var config = {};
+    var proto = window.location.protocol;
+    var slashes = proto.concat("//");
+    var host = slashes.concat(window.location.hostname);
 
-    //set your base url
-
-     config.baseUrlServer       = 'http://192.168.0.103/orbit-shop/public/app/v1';
-     config.baseUrlServerPublic = 'http://192.168.0.103/orbit-shop/public';
-
+    config.baseUrlServer       = host + '/app/v1';
+    config.baseUrlServerPublic = host;
 
     return config;
 });
