@@ -2214,36 +2214,23 @@ class DashboardAPIController extends ControllerAPI
                 )
                 ->groupBy('customer_id', 'created_at_month');
 
-            $lastVisitedMerchantByCustomer = Transaction::select(
-                    'transactions.customer_id',
-                    'merchants.name as merchant_name',
-                    'merchants.merchant_id',
-                    DB::raw("max({$tablePrefix}activities.created_at) as created_at")
-                )
-                ->join("merchants", function ($join) {
-                    $join->on('merchants.merchant_id', '=', 'transactions.retailer_id');
-                })
-                ->join("activities", function ($join) {
-                    $join->on("activities.location_id", '=', 'transactions.retailer_id');
-                    $join->where('activities.activity_name', '=', 'login_ok');
-                })
-                ->groupBy('transactions.customer_id')
-                ->orderBy('activities.created_at', 'desc');
-
             $transactions = Transaction::select(
                     DB::raw("sum({$tablePrefix}transactions.total_to_pay) as total_spent"),
                     DB::raw("ceil(avg(months.merchant_count)) as monthly_merchant_count"),
                     DB::raw("max(months.merchant_count) as merchant_count"),
                     DB::raw("date(last_visited.created_at) as last_visit_date"),
-                    DB::raw("last_visited.merchant_name as last_visit_merchant_name"),
+                    DB::raw("last_visited.name as last_visit_merchant_name"),
                     DB::raw("last_visited.merchant_id as last_visit_merchant_id"),
                     DB::raw("sum(ifnull(coupons.value_after_percentage, 0)) + sum(ifnull(promotions.value_after_percentage, 0)) as total_saving")
                 )
                 ->leftJoin(DB::raw("({$monthlyTransactionsByCustomer->toSql()}) as months"), function ($join) {
                     $join->on(DB::raw("months.customer_id"), '=', 'transactions.customer_id');
                 })
-                ->leftJoin(DB::raw("({$lastVisitedMerchantByCustomer->toSql()}) as last_visited"), function ($join) {
-                    $join->on(DB::raw("last_visited.customer_id"), '=', 'transactions.customer_id');
+                ->leftJoin("user_details", function ($join) {
+                    $join->on("user_details.user_id", '=', 'transactions.customer_id');
+                })
+                ->leftJoin('merchants as last_visited', function ($join) {
+                    $join->on(DB::raw("last_visited.merchant_id"), "=", "user_details.last_visit_shop_id");
                 })
                 ->leftJoin('transaction_detail_coupons as coupons', function ($join) {
                     $join->on(DB::raw('coupons.transaction_id'), '=', 'transactions.transaction_id');
@@ -2251,7 +2238,6 @@ class DashboardAPIController extends ControllerAPI
                 ->leftJoin('transaction_detail_promotions as promotions', function ($join) {
                     $join->on(DB::raw('promotions.transaction_id'), '=', 'transactions.transaction_id');
                 })
-                ->mergeBindings($lastVisitedMerchantByCustomer->getQuery())
                 ->where('transactions.customer_id', '=', $this->api->getUserId());
 
             OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
@@ -2285,6 +2271,9 @@ class DashboardAPIController extends ControllerAPI
             });
 
             $transaction = $transactions->first();
+
+            $debugSql = $transactions->toSql();
+            $debugBinding = $transactions->getBindings();
 
             $data = new stdclass();
             $data->total_records = 1;
