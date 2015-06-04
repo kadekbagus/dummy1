@@ -1934,6 +1934,10 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('date(created_at) as created_at_date'),
                     DB::raw('count(distinct user_id) as user_count')
                 )
+                ->where(function ($q) {
+                    $q->where('activity_name', '=', 'login_ok');
+                    $q->orWhere('activity_name', '=', 'logout_ok');
+                })
                 ->groupBy('created_at_date');
 
 
@@ -2010,7 +2014,7 @@ class DashboardAPIController extends ControllerAPI
                     "created_at_date"
                 );
 
-                $_activities->groupBy('time_range', 'created_at_date');
+                $_activities->groupBy('created_at_date', 'time_range');
 
                 $defaultSelect = [
                     DB::raw("ifnull(sum(case time_range when '<5' then user_count end), 0) as '<5'"),
