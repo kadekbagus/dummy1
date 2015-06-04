@@ -617,6 +617,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 }
             });
             $transactions->orderBy($sortBy, $sortMode);
+            $transactions->orderBy('quantity', 'desc');
 
             if ($this->builderOnly)
             {

@@ -619,7 +619,7 @@ class DashboardPrinterController extends DataPrinterController
             $rowNames['total']        = 'Total';
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Customer Sign in Number Report';
+            $pageTitle  = 'Orbit Customer Connected Hourly Report';
             switch($mode)
             {
                 case 'csv':

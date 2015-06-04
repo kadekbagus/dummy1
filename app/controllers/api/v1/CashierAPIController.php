@@ -126,11 +126,11 @@ class CashierAPIController extends ControllerAPI
             $transactions = DB::table(DB::raw("({$activities->toSql()}) as {$tablePrefix}activities"))
                 ->mergeBindings($activitiesQuery)
                 ->leftJoin(DB::raw("({$transactionByDate->toSql()}) as {$tablePrefix}transactions"), function ($join) {
-                    $join->on('activity_user_id', '=','cashier_id');
+                    $join->on('activities.activity_user_id', '=','transactions.cashier_id');
                     $join->on('activity_date', '=','transaction_date');
                 })
                 ->mergeBindings($transactionByDateQuery)
-                ->groupBy('activity_date', 'cashier_id');
+                ->groupBy('activity_date', 'activity_user_id');
 
 
             OrbitInput::get('merchant_id', function ($merchantId) use ($transactions) {

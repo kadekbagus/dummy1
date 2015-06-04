@@ -1670,7 +1670,7 @@ class DashboardAPIController extends ControllerAPI
                             when {$formatDate} < 22 then '21-22'
                             else '21-22'
                         end) as time_range"),
-                    DB::raw("count(distinct activity_id) as login_count")
+                    DB::raw("count(distinct user_id) as login_count")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('time_range');
@@ -1934,7 +1934,7 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('date(created_at) as created_at_date'),
                     DB::raw('count(distinct user_id) as user_count')
                 )
-                ->groupBy(['user_id', 'created_at_date']);
+                ->groupBy('created_at_date');
 
 
             $activities = DB::table(DB::raw("({$userActivities->toSql()}) as {$tablePrefix}timed"))
@@ -2010,7 +2010,7 @@ class DashboardAPIController extends ControllerAPI
                     "created_at_date"
                 );
 
-                $_activities->groupBy(['time_range', 'created_at_date']);
+                $_activities->groupBy('time_range', 'created_at_date');
 
                 $defaultSelect = [
                     DB::raw("ifnull(sum(case time_range when '<5' then user_count end), 0) as '<5'"),
@@ -2021,8 +2021,7 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("ifnull(sum(case time_range when '40-50' then user_count end), 0) as '40-50'"),
                     DB::raw("ifnull(sum(case time_range when '50-60' then user_count end), 0) as '50-60'"),
                     DB::raw("ifnull(sum(case time_range when '60+' then user_count end), 0) as '60+'"),
-                    DB::raw("ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0) as 'Unrecorded'"),
-                    DB::raw("ifnull(sum(user_count) - ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0), 0) as 'total'")
+                    DB::raw("ifnull(sum(user_count), 0) as 'total'")
                 ];
 
                 $toSelect = array_merge($defaultSelect, ['created_at_date']);
