@@ -2212,7 +2212,7 @@ class DashboardAPIController extends ControllerAPI
                     'user_id',
                     DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
                     DB::raw("count(distinct location_id) as unique_monthly_merchant_count"),
-                    DB::raw("count(distinct activity_id) as monthly_merchant_count"),
+                    DB::raw("count(location_id) as monthly_merchant_count"),
                     DB::raw("(case when max(created_at) >= created_at then location_id end) as location_id")
                 )
                 ->where('activity_name', '=', 'login_ok')
@@ -2419,7 +2419,7 @@ class DashboardAPIController extends ControllerAPI
             $locationActivities = Activity::select(
                     'user_id',
                     'location_id',
-                    DB::raw("count(distinct activity_id) as visit_count"),
+                    DB::raw("count(location_id) as visit_count"),
                     DB::raw("max(created_at) as created_at")
                 )
                 ->where('activity_name', '=', 'login_ok')
