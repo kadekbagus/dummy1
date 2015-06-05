@@ -30,18 +30,12 @@ Route::group(
 
         Route::get(
             '/customer/home',
+            array(
+            'as' => 'home',
             function () {
         
                 return MobileCI\MobileCIAPIController::create()->getHomeView();
-            }
-        );
-
-        Route::get(
-            '/customer/cart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getCartView();
-            }
+            })
         );
 
         Route::get(
@@ -77,38 +71,6 @@ Route::group(
         );
 
         Route::post('/app/v1/customer/scan', 'IntermediateAuthController@Upload_postUploadUPCBarcode');
-
-        Route::get(
-            '/customer/transfer',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getTransferCartView();
-            }
-        );
-
-        Route::get(
-            '/customer/payment',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getPaymentView();
-            }
-        );
-
-        Route::get(
-            '/customer/paypalpayment',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getPaypalPaymentView();
-            }
-        );
-
-        Route::get(
-            '/customer/thankyou',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getThankYouView();
-            }
-        );
 
         Route::get(
             '/customer/welcome',
@@ -179,129 +141,12 @@ Route::group(
             }
         );
 
-        // add to cart
-        Route::post(
-            '/app/v1/customer/addtocart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postAddToCart();
-            }
-        );
-
-        // update cart
-        Route::post(
-            '/app/v1/customer/updatecart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postUpdateCart();
-            }
-        );
-
-        // delete from cart
-        Route::post(
-            '/app/v1/customer/deletecart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postDeleteFromCart();
-            }
-        );
-
-        // cart product pop up
-        Route::post(
-            '/app/v1/customer/cartproductpopup',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postCartProductPopup();
-            }
-        );
-
-        // cart cart-based-promo pop up
-        Route::post(
-            '/app/v1/customer/cartpromopopup',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postCartPromoPopup();
-            }
-        );
-
-        // cart cart-based-coupon pop up
-        Route::post(
-            '/app/v1/customer/cartcouponpopup',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postCartCouponPopup();
-            }
-        );
-
-        // catalogue product-based-coupon pop up
-        Route::post(
-            '/app/v1/customer/productcouponpopup',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postProductCouponPopup();
-            }
-        );
-
-        // cart product-based-coupon pop up
-        Route::post(
-            '/app/v1/customer/cartproductcouponpopup',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postCartProductCouponPopup();
-            }
-        );
-
-        // delete coupon from cart
-        Route::post(
-            '/app/v1/customer/deletecouponcart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postDeleteCouponFromCart();
-            }
-        );
-
-        // add cart based coupon to cart
-        Route::post(
-            '/app/v1/customer/addcouponcarttocart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postAddCouponCartToCart();
-            }
-        );
-
-        // add cart based coupon to cart
-        Route::post(
-            '/app/v1/customer/closecart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postCloseCart();
-            }
-        );
-
         // family page
         Route::get(
             '/customer/category',
             function () {
         
                 return MobileCI\MobileCIAPIController::create()->getCategory();
-            }
-        );
-
-        // add product based coupon to cart
-        Route::post(
-            '/app/v1/customer/addcouponproducttocart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postAddProductCouponToCart();
-            }
-        );
-
-        // save transaction and show ticket
-        Route::post(
-            '/customer/savetransaction',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postSaveTransaction();
             }
         );
 
@@ -336,57 +181,219 @@ Route::group(
             })
         );
 
-        // track save receipt click activity
-        Route::post(
-            '/app/v1/customer/savereceiptclickactivity',
-            array(
-            'as' => 'click-save-receipt-activity',
+        Route::group(
+            array('before' => 'enable-cart'),
             function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postClickSaveReceiptActivity();
-            })
-        );
 
-        // track checkout button click activity
-        Route::post(
-            '/app/v1/customer/checkoutclickactivity',
-            array(
-            'as' => 'click-checkout-activity',
-            function () {
+            // recognize me
+            Route::get(
+                '/customer/me',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getMeView();
+                }
+            );
         
-                return MobileCI\MobileCIAPIController::create()->postClickCheckoutActivity();
-            })
-        );
+            // track save receipt click activity
+            Route::post(
+                '/app/v1/customer/savereceiptclickactivity',
+                array(
+                'as' => 'click-save-receipt-activity',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postClickSaveReceiptActivity();
+                })
+            );
 
-        // send ticket to email
-        Route::post(
-            '/app/v1/customer/sendticket',
-            array(
-            'as' => 'send-ticket',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postSendTicket();
-            })
-        );
+            // track checkout button click activity
+            Route::post(
+                '/app/v1/customer/checkoutclickactivity',
+                array(
+                'as' => 'click-checkout-activity',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postClickCheckoutActivity();
+                })
+            );
 
-        // recognize me
-        Route::get(
-            '/customer/me',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->getMeView();
-            }
-        );
+            // send ticket to email
+            Route::post(
+                '/app/v1/customer/sendticket',
+                array(
+                'as' => 'send-ticket',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postSendTicket();
+                })
+            );
 
-        // reset cart
-        Route::post(
-            '/app/v1/customer/resetcart',
-            array(
-            'as' => 'reset-cart',
-            function () {
-        
-                return MobileCI\MobileCIAPIController::create()->postResetCart();
-            })
-        );
+            // add product based coupon to cart
+            Route::post(
+                '/app/v1/customer/addcouponproducttocart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postAddProductCouponToCart();
+                }
+            );
+
+            // save transaction and show ticket
+            Route::post(
+                '/customer/savetransaction',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postSaveTransaction();
+                }
+            );
+
+            // reset cart
+            Route::post(
+                '/app/v1/customer/resetcart',
+                array(
+                'as' => 'reset-cart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postResetCart();
+                })
+            );
+
+            Route::get(
+                '/customer/payment',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getPaymentView();
+                }
+            );
+
+            Route::get(
+                '/customer/paypalpayment',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getPaypalPaymentView();
+                }
+            );
+
+            Route::get(
+                '/customer/cart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getCartView();
+                }
+            );
+
+            Route::get(
+                '/customer/transfer',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getTransferCartView();
+                }
+            );
+
+            Route::get(
+                '/customer/thankyou',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->getThankYouView();
+                }
+            );
+
+            // add to cart
+            Route::post(
+                '/app/v1/customer/addtocart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postAddToCart();
+                }
+            );
+
+            // update cart
+            Route::post(
+                '/app/v1/customer/updatecart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postUpdateCart();
+                }
+            );
+
+            // delete from cart
+            Route::post(
+                '/app/v1/customer/deletecart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postDeleteFromCart();
+                }
+            );
+
+            // cart product pop up
+            Route::post(
+                '/app/v1/customer/cartproductpopup',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postCartProductPopup();
+                }
+            );
+
+            // cart cart-based-promo pop up
+            Route::post(
+                '/app/v1/customer/cartpromopopup',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postCartPromoPopup();
+                }
+            );
+
+            // cart cart-based-coupon pop up
+            Route::post(
+                '/app/v1/customer/cartcouponpopup',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postCartCouponPopup();
+                }
+            );
+
+            // catalogue product-based-coupon pop up
+            Route::post(
+                '/app/v1/customer/productcouponpopup',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postProductCouponPopup();
+                }
+            );
+
+            // cart product-based-coupon pop up
+            Route::post(
+                '/app/v1/customer/cartproductcouponpopup',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postCartProductCouponPopup();
+                }
+            );
+
+            // delete coupon from cart
+            Route::post(
+                '/app/v1/customer/deletecouponcart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postDeleteCouponFromCart();
+                }
+            );
+
+            // add cart based coupon to cart
+            Route::post(
+                '/app/v1/customer/addcouponcarttocart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postAddCouponCartToCart();
+                }
+            );
+
+            // add cart based coupon to cart
+            Route::post(
+                '/app/v1/customer/closecart',
+                function () {
+            
+                    return MobileCI\MobileCIAPIController::create()->postCloseCart();
+                }
+            );
+        });
     }
 );

@@ -617,6 +617,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 }
             });
             $transactions->orderBy($sortBy, $sortMode);
+            $transactions->orderBy('quantity', 'desc');
 
             if ($this->builderOnly)
             {
@@ -654,7 +655,7 @@ class TransactionHistoryAPIController extends ControllerAPI
             $data->returned_records = count($listOfTransactions);
             $data->records = $listOfTransactions;
 
-            if ($listOfTransactions === 0) {
+            if ($totalTransactions === 0) {
                 $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
             }
@@ -958,7 +959,7 @@ class TransactionHistoryAPIController extends ControllerAPI
                 $data->sub_total  = $subTotal;
             }
 
-            if ($listOfTransactions === 0) {
+            if ($totalTransactions === 0) {
                 $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
             }

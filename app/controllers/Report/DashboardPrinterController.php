@@ -609,7 +609,7 @@ class DashboardPrinterController extends DataPrinterController
             {
                 $name = sprintf("%s-%s", $x, $x+1);
                 $label = sprintf("%s:00 - %s:00", $x, $x+1);
-                $summaryHeaders[$name] = $name;
+                $summaryHeaders[$name] = $label;
                 $rowNames[$name]       = $label;
                 $rowFormatter[$name]   = false;
             }
@@ -619,7 +619,7 @@ class DashboardPrinterController extends DataPrinterController
             $rowNames['total']        = 'Total';
 
             $rowCounter = 0;
-            $pageTitle  = 'Orbit Customer Sign in Number Report';
+            $pageTitle  = 'Orbit Customer Connected Hourly Report';
             switch($mode)
             {
                 case 'csv':

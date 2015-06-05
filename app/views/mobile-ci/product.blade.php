@@ -238,11 +238,19 @@
                     <span class="link-spanner"></span><i class="fa fa-mail-reply"></i>
                 </div>
             </div>
+            @if($retailer->parent->enable_shopping_cart == 'yes')
             <div class="col-xs-2 col-ms-1 col-md-1 col-sm-1 col-lg-1 pull-right">
                 <div class="circlet cart-btn btn-blue pull-right add-to-cart-button btn-disabled" data-hascoupon="{{$product->on_coupons}}">
                     <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
                 </div>
             </div>
+            @else
+            <div class="col-xs-2 col-ms-1 col-md-1 col-sm-1 col-lg-1 pull-right">
+                <div class="circlet cart-btn btn-blue pull-right btn-disabled">
+                    <span class="link-spanner"></span><i class="fa fa-shopping-cart"></i>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

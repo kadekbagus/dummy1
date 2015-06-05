@@ -369,7 +369,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $categories = Activity::select(
+            $categories = Activity::considerCustomer()->select(
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
@@ -629,7 +629,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $widgets = Activity::select(
+            $widgets = Activity::considerCustomer()->select(
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
@@ -886,15 +886,18 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = Activity::select(
-                DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
-                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
-                DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
-                DB::raw("count(distinct new_users.user_id) as new_user_count")
-            )
+            $users = Activity::considerCustomer()->select(
+                    DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
+                    DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
+                    DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
+                    DB::raw("count(distinct new_users.user_id) as new_user_count")
+                )
+                ->where(function ($jq) {
+                    $jq->where('activities.activity_name', '=', 'login_ok');
+                    $jq->orWhere('activities.activity_name', '=', 'registration_ok');
+                })
                 ->leftJoin('users', function ($join) {
                     $join->on('activities.user_id', '=', 'users.user_id');
-                    $join->where('activities.activity_name', '=', 'login_ok');
                 })
                 ->leftJoin("users as new_users", function ($join) use ($tablePrefix) {
                     $join->on(DB::raw("new_users.user_id"), '=', 'users.user_id');
@@ -1119,7 +1122,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = User::select(
+            $users = Activity::considerCustomer()->select(
                     DB::raw("(
                         case {$tablePrefix}details.gender
                             when 'f' then 'Female'
@@ -1127,12 +1130,17 @@ class DashboardAPIController extends ControllerAPI
                             else 'Unknown'
                         end
                     ) as user_gender"),
-                    DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count"),
+                    DB::raw("date({$tablePrefix}activities.created_at) created_at_date")
                 )
-                ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
-                    $join->on('details.user_id', '=', 'users.user_id');
+                ->where(function ($jq) {
+                    $jq->where('activity_name', '=', 'login_ok');
+                    $jq->orWhere('activity_name', '=', 'registration_ok');
                 })
-                ->groupBy('details.gender');
+                ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
+                    $join->on('details.user_id', '=', 'activities.user_id');
+                })
+                ->groupBy('details.gender', 'created_at_date');
 
             $isReport = $this->builderOnly;
             OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $users, $tablePrefix) {
@@ -1140,11 +1148,11 @@ class DashboardAPIController extends ControllerAPI
             });
 
             OrbitInput::get('begin_date', function ($beginDate) use ($users) {
-                $users->where('users.created_at', '>=', $beginDate);
+                $users->where('activities.created_at', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($users) {
-                $users->where('users.created_at', '<=', $endDate);
+                $users->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -1182,22 +1190,17 @@ class DashboardAPIController extends ControllerAPI
                 DB::raw("ifnull(sum(user_count), 0) as 'total'")
             ];
 
-            $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                ->mergeBindings($_users->getQuery())
-                ->select($defaultSelect);
-
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport)
             {
-                $_users->addSelect(
-                    DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
-                );
-                $_users->groupBy('created_at_date');
-
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("created_at_date")
                 ]);
+
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
 
                 $userReportQuery = $_users->getQuery();
                 $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
@@ -1229,6 +1232,9 @@ class DashboardAPIController extends ControllerAPI
                 }
             } else {
                 $users->take($take);
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
                 $summary   = $summaryReport->first();
                 $userTotal = RecordCounter::create($_users)->count();
                 $userList  = $users->get();
@@ -1379,23 +1385,28 @@ class DashboardAPIController extends ControllerAPI
             $calculateAge = "(date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
                     (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d')))";
 
-            $users = User::select(
-                DB::raw("(
-                    case
-                        when {$calculateAge} < 15 then 'Unknown'
-                        when {$calculateAge} < 20 then '15-20'
-                        when {$calculateAge} < 25 then '20-25'
-                        when {$calculateAge} < 30 then '25-30'
-                        when {$calculateAge} < 40 then '30-40'
-                        when {$calculateAge} >= 40 then '40+'
-                        else 'Unknown'
-                    end) as user_age"),
-                DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count")
-            )
-                ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
-                    $join->on('details.user_id', '=', 'users.user_id');
+            $users = Activity::considerCustomer()->select(
+                    DB::raw("(
+                        case
+                            when {$calculateAge} < 15 then 'Unknown'
+                            when {$calculateAge} < 20 then '15-20'
+                            when {$calculateAge} < 25 then '20-25'
+                            when {$calculateAge} < 30 then '25-30'
+                            when {$calculateAge} < 40 then '30-40'
+                            when {$calculateAge} >= 40 then '40+'
+                            else 'Unknown'
+                        end) as user_age"),
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count"),
+                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
+                )
+                ->where(function ($jq) {
+                    $jq->where('activities.activity_name', '=', 'registration_ok');
+                    $jq->orWhere('activities.activity_name', '=', 'login_ok');
                 })
-                ->groupBy('user_age');
+                ->leftJoin("user_details as {$tablePrefix}details", function ($join) {
+                    $join->on('details.user_id', '=', 'activities.user_id');
+                })
+                ->groupBy('user_age', 'created_at_date');
 
             $isReport = $this->builderOnly;
             OrbitInput::get('is_report', function ($_isReport) use (&$isReport, $users, $tablePrefix) {
@@ -1403,11 +1414,11 @@ class DashboardAPIController extends ControllerAPI
             });
 
             OrbitInput::get('begin_date', function ($beginDate) use ($users) {
-                $users->where('users.created_at', '>=', $beginDate);
+                $users->where('activities.created_at', '>=', $beginDate);
             });
 
             OrbitInput::get('end_date', function ($endDate) use ($users) {
-                $users->where('users.created_at', '<=', $endDate);
+                $users->where('activities.created_at', '<=', $endDate);
             });
 
             // Clone the query builder which still does not include the take,
@@ -1449,24 +1460,18 @@ class DashboardAPIController extends ControllerAPI
                 DB::raw("ifnull(sum(report.user_count), 0) as 'total'")
             ];
 
-
-            $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
-                ->mergeBindings($_users->getQuery())
-                ->select($defaultSelect);
-
             $summary   = NULL;
             $lastPage  = false;
             if ($isReport) {
-                $_users->addSelect(
-                    DB::raw("date({$tablePrefix}users.created_at) as created_at_date")
-                );
-                $_users->groupBy('created_at_date');
-
                 $userReportQuery = $_users->getQuery();
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw('report.created_at_date as created_at_date')
                 ]);
+
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
 
                 $userReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
                     ->mergeBindings($userReportQuery)
@@ -1496,6 +1501,9 @@ class DashboardAPIController extends ControllerAPI
                     $lastPage   = true;
                 }
             } else {
+                $summaryReport = DB::table(DB::raw("({$_users->toSql()}) as report"))
+                    ->mergeBindings($_users->getQuery())
+                    ->select($defaultSelect);
                 $summary = $summaryReport->first();
                 $users->take($take);
                 $userList  = $users->get();
@@ -1644,7 +1652,7 @@ class DashboardAPIController extends ControllerAPI
 
             $formatDate = "(date_format(created_at, '%H'))";
 
-            $activities = Activity::select(
+            $activities = Activity::considerCustomer()->select(
                     DB::raw("(
                         case
                             when {$formatDate} < 10 then '9-10'
@@ -1662,7 +1670,7 @@ class DashboardAPIController extends ControllerAPI
                             when {$formatDate} < 22 then '21-22'
                             else '21-22'
                         end) as time_range"),
-                    DB::raw("count(distinct activity_id) as login_count")
+                    DB::raw("count(distinct user_id) as login_count")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('time_range');
@@ -1734,8 +1742,6 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('date(created_at) as created_at_date')
                 );
                 $_activities->groupBy('created_at_date');
-
-
 
                 $toSelect = array_merge($defaultSelect, [
                     DB::raw("report.created_at_date")
@@ -1917,7 +1923,7 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $userActivities = Activity::select(
+            $userActivities = Activity::considerCustomer()->select(
                     DB::raw("
                         timestampdiff(
                             MINUTE,
@@ -1928,7 +1934,7 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('date(created_at) as created_at_date'),
                     DB::raw('count(distinct user_id) as user_count')
                 )
-                ->groupBy(['user_id', 'created_at_date']);
+                ->groupBy('created_at_date');
 
 
             $activities = DB::table(DB::raw("({$userActivities->toSql()}) as {$tablePrefix}timed"))
@@ -1939,7 +1945,8 @@ class DashboardAPIController extends ControllerAPI
                                         else 60
                                     end) as average_time_connect"
                                 )
-                            );
+                            )
+                            ->mergeBindings($userActivities->getQuery());
 
             $isReport = $this->builderOnly;
             OrbitInput::get('is_report', function ($_isReport) use ($activities, &$isReport, $tablePrefix) {
@@ -1997,13 +2004,13 @@ class DashboardAPIController extends ControllerAPI
                                   when minute_connect < 50 then '40-50'
                                   when minute_connect < 60 then '50-60'
                                   when minute_connect >= 60 then '60+'
-                                  else 'Unrecorded'
+                                  else '<5'
                             end as time_range"),
                     DB::raw("sum(ifnull(user_count, 0)) as user_count"),
                     "created_at_date"
                 );
 
-                $_activities->groupBy(['time_range', 'created_at_date']);
+                $_activities->groupBy('time_range', 'created_at_date');
 
                 $defaultSelect = [
                     DB::raw("ifnull(sum(case time_range when '<5' then user_count end), 0) as '<5'"),
@@ -2014,8 +2021,7 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("ifnull(sum(case time_range when '40-50' then user_count end), 0) as '40-50'"),
                     DB::raw("ifnull(sum(case time_range when '50-60' then user_count end), 0) as '50-60'"),
                     DB::raw("ifnull(sum(case time_range when '60+' then user_count end), 0) as '60+'"),
-                    DB::raw("ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0) as 'Unrecorded'"),
-                    DB::raw("ifnull(sum(user_count) - ifnull(sum(case time_range when 'Unrecorded' then user_count end), 0), 0) as 'total'")
+                    DB::raw("ifnull(sum(user_count), 0) as 'total'")
                 ];
 
                 $toSelect = array_merge($defaultSelect, ['created_at_date']);

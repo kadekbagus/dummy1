@@ -33,7 +33,8 @@ class TransactionHistoryPrinterController extends  DataPrinterController
             $_transactions = $builder->getUnsorted();
 
             $transactions->select([
-                "products.product_name",
+                "transaction_details.transaction_detail_id",
+                "transaction_details.product_name",
                 "transaction_details.price",
                 "transaction_details.quantity",
                 "transactions.created_at",

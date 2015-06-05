@@ -273,16 +273,19 @@ class CashierPrinterController extends DataPrinterController
             $summary = DB::table(DB::raw("({$subTotalQuery}) as sub_total"))
                 ->mergeBindings($_transactions)
                 ->select([
+                    DB::raw("sum(sub_total.total_time) as total_time"),
                     DB::raw("sum(sub_total.transactions_count) as transactions_count"),
                     DB::raw("sum(sub_total.transactions_total) as transactions_total")
                 ])->first();
 
             $summaryHeaders = [
+                'total_time'         => 'Total Time',
                 'transactions_count' => 'Total Receipts',
                 'transactions_total' => 'Total Sales'
             ];
 
             $summaryFormatter = [
+                'total_time'         => array('Orbit\\Text', 'formatNumberWithoutPrecision'),
                 'transactions_count' => false,
                 'transactions_total' => array('Orbit\\Text', 'formatNumber')
             ];
@@ -292,7 +295,7 @@ class CashierPrinterController extends DataPrinterController
                 'activity_full_name' => 'Employee Name',
                 'login_at_hour' => 'Clock In',
                 'logout_at_hour' => 'Clock Out',
-                'total_time' => 'Total Time',
+                'total_time' => 'Total Time (mins)',
                 'transactions_count' => 'Number of Receipt',
                 'transactions_total' => 'Total Sales'
             ];

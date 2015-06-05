@@ -57,6 +57,11 @@ class Text
         return number_format($number, $precision);
     }
 
+    public static function formatNumberWithoutPrecision($number)
+    {
+        return static::formatNumber($number, 0);
+    }
+
     public static function exportFilename($pageTitle, $ext = ".csv")
     {
         return 'orbit-export-' . Str::slug($pageTitle) . '-' . date('D_d_M_Y_Hi') . $ext;
