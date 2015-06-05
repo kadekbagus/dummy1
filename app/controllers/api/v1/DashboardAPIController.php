@@ -2208,15 +2208,14 @@ class DashboardAPIController extends ControllerAPI
             $tablePrefix = DB::getTablePrefix();
             $monthlyActivity = Activity::select(
                     DB::raw("max(created_at) as created_at"),
-                    DB::raw("max(created_at) as max_created_at"),
                     'user_id',
                     DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
                     DB::raw("count(distinct location_id) as unique_monthly_merchant_count"),
-                    DB::raw("count(location_id) as monthly_merchant_count"),
-                    DB::raw("(case when max(created_at) >= created_at then location_id end) as location_id")
+                    DB::raw("count(location_id) as monthly_merchant_count")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->where('activities.user_id', '=', $this->api->getUserId())
+                ->orderBy('activities.created_at', 'desc')
                 ->groupBy('activities.user_id', 'created_at_month');
 
             $lastTransactions = Transaction::select(
@@ -2249,11 +2248,8 @@ class DashboardAPIController extends ControllerAPI
                     'merchants.merchant_id as last_visit_merchant_id',
                     'total_saving'
                 )
-                ->leftJoin('user_details', 'user_details.user_id', '=', 'activities.user_id')
+                ->join('user_details', 'user_details.user_id', '=', 'activities.user_id')
                 ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
-                ->leftJoin('transactions', function ($join) {
-                    $join->on('transactions.customer_id', '=', 'user_details.user_id');
-                })
                 ->leftJoin(DB::raw("({$lastTransactions->toSql()}) as {$tablePrefix}last_transactions"), function ($join) use ($tablePrefix) {
                     $join->on('last_transactions.retailer_id', '=', 'user_details.last_visit_shop_id');
                     $join->on('last_transactions.created_at', '>=', DB::raw("date({$tablePrefix}activities.created_at)"));
@@ -2423,6 +2419,7 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("max(created_at) as created_at")
                 )
                 ->where('activity_name', '=', 'login_ok')
+                ->where('activities.user_id', '=', $this->api->getUserId())
                 ->groupBy('user_id', 'location_id');
 
             $activities = DB::table(DB::raw("({$locationActivities->toSql()}) as {$tablePrefix}activities"))->select(
@@ -2434,8 +2431,7 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
                     DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
                     DB::raw("sum({$tablePrefix}activities.visit_count) as visit_count"),
-                    DB::raw("max({$tablePrefix}activities.created_at) as last_visit"),
-                DB::raw("sum(ifnull(c.value_after_percentage, 0)) + sum(ifnull(p.value_after_percentage, 0)) as total_saving")
+                    DB::raw("max({$tablePrefix}activities.created_at) as last_visit")
                 )
                 ->mergeBindings($locationActivities->getQuery())
                 ->leftJoin('transactions', function($join) {
@@ -2443,10 +2439,7 @@ class DashboardAPIController extends ControllerAPI
                     $join->on('transactions.retailer_id', '=', 'activities.location_id');
                 })
                 ->join('merchants', 'merchants.merchant_id', '=', 'activities.location_id')
-                ->leftJoin('transaction_detail_coupons as c', DB::raw('c.transaction_id'), '=', 'transactions.transaction_id')
-                ->leftJoin('transaction_detail_promotions as p', DB::raw('p.transaction_id'), '=', 'transactions.transaction_id')
                 ->leftJoin('merchants as parent', DB::raw('parent.merchant_id'), '=', 'merchants.parent_id')
-                ->where('activities.user_id', '=', $this->api->getUserId())
                 ->groupBy('activities.location_id');
 
             OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
