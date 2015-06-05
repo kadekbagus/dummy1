@@ -2210,20 +2210,31 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("max(created_at) as created_at"),
                     'user_id',
                     DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
-                    DB::raw("count(distinct location_id) as monthly_merchant_count"),
+                    DB::raw("count(distinct location_id) as unique_monthly_merchant_count"),
+                    DB::raw("count(location_id) as monthly_merchant_count"),
                     DB::raw("(case when max(created_at) >= created_at then location_id end) as location_id")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('activities.user_id', 'created_at_month');
+
+            $lastTransactions = Transaction::select(
+                    DB::raw("date(created_at) as created_at_date"),
+                    DB::raw("sum(total_to_pay) as total_to_pay"),
+                    "created_at",
+                    'retailer_id'
+                )
+                ->where('customer_id', '=', $this->api->getUserId())
+                ->orderBy('created_at', 'desc')
+                ->groupBy('retailer_id', 'created_at_date');
 
 
             $activities = DB::table(DB::raw("({$monthlyActivity->toSql()}) as {$tablePrefix}activities"))
                 ->mergeBindings($monthlyActivity->getQuery())
                 ->select(
                     DB::raw("date(max({$tablePrefix}activities.created_at)) as last_visit_date"),
-                    DB::raw("sum({$tablePrefix}last_transactions.total_to_pay) as total_spent"),
+                    DB::raw("{$tablePrefix}last_transactions.total_to_pay as total_spent"),
                     DB::raw("round(avg(monthly_merchant_count)) as monthly_merchant_count"),
-                    DB::raw("max(monthly_merchant_count) as merchant_count"),
+                    DB::raw("max(unique_monthly_merchant_count) as merchant_count"),
                     'merchants.name as last_visit_merchant_name',
                     'merchants.merchant_id as last_visit_merchant_id',
                     DB::raw("sum(ifnull(c.value_after_percentage, 0)) + sum(ifnull(p.value_after_percentage, 0)) as total_saving")
@@ -2231,11 +2242,11 @@ class DashboardAPIController extends ControllerAPI
                 ->leftJoin('user_details', 'user_details.user_id', '=', 'activities.user_id')
                 ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                 ->leftJoin('transactions', 'transactions.customer_id', '=', 'activities.user_id')
-                ->leftJoin("transactions as {$tablePrefix}last_transactions", function ($join) use ($tablePrefix) {
-                    $join->on('last_transactions.customer_id', '=', 'activities.user_id');
+                ->leftJoin(DB::raw("({$lastTransactions->toSql()}) as {$tablePrefix}last_transactions"), function ($join) use ($tablePrefix) {
+                    $join->on('last_transactions.retailer_id', '=', 'user_details.last_visit_shop_id');
                     $join->on('last_transactions.created_at', '>=', DB::raw("date({$tablePrefix}activities.created_at)"));
-                    $join->on('last_transactions.retailer_id', '=', 'activities.location_id');
                 })
+                ->mergeBindings($lastTransactions->getQuery())
                 ->leftJoin('transaction_detail_coupons as c', DB::raw('c.transaction_id'), '=', 'transactions.transaction_id')
                 ->leftJoin('transaction_detail_promotions as p', DB::raw('p.transaction_id'), '=', 'transactions.transaction_id')
                 ->where('activities.user_id', '=', $this->api->getUserId());
@@ -2394,7 +2405,7 @@ class DashboardAPIController extends ControllerAPI
             $locationActivities = Activity::select(
                     'user_id',
                     'location_id',
-                    DB::raw("count(distinct activity_id) as visit_count"),
+                    DB::raw("count(activity_id) as visit_count"),
                     DB::raw("max(created_at) as created_at")
                 )
                 ->where('activity_name', '=', 'login_ok')
