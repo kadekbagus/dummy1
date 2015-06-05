@@ -2447,7 +2447,7 @@ class DashboardAPIController extends ControllerAPI
                 ->leftJoin('transaction_detail_promotions as p', DB::raw('p.transaction_id'), '=', 'transactions.transaction_id')
                 ->leftJoin('merchants as parent', DB::raw('parent.merchant_id'), '=', 'merchants.parent_id')
                 ->where('activities.user_id', '=', $this->api->getUserId())
-                ->groupBy('transactions.retailer_id');
+                ->groupBy('activities.location_id');
 
             OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
                 $activities->where('activities.created_at', '>=', $beginDate);
