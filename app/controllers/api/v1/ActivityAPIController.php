@@ -461,7 +461,7 @@ class ActivityAPIController extends ControllerAPI
             $data->returned_records = count($listOfActivities);
             $data->records = $listOfActivities;
 
-            if ($listOfActivities === 0) {
+            if ($totalActivities === 0) {
                 $data->records = null;
                 $this->response->message = Lang::get('statuses.orbit.nodata.attribute');
             }
