@@ -2208,10 +2208,11 @@ class DashboardAPIController extends ControllerAPI
             $tablePrefix = DB::getTablePrefix();
             $monthlyActivity = Activity::select(
                     DB::raw("max(created_at) as created_at"),
+                    DB::raw("max(created_at) as max_created_at"),
                     'user_id',
                     DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
                     DB::raw("count(distinct location_id) as unique_monthly_merchant_count"),
-                    DB::raw("count(location_id) as monthly_merchant_count"),
+                    DB::raw("count(distinct activity_id) as monthly_merchant_count"),
                     DB::raw("(case when max(created_at) >= created_at then location_id end) as location_id")
                 )
                 ->where('activity_name', '=', 'login_ok')
@@ -2221,7 +2222,7 @@ class DashboardAPIController extends ControllerAPI
             $lastTransactions = Transaction::select(
                     DB::raw("date(created_at) as created_at_date"),
                     DB::raw("sum(total_to_pay) as total_to_pay"),
-                    "created_at",
+                    DB::raw("max(created_at) as created_at"),
                     'retailer_id'
                 )
                 ->where('customer_id', '=', $this->api->getUserId())
@@ -2418,14 +2419,14 @@ class DashboardAPIController extends ControllerAPI
             $locationActivities = Activity::select(
                     'user_id',
                     'location_id',
-                    DB::raw("count(activity_id) as visit_count"),
+                    DB::raw("count(distinct activity_id) as visit_count"),
                     DB::raw("max(created_at) as created_at")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('user_id', 'location_id');
 
             $activities = DB::table(DB::raw("({$locationActivities->toSql()}) as {$tablePrefix}activities"))->select(
-                    'transactions.retailer_id',
+                    'merchants.merchant_id as retailer_id',
                     'merchants.name as retailer_name',
                     'transactions.currency',
                     'transactions.currency_symbol',
@@ -2437,7 +2438,7 @@ class DashboardAPIController extends ControllerAPI
                 DB::raw("sum(ifnull(c.value_after_percentage, 0)) + sum(ifnull(p.value_after_percentage, 0)) as total_saving")
                 )
                 ->mergeBindings($locationActivities->getQuery())
-                ->join('transactions', function($join) {
+                ->leftJoin('transactions', function($join) {
                     $join->on('transactions.customer_id', '=', 'activities.user_id');
                     $join->on('transactions.retailer_id', '=', 'activities.location_id');
                 })
