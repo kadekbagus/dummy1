@@ -167,6 +167,8 @@ class DashboardAPIController extends ControllerAPI
                 $productNames = $topNames->orderBy('view_count', 'desc')->take(20)->get();
                 $defaultSelect = [];
                 $productIds    = [];
+                $productTotal = 0;
+                $productList  = [];
 
                 foreach ($productNames as $product)
                 {
@@ -179,43 +181,45 @@ class DashboardAPIController extends ControllerAPI
                     array_push($defaultSelect, DB::raw("ifnull(sum(case product_id when {$product->product_id} then view_count end), 0) as '{$name}'"));
                 }
 
-                $toSelect  = array_merge($defaultSelect, ['created_at_date']);
+                if (count($productIds) > 0) {
+                    $toSelect  = array_merge($defaultSelect, ['created_at_date']);
 
-                $_products->whereIn('activities.product_id', $productIds);
+                    $_products->whereIn('activities.product_id', $productIds);
 
-                $productReportQuery = $_products->getQuery();
-                $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
-                    ->mergeBindings($productReportQuery)
-                    ->select($toSelect)
-                    ->whereIn('product_id', $productIds)
-                    ->groupBy('created_at_date');
-                $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
-                    ->mergeBindings($productReportQuery)
-                    ->select($defaultSelect);
+                    $productReportQuery = $_products->getQuery();
+                    $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                        ->mergeBindings($productReportQuery)
+                        ->select($toSelect)
+                        ->whereIn('product_id', $productIds)
+                        ->groupBy('created_at_date');
+                    $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                        ->mergeBindings($productReportQuery)
+                        ->select($defaultSelect);
 
-                $_productReport = clone $productReport;
+                    $_productReport = clone $productReport;
 
-                $productReport->orderBy('created_at_date', 'desc');
+                    $productReport->orderBy('created_at_date', 'desc');
 
-                if ($this->builderOnly)
-                {
-                    return $this->builderObject($productReport, $summaryReport, [
-                        'productNames' => $productNames
-                    ]);
-                }
+                    if ($this->builderOnly)
+                    {
+                        return $this->builderObject($productReport, $summaryReport, [
+                            'productNames' => $productNames
+                        ]);
+                    }
 
-                $productReport->take($take)->skip($skip);
+                    $productReport->take($take)->skip($skip);
 
-                $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
-                    ->mergeBindings($_productReport);
+                    $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
+                        ->mergeBindings($_productReport);
 
-                $productTotal = $totalReport->count();
-                $productList  = $productReport->get();
+                    $productTotal = $totalReport->count();
+                    $productList  = $productReport->get();
 
-                if (($productTotal - $take) <= $skip)
-                {
-                    $summary  = $summaryReport->first();
-                    $lastPage = true;
+                    if (($productTotal - $take) <= $skip)
+                    {
+                        $summary  = $summaryReport->first();
+                        $lastPage = true;
+                    }
                 }
             } else {
                 $products->take(20);
