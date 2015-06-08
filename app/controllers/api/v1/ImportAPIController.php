@@ -884,7 +884,7 @@ class ImportAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument('error');
             }
 
-            //$this->commit();
+            $this->commit();
 
             //$this->response->message = Lang::get('statuses.orbit.uploaded.coupon.main');
 

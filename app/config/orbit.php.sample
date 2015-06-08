@@ -1099,7 +1099,7 @@ return array(
                 // error log max
                 'error_log_max' => 50,
 
-                // max_execution_time (in seconds) / set_time_limit
+                // max_execution_time (in seconds) / set_time_limit. set 0 = unlimited
                 'max_execution_time' => 3600,
 
                 // Force create directory when not exists
