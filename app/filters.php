@@ -118,13 +118,8 @@ Route::filter('orbit-settings', function()
             // Set Browser Lang
             App::setLocale($browserLang);
         } else {
-            // Set Merchant Setting Lang
-            if(! empty($merchantLang)) {
-                App::setLocale($merchantLang);
-            } else {
-                // Fallback to 'en'
-                App::setLocale('en');
-            }
+            // Fallback to 'en'
+            App::setLocale('en');
         }
     } else {
         // Set Merchant Setting Lang
