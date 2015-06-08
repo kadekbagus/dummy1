@@ -373,7 +373,9 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $categories = Activity::considerCustomer()->select(
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $categories = Activity::considerCustomer($merchantIds)->select(
                     "categories.category_level",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as view_count")
                 )
@@ -633,7 +635,9 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $widgets = Activity::considerCustomer()->select(
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $widgets = Activity::considerCustomer($merchantIds)->select(
                     "widgets.widget_type",
                     DB::raw("count(distinct {$tablePrefix}activities.activity_id) as click_count")
                 )
@@ -890,7 +894,9 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = Activity::considerCustomer()->select(
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $users = Activity::considerCustomer($merchantIds)->select(
                     DB::raw("ifnull(date({$tablePrefix}activities.created_at), date({$tablePrefix}users.created_at)) as last_login"),
                     DB::raw("count(distinct {$tablePrefix}users.user_id) as user_count"),
                     DB::raw("(count(distinct {$tablePrefix}users.user_id) - count(distinct new_users.user_id)) as returning_user_count"),
@@ -1126,7 +1132,9 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $users = Activity::considerCustomer()->select(
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $users = Activity::considerCustomer($merchantIds)->select(
                     DB::raw("(
                         case {$tablePrefix}details.gender
                             when 'f' then 'Female'
@@ -1389,7 +1397,9 @@ class DashboardAPIController extends ControllerAPI
             $calculateAge = "(date_format(now(), '%Y') - date_format({$tablePrefix}details.birthdate, '%Y') -
                     (date_format(now(), '00-%m-%d') < date_format({$tablePrefix}details.birthdate, '00-%m-%d')))";
 
-            $users = Activity::considerCustomer()->select(
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $users = Activity::considerCustomer($merchantIds)->select(
                     DB::raw("(
                         case
                             when {$calculateAge} < 15 then 'Unknown'
@@ -1654,9 +1664,13 @@ class DashboardAPIController extends ControllerAPI
                 }
             }
 
-            $formatDate = "(date_format(created_at, '%H'))";
+            $tablePrefix = DB::getTablePrefix();
 
-            $activities = Activity::considerCustomer()->select(
+            $formatDate = "(date_format({$tablePrefix}activities.created_at, '%H'))";
+
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $activities = Activity::considerCustomer($merchantIds)->select(
                     DB::raw("(
                         case
                             when {$formatDate} < 10 then '9-10'
@@ -1674,7 +1688,7 @@ class DashboardAPIController extends ControllerAPI
                             when {$formatDate} < 22 then '21-22'
                             else '21-22'
                         end) as time_range"),
-                    DB::raw("count(distinct user_id) as login_count")
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as login_count")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('time_range');
@@ -1743,7 +1757,7 @@ class DashboardAPIController extends ControllerAPI
             if ($isReport)
             {
                 $_activities->addSelect(
-                    DB::raw('date(created_at) as created_at_date')
+                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date")
                 );
                 $_activities->groupBy('created_at_date');
 
@@ -1927,16 +1941,18 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $userActivities = Activity::considerCustomer()->select(
+            $merchantIds = OrbitInput::get('merchant_id', []);
+
+            $userActivities = Activity::considerCustomer($merchantIds)->select(
                     DB::raw("
                         timestampdiff(
                             MINUTE,
-                            min(case activity_name when 'login_ok' then created_at end),
-                            max(case activity_name when 'logout_ok' then created_at end)
+                            min(case activity_name when 'login_ok' then {$tablePrefix}activities.created_at end),
+                            max(case activity_name when 'logout_ok' then {$tablePrefix}activities.created_at end)
                         ) as minute_connect
                     "),
-                    DB::raw('date(created_at) as created_at_date'),
-                    DB::raw('count(distinct user_id) as user_count')
+                    DB::raw("date({$tablePrefix}activities.created_at) as created_at_date"),
+                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as user_count")
                 )
                 ->where(function ($q) {
                     $q->where('activity_name', '=', 'login_ok');
