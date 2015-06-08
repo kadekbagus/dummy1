@@ -1094,10 +1094,13 @@ return array(
                 'total_column'  => 26,
 
                 // chunk size
-                'chunk_size'    => 1,
+                'chunk_size'    => 50,
 
                 // error log max
                 'error_log_max' => 50,
+
+                // max_execution_time (in seconds) / set_time_limit
+                'max_execution_time' => 3600,
 
                 // Force create directory when not exists
                 'create_directory'  => TRUE,

@@ -65,6 +65,12 @@ class ImportAPIController extends ControllerAPI
     public function postImportProduct()
     {
         try {
+            // Load the orbit configuration for import product
+            $importProductConfig = Config::get('orbit.import.product.main');
+
+            // set max_execution_time
+            set_time_limit($importProductConfig['max_execution_time']);
+
             $httpCode = 200;
 
             Event::fire('orbit.import.postimportproduct.before.auth', array($this));
@@ -150,9 +156,6 @@ class ImportAPIController extends ControllerAPI
             if (count($oldMediaFiles) > 0) {
                 $pastMedia->delete();
             }
-
-            // Load the orbit configuration for import product
-            $importProductConfig = Config::get('orbit.import.product.main');
 
             // Callback to rename the file, we will format it as follow
             // [MERCHANT_ID]-products_[ARRAY_NO].csv
@@ -293,23 +296,29 @@ class ImportAPIController extends ControllerAPI
             }
 
             // validate first line total column
-            Excel::filter('chunk')->load($file)->chunk(1, function($rows) use ($totalColumn, &$errorLog)
-            {
-                foreach($rows as $row)
-                {
-                    if (count($row) != $totalColumn) {
-                        // log error message to array
-                        $errorMessage = array(
-                            'row'       => 1,
-                            'message'   => 'First line should have ' . $totalColumn . ' columns.'
-                        );
-                        $errorLog[] = $errorMessage;
-                        $this->response->data = $errorLog;
-                        OrbitShopAPI::throwInvalidArgument('error');
-                    }
-                }
-            });
-
+//             $chunkState = 1;
+//             Excel::filter('chunk')->load($file)->chunk(1, function($rows) use ($totalColumn, &$errorLog, &$chunkState)
+//             {
+//                 if ($chunkState === 0) return;
+// //echo('111<br /><br /><br />');
+//                 foreach($rows as $row)
+//                 {
+// //echo('222<br /><br /><br />');
+//                     if (count($row) != $totalColumn) {
+//                         // log error message to array
+//                         $errorMessage = array(
+//                             'row'       => 1,
+//                             'message'   => 'First line should have ' . $totalColumn . ' columns.'
+//                         );
+//                         $errorLog[] = $errorMessage;
+//                         $this->response->data = $errorLog;
+//                         OrbitShopAPI::throwInvalidArgument('error');
+//                     }
+//                 }
+//                 $chunkState = 0;
+// //echo 'bbb';
+//             });
+//var_dump('ccc'); echo('<br /><br /><br />');
             // start validation
             Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($columnIndex, $totalColumn, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku, &$currentProduct)
             {
@@ -317,6 +326,18 @@ class ImportAPIController extends ControllerAPI
                 {
                     // increase row counter by 1
                     $rowCounter++;
+//var_dump(count($row).'==='.$totalColumn);
+                    // validate total column
+                    if (count($row) != $totalColumn) {
+                        // log error message to array
+                        $errorMessage = array(
+                            'row'       => $rowCounter,
+                            'message'   => 'Each line should have ' . $totalColumn . ' columns.'
+                        );
+                        $errorLog[] = $errorMessage;
+                        $this->response->data = $errorLog;
+                        OrbitShopAPI::throwInvalidArgument('error');
+                    }
 
                     // validate product
                     $default_sku = trim($row[$columnIndex['default_sku']]); // product_code
@@ -553,6 +574,7 @@ class ImportAPIController extends ControllerAPI
                             // if total error reach max error, then throw exception
                             if (count($errorLog) === $errorLogMax) {
                                 $this->response->data = $errorLog;
+//var_dump(count($errorLog)); echo('<br /><br />');
                                 OrbitShopAPI::throwInvalidArgument('error');
                             }
                         }
@@ -567,6 +589,7 @@ class ImportAPIController extends ControllerAPI
             // if have error, then throw exception
             if (count($errorLog) <> 0) {
                 $this->response->data = $errorLog;
+//var_dump(count($errorLog)); echo('<br /><br />');
                 OrbitShopAPI::throwInvalidArgument('error');
             }
 
@@ -861,7 +884,7 @@ class ImportAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument('error');
             }
 
-            $this->commit();
+            //$this->commit();
 
             //$this->response->message = Lang::get('statuses.orbit.uploaded.coupon.main');
 
