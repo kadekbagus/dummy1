@@ -531,11 +531,16 @@ class Activity extends Eloquent
      *
      * @author Yudi Rahono <yudi@rahono.com>
      * @param Illuminate\Database\Query\Builder $builder
-     * @return Illuminate\Database\Query\Builder
+     * @param array $merchantIds
+     * @return \Illuminate\Database\Query\Builder
      */
-    public function scopeConsiderCustomer($builder)
+    public function scopeConsiderCustomer($builder, array $merchantIds = [])
     {
         $builder->whereNotIn('group', array('pos', 'portal'));
+
+        if (! empty($merchantIds)) {
+            $this->scopeMerchantIds($builder, $merchantIds);
+        }
 
         return $builder;
     }
