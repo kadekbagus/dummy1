@@ -295,30 +295,6 @@ class ImportAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument('error');
             }
 
-            // validate first line total column
-//             $chunkState = 1;
-//             Excel::filter('chunk')->load($file)->chunk(1, function($rows) use ($totalColumn, &$errorLog, &$chunkState)
-//             {
-//                 if ($chunkState === 0) return;
-// //echo('111<br /><br /><br />');
-//                 foreach($rows as $row)
-//                 {
-// //echo('222<br /><br /><br />');
-//                     if (count($row) != $totalColumn) {
-//                         // log error message to array
-//                         $errorMessage = array(
-//                             'row'       => 1,
-//                             'message'   => 'First line should have ' . $totalColumn . ' columns.'
-//                         );
-//                         $errorLog[] = $errorMessage;
-//                         $this->response->data = $errorLog;
-//                         OrbitShopAPI::throwInvalidArgument('error');
-//                     }
-//                 }
-//                 $chunkState = 0;
-// //echo 'bbb';
-//             });
-//var_dump('ccc'); echo('<br /><br /><br />');
             // start validation
             Excel::filter('chunk')->load($file)->chunk($chunkSize, function($rows) use ($columnIndex, $totalColumn, $errorLogMax, &$errorLog, &$rowCounter, &$previous_row_default_sku, &$currentProduct)
             {
@@ -326,7 +302,7 @@ class ImportAPIController extends ControllerAPI
                 {
                     // increase row counter by 1
                     $rowCounter++;
-//var_dump(count($row).'==='.$totalColumn);
+
                     // validate total column
                     if (count($row) != $totalColumn) {
                         // log error message to array
@@ -574,7 +550,6 @@ class ImportAPIController extends ControllerAPI
                             // if total error reach max error, then throw exception
                             if (count($errorLog) === $errorLogMax) {
                                 $this->response->data = $errorLog;
-//var_dump(count($errorLog)); echo('<br /><br />');
                                 OrbitShopAPI::throwInvalidArgument('error');
                             }
                         }
@@ -589,7 +564,6 @@ class ImportAPIController extends ControllerAPI
             // if have error, then throw exception
             if (count($errorLog) <> 0) {
                 $this->response->data = $errorLog;
-//var_dump(count($errorLog)); echo('<br /><br />');
                 OrbitShopAPI::throwInvalidArgument('error');
             }
 
