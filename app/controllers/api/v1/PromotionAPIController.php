@@ -498,7 +498,7 @@ class PromotionAPIController extends ControllerAPI
                     'promotion_type'       => 'orbit.empty.promotion_type',
                     'begin_date'           => 'required',
                     'status'               => 'orbit.empty.promotion_status',
-                    'rule_type'            => 'orbit.empty.rule_type',
+                    'rule_type'            => 'required|orbit.empty.rule_type',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
                     'discount_object_id1'  => 'orbit.empty.discount_object_id1',
                     'discount_object_id2'  => 'orbit.empty.discount_object_id2',
