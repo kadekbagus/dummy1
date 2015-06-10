@@ -220,6 +220,10 @@ class DashboardAPIController extends ControllerAPI
                         $summary  = $summaryReport->first();
                         $lastPage = true;
                     }
+                } else {
+                    if ($this->builderOnly) {
+                        return $this->builderObject(NULL, NULL);
+                    }
                 }
             } else {
                 $products->take(20);
