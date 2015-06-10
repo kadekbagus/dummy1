@@ -101,6 +101,9 @@ class UploaderConfig
 
                 // Callback after saving the file
                 'after_saving'  => NULL,
+
+                // Move uploaded file callback
+                'move_uploaded_file_callback' => NULL
             );
 
         $this->config = $config + $this->default;

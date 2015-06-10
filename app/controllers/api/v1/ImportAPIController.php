@@ -15,6 +15,7 @@ use DominoPOS\OrbitUploader\UploaderConfig;
 use DominoPOS\OrbitUploader\UploaderMessage;
 use DominoPOS\OrbitUploader\Uploader;
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use OrbitShop\API\v1\Helper\Generator;
 
 class ImportAPIController extends ControllerAPI
 {
@@ -912,6 +913,267 @@ class ImportAPIController extends ControllerAPI
 
         $output = $this->render($httpCode);
         Event::fire('orbit.import.postimportproduct.before.render', array($this, $output));
+
+        return $output;
+    }
+
+    /**
+     * Import product image.
+     *
+     * @author Tian <tian@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param integer    `merchant_id`                (required) - Merchant ID
+     * @param file|array `image-zip`                  (required) - Images file in zip format
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function postImportProductImage()
+    {
+        try {
+            // Load the orbit configuration for import product
+            $importProductConfig = Config::get('orbit.import.product.image-zip');
+
+            // set max_execution_time
+            set_time_limit($importProductConfig['max_execution_time']);
+
+            //ini_set('post_max_size', '10M');
+            //ini_set('upload_max_filesize', '10M');
+
+            $httpCode = 200;
+
+            Event::fire('orbit.import.postimportproductimage.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.import.postimportproductimage.after.auth', array($this));
+
+            // Try to check access control list, does this merchant allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            Event::fire('orbit.import.postimportproductimage.before.authz', array($this, $user));
+
+/*
+            if (! ACL::create($user)->isAllowed('import_product')) {
+                Event::fire('orbit.import.postimportproductimage.authz.notallowed', array($this, $user));
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => Lang::get('validation.orbit.actionlist.import_product')));
+                ACL::throwAccessForbidden($message);
+            }
+*/
+            // @Todo: Use ACL authentication instead
+            $role = $user->role;
+            $validRoles = ['super admin', 'merchant owner'];
+            if (! in_array(strtolower($role->role_name), $validRoles)) {
+                $message = 'Your role are not allowed to access this resource.';
+                ACL::throwAccessForbidden($message);
+            }
+
+            Event::fire('orbit.import.postimportproductimage.after.authz', array($this, $user));
+
+            // Register custom validation
+            $this->registerCustomValidation();
+
+            $merchant_id = OrbitInput::post('merchant_id');
+            $products = OrbitInput::files('image-zip');
+
+            // validate input data
+            $validator = Validator::make(
+                array(
+                    'merchant_id'   => $merchant_id,
+                    'image'         => $products,
+                ),
+                array(
+                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'image'         => 'required|nomore.than.one',
+                ),
+                array(
+                   'nomore.than.one' => Lang::get('validation.max.array', array('max' => 1))
+                )
+            );
+
+            Event::fire('orbit.import.postimportproductimage.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.import.postimportproductimage.after.validation', array($this, $validator));
+
+            // Begin database transaction
+            $this->beginTransaction();
+
+            // We already had Merchant instance on the RegisterCustomValidation
+            // get it from there no need to re-query the database
+            $merchant = App::make('orbit.empty.merchant');
+
+            // Delete old coupon image
+            $pastMedia = Media::where('object_id', $merchant->merchant_id)
+                              ->where('object_name', 'merchant')
+                              ->where('media_name_id', 'import_product_image_zip');
+
+            // Delete each files
+            $oldMediaFiles = $pastMedia->get();
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
+
+            // Callback to rename the file, we will format it as follow
+            // [MERCHANT_ID]-products_[ARRAY_NO].csv
+            $renameFile = function($uploader, &$file, $dir) use ($merchant, $importProductConfig)
+            {
+                $merchant_id = $merchant->merchant_id;
+                $file['new']->name = sprintf('%s-%s', $merchant_id, $importProductConfig['filename']);
+            };
+
+            $message = new UploaderMessage([]);
+            $config = new UploaderConfig($importProductConfig);
+            $config->setConfig('before_saving', $renameFile);
+
+            // Create the uploader object
+            $uploader = new Uploader($config, $message);
+
+            Event::fire('orbit.import.postimportproductimage.before.save', array($this, $merchant, $uploader));
+
+            // Begin uploading the files
+            $uploaded = $uploader->upload($products);
+
+            // Save the files metadata
+            $object = array(
+                'id'                => $merchant->merchant_id,
+                'name'              => 'merchant',
+                'media_name_id'     => 'import_product_image_zip',
+                'modified_by'       => $user->user_id
+            );
+            $mediaList = $this->saveMetadata($object, $uploaded);
+
+            Event::fire('orbit.import.postimportproductimage.after.save', array($this, $merchant, $uploader));
+
+            // Commit the changes
+            $this->commit();
+
+            Event::fire('orbit.import.postimportproductimage.after.commit', array($this, $merchant, $uploader));
+
+            /*
+             *
+             * start importing product image zip
+             *
+             */
+
+            // get zip file
+            $file = $importProductConfig['path'] . DIRECTORY_SEPARATOR . $mediaList[0]['original']['file_name'];
+
+            // get error log max config
+            $errorLogMax = $importProductConfig['error_log_max'];
+
+            // extract to folder
+            $extractToFolder = sprintf($importProductConfig['extract_to_folder'], $merchant->merchant_id);
+            if (! file_exists($extractToFolder)) {
+                mkdir($extractToFolder, 0777, true);
+            };
+
+            // error log
+            $errorLog = array();
+
+            // row counter for user error message row number
+            $rowCounter = 0;
+
+            $zip = new ZipArchive;
+            if ($zip->open($file) === TRUE) {
+                $zip->extractTo($extractToFolder);
+
+                for($i = 0; $i < $zip->numFiles; $i++) {
+                    $basename = $zip->getNameIndex($i);
+                    $fileinfo = pathinfo($basename);
+                    $tmpFile =  $extractToFolder . DIRECTORY_SEPARATOR . $fileinfo['basename'];
+                    $sku = $fileinfo['filename'];
+
+                    $product = Product::excludeDeleted()
+                                      ->where('product_code', $sku)
+                                      ->first();
+
+                    if (! empty($product)) {
+                        $_POST['product_id'] = $product->product_id;
+
+                        $_FILES = array();
+                        $_FILES['images']['tmp_name'][0] = $tmpFile;
+                        $_FILES['images']['type'][0] = 'image/jpeg';
+                        $_FILES['images']['name'][0] = basename($_FILES['images']['tmp_name'][0]);
+                        $_FILES['images']['error'][0] = 0;
+                        $_FILES['images']['size'][0] = filesize($tmpFile);
+
+                        $secretKey = $this->api->user->apikey->api_secret_key;
+                        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+                        $api = UploadAPIController::create('raw')->postUploadProductImage();
+                    } else {
+                        //OrbitShopAPI::throwInvalidArgument('SKU not found.');
+                    }
+                }
+
+                $zip->close();
+            } else {
+                OrbitShopAPI::throwInvalidArgument('Failed to read zip file.');
+            }
+
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.import.postimportproductimage.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.import.postimportproductimage.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+
+            // Rollback the changes
+            $this->rollBack();
+        } catch (QueryException $e) {
+            Event::fire('orbit.import.postimportproductimage.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.import.postimportproductimage.general.exception', array($this, $e));
+
+            $this->response->code = Status::UNKNOWN_ERROR;
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = NULL;
+
+            // Rollback the changes
+            $this->rollBack();
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.import.postimportproductimage.before.render', array($this, $output));
 
         return $output;
     }

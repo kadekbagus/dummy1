@@ -593,6 +593,11 @@ return array(
 
                 // Callback after saving the file
                 'after_saving'  => NULL,
+
+                // Move uploaded file callback
+                'move_uploaded_file_callback' => function($from, $to) {
+                    return copy($from, $to);
+                }
             ),
         ),
 
@@ -1114,6 +1119,48 @@ return array(
                 // Callback after saving the file
                 'after_saving'  => NULL,
             ),
+
+            'image-zip' => array(
+                // Allowed Extension
+                'file_type'     => array('zip'),
+
+                // Allowed Mimetype
+                'mime_type'     => array('application/zip'),
+
+                // Maximum file size allowed in bytes
+                'file_size'     => 104857600, // 100 MB
+
+                // The target path which file to be stored
+                'path'          => storage_path('imports'),
+
+                // Default HTML element name
+                'name'          => 'image-zip',
+
+                // new filename for imported file
+                'filename'      => 'product-image-zip',
+
+                // extract to folder
+                'extract_to_folder' => '/tmp/products/imports/merchant-%s',
+
+                // error log max
+                'error_log_max' => 5,
+
+                // max_execution_time (in seconds) / set_time_limit
+                'max_execution_time' => 3600,
+
+                // Force create directory when not exists
+                'create_directory'  => TRUE,
+
+                // Append year and month to the path
+                'append_year_month' => FALSE,
+
+                // Callback before saving the file
+                'before_saving' => NULL,
+
+                // Callback after saving the file
+                'after_saving'  => NULL,
+            ),
+
         ),
     ),
 
