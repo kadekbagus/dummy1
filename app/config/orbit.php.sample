@@ -596,7 +596,7 @@ return array(
 
                 // Move uploaded file callback
                 'move_uploaded_file_callback' => function($from, $to) {
-                    return copy($from, $to);
+                    return rename($from, $to);
                 }
             ),
         ),

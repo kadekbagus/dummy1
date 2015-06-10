@@ -1114,6 +1114,8 @@ class ImportAPIController extends ControllerAPI
                         $secretKey = $this->api->user->apikey->api_secret_key;
                         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
                         $api = UploadAPIController::create('raw')->postUploadProductImage();
+
+                        // check error here: if ($api->data->)
                     } else {
                         //OrbitShopAPI::throwInvalidArgument('SKU not found.');
                     }
