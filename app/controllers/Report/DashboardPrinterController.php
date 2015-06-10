@@ -26,6 +26,13 @@ class DashboardPrinterController extends DataPrinterController
 
             $isProductListed = !!$builder->getBuilder();
 
+            $statement      = NULL;
+            $rowNames       = NULL;
+            $rowFormatter   = NULL;
+            $summaryHeaders = NULL;
+            $total          = NULL;
+            $summary        = NULL;
+
             if ($isProductListed) {
                 $productReport = $builder->getBuilder();
 
@@ -51,8 +58,6 @@ class DashboardPrinterController extends DataPrinterController
                 $this->prepareUnbufferedQuery();
                 $statement = $this->pdo->prepare($productReport->toSql());
                 $statement->execute($productReport->getBindings());
-            } else {
-                return Response::make('No Product Listed', 404);
             }
 
             $rowCounter = 0;
@@ -66,6 +71,11 @@ class DashboardPrinterController extends DataPrinterController
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
+
+                    if (! $isProductListed) {
+                        printf("No Product Listed, \n");
+                        break;
+                    }
 
                     printf(" ,Total Records,:,%s\n", $total);
                     foreach ($summaryHeaders as $name => $title)
@@ -96,7 +106,9 @@ class DashboardPrinterController extends DataPrinterController
                     break;
                 case 'print':
                 default:
-                    require app_path() . '/views/printer/dashboard-view.php';
+                    $emptyName = $isProductListed ? '' : 'empty-';
+                    $message   = 'No Product Listed';
+                    require app_path() . "/views/printer/{$emptyName}dashboard-view.php";
             }
         } catch(Exception $e) {
             $responseText = Config::get("app.debug") ? $e->__toString() : "";
