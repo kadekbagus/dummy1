@@ -1087,6 +1087,9 @@ class ImportAPIController extends ControllerAPI
             // row counter for user error message row number
             $rowCounter = 0;
 
+            // error flag
+            $errorFlag = false;
+
             $zip = new ZipArchive;
             if ($zip->open($file) === TRUE) {
                 $zip->extractTo($extractToFolder);
@@ -1116,14 +1119,22 @@ class ImportAPIController extends ControllerAPI
                         $api = UploadAPIController::create('raw')->postUploadProductImage();
 
                         // check error here: if ($api->data->)
+                        $errorFlag = true;
                     } else {
                         //OrbitShopAPI::throwInvalidArgument('SKU not found.');
+
+                        $errorFlag = true;
                     }
                 }
 
                 $zip->close();
             } else {
                 OrbitShopAPI::throwInvalidArgument('Failed to read zip file.');
+            }
+
+            // if have error then throw exception
+            if ($errorFlag === true) {
+                OrbitShopAPI::throwInvalidArgument('Some files do not match the requirement, either the file size is too big or the SKU is not found.');
             }
 
         } catch (ACLForbiddenException $e) {
