@@ -321,7 +321,7 @@ class ImportAPIController extends ControllerAPI
                     $product_name = trim($row[$columnIndex['product_name']]);
                     $short_description = trim($row[$columnIndex['short_description']]);
                     $long_description = trim($row[$columnIndex['long_description']]);
-                    $default_price = (int)$row[$columnIndex['default_price']];
+                    $default_price = (float)$row[$columnIndex['default_price']];
                     $tax1_name = trim($row[$columnIndex['tax1_name']]);
                     $tax2_name = trim($row[$columnIndex['tax2_name']]);
                     $default_barcode = trim($row[$columnIndex['default_barcode']]); // upc_code
@@ -354,7 +354,7 @@ class ImportAPIController extends ControllerAPI
                     $variant5_value = trim($row[$columnIndex['variant5_value']]);
                     $variant_sku = trim($row[$columnIndex['variant_sku']]);
                     $variant_barcode = trim($row[$columnIndex['variant_barcode']]);
-                    $variant_price = (int)$row[$columnIndex['variant_price']];
+                    $variant_price = (float)$row[$columnIndex['variant_price']];
 
                     // validation rule
                     $validator = Validator::make(
@@ -629,7 +629,7 @@ class ImportAPIController extends ControllerAPI
                         $newproduct->product_name = trim($row[$columnIndex['product_name']]);
                         $newproduct->short_description = trim($row[$columnIndex['short_description']]);
                         $newproduct->long_description = trim($row[$columnIndex['long_description']]);
-                        $newproduct->price = (int)$row[$columnIndex['default_price']];
+                        $newproduct->price = (float)$row[$columnIndex['default_price']];
                         $newproduct->upc_code = trim($row[$columnIndex['default_barcode']]);
                         $newproduct->new_from = 0;
                         $newproduct->new_until = 0;
@@ -839,7 +839,7 @@ class ImportAPIController extends ControllerAPI
 
                         $product_variant->sku = trim($row[$columnIndex['variant_sku']]);
                         $product_variant->upc = trim($row[$columnIndex['variant_barcode']]);
-                        $product_variant->price = (int)$row[$columnIndex['variant_price']];
+                        $product_variant->price = (float)$row[$columnIndex['variant_price']];
 
                         $product_variant->default_variant = 'no';
                         $product_variant->status = 'active';
