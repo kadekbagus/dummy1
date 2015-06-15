@@ -578,6 +578,12 @@ class UploadAPIController extends ControllerAPI
             // Load the orbit configuration for product upload
             $uploadProductConfig = Config::get('orbit.upload.product.main');
 
+            if (Config::get('memory:from_import_image')) {
+                $uploadProductConfig['move_uploaded_file_callback'] = function($from, $to) {
+                    return rename($from, $to);
+                };
+            }
+
             $message = new UploaderMessage([]);
             $config = new UploaderConfig($uploadProductConfig);
             $config->setConfig('before_saving', $renameFile);

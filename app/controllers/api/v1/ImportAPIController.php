@@ -1116,6 +1116,8 @@ class ImportAPIController extends ControllerAPI
 
                         $secretKey = $this->api->user->apikey->api_secret_key;
                         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
+
+                        Config::set('memory:from_import_image', TRUE);
                         $api = UploadAPIController::create('raw')->postUploadProductImage();
 
                         // if file size is too big

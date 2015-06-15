@@ -593,11 +593,6 @@ return array(
 
                 // Callback after saving the file
                 'after_saving'  => NULL,
-
-                // Move uploaded file callback
-                'move_uploaded_file_callback' => function($from, $to) {
-                    return rename($from, $to);
-                }
             ),
         ),
 
