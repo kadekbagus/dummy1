@@ -331,9 +331,13 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // // Try to check access control list, does this product allowed to
-            // // perform this action
+            // Try to check access control list, does this product allowed to
+            // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $maxRecord = 300;
 
@@ -491,7 +495,9 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
-            // $this->registerCustomValidation();
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
@@ -729,6 +735,10 @@ class CashierAPIController extends ControllerAPI
             // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $retailer = $this->getRetailerInfo();
             $total_item       = trim(OrbitInput::post('total_item'));
@@ -1453,6 +1463,10 @@ class CashierAPIController extends ControllerAPI
             // perform this action
             $user = $this->api->user;
 
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             $retailer = $this->getRetailerInfo();
 
             // currency from merchant table (IDR,USD)
@@ -1774,6 +1788,17 @@ class CashierAPIController extends ControllerAPI
     {
         try {
 
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             // Check the device exist or not
             if (!file_exists(Config::get('orbit.devices.edc.params'))) {
                 $message = 'Payment Terminal not found';
@@ -2050,6 +2075,17 @@ class CashierAPIController extends ControllerAPI
     public function postCustomerDisplay()
     {
         try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             $line1 = trim(OrbitInput::post('line1'));
             $line2 = OrbitInput::post('line2');
 
@@ -2131,6 +2167,17 @@ class CashierAPIController extends ControllerAPI
     public function postProductDetail()
     {
         try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             $product_id = trim(OrbitInput::post('product_id'));
 
             $validator = Validator::make(
@@ -2226,6 +2273,17 @@ class CashierAPIController extends ControllerAPI
     public function postCartBasedPromotion()
     {
         try {
+            // Require authentication
+            $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             $retailer = $this->getRetailerInfo();
             // check for cart based promotions
             $promo_carts = \Promotion::with('promotionrule')->excludeDeleted()
@@ -2285,17 +2343,21 @@ class CashierAPIController extends ControllerAPI
      */
     public function getPosQuickProduct()
     {
-        try {
-            $retailer = $this->getRetailerInfo();
-
+        try {      
             $httpCode = 200;
 
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this user allowed to
+            // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
+            $retailer = $this->getRetailerInfo();
 
             $sort_by = OrbitInput::get('sortby');
             $validator = Validator::make(
@@ -2499,9 +2561,13 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this user allowed to
+            // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             if ($customer_id == null) {
                 $customer_id = -1;
@@ -2590,9 +2656,13 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this user allowed to
+            // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $customer_id = OrbitInput::post('customer_id', -1);
             $customer = User::excludeDeleted()->find($customer_id);
@@ -2670,9 +2740,13 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this user allowed to
+            // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $customer_id = OrbitInput::post('customer_id', -1);
             $customer = User::excludeDeleted()->find($customer_id);
@@ -2751,9 +2825,13 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this user allowed to
+            // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $customer_id = OrbitInput::post('customer_id', -1);
             $product_id = OrbitInput::post('product_id', -1);
@@ -2838,9 +2916,13 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
-            // Try to check access control list, does this user allowed to
+            // Try to check access control list, does this product allowed to
             // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $customer_id = OrbitInput::post('customer_id', -1);
             $product_id = OrbitInput::post('product_id', -1);
@@ -2927,7 +3009,11 @@ class CashierAPIController extends ControllerAPI
 
             // Try to check access control list, does this product allowed to
             // perform this action
-            $cashier = $this->api->user;
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $retailer = $this->getRetailerInfo();
 
@@ -2971,13 +3057,16 @@ class CashierAPIController extends ControllerAPI
     public function postDeleteCart()
     {
         try {
-
             // Require authentication
             $this->checkAuth();
 
             // Try to check access control list, does this product allowed to
             // perform this action
-            $cashier = $this->api->user;
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $cart_id = trim(OrbitInput::post('cart_id'));
 
@@ -3133,6 +3222,14 @@ class CashierAPIController extends ControllerAPI
             // Require authentication
             $this->checkAuth();
 
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
+
             // Check the device exist or not
             if (!file_exists(Config::get('orbit.devices.edc.params'))) {
                 $message = 'Terminal not found';
@@ -3165,8 +3262,16 @@ class CashierAPIController extends ControllerAPI
     public function postSendTicketEmail()
     {
         try {
+            // Require authentication
             $this->checkAuth();
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
             $user = $this->api->user;
+
+            // Make sure only Super Admin and Cashier which are able to call
+            // this URL
+            $this->CashierAndSuperAdminOnly();
 
             $retailer = $this->getRetailerInfo();
 
@@ -4506,10 +4611,10 @@ class CashierAPIController extends ControllerAPI
         $user = $this->api->user;
 
         if (! $user->isSuperAdmin()) {
-            $allowedRoleToCalls = ['cashier'];
+            $allowedRoleToCalls = ['cashier', 'merchant owner', 'retailer owner'];
             $myRoleName = $user->role->role_name;
             if (! in_array(strtolower($myRoleName), $allowedRoleToCalls)) {
-                $message = Lang::get('validation.orbit.access.forbidden', ['action' => 'scan barcode']);
+                $message = Lang::get('validation.orbit.access.forbidden', ['action' => 'access']);
                 ACL::throwAccessForbidden($message);
             }
         }
