@@ -111,13 +111,19 @@ Route::filter('orbit-settings', function()
 
     $browserLang = substr(Request::server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
 
-    if(! empty($browserLang) AND in_array($browserLang, Config::get('orbit.languages', ['en']))) {
-        // Set Browser Lang
-        App::setLocale($browserLang);
+    $merchantLang = Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->excludeDeleted()->first()->parent->mobile_default_language;
+
+    if ($merchantLang == 'user') {
+        if (! empty($browserLang) AND in_array($browserLang, Config::get('orbit.languages', ['en']))) {
+            // Set Browser Lang
+            App::setLocale($browserLang);
+        } else {
+            // Fallback to 'en'
+            App::setLocale('en');
+        }
     } else {
         // Set Merchant Setting Lang
-        $merchantLang = Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->excludeDeleted()->first()->parent->mobile_default_language;
-        if(! empty($merchantLang)) {
+        if (! empty($merchantLang)) {
             App::setLocale($merchantLang);
         } else {
             // Fallback to 'en'

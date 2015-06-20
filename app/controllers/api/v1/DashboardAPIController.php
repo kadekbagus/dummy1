@@ -167,6 +167,8 @@ class DashboardAPIController extends ControllerAPI
                 $productNames = $topNames->orderBy('view_count', 'desc')->take(20)->get();
                 $defaultSelect = [];
                 $productIds    = [];
+                $productTotal = 0;
+                $productList  = [];
 
                 foreach ($productNames as $product)
                 {
@@ -179,43 +181,45 @@ class DashboardAPIController extends ControllerAPI
                     array_push($defaultSelect, DB::raw("ifnull(sum(case product_id when {$product->product_id} then view_count end), 0) as '{$name}'"));
                 }
 
-                $toSelect  = array_merge($defaultSelect, ['created_at_date']);
+                if (count($productIds) > 0) {
+                    $toSelect  = array_merge($defaultSelect, ['created_at_date']);
 
-                $_products->whereIn('activities.product_id', $productIds);
+                    $_products->whereIn('activities.product_id', $productIds);
 
-                $productReportQuery = $_products->getQuery();
-                $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
-                    ->mergeBindings($productReportQuery)
-                    ->select($toSelect)
-                    ->whereIn('product_id', $productIds)
-                    ->groupBy('created_at_date');
-                $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
-                    ->mergeBindings($productReportQuery)
-                    ->select($defaultSelect);
+                    $productReportQuery = $_products->getQuery();
+                    $productReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                        ->mergeBindings($productReportQuery)
+                        ->select($toSelect)
+                        ->whereIn('product_id', $productIds)
+                        ->groupBy('created_at_date');
+                    $summaryReport = DB::table(DB::raw("({$_products->toSql()}) as report"))
+                        ->mergeBindings($productReportQuery)
+                        ->select($defaultSelect);
 
-                $_productReport = clone $productReport;
+                    $_productReport = clone $productReport;
 
-                $productReport->orderBy('created_at_date', 'desc');
+                    $productReport->orderBy('created_at_date', 'desc');
 
-                if ($this->builderOnly)
-                {
-                    return $this->builderObject($productReport, $summaryReport, [
-                        'productNames' => $productNames
-                    ]);
-                }
+                    if ($this->builderOnly)
+                    {
+                        return $this->builderObject($productReport, $summaryReport, [
+                            'productNames' => $productNames
+                        ]);
+                    }
 
-                $productReport->take($take)->skip($skip);
+                    $productReport->take($take)->skip($skip);
 
-                $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
-                    ->mergeBindings($_productReport);
+                    $totalReport    = DB::table(DB::raw("({$_productReport->toSql()}) as total_report"))
+                        ->mergeBindings($_productReport);
 
-                $productTotal = $totalReport->count();
-                $productList  = $productReport->get();
+                    $productTotal = $totalReport->count();
+                    $productList  = $productReport->get();
 
-                if (($productTotal - $take) <= $skip)
-                {
-                    $summary  = $summaryReport->first();
-                    $lastPage = true;
+                    if (($productTotal - $take) <= $skip)
+                    {
+                        $summary  = $summaryReport->first();
+                        $lastPage = true;
+                    }
                 }
             } else {
                 $products->take(20);
@@ -1934,6 +1938,10 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw('date(created_at) as created_at_date'),
                     DB::raw('count(distinct user_id) as user_count')
                 )
+                ->where(function ($q) {
+                    $q->where('activity_name', '=', 'login_ok');
+                    $q->orWhere('activity_name', '=', 'logout_ok');
+                })
                 ->groupBy('created_at_date');
 
 
@@ -2010,7 +2018,7 @@ class DashboardAPIController extends ControllerAPI
                     "created_at_date"
                 );
 
-                $_activities->groupBy('time_range', 'created_at_date');
+                $_activities->groupBy('created_at_date', 'time_range');
 
                 $defaultSelect = [
                     DB::raw("ifnull(sum(case time_range when '<5' then user_count end), 0) as '<5'"),
@@ -2202,90 +2210,78 @@ class DashboardAPIController extends ControllerAPI
             }
 
             $tablePrefix = DB::getTablePrefix();
-
-            $monthlyTransactionsByCustomer = Transaction::select(
-                    'customer_id',
-                    DB::raw("count(distinct merchant_id) as merchant_count"),
-                    DB::raw("date_format(created_at, '%m') as created_at_month")
+            $monthlyActivity = Activity::select(
+                    DB::raw("max(created_at) as created_at"),
+                    'user_id',
+                    'location_id',
+                    DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
+                    DB::raw("count(distinct location_id) as unique_visit_count"),
+                    DB::raw("count(distinct activity_id) as visit_count")
                 )
-                ->groupBy('customer_id', 'created_at_month');
+                ->where('activity_name', '=', 'login_ok')
+                ->where('activities.user_id', '=', $this->api->getUserId())
+                ->whereNotNull('activities.location_id')
+                ->orderBy('activities.created_at', 'desc')
+                ->groupBy('activities.user_id', 'created_at_month');
 
-            $lastVisitedMerchantByCustomer = Transaction::select(
-                    'transactions.customer_id',
-                    'merchants.name as merchant_name',
-                    'merchants.merchant_id',
-                    DB::raw("max({$tablePrefix}activities.created_at) as created_at")
+            $lastTransactions = Transaction::select(
+                    DB::raw("date(created_at) as created_at_date"),
+                    DB::raw("sum(total_to_pay) as total_to_pay"),
+                    DB::raw("max(created_at) as created_at"),
+                    'retailer_id'
                 )
-                ->join("merchants", function ($join) {
-                    $join->on('merchants.merchant_id', '=', 'transactions.retailer_id');
-                })
-                ->join("activities", function ($join) {
-                    $join->on("activities.location_id", '=', 'transactions.retailer_id');
-                    $join->where('activities.activity_name', '=', 'login_ok');
-                })
-                ->groupBy('transactions.customer_id')
-                ->orderBy('activities.created_at', 'desc');
+                ->where('customer_id', '=', $this->api->getUserId())
+                ->orderBy('created_at', 'desc')
+                ->groupBy('retailer_id', 'created_at_date');
 
-            $transactions = Transaction::select(
-                    DB::raw("sum({$tablePrefix}transactions.total_to_pay) as total_spent"),
-                    DB::raw("ceil(avg(months.merchant_count)) as monthly_merchant_count"),
-                    DB::raw("max(months.merchant_count) as merchant_count"),
-                    DB::raw("date(last_visited.created_at) as last_visit_date"),
-                    DB::raw("last_visited.merchant_name as last_visit_merchant_name"),
-                    DB::raw("last_visited.merchant_id as last_visit_merchant_id"),
-                    DB::raw("sum(ifnull(coupons.value_after_percentage, 0)) + sum(ifnull(promotions.value_after_percentage, 0)) as total_saving")
+            $transactionSavingsByUser = Transaction::select(
+                    "customer_id",
+                    DB::raw("sum(ifnull(c.value_after_percentage, 0)) + sum(ifnull(p.value_after_percentage, 0)) as total_saving")
                 )
-                ->leftJoin(DB::raw("({$monthlyTransactionsByCustomer->toSql()}) as months"), function ($join) {
-                    $join->on(DB::raw("months.customer_id"), '=', 'transactions.customer_id');
-                })
-                ->leftJoin(DB::raw("({$lastVisitedMerchantByCustomer->toSql()}) as last_visited"), function ($join) {
-                    $join->on(DB::raw("last_visited.customer_id"), '=', 'transactions.customer_id');
-                })
-                ->leftJoin('transaction_detail_coupons as coupons', function ($join) {
-                    $join->on(DB::raw('coupons.transaction_id'), '=', 'transactions.transaction_id');
-                })
-                ->leftJoin('transaction_detail_promotions as promotions', function ($join) {
-                    $join->on(DB::raw('promotions.transaction_id'), '=', 'transactions.transaction_id');
-                })
-                ->mergeBindings($lastVisitedMerchantByCustomer->getQuery())
-                ->where('transactions.customer_id', '=', $this->api->getUserId());
+                ->leftJoin('transaction_detail_coupons as c', DB::raw('c.transaction_id'), '=', 'transactions.transaction_id')
+                ->leftJoin('transaction_detail_promotions as p', DB::raw('p.transaction_id'), '=', 'transactions.transaction_id')
+                ->groupBy('customer_id');
 
-            OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
-                $transactions->where('transactions.created_at', '>=', $beginDate);
+
+            $activities = DB::table(DB::raw("({$monthlyActivity->toSql()}) as {$tablePrefix}activities"))
+                ->mergeBindings($monthlyActivity->getQuery())
+                ->select(
+                    DB::raw("date(max({$tablePrefix}activities.created_at)) as last_visit_date"),
+                    DB::raw("{$tablePrefix}last_transactions.total_to_pay as total_spent"),
+                    DB::raw("round(avg(distinct visit_count)) as monthly_merchant_count"),
+                    DB::raw("max(unique_visit_count) as merchant_count"),
+                    'merchants.name as last_visit_merchant_name',
+                    'merchants.merchant_id as last_visit_merchant_id',
+                    'total_saving'
+                )
+                ->join('user_details', 'user_details.user_id', '=', 'activities.user_id')
+                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
+                ->leftJoin(DB::raw("({$lastTransactions->toSql()}) as {$tablePrefix}last_transactions"), function ($join) use ($tablePrefix) {
+                    $join->on('last_transactions.retailer_id', '=', 'user_details.last_visit_shop_id');
+                    $join->on('last_transactions.created_at', '>=', DB::raw("date({$tablePrefix}activities.created_at)"));
+                })
+                ->mergeBindings($lastTransactions->getQuery())
+                ->leftJoin(DB::raw("({$transactionSavingsByUser->toSql()}) as transactions"), function ($join) {
+                    $join->on(DB::raw('transactions.customer_id'), '=', 'user_details.user_id');
+                })
+                ->mergeBindings($transactionSavingsByUser->getQuery());
+
+
+
+            OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
+                $activities->where('activities.created_at', '>=', $beginDate);
             });
 
-            OrbitInput::get('end_date', function ($endDate) use ($transactions) {
-                $transactions->where('transactions.created_at', '<=', $endDate);
+            OrbitInput::get('end_date', function ($endDate) use ($activities) {
+                $activities->where('activities.created_at', '<=', $endDate);
             });
 
-            // Get the take args
-            $take = $perPage;
-            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord) {
-                    $_take = $maxRecord;
-                }
-                $take = $_take;
-
-                if ((int)$take <= 0) {
-                    $take = $maxRecord;
-                }
-            });
-
-            $skip = 0;
-            OrbitInput::get('skip', function ($_skip) use (&$skip) {
-                if ($_skip < 0) {
-                    $_skip = 0;
-                }
-
-                $skip = $_skip;
-            });
-
-            $transaction = $transactions->first();
+            $activity = $activities->first();
 
             $data = new stdclass();
             $data->total_records = 1;
             $data->returned_records = 1;
-            $data->records   = $transaction;
+            $data->records   = $activity;
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
@@ -2422,41 +2418,53 @@ class DashboardAPIController extends ControllerAPI
 
             $tablePrefix = DB::getTablePrefix();
 
-            $transactions = Transaction::select(
-                    'transactions.retailer_id',
+            $locationActivities = Activity::select(
+                    DB::raw("max(created_at) as created_at"),
+                    'user_id',
+                    'location_id',
+                    DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
+                    DB::raw("count(distinct location_id) as unique_visit_count"),
+                    DB::raw("count(distinct activity_id) as visit_count")
+                )
+                ->where('activity_name', '=', 'login_ok')
+                ->where('activities.user_id', '=', $this->api->getUserId())
+                ->orderBy('activities.created_at', 'desc')
+                ->groupBy('activities.user_id', 'created_at_month', 'location_id');
+
+            $activities = DB::table(DB::raw("({$locationActivities->toSql()}) as {$tablePrefix}activities"))->select(
+                    'merchants.merchant_id as retailer_id',
                     'merchants.name as retailer_name',
                     'transactions.currency',
                     'transactions.currency_symbol',
                     DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
                     DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
-                    DB::raw("count(distinct {$tablePrefix}activities.activity_id) as visit_count"),
+                    DB::raw("sum(distinct {$tablePrefix}activities.visit_count) as visit_count"),
                     DB::raw("max({$tablePrefix}activities.created_at) as last_visit")
                 )
-                ->join('merchants', 'merchants.merchant_id', '=', 'transactions.retailer_id')
-                ->join('merchants as parent', DB::raw('parent.merchant_id'), '=', 'transactions.merchant_id')
-                ->leftJoin('activities', function ($join) {
-                    $join->on('activities.location_id', '=', 'transactions.retailer_id');
-                    $join->where('activities.user_id', '=', $this->api->getUserId());
-                    $join->where('activities.activity_name', '=', 'login_ok');
+                ->mergeBindings($locationActivities->getQuery())
+                ->leftJoin('transactions', function($join) {
+                    $join->on('transactions.customer_id', '=', 'activities.user_id');
+                    $join->on('transactions.retailer_id', '=', 'activities.location_id');
                 })
-                ->where('transactions.customer_id', '=', $this->api->getUserId())
-                ->groupBy('transactions.retailer_id');
+                ->join('merchants', 'merchants.merchant_id', '=', 'activities.location_id')
+                ->leftJoin('merchants as parent', DB::raw('parent.merchant_id'), '=', 'merchants.parent_id')
+                ->groupBy('activities.location_id');
 
-            OrbitInput::get('begin_date', function ($beginDate) use ($transactions) {
-                $transactions->where('activities.created_at', '>=', $beginDate);
+            OrbitInput::get('begin_date', function ($beginDate) use ($activities) {
+                $activities->where('activities.created_at', '>=', $beginDate);
             });
 
-            OrbitInput::get('end_date', function ($endDate) use ($transactions) {
-                $transactions->where('activities.created_at', '<=', $endDate);
+            OrbitInput::get('end_date', function ($endDate) use ($activities) {
+                $activities->where('activities.created_at', '<=', $endDate);
             });
 
-            OrbitInput::get('retailer_name_like', function($retailerName) use ($transactions) {
-                $transactions->where('merchants.name', 'like', "%{$retailerName}%");
+            OrbitInput::get('retailer_name_like', function($retailerName) use ($activities) {
+                $activities->where('merchants.name', 'like', "%{$retailerName}%");
             });
 
-            OrbitInput::get('transaction_count', function($trxCount) use ($transactions) {
-                $transactions->having('transaction_count', '=', $trxCount);
+            OrbitInput::get('transaction_count', function($trxCount) use ($activities) {
+                $activities->having('transaction_count', '=', $trxCount);
             });
 
             $transactionFilterMapping = [
@@ -2467,20 +2475,20 @@ class DashboardAPIController extends ControllerAPI
                 '5M' => sprintf('between %s and %s', 4e6, 5e6),
                 '6M' => sprintf('> %s', 5e6),
             ];
-            OrbitInput::get('transaction_total_range', function ($trxTotal) use ($transactions, $transactionFilterMapping) {
+            OrbitInput::get('transaction_total_range', function ($trxTotal) use ($activities, $transactionFilterMapping) {
                 $range  = $transactionFilterMapping[$trxTotal];
-                $transactions->havingRaw('transaction_total ' . $range);
+                $activities->havingRaw('transaction_total ' . $range);
             });
 
-            OrbitInput::get('transaction_total_gte', function ($trxTotal) use ($transactions) {
-               $transactions->having('transaction_total', '>=', $trxTotal);
+            OrbitInput::get('transaction_total_gte', function ($trxTotal) use ($activities) {
+               $activities->having('transaction_total', '>=', $trxTotal);
             });
 
-            OrbitInput::get('transaction_total_lte', function ($trxTotal) use ($transactions) {
-                $transactions->having('transaction_total', '<=', $trxTotal);
+            OrbitInput::get('transaction_total_lte', function ($trxTotal) use ($activities) {
+                $activities->having('transaction_total', '<=', $trxTotal);
             });
 
-            $_transactions = clone $transactions;
+            $_activities = clone $activities;
 
             // Get the take args
             $take = $perPage;
@@ -2495,7 +2503,7 @@ class DashboardAPIController extends ControllerAPI
                 }
             });
 
-            $transactions->take($take);
+            $activities->take($take);
 
             $skip = 0;
             OrbitInput::get('skip', function ($_skip) use (&$skip) {
@@ -2506,7 +2514,7 @@ class DashboardAPIController extends ControllerAPI
                 $skip = $_skip;
             });
 
-            $transactions->skip($skip);
+            $activities->skip($skip);
 
             // Default sort by
             $sortBy = 'activities.created_at';
@@ -2531,10 +2539,12 @@ class DashboardAPIController extends ControllerAPI
                     $sortMode = 'asc';
                 }
             });
-            $transactions->orderBy($sortBy, $sortMode);
+            $activities->orderBy($sortBy, $sortMode);
 
-            $transactionTotal = RecordCounter::create($_transactions)->count();
-            $transactionList = $transactions->get();
+            $transactionTotal = DB::table(DB::raw("({$_activities->toSql()}) as sub_total"))
+                ->mergeBindings($_activities)
+                ->count();
+            $transactionList = $activities->get();
 
             $data = new stdclass();
             $data->total_records    = $transactionTotal;

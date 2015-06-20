@@ -617,7 +617,10 @@ class TransactionHistoryAPIController extends ControllerAPI
                 }
             });
             $transactions->orderBy($sortBy, $sortMode);
-            $transactions->orderBy('quantity', 'desc');
+            // double sort hack to make sorted list same everytime
+            if ($sortBy != 'transaction_details.created_at') {
+                $transactions->orderBy('transaction_details.created_at', 'desc');
+            }
 
             if ($this->builderOnly)
             {

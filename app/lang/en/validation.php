@@ -117,7 +117,7 @@ return array(
                 'upc_code'          => 'UPC :upc has already been used by other product.',
                 'sku_code'          => 'SKU :sku has already been used by other product.',
                 'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it cannot be edited or deleted.',
-                'all_variant_unique' => 'Product combination/variant already exists.',
+                'variant_value_unique' => 'Product combination/variant already exists.',
             ),
             'product_attribute_have_transaction'           => 'The product attribute has one or more transactions linked to it, so it cannot be edited or deleted.',
             'product_attribute_value_have_transaction'     => 'The product attribute value has one or more transactions linked to it, so it cannot be edited or deleted.',
@@ -355,6 +355,8 @@ return array(
         'req' => array(
             'link_to_retailer'          => 'Link to retailer is required.',
             'redeem_to_retailer'        => 'Redeem to retailer is required.',
+            'family_required'           => 'Family :message_1 is required when family :message_2 is filled.',
+            'variant_required'          => 'Variant :message_1 is required when variant :message_2 is filled.',
         ),
     ),
 
