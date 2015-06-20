@@ -23,30 +23,42 @@ class DashboardPrinterController extends DataPrinterController
             $mode = OrbitInput::get('export', 'print');
 
             $builder = API::create()->getBuilderFor('getTopProduct');
-            $productReport = $builder->getBuilder();
 
-            $productNames    = $builder->getOptions()->productNames;
-            $productIds      = [];
-            $summaryHeaders  = [];
-            $rowNames     = ['created_at_date' => 'Date'];
-            $rowFormatter = ['created_at_date' => array('Orbit\\Text', 'formatDate')];
+            $isProductListed = !!$builder->getBuilder();
 
-            foreach ($productNames as $product)
-            {
-                array_push($productIds, $product->product_id);
-                $summaryHeaders[$product->product_id] = $product->product_name;
-                $rowNames[$product->product_id] = $product->product_name;
-                $rowFormatter[$product->product_id] = false;
+            $statement      = NULL;
+            $rowNames       = NULL;
+            $rowFormatter   = NULL;
+            $summaryHeaders = NULL;
+            $total          = NULL;
+            $summary        = NULL;
+
+            if ($isProductListed) {
+                $productReport = $builder->getBuilder();
+
+                $productNames    = $builder->getOptions()->productNames;
+                $productIds      = [];
+                $summaryHeaders  = [];
+                $rowNames     = ['created_at_date' => 'Date'];
+                $rowFormatter = ['created_at_date' => array('Orbit\\Text', 'formatDate')];
+
+                foreach ($productNames as $product)
+                {
+                    array_push($productIds, $product->product_id);
+                    $summaryHeaders[$product->product_id] = $product->product_name;
+                    $rowNames[$product->product_id] = $product->product_name;
+                    $rowFormatter[$product->product_id] = false;
+                }
+
+                $total   = DB::table(DB::raw("({$productReport->toSql()}) as total_report"))
+                    ->mergeBindings($productReport)->count();
+
+                $summary = $builder->getUnsorted()->first();
+
+                $this->prepareUnbufferedQuery();
+                $statement = $this->pdo->prepare($productReport->toSql());
+                $statement->execute($productReport->getBindings());
             }
-
-            $total   = DB::table(DB::raw("({$productReport->toSql()}) as total_report"))
-                ->mergeBindings($productReport)->count();
-
-            $summary = $builder->getUnsorted()->first();
-
-            $this->prepareUnbufferedQuery();
-            $statement = $this->pdo->prepare($productReport->toSql());
-            $statement->execute($productReport->getBindings());
 
             $rowCounter = 0;
             $pageTitle  = 'Orbit Top 20 Products Report';
@@ -59,6 +71,11 @@ class DashboardPrinterController extends DataPrinterController
 
                     printf(" ,%s\n", $pageTitle);
                     printf(" ,\n");
+
+                    if (! $isProductListed) {
+                        printf("No Product Listed, \n");
+                        break;
+                    }
 
                     printf(" ,Total Records,:,%s\n", $total);
                     foreach ($summaryHeaders as $name => $title)
@@ -89,7 +106,9 @@ class DashboardPrinterController extends DataPrinterController
                     break;
                 case 'print':
                 default:
-                    require app_path() . '/views/printer/dashboard-view.php';
+                    $emptyName = $isProductListed ? '' : 'empty-';
+                    $message   = 'No Product Listed';
+                    require app_path() . "/views/printer/{$emptyName}dashboard-view.php";
             }
         } catch(Exception $e) {
             $responseText = Config::get("app.debug") ? $e->__toString() : "";
