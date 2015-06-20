@@ -1130,11 +1130,11 @@ class ProductAttributeAPIController extends ControllerAPI
             $transactionDetail = TransactionDetail::transactionJoin()
                                                 ->excludeDeleted('transactions')
                                                 ->where(function ($query) use ($value) {
-                                                    $query->where('attribute_id1', $value)
-                                                        ->orWhere('attribute_id2', $value)
-                                                        ->orWhere('attribute_id3', $value)
-                                                        ->orWhere('attribute_id4', $value)
-                                                        ->orWhere('attribute_id5', $value);
+                                                    $query->where('transaction_details.attribute_id1', $value)
+                                                        ->orWhere('transaction_details.attribute_id2', $value)
+                                                        ->orWhere('transaction_details.attribute_id3', $value)
+                                                        ->orWhere('transaction_details.attribute_id4', $value)
+                                                        ->orWhere('transaction_details.attribute_id5', $value);
                                                 })
                                                 ->first();
             if (! empty($transactionDetail)) {
@@ -1160,11 +1160,11 @@ class ProductAttributeAPIController extends ControllerAPI
                 $transactionDetail = TransactionDetail::transactionJoin()
                                                     ->excludeDeleted('transactions')
                                                     ->where(function ($query) use ($product_attribute_id) {
-                                                        $query->where('attribute_id1', $product_attribute_id)
-                                                            ->orWhere('attribute_id2', $product_attribute_id)
-                                                            ->orWhere('attribute_id3', $product_attribute_id)
-                                                            ->orWhere('attribute_id4', $product_attribute_id)
-                                                            ->orWhere('attribute_id5', $product_attribute_id);
+                                                        $query->where('transaction_details.attribute_id1', $product_attribute_id)
+                                                            ->orWhere('transaction_details.attribute_id2', $product_attribute_id)
+                                                            ->orWhere('transaction_details.attribute_id3', $product_attribute_id)
+                                                            ->orWhere('transaction_details.attribute_id4', $product_attribute_id)
+                                                            ->orWhere('transaction_details.attribute_id5', $product_attribute_id);
                                                     })
                                                     ->first();
                 if (! empty($transactionDetail)) {

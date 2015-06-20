@@ -41,7 +41,6 @@ class Uploader
      * @var boolean
      */
     public $dryRun = FALSE;
-
     /**
      * List of static error codes
      */
@@ -443,6 +442,10 @@ class Uploader
      */
     protected function moveUploadedFile($from, $to)
     {
+        $callback = $this->config->getConfig('move_uploaded_file_callback');
+        if (is_callable($callback)) {
+            return $callback($from, $to);
+        }
         return move_uploaded_file($from, $to);
     }
 
