@@ -27,8 +27,50 @@ class DatabaseSimulationPrinterController extends DataPrinterController
             $with = array_merge($with, $_with);
         });
 
-        $activities = Activity::with($with)->select('activities.*',
-                                                    DB::Raw("DATE_FORMAT({$prefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"));
+        $activities = Activity::with($with)->select('activities.activity_id',
+                                                    'activities.activity_name',
+                                                    'activities.activity_name_long',
+                                                    'activities.activity_type',
+                                                    'activities.module_name',
+                                                    'activities.user_id',
+                                                    'activities.user_email',
+                                                    'activities.full_name',
+                                                    'activities.group',
+                                                    'activities.role',
+                                                    'activities.role_id',
+                                                    'activities.object_id',
+                                                    'activities.object_name',
+                                                    'activities.product_id',
+                                                    'activities.product_name',
+                                                    'activities.coupon_id',
+                                                    'activities.coupon_name',
+                                                    'activities.promotion_id',
+                                                    'activities.promotion_name',
+                                                    'activities.event_id',
+                                                    'activities.event_name',
+                                                    'activities.location_id',
+                                                    'activities.location_name',
+                                                    'activities.ip_address',
+                                                    'activities.user_agent',
+                                                    'activities.staff_id',
+                                                    'activities.staff_name',
+                                                    'activities.metadata_user',
+                                                    'activities.metadata_object',
+                                                    'activities.metadata_location',
+                                                    'activities.metadata_staff',
+                                                    'activities.notes',
+                                                    'activities.http_method',
+                                                    'activities.request_uri',
+                                                    'activities.post_data',
+                                                    'activities.status',
+                                                    'activities.parent_id',
+                                                    'activities.response_status',
+                                                    'activities.created_at',
+                                                    'activities.updated_at',
+                                                    DB::Raw("DATE_FORMAT({$prefix}activities.created_at, '%d-%m-%Y %H:%i:%s') as created_at_reverse"),
+                                                    'user_details.gender as gender')
+                                            ->leftJoin('user_details', 'user_details.user_id', '=', 'activities.user_id')
+                                            ->groupBy('activities.activity_id');
 
         // Filter by ids
         OrbitInput::get('id', function($activityIds) use ($activities) {
@@ -318,7 +360,7 @@ class DatabaseSimulationPrinterController extends DataPrinterController
      * @return string
      */
     public function printGender($databasesimulation)
-    {
+    {     
         $gender = $databasesimulation->gender;
         $gender = strtolower($gender);
         switch ($gender) {

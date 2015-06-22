@@ -134,7 +134,7 @@
                 <td><?php echo $me->printUtf8($row->name); ?></td>
                 <td><?php echo $me->printLocation($row); ?></td>
                 <td><?php echo $me->printStartingDate($row); ?></td>
-                <td><?php echo ($row->merchant_count); ?></td>
+                <td><?php echo ($row->total_retailer); ?></td>
                 <td><?php echo $me->printUtf8($row->retailer_list); ?></td>
                 <td><?php echo ($row->status); ?></td>
             </tr>

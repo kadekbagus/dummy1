@@ -358,7 +358,7 @@ class PromotionPrinterController extends DataPrinterController
                     $discount_type = $this->printDiscountType($row);
                     $productfamilylink = $this->printProductFamilyLink($row);
 
-                    printf("\"%s\",\"%s\", %s,\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $this->printUtf8($row->promotion_name), $row->end_date, $this->printUtf8($row->retailer_list), $discount_type, $row->discount_value, $productfamilylink, $row->status);
+                    printf("\"%s\",\"%s\", %s,\"%s\",\"%s\", %s,\"%s\",\"%s\"\n", '', $this->printUtf8($row->promotion_name), $expiration_date, $this->printUtf8($row->retailer_list), $discount_type, $row->discount_value, $productfamilylink, $row->status);
                 }
                 break;
 

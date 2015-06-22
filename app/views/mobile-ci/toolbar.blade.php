@@ -8,6 +8,7 @@
             <li><a id="barcodeBtn2"><span><i class="glyphicon glyphicon-barcode"></i></span></a></li>
             <li><a id="searchBtn"><span><i class="glyphicon glyphicon-search"></i></span></a></li>
             <li><a href="{{ url('/customer/catalogue') }}"><span class="fa fa-list-ul"></span></a></li>
+            @if($retailer->parent->enable_shopping_cart == 'yes')
             <li>
                 <a href="{{ url('/customer/cart') }}">
                     <span id="shopping-cart-span">
@@ -36,11 +37,23 @@
                     </span>
                 </a>
             </li>
+            @else
+            <li>
+                <a>
+                    <i id="shopping-cart" class="fa fa-shopping-cart disableds"></i>
+                </a>
+            </li>
+            @endif
             <li><a data-toggle="dropdown" aria-expanded="true"><span><i class="glyphicon glyphicon-cog"></i></span></a>
                 <ul class="dropdown-menu" role="menu">
                     <!-- <li class="complimentary-bg"><span><span class="glyphicon glyphicon-user"></span> {{ Lang::get('mobileci.page_title.my_account') }}</span></li> -->
+                    @if($retailer->parent->enable_shopping_cart == 'yes')
                     <li class="complimentary-bg"><a href="{{ url('/customer/transfer') }}"><span><span class="fa fa-shopping-cart"></span> {{ Lang::get('mobileci.page_title.transfercart') }}</span></a></li>
                     <li class="complimentary-bg"><a href="{{ url('/customer/me') }}"><span><span class="fa fa-user"></span> {{ Lang::get('mobileci.page_title.recognize_me') }}</span></a></li>
+                    @else
+                    <li class="complimentary-bg"><a class="disableds"><span><span class="fa fa-shopping-cart disableds"></span> {{ Lang::get('mobileci.page_title.transfercart') }}</span></a></li>
+                    <li class="complimentary-bg"><a class="disableds"><span><span class="fa fa-user disableds"></span> {{ Lang::get('mobileci.page_title.recognize_me') }}</span></a></li>
+                    @endif
                     <!-- <li class="complimentary-bg"><span><span class="glyphicon glyphicon-barcode"></span> {{ Lang::get('mobileci.page_title.customer_id') }}</span></li> -->
                     <li class="complimentary-bg"><a href="{{ url('/customer/logout') }}"><span><span class="glyphicon glyphicon-off"></span> {{ Lang::get('mobileci.page_title.logout') }}</span></a></li>
                 </ul>

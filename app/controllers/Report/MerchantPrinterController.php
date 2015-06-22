@@ -23,7 +23,7 @@ class MerchantPrinterController extends DataPrinterController
         $merchants = Merchant::excludeDeleted('merchants')
                             ->allowedForUser($user)
                             ->select('merchants.*',
-                                DB::raw('count(distinct retailer.merchant_id) as merchant_count'), 
+                                DB::raw('count(distinct retailer.merchant_id) as total_retailer'), 
                                 DB::raw("GROUP_CONCAT(`retailer`.`name` SEPARATOR ', ') as retailer_list"))
                             ->leftJoin('merchants AS retailer', function($join) {
                                     $join->on(DB::raw('retailer.parent_id'), '=', 'merchants.merchant_id')
@@ -351,7 +351,7 @@ class MerchantPrinterController extends DataPrinterController
 
                     $location = $this->printLocation($row);
                     $starting_date = $this->printStartingDate($row);
-                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $this->printUtf8($row->name), $location, $starting_date, $row->merchant_count, $this->printUtf8($row->retailer_list), $row->status);
+                    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s\n", '', $this->printUtf8($row->name), $location, $starting_date, $row->total_retailer, $this->printUtf8($row->retailer_list), $row->status);
 
                 }
                 break;
@@ -397,7 +397,7 @@ class MerchantPrinterController extends DataPrinterController
      */
     public function printStartingDate($merchant)
     {
-        if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity))
+        if($merchant->start_date_activity==NULL || empty($merchant->start_date_activity) || $merchant->start_date_activity=="0000-00-00 00:00:00")
         {
             $result = "";
         } else {

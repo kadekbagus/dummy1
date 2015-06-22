@@ -241,11 +241,11 @@ class ConsumerPrinterController extends DataPrinterController
                 'email'                   => 'users.user_email',
                 'lastname'                => 'users.user_lastname',
                 'firstname'               => 'users.user_firstname',
-                'gender'                  => 'user_details.gender',
-                'city'                    => 'user_details.city',
-                'last_visit_shop'         => 'merchants.name',
-                'last_visit_date'         => 'user_details.last_visit_any_shop',
-                'last_spent_amount'       => 'user_details.last_spent_any_shop'
+                'gender'                  => 'gender',
+                'city'                    => 'city',
+                'last_visit_shop'         => 'merchant_name',
+                'last_visit_date'         => 'last_visit_date',
+                'last_spent_amount'       => 'last_spent_amount'
             );
 
             $sortBy = $sortByMapping[$_sortBy];
@@ -419,7 +419,7 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printCustomerSince($consumer)
     {
-        if($consumer->created_at==NULL || empty($consumer->created_at)){
+        if($consumer->created_at==NULL || empty($consumer->created_at) || $consumer->created_at=="0000-00-00 00:00:00"){
             $result = "";
         }
         else {
@@ -489,16 +489,11 @@ class ConsumerPrinterController extends DataPrinterController
     {
         $retailer = $this->getRetailerInfo();
         $currency = strtolower($retailer->parent->currency);
-        if($consumer->last_spent_amount!=0){
-            if($currency=='usd'){
-                $result = number_format($consumer->last_spent_amount, 2);
-            } else {
-                $result = number_format($consumer->last_spent_amount);
-            }
+        if($currency=='usd'){
+            $result = number_format($consumer->last_spent_amount, 2);
         } else {
             $result = number_format($consumer->last_spent_amount);
         }
-
         return $result;
     }
 

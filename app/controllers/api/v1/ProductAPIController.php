@@ -295,12 +295,12 @@ class ProductAPIController extends ControllerAPI
 
             OrbitInput::post('merchant_tax_id1', function($merchant_tax_id1) use ($updatedproduct, $productHasTransaction) {
                 // This is sucks, why we need check it? The frontend should not send it to us!
-                if ((string)$merchant_tax_id1 !== (string)$updatedproduct->merchant_tax_id1) {
-                    if ($productHasTransaction) {
-                        $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
-                        OrbitShopAPI::throwInvalidArgument($errorMessage);
-                    }
-                }
+                // if ((string)$merchant_tax_id1 !== (string)$updatedproduct->merchant_tax_id1) {
+                //     if ($productHasTransaction) {
+                //         $errorMessage = Lang::get('validation.orbit.exists.product.transaction', ['name' => $updatedproduct->product_name]);
+                //         OrbitShopAPI::throwInvalidArgument($errorMessage);
+                //     }
+                // }
                 $updatedproduct->merchant_tax_id1 = $merchant_tax_id1;
             });
 
@@ -2194,7 +2194,7 @@ class ProductAPIController extends ControllerAPI
 
             // Check inside transaction details to see if this product has a transaction
             $transactionDetailProduct = TransactionDetail::transactionJoin()
-                                                         ->where('product_id', $value)
+                                                         ->where('transaction_details.product_id', $value)
                                                          ->excludeDeleted('transactions')
                                                          ->first();
             if (! empty($transactionDetailProduct)) {
