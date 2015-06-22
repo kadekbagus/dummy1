@@ -164,7 +164,11 @@ class DashboardAPIController extends ControllerAPI
                 );
                 $_products->groupBy('created_at_date');
 
-                $productNames = $topNames->orderBy('view_count', 'desc')->take(20)->get();
+                $productNames = $topNames
+                    ->orderBy('view_count', 'desc')
+                    ->orderBy('product_name', 'asc')
+                    ->take(20)
+                    ->get();
                 $defaultSelect = [];
                 $productIds    = [];
                 $productTotal = 0;
@@ -2235,7 +2239,6 @@ class DashboardAPIController extends ControllerAPI
                     'user_id',
                     'location_id',
                     DB::raw("date_format(created_at, '%Y-%m') as created_at_month"),
-                    DB::raw("count(distinct location_id) as unique_visit_count"),
                     DB::raw("count(distinct activity_id) as visit_count")
                 )
                 ->where('activity_name', '=', 'login_ok')
@@ -2243,6 +2246,14 @@ class DashboardAPIController extends ControllerAPI
                 ->whereNotNull('activities.location_id')
                 ->orderBy('activities.created_at', 'desc')
                 ->groupBy('activities.user_id', 'created_at_month');
+
+            $retailerCounter = Activity::select(
+                    'user_id',
+                    DB::raw('count(distinct location_id) as unique_visit_count')
+                )
+                ->where('activity_name', '=', 'login_ok')
+                ->whereNotNull('activities.location_id')
+                ->groupBy('activities.user_id');
 
             $lastTransactions = Transaction::select(
                     DB::raw("date(created_at) as created_at_date"),
@@ -2269,11 +2280,15 @@ class DashboardAPIController extends ControllerAPI
                     DB::raw("date(max({$tablePrefix}activities.created_at)) as last_visit_date"),
                     DB::raw("{$tablePrefix}last_transactions.total_to_pay as total_spent"),
                     DB::raw("round(avg(distinct visit_count)) as monthly_merchant_count"),
-                    DB::raw("max(unique_visit_count) as merchant_count"),
+                    DB::raw("unique_visit_count as merchant_count"),
                     'merchants.name as last_visit_merchant_name',
                     'merchants.merchant_id as last_visit_merchant_id',
                     'total_saving'
                 )
+                ->join(DB::raw("({$retailerCounter->toSql()}) as counter"), function ($join) {
+                    $join->on(DB::raw('counter.user_id'), '=', 'activities.user_id');
+                })
+                ->mergeBindings($retailerCounter->getQuery())
                 ->join('user_details', 'user_details.user_id', '=', 'activities.user_id')
                 ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                 ->leftJoin(DB::raw("({$lastTransactions->toSql()}) as {$tablePrefix}last_transactions"), function ($join) use ($tablePrefix) {
