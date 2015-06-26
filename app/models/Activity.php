@@ -715,8 +715,15 @@ class Activity extends Eloquent
             }
 
             $session = new Session($config);
-            $session = $session->disableForceNew()->start();
+            // There is possibility that the session are already expired
+            // So we need to catch those
+            try {
+                $session = $session->disableForceNew()->start();
+            } catch (Exception $e) {
+                // do nothing
+            }
         }
+
         static::$session = null;
         return $session->getSessionId();
     }
