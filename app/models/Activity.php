@@ -5,9 +5,15 @@
  * @author Rio Astamal <me@rioastamal.net>
  */
 use OrbitRelation\BelongsTo as BelongsToObject;
+use DominoPOS\OrbitSession\Session;
+use DominoPOS\OrbitSession\SessionConfig;
 
 class Activity extends Eloquent
 {
+    /**
+     * @var DominoPOS\OrbitSession\Session
+     */
+    protected static $session;
     protected $primaryKey = 'activity_id';
     protected $table = 'activities';
 
@@ -48,10 +54,11 @@ class Activity extends Eloquent
      */
     protected function fillCommonValues()
     {
-        $this->ip_address = static::getIPAddress();
-        $this->user_agent = static::getUserAgent();
+        $this->ip_address  = static::getIPAddress();
+        $this->user_agent  = static::getUserAgent();
         $this->http_method = static::getRequestMethod();
         $this->request_uri = static::getRequestUri();
+        $this->session_id  = static::getSessionId($this->group);
 
         if (isset($_POST) && ! empty($_POST)) {
             $post = $_POST;
@@ -160,6 +167,29 @@ class Activity extends Eloquent
         $this->activity_name = $activityName;
 
         return $this;
+    }
+
+    /**
+     * Set Session id for certain condition
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     * @param string $id
+     * @return Activity
+     */
+    public function setSessionId($id) {
+        $this->session_id = $id;
+
+        return $this;
+    }
+
+    /**
+     *  Set Session static to force session field id
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     * @param $session
+     */
+    public static function setSession($session) {
+        static::$session = $session;
     }
 
     /**
@@ -596,7 +626,6 @@ class Activity extends Eloquent
      */
     public function save(array $options = array())
     {
-        $force = array_key_exists('force', $options) && $options['force'];
         if (App::environment() === 'testing') {
             // Skip saving
             return 1;
@@ -663,5 +692,32 @@ class Activity extends Eloquent
     protected static function getRequestUri()
     {
         return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'Activity: Unknown request Uri';
+    }
+
+    /**
+     * Detect Session Id
+     *
+     * @author Yudi Rahono <yudi.rahono@dominopos.com>
+     * @param string $group
+     * @return string
+     */
+    protected static function getSessionId($group)
+    {
+        $session = static::$session;
+        if ($session === null) {
+
+            $config = new SessionConfig(Config::get('orbit.session'));
+
+            if ($group == 'mobile-ci') {
+                $config->setConfig('session_origin.header.name', 'X-Orbit-Mobile-Session');
+                $config->setConfig('session_origin.query_string.name', 'orbit_mobile_session');
+                $config->setConfig('session_origin.cookie.name', 'orbit_mobile_session');
+            }
+
+            $session = new Session($config);
+            $session = $session->disableForceNew()->start();
+        }
+        static::$session = null;
+        return $session->getSessionId();
     }
 }

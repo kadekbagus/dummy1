@@ -107,6 +107,7 @@ class CashierAPIController extends ControllerAPI
                     $activity->setUser($user)
                              ->setActivityName('login_ok')
                              ->setActivityNameLong('Login OK')
+                             ->setSessionId($session->getSessionId())
                              ->responseOK();
                 }
             } else {
@@ -2343,7 +2344,7 @@ class CashierAPIController extends ControllerAPI
      */
     public function getPosQuickProduct()
     {
-        try {      
+        try {
             $httpCode = 200;
 
             // Require authentication
