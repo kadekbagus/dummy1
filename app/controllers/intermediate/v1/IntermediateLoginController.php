@@ -31,6 +31,8 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function postLogin()
     {
+        $this->session->enableForceNew()->start();
+        Activity::setSession($this->session);
         $response = LoginAPIController::create('raw')->postLogin();
         if ($response->code === 0)
         {
@@ -43,7 +45,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 'logged_in' => TRUE,
                 'user_id'   => $user->user_id,
             );
-            $this->session->enableForceNew()->start($data);
+            $this->session->update($data);
 
             // Send the session id via HTTP header
             $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
@@ -121,6 +123,7 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function postLoginCustomer()
     {
+        $this->session->enableForceNew()->start();
         $response = LoginAPIController::create('raw')->postLoginCustomer();
         if ($response->code === 0)
         {
@@ -133,7 +136,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 'logged_in' => TRUE,
                 'user_id'   => $user->user_id,
             );
-            $this->session->enableForceNew()->start($data);
+            $this->session->update($data);
 
             // Send the session id via HTTP header
             $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
@@ -346,6 +349,8 @@ class IntermediateLoginController extends IntermediateBaseController
             $sessionHeader = 'Set-' . $sessionHeader;
             $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
 
+            $activity->setSessionId($this->session->getSessionId());
+
             // Successfull login
             $activity->setUser($user)
                      ->setActivityName('login_ok')
@@ -427,6 +432,7 @@ class IntermediateLoginController extends IntermediateBaseController
             $activity->setUser($user)
                      ->setActivityName('login_ok')
                      ->setActivityNameLong('Sign In')
+                     ->setSessionId($this->session->getSessionId())
                      ->responseOK();
         } else {
             // Login Failed
