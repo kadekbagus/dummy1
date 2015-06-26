@@ -93,6 +93,8 @@ class IntermediateLoginController extends IntermediateBaseController
      */
     public function postLoginMerchant()
     {
+        $this->session->enableForceNew()->start();
+        Activity::setSession($this->session);
         $response = LoginAPIController::create('raw')->postLoginMerchant();
         if ($response->code === 0)
         {
@@ -105,7 +107,7 @@ class IntermediateLoginController extends IntermediateBaseController
                 'logged_in' => TRUE,
                 'user_id'   => $user->user_id,
             );
-            $this->session->enableForceNew()->start($data);
+            $this->session->update($data);
 
             // Send the session id via HTTP header
             $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
@@ -124,6 +126,7 @@ class IntermediateLoginController extends IntermediateBaseController
     public function postLoginCustomer()
     {
         $this->session->enableForceNew()->start();
+        Activity::setSession($this->session);
         $response = LoginAPIController::create('raw')->postLoginCustomer();
         if ($response->code === 0)
         {
