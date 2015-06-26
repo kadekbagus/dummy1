@@ -1802,101 +1802,101 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                     };
                      serviceAjax.posDataToServer('/pos/scancart',data).then(function(response){
                             if(response.code == 0 ){
-                                 var name = response.data.cart.users.user_firstname == null ? response.data.cart.users.user_email : response.data.cart.users.user_firstname+' '+response.data.cart.users.user_lastname;
-                $scope.successscant = true;
-                $scope.guests       = name;
-                $scope.cart.user_id = response.data.cart.users.user_id;
-                $scope.cart.cart_id = response.data.cart.cart_id;
-                //cart coupon
-                $scope.cartcoupon =  response.data.cartsummary['used_cart_coupons'];
-                for(var i = 0; i < response.data.cartdetails.length; i++){
-                    $scope.productmodal                = response.data.cartdetails[i]['product'];
-                    $scope.productmodal['qty']         = response.data.cartdetails[i]['quantity'];
-                    $scope.productmodal['attributes']  = response.data.cartdetails[i]['attributes'];
-                    $scope.productmodal['cartsummary'] = response.data.cartsummary;
-                    $scope.variantstmp                 = response.data.cartdetails[i]['variant'];
-                    $scope.productmodal['variants']    = response.data.cartdetails[i]['variant'];
-                    $scope.productmodal['tax1'] = response.data.cartdetails[i]['tax1'];
-                    $scope.productmodal['tax2'] = response.data.cartdetails[i]['tax2'];
-                    $scope.productmodal['idx']         = i;
+                                var name = response.data.cart.users.user_firstname == null ? response.data.cart.users.user_email : response.data.cart.users.user_firstname+' '+response.data.cart.users.user_lastname;
+                                $scope.successscant = true;
+                                $scope.guests       = name;
+                                $scope.cart.user_id = response.data.cart.users.user_id;
+                                $scope.cart.cart_id = response.data.cart.cart_id;
+                                //cart coupon
+                                $scope.cartcoupon =  response.data.cartsummary['used_cart_coupons'];
+                                for(var i = 0; i < response.data.cartdetails.length; i++){
+                                    $scope.productmodal                = response.data.cartdetails[i]['product'];
+                                    $scope.productmodal['qty']         = response.data.cartdetails[i]['quantity'];
+                                    $scope.productmodal['attributes']  = response.data.cartdetails[i]['attributes'];
+                                    $scope.productmodal['cartsummary'] = response.data.cartsummary;
+                                    $scope.variantstmp                 = response.data.cartdetails[i]['variant'];
+                                    $scope.productmodal['variants']    = response.data.cartdetails[i]['variant'];
+                                    $scope.productmodal['tax1'] = response.data.cartdetails[i]['tax1'];
+                                    $scope.productmodal['tax2'] = response.data.cartdetails[i]['tax2'];
+                                    $scope.productmodal['idx']         = i;
 
-                    //promotion
-                    $scope.datapromotion  = response.data.cartdetails[i]['promo_for_this_product'];
-                    var price             = response.data.cartdetails[i]['variant']['price'];
-                    var discount    = 0;
-                    var tmpdiscount = 0;
-                    var tmpprice = price * response.data.cartdetails[i]['quantity'];
-                    if($scope.datapromotion) {
-                        for(var a =0; a < $scope.datapromotion.length; a++){
-                            if($scope.datapromotion[a]) {
-                                $scope.datapromotion[a]['oridiscount_value'] = $scope.datapromotion[a]['discount_value'];
-                                $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['discount_value'], "", $scope.precision, ",", ".");
+                                    //promotion
+                                    $scope.datapromotion  = response.data.cartdetails[i]['promo_for_this_product'];
+                                    var price             = response.data.cartdetails[i]['variant']['price'];
+                                    var discount    = 0;
+                                    var tmpdiscount = 0;
+                                    var tmpprice = price * response.data.cartdetails[i]['quantity'];
+                                    if($scope.datapromotion) {
+                                        for(var a =0; a < $scope.datapromotion.length; a++){
+                                            if($scope.datapromotion[a]) {
+                                                $scope.datapromotion[a]['oridiscount_value'] = $scope.datapromotion[a]['discount_value'];
+                                                $scope.datapromotion[a]['discount_value']    = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ? $scope.datapromotion[a]['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.datapromotion[a]['discount_value'], "", $scope.precision, ",", ".");
 
-                                if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage'){
-                                    tmpdiscount = $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']);
-                                }else if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_value'){
-                                    tmpdiscount = accounting.unformat($scope.datapromotion[a]['discount_value']) * response.data.cartdetails[i]['quantity'];
-                                }else if($scope.datapromotion[a]['rule_type'] == 'new_product_price'){
-                                    tmpdiscount = (price * response.data.cartdetails[i]['quantity']) - (accounting.unformat($scope.datapromotion[a]['discount_value']) * response.data.cartdetails[i]['quantity']);
+                                                if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage'){
+                                                    tmpdiscount = $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']);
+                                                }else if($scope.datapromotion[a]['rule_type'] == 'product_discount_by_value'){
+                                                    tmpdiscount = accounting.unformat($scope.datapromotion[a]['discount_value']) * response.data.cartdetails[i]['quantity'];
+                                                }else if($scope.datapromotion[a]['rule_type'] == 'new_product_price'){
+                                                    tmpdiscount = (price * response.data.cartdetails[i]['quantity']) - (accounting.unformat($scope.datapromotion[a]['discount_value']) * response.data.cartdetails[i]['quantity']);
+                                                }
+                                                if (tmpprice < tmpdiscount) {
+                                                    tmpdiscount = tmpprice;
+                                                }
+
+                                                tmpprice = tmpprice - tmpdiscount;
+                                                //  tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];
+                                                $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
+                                                $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount / response.data.cartdetails[i]['quantity'];
+                                                // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
+                                                discount += tmpdiscount;
+                                            }
+                                        }
+                                        var discounts = price - discount;
+                                        $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
+                                        $scope.productmodal.price =  accounting.formatMoney(price, "", $scope.precision, ",", ".");
+                                    }else{
+                                        $scope.productmodal.price    = accounting.formatMoney(price, "", $scope.precision, ",", ".");
+                                        $scope.productmodal.afterpromotionprice = 0;
+                                    }
+
+                                    //coupon
+                                    $scope.productmodal['coupon_for_this_product']  = response.data.cartdetails[i]['coupon_for_this_product'];
+                                    if($scope.productmodal['coupon_for_this_product']){
+                                        for(var b =0;b < $scope.productmodal['coupon_for_this_product'].length; b++){
+                                            $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'];
+                                            $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", $scope.precision, ",", ".");
+
+                                            if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage'){
+                                                tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price;
+                                            }else if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_value'){
+                                                tmpdiscount = accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
+                                            }else if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'new_product_price'){
+                                                tmpdiscount = price - accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
+                                            }else{
+                                                tmpdiscount = 0;
+                                            }
+                                            if (tmpprice < tmpdiscount) {
+                                                tmpdiscount = tmpprice;
+                                            }
+
+                                            tmpprice = tmpprice - tmpdiscount;
+                                            //  tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ?  $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price : accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
+                                            $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
+                                            $scope.productmodal['coupon_for_this_product'][b]['tmpafterpromotionprice'] = tmpdiscount;
+                                            // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
+                                            discount += tmpdiscount;
+                                        }
+                                    }
+                                    $scope.productmodal['cart_id']     = response.data.cart.cart_id;
+                                    $scope.inserttocartFn(true);
                                 }
-                                if (tmpprice < tmpdiscount) {
-                                    tmpdiscount = tmpprice;
-                                }
 
-                                tmpprice = tmpprice - tmpdiscount;
-                                //  tmpdiscount = $scope.datapromotion[a]['rule_type'] == 'product_discount_by_percentage' ?  $scope.datapromotion[a]['oridiscount_value'] * (price * response.data.cartdetails[i]['quantity']) : accounting.unformat($scope.datapromotion[a]['promotion_detail']['discount_value']) * response.data.cartdetails[i]['quantity'];
-                                $scope.datapromotion[a]['afterpromotionprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
-                                $scope.datapromotion[a]['tmpafterpromotionprice'] = tmpdiscount / response.data.cartdetails[i]['quantity'];
-                                // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
-                                discount += tmpdiscount;
-                            }
-                        }
-                        var discounts = price - discount;
-                        $scope.productmodal.afterpromotionprice =  discounts < 0 ?  0 :accounting.formatMoney(discounts, "", $scope.precision, ",", ".");
-                        $scope.productmodal.price =  accounting.formatMoney(price, "", $scope.precision, ",", ".");
-                    }else{
-                        $scope.productmodal.price    = accounting.formatMoney(price, "", $scope.precision, ",", ".");
-                        $scope.productmodal.afterpromotionprice = 0;
-                    }
-
-                    //coupon
-                    $scope.productmodal['coupon_for_this_product']  = response.data.cartdetails[i]['coupon_for_this_product'];
-                    if($scope.productmodal['coupon_for_this_product']){
-                        for(var b =0;b < $scope.productmodal['coupon_for_this_product'].length; b++){
-                            $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'];
-                            $scope.productmodal['coupon_for_this_product'][b]['discount_value']    = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ? $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'] * 100 + ' %' : accounting.formatMoney($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value'], "", $scope.precision, ",", ".");
-
-                            if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage'){
-                                tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price;
-                            }else if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_value'){
-                                tmpdiscount = accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
-                            }else if($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'new_product_price'){
-                                tmpdiscount = price - accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
-                            }else{
-                                tmpdiscount = 0;
-                            }
-                            if (tmpprice < tmpdiscount) {
-                                tmpdiscount = tmpprice;
-                            }
-
-                            tmpprice = tmpprice - tmpdiscount;
-                            //  tmpdiscount = $scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['rule_type'] == 'product_discount_by_percentage' ?  $scope.productmodal['coupon_for_this_product'][b]['oridiscount_value'] * price : accounting.unformat($scope.productmodal['coupon_for_this_product'][b]['issuedcoupon']['discount_value']);
-                            $scope.productmodal['coupon_for_this_product'][b]['aftercouponprice']    = accounting.formatMoney(tmpdiscount, "", $scope.precision, ",", ".");
-                            $scope.productmodal['coupon_for_this_product'][b]['tmpafterpromotionprice'] = tmpdiscount;
-                            // tmpdiscount = tmpdiscount > 0 ? tmpdiscount : 0;
-                            discount += tmpdiscount;
-                        }
-                    }
-                    $scope.productmodal['cart_id']     = response.data.cart.cart_id;
-                    $scope.inserttocartFn(true);
-                }
-
-                angular.element("#modalscancart").modal('hide');
-                if(bool)  $scope.virtualFn(false);
-                $scope.customerdispaly('Welcome',name.substr(0,20));
-                $scope.scanproduct();
-                $scope.errorscancart = '';
-                $scope.manualscancart = '';
+                                angular.element("#modalscancart").modal('hide');
+                                if(bool)  $scope.virtualFn(false);
+                                $scope.customerdispaly('Welcome',name.substr(0,20));
+                                $scope.scanproduct();
+                                $scope.errorscancart = '';
+                                $scope.manualscancart = '';
                             }else if(response.code == 13 ){
                                  //do something when error
                                 $scope.errorscancart  = $scope.language.errorscancart;
