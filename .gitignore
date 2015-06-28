@@ -39,3 +39,6 @@ export-import/data/**
 
 # Import Data
 app/storage/imports/
+
+# Compiled routes
+app/routes/orbit-compiled-routes.php
