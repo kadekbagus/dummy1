@@ -1,3 +1,14 @@
+/**
+ * Orbit Mobile Customer Interface configuration file.
+ * This configuration will work out-of-the box if the application
+ * sit on first level the document root of the virtual host.
+ *
+ * As an example:
+ * http://orbit-shop.here/
+ *
+ * Otherwise you should set the value of `apiPath`, `homePath` and
+ * publicPath manually.
+ */
 function orbitGetBaseUrl() {
    var http = location.protocol;
    var slashes = http.concat("//");
