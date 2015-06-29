@@ -497,7 +497,7 @@ class PromotionAPIController extends ControllerAPI
                     'promotion_name'       => 'sometimes|required|min:5|max:100|promotion_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.promotion_type',
                     'begin_date'           => 'required',
-                    'status'               => 'orbit.empty.promotion_status',
+                    'status'               => 'orbit.empty.promotion_status|orbit.exists.promotion_on_inactive_have_linked:' . $promotion_id,
                     'rule_type'            => 'required|orbit.empty.rule_type',
                     'discount_object_type' => 'orbit.empty.discount_object_type',
                     'discount_object_id1'  => 'orbit.empty.discount_object_id1',
@@ -840,6 +840,7 @@ class PromotionAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `promotion_id`                  (required) - ID of the promotion
+     * @param string     `is_validation`                 (optional) - Valid value: Y. Flag to validate only.
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -876,13 +877,14 @@ class PromotionAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $promotion_id = OrbitInput::post('promotion_id');
+            $is_validation = OrbitInput::post('is_validation');
 
             $validator = Validator::make(
                 array(
                     'promotion_id' => $promotion_id,
                 ),
                 array(
-                    'promotion_id' => 'required|numeric|orbit.empty.promotion',
+                    'promotion_id' => 'required|numeric|orbit.empty.promotion|orbit.exists.promotion_on_delete_have_linked',
                 )
             );
 
@@ -892,7 +894,15 @@ class PromotionAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            } elseif ($is_validation === 'Y') { // the deletion request is only for validation
+                $this->response->code = 0;
+                $this->response->status = 'success';
+                $this->response->message = 'Request OK';
+                $this->response->data = NULL;
+
+                return $this->render($httpCode);
             }
+
             Event::fire('orbit.promotion.postdeletepromotion.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -2013,5 +2023,45 @@ class PromotionAPIController extends ControllerAPI
 
             return TRUE;
         });
+
+        // promotion cannot be deleted if have linked to event.
+        Validator::extend('orbit.exists.promotion_on_delete_have_linked', function ($attribute, $value, $parameters) {
+
+            // check if promotion exists in events.
+            $event = EventModel::excludeDeleted()
+                               ->where('link_object_type', 'promotion')
+                               ->where('link_object_id1', $value)
+                               ->first();
+
+            if (! empty($event)) {
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+        // promotion cannot be inactive if have linked to event.
+        Validator::extend('orbit.exists.promotion_on_inactive_have_linked', function ($attribute, $value, $parameters) {
+
+            // check if only status is being set to inactive
+            if ($value === 'inactive') {
+                $promotion_id = $parameters[0];
+
+                // check if promotion exists in events.
+                $event = EventModel::excludeDeleted()
+                                   ->active()
+                                   ->where('link_object_type', 'promotion')
+                                   ->where('link_object_id1', $promotion_id)
+                                   ->first();
+
+                if (! empty($event)) {
+                    return FALSE;
+                }
+
+            }
+
+            return TRUE;
+        });
+
     }
 }

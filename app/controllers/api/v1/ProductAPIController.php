@@ -127,6 +127,7 @@ class ProductAPIController extends ControllerAPI
                     'category_id4'      => $category_id4,
                     'category_id5'      => $category_id5,
                     'product_variants_delete'    => $product_combinations_delete,
+                    'status'                     => $status,
                 ),
                 array(
                     'product_id'        => 'required|numeric|orbit.empty.product',
@@ -139,6 +140,7 @@ class ProductAPIController extends ControllerAPI
                     'category_id4'      => 'numeric|orbit.empty.category_id4',
                     'category_id5'      => 'numeric|orbit.empty.category_id5',
                     'product_variants_delete'   => 'array|orbit.empty.product_variant_array',
+                    'status'                    => 'orbit.exists.product_on_inactive_have_linked:' . $product_id,
                 ),
                 array(
                     'orbit.empty.product_variant_array'     => Lang::get('validation.orbit.empty.product_attr.attribute.variant'),
@@ -1672,6 +1674,7 @@ class ProductAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param integer    `product_id`                  (required) - ID of the product
+     * @param string     `is_validation`               (optional) - Valid value: Y. Flag to validate only.
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -1709,6 +1712,7 @@ class ProductAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $product_id = OrbitInput::post('product_id');
+            $is_validation = OrbitInput::post('is_validation');
 
             $validator = Validator::make(
                 array(
@@ -1725,7 +1729,15 @@ class ProductAPIController extends ControllerAPI
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
+            } elseif ($is_validation === 'Y') { // the deletion request is only for validation
+                $this->response->code = 0;
+                $this->response->status = 'success';
+                $this->response->message = 'Request OK';
+                $this->response->data = NULL;
+
+                return $this->render($httpCode);
             }
+
             Event::fire('orbit.product.postdeleteproduct.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -2201,14 +2213,50 @@ class ProductAPIController extends ControllerAPI
                 return FALSE;
             }
 
-            App::instance('orbit.exists.product_have_transaction', $transactionDetailProduct);
+            // @TODO check if product exists in promotions.
+            // @TODO check if product exists in coupons.
+
+            // check if product exists in events.
+            $event = EventModel::excludeDeleted()
+                               ->where('link_object_type', 'product')
+                               ->where('link_object_id1', $value)
+                               ->first();
+
+            if (! empty($event)) {
+                return FALSE;
+            }
+
+            return TRUE;
+        });
+
+        // product cannot be inactive if have linked to event.
+        Validator::extend('orbit.exists.product_on_inactive_have_linked', function ($attribute, $value, $parameters) {
+
+            // check if only status is being set to inactive
+            if ($value === 'inactive') {
+                $product_id = $parameters[0];
+
+                // @TODO check if product exists in promotions.
+                // @TODO check if product exists in coupons.
+
+                // check product if exists in events.
+                $event = EventModel::excludeDeleted()
+                                   ->active()
+                                   ->where('link_object_type', 'product')
+                                   ->where('link_object_id1', $product_id)
+                                   ->first();
+
+                if (! empty($event)) {
+                    return FALSE;
+                }
+
+            }
 
             return TRUE;
         });
 
         // Check array, should not be empty
         Validator::extend('orbit.req.link_to_retailer', function ($attribute, $value, $parameters) {
-            // dd($value);
             if (empty($value)) {
                 return FALSE;
             } else {
