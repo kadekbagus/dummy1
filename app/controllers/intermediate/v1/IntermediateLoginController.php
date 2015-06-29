@@ -8,6 +8,7 @@ use OrbitShop\API\v1\ResponseProvider;
 use MobileCI\MobileCIAPIController;
 use Net\Security\Firewall;
 use \Cookie;
+use DominoPOS\OrbitSession\Session as MySession;
 
 class IntermediateLoginController extends IntermediateBaseController
 {
@@ -186,7 +187,7 @@ class IntermediateLoginController extends IntermediateBaseController
             $userId = $this->session->read('user_id');
 
             if ($this->session->read('logged_in') !== TRUE || ! $userId) {
-                throw new Exception ('Invalid session data.');
+                throw new Exception ('Invalid session data.', MySession::ERR_UNKNOWN);
             }
 
             $user = User::excludeDeleted()->find($userId);

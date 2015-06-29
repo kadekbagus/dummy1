@@ -1696,7 +1696,7 @@ class DashboardAPIController extends ControllerAPI
                             when {$formatDate} < 22 then '21-22'
                             else '21-22'
                         end) as time_range"),
-                    DB::raw("count(distinct {$tablePrefix}activities.user_id) as login_count")
+                    DB::raw("count(distinct {$tablePrefix}activities.session_id) as login_count")
                 )
                 ->where('activity_name', '=', 'login_ok')
                 ->groupBy('time_range');
@@ -1966,7 +1966,7 @@ class DashboardAPIController extends ControllerAPI
                     $q->where('activity_name', '=', 'login_ok');
                     $q->orWhere('activity_name', '=', 'logout_ok');
                 })
-                ->groupBy('created_at_date');
+                ->groupBy('created_at_date', 'session_id');
 
 
             $activities = DB::table(DB::raw("({$userActivities->toSql()}) as {$tablePrefix}timed"))
