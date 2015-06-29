@@ -102,6 +102,7 @@ return array(
     'product_detail'         => array(
         'get_coupon'         => 'Dapatkan kupon',
         'promo_discount'     => 'Diskon Promosi',
+        'from'               => 'Dari',
         'to'                 => 'hingga',
     ),
 
