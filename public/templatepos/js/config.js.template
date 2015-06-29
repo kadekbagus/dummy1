@@ -4,6 +4,16 @@
  * All config for the application
  * @author Agung (agung.julisman@yahoo.com)
  * @author Rio Astamal <me@rioastamal.net>
+ *
+ * Orbit Point of Sales (POS) configuration file.
+ * This configuration will work out-of-the box if the application
+ * sit on first level the document root of the virtual host.
+ *
+ * As an example:
+ * http://orbit-shop.here/
+ *
+ * Otherwise you should set the value of `baseUrlServer` and
+ * `baseUrlServerPublic` manually
  */
 
 "use strict";

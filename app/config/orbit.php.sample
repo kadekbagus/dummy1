@@ -17,9 +17,11 @@ return array(
     'shop' => array(
         // Id of the retailer
         'id'    => NULL,
+
         // search result limit
         'search_limit' => 300,
 
+        // Binary application used to read barcode
         'zbar' => array(
             // ZBar Libary
             // Path to the zbarimg binary
@@ -39,7 +41,7 @@ return array(
         )
     ),
 
-    // Default Pagination
+    // Default Pagination and maximum number of record Orbit should return
     'pagination' => array(
         'per_page'      => 25,
         'max_record'    => 50,
@@ -211,11 +213,6 @@ return array(
          * How long session will expire in seconds
          */
         'expire' => 3600,
-
-        /**
-         * Path to write the session data
-         */
-        'path' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'orbit-session',
 
         /**
          * Strict mode, will check the user agent and ip address
@@ -1039,39 +1036,6 @@ return array(
         ),
     ),
 
-    'devices'  => array(
-        'barcode'    => array(
-            'path'   => '/opt/programs/device-drivers/x86_64/barcode',
-            'params' => '/dev/domino/scanner'
-        ),
-
-        'edc'        => array(
-            'path'   => '/opt/programs/device-drivers/x86_64/ict220',
-            'params' => '/dev/ttyUSB0'
-        ),
-
-        'cdisplay'   => array(
-            'path'   => '/opt/programs/device-drivers/x86_64/display',
-            'params' => '/dev/domino/display'
-        ),
-
-        'printer'    => array(
-            'params' => '/dev/domino/printer'
-        ),
-
-        'cutpaper'   => array(
-            'path'   => '/opt/programs/device-drivers/x86_64/cut_paper'
-        ),
-
-        'cashdrawer' => array(
-            'path'   => '/opt/programs/device-drivers/x86_64/cash_drawer'
-        ),
-
-        'prepare_screen'    => array(
-            'path'  => '/opt/scripts/helpers/screen-display.sh'
-        )
-    ),
-
     'import' => array(
        'product' => array(
             'main' => array(
@@ -1159,4 +1123,39 @@ return array(
         ),
     ),
 
+    // Path to the binary application driver which used to communicate
+    // with POS devices such as scanner, payment terminal (edc), etc.
+    // You can get these binary files on `orbit-system-setting` repostiory.
+    'devices'  => array(
+        'barcode'    => array(
+            'path'   => '/opt/programs/device-drivers/x86_64/barcode',
+            'params' => '/dev/domino/scanner'
+        ),
+
+        'edc'        => array(
+            'path'   => '/opt/programs/device-drivers/x86_64/ict220',
+            'params' => '/dev/ttyUSB0'
+        ),
+
+        'cdisplay'   => array(
+            'path'   => '/opt/programs/device-drivers/x86_64/display',
+            'params' => '/dev/domino/display'
+        ),
+
+        'printer'    => array(
+            'params' => '/dev/domino/printer'
+        ),
+
+        'cutpaper'   => array(
+            'path'   => '/opt/programs/device-drivers/x86_64/cut_paper'
+        ),
+
+        'cashdrawer' => array(
+            'path'   => '/opt/programs/device-drivers/x86_64/cash_drawer'
+        ),
+
+        'prepare_screen'    => array(
+            'path'  => '/opt/scripts/helpers/screen-display.sh'
+        )
+    ),
 );
