@@ -870,13 +870,17 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // filter by cashier either first or last name
             OrbitInput::get('cashier_name_like', function ($cashierName) use ($transactions, $tablePrefix) {
-                $transactions->where('cashier.user_firstname', 'like', "%{$cashierName}%")
-                            ->orWhere('cashier.user_lastname', 'like', "%{$cashierName}%");
+                $transactions->where(function ($q) use ($cashierName) {
+                    $q->where('cashier.user_firstname', 'like', "%{$cashierName}%");
+                    $q->orWhere('cashier.user_lastname', 'like', "%{$cashierName}%");
+                });
             });
 
             OrbitInput::get('customer_name_like', function ($customerName) use ($transactions, $tablePrefix) {
-                $transactions->where('customer.user_firstname', 'like', "%{$customerName}%")
-                    ->orWhere('customer.user_lastname', 'like', "%{$customerName}%");
+                $transactions->where(function ($q) use ($customerName) {
+                    $q->where('customer.user_firstname', 'like', "%{$customerName}%");
+                    $q->orWhere('customer.user_lastname', 'like', "%{$customerName}%");
+                });
             });
 
             // Clone the query builder which still does not include the take,
