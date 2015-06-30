@@ -16,7 +16,7 @@ body{
             <div id="receipt" class="receipt">
                 <img id="receipt-img" class="img-responsive" src="data:image/png;base64,{{$base64receipt}}">
             </div>
-            <a class="btn btn-info" id="saveTicketBtn" data-transaction="{{ $transaction->transaction_id }}" href="data:image/png;base64,{{$base64receipt}}" download="receipt_{{\Carbon\Carbon::now()}}.png">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
+            <a class="btn btn-info" id="saveTicketBtn" data-transaction="{{ $transaction->transaction_id }}" href="data:image/png;base64,{{$base64receipt}}" download="{{$ticket_format}}">{{ Lang::get('mobileci.thank_you.save_ticket_button') }}</a>
             <h3>{{ Lang::get('mobileci.thank_you.thank_you_message') }}</h3>
             @if(!empty($retailer->parent->url))
             <h5>{{ Lang::get('mobileci.thank_you.dont_forget_message') }}</h5>
