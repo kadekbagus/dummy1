@@ -81,6 +81,7 @@
                 <div class="col-xs-12 col-sm-12">
                     <p>
                     @if($promotion->is_permanent == 'Y')
+                    {{ Lang::get('mobileci.product_detail.from') }}
                     {{ date('j M Y', strtotime($promotion->begin_date)) }}
                     @else
                     {{ date('j M Y', strtotime($promotion->begin_date)) }}
@@ -124,6 +125,7 @@
                 <div class="col-xs-12 col-sm-12">
                     <p>
                     @if($couponstocatch->is_permanent == 'Y')
+                    {{ Lang::get('mobileci.product_detail.from') }}
                     {{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
                     @else
                     {{ date('j M Y', strtotime($couponstocatch->begin_date)) }}
