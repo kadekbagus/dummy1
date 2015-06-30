@@ -102,6 +102,7 @@ return array(
     'product_detail'         => array(
         'get_coupon'         => 'Get Coupon',
         'promo_discount'     => 'Promotion Discount',
+        'from'               => 'From',
         'to'                 => 'to',
     ),
 

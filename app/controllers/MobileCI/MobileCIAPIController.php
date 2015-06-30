@@ -729,7 +729,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -843,7 +842,6 @@ class MobileCIAPIController extends ControllerAPI
                         }
                     }
                 );
-
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
                     if ($couponstocatchsflag->coupon_notification == 'Y') {
@@ -1198,7 +1196,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -1565,7 +1562,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -1901,7 +1897,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -2446,7 +2441,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -2786,7 +2780,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -3005,7 +2998,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
@@ -7399,7 +7391,6 @@ class MobileCIAPIController extends ControllerAPI
                         ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
                     )
                 )
-                inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
