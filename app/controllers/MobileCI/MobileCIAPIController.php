@@ -5362,10 +5362,11 @@ class MobileCIAPIController extends ControllerAPI
 
             $bill_no = $transaction['transaction_id'];
 
-            $head = " \n";
+            $head  = " \n";
             $head .= " \n";
             $head .= $this->just40CharMid($retailer->parent->name);
-            $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
+            $head .= $this->just40CharMid($retailer->name);
+            $head .= $this->just40CharMid($retailer->address_line1)."\n";
 
             // ticket header
             $ticket_header = $retailer->parent->ticket_header;
