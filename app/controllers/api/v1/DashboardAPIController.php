@@ -1974,7 +1974,7 @@ class DashboardAPIController extends ControllerAPI
                                 DB::raw("avg(
                                     case
                                         when {$tablePrefix}timed.minute_connect < 60 then {$tablePrefix}timed.minute_connect
-                                        else 60
+                                        else 4
                                     end) as average_time_connect"
                                 )
                             )
