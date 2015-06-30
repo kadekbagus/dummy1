@@ -2054,12 +2054,13 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
         $scope.logoutfn =  function(){
             if(progressJs) progressJs().start().autoIncrease(4, 500);
             serviceAjax.getDataFromServer('/logout?_orbit_logout_from=pos').then(function(response){
-                if(response.code == 0){
-                    localStorageService.remove('user');
-                    window.location.assign("signin");
-                }else{
-                    //alert('gagal logout');
-                }
+                localStorageService.remove('user');
+                window.location.assign("signin");
+                // if(response.code == 0){
+                    
+                // }else{
+                //     //alert('gagal logout');
+                // }
                 if(progressJs) progressJs().end();
             });
         };
