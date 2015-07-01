@@ -152,9 +152,42 @@ class IntermediateLoginController extends IntermediateBaseController
     }
 
     /**
+     * @author Tian <tian@dominopos.com>
+     * @param @see LoginAPIController::postLoginCashier
+     * @return Response
+     */
+    public function postLoginCashier()
+    {
+        $this->session->enableForceNew()->start();
+        Activity::setSession($this->session);
+        $response = LoginAPIController::create('raw')->postLoginCashier();
+
+        if ($response->code === 0)
+        {
+            $user = $response->data['user'];
+            //$user->setHidden(array('user_password', 'apikey'));
+            // Auth::login($user);
+
+            // Start the orbit session
+            $data = array(
+                'logged_in' => TRUE,
+                'user_id'   => $user->user_id,
+            );
+            $this->session->update($data);
+
+            // Send the session id via HTTP header
+            $sessionHeader = $this->session->getSessionConfig()->getConfig('session_origin.header.name');
+            $sessionHeader = 'Set-' . $sessionHeader;
+            $this->customHeaders[$sessionHeader] = $this->session->getSessionId();
+        }
+
+        return $this->render($response);
+    }
+
+    /**
      * Clear the session
      *
-     * @author Rio Astamal <me@rioastamal.net>
+     * @author Rio Astamalit  <me@rioastamal.net>
      * @return Response
      */
     public function getLogout()
