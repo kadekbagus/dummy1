@@ -5426,7 +5426,6 @@ class MobileCIAPIController extends ControllerAPI
             $transaction_date = str_replace(' ', '_', $transaction->created_at);
             $transaction_date = str_replace(':', '', $transaction->created_at);
 
-            echo $transaction_date;
             $tr_date = strtotime($transaction_date);
             $_tr_date = date('d-m-Y h-m-s', $tr_date);
 
