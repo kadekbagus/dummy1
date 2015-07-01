@@ -3454,7 +3454,8 @@ class CashierAPIController extends ControllerAPI
             $head  = " \n";
             $head .= " \n";
             $head .= $this->just40CharMid($retailer->parent->name);
-            $head .= $this->just40CharMid($retailer->parent->address_line1)."\n";
+            $head .= $this->just40CharMid($retailer->name);
+            $head .= $this->just40CharMid($retailer->address_line1)."\n";
 
             // ticket header
             $ticket_header = $retailer->parent->ticket_header;
@@ -3518,7 +3519,10 @@ class CashierAPIController extends ControllerAPI
             $transaction_date = str_replace(' ', '_', $transaction->created_at);
             $transaction_date = str_replace(':', '', $transaction->created_at);
 
-            $attachment_name = sprintf('receipt-%s-%s.png', $transaction->transaction_id, $transaction_date);
+            $tr_date = strtotime($transaction_date);
+            $_tr_date = date('d-m-Y h-m-s', $tr_date);
+
+            $attachment_name = sprintf('receipt-%s-%s.png', $transaction->transaction_id, $_tr_date);
 
             if (!empty($cart_based_promo)) {
                 $write = $head.$product.$cart_based_promo.$pay.$acquired_coupon.$footer;
