@@ -1720,6 +1720,8 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                         $scope.manualscancart    = '';
                         $scope.isvirtualscancart = false;
                     }else if(idx =='d'){
+                        $scope.cart = [];
+                        $scope.tmpsubtotal = '';
                         $scope.scancartFn(true);
                     }else if(idx == 'r'){
                         $scope.manualscancart =  $scope.manualscancart != '' ? $scope.manualscancart.substring(0, $scope.manualscancart.length-1) : '';
@@ -1797,7 +1799,6 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                    $scope.cancelRequestService();
                    $scope.getcartpromotion();
                     $scope.cartcoupon = [];
-                    $scope.cart = [];
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
