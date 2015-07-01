@@ -2186,7 +2186,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE ic.expired_date >= "' . Carbon::now() .'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "' . Carbon::now() . '" ORDER BY ic.expired_date ASC'
+                WHERE ic.expired_date >= "' . Carbon::now() .'" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "' . Carbon::now() . '" GROUP BY ic.issued_coupon_code ORDER BY ic.expired_date ASC'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id)
             );
