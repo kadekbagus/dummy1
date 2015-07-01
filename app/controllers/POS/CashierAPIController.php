@@ -55,6 +55,23 @@ class CashierAPIController extends ControllerAPI
             $username = OrbitInput::post('username');
             $password = OrbitInput::post('password');
 
+            $validator = Validator::make(
+                array(
+                    'username' => $username,
+                    'password' => $password,
+                ),
+                array(
+                    'username' => 'required',
+                    'password' => 'required',
+                )
+            );
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
             $retailer = $this->getRetailerInfo();
 
             $role = Role::where('role_name', 'cashier')->first();
@@ -3520,7 +3537,7 @@ class CashierAPIController extends ControllerAPI
             $transaction_date = str_replace(':', '', $transaction->created_at);
 
             $tr_date = strtotime($transaction_date);
-            $_tr_date = date('d-m-Y h-m-s', $tr_date);
+            $_tr_date = date('d-m-Y H-i-s', $tr_date);
 
             $attachment_name = sprintf('receipt-%s-%s.png', $transaction->transaction_id, $_tr_date);
 

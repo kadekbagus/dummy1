@@ -933,7 +933,7 @@
                                     <td class="padded" style="padding: 0;vertical-align: top;padding-left: 32px;padding-right: 32px;word-break: break-word;word-wrap: break-word; border:none;">
                                         
                                         <p style="Margin-top: 0;color: #565656;font-family: Georgia,serif;font-size: 16px;line-height: 25px;Margin-bottom: 24px">Thank you {{ $user->getFullName() }} for shopping at&nbsp;<strong style="font-weight: bold;text-align: center">{{ $retailer->name }}</strong>.&nbsp;<br style="text-align:center" />
-                                        Here is a copy of your receipt and some information about your products purchased on&nbsp;<strong style="font-weight: bold;text-align: center">{{ date('d/m/Y H:i', strtotime($transaction->created_at)) }}</strong>.&nbsp;</p>
+                                        Here is a copy of your receipt and some information about your products purchased on&nbsp;<strong style="font-weight: bold;text-align: center">{{ date('d/m/Y H:i:s', strtotime($transaction->created_at)) }}</strong>.&nbsp;</p>
                                         
                                     </td>
                                 </tr>

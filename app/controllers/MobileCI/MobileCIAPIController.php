@@ -5427,7 +5427,7 @@ class MobileCIAPIController extends ControllerAPI
             $transaction_date = str_replace(':', '', $transaction->created_at);
 
             $tr_date = strtotime($transaction_date);
-            $_tr_date = date('d-m-Y h-m-s', $tr_date);
+            $_tr_date = date('d-m-Y H-i-s', $tr_date);
 
             // Example Result: recipt-123-2015-03-04_101010.txt
             $attachment_name = sprintf('receipt-%s_%s.png', $transaction->transaction_id, $_tr_date);
