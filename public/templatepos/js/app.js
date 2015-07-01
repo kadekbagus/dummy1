@@ -1797,6 +1797,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                    $scope.cancelRequestService();
                    $scope.getcartpromotion();
                     $scope.cartcoupon = [];
+                    $scope.cart = [];
                     var data = {
                         barcode : bool ?  $scope.manualscancart : ''
                     };
