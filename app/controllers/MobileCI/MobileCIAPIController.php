@@ -49,7 +49,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param string    `email`          (required) - Email address of the user
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -130,7 +130,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Redirect
+     * @return \Illuminate\Support\Facades\Redirect
      */
     public function getLogoutInShop()
     {
@@ -150,7 +150,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getHomeView()
     {
@@ -369,7 +369,7 @@ class MobileCIAPIController extends ControllerAPI
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getSignInView()
     {
@@ -399,7 +399,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getCatalogueView()
     {
@@ -527,7 +527,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param string    `skip`           (optional)
      * @param string    `sort_mode`      (optional)
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -935,7 +935,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param string    `skip`           (optional)
      * @param string    `sort_mode`      (optional)
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -1396,7 +1396,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param string    `sort_by`        (optional)
      * @param string    `sort_mode`      (optional)
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -1736,7 +1736,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param string    `sort_by`        (optional)
      * @param string    `sort_mode`      (optional)
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -2082,7 +2082,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getPromotionList()
     {
@@ -2154,7 +2154,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getCouponList()
     {
@@ -2243,7 +2243,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param integer   `family_id`      (optional)
      * @param integer   `family_level`   (optional)
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -2614,7 +2614,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param string                               $sort_by      (optional)
      * @param string    `sort_mode`     (optional)
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -2926,7 +2926,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `id`        (required) - The product ID
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3179,7 +3179,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `detail`        (required) - THe product ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3227,7 +3227,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `promotion_detail`        (required) - The promotion ID
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3274,7 +3274,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `promotion_detail`        (required) - The coupon ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3321,7 +3321,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `cartcode`        (required) - The cart code
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3350,7 +3350,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param integer    `productid`        (required) - The product ID
      * @param integer    `productvariantid` (required) - The product variant ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3511,7 +3511,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `promotion_detail`        (required) - The promotion ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3554,7 +3554,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `from`        (optional) - flag to save or not to save activity
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -3606,7 +3606,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getTransferCartView()
     {
@@ -3653,7 +3653,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getMeView()
     {
@@ -3700,7 +3700,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getPaymentView()
     {
@@ -3752,7 +3752,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getPaypalPaymentView()
     {
@@ -3804,7 +3804,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getThankYouView()
     {
@@ -3847,7 +3847,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      */
     public function getWelcomeView()
     {
@@ -3868,7 +3868,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      *
-     * @return Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getRetailerInfo()
     {
@@ -3903,7 +3903,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param integer    `qty`              (required) - The quantity of the product
      * @param array      `coupons`          (optional) - Product based coupons that added to cart
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4176,7 +4176,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param integer    `productvariantid` (required) - The product variant ID
      * @param array      `coupons`          (optional) - Product based coupons that added to cart
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4311,7 +4311,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `detail`        (required) - The issued coupon ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4407,7 +4407,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `detail`        (required) - The cart detail ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4507,7 +4507,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `cartid`        (required) - The cart ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4614,7 +4614,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `detail`        (required) - The issued coupon ID
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4690,7 +4690,7 @@ class MobileCIAPIController extends ControllerAPI
      * @param integer    `detail`        (required) - The cart detail ID
      * @param integer    `qty`           (required) - The new quantity
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -4787,7 +4787,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `payment_method`        (optional) - The payment method
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -6000,7 +6000,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param object $e - Error object
      *
-     * @return Illuminate\Support\Facades\Redirect
+     * @return \Illuminate\Support\Facades\Redirect
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
@@ -7316,7 +7316,7 @@ class MobileCIAPIController extends ControllerAPI
      *
      * @param integer    `upc_code`        (required) - The product ID
      *
-     * @return Illuminate\View\View
+     * @return \Illuminate\View\View
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
