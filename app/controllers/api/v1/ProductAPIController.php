@@ -106,7 +106,8 @@ class ProductAPIController extends ControllerAPI
             $product_name = OrbitInput::post('product_name');
             $short_description = OrbitInput::post('short_description');
             $price = OrbitInput::post('price');
-            $merchant_tax_1 = OrbitInput::post('merchant_tax_id1');
+            $merchant_tax_id1 = OrbitInput::post('merchant_tax_id1');
+            $merchant_tax_id2 = OrbitInput::post('merchant_tax_id2');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $status = OrbitInput::post('status');
             $retailer_ids = (array) $retailer_ids;
@@ -163,13 +164,15 @@ class ProductAPIController extends ControllerAPI
                 $validator = Validator::make(
                     array(
                         'price'             => $price,
-                        'merchant_tax_1'    => $merchant_tax_1,
+                        'merchant_tax_1'    => $merchant_tax_id1,
+                        'merchant_tax_2'    => $merchant_tax_id2,
                         'sku'               => $product_code,
                         'retailer_ids'      => $retailer_ids,
                     ),
                     array(
                         'price'             => 'required',
-                        'merchant_tax_1'    => 'required',
+                        'merchant_tax_1'    => 'required|orbit.empty.merchant_tax_id1',
+                        'merchant_tax_2'    => 'orbit.empty.merchant_tax_id2',
                         'sku'               => 'required',
                         'retailer_ids'      => 'orbit.req.link_to_retailer',
                     )
@@ -1369,12 +1372,14 @@ class ProductAPIController extends ControllerAPI
                     array(
                         'price'             => $price,
                         'merchant_tax_1'    => $merchant_tax_id1,
+                        'merchant_tax_2'    => $merchant_tax_id2,
                         'sku'               => $product_code,
                         'retailer_ids'      => $retailer_ids,
                     ),
                     array(
                         'price'             => 'required',
-                        'merchant_tax_1'    => 'required',
+                        'merchant_tax_1'    => 'required|orbit.empty.merchant_tax_id1',
+                        'merchant_tax_2'    => 'orbit.empty.merchant_tax_id2',
                         'sku'               => 'required',
                         'retailer_ids'      => 'orbit.req.link_to_retailer',
                     )
@@ -2145,6 +2150,47 @@ class ProductAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.category_id5', $category_id5);
+
+            return TRUE;
+        });
+
+        // Check tax 1 existance
+        Validator::extend('orbit.empty.merchant_tax_id1', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
+
+            $tax = MerchantTax::excludeDeleted()
+                              ->where('merchant_id', $merchant->merchant_id)
+                              ->where('merchant_tax_id', $value)
+                              ->where('tax_type', 'government')
+                              ->first();
+
+            if (empty($tax)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant_tax_id1', $tax);
+
+            return TRUE;
+        });
+
+        // Check tax 2 existance
+        Validator::extend('orbit.empty.merchant_tax_id2', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
+
+            $tax = MerchantTax::excludeDeleted()
+                              ->where('merchant_id', $merchant->merchant_id)
+                              ->where('merchant_tax_id', $value)
+                              ->where(function ($query) {
+                                  $query->where('tax_type', 'service')
+                                        ->orWhere('tax_type', 'luxury');
+                              })
+                              ->first();
+
+            if (empty($tax)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant_tax_id2', $tax);
 
             return TRUE;
         });

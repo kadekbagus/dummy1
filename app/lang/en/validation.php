@@ -155,6 +155,8 @@ return array(
             'tax'                  => 'The Tax ID you specified is not found.',
             'tax1_name'            => 'The tax 1 name you specified is not found.',
             'tax2_name'            => 'The tax 2 name you specified is not found.',
+            'merchant_tax_id1'     => 'The tax 1 you specified is not found.',
+            'merchant_tax_id2'     => 'The tax 2 you specified is not found.',
             'promotion'            => 'The Promotion ID you specified is not found.',
             'coupon'               => 'The Coupon ID you specified is not found.',
             'issued_coupon'        => 'The Issued Coupon ID you specified is not found.',
