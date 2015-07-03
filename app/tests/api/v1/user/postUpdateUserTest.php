@@ -28,6 +28,11 @@ class postUpdateUserTest extends OrbitTestCase
         $permission_table = static::$dbPrefix . 'permissions';
         $permission_role_table = static::$dbPrefix . 'permission_role';
         $custom_permission_table = static::$dbPrefix . 'custom_permission';
+        $country_table = static::$dbPrefix . 'countries';
+
+        // Insert dummy countries
+        DB::statement("INSERT INTO `${country_table}` (`country_id`, `name`, `code`, `created_at`, `updated_at`)
+                VALUES (62, 'Indonesia', 'ID', '2014-10-19 20:00:00', '2014-10-19 20:00:00')");
 
         // Insert dummy data on apikeys
         DB::statement("INSERT INTO `{$apikey_table}`
@@ -94,7 +99,8 @@ class postUpdateUserTest extends OrbitTestCase
                 ('2', 'view_user', 'View User', 'user', 'User', '1', '1', '1', NOW(), NOW()),
                 ('3', 'create_user', 'Create User', 'user', 'User', '0', '1', '1', NOW(), NOW()),
                 ('4', 'view_product', 'View Product', 'product', 'Product', '1', '2', '1', NOW(), NOW()),
-                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), nOW())"
+                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), NOW()),
+                ('6', 'update_user', 'Update User', 'user', 'user', '2', '1', '1', NOW(), NOW())"
         );
 
         // Insert dummy data on permission_role
@@ -106,7 +112,8 @@ class postUpdateUserTest extends OrbitTestCase
                 ('3', '3', '2', 'no', NOW(), NOW()),
                 ('4', '3', '3', 'no', NOW(), NOW()),
                 ('5', '3', '4', 'no', NOW(), NOW()),
-                ('6', '3', '5', 'no', NOW(), NOW())"
+                ('6', '3', '5', 'no', NOW(), NOW()),
+                ('7', '1', '6', 'yes', NOW(), NOW())"
         );
     }
 
@@ -122,13 +129,15 @@ class postUpdateUserTest extends OrbitTestCase
         $permission_table = static::$dbPrefix . 'permissions';
         $permission_role_table = static::$dbPrefix . 'permission_role';
         $custom_permission_table = static::$dbPrefix . 'custom_permission';
+        $country_table = static::$dbPrefix . 'countries';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
                         TRUNCATE `{$role_table}`;
                         TRUNCATE `{$custom_permission_table}`;
                         TRUNCATE `{$permission_role_table}`;
-                        TRUNCATE `{$permission_table}`");
+                        TRUNCATE `{$permission_table}`;
+                        TRUNCATE `{$country_table}`;");
     }
 
     public function tearDown()
@@ -471,6 +480,11 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
+    /**
+     * Tests changing user to blocked status. As a side effect, the API key will also be blocked.
+     *
+     * TODO: find out what SameEmail vs DifferentEmail means.
+     */
     public function testReqOK_SameEmail_POST_api_v1_user_update()
     {
         // Data to be post
@@ -485,19 +499,19 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['gender'] = 'm';
         $_POST['address_line1'] = 'Banjar Semer';
         $_POST['city'] = 'Surabaya';
-        $_POST['country'] = 'Indonesia';
+        $_POST['country'] = '62';
         $_POST['province'] = 'Jawa Timur';
         $_POST['postal_code'] = '612345';
         $_POST['phone'] = '031-7412345';
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'bcd234';
         $_GET['apitimestamp'] = time();
         $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/update?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'bcd23456789010';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
@@ -516,7 +530,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame('Smith Jr.', $smith->user_lastname);
         $this->assertSame('smith@localhost.org', $smith->user_email);
         $this->assertSame('4', (string)$smith->user_role_id);
-        $this->assertSame('3', (string)$smith->modified_by);
+        $this->assertSame('2', (string)$smith->modified_by);
         $this->assertSame('blocked', (string)$smith->status);
         $this->assertTrue(property_exists($response->data, 'user_id'));
 
@@ -538,6 +552,11 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame('blocked', (string)$apikey->status);
     }
 
+    /**
+     * Tests changing the User to active status. As a side effect, changes the API key status to active.
+     *
+     * TODO: find out what SameEmail vs DifferentEmail means.
+     */
     public function testReqOK_DifferentEmail_PendingToActive_POST_api_v1_user_update()
     {
         // Data to be post
@@ -552,19 +571,19 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['gender'] = 'm';
         $_POST['address_line1'] = 'Banjar Semer';
         $_POST['city'] = 'Surabaya';
-        $_POST['country'] = 'Indonesia';
+        $_POST['country'] = '62';
         $_POST['province'] = 'Jawa Timur';
         $_POST['postal_code'] = '612345';
         $_POST['phone'] = '031-7412345';
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
         $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/update?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'def12345678901';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
@@ -582,7 +601,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame('Smith Jr.', $smith->user_lastname);
         $this->assertSame('tom@localhost.org', $smith->user_email);
         $this->assertSame('4', (string)$smith->user_role_id);
-        $this->assertSame('3', (string)$smith->modified_by);
+        $this->assertSame('1', (string)$smith->modified_by);
         $this->assertSame('active', (string)$smith->status);
         $this->assertTrue(property_exists($response->data, 'user_id'));
 
@@ -626,19 +645,19 @@ class postUpdateUserTest extends OrbitTestCase
         $_POST['gender'] = 'm';
         $_POST['address_line1'] = 'Banjar Semer';
         $_POST['city'] = 'Surabaya';
-        $_POST['country'] = 'Indonesia';
+        $_POST['country'] = '62';
         $_POST['province'] = 'Jawa Timur';
         $_POST['postal_code'] = '612345';
         $_POST['phone'] = '031-7412345';
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
         $_GET['apiver'] = '1.0';
 
         $url = '/api/v1/user/update?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'def12345678901';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
@@ -655,6 +674,9 @@ class postUpdateUserTest extends OrbitTestCase
         $data->message = 'This is bad bro!';
         $data->data = NULL;
 
+        /** @var User $old_smith */
+        $old_smith = User::with(array('userdetail', 'apikey'))->find(2);
+
         $expect = json_encode($data);
         $return = $this->call('POST', $url)->getContent();
         $this->assertSame($expect, $return);
@@ -666,7 +688,7 @@ class postUpdateUserTest extends OrbitTestCase
         $this->assertSame('Smith Jr.', $smith->user_lastname);
         $this->assertSame('tom@localhost.org', $smith->user_email);
         $this->assertSame('4', (string)$smith->user_role_id);
-        $this->assertSame('3', (string)$smith->modified_by);
+        $this->assertSame('1', (string)$smith->modified_by);
         $this->assertSame('active', (string)$smith->status);
 
         $this->assertSame('active', $smith->apikey->status);
