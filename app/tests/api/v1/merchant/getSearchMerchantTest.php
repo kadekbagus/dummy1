@@ -366,11 +366,11 @@ class getSearchMerchantTest extends OrbitTestCase
     {
         // Data
         // No argument given at all, show all merchants
-        // It should read from config named 'orbit.pagination.max_record'
+        // It should read from config named 'orbit.pagination.merchant.max_record'
         // It should fallback to whathever you like when the config is not exists
         $max_record = 2;
-        Config::set('orbit.pagination.max_record', $max_record);
-        Config::set('orbit.pagination.per_page', $max_record);
+        Config::set('orbit.pagination.merchant.max_record', $max_record);
+        Config::set('orbit.pagination.merchant.per_page', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
@@ -519,8 +519,8 @@ class getSearchMerchantTest extends OrbitTestCase
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
         $max_record = 10;
-        Config::set('orbit.pagination.max_record', $max_record);
-        Config::set('orbit.pagination.per_page', $max_record);
+        Config::set('orbit.pagination.merchant.max_record', $max_record);
+        Config::set('orbit.pagination.merchant.per_page', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
