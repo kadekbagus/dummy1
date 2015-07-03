@@ -2264,12 +2264,45 @@ class ProductAPIController extends ControllerAPI
             if ($value === 'inactive') {
                 $product_id = $parameters[0];
 
-                // @TODO check if product exists in promotions.
-                // @TODO check if product exists in coupons.
+                // check product if exists in promotions.
+                $promotion = Promotion::excludeDeleted()
+                    ->whereHas('promotionrule', function($query) use ($product_id) {
+                        $query->where('discount_object_type', 'product')
+                            ->where(function ($q) use ($product_id) {
+                                $q->where('discount_object_id1', $product_id);
+                        });
+                    })
+                    ->first();
+                if (! empty($promotion)) {
+                    return FALSE;
+                }
+
+                // check product if exists in coupons.
+                $coupon = Coupon::excludeDeleted()
+                    ->whereHas('couponrule', function($query) use ($product_id) {
+                        $query->where(function ($query) use ($product_id) {
+                            $query
+                            ->where(function ($query) use ($product_id) {
+                                $query->where('discount_object_type', 'product')
+                                      ->where(function ($query) use ($product_id) {
+                                        $query->where('discount_object_id1', $product_id);
+                                });
+                            })
+                            ->orWhere(function ($query) use ($product_id) {
+                                $query->where('rule_object_type', 'product')
+                                      ->where(function ($query) use ($product_id) {
+                                        $query->where('rule_object_id1', $product_id);
+                                });
+                            });
+                        });
+                    })
+                    ->first();
+                if (! empty($coupon)) {
+                    return FALSE;
+                }
 
                 // check product if exists in events.
                 $event = EventModel::excludeDeleted()
-                                   ->active()
                                    ->where('link_object_type', 'product')
                                    ->where('link_object_id1', $product_id)
                                    ->first();
