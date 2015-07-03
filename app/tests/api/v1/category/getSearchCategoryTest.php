@@ -46,7 +46,6 @@ class getSearchCategoryTest extends TestCase
 
         $url = $this->baseUrl . '?' . http_build_query($_GET);
 
-        $secretKey = $this->authData->api_secret_key;
         $_SERVER['REQUEST_METHOD']         = 'GET';
         $_SERVER['REQUEST_URI']            = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature('invalid', 'sha256');
@@ -191,7 +190,7 @@ class getSearchCategoryTest extends TestCase
         // 744: Builder#whereIn accept only array and parameter from Request was string,
         // 896: Zero Exceptions code should be a unknown error.
         $this->assertSame(1, count($response->data->records));
-        $this->assertSame($searchable->category_id, $response->data->records[0]->category_id);
+        $this->assertSame((string)$searchable->category_id, $response->data->records[0]->category_id);
 
     }
 
@@ -221,7 +220,7 @@ class getSearchCategoryTest extends TestCase
         // should return correct number fo result
         $this->assertSame(1, count($response->data->records));
         // should  return correct data
-        $this->assertSame($searchable->category_id, $response->data->records[0]->category_id);
+        $this->assertSame((string)$searchable->category_id, $response->data->records[0]->category_id);
     }
 
     public function testOK_get_search_with_custom_pagination()
