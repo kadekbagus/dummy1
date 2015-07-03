@@ -98,6 +98,7 @@ return array(
             'have_product_category' => 'The family cannot be deleted: One or more products are attached to this family.',
             'product_have_transaction' => 'The product has one or more transactions linked to it, so it cannot be deleted.',
             'product_on_inactive_have_linked' => 'The product cannot be set to inactive: One or more Promotions/Coupons/Events are linked to this product.',
+            'product_on_delete_have_linked' => 'The product cannot be deleted: One or more Promotions/Coupons/Events are linked to this product.',
             'promotion_name'        => 'The promotion name has already been used.',
             'promotion_on_delete_have_linked' => 'The promotion cannot be deleted: One or more Events are linked to this promotion.',
             'promotion_on_inactive_have_linked' => 'The promotion cannot be set to inactive: One or more Events are linked to this promotion.',
