@@ -29,15 +29,23 @@ class postUpdateCouponTest extends TestCase
     public function testOK_post_update_promotion()
     {
         $coupon = Factory::create('Coupon');
-        Factory::create('CouponRule', ['promotion_id' => $coupon->promotion_id]);
+        $coupon_rule = Factory::create('CouponRule', ['promotion_id' => $coupon->promotion_id]);
         $couponCountBefore = Coupon::count();
 
-        $makeRequest = function ($changes = []) use ($coupon) {
+        $makeRequest = function ($changes = []) use ($coupon, $coupon_rule) {
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
 
             $_POST = $changes;
             $_POST['promotion_id'] = $coupon->promotion_id;
+            foreach (['promotion_type', 'status', 'begin_date', 'coupon_validity_in_days'] as $k) {
+                if (!isset($_POST[$k])) {
+                    $_POST[$k] = $coupon->$k;
+                }
+            }
+            if (!isset($_POST['discount_value'])) {
+                $_POST['discount_value'] = $coupon_rule->discount_value;
+            }
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -86,14 +94,22 @@ class postUpdateCouponTest extends TestCase
     public function testACL_post_update_promotion()
     {
         $coupon = Factory::create('Coupon');
-        Factory::create('CouponRule', ['promotion_id' => $coupon->promotion_id]);
+        $coupon_rule = Factory::create('CouponRule', ['promotion_id' => $coupon->promotion_id]);
         $couponCountBefore = Coupon::count();
 
-        $makeRequest = function ($authData) use ($coupon) {
+        $makeRequest = function ($authData) use ($coupon, $coupon_rule) {
             $_GET['apikey']       = $authData->api_key;
             $_GET['apitimestamp'] = time();
 
             $_POST['promotion_id'] = $coupon->promotion_id;
+            foreach (['promotion_type', 'status', 'begin_date', 'coupon_validity_in_days'] as $k) {
+                if (!isset($_POST[$k])) {
+                    $_POST[$k] = $coupon->$k;
+                }
+            }
+            if (!isset($_POST['discount_value'])) {
+                $_POST['discount_value'] = $coupon_rule->discount_value;
+            }
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 

@@ -35,4 +35,5 @@ $factory('CouponRule', [
         "product_discount_by_percentage"
     ]),
     'rule_value' => $faker->numerify('##'),
+    'discount_value' => $faker->numerify('##'),
 ]);
