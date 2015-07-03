@@ -1320,6 +1320,28 @@ class ProductAPIController extends ControllerAPI
             $category_id3 = OrbitInput::post('category_id3');
             $category_id4 = OrbitInput::post('category_id4');
             $category_id5 = OrbitInput::post('category_id5');
+            $attribute_id1 = OrbitInput::post('attribute_id1');
+            $attribute_id2 = OrbitInput::post('attribute_id2');
+            $attribute_id3 = OrbitInput::post('attribute_id3');
+            $attribute_id4 = OrbitInput::post('attribute_id4');
+            $attribute_id5 = OrbitInput::post('attribute_id5');
+
+            $flag_selected_attribute = 0;
+            if (!empty($attribute_id1)) {
+                $flag_selected_attribute = 1;
+            }
+            if (!empty($attribute_id2)) {
+                $flag_selected_attribute = 2;
+            }
+            if (!empty($attribute_id3)) {
+                $flag_selected_attribute = 3;
+            }
+            if (!empty($attribute_id4)) {
+                $flag_selected_attribute = 4;
+            }
+            if (!empty($attribute_id5)) {
+                $flag_selected_attribute = 5;
+            }
 
             $validator = Validator::make(
                 array(
@@ -1467,7 +1489,7 @@ class ProductAPIController extends ControllerAPI
             // Save product variants (combination)
             $variants = array();
             OrbitInput::post('product_variants', function($product_combinations)
-            use ($price, $upc_code, $merchant_id, $user, $newproduct, $product_code, &$variants, $status)
+            use ($price, $upc_code, $merchant_id, $user, $newproduct, $product_code, &$variants, $status, $flag_selected_attribute)
             {
                 $variant_decode = $this->JSONValidate($product_combinations);
                 $index = 1;
@@ -1534,6 +1556,12 @@ class ProductAPIController extends ControllerAPI
 
                     // Save the 5 attributes value id
                     foreach ($variant->attribute_values as $i=>$value_id) {
+
+                        // check for empty attribute value based on attribute that has been selected in the frontend
+                        if (empty($value_id) && $i == $flag_selected_attribute-1) {
+                            $errorMessage = 'One or more attribute value is empty';
+                            OrbitShopAPI::throwInvalidArgument($errorMessage);
+                        }
                         $field_value_id = 'product_attribute_value_id' . ($i + 1);
                         $product_variant->{$field_value_id} = $value_id;
                     }
@@ -2282,12 +2310,45 @@ class ProductAPIController extends ControllerAPI
             if ($value === 'inactive') {
                 $product_id = $parameters[0];
 
-                // @TODO check if product exists in promotions.
-                // @TODO check if product exists in coupons.
+                // check product if exists in promotions.
+                $promotion = Promotion::excludeDeleted()
+                    ->whereHas('promotionrule', function($query) use ($product_id) {
+                        $query->where('discount_object_type', 'product')
+                            ->where(function ($q) use ($product_id) {
+                                $q->where('discount_object_id1', $product_id);
+                        });
+                    })
+                    ->first();
+                if (! empty($promotion)) {
+                    return FALSE;
+                }
+
+                // check product if exists in coupons.
+                $coupon = Coupon::excludeDeleted()
+                    ->whereHas('couponrule', function($query) use ($product_id) {
+                        $query->where(function ($query) use ($product_id) {
+                            $query
+                            ->where(function ($query) use ($product_id) {
+                                $query->where('discount_object_type', 'product')
+                                      ->where(function ($query) use ($product_id) {
+                                        $query->where('discount_object_id1', $product_id);
+                                });
+                            })
+                            ->orWhere(function ($query) use ($product_id) {
+                                $query->where('rule_object_type', 'product')
+                                      ->where(function ($query) use ($product_id) {
+                                        $query->where('rule_object_id1', $product_id);
+                                });
+                            });
+                        });
+                    })
+                    ->first();
+                if (! empty($coupon)) {
+                    return FALSE;
+                }
 
                 // check product if exists in events.
                 $event = EventModel::excludeDeleted()
-                                   ->active()
                                    ->where('link_object_type', 'product')
                                    ->where('link_object_id1', $product_id)
                                    ->first();
