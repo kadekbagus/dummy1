@@ -224,7 +224,6 @@ class RetailerAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @param integer    `user_id`                 (required) - User id for the retailer
      * @param string     `orid`                    (required) - ORID of the retailer
      * @param string     `email`                   (required) - Email address of the retailer
      * @param string     `name`                    (required) - Name of the retailer
@@ -236,8 +235,7 @@ class RetailerAPIController extends ControllerAPI
      * @param integer    `city_id`                 (optional) - City id
      * @param string     `city`                    (optional) - Name of the city
      * @param string     `province`                (optional) - Name of the province
-     * @param integer    `country_id`              (optional) - Country id
-     * @param string     `country`                 (optional) - Name of the country
+     * @param integer    `country`                 (optional) - Country id
      * @param string     `phone`                   (optional) - Phone of the retailer
      * @param string     `fax`                     (optional) - Fax of the retailer
      * @param string     `start_date_activity`     (optional) - Start date activity of the retailer
@@ -297,7 +295,6 @@ class RetailerAPIController extends ControllerAPI
             $this->registerCustomValidation();
 
             $password = OrbitInput::post('password');
-            $user_id = OrbitInput::post('user_id');
             $email = OrbitInput::post('email');
             $name = OrbitInput::post('name');
             $description = OrbitInput::post('description');
@@ -308,7 +305,6 @@ class RetailerAPIController extends ControllerAPI
             $city_id = OrbitInput::post('city_id');
             $city = OrbitInput::post('city');
             $province = OrbitInput::post('province');
-            $country_id = OrbitInput::post('country_id');
             $country = OrbitInput::post('country');
             $phone = OrbitInput::post('phone');
             $fax = OrbitInput::post('fax');
