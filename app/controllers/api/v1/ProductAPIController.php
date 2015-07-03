@@ -1752,7 +1752,7 @@ class ProductAPIController extends ControllerAPI
                     'product_id' => $product_id,
                 ),
                 array(
-                    'product_id' => 'required|numeric|orbit.empty.product|orbit.exists.product_have_transaction',
+                    'product_id' => 'required|numeric|orbit.empty.product|orbit.exists.product_have_transaction|orbit.exists.product_on_delete_have_linked',
                 )
             );
 
@@ -2287,19 +2287,6 @@ class ProductAPIController extends ControllerAPI
                 return FALSE;
             }
 
-            // @TODO check if product exists in promotions.
-            // @TODO check if product exists in coupons.
-
-            // check if product exists in events.
-            $event = EventModel::excludeDeleted()
-                               ->where('link_object_type', 'product')
-                               ->where('link_object_id1', $value)
-                               ->first();
-
-            if (! empty($event)) {
-                return FALSE;
-            }
-
             return TRUE;
         });
 
@@ -2357,6 +2344,61 @@ class ProductAPIController extends ControllerAPI
                     return FALSE;
                 }
 
+            }
+
+            return TRUE;
+        });
+
+        // product cannot be deleted if have linked to an event, promotion, or coupon.
+        Validator::extend('orbit.exists.product_on_delete_have_linked', function ($attribute, $value, $parameters) {
+            
+            $product_id = $value;
+
+            // check product if exists in promotions.
+            $promotion = Promotion::excludeDeleted()
+                ->whereHas('promotionrule', function($query) use ($product_id) {
+                    $query->where('discount_object_type', 'product')
+                        ->where(function ($q) use ($product_id) {
+                            $q->where('discount_object_id1', $product_id);
+                    });
+                })
+                ->first();
+            if (! empty($promotion)) {
+                return FALSE;
+            }
+
+            // check product if exists in coupons.
+            $coupon = Coupon::excludeDeleted()
+                ->whereHas('couponrule', function($query) use ($product_id) {
+                    $query->where(function ($query) use ($product_id) {
+                        $query
+                        ->where(function ($query) use ($product_id) {
+                            $query->where('discount_object_type', 'product')
+                                  ->where(function ($query) use ($product_id) {
+                                    $query->where('discount_object_id1', $product_id);
+                            });
+                        })
+                        ->orWhere(function ($query) use ($product_id) {
+                            $query->where('rule_object_type', 'product')
+                                  ->where(function ($query) use ($product_id) {
+                                    $query->where('rule_object_id1', $product_id);
+                            });
+                        });
+                    });
+                })
+                ->first();
+            if (! empty($coupon)) {
+                return FALSE;
+            }
+
+            // check product if exists in events.
+            $event = EventModel::excludeDeleted()
+                               ->where('link_object_type', 'product')
+                               ->where('link_object_id1', $product_id)
+                               ->first();
+
+            if (! empty($event)) {
+                return FALSE;
             }
 
             return TRUE;
