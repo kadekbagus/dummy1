@@ -86,6 +86,7 @@ return array(
         'not'               => 'Bukan',
         'click_here'        => 'klik disini',
         'email_not_valid'   => 'Alamat email tidak valid',
+        'logging_in_button' => 'Sedang login. Harap tunggu...',
     ),
 
     'catalogue'         => array(
