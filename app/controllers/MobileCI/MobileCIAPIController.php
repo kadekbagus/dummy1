@@ -6473,6 +6473,7 @@ class MobileCIAPIController extends ControllerAPI
 
                     if (! is_null($cartdetail->tax2)) {
                         $tax2 = $cartdetail->tax2->tax_value;
+                        $tax2_total_value = 0;
                         if (! is_null($cartdetail->tax1)) {
                             if ($cartdetail->tax2->tax_type == 'service') {
                                 $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
@@ -6564,6 +6565,7 @@ class MobileCIAPIController extends ControllerAPI
 
                         if (! is_null($cartdetail->tax2)) {
                             $tax2 = $cartdetail->tax2->tax_value;
+                            $tax2_total_value = 0;
                             if (! is_null($cartdetail->tax1)) {
                                 if ($cartdetail->tax2->tax_type == 'service') {
                                     $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
