@@ -3036,7 +3036,7 @@ class CashierAPIController extends ControllerAPI
 
             $retailer = $this->getRetailerInfo();
 
-            $cart = \Cart::where('status', 'cashier')->where('cashier_id', $cashier->user_id)->first();
+            $cart = \Cart::where('status', 'cashier')->where('cashier_id', $user->user_id)->first();
 
             if (! is_object($cart)) {
                 $message = \Lang::get('validation.orbit.empty.upc_code');
@@ -3107,7 +3107,7 @@ class CashierAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->where('cashier_id', $cashier->user_id)->first();
+            $cart_delete = \Cart::where('status', 'cashier')->where('cart_id', $cart_id)->where('cashier_id', $user->user_id)->first();
 
             if (! is_object($cart_delete)) {
                 $message = "cart not found";
