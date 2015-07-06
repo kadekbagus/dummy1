@@ -56,16 +56,25 @@ class getCashierTimeReportTest extends TestCase
             $merchant = $merchants[$user->user_id];
             $retailer = $retailers[$user->user_id];
 
+            $bindings = [
+                'user_id' => $user->user_id,
+                'full_name' => $user->getFullName(),
+                'role_id' => $user->role->role_id,
+                'role_name' => $user->role->role_name,
+                'location_id' => $retailer->merchant_id,
+                'location_name' => $retailer->name,
+            ];
+
             $prefix = DB::getTablePrefix();
             $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
-            $created_at =  $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
-            $insert .= "('login_ok', 'Login OK', 'login', {$user->user_id}, '{$user->getFullName()}', {$user->role->role_id}, '{$user->role->role_name}', 'pos', {$retailer->merchant_id}, '{$retailer->name}', 'OK', '{$created_at}')";
-            DB::statement($insert);
+            $bindings['created_at'] =  $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
+            $insert .= "('login_ok', 'Login OK', 'login', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            DB::statement($insert, $bindings);
 
             $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
-            $created_at = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
-            $insert .= "('logout_ok', 'Logout OK', 'logout', {$user->user_id}, '{$user->getFullName()}', {$user->role->role_id}, '{$user->role->role_name}', 'pos', {$retailer->merchant_id}, '{$retailer->name}', 'OK', '{$created_at}')";
-            DB::statement($insert);
+            $bindings['created_at'] = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
+            $insert .= "('logout_ok', 'Logout OK', 'logout', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            DB::statement($insert, $bindings);
 
             $customer = Factory::create('User', [
                 'user_firstname' => "Customer00{$i}",
