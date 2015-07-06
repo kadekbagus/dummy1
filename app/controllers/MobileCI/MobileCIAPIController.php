@@ -6085,7 +6085,7 @@ class MobileCIAPIController extends ControllerAPI
             return 0;
         }
 
-        
+
     }
 
     /**
@@ -6368,6 +6368,9 @@ class MobileCIAPIController extends ControllerAPI
                 // calculate tax 2 - non government
                 if (! is_null($cartdetail->tax2)) {
                     $tax2 = $cartdetail->tax2->tax_value;
+                    // TODO: check if we set default value is zero are the tax
+                    // calculcations still valid
+                    $tax2_total_value = 0;
                     if (! is_null($cartdetail->tax1)) {
                         if ($cartdetail->tax2->tax_type == 'service') {
                             $tax2_value = ($original_price / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
@@ -6470,6 +6473,7 @@ class MobileCIAPIController extends ControllerAPI
 
                     if (! is_null($cartdetail->tax2)) {
                         $tax2 = $cartdetail->tax2->tax_value;
+                        $tax2_total_value = 0;
                         if (! is_null($cartdetail->tax1)) {
                             if ($cartdetail->tax2->tax_type == 'service') {
                                 $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
@@ -6561,6 +6565,7 @@ class MobileCIAPIController extends ControllerAPI
 
                         if (! is_null($cartdetail->tax2)) {
                             $tax2 = $cartdetail->tax2->tax_value;
+                            $tax2_total_value = 0;
                             if (! is_null($cartdetail->tax1)) {
                                 if ($cartdetail->tax2->tax_type == 'service') {
                                     $tax2_value = ($discount / (1 + $tax1 + $tax2 + ($tax1 * $tax2))) * $tax2;
@@ -7341,7 +7346,7 @@ class MobileCIAPIController extends ControllerAPI
                             $query->where('retailer_id', $retailer->merchant_id);
                 }
             )->wherehas(
-                'variants', 
+                'variants',
                 function($query2) use ($upc_code) {
                     $query2->where('product_variants.upc', $upc_code);
                 }

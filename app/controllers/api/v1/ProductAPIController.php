@@ -106,7 +106,8 @@ class ProductAPIController extends ControllerAPI
             $product_name = OrbitInput::post('product_name');
             $short_description = OrbitInput::post('short_description');
             $price = OrbitInput::post('price');
-            $merchant_tax_1 = OrbitInput::post('merchant_tax_id1');
+            $merchant_tax_id1 = OrbitInput::post('merchant_tax_id1');
+            $merchant_tax_id2 = OrbitInput::post('merchant_tax_id2');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $status = OrbitInput::post('status');
             $retailer_ids = (array) $retailer_ids;
@@ -165,13 +166,15 @@ class ProductAPIController extends ControllerAPI
                 $validator = Validator::make(
                     array(
                         'price'             => $price,
-                        'merchant_tax_1'    => $merchant_tax_1,
+                        'merchant_tax_1'    => $merchant_tax_id1,
+                        'merchant_tax_2'    => $merchant_tax_id2,
                         'sku'               => $product_code,
                         'retailer_ids'      => $retailer_ids,
                     ),
                     array(
                         'price'             => 'required',
-                        'merchant_tax_1'    => 'required',
+                        'merchant_tax_1'    => 'required|orbit.empty.merchant_tax_id1',
+                        'merchant_tax_2'    => 'orbit.empty.merchant_tax_id2',
                         'sku'               => 'required',
                         'retailer_ids'      => 'orbit.req.link_to_retailer',
                     )
@@ -1393,12 +1396,14 @@ class ProductAPIController extends ControllerAPI
                     array(
                         'price'             => $price,
                         'merchant_tax_1'    => $merchant_tax_id1,
+                        'merchant_tax_2'    => $merchant_tax_id2,
                         'sku'               => $product_code,
                         'retailer_ids'      => $retailer_ids,
                     ),
                     array(
                         'price'             => 'required',
-                        'merchant_tax_1'    => 'required',
+                        'merchant_tax_1'    => 'required|orbit.empty.merchant_tax_id1',
+                        'merchant_tax_2'    => 'orbit.empty.merchant_tax_id2',
                         'sku'               => 'required',
                         'retailer_ids'      => 'orbit.req.link_to_retailer',
                     )
@@ -1747,7 +1752,7 @@ class ProductAPIController extends ControllerAPI
                     'product_id' => $product_id,
                 ),
                 array(
-                    'product_id' => 'required|numeric|orbit.empty.product|orbit.exists.product_have_transaction',
+                    'product_id' => 'required|numeric|orbit.empty.product|orbit.exists.product_have_transaction|orbit.exists.product_on_delete_have_linked',
                 )
             );
 
@@ -2189,6 +2194,47 @@ class ProductAPIController extends ControllerAPI
             return TRUE;
         });
 
+        // Check tax 1 existance
+        Validator::extend('orbit.empty.merchant_tax_id1', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
+
+            $tax = MerchantTax::excludeDeleted()
+                              ->where('merchant_id', $merchant->merchant_id)
+                              ->where('merchant_tax_id', $value)
+                              ->where('tax_type', 'government')
+                              ->first();
+
+            if (empty($tax)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant_tax_id1', $tax);
+
+            return TRUE;
+        });
+
+        // Check tax 2 existance
+        Validator::extend('orbit.empty.merchant_tax_id2', function ($attribute, $value, $parameters) {
+            $merchant = App::make('orbit.empty.merchant');
+
+            $tax = MerchantTax::excludeDeleted()
+                              ->where('merchant_id', $merchant->merchant_id)
+                              ->where('merchant_tax_id', $value)
+                              ->where(function ($query) {
+                                  $query->where('tax_type', 'service')
+                                        ->orWhere('tax_type', 'luxury');
+                              })
+                              ->first();
+
+            if (empty($tax)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.merchant_tax_id2', $tax);
+
+            return TRUE;
+        });
+
         // Check the existence of the product status
         Validator::extend('orbit.empty.product_status', function ($attribute, $value, $parameters) {
             $valid = false;
@@ -2238,19 +2284,6 @@ class ProductAPIController extends ControllerAPI
                                                          ->excludeDeleted('transactions')
                                                          ->first();
             if (! empty($transactionDetailProduct)) {
-                return FALSE;
-            }
-
-            // @TODO check if product exists in promotions.
-            // @TODO check if product exists in coupons.
-
-            // check if product exists in events.
-            $event = EventModel::excludeDeleted()
-                               ->where('link_object_type', 'product')
-                               ->where('link_object_id1', $value)
-                               ->first();
-
-            if (! empty($event)) {
                 return FALSE;
             }
 
@@ -2311,6 +2344,61 @@ class ProductAPIController extends ControllerAPI
                     return FALSE;
                 }
 
+            }
+
+            return TRUE;
+        });
+
+        // product cannot be deleted if have linked to an event, promotion, or coupon.
+        Validator::extend('orbit.exists.product_on_delete_have_linked', function ($attribute, $value, $parameters) {
+            
+            $product_id = $value;
+
+            // check product if exists in promotions.
+            $promotion = Promotion::excludeDeleted()
+                ->whereHas('promotionrule', function($query) use ($product_id) {
+                    $query->where('discount_object_type', 'product')
+                        ->where(function ($q) use ($product_id) {
+                            $q->where('discount_object_id1', $product_id);
+                    });
+                })
+                ->first();
+            if (! empty($promotion)) {
+                return FALSE;
+            }
+
+            // check product if exists in coupons.
+            $coupon = Coupon::excludeDeleted()
+                ->whereHas('couponrule', function($query) use ($product_id) {
+                    $query->where(function ($query) use ($product_id) {
+                        $query
+                        ->where(function ($query) use ($product_id) {
+                            $query->where('discount_object_type', 'product')
+                                  ->where(function ($query) use ($product_id) {
+                                    $query->where('discount_object_id1', $product_id);
+                            });
+                        })
+                        ->orWhere(function ($query) use ($product_id) {
+                            $query->where('rule_object_type', 'product')
+                                  ->where(function ($query) use ($product_id) {
+                                    $query->where('rule_object_id1', $product_id);
+                            });
+                        });
+                    });
+                })
+                ->first();
+            if (! empty($coupon)) {
+                return FALSE;
+            }
+
+            // check product if exists in events.
+            $event = EventModel::excludeDeleted()
+                               ->where('link_object_type', 'product')
+                               ->where('link_object_id1', $product_id)
+                               ->first();
+
+            if (! empty($event)) {
+                return FALSE;
             }
 
             return TRUE;
