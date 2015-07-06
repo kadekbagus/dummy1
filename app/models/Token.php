@@ -36,4 +36,15 @@ class Token extends Eloquent
     {
         return $query->where('expire', '>=', DB::raw('NOW()'));
     }
+
+    /**
+     * Registration token used in activation email.
+     */
+    const NAME_USER_REGISTRATION_MOBILE = "user_registration_mobile";
+
+    /**
+     * Reset password token used in reset password email.
+     */
+    const NAME_RESET_PASSWORD = "reset_password";
+
 }
