@@ -93,6 +93,13 @@ abstract class ControllerAPI extends Controller
     protected $builderOnly = FALSE;
 
     /**
+     * Flag for database transaction.
+     *
+     * @var boolean
+     */
+    public $useTransaction = TRUE;
+
+    /**
      * Contructor
      *
      * @param string $contentType - HTTP content type that would be sent to client
@@ -239,6 +246,10 @@ abstract class ControllerAPI extends Controller
      */
     public function beginTransaction()
     {
+        if (! $this->useTransaction) {
+            return;
+        }
+
         $this->pdo->beginTransaction();
     }
 
@@ -250,6 +261,10 @@ abstract class ControllerAPI extends Controller
      */
     public function rollBack()
     {
+        if (! $this->useTransaction) {
+            return;
+        }
+
         // Make sure we are in transaction mode, to prevent the rollback()
         // complaining
         if ($this->pdo->inTransaction()) {
@@ -265,7 +280,25 @@ abstract class ControllerAPI extends Controller
      */
     public function commit()
     {
+        if (! $this->useTransaction) {
+            return;
+        }
+
         $this->pdo->commit();
+    }
+
+    /**
+     * Set the transaction flag on controller.
+     *
+     * @author Rio Astamal <me@rioastamal.net>
+     * @param $use boolean
+     * @return ControllerAPI
+     */
+    public function setUseTransaction($use=TRUE)
+    {
+        $this->useTransaction = $use;
+
+        return $this;
     }
 
     /**
