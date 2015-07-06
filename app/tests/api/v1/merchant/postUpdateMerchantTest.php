@@ -95,7 +95,8 @@ class postUpdateMerchantTest extends OrbitTestCase
                 ('2', 'view_user', 'View User', 'user', 'User', '1', '1', '1', NOW(), NOW()),
                 ('3', 'create_user', 'Create User', 'user', 'User', '0', '1', '1', NOW(), NOW()),
                 ('4', 'view_product', 'View Product', 'product', 'Product', '1', '2', '1', NOW(), NOW()),
-                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), nOW())"
+                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), NOW()),
+                ('6', 'update_merchant', 'Update Merchant', 'merchant', 'Merchant', '0', '3', '1', NOW(), NOW())"
         );
 
         // Insert dummy data on permission_role
@@ -107,7 +108,8 @@ class postUpdateMerchantTest extends OrbitTestCase
                 ('3', '3', '2', 'no', NOW(), NOW()),
                 ('4', '3', '3', 'no', NOW(), NOW()),
                 ('5', '3', '4', 'no', NOW(), NOW()),
-                ('6', '3', '5', 'no', NOW(), NOW())"
+                ('6', '3', '5', 'no', NOW(), NOW()),
+                ('7', '1', '6', 'yes', NOW(), NOW())"
         );
 
         // Insert dummy merchants
@@ -638,12 +640,12 @@ class postUpdateMerchantTest extends OrbitTestCase
         $_POST['status'] = 'pending';
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
 
         $url = '/api/v1/merchant/update?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'def12345678901';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');

@@ -29,6 +29,8 @@ $factory('Coupon', [
     'status'         => 'active',
     'begin_date'     => $faker->dateTimeBetween('-2 months', '-2 weeks'),
     'end_date'       => $faker->dateTimeBetween('-2 days'),
+    'promotion_type' => $faker->randomElement(['cart', 'product']),
+    'coupon_validity_in_days' => $faker->numberBetween(7, 30),
     'coupon_notification' => 'Y'
 ]);
 

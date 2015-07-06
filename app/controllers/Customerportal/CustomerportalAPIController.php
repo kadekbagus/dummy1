@@ -42,7 +42,7 @@ class CustomerportalAPIController extends ControllerAPI
      * ----------------------
      * @param string    `email`          (required) - Email address of the user
      * @param string    `password`       (required) - password of the cashier
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postLoginInPortal()
     {

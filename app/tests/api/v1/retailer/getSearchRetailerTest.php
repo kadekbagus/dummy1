@@ -370,8 +370,8 @@ class getSearchRetailerTest extends OrbitTestCase
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
         $max_record = 2;
-        Config::set('orbit.pagination.max_record', $max_record);
-        Config::set('orbit.pagination.per_page', $max_record);
+        Config::set('orbit.pagination.retailer.max_record', $max_record);
+        Config::set('orbit.pagination.retailer.per_page', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
@@ -398,29 +398,28 @@ class getSearchRetailerTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        // It is ordered by registered date by default so
-        // 'R21'
-        // 'R23' --> deleted
-        // 'R22'
+        // It is ordered by name by default so
+        // 'R25'
+        // 'R09'
 
         $expect = array(
             array(
-                'merchant_id'         => '21',
+                'merchant_id'         => '25',
                 'user_id'             => '7',
-                'email'               => 'alfagwalk@localhost.org',
-                'name'                => 'Alfa Mer Gwalk',
+                'email'               => 'alfaayani@localhost.org',
+                'name'                => 'Alfa Mer A. Yani',
                 'object_type'         => 'retailer',
-                'parent_id'           => '1',
-                'orid'                => 'R21',
+                'parent_id'           => '7',
+                'orid'                => 'R25',
             ),
             array(
-                'merchant_id'         => '22',
-                'user_id'             => '7',
-                'email'               => 'alfatp@localhost.org',
-                'name'                => 'Alfa Mer Tunjungan',
+                'merchant_id'         => '9',
+                'user_id'             => '4',
+                'email'               => 'alfagubeng@localhost.org',
+                'name'                => 'Alfa Mer Gubeng Pojok',
                 'object_type'         => 'retailer',
-                'parent_id'           => '1',
-                'orid'                => 'R22',
+                'parent_id'           => '2',
+                'orid'                => 'R09',
             ),
         );
 
@@ -442,8 +441,8 @@ class getSearchRetailerTest extends OrbitTestCase
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
         $max_record = 10;
-        Config::set('orbit.pagination.max_record', $max_record);
-        Config::set('orbit.pagination.per_page', $max_record);
+        Config::set('orbit.pagination.retailer.max_record', $max_record);
+        Config::set('orbit.pagination.retailer.per_page', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'def123';
@@ -470,32 +469,16 @@ class getSearchRetailerTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(5, count($response->data->records));
 
-        // It is ordered by registered date by default so
-        // 'R21'
-        // 'R23' --> deleted
-        // 'R22'
-        // 'R09'
-        // 'R25'
-        // 'R24'
-
+        // It is ordered by name by default so
         $expect = array(
             array(
-                'merchant_id'         => '21',
+                'merchant_id'         => '25',
                 'user_id'             => '7',
-                'email'               => 'alfagwalk@localhost.org',
-                'name'                => 'Alfa Mer Gwalk',
+                'email'               => 'alfaayani@localhost.org',
+                'name'                => 'Alfa Mer A. Yani',
                 'object_type'         => 'retailer',
-                'parent_id'           => '1',
-                'orid'                => 'R21',
-            ),
-            array(
-                'merchant_id'         => '22',
-                'user_id'             => '7',
-                'email'               => 'alfatp@localhost.org',
-                'name'                => 'Alfa Mer Tunjungan',
-                'object_type'         => 'retailer',
-                'parent_id'           => '1',
-                'orid'                => 'R22',
+                'parent_id'           => '7',
+                'orid'                => 'R25',
             ),
             array(
                 'merchant_id'         => '9',
@@ -507,13 +490,13 @@ class getSearchRetailerTest extends OrbitTestCase
                 'orid'                => 'R09',
             ),
             array(
-                'merchant_id'         => '25',
+                'merchant_id'         => '21',
                 'user_id'             => '7',
-                'email'               => 'alfaayani@localhost.org',
-                'name'                => 'Alfa Mer A. Yani',
+                'email'               => 'alfagwalk@localhost.org',
+                'name'                => 'Alfa Mer Gwalk',
                 'object_type'         => 'retailer',
-                'parent_id'           => '7',
-                'orid'                => 'R25',
+                'parent_id'           => '1',
+                'orid'                => 'R21',
             ),
             array(
                 'merchant_id'         => '24',
@@ -523,6 +506,15 @@ class getSearchRetailerTest extends OrbitTestCase
                 'object_type'         => 'retailer',
                 'parent_id'           => '7',
                 'orid'                => 'R24',
+            ),
+            array(
+                'merchant_id'         => '22',
+                'user_id'             => '7',
+                'email'               => 'alfatp@localhost.org',
+                'name'                => 'Alfa Mer Tunjungan',
+                'object_type'         => 'retailer',
+                'parent_id'           => '1',
+                'orid'                => 'R22',
             ),
         );
 

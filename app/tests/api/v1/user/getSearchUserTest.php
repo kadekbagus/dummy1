@@ -23,6 +23,13 @@ use OrbitShop\API\v1\OrbitShopAPI;
 
 class getSearchUserTest extends OrbitTestCase
 {
+
+    /** @var array $userData user data for use in SQL queries  */
+    private static $userData;
+
+    /** @var array $userDetailsData user details data for use in SQL queries  */
+    private static $userDetailsData;
+
     /**
      * Executed only once at the beginning of the test.
      */
@@ -65,31 +72,380 @@ class getSearchUserTest extends OrbitTestCase
             'catwoman'  => Hash::make('catwoman'),
         );
 
+        static::$userData = array(
+            'john' => array(
+                'user_id' => '1',
+                'username' => 'john',
+                'user_password' => $password['john'],
+                'user_email' => 'john@localhost.org',
+                'user_firstname' => 'John',
+                'user_lastname' => 'Doe',
+                'user_last_login' => '2014-10-20 06:20:01',
+                'user_ip' => '10.10.0.11',
+                'user_role_id' => '1',
+                'status' => 'active',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:01',
+                'updated_at' => '2014-10-20 06:31:01',
+            ),
+            'smith' => array(
+                'user_id' => '2',
+                'username' => 'smith',
+                'user_password' => $password['smith'],
+                'user_email' => 'smith@localhost.org',
+                'user_firstname' => 'John',
+                'user_lastname' => 'Smith',
+                'user_last_login' => '2014-10-20 06:20:02',
+                'user_ip' => '10.10.0.12',
+                'user_role_id' => '3',
+                'status' => 'active',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:02',
+                'updated_at' => '2014-10-20 06:31:02',
+            ),
+            'chuck' => array(
+                'user_id' => '3',
+                'username' => 'chuck',
+                'user_password' => $password['smith'],
+                'user_email' => 'chuck@localhost.org',
+                'user_firstname' => 'Chuck',
+                'user_lastname' => 'Norris',
+                'user_last_login' => '2014-10-20 06:20:03',
+                'user_ip' => '10.10.0.13',
+                'user_role_id' => '3',
+                'status' => 'active',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:03',
+                'updated_at' => '2014-10-20 06:31:03',
+            ),
+            'optimus' => array(
+                'user_id' => '4',
+                'username' => 'optimus',
+                'user_password' => $password['optimus'],
+                'user_email' => 'optimus@localhost.org',
+                'user_firstname' => 'Optimus',
+                'user_lastname' => 'Prime',
+                'user_last_login' => '2014-10-20 06:20:04',
+                'user_ip' => '10.10.0.13',
+                'user_role_id' => '3',
+                'status' => 'blocked',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:04',
+                'updated_at' => '2014-10-20 06:31:04',
+            ),
+            'panther' => array(
+                'user_id' => '5',
+                'username' => 'panther',
+                'user_password' => $password['panther'],
+                'user_email' => 'panther@localhost.org',
+                'user_firstname' => 'Pink',
+                'user_lastname' => 'Panther',
+                'user_last_login' => '2014-10-20 06:20:05',
+                'user_ip' => '10.10.0.13',
+                'user_role_id' => '3',
+                'status' => 'deleted',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:05',
+                'updated_at' => '2014-10-20 06:31:05',
+            ),
+            'droopy' => array(
+                'user_id' => '6',
+                'username' => 'droopy',
+                'user_password' => $password['droopy'],
+                'user_email' => 'droopy@localhost.org',
+                'user_firstname' => 'Droopy',
+                'user_lastname' => 'Dog',
+                'user_last_login' => '2014-10-20 06:20:06',
+                'user_ip' => '10.10.0.14',
+                'user_role_id' => '3',
+                'status' => 'pending',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:06',
+                'updated_at' => '2014-10-20 06:31:06',
+            ),
+            'catwoman' => array(
+                'user_id' => '7',
+                'username' => 'catwoman',
+                'user_password' => $password['catwoman'],
+                'user_email' => 'catwoman@localhost.org',
+                'user_firstname' => 'Cat',
+                'user_lastname' => 'Woman',
+                'user_last_login' => '2014-10-20 06:20:07',
+                'user_ip' => '10.10.0.17',
+                'user_role_id' => '4',
+                'status' => 'active',
+                'modified_by' => '1',
+                'created_at' => '2014-10-20 06:30:07',
+                'updated_at' => '2014-10-20 06:31:07',
+            ),
+        );
+
         // Insert dummy data on users
-        DB::statement("INSERT INTO `{$user_table}`
+        foreach (static::$userData as $user_data) {
+            DB::statement("INSERT INTO `{$user_table}`
                 (`user_id`, `username`, `user_password`, `user_email`, `user_firstname`, `user_lastname`, `user_last_login`, `user_ip`, `user_role_id`, `status`, `modified_by`, `created_at`, `updated_at`)
                 VALUES
-                ('1', 'john', '{$password['john']}', 'john@localhost.org', 'John', 'Doe', '2014-10-20 06:20:01', '10.10.0.11', '1', 'active', '1',                  '2014-10-05 06:30:01', '2014-10-20 06:31:01'),
-                ('2', 'smith', '{$password['smith']}', 'smith@localhost.org', 'John', 'Smith', '2014-10-20 06:20:02', '10.10.0.12', '3', 'active', '1',             '2014-10-25 06:30:02', '2014-10-20 06:31:02'),
-                ('3', 'chuck', '{$password['chuck']}', 'chuck@localhost.org', 'Chuck', 'Norris', '2014-10-20 06:20:03', '10.10.0.13', '3', 'active', '1',           '2014-10-20 06:30:03', '2014-10-20 06:31:03'),
-                ('4', 'optimus', '{$password['optimus']}', 'optimus@localhost.org', 'Optimus', 'Prime', '2014-10-20 06:20:04', '10.10.0.13', '3', 'blocked', '1',   '2014-10-01 06:30:04', '2014-10-20 06:31:04'),
-                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1',    '2014-10-20 06:30:05', '2014-10-20 06:31:05'),
-                ('6', 'droopy', '{$password['droopy']}', 'droopy@localhost.org', 'Droopy', 'Dog', '2014-10-20 06:20:06', '10.10.0.14', '3', 'pending', '1',         '2014-10-22 06:30:06', '2014-10-05 06:31:06'),
-                ('7', 'catwoman', '{$password['catwoman']}', 'catwoman@localhost.org', 'Cat', 'Woman', '2014-10-20 06:20:07', '10.10.0.17', '4', 'active', '1',     '2014-10-20 06:30:07', '2014-10-20 06:31:07')"
+                (:user_id, :username, :user_password, :user_email, :user_firstname, :user_lastname, :user_last_login, :user_ip, :user_role_id, :status, :modified_by, :created_at, :updated_at)",
+                $user_data);
+        }
+
+        static::$userDetailsData = array(
+            'john' => array(
+                'user_detail_id' => '1',
+                'user_id' => '1',
+                'merchant_id' => '1',
+                'merchant_acquired_date' => '2014-10-21 06:20:01',
+                'address_line1' => 'Jl. Raya Semer',
+                'address_line2' => 'Kerobokan',
+                'address_line3' => 'Near Airplane Statue',
+                'postal_code' => '60219',
+                'city_id' => '1',
+                'city' => 'Denpasar',
+                'province_id' => '1',
+                'province' => 'Bali',
+                'country_id' => '62',
+                'country' => 'Indonesia',
+                'currency' => 'IDR',
+                'currency_symbol' => 'Rp',
+                'birthdate' => '1980-04-02',
+                'gender' => 'm',
+                'relationship_status' => 'single',
+                'phone' => '081234567891',
+                'photo' => 'images/customer/01.png',
+                'number_visit_all_shop' => '10',
+                'amount_spent_all_shop' => '8100000.00',
+                'average_spent_per_month_all_shop' => '1100000.00',
+                'last_visit_any_shop' => '2014-05-21 12:12:11',
+                'last_visit_shop_id' => '1',
+                'last_purchase_any_shop' => '2014-10-16 12:12:12',
+                'last_purchase_shop_id' => '1',
+                'last_spent_any_shop' => '1100000.00',
+                'last_spent_shop_id' => '1',
+                'modified_by' => '1',
+                'created_at' => '2014-10-11 06:20:01',
+                'updated_at' => '2014-10-11 06:20:01',
+            ),
+            'smith' => array(
+                'user_detail_id' => '2',
+                'user_id' => '2',
+                'merchant_id' => '2',
+                'merchant_acquired_date' => '2014-10-21 06:20:02',
+                'address_line1' => 'Jl. Raya Semer2',
+                'address_line2' => 'Kerobokan2',
+                'address_line3' => 'Near Airplane Statue2',
+                'postal_code' => '60229',
+                'city_id' => '2',
+                'city' => 'Denpasar2',
+                'province_id' => '2',
+                'province' => 'Bali2',
+                'country_id' => '62',
+                'country' => 'Indonesia',
+                'currency' => 'IDR',
+                'currency_symbol' => 'Rp',
+                'birthdate' => '1980-04-02',
+                'gender' => 'm',
+                'relationship_status' => 'single',
+                'phone' => '081234567892',
+                'photo' => 'images/customer/02.png',
+                'number_visit_all_shop' => '11',
+                'amount_spent_all_shop' => '9000000.00',
+                'average_spent_per_month_all_shop' => '9200000.00',
+                'last_visit_any_shop' => '2014-02-21 12:12:12',
+                'last_visit_shop_id' => '2',
+                'last_purchase_any_shop' => '2014-10-17 12:12:12',
+                'last_purchase_shop_id' => '2',
+                'last_spent_any_shop' => '1500000.00',
+                'last_spent_shop_id' => '2',
+                'modified_by' => '1',
+                'created_at' => '2014-10-12 06:20:01',
+                'updated_at' => '2014-10-12 06:20:02',
+            ),
+            'chuck' => array(
+                'user_detail_id' => '3',
+                'user_id' => '3',
+                'merchant_id' => '5',
+                'merchant_acquired_date' => '2014-10-21 06:20:03',
+                'address_line1' => 'Jl. Raya Semer3',
+                'address_line2' => 'Kerobokan3',
+                'address_line3' => 'Near Airplane Statue3',
+                'postal_code' => '60239',
+                'city_id' => '3',
+                'city' => 'Denpasar3',
+                'province_id' => '3',
+                'province' => 'Bali3',
+                'country_id' => '62',
+                'country' => 'Indonesia',
+                'currency' => 'EUR',
+                'currency_symbol' => '€',
+                'birthdate' => '1980-04-03',
+                'gender' => 'm',
+                'relationship_status' => 'married',
+                'phone' => '081234567893',
+                'photo' => 'images/customer/03.png',
+                'number_visit_all_shop' => '12',
+                'amount_spent_all_shop' => '8300000.00',
+                'average_spent_per_month_all_shop' => '5300000.00',
+                'last_visit_any_shop' => '2014-01-21 12:12:13',
+                'last_visit_shop_id' => '3',
+                'last_purchase_any_shop' => '2014-10-18 12:12:12',
+                'last_purchase_shop_id' => '3',
+                'last_spent_any_shop' => '1400000.00',
+                'last_spent_shop_id' => '3',
+                'modified_by' => '1',
+                'created_at' => '2014-10-13 06:20:01',
+                'updated_at' => '2014-10-13 06:20:03',
+            ),
+            'optimus' => array(
+                'user_detail_id' => '4',
+                'user_id' => '4',
+                'merchant_id' => '4',
+                'merchant_acquired_date' => '2014-10-21 06:20:04',
+                'address_line1' => 'Jl. Raya Semer4',
+                'address_line2' => 'Kerobokan4',
+                'address_line3' => 'Near Airplane Statue4',
+                'postal_code' => '60249',
+                'city_id' => '4',
+                'city' => 'Denpasar4',
+                'province_id' => '4',
+                'province' => 'Bali4',
+                'country_id' => '62',
+                'country' => 'Indonesia',
+                'currency' => 'IDR',
+                'currency_symbol' => 'Rp',
+                'birthdate' => '1987-04-04',
+                'gender' => 'm',
+                'relationship_status' => 'married',
+                'phone' => '081234567894',
+                'photo' => 'images/customer/04.png',
+                'number_visit_all_shop' => '13',
+                'amount_spent_all_shop' => '8400000.00',
+                'average_spent_per_month_all_shop' => '1400000.00',
+                'last_visit_any_shop' => '2014-10-21 12:12:14',
+                'last_visit_shop_id' => '4',
+                'last_purchase_any_shop' => '2014-10-19 12:12:12',
+                'last_purchase_shop_id' => '4',
+                'last_spent_any_shop' => '1300000.00',
+                'last_spent_shop_id' => '4',
+                'modified_by' => '1',
+                'created_at' => '2014-10-14 06:20:04',
+                'updated_at' => '2014-10-14 06:20:04',
+            ),
+            'panther' => array(
+                'user_detail_id' => '5',
+                'user_id' => '5',
+                'merchant_id' => '5',
+                'merchant_acquired_date' => '2014-10-21 06:20:05',
+                'address_line1' => 'Jl. Raya Semer5',
+                'address_line2' => 'Kerobokan5',
+                'address_line3' => 'Near Airplane Statue5',
+                'postal_code' => '60259',
+                'city_id' => '5',
+                'city' => 'Denpasar5',
+                'province_id' => '5',
+                'province' => 'Bali5',
+                'country_id' => '62',
+                'country' => 'Indonesia',
+                'currency' => 'IDR',
+                'currency_symbol' => 'Rp',
+                'birthdate' => '1975-02-05',
+                'gender' => 'm',
+                'relationship_status' => 'single',
+                'phone' => '081234567895',
+                'photo' => 'images/customer/05.png',
+                'number_visit_all_shop' => '14',
+                'amount_spent_all_shop' => '8500000.00',
+                'average_spent_per_month_all_shop' => '1500000.00',
+                'last_visit_any_shop' => '2014-10-29 12:12:15',
+                'last_visit_shop_id' => '5',
+                'last_purchase_any_shop' => '2014-10-20 12:12:12',
+                'last_purchase_shop_id' => '5',
+                'last_spent_any_shop' => '1200000.00',
+                'last_spent_shop_id' => '5',
+                'modified_by' => '1',
+                'created_at' => '2014-10-15 06:20:05',
+                'updated_at' => '2014-10-15 06:20:05',
+            ),
+            'droopy' => array(
+                'user_detail_id' => '6',
+                'user_id' => '6',
+                'merchant_id' => '5',
+                'merchant_acquired_date' => '2014-10-21 06:20:06',
+                'address_line1' => 'Orchard Road',
+                'address_line2' => 'Orchard6',
+                'address_line3' => 'Near Airplane Statue6',
+                'postal_code' => '60259',
+                'city_id' => '6',
+                'city' => 'Singapore6',
+                'province_id' => '20',
+                'province' => 'Singapore6',
+                'country_id' => '61',
+                'country' => 'Singapore',
+                'currency' => 'SGD',
+                'currency_symbol' => 'SG',
+                'birthdate' => '1987-02-05',
+                'gender' => 'm',
+                'relationship_status' => 'single',
+                'phone' => '081234567896',
+                'photo' => 'images/customer/06.png',
+                'number_visit_all_shop' => '15',
+                'amount_spent_all_shop' => '8600000.00',
+                'average_spent_per_month_all_shop' => '1500000.00',
+                'last_visit_any_shop' => '2014-11-21 12:12:15',
+                'last_visit_shop_id' => '5',
+                'last_purchase_any_shop' => '2014-10-20 12:12:12',
+                'last_purchase_shop_id' => '5',
+                'last_spent_any_shop' => '1200000.00',
+                'last_spent_shop_id' => '5',
+                'modified_by' => '1',
+                'created_at' => '2014-10-15 06:20:05',
+                'updated_at' => '2014-10-15 06:20:05',
+            ),
+            'catwoman' => array(
+                'user_detail_id' => '7',
+                'user_id' => '7',
+                'merchant_id' => '10',
+                'merchant_acquired_date' => '2014-10-21 06:20:06',
+                'address_line1' => 'Jl. Pahlawan7',
+                'address_line2' => 'Gubeng7',
+                'address_line3' => 'Sebelah Tugu Pahlawan7',
+                'postal_code' => '60259',
+                'city_id' => '7',
+                'city' => 'Surabaya7',
+                'province_id' => '17',
+                'province' => 'Jawa Timur',
+                'country_id' => '62',
+                'country' => 'Indonesia',
+                'currency' => 'IDR',
+                'currency_symbol' => 'Rp',
+                'birthdate' => '1980-10-05',
+                'gender' => 'f',
+                'relationship_status' => 'single',
+                'phone' => '081234567897',
+                'photo' => 'images/customer/07.png',
+                'number_visit_all_shop' => '20',
+                'amount_spent_all_shop' => '8700000.00',
+                'average_spent_per_month_all_shop' => '1500000.00',
+                'last_visit_any_shop' => '2014-08-21 12:12:15',
+                'last_visit_shop_id' => '5',
+                'last_purchase_any_shop' => '2014-10-20 12:12:12',
+                'last_purchase_shop_id' => '5',
+                'last_spent_any_shop' => '1200000.00',
+                'last_spent_shop_id' => '5',
+                'modified_by' => '1',
+                'created_at' => '2014-10-15 06:20:05',
+                'updated_at' => '2014-10-15 06:20:05',
+            )
         );
 
         // Insert dummy data on user_details
-        DB::statement("INSERT INTO `{$user_detail_table}`
-                    (user_detail_id, user_id, merchant_id, merchant_acquired_date, address_line1, address_line2, address_line3, postal_code, city_id, city, province_id, province, country_id, country, currency, currency_symbol, birthdate, gender, relationship_status, phone, photo, number_visit_all_shop, amount_spent_all_shop, average_spent_per_month_all_shop, last_visit_any_shop, last_visit_shop_id, last_purchase_any_shop, last_purchase_shop_id, last_spent_any_shop, last_spent_shop_id, modified_by, created_at, updated_at)
-                    VALUES
-                    ('1', '1', '1', '2014-10-21 06:20:01', 'Jl. Raya Semer', 'Kerobokan', 'Near Airplane Statue', '60219', '1', 'Denpasar', '1', 'Bali', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-02', 'm', 'single',       '081234567891', 'images/customer/01.png', '10', '8100000.00', '1100000.00', '2014-05-21 12:12:11', '1', '2014-10-16 12:12:12', '1', '1100000.00', '1', '1', '2014-10-11 06:20:01', '2014-10-11 06:20:01'),
-                    ('2', '2', '2', '2014-10-21 06:20:02', 'Jl. Raya Semer2', 'Kerobokan2', 'Near Airplane Statue2', '60229', '2', 'Denpasar2', '2', 'Bali2', '62', 'Indonesia', 'IDR', 'Rp', '1980-04-02', 'm', 'single',  '081234567892', 'images/customer/02.png', '11', '9000000.00', '9200000.00', '2014-02-21 12:12:12', '2', '2014-10-17 12:12:12', '2', '1500000.00', '2', '1', '2014-10-12 06:20:01', '2014-10-12 06:20:02'),
-                    ('3', '3', '5', '2014-10-21 06:20:03', 'Jl. Raya Semer3', 'Kerobokan3', 'Near Airplane Statue3', '60239', '3', 'Denpasar3', '3', 'Bali3', '62', 'Indonesia', 'EUR', '€', '1980-04-03', 'm', 'married',   '081234567893', 'images/customer/03.png', '12', '8300000.00', '5300000.00', '2014-01-21 12:12:13', '3', '2014-10-18 12:12:12', '3', '1400000.00', '3', '1', '2014-10-13 06:20:01', '2014-10-13 06:20:03'),
-                    ('4', '4', '4', '2014-10-21 06:20:04', 'Jl. Raya Semer4', 'Kerobokan4', 'Near Airplane Statue4', '60249', '4', 'Denpasar4', '4', 'Bali4', '62', 'Indonesia', 'IDR', 'Rp', '1987-04-04', 'm', 'married',  '081234567894', 'images/customer/04.png', '13', '8400000.00', '1400000.00', '2014-10-21 12:12:14', '4', '2014-10-19 12:12:12', '4', '1300000.00', '4', '1', '2014-10-14 06:20:04', '2014-10-14 06:20:04'),
-                    ('5', '5', '5', '2014-10-21 06:20:05', 'Jl. Raya Semer5', 'Kerobokan5', 'Near Airplane Statue5', '60259', '5', 'Denpasar5', '5', 'Bali5', '62', 'Indonesia', 'IDR', 'Rp', '1975-02-05', 'm', 'single',  '081234567895', 'images/customer/05.png', '14', '8500000.00', '1500000.00', '2014-10-29 12:12:15', '5', '2014-10-20 12:12:12', '5', '1200000.00', '5', '1', '2014-10-15 06:20:05', '2014-10-15 06:20:05'),
-                    ('6', '6', '5', '2014-10-21 06:20:06', 'Orchard Road', 'Orchard6', 'Near Airplane Statue6', '60259', '6', 'Singapore6', '20', 'Singapore6', '61', 'Singapore', 'SGD', 'SG', '1987-02-05', 'm', 'single',  '081234567896', 'images/customer/06.png', '15', '8600000.00', '1500000.00', '2014-11-21 12:12:15', '5', '2014-10-20 12:12:12', '5', '1200000.00', '5', '1', '2014-10-15 06:20:05', '2014-10-15 06:20:05'),
-                    ('7', '7', '10', '2014-10-21 06:20:06', 'Jl. Pahlawan7', 'Gubeng7', 'Sebelah Tugu Pahlawan7', '60259', '7', 'Surabaya7', '17', 'Jawa Timur', '62', 'Indonesia', 'IDR', 'Rp', '1980-10-05', 'f', 'single',  '081234567897', 'images/customer/07.png', '20', '8700000.00', '1500000.00', '2014-08-21 12:12:15', '5', '2014-10-20 12:12:12', '5', '1200000.00', '5', '1', '2014-10-15 06:20:05', '2014-10-15 06:20:05')"
-        );
+        foreach (static::$userDetailsData as $user_details_data) {
+            DB::statement("INSERT INTO `{$user_detail_table}`
+                (user_detail_id, user_id, merchant_id, merchant_acquired_date, address_line1, address_line2, address_line3, postal_code, city_id, city, province_id, province, country_id, country, currency, currency_symbol, birthdate, gender, relationship_status, phone, photo, number_visit_all_shop, amount_spent_all_shop, average_spent_per_month_all_shop, last_visit_any_shop, last_visit_shop_id, last_purchase_any_shop, last_purchase_shop_id, last_spent_any_shop, last_spent_shop_id, modified_by, created_at, updated_at)
+                VALUES
+                (:user_detail_id, :user_id, :merchant_id, :merchant_acquired_date, :address_line1, :address_line2, :address_line3, :postal_code, :city_id, :city, :province_id, :province, :country_id, :country, :currency, :currency_symbol, :birthdate, :gender, :relationship_status, :phone, :photo, :number_visit_all_shop, :amount_spent_all_shop, :average_spent_per_month_all_shop, :last_visit_any_shop, :last_visit_shop_id, :last_purchase_any_shop, :last_purchase_shop_id, :last_spent_any_shop, :last_spent_shop_id, :modified_by, :created_at, :updated_at)",
+                $user_details_data);
+        }
+
 
         // Insert dummy data on roles
         DB::statement("INSERT INTO `{$role_table}`
@@ -122,7 +478,8 @@ class getSearchUserTest extends OrbitTestCase
                 ('3', '3', '2', 'no', NOW(), NOW()),
                 ('4', '3', '3', 'no', NOW(), NOW()),
                 ('5', '3', '4', 'no', NOW(), NOW()),
-                ('6', '3', '5', 'no', NOW(), NOW())"
+                ('6', '3', '5', 'no', NOW(), NOW()),
+                ('7', '1', '2', 'yes', NOW(), NOW())"
         );
     }
 
@@ -304,19 +661,19 @@ class getSearchUserTest extends OrbitTestCase
     {
         // Data
         // No argument given at all, show all users
-        // It should read from config named 'orbit.pagination.max_record'
-        // It should fallback to whathever you like when the config is not exists
+        // It should read from config named 'orbit.pagination.user.max_record'
+        // It should fallback to whatever you like when the config is not exists
         $max_record = 2;
-        Config::set('orbit.pagination.max_record', $max_record);
-        Config::set('orbit.pagination.per_page', $max_record);
+        Config::set('orbit.pagination.user.max_record', $max_record);
+        Config::set('orbit.pagination.user.per_page', $max_record);
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
 
         $url = '/api/v1/user/search?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'def12345678901';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
@@ -335,40 +692,22 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '2',
-                'username'          => 'smith',
-                'firstname'         => 'John',
-                'lastname'          => 'Smith',
-                'email'             => 'smith@localhost.org',
-                'status'            => 'active',
-                'addr'              => 'Jl. Raya Semer2'
-            ),
-            array(
-                'id'                => '6',
-                'username'          => 'droopy',
-                'firstname'         => 'Droopy',
-                'lastname'          => 'Dog',
-                'email'             => 'droopy@localhost.org',
-                'status'            => 'pending',
-                'addr'              => 'Orchard Road'
-            )
-        );
-
-        // It is ordered by registered date by default so 1) smith 2) droopy
+        $expect = array('catwoman', 'chuck');
+        // It is ordered by first name by default so 1) chuck 2) droopy
         foreach ($response->data->records as $index=>$return)
         {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
+            $expected_user = static::$userData[$expect[$index]];
+            $this->assertSame($expected_user['user_id'], (string)$return->user_id);
+            $this->assertSame($expected_user['username'], $return->username);
+            $this->assertSame($expected_user['user_firstname'], $return->user_firstname);
+            $this->assertSame($expected_user['user_lastname'], $return->user_lastname);
+            $this->assertSame($expected_user['user_email'], $return->user_email);
+            $this->assertSame($expected_user['status'], $return->status);
 
             // User Details
-            $this->assertSame($expect[$index]['id'], (string)$return->userdetail->user_id);
-            $this->assertSame($expect[$index]['addr'], (string)$return->userdetail->address_line1);
+            $expected_user_details = static::$userDetailsData[$expect[$index]];
+            $this->assertSame($expected_user_details['user_id'], (string)$return->userdetail->user_id);
+            $this->assertSame($expected_user_details['address_line1'], (string)$return->userdetail->address_line1);
         }
     }
 
@@ -376,19 +715,19 @@ class getSearchUserTest extends OrbitTestCase
     {
         // Data
         // No argument given at all, show all users
-        // It should read from config named 'orbit.pagination.max_record'
-        // It should fallback to whathever you like when the config is not exists
+        // It should read from config named 'orbit.pagination.user.max_record'
+        // It should fallback to whatever you like when the config is not exists
         $max_record = 10;
-        Config::set('orbit.pagination.max_record', $max_record);
-        Config::set('orbit.pagination.per_page', $max_record);
+        Config::set('orbit.pagination.user.max_record', $max_record);
+        Config::set('orbit.pagination.user.per_page', $max_record);
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
 
         $url = '/api/v1/user/search?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'def12345678901';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
@@ -407,68 +746,9 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(6, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '2',
-                'username'          => 'smith',
-                'firstname'         => 'John',
-                'lastname'          => 'Smith',
-                'email'             => 'smith@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '6',
-                'username'          => 'droopy',
-                'firstname'         => 'Droopy',
-                'lastname'          => 'Dog',
-                'email'             => 'droopy@localhost.org',
-                'status'            => 'pending'
-            ),
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '1',
-                'username'          => 'john',
-                'firstname'         => 'John',
-                'lastname'          => 'Doe',
-                'email'             => 'john@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '4',
-                'username'          => 'optimus',
-                'firstname'         => 'Optimus',
-                'lastname'          => 'Prime',
-                'email'             => 'optimus@localhost.org',
-                'status'            => 'blocked'
-            )
-        );
-
-        // It is ordered by registered date by default so
-        // 2-smith, 6-droopy, 7-catwoan, 3-chuck, 1-john, 4-optimus
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        // It is ordered by first name by default so:
+        $expect = array('catwoman', 'chuck', 'droopy', 'john', 'smith', 'optimus');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testInvalidSortBy_GET_api_v1_user_search()
@@ -509,10 +789,10 @@ class getSearchUserTest extends OrbitTestCase
         $_GET['sortby'] = 'registered_date';
         $_GET['sortmode'] = 'desc';
 
-        // It should read from config named 'orbit.pagination.max_record'
+        // It should read from config named 'orbit.pagination.user.max_record'
         // It should fallback to whathever you like when the config is not exists
         $max_record = 6;
-        Config::set('orbit.pagination.max_record', $max_record);
+        Config::set('orbit.pagination.user.max_record', $max_record);
 
         // Set the client API Keys
         $_GET['apikey'] = 'cde345';
@@ -539,68 +819,10 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(6, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '2',
-                'username'          => 'smith',
-                'firstname'         => 'John',
-                'lastname'          => 'Smith',
-                'email'             => 'smith@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '6',
-                'username'          => 'droopy',
-                'firstname'         => 'Droopy',
-                'lastname'          => 'Dog',
-                'email'             => 'droopy@localhost.org',
-                'status'            => 'pending'
-            ),
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '1',
-                'username'          => 'john',
-                'firstname'         => 'John',
-                'lastname'          => 'Doe',
-                'email'             => 'john@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '4',
-                'username'          => 'optimus',
-                'firstname'         => 'Optimus',
-                'lastname'          => 'Prime',
-                'email'             => 'optimus@localhost.org',
-                'status'            => 'blocked'
-            )
-        );
 
-        // It is ordered by registered date by default so
-        // 2-smith, 6-droopy, 7-catwoan, 3-chuck, 1-john, 4-optimus
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        // It is explicitly ordered by registered date desc so
+        $expect = array('catwoman', 'droopy', 'optimus', 'chuck', 'smith', 'john');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_OrderByRegisteredDateASC_GET_api_v1_user_search()
@@ -639,76 +861,16 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(6, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '4',
-                'username'          => 'optimus',
-                'firstname'         => 'Optimus',
-                'lastname'          => 'Prime',
-                'email'             => 'optimus@localhost.org',
-                'status'            => 'blocked'
-            ),
-            array(
-                'id'                => '1',
-                'username'          => 'john',
-                'firstname'         => 'John',
-                'lastname'          => 'Doe',
-                'email'             => 'john@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '6',
-                'username'          => 'droopy',
-                'firstname'         => 'Droopy',
-                'lastname'          => 'Dog',
-                'email'             => 'droopy@localhost.org',
-                'status'            => 'pending'
-            ),
-            array(
-                'id'                => '2',
-                'username'          => 'smith',
-                'firstname'         => 'John',
-                'lastname'          => 'Smith',
-                'email'             => 'smith@localhost.org',
-                'status'            => 'active'
-            )
-        );
-
-        // It is ordered by registered date ASC, so
-        // 4-optimus, 1-john, 3-chuck, 7-catwoman, 6-droopy, 2-smith
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        // It is explicitly ordered by registered date asc so
+        $expect = array('john', 'smith', 'chuck', 'optimus', 'droopy', 'catwoman');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_SearchUsername_GET_api_v1_user_search()
     {
         // Data
-        // Should be ordered by registered date desc if not specified
         $_GET['username'] = array('chuck', 'john');
-        $_GET['sortby'] = 'username';
+        $_GET['sortby'] = 'username'; // asc by default
 
         // It should read from config named 'orbit.pagination.max_record'
         // It should fallback to whathever you like when the config is not exists
@@ -740,40 +902,13 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '1',
-                'username'          => 'john',
-                'firstname'         => 'John',
-                'lastname'          => 'Doe',
-                'email'             => 'john@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            )
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $expect = array('chuck', 'john');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_SearchUsername_OrderByUsernameASC_GET_api_v1_user_search()
     {
-        // Data
-        // Should be ordered by registered date desc if not specified
+        // Data: explicitly specify sort direction
         $_GET['username'] = array('chuck', 'john');
         $_GET['sortby'] = 'username';
         $_GET['sortmode'] = 'asc';
@@ -808,35 +943,8 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '1',
-                'username'          => 'john',
-                'firstname'         => 'John',
-                'lastname'          => 'Doe',
-                'email'             => 'john@localhost.org',
-                'status'            => 'active'
-            )
-        );
-
-        // It is ordered by registered date by default so 1) smith 2) droopy
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $expect = array('chuck', 'john');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_SearchUsernameLike_OrderByUsernameASC_GET_api_v1_user_search()
@@ -877,27 +985,9 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(1, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '2',
-                'username'          => 'smith',
-                'firstname'         => 'John',
-                'lastname'          => 'Smith',
-                'email'             => 'smith@localhost.org',
-                'status'            => 'active'
-            )
-        );
+        $expect = array('smith');
 
-        // It is ordered by registered date by default so 1) smith 2) droopy
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_SearchUsername_NotFound_GET_api_v1_user_search()
@@ -972,34 +1062,8 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            )
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $expect = array('catwoman', 'chuck');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_SearchFirstName_OrderByFirstNameDESC_GET_api_v1_user_search()
@@ -1040,34 +1104,8 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            ),
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $expect = array('chuck', 'catwoman');
+        $this->assertUsersInOrder($response->data->records, $expect);
     }
 
     public function testOK_SearchFirstName_Like_GET_api_v1_user_search()
@@ -1106,26 +1144,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(1, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '6',
-                'username'          => 'droopy',
-                'firstname'         => 'Droopy',
-                'lastname'          => 'Dog',
-                'email'             => 'droopy@localhost.org',
-                'status'            => 'pending'
-            )
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $this->assertUsersInOrder($response->data->records, array('droopy'));
     }
 
     public function testOK_SearchFirstName_NotFound_GET_api_v1_user_search()
@@ -1199,34 +1218,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            )
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $this->assertUsersInOrder($response->data->records, array('chuck', 'catwoman'));
     }
 
     public function testOK_SearchLastName_OrderByLastNameDESC_GET_api_v1_user_search()
@@ -1267,34 +1259,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '7',
-                'username'          => 'catwoman',
-                'firstname'         => 'Cat',
-                'lastname'          => 'Woman',
-                'email'             => 'catwoman@localhost.org',
-                'status'            => 'active'
-            ),
-            array(
-                'id'                => '3',
-                'username'          => 'chuck',
-                'firstname'         => 'Chuck',
-                'lastname'          => 'Norris',
-                'email'             => 'chuck@localhost.org',
-                'status'            => 'active'
-            )
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $this->assertUsersInOrder($response->data->records, array('catwoman', 'chuck'));
     }
 
     public function testOK_SearchLastNameLike_OrderByLastNameDESC_GET_api_v1_user_search()
@@ -1335,34 +1300,7 @@ class getSearchUserTest extends OrbitTestCase
         $this->assertTrue(is_array($response->data->records));
         $this->assertSame(2, count($response->data->records));
 
-        $expect = array(
-            array(
-                'id'                => '6',
-                'username'          => 'droopy',
-                'firstname'         => 'Droopy',
-                'lastname'          => 'Dog',
-                'email'             => 'droopy@localhost.org',
-                'status'            => 'pending'
-            ),
-            array(
-                'id'                => '1',
-                'username'          => 'john',
-                'firstname'         => 'John',
-                'lastname'          => 'Doe',
-                'email'             => 'john@localhost.org',
-                'status'            => 'active'
-            ),
-        );
-
-        foreach ($response->data->records as $index=>$return)
-        {
-            $this->assertSame($expect[$index]['id'], (string)$return->user_id);
-            $this->assertSame($expect[$index]['username'], $return->username);
-            $this->assertSame($expect[$index]['firstname'], $return->user_firstname);
-            $this->assertSame($expect[$index]['lastname'], $return->user_lastname);
-            $this->assertSame($expect[$index]['email'], $return->user_email);
-            $this->assertSame($expect[$index]['status'], $return->status);
-        }
+        $this->assertUsersInOrder($response->data->records, array('droopy', 'john'));
     }
 
     public function testOK_SearchLastName_NotFound_GET_api_v1_user_search()
@@ -2230,5 +2168,26 @@ class getSearchUserTest extends OrbitTestCase
             }
         }
         $this->assertSame(1, $matches);
+    }
+
+    /**
+     * Checks that the records returned from user search have the expected data and are in the expected order.
+     *
+     * Checks user ID, user name, first name, last name, email, and status only.
+     *
+     * @param array $records records returned.
+     * @param array $expectedOrder array of expected usernames in order.
+     */
+    private function assertUsersInOrder($records, $expectedOrder)
+    {
+        foreach ($records as $index => $return) {
+            $expected_user = static::$userData[$expectedOrder[$index]];
+            $this->assertSame($expected_user['user_id'], (string)$return->user_id);
+            $this->assertSame($expected_user['username'], $return->username);
+            $this->assertSame($expected_user['user_firstname'], $return->user_firstname);
+            $this->assertSame($expected_user['user_lastname'], $return->user_lastname);
+            $this->assertSame($expected_user['user_email'], $return->user_email);
+            $this->assertSame($expected_user['status'], $return->status);
+        }
     }
 }

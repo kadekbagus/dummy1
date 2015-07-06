@@ -45,6 +45,11 @@ class postNewCouponTest extends TestCase
             $_POST['discount_object_type'] = 'product';
             $_POST['discount_object_id1']  = $product->product_id;
             $_POST['retailer_ids']         = [$this->retailer->merchant_id];
+            $_POST['rule_type']            = 'cart_discount_by_percentage';
+            $_POST['begin_date']           = '2014-11-30 00:00:00';
+            $_POST['end_date']             = '2014-12-25 00:00:00';
+            $_POST['discount_value']       = '10';
+            $_POST['coupon_validity_in_days'] = '14';
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -91,6 +96,11 @@ class postNewCouponTest extends TestCase
             $_POST['discount_object_type'] = 'family';
             $_POST['discount_object_id1']  = $category->category_id;
             $_POST['retailer_ids']         = [$this->retailer->merchant_id];
+            $_POST['rule_type']            = 'cart_discount_by_percentage';
+            $_POST['begin_date']           = '2014-11-30 00:00:00';
+            $_POST['end_date']             = '2014-12-25 00:00:00';
+            $_POST['discount_value']       = '10';
+            $_POST['coupon_validity_in_days'] = '14';
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -135,6 +145,12 @@ class postNewCouponTest extends TestCase
             $_POST['status']          = 'active';
             $_POST['description']     = 'Discount for random product selected';
             $_POST['retailer_ids']         = [$this->retailer->merchant_id];
+            $_POST['rule_value']           = '10';
+            $_POST['rule_type']            = 'cart_discount_by_percentage';
+            $_POST['begin_date']           = '2014-11-30 00:00:00';
+            $_POST['end_date']             = '2014-12-25 00:00:00';
+            $_POST['discount_value']       = '10';
+            $_POST['coupon_validity_in_days'] = '14';
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -175,6 +191,12 @@ class postNewCouponTest extends TestCase
             $_POST['promotion_type']  = 'cart';
             $_POST['status']          = 'active';
             $_POST['description']     = 'Discount for random product selected';
+            $_POST['rule_value']           = '10';
+            $_POST['rule_type']            = 'cart_discount_by_percentage';
+            $_POST['begin_date']           = '2014-11-30 00:00:00';
+            $_POST['end_date']             = '2014-12-25 00:00:00';
+            $_POST['discount_value']       = '10';
+            $_POST['coupon_validity_in_days'] = '14';
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
