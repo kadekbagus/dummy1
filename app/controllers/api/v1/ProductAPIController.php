@@ -2255,6 +2255,12 @@ class ProductAPIController extends ControllerAPI
 
         // Check tax 2 existance
         Validator::extend('orbit.empty.merchant_tax_id2', function ($attribute, $value, $parameters) {
+            // Empty value are allowed for this field
+            if ($value === NULL || empty($value))
+            {
+                return TRUE;
+            }
+
             $merchant = App::make('orbit.empty.merchant');
 
             $tax = MerchantTax::excludeDeleted()

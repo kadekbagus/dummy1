@@ -131,10 +131,11 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase {
 	{
 		$vendor = __DIR__ . '/../../vendor/';
 
-		static::$directories = array(
-			$vendor . 'fzaninotto/faker/src',
-			$vendor . 'laracasts/testdummy/src'
-		);
+        static::$directories = array(
+            $vendor . 'fzaninotto/faker/src',
+            $vendor . 'laracasts/testdummy/src',
+            $vendir . 'mockery/mockery/libary'
+        );
 
 		if (! static::$registered) {
 			static::$registered = spl_autoload_register(array('TestCase', 'loadTestLibrary'));
