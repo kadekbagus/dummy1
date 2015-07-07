@@ -30,6 +30,7 @@ class postNewEventTest extends TestCase {
         $_POST['event_type']     = 'link';
         $_POST['status']         = 'active';
         $_POST['description']    = 'Description for event here';
+        $_POST['begin_date']     = date('Y-m-d h:i:s', strtotime('+1 day'));
 
         $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -66,6 +67,7 @@ class postNewEventTest extends TestCase {
         $_POST['event_type']     = 'link';
         $_POST['status']         = 'active';
         $_POST['description']    = 'Description for event here';
+        $_POST['begin_date']     = date('Y-m-d h:i:s', strtotime('+1 day'));
 
         $url = $this->baseUrl . '?' . http_build_query($_GET);
 
