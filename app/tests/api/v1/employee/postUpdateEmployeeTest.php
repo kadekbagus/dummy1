@@ -24,7 +24,6 @@ class postUpdateEmployeeTest extends TestCase
         $merchant   = Factory::create('Merchant', ['user_id' => $user->user_id]);
 
         static::addData('authData', Factory::create('Apikey', ['user_id' => $user->user_id]));
-        static::addData('coupons',  Factory::times(3)->create('Coupon'));
         static::addData('retailer', Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]));
         static::addData('employee', Factory::create('Employee', ['user_id' => $user->user_id]));
         static::addData('merchant', $merchant);
@@ -60,8 +59,7 @@ class postUpdateEmployeeTest extends TestCase
 
         $response = $makeRequest([
             'user_id' => $this->user->user_id,
-            'firstname' => $this->user->user_firstname,
-            'lastname'  => $this->user->user_lastname,
+            'birthdate' => '1990-01-12',
             'employee_id_char' => 'MGR001'
         ]);
 
@@ -73,7 +71,6 @@ class postUpdateEmployeeTest extends TestCase
 
         $response = $makeRequest([
             'user_id' => $this->user->user_id,
-            'firstname' => $this->user->user_firstname,
             'lastname'  => 'Denear',
             'employee_id_char' => 'MGR001'
         ]);
@@ -89,13 +86,13 @@ class postUpdateEmployeeTest extends TestCase
     public function testError_request_without_right_permission()
     {
         $i = 0;
-        $makeRequest = function ($authData) use ($i) {
+        $makeRequest = function ($authData) use (&$i) {
             $_GET['apikey']       = $authData->api_key;
             $_GET['apitimestamp'] = time();
 
             $_POST = array_merge($_POST, [
                 'user_id'   => $this->user->user_id,
-                'firstname' => $this->user->user_firstname
+                'birthdate' => '1990-01-12'
             ]);
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
