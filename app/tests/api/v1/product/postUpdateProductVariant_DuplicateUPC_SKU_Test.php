@@ -18,6 +18,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
     protected static $attributes = [];
     protected static $attributeValues = [];
     protected static $productVariants = [];
+    protected static $merchantTaxes = [];
 
     /**
      * Executed only once at the beginning of the test.
@@ -405,6 +406,27 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         foreach (static::$variants as $variant) {
             DB::table('product_variants')->insert($variant);
         }
+        static::$merchantTaxes = [
+            [
+                'merchant_tax_id' => 1,
+                'merchant_id' => 1,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+            [
+                'merchant_tax_id' => 2,
+                'merchant_id' => 2,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+        ];
+        foreach (static::$merchantTaxes as $tax) {
+            DB::table('merchant_taxes')->insert($tax);
+        }
     }
 
     /**
@@ -426,6 +448,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $products_table = static::$dbPrefix . 'products';
         $transactions_table = static::$dbPrefix . 'transactions';
         $transaction_details_table = static::$dbPrefix . 'transaction_details';
+        $merchant_taxes_table = static::$dbPrefix . 'merchant_taxes';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
@@ -440,6 +463,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
                         TRUNCATE `{$products_table}`;
                         TRUNCATE `{$transactions_table}`;
                         TRUNCATE `{$transaction_details_table}`;
+                        TRUNCATE `{$merchant_taxes_table}`;
                         ");
     }
 
@@ -519,6 +543,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
@@ -561,6 +586,7 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
@@ -718,20 +744,22 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
      */
     public function testSaveProductUpdate_SKU_102_BelongsToKunciObjeng_Allowed()
     {
+        $product = Product::find(3);
         $productVariant1 = ProductVariant::find(3);
 
         // Object of first "Kemeja Mahal"
         $kunciObeng1 = new stdClass();
         $kunciObeng1->variant_id = $productVariant1->product_variant_id;
-        $kunciObeng1->upc = NULL;
+        $kunciObeng1->upc = $product->upc_code;
         $kunciObeng1->sku = 'SKU-002';
-        $kunciObeng1->price = NULL;
+        $kunciObeng1->price = $product->price;
 
         // It containts array of product_attribute_value_id
         $kunciObeng1->attribute_values = [13, NULL, NULL, NULL, NULL];
 
         // POST data
         $_POST['product_id'] = 3;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kunciObeng1]);
 
         // Set the client API Keys
@@ -759,20 +787,22 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
      */
     public function testSaveProductUpdate_UPC_102_BelongsToKunciObjeng_Allowed()
     {
+        $product = Product::find(3);
         $productVariant1 = ProductVariant::find(3);
 
         // Object of first "Kemeja Mahal"
         $kunciObeng1 = new stdClass();
         $kunciObeng1->variant_id = $productVariant1->product_variant_id;
         $kunciObeng1->upc = 'UPC-102';
-        $kunciObeng1->sku = NULL;
-        $kunciObeng1->price = NULL;
+        $kunciObeng1->sku = $product->product_code;
+        $kunciObeng1->price = $product->price;
 
         // It containts array of product_attribute_value_id
         $kunciObeng1->attribute_values = [14, NULL, NULL, NULL, NULL];
 
         // POST data
         $_POST['product_id'] = 3;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kunciObeng1]);
 
         // Set the client API Keys
@@ -791,5 +821,47 @@ class postUpdateProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $response = json_decode($return);
         $this->assertSame(Status::OK, (int)$response->code);
         $this->assertSame('success', $response->status);
+    }
+
+    /**
+     * Add some fields that are required for update to $_POST.
+     *
+     * The values are based on the original values.
+     * @param $product_id int product id (1 to 3)
+     */
+    private function addRequiredFieldsToPost($product_id) {
+        if ($product_id === 1) {
+            $_POST = array_merge($_POST, [
+                'product_name'  => 'Kemeja Mahal',
+                'product_code'  => 'SKU-001',
+                'upc_code'      => 'UPC-001',
+                'price'         => 500000,
+                'short_description' => 'Kemeja ini sangat mahal',
+                'status' => 'active',
+                'merchant_tax_id1' => 1,
+            ]);
+        }
+        else if ($product_id === 2) {
+            $_POST = array_merge($_POST, [
+                'product_name'  => 'Celana Murah',
+                'product_code'  => 'SKU-002',
+                'upc_code'      => 'UPC-002',
+                'price'         => 30000,
+                'short_description' => 'Celana ini cukup murah',
+                'status' => 'active',
+                'merchant_tax_id1' => 1,
+            ]);
+        }
+        else if ($product_id === 3) {
+            $_POST = array_merge($_POST, [
+                'product_name'  => 'Kunci Obeng',
+                'product_code'  => 'SKU-001',
+                'upc_code'      => 'UPC-001',
+                'price'         => 125000,
+                'short_description' => 'Kunci ini sangat obeng',
+                'status' => 'active',
+                'merchant_tax_id1' => 1,
+            ]);
+        }
     }
 }
