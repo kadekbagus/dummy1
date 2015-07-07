@@ -16,6 +16,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
     protected static $attributes = [];
     protected static $attributeValues = [];
     protected static $productVariants = [];
+    protected static $merchantTaxes = [];
 
     /**
      * Executed only once at the beginning of the test.
@@ -366,6 +367,28 @@ class postNewProduct_VariantTest extends OrbitTestCase
         foreach (static::$products as $product) {
             DB::table('products')->insert($product);
         }
+
+        static::$merchantTaxes = [
+            [
+                'merchant_tax_id' => 1,
+                'merchant_id' => 1,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+            [
+                'merchant_tax_id' => 2,
+                'merchant_id' => 2,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+        ];
+        foreach (static::$merchantTaxes as $tax) {
+            DB::table('merchant_taxes')->insert($tax);
+        }
     }
 
     /**
@@ -387,6 +410,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $products_table = static::$dbPrefix . 'products';
         $transactions_table = static::$dbPrefix . 'transactions';
         $transaction_details_table = static::$dbPrefix . 'transaction_details';
+        $merchant_taxes_table = static::$dbPrefix . 'merchant_taxes';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
@@ -401,6 +425,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
                         TRUNCATE `{$products_table}`;
                         TRUNCATE `{$transactions_table}`;
                         TRUNCATE `{$transaction_details_table}`;
+                        TRUNCATE `{$merchant_taxes_table}`;
                         ");
     }
 
@@ -476,6 +501,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
@@ -511,9 +537,9 @@ class postNewProduct_VariantTest extends OrbitTestCase
     {
         // Object of first "Kemeja Mahal"
         $kemejaMahal1 = new stdClass();
-        $kemejaMahal1->upc = NULL;  // Follows the parent
-        $kemejaMahal1->sku = NULL;  // Follows the parent
-        $kemejaMahal1->price = NULL;  // Follows the parent
+        $kemejaMahal1->upc = static::$products[0]['upc_code'];  // Follows the parent
+        $kemejaMahal1->sku = static::$products[0]['product_code'];  // Cannot follow parent, must have own SKU
+        $kemejaMahal1->price = static::$products[0]['price'];  // Follows the parent
 
         // It containts array of product_attribute_value_id
         $kemejaMahal1->attribute_values = [19, 5, 8, 17, 15];
@@ -538,6 +564,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$kemejaMahal1, $kemejaMahal2, $kemejaMahal3]);
 
         // Set the client API Keys
@@ -603,7 +630,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
         // Object of first "Kemeja Mahal"
         $kemejaMahal1 = new stdClass();
         $kemejaMahal1->upc = NULL;  // Follows the parent
-        $kemejaMahal1->sku = NULL;  // Follows the parent
+        $kemejaMahal1->sku = 'SKU001';  // Follows the parent
         $kemejaMahal1->price = NULL;  // Follows the parent
 
         // It containts array of product_attribute_value_id
@@ -611,6 +638,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
@@ -657,6 +685,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$kemejaMahal1]);
 
         // Set the client API Keys
@@ -702,6 +731,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$celanaMurah1]);
 
         // Set the client API Keys
@@ -747,6 +777,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$celanaMurah1]);
 
         // Set the client API Keys
@@ -792,6 +823,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$celanaMurah1]);
 
         // Set the client API Keys
@@ -833,6 +865,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$celanaMurah1]);
 
         // Set the client API Keys
@@ -883,6 +916,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants'] = json_encode([$celanaMurah1, $celanaMurah2]);
 
         // Set the client API Keys
@@ -960,6 +994,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$celanaMurah1, $celanaMurah2]);
 
         // Set the client API Keys
@@ -1039,6 +1074,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$celanaMurah1, $celanaMurah2]);
 
         // Set the client API Keys
@@ -1084,6 +1120,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$celanaMurah1]);
 
         // Set the client API Keys
@@ -1149,6 +1186,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$celanaMurah2]);
 
         // Set the client API Keys
@@ -1205,6 +1243,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 2;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
 
         // Set the client API Keys
@@ -1229,8 +1268,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
     /**
      * This test should produce no error. This test not changes the UPC and SKU
-     * by giving NULL values to each of them thus should not be error when
-     * saving even it has an transaction.
+     * thus should not be error when saving even it has an transaction.
      *
      * Kemeja Mahal 2 - UPC: UPC-001-MAHAL
      */
@@ -1279,15 +1317,17 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         $kemejaMahal2 = new stdClass();
         $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
-        $kemejaMahal2->upc = NULL;
-        $kemejaMahal2->sku = NULL;
-        $kemejaMahal2->price = NULL;
+
+        $kemejaMahal2->upc = $productVariant2->upc;
+        $kemejaMahal2->sku = $productVariant2->sku;
+        $kemejaMahal2->price = $productVariant2->price;
 
         // It containts array of product_attribute_value_id
         $kemejaMahal2->attribute_values = [20, 5, 8, 17, 15];
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
 
         // Set the client API Keys
@@ -1334,6 +1374,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
 
         // Set the client API Keys
@@ -1378,6 +1419,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
 
         // Set the client API Keys
@@ -1413,8 +1455,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         $kemejaMahal2 = new stdClass();
         $kemejaMahal2->variant_id = $productVariant2->product_variant_id;
-        $kemejaMahal2->upc = NULL;
-        $kemejaMahal2->sku = NULL;
+        $kemejaMahal2->upc = $productVariant2->upc;
+        $kemejaMahal2->sku = $productVariant2->sku;
         $kemejaMahal2->price = 799000;
 
         // It containts array of product_attribute_value_id
@@ -1422,6 +1464,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $this->addRequiredFieldsToPost($_POST['product_id']);
         $_POST['product_variants_update'] = json_encode([$kemejaMahal2]);
 
         // Set the client API Keys
@@ -1465,6 +1508,9 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Kunci Obeng';
         $_POST['product_code'] = 'SKU-001-1';
+        $_POST['short_description'] = 'Kunci ini obeng sekali';
+        $_POST['price'] = 100;
+        $_POST['merchant_tax_id1'] = 2;
         $_POST['upc_code'] = 'SKU-001-1';
         $_POST['status'] = 'active';
         $_POST['product_variants'] = json_encode([$kunciObeng1]);
@@ -1513,6 +1559,9 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $_POST['product_name'] = 'Kunci Obeng';
         $_POST['product_code'] = 'SKU-001-2';
         $_POST['upc_code'] = 'SKU-001-2';
+        $_POST['short_description'] = 'Kunci ini obeng sekali';
+        $_POST['price'] = 100;
+        $_POST['merchant_tax_id1'] = 2;
         $_POST['status'] = 'active';
         $_POST['product_variants'] = json_encode([$kunciObeng1]);
 
@@ -1545,20 +1594,23 @@ class postNewProduct_VariantTest extends OrbitTestCase
      */
     public function testSaveProductNew_newVariant_TwoKunciObeng()
     {
+        $parent_sku = 'SKU-001-Obeng';
+        $parent_price = 1000000;
+        $parent_upc = 'UPC-001-Obeng';
         // Object of first "Kunci Obeng"
         $kunciObeng1 = new stdClass();
-        $kunciObeng1->upc = NULL;  // Follows the parent
-        $kunciObeng1->sku = NULL;  // Follows the parent
-        $kunciObeng1->price = NULL;  // Follows the parent
+        $kunciObeng1->upc = $parent_upc;  // Follows the parent
+        $kunciObeng1->sku = $parent_sku;  // Follows the parent
+        $kunciObeng1->price = $parent_price;  // Follows the parent
 
         // It containts array of product_attribute_value_id
         $kunciObeng1->attribute_values = [14, 10, NULL, NULL, NULL];
 
         // Object of second "Kunci Obeng"
         $kunciObeng2 = new stdClass();
-        $kunciObeng2->upc = NULL;  // Follows the parent
-        $kunciObeng2->sku = NULL;  // Follows the parent
-        $kunciObeng2->price = NULL;  // Follows the parent
+        $kunciObeng2->upc = $parent_upc;  // Follows the parent
+        $kunciObeng2->sku = $parent_sku;  // Follows the parent
+        $kunciObeng2->price = $parent_price;  // Follows the parent
 
         // It containts array of product_attribute_value_id
         $kunciObeng2->attribute_values = [13, 12, NULL, NULL, NULL];
@@ -1566,9 +1618,11 @@ class postNewProduct_VariantTest extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Kunci Obeng X';
-        $_POST['product_code'] = 'SKU-001-Obeng';
-        $_POST['upc_code'] = 'UPC-001-Obeng';
-        $_POST['price'] = 1000000;
+        $_POST['product_code'] = $parent_sku;
+        $_POST['upc_code'] = $parent_upc;
+        $_POST['short_description'] = 'Kunci obeng yang ini ada X factornya.';
+        $_POST['merchant_tax_id1'] = 2;
+        $_POST['price'] = $parent_price;
         $_POST['status'] = 'active';
         $_POST['product_variants'] = json_encode([$kunciObeng1, $kunciObeng2]);
 
@@ -1601,9 +1655,9 @@ class postNewProduct_VariantTest extends OrbitTestCase
 
         // Object of first "Kunci Obeng"
         $kunciObeng1 = new stdClass();
-        $kunciObeng1->upc = NULL;  // Follows the parent
-        $kunciObeng1->sku = NULL;  // Follows the parent
-        $kunciObeng1->price = NULL;  // Follows the parent
+        $kunciObeng1->upc = $product->upc_code;  // Follows the parent
+        $kunciObeng1->sku = $product->product_code;  // Follows the parent
+        $kunciObeng1->price = $product->price;  // Follows the parent
 
         // It containts array of product_attribute_value_id
         $kunciObeng1->attribute_values = [14, 10, NULL, NULL, NULL];
@@ -1613,7 +1667,9 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $_POST['product_name'] = 'Kunci Obeng XYZ';
         $_POST['product_code'] = 'SKU-001-ObengXYZ';
         $_POST['upc_code'] = 'SKU-001-ObengXYZ';
+        $_POST['short_description'] = 'Tidak hanya faktor X, tapi juga faktor YZ.';
         $_POST['price'] = 1000000;
+        $_POST['merchant_tax_id1'] = 2;
         $_POST['status'] = 'active';
         $_POST['product_id'] = $product->product_id;
         $_POST['product_variants'] = json_encode([$kunciObeng1]);
@@ -1651,6 +1707,8 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $_POST['product_name'] = 'Panci Murah';
         $_POST['product_code'] = 'SKU-003';
         $_POST['upc_code'] = 'UPC-003';
+        $_POST['short_description'] = 'Panci ini cukup murah';
+        $_POST['merchant_tax_id1'] = 2;
         $_POST['price'] = 30000;
         $_POST['status'] = 'active';
 
@@ -1700,8 +1758,11 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $_POST['product_name'] = 'Panci Murah';
         $_POST['product_code'] = 'SKU-003-GANTI';
         $_POST['upc_code'] = 'UPC-003-GANTI';
+        $_POST['short_description'] = 'Panci ini cukup murah';
+        $_POST['merchant_tax_id1'] = 2;
         $_POST['price'] = 35000;
         $_POST['product_id'] = $product->product_id;
+        $_POST['status'] = $product->status;
 
         // Set the client API Keys
         $_GET['apikey'] = 'abc123';
@@ -1758,6 +1819,9 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Panci Murah';
         $_POST['product_code'] = 'SKU-003-GANTI2';
+        $_POST['short_description'] = 'Panci ini cukup murah';
+        $_POST['merchant_tax_id1'] = 2;
+        $_POST['status'] = $product->status;
         $_POST['upc_code'] = 'UPC-003-GANTI2';
         $_POST['price'] = 35000;
         $_POST['product_id'] = $product->product_id;
@@ -1802,5 +1866,47 @@ class postNewProduct_VariantTest extends OrbitTestCase
         $this->assertSame('UPC-003-MURAH1', (string)$variant->upc);
         $this->assertSame('SKU-003-MURAH1', (string)$variant->sku);
         $this->assertSame('no', (string)$variant->default_variant);
+    }
+
+    /**
+     * Add some fields that are required for update to $_POST.
+     *
+     * The values are based on the original values.
+     * @param $product_id int product id (1 to 3)
+     */
+    private function addRequiredFieldsToPost($product_id) {
+        if ($product_id === 1) {
+            $_POST = array_merge($_POST, [
+                'product_name'  => 'Kemeja Mahal',
+                'product_code'  => 'SKU-001',
+                'upc_code'      => 'UPC-001',
+                'price'         => 500000,
+                'short_description' => 'Kemeja ini sangat mahal',
+                'status' => 'active',
+                'merchant_tax_id1' => 1,
+            ]);
+        }
+        else if ($product_id === 2) {
+            $_POST = array_merge($_POST, [
+                'product_name'  => 'Celana Murah',
+                'product_code'  => 'SKU-002',
+                'upc_code'      => 'UPC-002',
+                'price'         => 30000,
+                'short_description' => 'Celana ini cukup murah',
+                'status' => 'active',
+                'merchant_tax_id1' => 1,
+            ]);
+        }
+        else if ($product_id === 3) {
+            $_POST = array_merge([
+                'product_name'  => 'Kunci Obeng',
+                'product_code'  => 'SKU-001',
+                'upc_code'      => 'UPC-001',
+                'price'         => 125000,
+                'short_description' => 'Kunci ini sangat obeng',
+                'status' => 'active',
+                'merchant_tax_id1' => 2,
+            ]);
+        }
     }
 }
