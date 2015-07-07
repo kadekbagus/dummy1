@@ -206,11 +206,7 @@ class postLoginTest extends OrbitTestCase
         $this->assertSame('1', (string)$response->data->modified_by);
 
         // test apikey data.
-        $this->assertTrue(property_exists($response->data, 'apikey'));
-        $this->assertSame('bcd234', (string)$response->data->apikey->api_key);
-        $this->assertSame('bcd23456789010', (string)$response->data->apikey->api_secret_key);
-        $this->assertSame('2', (string)$response->data->apikey->user_id);
-        $this->assertSame('active', (string)$response->data->apikey->status);
+        $this->assertFalse(property_exists($response->data, 'apikey'));
 
         // test userdetail data.
         $this->assertTrue(property_exists($response->data, 'userdetail'));
