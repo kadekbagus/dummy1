@@ -29,14 +29,20 @@ class postUpdatePromotionTest extends TestCase
     public function testOK_post_update_promotion()
     {
         $promotion = Factory::create('Promotion');
-        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotion_rule = Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id, 'discount_value' => 10]);
         $promotionCountBefore = Promotion::count();
 
-        $makeRequest = function ($changes = []) use ($promotion) {
+        $makeRequest = function ($changes = []) use ($promotion, $promotion_rule) {
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
 
-            $_POST = $changes;
+            $_POST = [
+                'promotion_id' => $promotion->promotion_id,
+                'begin_date' => $promotion->begin_date,
+                'rule_type' => $promotion_rule->rule_type,
+                'discount_value' => $promotion_rule->discount_value,
+            ];
+            $_POST = array_merge($_POST, $changes);
             $_POST['promotion_id'] = $promotion->promotion_id;
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -86,14 +92,19 @@ class postUpdatePromotionTest extends TestCase
     public function testACL_post_update_promotion()
     {
         $promotion = Factory::create('Promotion');
-        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        $promotion_rule = Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id, 'discount_value' => 10]);
         $promotionCountBefore = Promotion::count();
 
-        $makeRequest = function ($authData) use ($promotion) {
+        $makeRequest = function ($authData) use ($promotion, $promotion_rule) {
             $_GET['apikey']       = $authData->api_key;
             $_GET['apitimestamp'] = time();
 
-            $_POST['promotion_id'] = $promotion->promotion_id;
+            $_POST = [
+                'promotion_id' => $promotion->promotion_id,
+                'begin_date' => $promotion->begin_date,
+                'rule_type' => $promotion_rule->rule_type,
+                'discount_value' => $promotion_rule->discount_value,
+            ];
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -158,7 +169,7 @@ class postUpdatePromotionTest extends TestCase
     public function testError_parameters_post_update_promotion()
     {
         $promotion = Factory::create('Promotion');
-        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id]);
+        Factory::create('PromotionRule', ['promotion_id' => $promotion->promotion_id, 'discount_value' => 10]);
         $promotionCountBefore = Promotion::count();
 
         $makeRequest = function ($postData) {
