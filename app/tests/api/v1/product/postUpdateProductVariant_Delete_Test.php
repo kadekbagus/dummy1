@@ -18,6 +18,7 @@ class postUpdateProductVariant_Delete_Test extends OrbitTestCase
     protected static $attributes = [];
     protected static $attributeValues = [];
     protected static $productVariants = [];
+    protected static $merchantTaxes = [];
 
     /**
      * Executed only once at the beginning of the test.
@@ -368,6 +369,28 @@ class postUpdateProductVariant_Delete_Test extends OrbitTestCase
         foreach (static::$products as $product) {
             DB::table('products')->insert($product);
         }
+
+        static::$merchantTaxes = [
+            [
+                'merchant_tax_id' => 1,
+                'merchant_id' => 1,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+            [
+                'merchant_tax_id' => 2,
+                'merchant_id' => 2,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+        ];
+        foreach (static::$merchantTaxes as $tax) {
+            DB::table('merchant_taxes')->insert($tax);
+        }
     }
 
     /**
@@ -389,6 +412,7 @@ class postUpdateProductVariant_Delete_Test extends OrbitTestCase
         $products_table = static::$dbPrefix . 'products';
         $transactions_table = static::$dbPrefix . 'transactions';
         $transaction_details_table = static::$dbPrefix . 'transaction_details';
+        $merchant_taxes_table = static::$dbPrefix . 'merchant_taxes';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
@@ -403,6 +427,7 @@ class postUpdateProductVariant_Delete_Test extends OrbitTestCase
                         TRUNCATE `{$products_table}`;
                         TRUNCATE `{$transactions_table}`;
                         TRUNCATE `{$transaction_details_table}`;
+                        TRUNCATE `{$merchant_taxes_table}`;
                         ");
     }
 
@@ -471,11 +496,12 @@ class postUpdateProductVariant_Delete_Test extends OrbitTestCase
      */
     public function testSaveProductUpdate_DeleteVariant_KemejaMahal_Size14_ColorWhite_MaterialCotton_OriginUSA_ClassKW()
     {
+        $existing_product = Product::find(1);
         // Object of first "Kemeja Mahal"
         $kemejaMahal1 = new stdClass();
-        $kemejaMahal1->upc = NULL;  // Follows the parent
-        $kemejaMahal1->sku = NULL;  // Follows the parent
-        $kemejaMahal1->price = NULL;  // Follows the parent
+        $kemejaMahal1->upc = $existing_product->upc_code;  // Follows the parent
+        $kemejaMahal1->sku = $existing_product->product_code;  // Follows the parent
+        $kemejaMahal1->price = $existing_product->price;  // Follows the parent
 
         // It containts array of product_attribute_value_id
         $kemejaMahal1->attribute_values = [19, 5, 8, 17, 15];
@@ -500,6 +526,18 @@ class postUpdateProductVariant_Delete_Test extends OrbitTestCase
 
         // POST data
         $_POST['product_id'] = 1;
+        $_POST['product_name'] = $existing_product->product_name;
+        $_POST['short_description'] = 'Kemeja ini cukup mahal';
+        $_POST['status'] = $existing_product->status;
+        $_POST['price'] = $existing_product->price;
+        $_POST['product_code'] = $existing_product->product_code;
+        $_POST['merchant_tax_id1'] = 1;
+        /*
+        'product_name'  => 'Kemeja Mahal',
+                'product_code'  => 'SKU-001',
+                'upc_code'      => 'UPC-001',
+                'price'         => 500000,
+                'status'        => 'active', */
         $_POST['product_variants'] = json_encode([$kemejaMahal1, $kemejaMahal2, $kemejaMahal3]);
 
         // Set the client API Keys
