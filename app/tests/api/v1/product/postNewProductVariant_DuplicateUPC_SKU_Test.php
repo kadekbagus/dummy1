@@ -6,6 +6,7 @@
  * @author Rio Astamal <me@rioastamal.net>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Laracasts\TestDummy\Factory;
 use OrbitShop\API\v1\Helper\Generator;
 use OrbitShop\API\v1\OrbitShopAPI;
 
@@ -18,6 +19,7 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
     protected static $attributes = [];
     protected static $attributeValues = [];
     protected static $productVariants = [];
+    protected static $merchantTaxes = [];
 
     /**
      * Executed only once at the beginning of the test.
@@ -385,6 +387,28 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         foreach (static::$variants as $variant) {
             DB::table('product_variants')->insert($variant);
         }
+
+        static::$merchantTaxes = [
+            [
+                'merchant_tax_id' => 1,
+                'merchant_id' => 1,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+            [
+                'merchant_tax_id' => 2,
+                'merchant_id' => 2,
+                'tax_type'    => 'government',
+                'tax_name'    => 'PPN',
+                'tax_value'  => 10,
+                'tax_order'   => 0,
+            ],
+        ];
+        foreach (static::$merchantTaxes as $tax) {
+            DB::table('merchant_taxes')->insert($tax);
+        }
     }
 
     /**
@@ -406,6 +430,7 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         $products_table = static::$dbPrefix . 'products';
         $transactions_table = static::$dbPrefix . 'transactions';
         $transaction_details_table = static::$dbPrefix . 'transaction_details';
+        $merchant_tax_table = static::$dbPrefix . 'merchant_taxes';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
@@ -420,6 +445,7 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
                         TRUNCATE `{$products_table}`;
                         TRUNCATE `{$transactions_table}`;
                         TRUNCATE `{$transaction_details_table}`;
+                        TRUNCATE `{$merchant_tax_table}`;
                         ");
     }
 
@@ -499,6 +525,10 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 1;
         $_POST['product_name'] = 'Celana Sangat Murah';
+        $_POST['short_description'] = 'Celana ini sangat murah';
+        $_POST['price'] = 100;
+        $_POST['merchant_tax_id1'] = 1;
+        $_POST['product_code'] = 'sku123';
         $_POST['status'] = 'active';
         $_POST['upc_code'] = 'UPC-999';
         $_POST['product_variants'] = json_encode([$celanaMurah1]);
@@ -543,6 +573,9 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 1;
         $_POST['product_name'] = 'Celana Sangat Murah';
+        $_POST['short_description'] = 'Celana ini sangat murah';
+        $_POST['price'] = 100;
+        $_POST['merchant_tax_id1'] = 1;
         $_POST['status'] = 'active';
         $_POST['product_code'] = 'SKU-999';
         $_POST['upc_code'] = 'UPC-999';
@@ -588,6 +621,10 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 1;
         $_POST['product_name'] = 'Celana Sangat Murah';
+        $_POST['product_code'] = 'skucelana';
+        $_POST['short_description'] = 'Celana ini sangat murah';
+        $_POST['price'] = 100;
+        $_POST['merchant_tax_id1'] = 1;
         $_POST['status'] = 'active';
         $_POST['upc_code'] = 'UPC-999';
         $_POST['product_variants'] = json_encode([$celanaMurah1]);
@@ -632,6 +669,9 @@ class postNewProductVariant_DuplicateUPC_SKU_Test extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 1;
         $_POST['product_name'] = 'Celana Sangat Murah';
+        $_POST['short_description'] = 'Celana ini sangat murah';
+        $_POST['price'] = 100;
+        $_POST['merchant_tax_id1'] = 1;
         $_POST['status'] = 'active';
         $_POST['upc_code'] = 'UPC-999';
         $_POST['product_code'] = 'SKU-999';
