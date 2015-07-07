@@ -587,7 +587,7 @@ class TransactionHistoryAPIController extends ControllerAPI
 
             // Unit Price filter
             OrbitInput::get('unit_price', function ($_price) use ($transactions) {
-               $transactions->where('price', '=', $_price);
+               $transactions->where('transaction_details.price', '=', $_price);
             });
 
             // Clone the query builder which still does not include the take,
