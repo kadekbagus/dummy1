@@ -1898,7 +1898,7 @@ class postNewProduct_VariantTest extends OrbitTestCase
             ]);
         }
         else if ($product_id === 3) {
-            $_POST = array_merge([
+            $_POST = array_merge($_POST, [
                 'product_name'  => 'Kunci Obeng',
                 'product_code'  => 'SKU-001',
                 'upc_code'      => 'UPC-001',
