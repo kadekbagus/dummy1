@@ -180,7 +180,7 @@ return array(
             'name'  => 'Orbit'
         ),
         // URL for password reset (frontend URL)
-        'reset_base_url' => 'http://customer.orbit-shop.here/#/....?token=%s',
+        'reset_base_url' => 'http://customer.orbit-shop.here/#/reset-password/%s',
         // Number of days before token in reset link expires
         'reset_expire' => 7,
         // Sign in URL
