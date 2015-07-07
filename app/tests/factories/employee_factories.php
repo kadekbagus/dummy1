@@ -16,3 +16,9 @@ $factory('Employee', [
     'employee_id_char' => $faker->bothify('########'),
     'status' => 'active'
 ]);
+
+$factory('Employee', 'employee_cashier', [
+    'user_id' => 'factory:user_cashier',
+    'employee_id_char' => $faker->bothify('########'),
+    'status' => 'active'
+]);
