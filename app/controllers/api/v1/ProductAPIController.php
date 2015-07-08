@@ -500,7 +500,9 @@ class ProductAPIController extends ControllerAPI
                         // check for empty attribute value based on attribute that has been selected in the frontend
                         $attr_i = $i+1;
                         if (empty($value_id) && $attr_i == $flag_selected_attribute) {
-                            $errorMessage = 'One or more attribute value is empty';
+                            // $errorMessage = 'One or more attribute value is empty';
+                            // OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
                         }
 
@@ -681,7 +683,9 @@ class ProductAPIController extends ControllerAPI
                         // check for empty attribute value based on attribute that has been selected in the frontend
                         $attr_i = $i+1;
                         if (empty($value_id) && $attr_i == $flag_selected_attribute) {
-                            $errorMessage = 'One or more attribute value is empty';
+                            // $errorMessage = 'One or more attribute value is empty';
+                            // OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
                         }
 
@@ -1599,7 +1603,9 @@ class ProductAPIController extends ControllerAPI
                         // check for empty attribute value based on attribute that has been selected in the frontend
                         $attr_i = $i+1;
                         if (empty($value_id) && $attr_i == $flag_selected_attribute) {
-                            $errorMessage = 'One or more attribute value is empty';
+                            // $errorMessage = 'One or more attribute value is empty';
+                            // OrbitShopAPI::throwInvalidArgument($errorMessage);
+                            $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
                             OrbitShopAPI::throwInvalidArgument($errorMessage);
                         }
                         $field_value_id = 'product_attribute_value_id' . ($i + 1);
@@ -2615,7 +2621,8 @@ class ProductAPIController extends ControllerAPI
                                                               ->first();
 
                 if (empty($productAttributeValue)) {
-                    $errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', array('id' => $value_id));
+                    //$errorMessage = Lang::get('validation.orbit.empty.product_attr.attribute.value', array('id' => $value_id));
+                    $errorMessage = Lang::get('validation.orbit.formaterror.product_attr.attribute.value.allnull');
                     OrbitShopAPI::throwInvalidArgument($errorMessage);
                 }
 
