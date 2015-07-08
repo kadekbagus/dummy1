@@ -29,6 +29,7 @@ class postDeleteRetailerTest extends OrbitTestCase
         $permission_role_table = static::$dbPrefix . 'permission_role';
         $custom_permission_table = static::$dbPrefix . 'custom_permission';
         $merchant_table = static::$dbPrefix . 'merchants';
+        $setting_table = static::$dbPrefix . 'settings';
 
         // Insert dummy data on apikeys
         DB::statement("INSERT INTO `{$apikey_table}`
@@ -40,7 +41,8 @@ class postDeleteRetailerTest extends OrbitTestCase
                 (4, 'def123', 'def12345678901', '1', 'active', '2014-10-19 20:02:04', '2014-10-19 20:03:04'),
                 (5, 'efg212', 'efg09876543212', '4', 'blocked', '2014-10-19 20:02:05', '2014-10-19 20:03:05'),
                 (6, 'hij313', 'hijklmn0987623', '4', 'active', '2014-10-19 20:02:06', '2014-10-19 20:03:06'),
-                (7, 'klm432', 'klm09876543211', '5', 'active', '2014-10-19 20:02:07', '2014-10-19 20:03:07')"
+                (7, 'klm432', 'klm09876543211', '5', 'active', '2014-10-19 20:02:07', '2014-10-19 20:03:07'),
+                (8, 'nop321', 'nop12345678901', '6', 'active', '2014-10-19 20:02:08', '2014-10-19 20:03:08')"
         );
 
         $password = array(
@@ -48,7 +50,8 @@ class postDeleteRetailerTest extends OrbitTestCase
             'smith'     => Hash::make('smith'),
             'chuck'     => Hash::make('chuck'),
             'optimus'   => Hash::make('optimus'),
-            'panther'   => Hash::make('panther')
+            'panther'   => Hash::make('panther'),
+            'retailertoo' => Hash::make('retailertoo')
         );
 
         // Insert dummy data on users
@@ -59,7 +62,8 @@ class postDeleteRetailerTest extends OrbitTestCase
                 ('2', 'smith', '{$password['smith']}', 'smith@localhost.org', 'John', 'Smith', '2014-10-20 06:20:02', '10.10.0.12', '3', 'active', '1', '2014-10-20 06:30:02', '2014-10-20 06:31:02'),
                 ('3', 'chuck', '{$password['chuck']}', 'chuck@localhost.org', 'Chuck', 'Norris', '2014-10-20 06:20:03', '10.10.0.13', '3', 'active', '1', '2014-10-20 06:30:03', '2014-10-20 06:31:03'),
                 ('4', 'optimus', '{$password['optimus']}', 'optimus@localhost.org', 'Optimus', 'Prime', '2014-10-20 06:20:04', '10.10.0.13', '3', 'blocked', '1', '2014-10-20 06:30:04', '2014-10-20 06:31:04'),
-                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05')"
+                ('5', 'panther', '{$password['panther']}', 'panther@localhost.org', 'Pink', 'Panther', '2014-10-20 06:20:05', '10.10.0.13', '3', 'deleted', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05'),
+                ('6', 'retailertoo', '{$password['retailertoo']}', 'retailertoo@localhost.org', 'Retailer', 'Too', '2014-10-20 06:20:05', '10.10.0.13', '3', 'active', '1', '2014-10-20 06:30:05', '2014-10-20 06:31:05')"
         );
 
         // Insert dummy data on roles
@@ -79,7 +83,8 @@ class postDeleteRetailerTest extends OrbitTestCase
                 ('2', 'view_user', 'View User', 'user', 'User', '1', '1', '1', NOW(), NOW()),
                 ('3', 'create_user', 'Create User', 'user', 'User', '0', '1', '1', NOW(), NOW()),
                 ('4', 'view_product', 'View Product', 'product', 'Product', '1', '2', '1', NOW(), NOW()),
-                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), nOW())"
+                ('5', 'add_product', 'Add Product', 'product', 'Product', '0', '2', '1', NOW(), NOW()),
+                ('6', 'delete_retailer', 'Delete Retailer', 'retailer', 'Retailer', '0', '3', '1', NOW(), NOW())"
         );
 
         // Insert dummy data on permission_role
@@ -91,7 +96,8 @@ class postDeleteRetailerTest extends OrbitTestCase
                 ('3', '3', '2', 'no', NOW(), NOW()),
                 ('4', '3', '3', 'no', NOW(), NOW()),
                 ('5', '3', '4', 'no', NOW(), NOW()),
-                ('6', '3', '5', 'no', NOW(), NOW())"
+                ('6', '3', '5', 'no', NOW(), NOW()),
+                ('7', '1', '6', 'yes', NOW(), NOW())"
         );
 
         // Insert dummy merchants and retailers
@@ -109,9 +115,11 @@ class postDeleteRetailerTest extends OrbitTestCase
                 ('9', '4', 'alfagubeng@localhost.org', 'Alfa Mer Gubeng Pojok', 'Alfa Mer which near Gubeng Station Surabaya', 'Jl. Gubeng 09', 'Komplek B9', 'Lantai 09', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-09-02 01:01:09', 'active', 'merchants/logo/alfamer-gubeng.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 2, NOW(), NOW(), 1),
 
                 ('21', '3', 'alfagwalk@localhost.org', 'Alfa Mer Gwalk', 'Alfa Mer near GWalk Food Court', 'Jl. Citraland', 'Komplek G', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-21-02 01:01:09', 'active', 'merchants/logo/alfamer-gwalk.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
-                ('22', '3', 'alfatp@localhost.org', 'Alfa Mer Tunjungan', 'Alfa Mer near Tunjungan Plaza', 'Jl. Tunjungan', 'Komplek TP', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'active', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
+                ('22', '6', 'alfatp@localhost.org', 'Alfa Mer Tunjungan', 'Alfa Mer near Tunjungan Plaza', 'Jl. Tunjungan', 'Komplek TP', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'active', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1),
                 ('23', '7', 'alfapangsud@localhost.org', 'Alfa Mer Pangsud', 'Alfa Mer near Panglima Sudirman', 'Jl. Palinglima Sudirman', 'Komplek PS', 'Lantai 1', '10', 'Surabaya', '62', 'Indonesia', '031-1923456', '031-192344', '2012-22-02 01:01:09', 'deleted', 'merchants/logo/alfamer-tunjungan.png', 'IDR', 'Rp', 'tx1', 'tx2', 'tx3', 'Big Doom', 'yes', 'retailer', 1, '2014-11-21 06:30:09', NOW(), 1)"
         );
+
+        DB::statement("INSERT INTO `{$setting_table}` (`setting_name`, `setting_value`) VALUES ('current_retailer', 22)");
     }
 
     /**
@@ -127,6 +135,7 @@ class postDeleteRetailerTest extends OrbitTestCase
         $permission_role_table = static::$dbPrefix . 'permission_role';
         $custom_permission_table = static::$dbPrefix . 'custom_permission';
         $merchant_table = static::$dbPrefix . 'merchants';
+        $setting_table = static::$dbPrefix . 'settings';
         DB::unprepared("TRUNCATE `{$apikey_table}`;
                         TRUNCATE `{$user_table}`;
                         TRUNCATE `{$user_detail_table}`;
@@ -134,7 +143,8 @@ class postDeleteRetailerTest extends OrbitTestCase
                         TRUNCATE `{$custom_permission_table}`;
                         TRUNCATE `{$permission_role_table}`;
                         TRUNCATE `{$permission_table}`;
-                        TRUNCATE `{$merchant_table}`");
+                        TRUNCATE `{$merchant_table}`;
+                        DELETE FROM `{$setting_table}` WHERE setting_name = 'current_retailer';");
     }
 
     public function tearDown()
@@ -513,15 +523,15 @@ class postDeleteRetailerTest extends OrbitTestCase
 
         // Data to be post
         $_POST['retailer_id'] = 22;  // Alfa Tunjungan
-        $_POST['password'] = 'chuck';
+        $_POST['password'] = 'john';
 
         // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
+        $_GET['apikey'] = 'def123';
         $_GET['apitimestamp'] = time();
 
         $url = '/api/v1/retailer/delete?' . http_build_query($_GET);
 
-        $secretKey = 'cde34567890100';
+        $secretKey = 'def12345678901';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');

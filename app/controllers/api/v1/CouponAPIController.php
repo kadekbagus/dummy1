@@ -26,14 +26,14 @@ class CouponAPIController extends ControllerAPI
      * @param string     `promotion_type`                    (required) - Coupon type. Valid value: product, cart.
      * @param string     `status`                            (required) - Status. Valid value: active, inactive, pending, blocked, deleted.
      * @param string     `description`                       (optional) - Description
-     * @param datetime   `begin_date`                        (optional) - Begin date. Example: 2014-12-30 00:00:00
+     * @param datetime   `begin_date`                        (required) - Begin date. Example: 2014-12-30 00:00:00
      * @param datetime   `end_date`                          (optional) - End date. Example: 2014-12-31 23:59:59
      * @param string     `is_permanent`                      (optional) - Is permanent. Valid value: Y, N.
      * @param file       `images`                            (optional) - Coupon image
      * @param integer    `maximum_issued_coupon`             (optional) - Maximum issued coupon
-     * @param integer    `coupon_validity_in_days`           (optional) - Coupon validity in days
+     * @param integer    `coupon_validity_in_days`           (required) - Coupon validity in days
      * @param string     `coupon_notification`               (optional) - Coupon notification. Valid value: Y, N.
-     * @param string     `rule_type`                         (optional) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
+     * @param string     `rule_type`                         (required) - Rule type. Valid value: cart_discount_by_value, cart_discount_by_percentage, new_product_price, product_discount_by_value, product_discount_by_percentage.
      * @param decimal    `rule_value`                        (optional) - Rule value
      * @param string     `rule_object_type`                  (optional) - Rule object type. Valid value: product, family.
      * @param integer    `rule_object_id1`                   (optional) - Rule object ID1 (product_id or category_id1).
@@ -47,7 +47,7 @@ class CouponAPIController extends ControllerAPI
      * @param integer    `discount_object_id3`               (optional) - Discount object ID3 (category_id3).
      * @param integer    `discount_object_id4`               (optional) - Discount object ID4 (category_id4).
      * @param integer    `discount_object_id5`               (optional) - Discount object ID5 (category_id5).
-     * @param decimal    `discount_value`                    (optional) - Discount value
+     * @param decimal    `discount_value`                    (required) - Discount value
      * @param string     `is_cumulative_with_coupons`        (optional) - Cumulative with other coupons. Valid value: Y, N.
      * @param string     `is_cumulative_with_promotions`     (optional) - Cumulative with other promotions. Valid value: Y, N.
      * @param decimal    `coupon_redeem_rule_value`          (optional) - Coupon redeem rule value

@@ -43,7 +43,6 @@ class getCashierTimeReportTest extends TestCase
         $faker            = Faker::create();
         $merchants        = [];
         $retailers        = [];
-        $activities       = [];
 
         /** @var  $user User */
         foreach ($users as $user) {
@@ -53,28 +52,17 @@ class getCashierTimeReportTest extends TestCase
         }
 
         for ($i = 0; $i < 2; $i++) {
-            /** @var $activity Activity */
-            $activity = Factory::build('Activity_pos');
-            $user  = $users[$i % 2];
-            $activity->setUser($user)
-                ->setActivityType('login')
-                ->setActivityName('login_ok')
-                ->setActivityNameLong('Login OK')
-                ->responseOK();
-            $activity->created_at = $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08');
-            $activity->save(['force' => true]);
-            array_push($activities, $activity);
+            $user = $users[$i % 2];
+            $prefix = DB::getTablePrefix();
+            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `response_status`, `created_at`) VALUES";
+            $created_at =  $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
+            $insert .= "('login_ok', 'Login OK', 'login', {$user->user_id}, 'OK', '{$created_at}')";
+            DB::statement($insert);
 
-            $activity = Factory::build('Activity_pos');
-            $user  = $users[$i % 2];
-            $activity->setUser($user)
-                ->setActivityType('logout')
-                ->setActivityName('logout_ok')
-                ->setActivityNameLong('Logout OK')
-                ->responseOK();
-            $activity->created_at = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08');
-            $activity->save(['force' => true]);
-            array_push($activities, $activity);
+            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `response_status`, `created_at`) VALUES";
+            $created_at = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
+            $insert .= "('logout_ok', 'Logout OK', 'logout', {$user->user_id}, 'OK', '{$created_at}')";
+            DB::statement($insert);
 
             $customer = Factory::create('User', [
                 'user_firstname' => "Customer00{$i}",
@@ -96,7 +84,6 @@ class getCashierTimeReportTest extends TestCase
             }
 
             static::addData('authData', $authData);
-            static::addData('activities', $activities);
             static::addData('merchants', $merchants);
         }
     }

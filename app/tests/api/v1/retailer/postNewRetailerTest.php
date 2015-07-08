@@ -297,7 +297,7 @@ class postNewRetailerTest extends OrbitTestCase
         $this->assertSame($expect, $return);
     }
 
-    public function testMissingUserId_POST_api_v1_retailer_new()
+    public function testMissingName_POST_api_v1_retailer_new()
     {
         // Data to be post
         $_POST['email'] = 'george@localhost.org';
@@ -321,65 +321,7 @@ class postNewRetailerTest extends OrbitTestCase
 
         $chuck->permissions()->attach($permission->permission_id, array('allowed' => 'yes'));
 
-        $message = Lang::get('validation.required', array('attribute' => 'user id'));
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
-    public function testUserIdNotNumeric_POST_api_v1_retailer_new()
-    {
-        // Data to be post
-        $_POST['user_id'] = 'foo';
-        $_POST['email'] = 'george@localhost.org';
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/retailer/new?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.numeric', array('attribute' => 'user id'));
-        $data = new stdclass();
-        $data->code = Status::INVALID_ARGUMENT;
-        $data->status = 'error';
-        $data->message = $message;
-        $data->data = NULL;
-
-        $expect = json_encode($data);
-        $return = $this->call('POST', $url)->getContent();
-        $this->assertSame($expect, $return);
-    }
-
-    public function testUserIdNotExists_POST_api_v1_retailer_new()
-    {
-        // Data to be post
-        $_POST['user_id'] = 99;
-        $_POST['email'] = 'george@localhost.org';
-
-        // Set the client API Keys
-        $_GET['apikey'] = 'cde345';
-        $_GET['apitimestamp'] = time();
-
-        $url = '/api/v1/retailer/new?' . http_build_query($_GET);
-
-        $secretKey = 'cde34567890100';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = $url;
-        $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
-
-        $message = Lang::get('validation.orbit.empty.user');
+        $message = Lang::get('validation.required', array('attribute' => 'name'));
         $data = new stdclass();
         $data->code = Status::INVALID_ARGUMENT;
         $data->status = 'error';

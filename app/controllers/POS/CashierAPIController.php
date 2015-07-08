@@ -46,7 +46,7 @@ class CashierAPIController extends ControllerAPI
      * ----------------------
      * @param string    `username`  (required) - username of the cashier
      * @param string    `password`  (required) - password of the cashier
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postLoginCashier()
     {
@@ -183,7 +183,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postLogoutCashier()
     {
@@ -221,7 +221,7 @@ class CashierAPIController extends ControllerAPI
      * @author Kadek <kadek@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postScanBarcode()
     {
@@ -339,7 +339,7 @@ class CashierAPIController extends ControllerAPI
      * @param string     `long_description_like`    (optional)
      * @param integer    `merchant_id`              (optional)
      * @param integer    `status`                   (optional)
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function getSearchProductPOS()
     {
@@ -499,7 +499,7 @@ class CashierAPIController extends ControllerAPI
      * @param integer    `retailer_id`                        (optional)
      * @param integer    `created_by`                         (optional)
      * @param integer    `modified_by`                        (optional)
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function getSearchProductPOSwithVariant()
     {
@@ -735,7 +735,7 @@ class CashierAPIController extends ControllerAPI
      * @author Kadek <kadek@dominopos.com>
      * @author Agung <agung@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postSaveTransaction()
     {
@@ -1461,7 +1461,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postPrintTicket()
     {
@@ -1574,15 +1574,15 @@ class CashierAPIController extends ControllerAPI
                 } else {
                     if (empty($details_value['variant_price'])) {
                         if(!empty($details_value['variant_sku'])){
-                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['variant_sku']);
                         } else {
-                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['price'], $details_value['quantity'], $details_value['product_code']);
                         }
                     } else {
                         if(!empty($details_value['variant_sku'])){
-                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['variant_sku']);
                         } else {
-                            $product .= $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['product_code']);
+                            $product = $this->productListFormat(substr($details_value['product_name'], 0, 25), $details_value['variant_price'], $details_value['quantity'], $details_value['product_code']);
                         }
                     }
                 }
@@ -1801,7 +1801,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postCardPayment()
     {
@@ -1893,7 +1893,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postCashDrawer()
     {
@@ -1941,7 +1941,7 @@ class CashierAPIController extends ControllerAPI
      * @author Kadek <kadek@dominopos.com>
      * @author Rio Astamal <me@rioastamal.net>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postScanCart()
     {
@@ -2089,7 +2089,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postCustomerDisplay()
     {
@@ -2181,7 +2181,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postProductDetail()
     {
@@ -2287,7 +2287,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postCartBasedPromotion()
     {
@@ -2358,7 +2358,7 @@ class CashierAPIController extends ControllerAPI
      * @param string        `sort_mode`             (optional) - asc or desc
      * @param integer       `take`                  (optional) - limit
      * @param integer       `skip`                  (optional) - limit offset
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function getPosQuickProduct()
     {
@@ -2539,7 +2539,7 @@ class CashierAPIController extends ControllerAPI
      *
      * List of API Parameters
      * ----------------------
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function getMerchantInfo()
     {
@@ -3018,7 +3018,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function getCartCashier()
     {
@@ -3071,7 +3071,7 @@ class CashierAPIController extends ControllerAPI
      *
      * @author Kadek <kadek@dominopos.com>
      *
-     * @return Illuminate\Support\Facades\Response
+     * @return \Illuminate\Support\Facades\Response
      */
     public function postDeleteCart()
     {
