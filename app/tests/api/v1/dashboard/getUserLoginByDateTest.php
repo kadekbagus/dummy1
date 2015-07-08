@@ -19,7 +19,8 @@ class getUserLoginByDateTest extends TestCase
     public static function prepareDatabase()
     {
         $faker       = Faker::create();
-        $merchant = Factory::create('Merchant');
+        $merchant    = Factory::create('Merchant');
+        $retailer    = Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]);
         $newUsers    = Factory::times(5)->create('User');
         $oldUser     = Factory::times(5)->create('User', ['created_at' => $faker->dateTimeBetween('-2days', '-1day')]);
 
@@ -36,7 +37,7 @@ class getUserLoginByDateTest extends TestCase
 
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `user_id`, `created_at`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `group`, `activity_name`, `user_id`, `location_id`, `created_at`) VALUES";
         $id=1;
         foreach ($users as $user)
         {
@@ -44,12 +45,12 @@ class getUserLoginByDateTest extends TestCase
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id},'login_ok', {$user->user_id}, '{$faker->dateTimeBetween('-1hours')->format('Y-m-d H:i:s')}'),";
+                    ({$id}, 'mobile-ci', 'login_ok', {$user->user_id}, {$retailer->merchant_id}, '{$faker->dateTimeBetween('-1hours')->format('Y-m-d H:i:s')}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(1000, 'widget_click', null, null);";
+        $insert .= "(1000, 'mobile-ci', 'widget_click', null, null, null);";
 
         DB::statement($insert);
 
