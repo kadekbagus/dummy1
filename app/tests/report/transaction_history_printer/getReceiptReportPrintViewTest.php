@@ -52,18 +52,22 @@ class getReceiptReportPrintViewTest extends TestCase
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
             $_GET['orbit_session']   = $this->session->getSessionId();
+            $_GET['apikey']          = $this->authData->api_key;
+            $_GET['apitimestamp']    = time();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
+            $secretKey = $this->authData->api_secret_key;
             $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
             ob_start();
             $this->call('GET', $url)->getContent();
             $response = ob_get_contents();
             ob_end_clean();
 
-            $response = array_map('str_getcsv', explode("\n", $response));
+            $response = array_map('str_getcsv', explode("\n", rtrim($response, "\n")));
             return $response;
         };
 
@@ -103,18 +107,22 @@ class getReceiptReportPrintViewTest extends TestCase
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
             $_GET['orbit_session']   = $this->session->getSessionId();
+            $_GET['apikey']          = $this->authData->api_key;
+            $_GET['apitimestamp']    = time();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
+            $secretKey = $this->authData->api_secret_key;
             $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
             ob_start();
             $this->call('GET', $url)->getContent();
             $response = ob_get_contents();
             ob_end_clean();
 
-            $response = array_map('str_getcsv', explode("\n", $response));
+            $response = array_map('str_getcsv', explode("\n", rtrim($response, "\n")));
             return $response;
         };
 
@@ -143,18 +151,22 @@ class getReceiptReportPrintViewTest extends TestCase
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
             $_GET['orbit_session']   = $this->session->getSessionId();
+            $_GET['apikey']          = $this->authData->api_key;
+            $_GET['apitimestamp']    = time();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
+            $secretKey = $this->authData->api_secret_key;
             $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
             ob_start();
             $this->call('GET', $url)->getContent();
             $response = ob_get_contents();
             ob_end_clean();
 
-            $response = array_map('str_getcsv', explode("\n", $response));
+            $response = array_map('str_getcsv', explode("\n", rtrim($response, "\n")));
             return $response;
         };
 
@@ -183,18 +195,22 @@ class getReceiptReportPrintViewTest extends TestCase
             $_GET                    = $getData;
             $_GET['export']          = 'csv';
             $_GET['orbit_session']   = $this->session->getSessionId();
+            $_GET['apikey']          = $this->authData->api_key;
+            $_GET['apitimestamp']    = time();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
+            $secretKey = $this->authData->api_secret_key;
             $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
             ob_start();
             $this->call('GET', $url)->getContent();
             $response = ob_get_contents();
             ob_end_clean();
 
-            $response = array_map('str_getcsv', explode("\n", $response));
+            $response = array_map('str_getcsv', explode("\n", rtrim($response, "\n")));
             return $response;
         };
 
@@ -229,11 +245,15 @@ class getReceiptReportPrintViewTest extends TestCase
             $_GET                    = array_merge($_GET, $getData);
             $_GET['user_id']         = $this->authData->user_id;
             $_GET['orbit_session']   = $this->session->getSessionId();
+            $_GET['apikey']          = $this->authData->api_key;
+            $_GET['apitimestamp']    = time();
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
+            $secretKey = $this->authData->api_secret_key;
             $_SERVER['REQUEST_METHOD']         = 'GET';
             $_SERVER['REQUEST_URI']            = $url;
+            $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
             ob_start();
             $this->call('GET', $url)->getContent();
