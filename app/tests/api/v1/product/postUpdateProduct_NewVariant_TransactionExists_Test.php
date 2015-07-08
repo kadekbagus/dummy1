@@ -450,6 +450,14 @@ class postUpdateProduct_NewVariant_TransactionExists_Test extends OrbitTestCase
     }
 
     /**
+     * Executed only once at the end of the test.
+     */
+    public static function tearDownAfterClass()
+    {
+        static::truncateData();
+    }
+
+    /**
      * Clear all data that has been inserted.
      */
     public static function truncateData()
