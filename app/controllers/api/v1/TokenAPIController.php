@@ -22,6 +22,7 @@ class TokenAPIController extends ControllerAPI
      * List of API Parameters
      * ----------------------
      * @param string    `token` (required) - The token string
+     * @param string    `token_name` (optional) - The token name (default: `user_registration_mobile`)
      * @return Illuminate\Support\Facades\Response
      */
     public function getSearchToken()
@@ -29,10 +30,15 @@ class TokenAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
+            $this->registerCustomValidation();
+
             $tokenId = OrbitInput::get('token');
+            $tokenName = OrbitInput::get('token_name', 'user_registration_mobile');
             $validator = Validator::make(
                 ['token'    => $tokenId],
-                ['token'    => 'required']
+                ['token'    => 'required'],
+                ['token_name' => $tokenName],
+                ['token_name' => 'required,orbit.valid_token_name']
             );
 
             Event::fire('orbit.token.getsearchtoken.before.validation', array($this, $validator));
@@ -65,7 +71,7 @@ class TokenAPIController extends ControllerAPI
 
             // Builder object
             $tokens = Token::excludeDeleted()
-                           ->where('token_name', 'user_registration_mobile')
+                           ->where('token_name', $tokenName)
                            ->where('token_value', $tokenId)
                            ->active();
 
@@ -184,5 +190,12 @@ class TokenAPIController extends ControllerAPI
         Event::fire('orbit.token.getsearchtoken.before.render', array($this, &$output));
 
         return $output;
+    }
+
+    private function registerCustomValidation()
+    {
+        Validator::extend('orbit.valid_token_name', function ($attribute, $value, $parameters) {
+            return in_array($value, [Token::NAME_USER_REGISTRATION_MOBILE, Token::NAME_RESET_PASSWORD], true);
+        });
     }
 }

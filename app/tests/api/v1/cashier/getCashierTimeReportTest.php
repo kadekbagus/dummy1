@@ -53,16 +53,28 @@ class getCashierTimeReportTest extends TestCase
 
         for ($i = 0; $i < 2; $i++) {
             $user = $users[$i % 2];
-            $prefix = DB::getTablePrefix();
-            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `response_status`, `created_at`) VALUES";
-            $created_at =  $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
-            $insert .= "('login_ok', 'Login OK', 'login', {$user->user_id}, 'OK', '{$created_at}')";
-            DB::statement($insert);
+            $merchant = $merchants[$user->user_id];
+            $retailer = $retailers[$user->user_id];
 
-            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `response_status`, `created_at`) VALUES";
-            $created_at = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
-            $insert .= "('logout_ok', 'Logout OK', 'logout', {$user->user_id}, 'OK', '{$created_at}')";
-            DB::statement($insert);
+            $bindings = [
+                'user_id' => $user->user_id,
+                'full_name' => $user->getFullName(),
+                'role_id' => $user->role->role_id,
+                'role_name' => $user->role->role_name,
+                'location_id' => $retailer->merchant_id,
+                'location_name' => $retailer->name,
+            ];
+
+            $prefix = DB::getTablePrefix();
+            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
+            $bindings['created_at'] =  $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
+            $insert .= "('login_ok', 'Login OK', 'login', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            DB::statement($insert, $bindings);
+
+            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
+            $bindings['created_at'] = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
+            $insert .= "('logout_ok', 'Logout OK', 'logout', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            DB::statement($insert, $bindings);
 
             $customer = Factory::create('User', [
                 'user_firstname' => "Customer00{$i}",
@@ -70,8 +82,8 @@ class getCashierTimeReportTest extends TestCase
             ]);
 
             $transactions = Factory::times(2)->create('Transaction', [
-                'merchant_id'  => $merchants[$user->user_id]->merchant_id,
-                'retailer_id'  => $retailers[$user->user_id]->merchant_id,
+                'merchant_id'  => $merchant->merchant_id,
+                'retailer_id'  => $retailer->retailer_id,
                 'cashier_id'   => $user->user_id,
                 'total_to_pay' => 100000,
                 'customer_id'  => $customer->user_id
@@ -259,6 +271,8 @@ class getCashierTimeReportTest extends TestCase
 
     public function testOK_get_cashier_time_list_with_customer_name_filter()
     {
+        $this->markTestIncomplete('Not implemented: customer name filtering');
+
         $makeRequest = function ($getData) {
             $_GET                 = $getData;
             $_GET['apikey']       = $this->authData->api_key;

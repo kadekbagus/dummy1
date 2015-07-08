@@ -4,6 +4,8 @@
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
+use App;
+use Illuminate\Database\Connectors\ConnectionFactory;
 use IntermediateAuthBrowserController;
 use TenantAPIController;
 use View;
@@ -13,7 +15,7 @@ use DB;
 use PDO;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 
 class DataPrinterController extends IntermediateAuthBrowserController
 {
@@ -32,11 +34,14 @@ class DataPrinterController extends IntermediateAuthBrowserController
      */
     protected function preparePDO()
     {
-        $prefix = DB::getTablePrefix();
         $default = Config::get('database.default');
         $dbConfig = Config::get('database.connections.' . $default);
+        /** @var ConnectionFactory $factory */
+        $factory = App::make('db.factory');
+        $connector = $factory->createConnector($dbConfig);
+        $connector->connect($dbConfig);
 
-        $this->pdo = new PDO("mysql:host=localhost;dbname={$dbConfig['database']}", $dbConfig['username'], $dbConfig['password']);
+        $this->pdo = $connector->connect($dbConfig);
     }
 
     /**

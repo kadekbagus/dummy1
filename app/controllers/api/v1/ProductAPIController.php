@@ -185,6 +185,13 @@ class ProductAPIController extends ControllerAPI
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
+            if (!App::bound('orbit.empty.merchant')) {
+                // if the merchant ID was not specified, set the orbit.empty.merchant to the
+                // existing merchant ID so other validators work
+                $product_to_update = App::make('orbit.empty.product');
+                App::instance('orbit.empty.merchant', Merchant::find($product_to_update->merchant_id));
+            }
+
             if($status == 'active') {
                 $validator = Validator::make(
                     array(

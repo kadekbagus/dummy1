@@ -50,7 +50,7 @@ class PaginationTest extends OrbitTestCase
 
     public function testSetPerPageValueConfigNotExistsFallbackToConfigValue()
     {
-        $listname = 'mytest';
+        $listname = 'nonexistentconfig';
         $expect = 101;
         $maxRecordConfig = $this->config['per_page']['fallback'];
 
@@ -85,7 +85,7 @@ class PaginationTest extends OrbitTestCase
 
     public function testSetMaxRecordValueConfigNotExistsFallbackToConfigValue()
     {
-        $listname = 'mytest';
+        $listname = 'nonexistent2';
         $expect = 333;
         $maxRecordConfig = $this->config['max_record']['fallback'];
         Config::set($maxRecordConfig, $expect);
