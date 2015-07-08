@@ -21,5 +21,8 @@ Route::post('/app/v1/pos/logout', 'IntermediateLoginController@Customerportal\Cu
 
 
 
+// customer reset password
+Route::post('/api/v1/customerportal/request-password-reset', 'Customerportal\CustomerportalAPIController@postRequestPasswordReset');
+Route::post('/api/v1/customerportal/reset-password', 'Customerportal\CustomerportalAPIController@postResetPassword');
 
 

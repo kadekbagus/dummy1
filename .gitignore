@@ -34,6 +34,7 @@ app/config/packages/laraeval/laraeval/config.php
 vendor/fzaninotto/
 vendor/laracasts/
 vendor/mockery/
+vendor/hamcrest/
 
 # Export directory
 export-import/data/**

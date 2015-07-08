@@ -42,6 +42,10 @@ class postNewPromotionTest extends TestCase
             $_POST['promotion_type']  = 'product';
             $_POST['status']          = 'active';
             $_POST['description']     = 'Discount for random product selected';
+            $_POST['rule_type']            = 'cart_discount_by_percentage';
+            $_POST['begin_date']           = '2014-11-30 00:00:00';
+            $_POST['end_date']             = '2014-12-25 00:00:00';
+            $_POST['discount_value']       = '10';
             $_POST['discount_object_type'] = 'product';
             $_POST['discount_object_id1']  = $product->product_id;
             $_POST['retailer_ids']         = [$this->retailer->merchant_id];
@@ -88,6 +92,10 @@ class postNewPromotionTest extends TestCase
             $_POST['promotion_type']  = 'product';
             $_POST['status']          = 'active';
             $_POST['description']     = 'Discount for random family selected';
+            $_POST['rule_type']            = 'cart_discount_by_percentage';
+            $_POST['begin_date']           = '2014-11-30 00:00:00';
+            $_POST['end_date']             = '2014-12-25 00:00:00';
+            $_POST['discount_value']       = '10';
             $_POST['discount_object_type'] = 'family';
             $_POST['discount_object_id1']  = $category->category_id;
             $_POST['retailer_ids']         = [$this->retailer->merchant_id];
@@ -132,6 +140,11 @@ class postNewPromotionTest extends TestCase
             $_POST['merchant_id'] = $this->merchant->merchant_id;
             $_POST['promotion_name']  = 'Christmas\'s Discount Cart';
             $_POST['promotion_type']  = 'cart';
+            $_POST['rule_type']       = 'cart_discount_by_percentage';
+            $_POST['rule_value']      = '10';
+            $_POST['begin_date']      = '2014-11-30 00:00:00';
+            $_POST['end_date']        = '2014-12-25 00:00:00';
+            $_POST['discount_value']  = '10';
             $_POST['status']          = 'active';
             $_POST['description']     = 'Discount for random product selected';
             $_POST['retailer_ids']         = [$this->retailer->merchant_id];
@@ -173,6 +186,11 @@ class postNewPromotionTest extends TestCase
             $_POST['merchant_id'] = $merchant->merchant_id;
             $_POST['promotion_name']  = "Christmas's Discount {$product->product_name}";
             $_POST['promotion_type']  = 'cart';
+            $_POST['rule_value']      = '10';
+            $_POST['rule_type']       = 'cart_discount_by_percentage';
+            $_POST['begin_date']      = '2014-11-30 00:00:00';
+            $_POST['end_date']        = '2014-12-25 00:00:00';
+            $_POST['discount_value']  = '10';
             $_POST['status']          = 'active';
             $_POST['description']     = 'Discount for random product selected';
 
@@ -255,7 +273,8 @@ class postNewPromotionTest extends TestCase
             'promotion_name' => 'Christmas\'s Discount new',
             'promotion_type' => 'cart',
             'status'         => 'active',
-            'description'    => 'Discount for random selected product'
+            'description'    => 'Discount for random selected product',
+            'begin_date'     => '2014-11-30 00:00:00',
         );
 
         $reqData = $postData;

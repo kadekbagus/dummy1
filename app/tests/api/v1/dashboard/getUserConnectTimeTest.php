@@ -20,11 +20,12 @@ class getUserConnectTimeTest extends TestCase
     {
         $faker    = Faker::create();
         $merchant = Factory::create('Merchant');
+        $retailer = Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]);
         $users = Factory::times(5)->create('User');
 
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `user_id`, `created_at`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `group`, `activity_name`, `user_id`, `location_id`, `created_at`) VALUES";
         $id=1;
         foreach ($users as $user)
         {
@@ -34,15 +35,15 @@ class getUserConnectTimeTest extends TestCase
                 $loginTime = $faker->dateTimeBetween("-{$j}days -1hours", "-{$j}days -2minutes")->format('Y-m-d H:i:s');
                 $logoutTime= $faker->dateTimeBetween("-{$j}days +2minutes", "-{$j}days +1hours")->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id},'login_ok', {$user->user_id}, '{$loginTime}'),";
+                    ({$id}, 'mobile-ci', 'login_ok', {$user->user_id}, {$retailer->merchant_id}, '{$loginTime}'),";
                 $id++;
                 $insert .= "
-                    ({$id},'logout_ok', {$user->user_id}, '{$logoutTime}'),";
+                    ({$id}, 'mobile-ci', 'logout_ok', {$user->user_id}, {$retailer->merchant_id}, '{$logoutTime}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(5000, 'login_ok', null, null);";
+        $insert .= "(5000, 'mobile-ci', 'login_ok', null, null, null);";
 
         DB::statement($insert);
 

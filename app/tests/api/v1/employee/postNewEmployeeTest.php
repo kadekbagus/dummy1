@@ -58,6 +58,7 @@ class postNewEmployeeTest extends TestCase
             'lastname'  => 'Doe',
             'username'  => 'john.doe',
             'password'  => 'john2doe',
+            'birthdate' => '1990-01-12',
             'password_confirmation' => 'john2doe',
             'employee_role' => 'cashier',
             'retailer_ids'  => [$this->retailer->merchant_id]
@@ -99,7 +100,7 @@ class postNewEmployeeTest extends TestCase
             $_GET['apikey']       = $this->authData->api_key;
             $_GET['apitimestamp'] = time();
 
-            $_POST = array_merge($_POST, $postData);
+            $_POST = $postData;
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
 
@@ -115,56 +116,57 @@ class postNewEmployeeTest extends TestCase
             return $response;
         };
 
+        $valid_request_data = [
+            'firstname' => 'John',
+            'lastname'  => 'Doe',
+            'username'  => 'john.doe',
+            'password'  => 'john2doe',
+            'birthdate' => '1990-01-12',
+            'password_confirmation' => 'john2doe',
+            'employee_role' => 'cashier',
+            'retailer_ids'  => [$this->retailer->merchant_id]
+        ];
+
+        $dataWithout = function ($key) use ($valid_request_data) {
+            $result = $valid_request_data;
+            unset($result[$key]);
+            return $result;
+        };
+
         $userCount     = User::count();
         $employeeCount = Employee::count();
-        $postData      = [];
-        $response      = $makeRequest($postData);
+        $required_fields_and_names = [
+            'firstname' => 'firstname',
+            'lastname' => 'lastname',
+            'birthdate' => 'birthdate',
+            'username' => 'Login.ID',
+            'password' => 'password',
+            'employee_role' => 'employee.role',
+        ];
 
+        foreach ($required_fields_and_names as $field => $name) {
+            $bad_request_data = $dataWithout($field);
+            $response = $makeRequest($bad_request_data);
+            $this->assertResponseStatus(403);
+            $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
+            $this->assertRegExp("/${name}.*required/", $response->message);
+        }
+
+        $mismatched_password_data = $valid_request_data;
+        $mismatched_password_data['password_confirmation'] = $mismatched_password_data['password'] . 'xxx';
+        $response = $makeRequest($mismatched_password_data);
         $this->assertResponseStatus(403);
         $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/firstname.*required/', $response->message);
+        $this->assertRegExp("/password.*not.match/", $response->message);
 
-
-        $postData['firstname']  = 'John';
-        $response      = $makeRequest($postData);
-
+        $future_birthdate_data = $valid_request_data;
+        $future_birthdate_data['birthdate'] = date('Y-m-d', strtotime('+10 days'));
+        $response = $makeRequest($future_birthdate_data);
         $this->assertResponseStatus(403);
         $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/lastname.*required/', $response->message);
+        $this->assertRegExp("/birthdate.*date.before/", $response->message);
 
-        $postData['lastname']  = 'Doe';
-        $response      = $makeRequest($postData);
-
-        $this->assertResponseStatus(403);
-        $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/Login.ID.*required/', $response->message);
-
-        $postData['username']  = 'john.2.doe';
-        $response      = $makeRequest($postData);
-
-        $this->assertResponseStatus(403);
-        $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/password.*required/', $response->message);
-
-
-        $postData['password']  = 'thejohn2password';
-        $postData['password_confirmation']  = ['thejohn1password'];
-        $response      = $makeRequest($postData);
-
-        $this->assertResponseStatus(403);
-        $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/password.*not.match/', $response->message);
-
-
-        $postData['password_confirmation']  = 'thejohn2password';
-        $response      = $makeRequest($postData);
-
-        $this->assertResponseStatus(403);
-        $this->assertSame(Status::INVALID_ARGUMENT, $response->code);
-        $this->assertRegExp('/employee.role.*required/', $response->message);
-
-
-        // Should not persist the user and their employee relations
+        // At the end, no request should persist the user and their employee relations
         $this->assertSame($userCount, User::count());
         $this->assertSame($employeeCount, Employee::count());
     }
@@ -172,7 +174,7 @@ class postNewEmployeeTest extends TestCase
     public function testError_request_without_right_permission()
     {
         $i = 0;
-        $makeRequest = function ($authData) use ($i) {
+        $makeRequest = function ($authData) use (&$i) {
             $_GET['apikey']       = $authData->api_key;
             $_GET['apitimestamp'] = time();
 
@@ -180,6 +182,7 @@ class postNewEmployeeTest extends TestCase
                 'firstname' => 'John',
                 'lastname'  => 'Doe',
                 'username'  => "john.{$i}.doe",
+                'birthdate' => '1990-01-12',
                 'password'  => 'john2doe',
                 'password_confirmation' => 'john2doe',
                 'employee_role' => 'cashier',

@@ -370,6 +370,14 @@ class postNewProduct_DuplicateUPC_SKU_Test extends OrbitTestCase
     }
 
     /**
+     * Executed only once at the end of the test.
+     */
+    public static function tearDownAfterClass()
+    {
+        static::truncateData();
+    }
+
+    /**
      * Clear all data that has been inserted.
      */
     public static function truncateData()
@@ -578,6 +586,7 @@ class postNewProduct_DuplicateUPC_SKU_Test extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Gergaji Mahal';
+        $_POST['short_description'] = 'Gergaji ini cukup mahal';
         $_POST['status'] = 'inactive';
 
         // UPC-002 belongs to product 'Celana Murah' merchant 'Matahari'
@@ -606,6 +615,7 @@ class postNewProduct_DuplicateUPC_SKU_Test extends OrbitTestCase
         // POST data
         $_POST['merchant_id'] = 2;
         $_POST['product_name'] = 'Gergaji Mahal';
+        $_POST['short_description'] = 'Gergaji ini cukup mahal';
         $_POST['status'] = 'inactive';
 
         // SKU-002 belongs to product 'Celana Murah' merchant 'Matahari'
