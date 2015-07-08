@@ -19,7 +19,8 @@ Route::post('/api/v1/pos/logout', function () {
 Route::post('/app/v1/pos/logout', 'IntermediateLoginController@Customerportal\Customerportal_postLogoutPortal');
 
 
-
+// customer resend activation
+Route::post('/api/v1/customerportal/resend-activation-email', 'Customerportal\CustomerportalAPIController@postResendActivationEmail');
 
 // customer reset password
 Route::post('/api/v1/customerportal/request-password-reset', 'Customerportal\CustomerportalAPIController@postRequestPasswordReset');

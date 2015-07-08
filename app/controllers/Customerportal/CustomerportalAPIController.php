@@ -169,8 +169,6 @@ class CustomerportalAPIController extends ControllerAPI
     }
 
     /**
-<<<<<<< HEAD
-=======
      * Resend the activation email.
      *
      * Just in case the user deletes it. This will expire the previous token and issue a new one.
@@ -556,7 +554,6 @@ class CustomerportalAPIController extends ControllerAPI
 
 
     /**
->>>>>>> 53b5d78... Password Reset (OP-188)
      * Get current logged in user used in view related page.
      *
      * @author Rio Astamal <me@rioastamal.net>
