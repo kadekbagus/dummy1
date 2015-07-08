@@ -3,6 +3,7 @@ ROOT=$(pwd)
 TESTDUMMYDIR="$ROOT/vendor/laracasts/testdummy"
 FAKERDIR="$ROOT/vendor/fzaninotto/faker"
 MOCKERYDIR="$ROOT/vendor/mockery/mockery"
+HAMCRESTDIR="$ROOT/vendor/hamcrest/hamcrest-php"
 
 if [ -d $TESTDUMMYDIR ]; then
     echo "Directory $TESTDUMMYDIR exists skipping testdummy"
