@@ -220,7 +220,7 @@ class getUserByAgeTest extends TestCase
 
         $response = $makeRequest([
             'take' => 2,
-            'skip' => 2,
+            'skip' => 200,
             'is_report' => 1
         ]);
 
