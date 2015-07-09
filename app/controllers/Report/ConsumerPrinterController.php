@@ -28,30 +28,92 @@ class ConsumerPrinterController extends DataPrinterController
         $listOfRetailerIds = [];
 
         // Builder object
+        // $users = User::Consumers()
+        //             ->select('users.*',   
+        //                 'merchants.name as merchant_name',
+        //                 'user_details.city as city',
+        //                 'user_details.birthdate as birthdate',
+        //                 'user_details.gender as gender',
+        //                 'user_details.country as country',
+        //                 'user_details.last_visit_any_shop as last_visit_date',
+        //                 'user_details.last_spent_any_shop as last_spent_amount',
+        //                 'user_details.relationship_status as relationship_status',
+        //                 'user_details.number_of_children as number_of_children',
+        //                 'user_details.occupation as occupation',
+        //                 'user_details.sector_of_activity as sector_of_activity',
+        //                 'user_details.last_education_degree as last_education_degree',
+        //                 'user_details.avg_annual_income1 as avg_annual_income1',
+        //                 'user_details.avg_monthly_spent1 as avg_monthly_spent1',
+        //                 'user_details.preferred_language as preferred_language',
+        //                  DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
+        //             ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+        //             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
+        //             ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+        //             ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
+        //             ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+        //             ->excludeDeleted('users')
+        //             ->groupBy('users.user_id');
+
+        // get merchant id from the current user if not found get from config (current active merchant)
+        $merchant_id = User::with('userDetail')->where('user_id', $user->user_id)->first()->user_detail->merchant_id;
+        if (empty($merchant_id)) {
+            $retailer = $this->getRetailerInfo();
+            $merchant_id = $retailer->parent->merchant_id;
+        }
+
         $users = User::Consumers()
-                    ->select('users.*',   
-                        'merchants.name as merchant_name',
-                        'user_details.city as city',
-                        'user_details.birthdate as birthdate',
-                        'user_details.gender as gender',
-                        'user_details.country as country',
-                        'user_details.last_visit_any_shop as last_visit_date',
-                        'user_details.last_spent_any_shop as last_spent_amount',
-                        'user_details.relationship_status as relationship_status',
-                        'user_details.number_of_children as number_of_children',
-                        'user_details.occupation as occupation',
-                        'user_details.sector_of_activity as sector_of_activity',
-                        'user_details.last_education_degree as last_education_degree',
-                        'user_details.avg_annual_income1 as avg_annual_income1',
-                        'user_details.avg_monthly_spent1 as avg_monthly_spent1',
-                        'user_details.preferred_language as preferred_language',
-                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
+                    ->excludeDeleted('users')
+                    ->select('users.*',
+                            'merchants.name as merchant_name',
+                            'user_details.city as city',
+                            'user_details.birthdate as birthdate',
+                            'user_details.gender as gender',
+                            'user_details.country as country',
+                            'user_details.last_visit_any_shop as last_visit_date',
+                            //'user_details.last_spent_any_shop as last_spent_amount',
+                            'user_details.relationship_status as relationship_status',
+                            'user_details.number_of_children as number_of_children',
+                            'user_details.occupation as occupation',
+                            'user_details.sector_of_activity as sector_of_activity',
+                            'user_details.last_education_degree as last_education_degree',
+                            'user_details.avg_annual_income1 as avg_annual_income1',
+                            'user_details.avg_monthly_spent1 as avg_monthly_spent1',
+                            'user_details.preferred_language as preferred_language', 
+                             DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'), 
+                             DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
+                            )
                     ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                     ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
+                    ->leftJoin(DB::raw(
+                            '(
+                            SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
+                                FROM orb_activities ac
+                                INNER JOIN orb_merchants m on m.merchant_id=ac.location_id
+                                WHERE
+                                    ac.activity_name = "login_ok" AND 
+                                    ac.group = "mobile-ci" AND
+                                    m.parent_id = '.$merchant_id.'
+                                GROUP BY ac.user_id
+                            ) AS a'
+                        ), function ($q) {
+                        $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
+                    })
+                    ->leftJoin(DB::raw(
+                            '(  
+                                SELECT tr.customer_id, tr.total_to_pay as last_spent_amount, max(tr.created_at) as transaction_date
+                                    FROM 
+                                        orb_transactions tr
+                                    WHERE
+                                        tr.status = "paid" and
+                                        tr.merchant_id = '.$merchant_id.'
+                                    GROUP BY tr.customer_id 
+                            ) AS t'
+                        ), function ($q) {
+                        $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
+                    })
                     ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
-                    ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
+                    ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id') 
                     ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                    ->excludeDeleted('users')
                     ->groupBy('users.user_id');
 
         // Filter by merchant ids
@@ -243,8 +305,8 @@ class ConsumerPrinterController extends DataPrinterController
                 'firstname'               => 'users.user_firstname',
                 'gender'                  => 'gender',
                 'city'                    => 'city',
-                'last_visit_shop'         => 'merchant_name',
-                'last_visit_date'         => 'last_visit_date',
+                'last_visit_shop'         => 'last_visited_store',
+                'last_visit_date'         => 'last_visited_date',
                 'last_spent_amount'       => 'last_spent_amount'
             );
 
@@ -297,7 +359,7 @@ class ConsumerPrinterController extends DataPrinterController
                     $avg_monthly_spent = $this->printAverageShopping($row);
 
                     printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
-                        '', $row->user_email, $gender, $address, $this->printUtf8($row->merchant_name), $row->last_visit_date, $row->last_spent_amount, $row->created_at,
+                        '', $row->user_email, $gender, $address, $this->printUtf8($row->last_visited_store), $row->last_visited_date, $row->last_spent_amount, $row->created_at,
                         $this->printUtf8($row->user_firstname), $this->printUtf8($row->user_lastname), $row->birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
                         $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_list);
                 }
@@ -466,8 +528,8 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastVisitDate($consumer)
     {
-        $date = $consumer->last_visit_date;
-        if($consumer->last_visit_date==NULL || empty($consumer->last_visit_date)){
+        $date = $consumer->last_visited_date;
+        if($consumer->last_visited_date==NULL || empty($consumer->last_visited_date)){
             $result = ""; 
         }else {
             $date = explode(' ',$date);
