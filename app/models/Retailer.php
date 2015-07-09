@@ -1,7 +1,12 @@
 <?php
 
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class Retailer extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     /**
      * Retailer Model
      *
@@ -52,7 +57,7 @@ class Retailer extends Eloquent
      */
     public function employees()
     {
-        return $this->belongsToMany('Employee', 'employee_retailer', 'merchant_id', 'retailer_id');
+        return (new BelongsToManyWithUUIDPivot((new Employee())->newQuery(), $this, 'employee_retailer', 'merchant_id', 'retailer_id', 'employee_retailer_id', 'employees'));
     }
 
     /**

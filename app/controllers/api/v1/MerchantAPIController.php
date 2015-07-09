@@ -68,7 +68,7 @@ class MerchantAPIController extends ControllerAPI
                     'password'    => $password,
                 ),
                 array(
-                    'merchant_id' => 'required|numeric|orbit.empty.merchant|orbit.exists.merchant_have_retailer',
+                    'merchant_id' => 'required|orbit.empty.merchant|orbit.exists.merchant_have_retailer',
                     'password'    => 'required|orbit.access.wrongpassword',
                 )
             );
@@ -365,7 +365,7 @@ class MerchantAPIController extends ControllerAPI
                     'email'         => 'required|email|orbit.exists.email',
                     'name'          => 'required',
                     'status'        => 'required|orbit.empty.merchant_status',
-                    'country'       => 'required|numeric',
+                    'country'       => 'required',
                     'url'           => 'orbit.formaterror.url.web',
                     'address_line1' => 'required',
                     'city'          => 'required',
@@ -1246,8 +1246,8 @@ class MerchantAPIController extends ControllerAPI
             $validator = Validator::make(
                 $data,
                 array(
-                    'merchant_id'                => 'required|numeric|orbit.empty.merchant',
-                    'user_id'                    => 'numeric|orbit.empty.user',
+                    'merchant_id'                => 'required|orbit.empty.merchant',
+                    'user_id'                    => 'orbit.empty.user',
                     'email'                      => 'sometimes|required|email|email_exists_but_me',
                     'status'                     => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
                     'omid'                       => 'omid_exists_but_me',

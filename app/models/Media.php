@@ -6,6 +6,8 @@
  */
 class Media extends Eloquent
 {
+    use GeneratedUuidTrait;
+
     /**
      * Override default table name so it does not include 's'
      *

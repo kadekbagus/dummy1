@@ -1,4 +1,6 @@
 <?php
+use Orbit\EncodedUUID;
+
 /**
  * Seeder for Roles
  *
@@ -6,6 +8,12 @@
  */
 class RoleTableSeeder extends Seeder
 {
+
+    private function generateId()
+    {
+        return EncodedUUID::make();
+    }
+
     public function run()
     {
         // Role for Orbit Application should be:
@@ -21,47 +29,47 @@ class RoleTableSeeder extends Seeder
         // 10. Guest
         $roles = [
             'Super Admin' => [
-                'role_id'       => 1,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Super Admin',
                 'role_order'    => 1,
             ],
             'Administrator' => [
-                'role_id'       => 2,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Administrator',
                 'role_order'    => 2,
             ],
             'Consumer' => [
-                'role_id'       => 3,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Consumer',
                 'role_order'    => 3,
             ],
             'Merchant Owner' => [
-                'role_id'       => 4,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Merchant Owner',
                 'role_order'    => 4,
             ],
             'Retailer Owner' => [
-                'role_id'       => 5,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Retailer Owner',
                 'role_order'    => 5,
             ],
             'Manager' => [
-                'role_id'       => 6,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Manager',
                 'role_order'    => 6,
             ],
             'Supervisor' => [
-                'role_id'       => 7,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Supervisor',
                 'role_order'    => 7,
             ],
             'Cashier' => [
-                'role_id'       => 8,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Cashier',
                 'role_order'    => 8,
             ],
             'Guest' => [
-                'role_id'       => 9,
+                'role_id'       => $this->generateId(),
                 'role_name'     => 'Guest',
                 'role_order'    => 9,
             ],

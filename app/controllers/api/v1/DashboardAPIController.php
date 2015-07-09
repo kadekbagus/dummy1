@@ -182,7 +182,7 @@ class DashboardAPIController extends ControllerAPI
                     } else {
                         $name = htmlspecialchars($product->product_name, ENT_QUOTES);
                     }
-                    array_push($defaultSelect, DB::raw("ifnull(sum(case product_id when {$product->product_id} then view_count end), 0) as '{$name}'"));
+                    array_push($defaultSelect, DB::raw("ifnull(sum(case product_id when '{$product->product_id}' then view_count end), 0) as '{$name}'"));
                 }
 
                 if (count($productIds) > 0) {

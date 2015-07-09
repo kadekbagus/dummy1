@@ -2,6 +2,8 @@
 
 class PermissionRole extends Eloquent
 {
+    use GeneratedUuidTrait;
+
     protected $primaryKey = 'permission_role_id';
 
     protected $table = 'permission_role';

@@ -72,7 +72,7 @@ class getTopProductAttributeTest extends TestCase
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id},'view_product', {$product->product_id}),";
+                    ({$id},'view_product', '{$product->product_id}'),";
                 $id++;
             }
             $i++;

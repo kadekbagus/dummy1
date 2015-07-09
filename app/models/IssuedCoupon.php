@@ -1,6 +1,7 @@
 <?php
 class IssuedCoupon extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * IssuedCoupon Model
      *

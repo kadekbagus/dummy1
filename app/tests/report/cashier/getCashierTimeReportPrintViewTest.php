@@ -66,10 +66,10 @@ class getCashierTimeReportPrintViewTest extends TestCase
             $login_time = $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
             $logout_time =  $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
             $insert_activities .=
-                "({$activity_id}, 'pos', 'login', 'login_ok', 'Login OK', {$user->user_id}, {$retailers[$user->user_id]->merchant_id}, '{$login_time}'),";
+                "({$activity_id}, 'pos', 'login', 'login_ok', 'Login OK', '{$user->user_id}', '{$retailers[$user->user_id]->merchant_id}', '{$login_time}'),";
             $activity_id++;
             $insert_activities .=
-                "({$activity_id}, 'pos', 'logout', 'logout_ok', 'Logout OK', {$user->user_id}, {$retailers[$user->user_id]->merchant_id}, '{$logout_time}'),";
+                "({$activity_id}, 'pos', 'logout', 'logout_ok', 'Logout OK', '{$user->user_id}', '{$retailers[$user->user_id]->merchant_id}', '{$logout_time}'),";
             $activity_id++;
 
             $customer = Factory::create('User', [

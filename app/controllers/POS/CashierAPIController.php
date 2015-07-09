@@ -1497,7 +1497,7 @@ class CashierAPIController extends ControllerAPI
                     'transaction_id' => $transaction_id,
                 ),
                 array(
-                    'transaction_id' => 'required|numeric',
+                    'transaction_id' => 'required',
                 )
             );
 
@@ -2204,7 +2204,7 @@ class CashierAPIController extends ControllerAPI
                 'product_id' => $product_id,
             ),
             array(
-                'product_id' => 'required|numeric',
+                'product_id' => 'required',
             )
             );
 
@@ -3304,7 +3304,7 @@ class CashierAPIController extends ControllerAPI
                     'transaction_id' => $transaction_id,
                 ),
                 array(
-                    'transaction_id' => 'required|numeric',
+                    'transaction_id' => 'required',
                 )
             );
 

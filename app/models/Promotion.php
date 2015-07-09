@@ -1,6 +1,9 @@
 <?php
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class Promotion extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * Promotion Model
      *
@@ -52,7 +55,7 @@ class Promotion extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id')->where('merchants.status','!=','deleted');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer', 'promotion_id', 'retailer_id', 'promotion_retailer_id', 'retailers'));
     }
 
     public function scopeProductPromotionType($query)

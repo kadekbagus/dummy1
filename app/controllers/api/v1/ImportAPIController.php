@@ -117,7 +117,7 @@ class ImportAPIController extends ControllerAPI
                     'products'      => $products,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'   => 'required|orbit.empty.merchant',
                     'products'      => 'required|nomore.than.one',
                 ),
                 array(
@@ -979,7 +979,7 @@ class ImportAPIController extends ControllerAPI
                     'image'         => $products,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'   => 'required|orbit.empty.merchant',
                     'image'         => 'required|nomore.than.one',
                 ),
                 array(

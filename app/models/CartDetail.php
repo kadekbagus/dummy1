@@ -2,6 +2,7 @@
 
 class CartDetail extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * Cart Detail Model
      *

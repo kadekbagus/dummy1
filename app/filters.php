@@ -11,6 +11,9 @@
 |
 */
 
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+
 App::before(function($request)
 {
     //

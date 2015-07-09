@@ -2,6 +2,7 @@
 
 class MerchantTax extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * Merchant Model
      *
