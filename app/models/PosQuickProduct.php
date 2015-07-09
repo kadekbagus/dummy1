@@ -6,6 +6,7 @@
  */
 class PosQuickProduct extends Eloquent
 {
+    use GeneratedUuidTrait;
     protected $primaryKey = 'pos_quick_product_id';
     protected $table = 'pos_quick_products';
 

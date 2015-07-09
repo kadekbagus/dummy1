@@ -154,15 +154,15 @@ class ProductAPIController extends ControllerAPI
                     'status'                     => $status,
                 ),
                 array(
-                    'product_id'        => 'required|numeric|orbit.empty.product',
+                    'product_id'        => 'required|orbit.empty.product',
                     'upc_code'          => 'orbit.exists.product.upc_code_but_me',
                     'sku'               => 'orbit.exists.product.sku_code_but_me',
-                    'merchant_id'       => 'numeric|orbit.empty.merchant',
-                    'category_id1'      => 'numeric|orbit.empty.category_id1',
-                    'category_id2'      => 'numeric|orbit.empty.category_id2',
-                    'category_id3'      => 'numeric|orbit.empty.category_id3',
-                    'category_id4'      => 'numeric|orbit.empty.category_id4',
-                    'category_id5'      => 'numeric|orbit.empty.category_id5',
+                    'merchant_id'       => 'orbit.empty.merchant',
+                    'category_id1'      => 'orbit.empty.category_id1',
+                    'category_id2'      => 'orbit.empty.category_id2',
+                    'category_id3'      => 'orbit.empty.category_id3',
+                    'category_id4'      => 'orbit.empty.category_id4',
+                    'category_id5'      => 'orbit.empty.category_id5',
                     'product_variants_delete'   => 'array|orbit.empty.product_variant_array',
                     'status'                    => 'orbit.exists.product_on_inactive_have_linked:' . $product_id,
                 ),
@@ -359,7 +359,7 @@ class ProductAPIController extends ControllerAPI
                 if (trim($category_id1) === '') {
                     $category_id1 = NULL;
                 }
-                $updatedproduct->category_id1 = (int) $category_id1;
+                $updatedproduct->category_id1 = $category_id1;
                 $updatedproduct->load('category1');
             });
 
@@ -367,7 +367,7 @@ class ProductAPIController extends ControllerAPI
                 if (trim($category_id2) === '') {
                     $category_id2 = NULL;
                 }
-                $updatedproduct->category_id2 = (int) $category_id2;
+                $updatedproduct->category_id2 = $category_id2;
                 $updatedproduct->load('category2');
             });
 
@@ -375,7 +375,7 @@ class ProductAPIController extends ControllerAPI
                 if (trim($category_id3) === '') {
                     $category_id3 = NULL;
                 }
-                $updatedproduct->category_id3 = (int) $category_id3;
+                $updatedproduct->category_id3 = $category_id3;
                 $updatedproduct->load('category3');
             });
 
@@ -383,7 +383,7 @@ class ProductAPIController extends ControllerAPI
                 if (trim($category_id4) === '') {
                     $category_id4 = NULL;
                 }
-                $updatedproduct->category_id4 = (int) $category_id4;
+                $updatedproduct->category_id4 = $category_id4;
                 $updatedproduct->load('category4');
             });
 
@@ -391,7 +391,7 @@ class ProductAPIController extends ControllerAPI
                 if (trim($category_id5) === '') {
                     $category_id5 = NULL;
                 }
-                $updatedproduct->category_id5 = (int) $category_id5;
+                $updatedproduct->category_id5 = $category_id5;
                 $updatedproduct->load('category5');
             });
 
@@ -413,7 +413,7 @@ class ProductAPIController extends ControllerAPI
 
                         ),
                         array(
-                            'retailer_id'   => 'numeric|orbit.empty.retailer',
+                            'retailer_id'   => 'orbit.empty.retailer',
                         )
                     );
 
@@ -1437,16 +1437,16 @@ class ProductAPIController extends ControllerAPI
                     'short_description' => $short_description,
                 ),
                 array(
-                    'merchant_id'           => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'           => 'required|orbit.empty.merchant',
                     'product_name'          => 'required',
                     'status'                => 'required|orbit.empty.product_status',
                     'upc_code'              => 'orbit.exists.product.upc_code',
                     'sku'                   => 'orbit.exists.product.sku_code',
-                    'category_id1'          => 'numeric|orbit.empty.category_id1',
-                    'category_id2'          => 'numeric|orbit.empty.category_id2',
-                    'category_id3'          => 'numeric|orbit.empty.category_id3',
-                    'category_id4'          => 'numeric|orbit.empty.category_id4',
-                    'category_id5'          => 'numeric|orbit.empty.category_id5',
+                    'category_id1'          => 'orbit.empty.category_id1',
+                    'category_id2'          => 'orbit.empty.category_id2',
+                    'category_id3'          => 'orbit.empty.category_id3',
+                    'category_id4'          => 'orbit.empty.category_id4',
+                    'category_id5'          => 'orbit.empty.category_id5',
                     'short_description'     => 'required',
                 ),
                 array(
@@ -1502,7 +1502,7 @@ class ProductAPIController extends ControllerAPI
 
                     ),
                     array(
-                        'retailer_id'   => 'numeric|orbit.empty.retailer',
+                        'retailer_id'   => 'orbit.empty.retailer',
                     )
                 );
 
@@ -1835,7 +1835,7 @@ class ProductAPIController extends ControllerAPI
                     'product_id' => $product_id,
                 ),
                 array(
-                    'product_id' => 'required|numeric|orbit.empty.product|orbit.exists.product_have_transaction|orbit.exists.product_on_delete_have_linked',
+                    'product_id' => 'required|orbit.empty.product|orbit.exists.product_have_transaction|orbit.exists.product_on_delete_have_linked',
                 )
             );
 

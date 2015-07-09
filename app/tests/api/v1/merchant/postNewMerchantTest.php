@@ -328,6 +328,7 @@ class postNewMerchantTest extends OrbitTestCase
 
     public function testUserIdNotNumeric_POST_api_v1_merchant_new()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['user_id'] = 'foo';
         $_POST['email'] = 'george@localhost.org';

@@ -623,7 +623,7 @@ class EmployeeAPIController extends ControllerAPI
                     'user_id'               => $userId,
                 ),
                 array(
-                    'user_id'               => 'required|numeric|orbit.empty.user'
+                    'user_id'               => 'required|orbit.empty.user'
                 )
             );
 

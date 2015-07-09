@@ -76,7 +76,7 @@ class UserAPIController extends ControllerAPI
                 array(
                     'email'     => 'required|email|orbit.email.exists',
                     'password'  => 'required|min:5|confirmed',
-                    'role_id' => 'required|numeric|orbit.empty.role',
+                    'role_id' => 'required|orbit.empty.role',
                 )
             );
 
@@ -277,7 +277,7 @@ class UserAPIController extends ControllerAPI
                     'user_id' => $user_id,
                 ),
                 array(
-                    'user_id' => 'required|numeric|orbit.empty.user|no_delete_themself',
+                    'user_id' => 'required|orbit.empty.user|no_delete_themself',
                 ),
                 array(
                     'no_delete_themself' => $message,
@@ -532,10 +532,10 @@ class UserAPIController extends ControllerAPI
                     'personal_interests'    => $personal_interests,
                 ),
                 array(
-                    'user_id'               => 'required|numeric',
+                    'user_id'               => 'required',
                     'username'              => 'orbit.exists.username',
                     'email'                 => 'email|email_exists_but_me',
-                    'role_id'               => 'numeric|orbit.empty.role',
+                    'role_id'               => 'orbit.empty.role',
                     'status'                => 'orbit.empty.user_status',
 
                     'firstname'             => 'required',
@@ -1249,18 +1249,43 @@ class UserAPIController extends ControllerAPI
              if ($user->isSuperAdmin()) {
 
                     $users = User::Consumers()
-                        ->select('users.*',
-                                    'merchants.name as last_visited_store',
-                                    'user_details.last_visit_any_shop as last_visited_date',
-                                    'user_details.last_spent_any_shop as last_spent_amount',
-                                    DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
-                        ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
-                        ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
-                        ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
-                        ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
-                        ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                        ->excludeDeleted('users')
-                        ->groupBy('users.user_id');
+                    ->excludeDeleted('users')
+                    ->select('users.*',
+                             DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'),
+                             DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
+                            )
+                    ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                    ->leftJoin(DB::raw(
+                            '(
+                            SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
+                                FROM '.$prefix.'activities ac
+                                INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
+                                WHERE
+                                    ac.activity_name = "login_ok" AND
+                                    ac.group = "mobile-ci"
+                                GROUP BY ac.activity_id
+                                ORDER BY ac.activity_id DESC LIMIT 1
+                            ) AS a'
+                        ), function ($q) {
+                        $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
+                    })
+                    ->leftJoin(DB::raw(
+                            '(
+                                SELECT tr.customer_id, tr.total_to_pay as last_spent_amount, max(tr.created_at) as transaction_date
+                                    FROM
+                                        '.$prefix.'transactions tr
+                                    WHERE
+                                        tr.status = "paid"
+                                    GROUP BY tr.transaction_id
+                                    ORDER BY tr.transaction_id DESC LIMIT 1
+                            ) AS t'
+                        ), function ($q) {
+                        $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
+                    })
+                    ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                    ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
+                    ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+                    ->groupBy('users.user_id');
 
              } else {
 
@@ -1275,35 +1300,39 @@ class UserAPIController extends ControllerAPI
                     $users = User::Consumers()
                         ->excludeDeleted('users')
                         ->select('users.*',
-                                 DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
-                                 DB::raw("(SELECT m.name
-                                        FROM {$prefix}activities at
-                                        LEFT JOIN {$prefix}merchants m on m.merchant_id=at.location_id
-                                        WHERE
-                                            at.user_id={$prefix}users.user_id AND
-                                            at.activity_name='login_ok' AND
-                                            at.group = 'mobile-ci' AND
-                                            m.parent_id = '{$merchant_id}'
-                                        ORDER BY at.created_at DESC LIMIT 1) as last_visited_store"),
-                                 DB::raw("(SELECT at.created_at
-                                        FROM {$prefix}activities at
-                                        LEFT JOIN {$prefix}merchants m2 on m2.merchant_id=at.location_id
-                                        WHERE
-                                            at.user_id={$prefix}users.user_id AND
-                                            at.activity_name='login_ok' AND
-                                            at.group = 'mobile-ci' AND
-                                            m2.parent_id = '{$merchant_id}'
-                                        ORDER BY at.created_at DESC LIMIT 1) as last_visited_date"),
-                                 DB::raw("(SELECT tr.total_to_pay
-                                        FROM {$prefix}transactions tr
-                                        WHERE
-                                            tr.customer_id={$prefix}users.user_id AND
-                                            tr.status='paid' AND
-                                            tr.merchant_id='{$merchant_id}'
-                                        GROUP BY tr.created_at
-                                        ORDER BY tr.created_at DESC LIMIT 1) as last_spent_amount")
+                                 DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'),
+                                 DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
                                 )
                         ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                        ->leftJoin(DB::raw(
+                                '(
+                                SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
+                                    FROM '.$prefix.'activities ac
+                                    INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
+                                    WHERE
+                                        ac.activity_name = "login_ok" AND
+                                        ac.group = "mobile-ci" AND
+                                        m.parent_id = \''.$merchant_id.'\'
+                                    GROUP BY ac.activity_id
+                                    ORDER BY ac.activity_id DESC LIMIT 1
+                                ) AS a'
+                            ), function ($q) {
+                            $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
+                        })
+                        ->leftJoin(DB::raw(
+                                '(
+                                    SELECT tr.customer_id, tr.total_to_pay as last_spent_amount, max(tr.created_at) as transaction_date
+                                        FROM
+                                            '.$prefix.'transactions tr
+                                        WHERE
+                                            tr.status = "paid" and
+                                            tr.merchant_id = \''.$merchant_id.'\'
+                                        GROUP BY tr.transaction_id
+                                        ORDER BY tr.transaction_id DESC LIMIT 1
+                                ) AS t'
+                            ), function ($q) {
+                            $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
+                        })
                         ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
                         ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
@@ -1662,7 +1691,7 @@ class UserAPIController extends ControllerAPI
                     'new_password_confirmation' => $new_password_confirmation,
                 ),
                 array(
-                    'user_id'                   => 'required|numeric|orbit.empty.user',
+                    'user_id'                   => 'required|orbit.empty.user',
                     'old_password'              => 'required|min:5|valid_user_password:'.$user_id,
                     'new_password'              => 'required|min:5|confirmed',
                 ),
