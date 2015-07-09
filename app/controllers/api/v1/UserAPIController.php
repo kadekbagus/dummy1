@@ -1169,6 +1169,7 @@ class UserAPIController extends ControllerAPI
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
+
             Event::fire('orbit.user.getconsumer.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_user')) {
@@ -1241,15 +1242,61 @@ class UserAPIController extends ControllerAPI
             $prefix = DB::getTablePrefix();
 
             // Builder object
+            // $users = User::Consumers()
+            //             ->select('users.*', DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
+            //             ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+            //             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
+            //             ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+            //             ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
+            //             ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+            //             ->excludeDeleted('users')
+            //             ->groupBy('users.user_id');
+
+            // get merchant id from the current user if not found get from config (current active merchant)
+            $merchant_id = User::with('userDetail')->where('user_id', $user->user_id)->first()->user_detail->merchant_id;
+            if (empty($merchant_id)) {
+                $retailer = $this->getRetailerInfo();
+                $merchant_id = $retailer->parent->merchant_id;
+            }
+
             $users = User::Consumers()
-                        ->select('users.*', DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
-                        ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
-                        ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
-                        ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
-                        ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
-                        ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                        ->excludeDeleted('users')
-                        ->groupBy('users.user_id');
+                ->excludeDeleted('users')
+                ->select('users.*',
+                         DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'), 
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
+                        )
+                ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                ->leftJoin(DB::raw(
+                        '(
+                        SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
+                            FROM orb_activities ac
+                            INNER JOIN orb_merchants m on m.merchant_id=ac.location_id
+                            WHERE
+                                ac.activity_name = "login_ok" AND 
+                                ac.group = "mobile-ci" AND
+                                m.parent_id = '.$merchant_id.'
+                            GROUP BY ac.user_id
+                        ) AS a'
+                    ), function ($q) {
+                    $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
+                })
+                ->leftJoin(DB::raw(
+                        '(  
+                            SELECT tr.customer_id, tr.total_to_pay as last_spent_amount, max(tr.created_at) as transaction_date
+                                FROM 
+                                    orb_transactions tr
+                                WHERE
+                                    tr.status = "paid" and
+                                    tr.merchant_id = '.$merchant_id.'
+                                GROUP BY tr.customer_id 
+                        ) AS t'
+                    ), function ($q) {
+                    $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
+                })
+                ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id') 
+                ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+                ->groupBy('users.user_id');
 
             // Filter by merchant ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
@@ -1464,9 +1511,9 @@ class UserAPIController extends ControllerAPI
                     'firstname'               => 'users.user_firstname',
                     'gender'                  => 'user_details.gender',
                     'city'                    => 'user_details.city',
-                    'last_visit_shop'         => 'merchants.name',
-                    'last_visit_date'         => 'user_details.last_visit_any_shop',
-                    'last_spent_amount'       => 'user_details.last_spent_any_shop'
+                    'last_visit_shop'         => 'last_visited_store',
+                    'last_visit_date'         => 'last_visited_date',
+                    'last_spent_amount'       => 'last_spent_amount'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -1824,5 +1871,31 @@ class UserAPIController extends ControllerAPI
             return TRUE;
         });
 
+    }
+
+
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
     }
 }

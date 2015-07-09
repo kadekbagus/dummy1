@@ -135,7 +135,7 @@
                 <td><?php echo ($row->user_email); ?></td>
                 <td><?php echo $me->printGender($row); ?></td>
                 <td><?php echo $me->printAddress($row); ?></td>
-                <td><?php echo $me->printUtf8($row->merchant_name); ?></td>
+                <td><?php echo $me->printUtf8($row->last_visited_store); ?></td>
                 <td><?php echo $me->printLastVisitDate($row); ?></td>
                 <td><?php echo $me->printLastSpentAmount($row); ?></td>
                 <td><?php echo $me->printCustomerSince($row); ?></td>
