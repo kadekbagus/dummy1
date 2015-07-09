@@ -117,7 +117,7 @@ class PromotionAPIController extends ControllerAPI
                     'discount_value'       => $discount_value,
                 ),
                 array(
-                    'merchant_id'          => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'          => 'required|orbit.empty.merchant',
                     'promotion_name'       => 'required|max:100|orbit.exists.promotion_name',
                     'promotion_type'       => 'required|orbit.empty.promotion_type',
                     'begin_date'           => 'required',
@@ -200,7 +200,7 @@ class PromotionAPIController extends ControllerAPI
 
                     ),
                     array(
-                        'retailer_id'   => 'numeric|orbit.empty.retailer',
+                        'retailer_id'   => 'orbit.empty.retailer',
                     )
                 );
 
@@ -517,8 +517,8 @@ class PromotionAPIController extends ControllerAPI
             $validator = Validator::make(
                 $data,
                 array(
-                    'promotion_id'         => 'required|numeric|orbit.empty.promotion',
-                    'merchant_id'          => 'numeric|orbit.empty.merchant',
+                    'promotion_id'         => 'required|orbit.empty.promotion',
+                    'merchant_id'          => 'orbit.empty.merchant',
                     'promotion_name'       => 'sometimes|required|min:5|max:100|promotion_name_exists_but_me',
                     'promotion_type'       => 'orbit.empty.promotion_type',
                     'begin_date'           => 'required',
@@ -972,7 +972,7 @@ class PromotionAPIController extends ControllerAPI
                     'promotion_id' => $promotion_id,
                 ),
                 array(
-                    'promotion_id' => 'required|numeric|orbit.empty.promotion|orbit.exists.promotion_on_delete_have_linked',
+                    'promotion_id' => 'required|orbit.empty.promotion|orbit.exists.promotion_on_delete_have_linked',
                 )
             );
 

@@ -179,7 +179,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
             );
             $products->orderBy($sortBy, $sortMode);
-            
+
             // Get the maximum record
             $maxRecord = (int) Config::get('orbit.pagination.max_record');
             if ($maxRecord <= 0) {
@@ -255,7 +255,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
 
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
+
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -311,12 +311,12 @@ class MobileCIAPIController extends ControllerAPI
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id)
             );
-            
+
             $product_on_promo = array();
             foreach ($promotions as $promotion) {
                 $product_on_promo[] = $promotion->product_id;
             }
-            
+
             foreach ($listOfRec as $product) {
                 $prices = array();
                 foreach ($product->variants as $variant) {
@@ -328,7 +328,7 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
-                
+
                 $promo_for_this_product = array_filter(
                     $promotions,
                     function ($v) use ($product) {
@@ -339,7 +339,7 @@ class MobileCIAPIController extends ControllerAPI
                         }
                     }
                 );
-                
+
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     $temp_price = $min_price;
@@ -862,7 +862,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
             return $cart->total_item;
@@ -893,7 +893,7 @@ class MobileCIAPIController extends ControllerAPI
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
             $promo_products = DB::select(
@@ -962,7 +962,7 @@ class MobileCIAPIController extends ControllerAPI
             $cart->retailer_id = $retailer->merchant_id;
             $cart->status = 'active';
             $cart->save();
-            $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+            $cart->cart_code = Cart::generateCartCode();
             $cart->save();
         }
 
@@ -1035,13 +1035,13 @@ class MobileCIAPIController extends ControllerAPI
                     )
 
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
+
                 '
             ),
             array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
         );
-        
-        
+
+
         // get the used product coupons
         $used_product_coupons = CartCoupon::with(
             array('cartdetail' => function ($q) {
@@ -1153,28 +1153,28 @@ class MobileCIAPIController extends ControllerAPI
                             )
                         )
                         inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                        WHERE ic.expired_date >= "' . Carbon::now() . '" 
-                        AND ic.user_id = :userid 
-                        AND ic.expired_date >= "' . Carbon::now() . '" 
-                        AND 
+                        WHERE ic.expired_date >= "' . Carbon::now() . '"
+                        AND ic.user_id = :userid
+                        AND ic.expired_date >= "' . Carbon::now() . '"
+                        AND
                         (
-                            prr.retailer_id = :retailerid 
-                            OR 
+                            prr.retailer_id = :retailerid
+                            OR
                             (
-                                p.is_all_retailer_redeem = "Y" 
+                                p.is_all_retailer_redeem = "Y"
                                 AND p.merchant_id = :merchantid
                             )
                         )
-                        AND 
+                        AND
                         (
                             (
-                                prod.product_id = :productid 
+                                prod.product_id = :productid
                                 AND pr.is_all_product_discount = "N"
-                            ) 
-                            OR 
+                            )
+                            OR
                             pr.is_all_product_discount = "Y"
                         )
-                        
+
                         '
                     ),
                     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id)
@@ -1708,28 +1708,28 @@ class MobileCIAPIController extends ControllerAPI
                             )
                         )
                         inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                        WHERE ic.expired_date >= "' . Carbon::now() . '" 
-                        AND ic.user_id = :userid 
-                        AND ic.expired_date >= "' . Carbon::now() . '" 
-                        AND 
+                        WHERE ic.expired_date >= "' . Carbon::now() . '"
+                        AND ic.user_id = :userid
+                        AND ic.expired_date >= "' . Carbon::now() . '"
+                        AND
                         (
-                            prr.retailer_id = :retailerid 
-                            OR 
+                            prr.retailer_id = :retailerid
+                            OR
                             (
-                                p.is_all_retailer_redeem = "Y" 
+                                p.is_all_retailer_redeem = "Y"
                                 AND p.merchant_id = :merchantid
                             )
                         )
-                        AND 
+                        AND
                         (
                             (
-                                prod.product_id = :productid 
+                                prod.product_id = :productid
                                 AND pr.is_all_product_discount = "N"
-                            ) 
-                            OR 
+                            )
+                            OR
                             pr.is_all_product_discount = "Y"
                         )
-                        
+
                         '
                     ),
                     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id)

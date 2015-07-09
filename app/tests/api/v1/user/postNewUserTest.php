@@ -447,6 +447,7 @@ class postNewUserTest extends OrbitTestCase
 
     public function testRoleIdNotNumeric_POST_api_v1_user_new()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['email'] = 'george@localhost.org';
         $_POST['password'] = '123456';

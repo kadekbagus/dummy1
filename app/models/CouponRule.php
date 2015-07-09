@@ -1,7 +1,10 @@
 <?php
 
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class CouponRule extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * CouponRule Model
      *
@@ -79,13 +82,29 @@ class CouponRule extends Eloquent
 
     public function discountproducts()
     {
-        return $this->belongsToMany('Product', 'promotion_product', 'promotion_rule_id', 'product_id')
-                    ->where('object_type', 'discount');
+        return (
+        new BelongsToManyWithUUIDPivot(
+            with(new Product())->newQuery(),
+            $this,
+            'promotion_product',
+            'promotion_rule_id',
+            'product_id',
+            'promotion_product_id',
+            'discountproducts'
+        ))->withTimestamps()->wherePivot('object_type', '=', 'discount');
     }
 
     public function ruleproducts()
     {
-        return $this->belongsToMany('Product', 'promotion_product', 'promotion_rule_id', 'product_id')
-                    ->where('object_type', 'rule');
+        return (
+        new BelongsToManyWithUUIDPivot(
+            with(new Product())->newQuery(),
+            $this,
+            'promotion_product',
+            'promotion_rule_id',
+            'product_id',
+            'promotion_product_id',
+            'discountproducts'
+        ))->withTimestamps()->wherePivot('object_type', '=', 'rule');
     }
 }

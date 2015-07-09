@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use ModelStatusTrait;
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+use Retailer;
 
 class Product extends Eloquent
 {
@@ -19,9 +21,10 @@ class Product extends Eloquent
     use ModelStatusTrait;
 
     protected $table = 'products';
-    
+
     protected $primaryKey = 'product_id';
 
+    // TODO: used?
     public function categories()
     {
         return $this->belongsToMany('Category', 'product_category', 'product_id', 'product_id');
@@ -59,14 +62,15 @@ class Product extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'retailer_id');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'product_retailer', 'product_id', 'retailer_id', 'product_retailer_id', 'retailers'));
     }
 
+    // TODO: used?
     public function suggestions()
     {
         return $this->belongsToMany('Product', 'product_suggestion', 'product_id', 'suggested_product_id');
     }
-    
+
     /**
      * Add Filter retailers based on user who request it.
      *

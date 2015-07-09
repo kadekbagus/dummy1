@@ -7,6 +7,7 @@ class Apikey extends Eloquent
      * with `status` field.
      */
     use ModelStatusTrait;
+    use GeneratedUuidTrait;
 
     protected $primaryKey = 'apikey_id';
 

@@ -63,7 +63,7 @@ class ProductController extends MobileCIAPIController
                 // throw new Exception('Product id ' . $product_id . ' not found');
                 return View::make('mobile-ci.404', array('page_title'=>Lang::get('mobileci.page_title.not_found'), 'retailer'=>$retailer, 'cartitems' => $cartitems));
             }
-            
+
             $promo_products = DB::select(
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
@@ -90,7 +90,7 @@ class ProductController extends MobileCIAPIController
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
             );
-            
+
             $couponstocatchs = DB::select(
                 DB::raw(
                     'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
@@ -115,7 +115,7 @@ class ProductController extends MobileCIAPIController
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
             );
-            
+
             $couponstocatch_this_product = array_filter(
                 $couponstocatchs,
                 function ($v) use ($product) {
@@ -513,7 +513,7 @@ class ProductController extends MobileCIAPIController
                     )
 
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
+
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -558,7 +558,7 @@ class ProductController extends MobileCIAPIController
                     )
                 )
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
+
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -897,7 +897,7 @@ class ProductController extends MobileCIAPIController
                             $q->where('products.category_id' . $family_level, $family_id)
                                 ->where(
                                     function ($query) use ($nextfamily) {
-                                        $query->whereNotNull('products.category_id' . $nextfamily)->orWhere('products.category_id' . $nextfamily, '<>', 0);
+                                        $query->whereNotNull('products.category_id' . $nextfamily)->orWhere('products.category_id' . $nextfamily, '<>', '');
                                     }
                             )
                                 ->where('products.status', 'active');
@@ -932,7 +932,7 @@ class ProductController extends MobileCIAPIController
                         for ($i = $family_level + 1; $i <= 5; $i++) {
                             $q->where(
                                 function ($q2) use ($i) {
-                                    $q2->whereNull('category_id' . $i)->orWhere('category_id' . $i, 0);
+                                    $q2->whereNull('category_id' . $i)->orWhere('category_id' . $i, '');
                                 }
                             );
                         }
@@ -1076,7 +1076,7 @@ class ProductController extends MobileCIAPIController
                     )
 
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
+
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -1102,7 +1102,7 @@ class ProductController extends MobileCIAPIController
                     )
                 )
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
+
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -1366,7 +1366,7 @@ class ProductController extends MobileCIAPIController
             //     ),
             //     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
             // );
-            
+
             $promo_products = DB::select(
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
@@ -1393,7 +1393,7 @@ class ProductController extends MobileCIAPIController
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
             );
-            
+
             $couponstocatchs = DB::select(
                 DB::raw(
                     'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
@@ -1414,7 +1414,7 @@ class ProductController extends MobileCIAPIController
                     )
                 )
                 WHERE ((prod.product_id = :productid AND pr.is_all_product_rule = "N") OR pr.is_all_product_rule = "Y") AND (prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid))
-                
+
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)

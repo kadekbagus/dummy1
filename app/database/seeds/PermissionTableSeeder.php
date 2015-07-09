@@ -1,4 +1,6 @@
 <?php
+use Orbit\EncodedUUID;
+
 /**
  * Seeder for Permissions
  *
@@ -147,11 +149,10 @@ class PermissionTableSeeder extends Seeder
         $permissions = [];
 
         // Build the array of permission to be inserted on permissions table
-        $primaryKey = 1;
         foreach ($permissionsSource as $permLabel=>$perm) {
             foreach ($perm['perm'] as $action) {
                 $permissions[] = [
-                        'permission_id'             => $primaryKey++,
+                        'permission_id'             => $this->generateId(),
                         'permission_name'           => sprintf('%s_%s', $action, $perm['name']),
                         'permission_label'          => $permLabel,
                         'permission_group'          => $perm['name'],
@@ -176,5 +177,10 @@ class PermissionTableSeeder extends Seeder
             $this->command->info(sprintf('    Create record for %s.', $permission['permission_name']));
         }
         $this->command->info('permissions table seeded.');
+    }
+
+    private function generateId()
+    {
+        return EncodedUUID::make();
     }
 }

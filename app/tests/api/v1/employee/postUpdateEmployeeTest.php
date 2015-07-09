@@ -78,9 +78,9 @@ class postUpdateEmployeeTest extends TestCase
         $this->assertResponseOk();
         $this->assertSame(Status::OK, $response->code);
 
-        // User last name not updated
+        // User last name not updated -- 03-aug-15 CHANGED TO UPDATEABLE
         $reloadUser = User::where('user_id', $this->user->user_id)->first();
-        $this->assertNotSame('Denear', $reloadUser->user_lastname);
+        $this->assertSame('Denear', $reloadUser->user_lastname);
     }
 
     public function testError_request_without_right_permission()
