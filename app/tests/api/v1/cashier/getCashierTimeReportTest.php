@@ -5,6 +5,7 @@
  * @author: Yudi Rahono <yudi.rahono@dominopos.com>
  */
 use DominoPOS\OrbitAPI\v10\StatusInterface as Status;
+use Orbit\EncodedUUID;
 use OrbitShop\API\v1\Helper\Generator;
 use Laracasts\TestDummy\Factory;
 use Faker\Factory as Faker;
@@ -66,14 +67,16 @@ class getCashierTimeReportTest extends TestCase
             ];
 
             $prefix = DB::getTablePrefix();
-            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
+            $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
             $bindings['created_at'] =  $faker->dateTimeBetween('2015-01-12 08:08:08', '2015-01-12 09:08:08')->format('Y-m-d H:i:s');
-            $insert .= "('login_ok', 'Login OK', 'login', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            $insert .= "(:id, 'login_ok', 'Login OK', 'login', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            $bindings['id'] = EncodedUUID::make();
             DB::statement($insert, $bindings);
 
-            $insert = "INSERT INTO `{$prefix}activities` (`activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
+            $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `activity_name_long`, `activity_type`, `user_id`, `full_name`, `role_id`, `role`, `group`, `location_id`, `location_name`, `response_status`, `created_at`) VALUES ";
             $bindings['created_at'] = $faker->dateTimeBetween('2015-01-12 15:08:08', '2015-01-12 18:08:08')->format('Y-m-d H:i:s');
-            $insert .= "('logout_ok', 'Logout OK', 'logout', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            $insert .= "(:id, 'logout_ok', 'Logout OK', 'logout', :user_id, :full_name, :role_id, :role_name, 'pos', :location_id, :location_name, 'OK', :created_at)";
+            $bindings['id'] = EncodedUUID::make();
             DB::statement($insert, $bindings);
 
             $customer = Factory::create('User', [

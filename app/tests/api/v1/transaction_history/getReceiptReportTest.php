@@ -130,7 +130,7 @@ class getReceiptReportListTest extends TestCase
 
 
         $response = $makeRequest([
-            'transaction_id' => 2
+            'transaction_id' => $this->transactions[0]->transaction_id
         ]);
 
         $this->assertResponseOk();

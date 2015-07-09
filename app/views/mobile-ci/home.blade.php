@@ -247,7 +247,7 @@
                 </section>
             </div>
             @endif
-            
+
             @if($i % 2 == 1)
         </div>
         @endif
@@ -439,7 +439,7 @@
           $.ajax({
             url: '{{ route('display-event-popup-activity') }}',
             data: {
-              eventdata: {{$events->event_id}}
+              eventdata: '{{$events->event_id}}'
             },
             method: 'POST'
           });
@@ -459,11 +459,11 @@
           $('#noModalText').text('{{ Lang::get('mobileci.modals.message_no_promotion') }}');
           $('#noModal').modal();
         });
-        $('#promoModal a').click(function (event){ 
+        $('#promoModal a').click(function (event){
             var link = $(this).attr('href');
             var eventdata = $(this).data('event');
 
-            event.preventDefault(); 
+            event.preventDefault();
             $.ajax({
               data: {
                 eventdata: eventdata
@@ -510,7 +510,7 @@
         $('a.widget-link').click(function(){
           var link = $(this).attr('href');
           var widgetdata = $(this).data('widget');
-          event.preventDefault(); 
+          event.preventDefault();
 
           $.ajax({
             url: '{{ route('click-widget-activity') }}',

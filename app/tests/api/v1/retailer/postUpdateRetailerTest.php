@@ -358,6 +358,7 @@ class postUpdateRetailerTest extends OrbitTestCase
 
     public function testRetailerIdNotNumeric_POST_api_v1_retailer_update()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['retailer_id'] = 'foo';
 
@@ -372,7 +373,7 @@ class postUpdateRetailerTest extends OrbitTestCase
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-        $message = Lang::get('validation.numeric', array('attribute' => 'retailer id'));
+        /* $message = Lang::get('validation.numeric', array('attribute' => 'retailer id')); */
         $data = new stdclass();
         $data->code = Status::INVALID_ARGUMENT;
         $data->status = 'error';
@@ -417,6 +418,7 @@ class postUpdateRetailerTest extends OrbitTestCase
 
     public function testUserIdNotNumeric_POST_api_v1_retailer_update()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['retailer_id'] = 10;
         $_POST['user_id'] = 'foo';

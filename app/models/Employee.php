@@ -6,6 +6,9 @@
  */
 class Employee extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     protected $table = 'employees';
     protected $primaryKey = 'employee_id';
 
@@ -28,7 +31,7 @@ class Employee extends Eloquent
      */
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'employee_retailer', 'employee_id', 'retailer_id');
+        return (new \OrbitRelation\BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'employee_retailer', 'employee_id', 'retailer_id', 'employee_retailer_id', 'retailers'));
     }
 
     /**

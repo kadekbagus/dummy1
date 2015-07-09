@@ -2,6 +2,9 @@
 
 class UserDetail extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     protected $table = 'user_details';
 
     /**

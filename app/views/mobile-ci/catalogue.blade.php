@@ -713,15 +713,15 @@
 				var families = [];
 				// last clicked family history
 				@if(!empty(Session::get('f1')))
-					families[0] = {{ Session::get('f1') }};
+					families[0] = '{{ Session::get('f1') }}';
 					@if(!empty(Session::get('f2')))
-						families[1] = {{ Session::get('f2') }};
+						families[1] = '{{ Session::get('f2') }}';
 						@if(!empty(Session::get('f3')))
-							families[2] = {{ Session::get('f3') }};
+							families[2] = '{{ Session::get('f3') }}';
 							@if(!empty(Session::get('f4')))
-								families[3] = {{ Session::get('f4') }};
+								families[3] = '{{ Session::get('f4') }}';
 								@if(!empty(Session::get('f5')))
-									families[4] = {{ Session::get('f5') }};
+									families[4] = '{{ Session::get('f5') }}';
 								@endif
 							@endif
 						@endif

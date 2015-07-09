@@ -137,7 +137,7 @@ class UploadAPIController extends ControllerAPI
                     'images'      => $images,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'   => 'required|orbit.empty.merchant',
                     'images'        => 'required|nomore.than.one',
                 ),
                 $messages
@@ -345,7 +345,7 @@ class UploadAPIController extends ControllerAPI
                     'merchant_id'   => $merchant_id,
                 ),
                 array(
-                    'merchant_id'   => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'   => 'required|orbit.empty.merchant',
                 )
             );
 
@@ -525,7 +525,7 @@ class UploadAPIController extends ControllerAPI
                     'images'        => $images,
                 ),
                 array(
-                    'product_id'   => 'required|numeric|orbit.empty.product',
+                    'product_id'   => 'required|orbit.empty.product',
                     'images'       => 'required|nomore.than.one',
                 ),
                 $messages
@@ -738,7 +738,7 @@ class UploadAPIController extends ControllerAPI
                     'product_id'    => $product_id,
                 ),
                 array(
-                    'product_id'   => 'required|numeric|orbit.empty.product',
+                    'product_id'   => 'required|orbit.empty.product',
                 )
             );
 
@@ -919,7 +919,7 @@ class UploadAPIController extends ControllerAPI
                     'images'        => $images,
                 ),
                 array(
-                    'promotion_id'  => 'required|numeric|orbit.empty.promotion',
+                    'promotion_id'  => 'required|orbit.empty.promotion',
                     'images'        => 'required|nomore.than.one',
                 ),
                 $messages
@@ -1127,7 +1127,7 @@ class UploadAPIController extends ControllerAPI
                     'promotion_id'    => $promotion_id,
                 ),
                 array(
-                    'promotion_id'   => 'required|numeric|orbit.empty.promotion',
+                    'promotion_id'   => 'required|orbit.empty.promotion',
                 )
             );
 
@@ -1311,7 +1311,7 @@ class UploadAPIController extends ControllerAPI
                     'images'    => $images,
                 ),
                 array(
-                    'user_id'   => 'required|numeric|orbit.empty.user',
+                    'user_id'   => 'required|orbit.empty.user',
                     'images'    => 'required|nomore.than.one',
                 ),
                 $messages
@@ -1523,7 +1523,7 @@ class UploadAPIController extends ControllerAPI
                     'user_id'    => $user_id,
                 ),
                 array(
-                    'user_id'   => 'required|numeric|orbit.empty.user',
+                    'user_id'   => 'required|orbit.empty.user',
                 )
             );
 
@@ -1704,7 +1704,7 @@ class UploadAPIController extends ControllerAPI
                     'images'        => $images,
                 ),
                 array(
-                    'promotion_id'  => 'required|numeric|orbit.empty.coupon',
+                    'promotion_id'  => 'required|orbit.empty.coupon',
                     'images'        => 'required|nomore.than.one',
                 ),
                 $messages
@@ -1912,7 +1912,7 @@ class UploadAPIController extends ControllerAPI
                     'promotion_id'    => $promotion_id,
                 ),
                 array(
-                    'promotion_id'   => 'required|numeric|orbit.empty.coupon',
+                    'promotion_id'   => 'required|orbit.empty.coupon',
                 )
             );
 
@@ -2092,7 +2092,7 @@ class UploadAPIController extends ControllerAPI
                     'images'    => $images,
                 ),
                 array(
-                    'widget_id' => 'required|numeric|orbit.empty.widget',
+                    'widget_id' => 'required|orbit.empty.widget',
                     'images'    => 'required|nomore.than.one',
                 ),
                 $messages
@@ -2300,7 +2300,7 @@ class UploadAPIController extends ControllerAPI
                     'images'        => $images,
                 ),
                 array(
-                    'event_id'      => 'required|numeric|orbit.empty.event',
+                    'event_id'      => 'required|orbit.empty.event',
                     'images'        => 'required|nomore.than.one',
                 ),
                 $messages
@@ -2508,7 +2508,7 @@ class UploadAPIController extends ControllerAPI
                     'event_id'      => $event_id,
                 ),
                 array(
-                    'event_id'      => 'required|numeric|orbit.empty.event',
+                    'event_id'      => 'required|orbit.empty.event',
                 )
             );
 

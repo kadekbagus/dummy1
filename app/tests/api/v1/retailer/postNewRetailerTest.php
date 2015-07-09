@@ -551,6 +551,7 @@ class postNewRetailerTest extends OrbitTestCase
 
     public function testParentIdNotNumeric_POST_api_v1_retailer_new()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['user_id'] = 3;
         $_POST['email'] = 'george@localhost.org';
@@ -570,7 +571,7 @@ class postNewRetailerTest extends OrbitTestCase
         $_SERVER['REQUEST_URI'] = $url;
         $_SERVER['HTTP_X_ORBIT_SIGNATURE'] = Generator::genSignature($secretKey, 'sha256');
 
-        $message = Lang::get('validation.numeric', array('attribute' => 'parent id'));
+        /* $message = Lang::get('validation.numeric', array('attribute' => 'parent id')); */
         $data = new stdclass();
         $data->code = Status::INVALID_ARGUMENT;
         $data->status = 'error';

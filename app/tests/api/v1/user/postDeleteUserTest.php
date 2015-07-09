@@ -305,6 +305,7 @@ class postDeleteUserTest extends OrbitTestCase
 
     public function testRoleIdNotNumeric_POST_api_v1_user_delete()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['user_id'] = 'abcd123';
 
