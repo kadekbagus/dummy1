@@ -34,7 +34,7 @@ class getHourlyUserLogin extends TestCase
             for ($j=0; $j<$count; $j++)
             {
                 $insert .= "
-                    ({$id}, 'mobile-ci', 'login_ok', {$user->user_id}, {$retailer->merchant_id}, '{$loginTime}'),";
+                    ({$id}, 'mobile-ci', 'login_ok', '{$user->user_id}', '{$retailer->merchant_id}', '{$loginTime}'),";
                 $id++;
             }
             $i++;

@@ -44,7 +44,7 @@ class getTopProductFamilyTest extends TestCase
             {
                 $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id}, 'mobile-ci', 'view_catalogue', 'Category', {$category->category_id}, {$retailer->merchant_id}, '{$created_at}'),";
+                    ({$id}, 'mobile-ci', 'view_catalogue', 'Category', '{$category->category_id}', '{$retailer->merchant_id}', '{$created_at}'),";
                 $id++;
             }
             $i++;
