@@ -1253,11 +1253,11 @@ class UserAPIController extends ControllerAPI
             //             ->groupBy('users.user_id');
 
             // get merchant id from the current user if not found get from config (current active merchant)
-            $merchant_id = User::with('userDetail')->where('user_id', $user->user_id)->first()->user_detail->merchant_id;
-            if (empty($merchant_id)) {
-                $retailer = $this->getRetailerInfo();
-                $merchant_id = $retailer->parent->merchant_id;
-            }
+            // $merchant_id = User::with('userDetail')->where('user_id', $user->user_id)->first()->user_detail->merchant_id;
+            // if (empty($merchant_id)) {
+            $retailer = $this->getRetailerInfo();
+            $merchant_id = $retailer->parent->merchant_id;
+            //}
 
             $users = User::Consumers()
                 ->excludeDeleted('users')
