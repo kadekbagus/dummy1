@@ -43,7 +43,7 @@ class getTopWidgetClickTest extends TestCase
             {
                 $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id}, 'mobile-ci', 'widget_click', {$widget->widget_id}, {$retailer->merchant_id}, '{$created_at}'),";
+                    ({$id}, 'mobile-ci', 'widget_click', '{$widget->widget_id}', '{$retailer->merchant_id}', '{$created_at}'),";
                 $id++;
             }
             $i++;
