@@ -1241,23 +1241,13 @@ class UserAPIController extends ControllerAPI
 
             $prefix = DB::getTablePrefix();
 
-            // Builder object
-            // $users = User::Consumers()
-            //             ->select('users.*', DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
-            //             ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
-            //             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
-            //             ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
-            //             ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
-            //             ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-            //             ->excludeDeleted('users')
-            //             ->groupBy('users.user_id');
+            // get merchant id from the current users
+            $merchant_id = Merchant::where('user_id', $user->user_id)->first()->merchant_id;
 
-            // get merchant id from the current user if not found get from config (current active merchant)
-            // $merchant_id = User::with('userDetail')->where('user_id', $user->user_id)->first()->user_detail->merchant_id;
-            // if (empty($merchant_id)) {
-            $retailer = $this->getRetailerInfo();
-            $merchant_id = $retailer->parent->merchant_id;
-            //}
+            if (empty($merchant_id)) {
+                $errorMessage = 'Merchant id not found';
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
 
             $users = User::Consumers()
                 ->excludeDeleted('users')
