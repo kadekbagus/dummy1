@@ -234,10 +234,10 @@ class IssuedCouponAPIController extends ControllerAPI
                     'status'               => $status,
                 ),
                 array(
-                    'issued_coupon_id'     => 'required|numeric|orbit.empty.issued_coupon',
-                    'promotion_id'         => 'numeric|orbit.empty.coupon',
+                    'issued_coupon_id'     => 'required|orbit.empty.issued_coupon',
+                    'promotion_id'         => 'orbit.empty.coupon',
                     'issued_coupon_code'   => 'issued_coupon_code_exists_but_me',
-                    'user_id'              => 'numeric|orbit.empty.user',
+                    'user_id'              => 'orbit.empty.user',
                     'status'               => 'orbit.empty.issued_coupon_status',
                 ),
                 array(
@@ -406,7 +406,7 @@ class IssuedCouponAPIController extends ControllerAPI
                     'issued_coupon_id' => $issued_coupon_id,
                 ),
                 array(
-                    'issued_coupon_id' => 'required|numeric|orbit.empty.issued_coupon',
+                    'issued_coupon_id' => 'required|orbit.empty.issued_coupon',
                 )
             );
 
