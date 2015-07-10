@@ -108,16 +108,16 @@ class EventAPIController extends ControllerAPI
                     'begin_date'         => $begin_date
                 ),
                 array(
-                    'merchant_id'        => 'required|numeric|orbit.empty.merchant',
+                    'merchant_id'        => 'required|orbit.empty.merchant',
                     'event_name'         => 'required|max:100|orbit.exists.event_name',
                     'event_type'         => 'required|orbit.empty.event_type',
                     'status'             => 'required|orbit.empty.event_status',
                     'link_object_type'   => 'orbit.empty.link_object_type',
-                    'link_object_id1'    => 'numeric|orbit.empty.link_object_id1',
-                    'link_object_id2'    => 'numeric|orbit.empty.link_object_id2',
-                    'link_object_id3'    => 'numeric|orbit.empty.link_object_id3',
-                    'link_object_id4'    => 'numeric|orbit.empty.link_object_id4',
-                    'link_object_id5'    => 'numeric|orbit.empty.link_object_id5',
+                    'link_object_id1'    => 'orbit.empty.link_object_id1',
+                    'link_object_id2'    => 'orbit.empty.link_object_id2',
+                    'link_object_id3'    => 'orbit.empty.link_object_id3',
+                    'link_object_id4'    => 'orbit.empty.link_object_id4',
+                    'link_object_id5'    => 'orbit.empty.link_object_id5',
                     'begin_date'         => 'required'
                 )
             );
@@ -470,17 +470,17 @@ class EventAPIController extends ControllerAPI
             $validator = Validator::make(
                 $data,
                 array(
-                    'event_id'         => 'required|numeric|orbit.empty.event',
-                    'merchant_id'      => 'numeric|orbit.empty.merchant',
+                    'event_id'         => 'required|orbit.empty.event',
+                    'merchant_id'      => 'orbit.empty.merchant',
                     'event_name'       => 'sometimes|required|min:5|max:100|event_name_exists_but_me',
                     'event_type'       => 'required|orbit.empty.event_type',
                     'status'           => 'required|orbit.empty.event_status',
                     'link_object_type' => 'orbit.empty.link_object_type',
-                    'link_object_id1'  => 'numeric|orbit.empty.link_object_id1',
-                    'link_object_id2'  => 'numeric|orbit.empty.link_object_id2',
-                    'link_object_id3'  => 'numeric|orbit.empty.link_object_id3',
-                    'link_object_id4'  => 'numeric|orbit.empty.link_object_id4',
-                    'link_object_id5'  => 'numeric|orbit.empty.link_object_id5',
+                    'link_object_id1'  => 'orbit.empty.link_object_id1',
+                    'link_object_id2'  => 'orbit.empty.link_object_id2',
+                    'link_object_id3'  => 'orbit.empty.link_object_id3',
+                    'link_object_id4'  => 'orbit.empty.link_object_id4',
+                    'link_object_id5'  => 'orbit.empty.link_object_id5',
                     'begin_date'       => 'required'
                 ),
                 array(
@@ -841,7 +841,7 @@ class EventAPIController extends ControllerAPI
                     'event_id' => $event_id,
                 ),
                 array(
-                    'event_id' => 'required|numeric|orbit.empty.event',
+                    'event_id' => 'required|orbit.empty.event',
                 )
             );
 
