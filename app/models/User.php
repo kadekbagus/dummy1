@@ -8,6 +8,7 @@ class User extends Eloquent implements UserInterface
     use UserTrait;
     use ModelStatusTrait;
     use UserRoleTrait;
+    use GeneratedUuidTrait;
 
     protected $primaryKey = 'user_id';
 

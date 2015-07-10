@@ -23,10 +23,10 @@ class AlterAllUseUuids extends Migration {
         foreach ($all_id_columns as $col) {
             $stmt = '';
             if ($col->is_nullable == 'YES') {
-                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` BINARY(16);");
+                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` CHAR(22);");
             }
             else {
-                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` BINARY(16) NOT NULL;");
+                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` CHAR(22) NOT NULL;");
             }
             $ok = DB::statement($stmt);
             if (!$ok) {
