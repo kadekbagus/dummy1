@@ -2,6 +2,9 @@
 
 class Product extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     /**
     * Product Model
     *

@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\UserTrait;
 use Illuminate\Auth\UserInterface;
+use OrbitRelation\BelongsToManyWithUUIDPivot;
 
 class User extends Eloquent implements UserInterface
 {
@@ -23,7 +24,7 @@ class User extends Eloquent implements UserInterface
 
     public function permissions()
     {
-        return $this->belongsToMany('Permission', 'custom_permission', 'user_id', 'permission_id')->withPivot('allowed');
+        return (new BelongsToManyWithUUIDPivot((new Permission())->newQuery(), $this, 'custom_permission', 'user_id', 'permission_id', 'custom_permission_id', 'users'))->withPivot('allowed');
     }
 
     public function apikey()
@@ -58,7 +59,7 @@ class User extends Eloquent implements UserInterface
 
     public function interests()
     {
-        return $this->belongsToMany('PersonalInterest', 'user_personal_interest', 'user_id', 'personal_interest_id');
+        return (new BelongsToManyWithUUIDPivot((new PersonalInterest())->newQuery(), $this, 'user_personal_interest', 'user_id', 'personal_interest_id', 'user_personal_interest_id', 'interests'));
     }
 
     public function media()

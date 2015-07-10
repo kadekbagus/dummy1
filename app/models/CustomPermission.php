@@ -2,6 +2,8 @@
 
 class CustomPermission extends Eloquent
 {
+    use GeneratedUuidTrait;
+
     protected $primaryKey = 'custom_permission_id';
 
     protected $table = 'custom_permission';

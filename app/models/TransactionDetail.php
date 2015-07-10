@@ -1,6 +1,8 @@
 <?php
 class TransactionDetail extends Eloquent
 {
+    use GeneratedUuidTrait;
+
     /**
     * Transaction model
     *

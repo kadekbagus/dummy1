@@ -1,6 +1,7 @@
 <?php
 class Token extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
     * Token Model
     *
