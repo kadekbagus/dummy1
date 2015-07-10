@@ -61,7 +61,7 @@ class RetailerTest extends OrbitTestCase
      */
     public static function tearDownAfterClass()
     {
-        // do nothing
+        static::truncateData();
     }
 
     /**

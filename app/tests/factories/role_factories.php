@@ -34,3 +34,8 @@ $factory('Role', 'role_cashier', [
     'role_name'  => 'Cashier',
     'role_order' => 1
 ]);
+
+$factory('Role', 'role_consumer', [
+    'role_name'  => 'Consumer',
+    'role_order' => 1
+]);

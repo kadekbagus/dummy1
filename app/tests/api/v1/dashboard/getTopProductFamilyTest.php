@@ -20,6 +20,7 @@ class getTopProductFamilyTest extends TestCase
     {
         $faker      = Faker::create();
         $merchant   = Factory::create('Merchant');
+        $retailer   = Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]);
         $categories = [];
         for($i=5;$i>0;$i--)
         {
@@ -34,7 +35,7 @@ class getTopProductFamilyTest extends TestCase
         }
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`, `created_at`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `group`, `activity_name`, `object_name`, `object_id`, `location_id`, `created_at`) VALUES";
         $id=1;
         foreach ($categories as $category)
         {
@@ -43,12 +44,12 @@ class getTopProductFamilyTest extends TestCase
             {
                 $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id},'view_category', {$category->category_id}, '{$created_at}'),";
+                    ({$id}, 'mobile-ci', 'view_catalogue', 'Category', {$category->category_id}, {$retailer->merchant_id}, '{$created_at}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(5000, 'view_category', null, null);";
+        $insert .= "(5000, 'mobile-ci', 'view_catalogue', 'Category', null, null, null);";
 
         DB::statement($insert);
 

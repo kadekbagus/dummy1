@@ -19,6 +19,7 @@ class getTopWidgetClickTest extends TestCase
     public static function prepareDatabase()
     {
         $merchant = Factory::create('Merchant');
+        $retailer   = Factory::create('Retailer', ['parent_id' => $merchant->merchant_id]);
         $widgets  = [];
         $widgetTypes = ['new_product', 'catalogue', 'promotion', 'coupon'];
         $faker    = Faker::create();
@@ -33,7 +34,7 @@ class getTopWidgetClickTest extends TestCase
 
         $i=1;
         $prefix = DB::getTablePrefix();
-        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `activity_name`, `object_id`, `created_at`) VALUES";
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `group`, `activity_name`, `object_id`, `location_id`, `created_at`) VALUES";
         $id=1;
         foreach ($widgets as $widget)
         {
@@ -42,12 +43,12 @@ class getTopWidgetClickTest extends TestCase
             {
                 $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id},'widget_click', {$widget->widget_id}, '{$created_at}'),";
+                    ({$id}, 'mobile-ci', 'widget_click', {$widget->widget_id}, {$retailer->merchant_id}, '{$created_at}'),";
                 $id++;
             }
             $i++;
         }
-        $insert .= "(500, 'widget_click', null, null);";
+        $insert .= "(500, 'mobile-ci', 'widget_click', null, null, null);";
 
         DB::statement($insert);
 

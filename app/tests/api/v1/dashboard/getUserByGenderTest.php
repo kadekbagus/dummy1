@@ -49,6 +49,20 @@ class getUserByGenderTest extends TestCase
             array_push($users, $user);
         }
 
+        $prefix = DB::getTablePrefix();
+        $insert = "INSERT INTO `{$prefix}activities` (`activity_id`, `group`, `activity_name`, `user_id`, `created_at`) VALUES";
+        $id=1;
+        foreach ($users as $user)
+        {
+            $created_at = $faker->dateTimeBetween('-1years', '-1days')->format('Y-m-d H:i:s');
+            $insert .= "({$id}, 'mobile-ci', 'registration_ok', {$user->user_id}, '{$created_at}'),";
+            $id++;
+        }
+
+        $insert .= "(500, 'mobile-ci', 'registration_ok', null, null);";
+
+        DB::statement($insert);
+
 
         static::addData('users', $users);
         static::addData('authData', Factory::create('apikey_super_admin'));
@@ -200,7 +214,7 @@ class getUserByGenderTest extends TestCase
 
         $response = $makeRequest([
             'take' => 2,
-            'skip' => 2,
+            'skip' => 200,
             'is_report' => 1
         ]);
 

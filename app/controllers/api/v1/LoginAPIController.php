@@ -1076,7 +1076,11 @@ class LoginAPIController extends ControllerAPI
 
         // Check the existance of token
         Validator::extend('orbit.empty.token', function ($attribute, $value, $parameters) {
-            $token = Token::active()->NotExpire()->where('token_value', $value)->first();
+            $token = Token::active()
+                ->NotExpire()
+                ->where('token_value', $value)
+                ->where('token_name', Token::NAME_USER_REGISTRATION_MOBILE)
+                ->first();
 
             if (empty($token)) {
                 return FALSE;

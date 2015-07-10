@@ -230,7 +230,7 @@ class ImportAPIController extends ControllerAPI
             25          Variant Price       decimal
             */
 
-            // column index number 
+            // column index number
             $columnIndex = array();
             $columnIndex['default_sku'] = 0; // product_code
             $columnIndex['product_name'] = 1;
@@ -1101,6 +1101,7 @@ class ImportAPIController extends ControllerAPI
                     $sku = $fileinfo['filename'];
 
                     $product = Product::excludeDeleted()
+                                      ->where('merchant_id', $merchant_id)
                                       ->where('product_code', $sku)
                                       ->first();
 

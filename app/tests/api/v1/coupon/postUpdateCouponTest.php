@@ -43,8 +43,10 @@ class postUpdateCouponTest extends TestCase
                     $_POST[$k] = $coupon->$k;
                 }
             }
-            if (!isset($_POST['discount_value'])) {
-                $_POST['discount_value'] = $coupon_rule->discount_value;
+            foreach (['discount_value', 'rule_value'] as $k) {
+                if (!isset($_POST[$k])) {
+                    $_POST[$k] = $coupon_rule->$k;
+                }
             }
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
@@ -107,8 +109,10 @@ class postUpdateCouponTest extends TestCase
                     $_POST[$k] = $coupon->$k;
                 }
             }
-            if (!isset($_POST['discount_value'])) {
-                $_POST['discount_value'] = $coupon_rule->discount_value;
+            foreach (['discount_value', 'rule_value'] as $k) {
+                if (!isset($_POST[$k])) {
+                    $_POST[$k] = $coupon_rule->$k;
+                }
             }
 
             $url = $this->baseUrl . '?' . http_build_query($_GET);
