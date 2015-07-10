@@ -3,6 +3,9 @@ use OrbitRelation\HasManyThrough;
 
 class Merchant extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     /**
      * Merchant Model
      *

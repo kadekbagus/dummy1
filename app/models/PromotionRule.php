@@ -2,6 +2,7 @@
 
 class PromotionRule extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * PromotionRule Model
      *

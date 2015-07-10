@@ -6,6 +6,7 @@ class EncodedUUID {
 
     const CHARS_D64 = ".0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-";
     const CHARS_B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    protected static $modelsUsing = [];
 
     public static function make() {
         $u = uuid_create(UUID_TYPE_TIME);
@@ -19,5 +20,17 @@ class EncodedUUID {
             $result[] = static::make();
         }
         return $result;
+    }
+
+    public static function registerUseInModel($class)
+    {
+        if (!in_array($class, static::$modelsUsing)) {
+            static::$modelsUsing[] = $class;
+        }
+    }
+
+    public static function getModelsUsing()
+    {
+        return static::$modelsUsing;
     }
 }

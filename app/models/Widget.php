@@ -1,4 +1,6 @@
 <?php
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 /**
  * Widget for represent the structure of Widget table.
  *
@@ -6,6 +8,7 @@
  */
 class Widget extends Eloquent
 {
+    use GeneratedUuidTrait;
     protected $table = 'widgets';
     protected $primaryKey = 'widget_id';
 
@@ -28,7 +31,7 @@ class Widget extends Eloquent
      */
     public function retailers()
     {
-        return $this->belongsToMany('WidgetRetailer', 'widget_retailer', 'widget_id', 'retailer_id');
+        return (new BelongsToManyWithUUIDPivot((new WidgetRetailer())->newQuery(), $this, 'widget_retailer', 'widget_id', 'retailer_id', 'widget_retailer_id', 'retailers'));
     }
 
     /**

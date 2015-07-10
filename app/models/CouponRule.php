@@ -2,6 +2,7 @@
 
 class CouponRule extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * CouponRule Model
      *

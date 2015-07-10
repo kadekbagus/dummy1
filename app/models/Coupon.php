@@ -1,6 +1,9 @@
 <?php
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class Coupon extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * Coupon Model
      *
@@ -50,12 +53,12 @@ class Coupon extends Eloquent
 
     public function issueretailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id')->where('merchants.status','!=','deleted');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer', 'promotion_id', 'retailer_id', 'promotion_retailer_id', 'issueretailers'))->withPivot('allowed');
     }
 
     public function redeemretailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer_redeem', 'promotion_id', 'retailer_id');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer_redeem', 'promotion_id', 'retailer_id', 'promotion_retailer_redeem_id', 'redeemretailers'))->withPivot('allowed');
     }
 
     public function issuedcoupons()

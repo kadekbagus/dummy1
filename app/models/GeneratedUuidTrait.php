@@ -1,15 +1,30 @@
 <?php
 use Illuminate\Database\Eloquent\Builder;
+use Orbit\EncodedUUID;
 
 trait GeneratedUuidTrait {
 
-    protected function insertAndSetId(Builder $query, $attributes)
+    public static function bootGeneratedUuidTrait()
     {
-        $uuid = \Orbit\EncodedUUID::make();
-        $key_name = $this->getKeyName();
-        $attributes[$key_name] = $uuid;
-        $query->insert($attributes);
-        $this->attributes[$key_name] = $uuid;
+        $my_class = get_called_class();
+        EncodedUUID::registerUseInModel($my_class);
+        // on creating the model (before saving),
+        // generate a UUID and ensure it does not
+        // overwrite our generated ID with last_insert_id()
+        static::creating(function($model) {
+            // did not find a better place to put this...
+            $model->setIncrementing(false);
+
+            $key = $model->getKeyName();
+            $model->setAttribute($key, EncodedUUID::make());
+        });
+    }
+
+    public static function getBootedStatus()
+    {
+        $class = get_called_class();
+
+        return isset(static::$booted[$class]);
     }
 
 }
