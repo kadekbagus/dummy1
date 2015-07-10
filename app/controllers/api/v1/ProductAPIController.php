@@ -787,6 +787,7 @@ class ProductAPIController extends ControllerAPI
             $updatedproduct->load('category3');
             $updatedproduct->load('category4');
             $updatedproduct->load('category5');
+            $updatedproduct->load('variants');
 
             // Create default variant for this product
             ProductVariant::createDefaultVariant($updatedproduct);
