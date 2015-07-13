@@ -53,12 +53,12 @@ class Coupon extends Eloquent
 
     public function issueretailers()
     {
-        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer', 'promotion_id', 'retailer_id', 'promotion_retailer_id', 'issueretailers'))->withPivot('allowed');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer', 'promotion_id', 'retailer_id', 'promotion_retailer_id', 'issueretailers'));
     }
 
     public function redeemretailers()
     {
-        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer_redeem', 'promotion_id', 'retailer_id', 'promotion_retailer_redeem_id', 'redeemretailers'))->withPivot('allowed');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'promotion_retailer_redeem', 'promotion_id', 'retailer_id', 'promotion_retailer_redeem_id', 'redeemretailers'));
     }
 
     public function issuedcoupons()
