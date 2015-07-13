@@ -92,7 +92,8 @@ class ConsumerPrinterController extends DataPrinterController
                                     ac.activity_name = "login_ok" AND 
                                     ac.group = "mobile-ci" AND
                                     m.parent_id = '.$merchant_id.'
-                                GROUP BY ac.user_id
+                            GROUP BY ac.activity_id
+                            ORDER BY ac.activity_id DESC LIMIT 1
                             ) AS a'
                         ), function ($q) {
                         $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
