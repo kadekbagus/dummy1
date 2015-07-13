@@ -2,6 +2,7 @@
 
 class CartCoupon extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * Cart Coupon Model
      *
