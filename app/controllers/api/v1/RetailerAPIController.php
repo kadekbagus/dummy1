@@ -346,7 +346,7 @@ class RetailerAPIController extends ControllerAPI
                     'name'      => 'required',
                     'status'    => 'required|orbit.empty.retailer_status',
                     'parent_id' => 'required|orbit.empty.merchant',
-                    'country'   => 'required|numeric',
+                    'country'   => 'required',
                     'url'       => 'orbit.formaterror.url.web'
                 )
             );
