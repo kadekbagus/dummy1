@@ -54,17 +54,17 @@ class ConsumerPrinterController extends DataPrinterController
         //             ->excludeDeleted('users')
         //             ->groupBy('users.user_id');
 
-        // get merchant id from the current user if not found get from config (current active merchant)
-        $merchant_id = User::with('userDetail')->where('user_id', $user->user_id)->first()->user_detail->merchant_id;
+        // get merchant id from the current users
+        $merchant_id = \Merchant::where('user_id', $user->user_id)->first()->merchant_id;
+
         if (empty($merchant_id)) {
-            $retailer = $this->getRetailerInfo();
-            $merchant_id = $retailer->parent->merchant_id;
+            $errorMessage = 'Merchant id not found';
+            OrbitShopAPI::throwInvalidArgument($errorMessage);
         }
 
         $users = User::Consumers()
                     ->excludeDeleted('users')
                     ->select('users.*',
-                            'merchants.name as merchant_name',
                             'user_details.city as city',
                             'user_details.birthdate as birthdate',
                             'user_details.gender as gender',
@@ -83,7 +83,6 @@ class ConsumerPrinterController extends DataPrinterController
                              DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
                             )
                     ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
-                    ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                     ->leftJoin(DB::raw(
                             '(
                             SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
@@ -106,7 +105,8 @@ class ConsumerPrinterController extends DataPrinterController
                                     WHERE
                                         tr.status = "paid" and
                                         tr.merchant_id = '.$merchant_id.'
-                                    GROUP BY tr.customer_id 
+                                GROUP BY tr.transaction_id
+                                ORDER BY tr.transaction_id DESC LIMIT 1 
                             ) AS t'
                         ), function ($q) {
                         $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
@@ -549,12 +549,22 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastSpentAmount($consumer)
     {
-        $retailer = $this->getRetailerInfo();
-        $currency = strtolower($retailer->parent->currency);
+        $user = $this->loggedUser;
+        $currency = \Merchant::where('user_id', $user->user_id)->first()->currency;
+        $currency = strtolower($currency);
         if($currency=='usd'){
-            $result = number_format($consumer->last_spent_amount, 2);
+            if (!empty($consumer->last_spent_amount)) {
+                $result = number_format($consumer->last_spent_amount, 2);
+            } else {
+                $result = '';
+            }
+            
         } else {
-            $result = number_format($consumer->last_spent_amount);
+            if (!empty($consumer->last_spent_amount)) {
+                $result = number_format($consumer->last_spent_amount);
+            } else {
+                $result = '';
+            }
         }
         return $result;
     }
