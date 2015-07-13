@@ -1,5 +1,4 @@
 <?php
-
 use OrbitRelation\BelongsToManyWithUUIDPivot;
 
 class Promotion extends Eloquent
