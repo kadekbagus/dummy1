@@ -19,7 +19,7 @@ class AlterAllUseUuids extends Migration {
         $all_id_columns = DB::select(
                 'SELECT table_name, column_name, is_nullable ' .
                 'FROM information_schema.columns '.
-                'WHERE table_schema = ? AND (column_name LIKE ? OR column_name = ?)', [DB::connection()->getDatabaseName(), '%_id', 'modified_by']);
+                'WHERE table_schema = ? AND (column_name LIKE ? ESCAPE \'!\' OR column_name LIKE ?  ESCAPE \'!\' OR column_name = ?)', [DB::connection()->getDatabaseName(), '%!_id', '%!_id_', 'modified_by']);
         foreach ($all_id_columns as $col) {
             $stmt = '';
             if ($col->is_nullable == 'YES') {
