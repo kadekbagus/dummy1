@@ -111,7 +111,7 @@ class MerchantDataSeeder extends Seeder
             'name'          => 'Orbit Retailer',
             'description'   => 'Dummy retailer for Orbit test',
             'status'        => 'active',
-            'parent_id'     => 1,
+            'parent_id'     => $merchantData['merchant_id'],
             'start_date_activity'   => date('Y-m-d 00:00:00'),
             'postal_code'           => '60123',
             'city_id'               => 0,
@@ -138,6 +138,7 @@ class MerchantDataSeeder extends Seeder
 
         // ------- RETAILER DATA
         Retailer::unguard();
+        $retailerData['parent_id'] = $merchant->merchant_id;
         $retailer = Retailer::create($retailerData);
         $this->command->info(sprintf('    Create record on retailers table, name: %s.', $retailerData['name']));
 
