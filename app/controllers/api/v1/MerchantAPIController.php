@@ -365,7 +365,7 @@ class MerchantAPIController extends ControllerAPI
                     'email'         => 'required|email|orbit.exists.email',
                     'name'          => 'required',
                     'status'        => 'required|orbit.empty.merchant_status',
-                    'country'       => 'required|numeric',
+                    'country'       => 'required',
                     'url'           => 'orbit.formaterror.url.web',
                     'address_line1' => 'required',
                     'city'          => 'required',
