@@ -1,4 +1,6 @@
 <?php
+use Orbit\EncodedUUID;
+
 /**
  * Seeder for User
  *
@@ -10,25 +12,25 @@ class MerchantDataSeeder extends Seeder
     {
         $passwordMerchant = 'merchant2015';
         $merchantUserData = [
-            'user_id'           => 2,
+            'user_id'           => $this->generateId(),
             'username'          => 'merchant',
             'user_email'        => 'merchant@myorbit.com',
             'user_password'     => Hash::make($passwordMerchant),
             'user_firstname'    => 'Orbit',
             'user_lastname'     => 'Merchant',
             'status'            => 'active',
-            'user_role_id'      => 4 // => Merchant Owner
+            'user_role_id'      => $this->getIdOfRoleNamed('Merchant Owner')
         ];
         $passwordRetailer = 'retailer2015';
         $retailerUserData = [
-            'user_id'           => 3,
+            'user_id'           => $this->generateId(),
             'username'          => 'retailer',
             'user_email'        => 'retailer@myorbit.com',
             'user_password'     => Hash::make($passwordRetailer),
             'user_firstname'    => 'Orbit',
             'user_lastname'     => 'Retailer',
             'status'            => 'active',
-            'user_role_id'      => 5 // => Retailer Owner
+            'user_role_id'      => $this->getIdOfRoleNamed('Retailer Owner')
         ];
 
         // ------- MERCHANT USER
@@ -45,8 +47,8 @@ class MerchantDataSeeder extends Seeder
 
         // Record for user_details table
         $merchantUserDetail = [
-            'user_detail_id'    => 2,
-            'user_id'           => 2
+            'user_detail_id'    => $this->generateId(),
+            'user_id'           => $merchantUser->user_id
         ];
         UserDetail::unguard();
         UserDetail::create($merchantUserDetail);
@@ -61,8 +63,8 @@ class MerchantDataSeeder extends Seeder
 
         // Record for user_details table
         $retailerUserDetail = [
-            'user_detail_id'    => 3,
-            'user_id'           => 3
+            'user_detail_id'    => $this->generateId(),
+            'user_id'           => $retailerUser->user_id
         ];
         UserDetail::unguard();
         UserDetail::create($retailerUserDetail);
@@ -73,9 +75,9 @@ class MerchantDataSeeder extends Seeder
 
         // Data for merchant
         $merchantData = [
-            'merchant_id'   => 1,
+            'merchant_id'   => $this->generateId(),
             'omid'          => 'ORBIT-MERCHANT-01',
-            'user_id'       => 2,
+            'user_id'       => $merchantUser->user_id,
             'email'         => 'merchant@myorbit.com',
             'name'          => 'Orbit Merchant',
             'description'   => 'Dummy merchant for Orbit test',
@@ -102,9 +104,9 @@ class MerchantDataSeeder extends Seeder
 
         // Data for retailer
         $retailerData = [
-            'merchant_id'   => 2,
+            'merchant_id'   => $this->generateId(),
             'omid'          => 'ORBIT-RETAILER-01',
-            'user_id'       => 3,
+            'user_id'       => $retailerUser->user_id,
             'email'         => 'retailer@myorbit.com',
             'name'          => 'Orbit Retailer',
             'description'   => 'Dummy retailer for Orbit test',
@@ -140,5 +142,15 @@ class MerchantDataSeeder extends Seeder
         $this->command->info(sprintf('    Create record on retailers table, name: %s.', $retailerData['name']));
 
         $this->command->info('Merchant and retailer data seeded.');
+    }
+
+    private function generateId()
+    {
+        return EncodedUUID::make();
+    }
+
+    private function getIdOfRoleNamed($roleName)
+    {
+        return Role::where('role_name', '=', $roleName)->firstOrFail()->role_id;
     }
 }
