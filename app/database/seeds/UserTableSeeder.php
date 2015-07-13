@@ -1,4 +1,6 @@
 <?php
+use Orbit\EncodedUUID;
+
 /**
  * Seeder for User
  *
@@ -23,14 +25,13 @@ class UserTableSeeder extends Seeder
 
         $password = trim(file_get_contents($passwordFile));
         $superAdminData = [
-            'user_id'           => 1,
             'username'          => 'orbitadmin',
             'user_email'        => 'orbitadmin@myorbit.com',
             'user_password'     => Hash::make($password),
             'user_firstname'    => 'Orbit',
             'user_lastname'     => 'Admin',
             'status'            => 'active',
-            'user_role_id'      => 1 // => Super Admin
+            'user_role_id'      => $this->getIdOfRoleNamed('Super Admin')
         ];
 
         $this->command->info('Seeding users, user_details, and apikeys table...');
@@ -50,8 +51,8 @@ class UserTableSeeder extends Seeder
 
         // Record for user_details table
         $superAdminDetail = [
-            'user_detail_id'    => 1,
-            'user_id'           => 1
+            'user_detail_id'    => $this->generateId(),
+            'user_id'           => $superAdmin->user_id
         ];
         UserDetail::unguard();
         UserDetail::create($superAdminDetail);
@@ -68,5 +69,15 @@ class UserTableSeeder extends Seeder
         } else {
             $this->command->info('Password file has been deleted.');
         }
+    }
+
+    private function generateId()
+    {
+        return EncodedUUID::make();
+    }
+
+    private function getIdOfRoleNamed($roleName)
+    {
+        return Role::where('role_name', '=', $roleName)->firstOrFail()->role_id;
     }
 }
