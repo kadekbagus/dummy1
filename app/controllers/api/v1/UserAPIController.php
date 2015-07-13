@@ -1278,7 +1278,8 @@ class UserAPIController extends ControllerAPI
                                 WHERE
                                     tr.status = "paid" and
                                     tr.merchant_id = '.$merchant_id.'
-                                GROUP BY tr.customer_id 
+                                GROUP BY tr.transaction_id
+                                ORDER BY tr.transaction_id DESC LIMIT 1
                         ) AS t'
                     ), function ($q) {
                     $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
