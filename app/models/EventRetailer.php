@@ -2,6 +2,7 @@
 
 class EventRetailer extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * EventRetailer Model
      *

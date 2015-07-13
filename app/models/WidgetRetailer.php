@@ -6,6 +6,7 @@
  */
 class WidgetRetailer extends Eloquent
 {
+    use GeneratedUuidTrait;
     protected $table = 'widgets';
     protected $primaryKey = 'widget_id';
 }

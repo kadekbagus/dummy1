@@ -2,6 +2,7 @@
 
 class CouponRetailerRedeem extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * CouponRetailer Model
      *

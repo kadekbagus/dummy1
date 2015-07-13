@@ -2,6 +2,7 @@
 
 class ProductRetailer extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * ProductRetailer Model
      *
