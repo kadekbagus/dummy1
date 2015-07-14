@@ -1259,8 +1259,8 @@ class UserAPIController extends ControllerAPI
                 ->leftJoin(DB::raw(
                         '(
                         SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
-                            FROM orb_activities ac
-                            INNER JOIN orb_merchants m on m.merchant_id=ac.location_id
+                            FROM '.$prefix.'activities ac
+                            INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
                             WHERE
                                 ac.activity_name = "login_ok" AND 
                                 ac.group = "mobile-ci" AND
@@ -1275,7 +1275,7 @@ class UserAPIController extends ControllerAPI
                         '(  
                             SELECT tr.customer_id, tr.total_to_pay as last_spent_amount, max(tr.created_at) as transaction_date
                                 FROM 
-                                    orb_transactions tr
+                                    '.$prefix.'transactions tr
                                 WHERE
                                     tr.status = "paid" and
                                     tr.merchant_id = '.$merchant_id.'

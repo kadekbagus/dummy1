@@ -70,7 +70,6 @@ class ConsumerPrinterController extends DataPrinterController
                             'user_details.gender as gender',
                             'user_details.country as country',
                             'user_details.last_visit_any_shop as last_visit_date',
-                            //'user_details.last_spent_any_shop as last_spent_amount',
                             'user_details.relationship_status as relationship_status',
                             'user_details.number_of_children as number_of_children',
                             'user_details.occupation as occupation',
@@ -86,8 +85,8 @@ class ConsumerPrinterController extends DataPrinterController
                     ->leftJoin(DB::raw(
                             '(
                             SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
-                                FROM orb_activities ac
-                                INNER JOIN orb_merchants m on m.merchant_id=ac.location_id
+                                FROM '.$prefix.'activities ac
+                                INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
                                 WHERE
                                     ac.activity_name = "login_ok" AND 
                                     ac.group = "mobile-ci" AND
@@ -102,7 +101,7 @@ class ConsumerPrinterController extends DataPrinterController
                             '(  
                                 SELECT tr.customer_id, tr.total_to_pay as last_spent_amount, max(tr.created_at) as transaction_date
                                     FROM 
-                                        orb_transactions tr
+                                        '.$prefix.'transactions tr
                                     WHERE
                                         tr.status = "paid" and
                                         tr.merchant_id = '.$merchant_id.'
