@@ -46,10 +46,26 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.avg_annual_income1 as avg_annual_income1',
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
                         'user_details.preferred_language as preferred_language', 
-                         DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'), 
                          DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
-                         DB::raw("(SELECT ac.location_id FROM {$prefix}activities ac GROUP BY ac.activity_id ORDER BY ac.activity_id LIMIT 1) as location"),
-                         DB::raw("(SELECT tr.total_to_pay FROM {$prefix}transactions tr GROUP BY tr.transaction_id ORDER BY tr.transaction_id LIMIT 1) as last_spent")
+                         DB::raw("(SELECT m.name 
+                                        FROM {$prefix}activities at 
+                                        INNER JOIN {$prefix}merchants m on m.merchant_id=at.location_id 
+                                        WHERE 
+                                            at.user_id={$prefix}users.user_id AND 
+                                            at.activity_name='login_ok' 
+                                            AND at.group = 'mobile-ci' 
+                                        GROUP BY at.created_at 
+                                        ORDER BY at.created_at DESC LIMIT 1) as last_visited_store"),
+                        DB::raw("(SELECT at.created_at 
+                                        FROM {$prefix}activities at 
+                                        INNER JOIN {$prefix}merchants m on m.merchant_id=at.location_id 
+                                        WHERE 
+                                            at.user_id={$prefix}users.user_id AND 
+                                            at.activity_name='login_ok' 
+                                            AND at.group = 'mobile-ci' 
+                                        GROUP BY at.created_at 
+                                        ORDER BY at.created_at DESC LIMIT 1) as last_visited_date"),
+                         DB::raw("(SELECT tr.total_to_pay FROM {$prefix}transactions tr where customer_id={$prefix}users.user_id and status='paid' GROUP BY tr.created_at ORDER BY tr.created_at DESC LIMIT 1) as last_spent_amount")
                         )
                 ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                 ->leftJoin(DB::raw(
@@ -108,10 +124,26 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.avg_annual_income1 as avg_annual_income1',
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
                         'user_details.preferred_language as preferred_language', 
-                         DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'), 
                          DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
-                         DB::raw("(SELECT ac.location_id FROM {$prefix}activities ac GROUP BY ac.activity_id ORDER BY ac.activity_id LIMIT 1) as location"),
-                         DB::raw("(SELECT tr.total_to_pay FROM {$prefix}transactions tr GROUP BY tr.transaction_id ORDER BY tr.transaction_id LIMIT 1) as last_spent")
+                         DB::raw("(SELECT m.name 
+                                FROM {$prefix}activities at 
+                                LEFT JOIN {$prefix}merchants m on m.merchant_id=at.location_id 
+                                WHERE 
+                                    at.user_id={$prefix}users.user_id AND 
+                                    at.activity_name='login_ok' AND
+                                    at.group = 'mobile-ci' AND
+                                    m.parent_id = '{$merchant_id}'
+                                ORDER BY at.created_at DESC LIMIT 1) as last_visited_store"),
+                         DB::raw("(SELECT at.created_at 
+                                FROM {$prefix}activities at 
+                                LEFT JOIN {$prefix}merchants m2 on m2.merchant_id=at.location_id 
+                                WHERE 
+                                    at.user_id={$prefix}users.user_id AND 
+                                    at.activity_name='login_ok' AND
+                                    at.group = 'mobile-ci' AND
+                                    m2.parent_id = '{$merchant_id}'
+                                ORDER BY at.created_at DESC LIMIT 1) as last_visited_date"),
+                         DB::raw("(SELECT tr.total_to_pay FROM {$prefix}transactions tr where customer_id={$prefix}users.user_id and status='paid' GROUP BY tr.created_at ORDER BY tr.created_at DESC LIMIT 1) as last_spent_amount")
                         )
                 ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                 ->leftJoin(DB::raw(
