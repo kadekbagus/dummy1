@@ -47,19 +47,20 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
                         'user_details.preferred_language as preferred_language', 
                          DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'), 
-                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
+                         DB::raw("(SELECT ac.location_id FROM {$prefix}activities ac GROUP BY ac.activity_id ORDER BY ac.activity_id LIMIT 1) as location"),
+                         DB::raw("(SELECT tr.total_to_pay FROM {$prefix}transactions tr GROUP BY tr.transaction_id ORDER BY tr.transaction_id LIMIT 1) as last_spent")
                         )
                 ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                 ->leftJoin(DB::raw(
                         '(
-                        SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
-                            FROM '.$prefix.'activities ac
-                            INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
-                            WHERE
-                                ac.activity_name = "login_ok" AND 
-                                ac.group = "mobile-ci" 
-                        GROUP BY ac.activity_id
-                        ORDER BY ac.activity_id DESC LIMIT 1
+                            SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
+                                FROM '.$prefix.'activities ac
+                                INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
+                                WHERE
+                                    ac.activity_name = "login_ok" AND 
+                                    ac.group = "mobile-ci" 
+                            GROUP BY ac.created_at
                         ) AS a'
                     ), function ($q) {
                     $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
@@ -71,8 +72,7 @@ class ConsumerPrinterController extends DataPrinterController
                                     '.$prefix.'transactions tr
                                 WHERE
                                     tr.status = "paid" 
-                            GROUP BY tr.transaction_id
-                            ORDER BY tr.transaction_id DESC LIMIT 1 
+                            GROUP BY tr.created_at
                         ) AS t'
                     ), function ($q) {
                     $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
@@ -109,20 +109,21 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
                         'user_details.preferred_language as preferred_language', 
                          DB::raw('a.last_visited_store, a.last_visited_date, t.last_spent_amount'), 
-                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
+                         DB::raw("(SELECT ac.location_id FROM {$prefix}activities ac GROUP BY ac.activity_id ORDER BY ac.activity_id LIMIT 1) as location"),
+                         DB::raw("(SELECT tr.total_to_pay FROM {$prefix}transactions tr GROUP BY tr.transaction_id ORDER BY tr.transaction_id LIMIT 1) as last_spent")
                         )
                 ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                 ->leftJoin(DB::raw(
                         '(
-                        SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
-                            FROM '.$prefix.'activities ac
-                            INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
-                            WHERE
-                                ac.activity_name = "login_ok" AND 
-                                ac.group = "mobile-ci" AND
-                                m.parent_id = '.$merchant_id.'
-                        GROUP BY ac.activity_id
-                        ORDER BY ac.activity_id DESC LIMIT 1
+                            SELECT ac.user_id, m.name as last_visited_store, max(ac.created_at) as last_visited_date
+                                FROM '.$prefix.'activities ac
+                                INNER JOIN '.$prefix.'merchants m on m.merchant_id=ac.location_id
+                                WHERE
+                                    ac.activity_name = "login_ok" AND 
+                                    ac.group = "mobile-ci" AND
+                                    m.parent_id = '.$merchant_id.'
+                            GROUP BY ac.created_at
                         ) AS a'
                     ), function ($q) {
                     $q->on( DB::raw('a.user_id'), '=', 'users.user_id' );
@@ -135,8 +136,7 @@ class ConsumerPrinterController extends DataPrinterController
                                 WHERE
                                     tr.status = "paid" and
                                     tr.merchant_id = '.$merchant_id.'
-                            GROUP BY tr.transaction_id
-                            ORDER BY tr.transaction_id DESC LIMIT 1 
+                            GROUP BY tr.created_at
                         ) AS t'
                     ), function ($q) {
                     $q->on( DB::raw('t.customer_id'), '=', 'users.user_id' );
