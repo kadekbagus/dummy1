@@ -5,7 +5,7 @@
  * @author Rio Astamal <me@rioastamal.net>
  */
 use OrbitShop\API\v1\ResponseProvider;
-use MobileCI\MobileCIAPIController;
+use MobileCI\AccountController as MobileCIAPIController;
 use Net\Security\Firewall;
 use \Cookie;
 use DominoPOS\OrbitSession\Session as MySession;
