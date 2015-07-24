@@ -308,6 +308,10 @@ class ProductAPIController extends ControllerAPI
                 $updatedproduct->is_featured = $is_featured;
             });
 
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedproduct) {
+                $updatedproduct->is_all_retailer = $is_all_retailer;
+            });
+
             OrbitInput::post('new_from', function($new_from) use ($updatedproduct) {
                 $updatedproduct->new_from = $new_from;
             });
@@ -1375,6 +1379,7 @@ class ProductAPIController extends ControllerAPI
             $attribute_id3 = OrbitInput::post('attribute_id3');
             $attribute_id4 = OrbitInput::post('attribute_id4');
             $attribute_id5 = OrbitInput::post('attribute_id5');
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
 
             $flag_selected_attribute = 0;
             if (!empty($attribute_id1)) {
@@ -1502,6 +1507,7 @@ class ProductAPIController extends ControllerAPI
             $newproduct->short_description = $short_description;
             $newproduct->long_description = $long_description;
             $newproduct->is_featured = $is_featured;
+            $newproduct->is_all_retailer = $is_all_retailer;
             $newproduct->new_from = $new_from;
             $newproduct->new_until = $new_until;
             $newproduct->in_store_localization = $in_store_localization;
