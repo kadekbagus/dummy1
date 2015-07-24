@@ -1127,6 +1127,12 @@ class ProductAPIController extends ControllerAPI
             OrbitInput::get('retailer_ids', function($retailerIds) use ($products) {
                 $products->whereHas('retailers', function($q) use ($retailerIds) {
                     $q->whereIn('product_retailer.retailer_id', $retailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($q) {
+                        $q->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('products.is_all_retailer', 'Y');
+                            $or->where('products.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1135,8 +1141,13 @@ class ProductAPIController extends ControllerAPI
                 if ($is_current_retailer_only === 'Y') {
                     $retailer_id = Setting::where('setting_name', 'current_retailer')->first();
                     if (! empty($retailer_id)) {
-                        $products->whereHas('retailers', function($q) use ($retailer_id) {
+                        $retailer = Retailer::find($retailer_id->setting_value);
+                        $products->whereHas('retailers', function($q) use ($retailer_id, $retailer) {
                                     $q->where('product_retailer.retailer_id', $retailer_id->setting_value);
+                                    $q->orWhere(function ($or) use($retailer) {
+                                        $or->where('products.is_all_retailer', 'Y');
+                                        $or->where('products.merchant_id', $retailer->parent_id);
+                                    });
                                 });
                     }
                 }
