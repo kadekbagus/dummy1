@@ -13,3 +13,6 @@
 
 // Merchant or Retailer activation
 Artisan::add(new merchantActivation);
+
+// diff configs vs sample and report differences.
+Artisan::add(new configDiffFromSample);

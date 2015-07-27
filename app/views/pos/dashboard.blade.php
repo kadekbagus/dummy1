@@ -24,7 +24,7 @@
                 <div class="orbit-component table-attribute-top">
                     <div class="row">
                          <div class="col-md-6" style="margin-top: 6px"><h4><% language.keranjangbelanja %></h4></div>
-                         <div class="col-md-6 text-right"> <button class="btn btn-primary" data-ng-disabled="successscant" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit"><% language.scankeranjang %></button></div>
+                         <div class="col-md-6 text-right"> <button class="btn btn-primary" data-ng-disabled="cart.length > 0" style="background-color: #2c71a3;" data-toggle="modal" data-backdrop="static" data-target="#modalscancart" data-ng-click="scancartFn()" type="submit"><% language.scankeranjang %></button></div>
                     </div>
 
                 </div>
