@@ -88,6 +88,7 @@ class EventAPIController extends ControllerAPI
             $widget_object_type = OrbitInput::post('widget_object_type');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
 
             $validator = Validator::make(
                 array(
@@ -179,6 +180,7 @@ class EventAPIController extends ControllerAPI
             $newevent->begin_date = $begin_date;
             $newevent->end_date = $end_date;
             $newevent->is_permanent = $is_permanent;
+            $newevent->is_all_retailer = $is_all_retailer;
             $newevent->link_object_type = $link_object_type;
 
             // link_object_id1
@@ -513,6 +515,10 @@ class EventAPIController extends ControllerAPI
 
             OrbitInput::post('is_permanent', function($is_permanent) use ($updatedevent) {
                 $updatedevent->is_permanent = $is_permanent;
+            });
+
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedevent) {
+                $updatedevent->is_all_retailer = $is_all_retailer;
             });
 
             OrbitInput::post('link_object_type', function($link_object_type) use ($updatedevent) {
@@ -1132,6 +1138,12 @@ class EventAPIController extends ControllerAPI
             OrbitInput::get('retailer_id', function ($retailerIds) use ($events) {
                 $events->whereHas('retailers', function($q) use ($retailerIds) {
                     $q->whereIn('retailer_id', $retailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($q) {
+                        $q->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('events.is_all_retailer', 'Y');
+                            $or->where('events.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1369,8 +1381,8 @@ class EventAPIController extends ControllerAPI
 
             // Builder object
             $events = DB::table('events')
-                ->join('event_retailer', 'events.event_id', '=', 'event_retailer.event_id')
-                ->join('merchants', 'event_retailer.retailer_id', '=', 'merchants.merchant_id')
+                ->leftjoin('event_retailer', 'events.event_id', '=', 'event_retailer.event_id')
+                ->leftjoin('merchants', 'event_retailer.retailer_id', '=', 'merchants.merchant_id')
                 ->select('event_retailer.retailer_id', 'merchants.name AS retailer_name', 'events.*')
                 ->where('events.status', '!=', 'deleted');
 
@@ -1487,6 +1499,12 @@ class EventAPIController extends ControllerAPI
             // Filter event by retailer Ids
             OrbitInput::get('retailer_id', function ($retailerIds) use ($events) {
                 $events->whereIn('event_retailer.retailer_id', $retailerIds);
+                OrbitInput::get('merchant_id', function($merchant_id) use ($events) {
+                        $events->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('events.is_all_retailer', 'Y');
+                            $or->where('events.merchant_id', $merchant_id);
+                        });
+                });
             });
 
             // Clone the query builder which still does not include the take,
