@@ -458,11 +458,11 @@
 
     </div>
     <!-- Modal Checkout-->
-    <div class="modal fade" id="myModalcheckout" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="myModalcheckout" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" style="width: 400px;  margin: 30px auto;">
           <div class="modal-header">
-             <button class="btn  close closemodal" data-ng-if="action != 'done' || cardfile" data-dismiss="modal" data-ng-click="gotomain()"type="button">
+             <button class="btn  close closemodal" data-ng-if="action != 'done' || cardfile" ng-hide="action == 'done'" data-dismiss="modal" data-ng-click="gotomain()"type="button">
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
              </button>
             <h4 class="modal-title text-center" id="myModalLabel"><b> <% cheader %></b></h4>
