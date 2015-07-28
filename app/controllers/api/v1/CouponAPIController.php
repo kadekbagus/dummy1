@@ -1679,8 +1679,14 @@ class CouponAPIController extends ControllerAPI
 
             // Filter coupon by issue retailer id
             OrbitInput::get('issue_retailer_id', function ($issueRetailerIds) use ($coupons) {
-                $coupons->whereHas('issueretailers', function($q) use ($issueRetailerIds) {
+                $coupons->whereHas('issueretailers', function($q) use ($issueRetailerIds, $coupons) {
                     $q->whereIn('retailer_id', $issueRetailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($coupons) {
+                        $coupons->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1922,8 +1928,8 @@ class CouponAPIController extends ControllerAPI
 
             // Builder object
             $coupons = DB::table('promotions')
-                ->join('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
-                ->join('merchants', 'promotion_retailer.retailer_id', '=', 'merchants.merchant_id')
+                ->leftjoin('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
+                ->leftjoin('merchants', 'promotion_retailer.retailer_id', '=', 'merchants.merchant_id')
                 ->select('promotion_retailer.retailer_id', 'merchants.name AS issue_retailer_name', 'promotions.*')
                 ->where('promotions.is_coupon', '=', 'Y')
                 ->where('promotions.status', '!=', 'deleted');
@@ -2015,8 +2021,8 @@ class CouponAPIController extends ControllerAPI
                         // ->where('promotion.location_type',)
                     OrbitInput::get('merchant_id', function($merchant_id) use ($coupons) {
                         $coupons->orWhere(function ($or) use ($merchant_id) {
-                            $or->where('promotion.is_all_retailer', 'Y');
-                            $or->where('promotion.merchant_id', $merchant_id);
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
                         });
                     });
             });
