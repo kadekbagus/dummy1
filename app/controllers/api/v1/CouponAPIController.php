@@ -120,6 +120,9 @@ class CouponAPIController extends ControllerAPI
             $issue_retailer_ids = (array) $issue_retailer_ids;
             $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
             $redeem_retailer_ids = (array) $redeem_retailer_ids;
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
+            $location_id = OrbitInput::post('location_id');
+            $location_type = OrbitInput::post('location_type');
 
             $validator = Validator::make(
                 array(
@@ -308,6 +311,9 @@ class CouponAPIController extends ControllerAPI
             $newcoupon->coupon_validity_in_days = $coupon_validity_in_days;
             $newcoupon->coupon_notification = $coupon_notification;
             $newcoupon->created_by = $this->api->user->user_id;
+            $newcoupon->is_all_retailer = $is_all_retailer;
+            $newcoupon->location_id = $location_id;
+            $newcoupon->location_type = $location_type;
 
             Event::fire('orbit.coupon.postnewcoupon.before.save', array($this, $newcoupon));
 
@@ -807,6 +813,18 @@ class CouponAPIController extends ControllerAPI
 
             OrbitInput::post('coupon_notification', function($coupon_notification) use ($updatedcoupon) {
                 $updatedcoupon->coupon_notification = $coupon_notification;
+            });
+
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedcoupon) {
+                $updatedcoupon->is_all_retailer = $is_all_retailer;
+            });
+
+            OrbitInput::post('location_id', function($location_id) use ($updatedcoupon) {
+                $updatedcoupon->location_id = $location_id;
+            });
+
+            OrbitInput::post('location_type', function($location_type) use ($updatedcoupon) {
+                $updatedcoupon->location_type = $location_type;
             });
 
             $updatedcoupon->modified_by = $this->api->user->user_id;
@@ -1993,6 +2011,14 @@ class CouponAPIController extends ControllerAPI
             // Filter coupon by issue retailer Ids
             OrbitInput::get('issue_retailer_id', function ($issueRetailerIds) use ($coupons) {
                 $coupons->whereIn('promotion_retailer.retailer_id', $issueRetailerIds);
+                        // ->where('promotion.location_id',)
+                        // ->where('promotion.location_type',)
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($coupons) {
+                        $coupons->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotion.is_all_retailer', 'Y');
+                            $or->where('promotion.merchant_id', $merchant_id);
+                        });
+                    });
             });
 
             // Clone the query builder which still does not include the take,
