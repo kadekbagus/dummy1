@@ -93,6 +93,9 @@ class PromotionAPIController extends ControllerAPI
             $discount_value = OrbitInput::post('discount_value');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $location_id = OrbitInput::post('location_id');
+            $location_type = OrbitInput::post('location_type');
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
 
             $validator = Validator::make(
                 array(
@@ -226,6 +229,9 @@ class PromotionAPIController extends ControllerAPI
             $newpromotion->is_permanent = $is_permanent;
             $newpromotion->image = $image;
             $newpromotion->created_by = $this->api->user->user_id;
+            $newpromotion->is_all_retailer = $is_all_retailer;
+            $newpromotion->location_id = $location_id;
+            $newpromotion->location_type = $location_type;
 
             Event::fire('orbit.promotion.postnewpromotion.before.save', array($this, $newpromotion));
 
@@ -610,6 +616,18 @@ class PromotionAPIController extends ControllerAPI
 
             OrbitInput::post('is_permanent', function($is_permanent) use ($updatedpromotion) {
                 $updatedpromotion->is_permanent = $is_permanent;
+            });
+
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedpromotion) {
+                $updatedpromotion->is_all_retailer = $is_all_retailer;
+            });
+
+            OrbitInput::post('location_id', function($location_id) use ($updatedpromotion) {
+                $updatedpromotion->location_id = $location_id;
+            });
+
+            OrbitInput::post('location_type', function($location_type) use ($updatedpromotion) {
+                $updatedpromotion->location_type = $location_type;
             });
 
             OrbitInput::post('image', function($image) use ($updatedpromotion) {
@@ -1355,8 +1373,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Filter promotion retailer by retailer id
             OrbitInput::get('retailer_id', function ($retailerIds) use ($promotions) {
-                $promotions->whereHas('retailers', function($q) use ($retailerIds) {
+                $promotions->whereHas('retailers', function($q) use ($retailerIds, $promotions) {
                     $q->whereIn('retailer_id', $retailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($promotions) {
+                        $promotions->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1676,6 +1700,12 @@ class PromotionAPIController extends ControllerAPI
             // Filter promotion by retailer Ids
             OrbitInput::get('retailer_id', function ($retailerIds) use ($promotions) {
                 $promotions->whereIn('promotion_retailer.retailer_id', $retailerIds);
+                OrbitInput::get('merchant_id', function($merchant_id) use ($promotions) {
+                        $promotions->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
             });
 
             // Clone the query builder which still does not include the take,
