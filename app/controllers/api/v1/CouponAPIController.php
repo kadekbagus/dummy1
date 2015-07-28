@@ -821,8 +821,8 @@ class CouponAPIController extends ControllerAPI
                 $updatedcoupon->is_all_retailer = $is_all_retailer;
             });
 
-            OrbitInput::post('is_all_retailer_redeem', function($is_all_retailer) use ($updatedcoupon) {
-                $updatedcoupon->is_all_retailer = $is_all_retailer;
+            OrbitInput::post('is_all_retailer_redeem', function($is_all_retailer_redeem) use ($updatedcoupon) {
+                $updatedcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
             });
 
             OrbitInput::post('location_id', function($location_id) use ($updatedcoupon) {
