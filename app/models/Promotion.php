@@ -70,6 +70,11 @@ class Promotion extends Eloquent
         return $query->where('promotions.is_permanent', '=', 'Y');
     }
 
+    public function products()
+    {
+        return $this->belongsToMany('Product', 'promotion_product', 'promotion_id', 'product_id');
+    }
+
     /**
      * Add Filter promotions based on user who request it.
      *

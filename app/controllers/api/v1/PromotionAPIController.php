@@ -96,6 +96,9 @@ class PromotionAPIController extends ControllerAPI
             $location_id = OrbitInput::post('location_id');
             $location_type = OrbitInput::post('location_type');
             $is_all_retailer = OrbitInput::post('is_all_retailer');
+            
+            $product_ids = OrbitInput::post('product_ids');
+            $product_ids = (array) $product_ids;
 
             $validator = Validator::make(
                 array(
@@ -293,6 +296,17 @@ class PromotionAPIController extends ControllerAPI
             }
             $newpromotion->retailers = $promotionretailers;
 
+            // save PromotionProduct.
+            $promotionproducts = array();
+            foreach ($product_ids as $product_id) {
+                $promotionproduct = new PromotionProduct();
+                $promotionproduct->product_id = $product_id;
+                $promotionproduct->promotion_id = $newpromotion->promotion_id;
+                $promotionproduct->save();
+                $promotionproducts[] = $promotionproduct;
+            }
+            $newpromotion->products = $promotionproducts;
+
             Event::fire('orbit.promotion.postnewpromotion.after.save', array($this, $newpromotion));
             $this->response->data = $newpromotion;
 
@@ -473,6 +487,9 @@ class PromotionAPIController extends ControllerAPI
             $rule_value = OrbitInput::post('rule_value');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+
+            $product_ids = OrbitInput::post('product_ids');
+            $product_ids = (array) $product_ids;
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -742,6 +759,37 @@ class PromotionAPIController extends ControllerAPI
                 // reload retailers relation
                 $updatedpromotion->load('retailers');
             });
+
+
+            OrbitInput::post('product_ids', function($product_ids) use ($updatedpromotion) {
+                // validate retailer_ids
+                $product_ids = (array) $product_ids;
+                foreach ($product_ids as $product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.promotion.postupdatepromotion.before.productvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
+                }
+                // sync new set of retailer ids
+                $updatedpromotion->products()->sync($product_ids);
+
+                // reload retailers relation
+                $updatedpromotion->load('products');
+            });
             
 
             Event::fire('orbit.promotion.postupdatepromotion.after.save', array($this, $updatedpromotion));
@@ -936,6 +984,12 @@ class PromotionAPIController extends ControllerAPI
             $deletepromotionretailers = PromotionRetailer::where('promotion_id', $deletepromotion->promotion_id)->get();
             foreach ($deletepromotionretailers as $deletepromotionretailer) {
                 $deletepromotionretailer->delete();
+            }
+
+            // hard delete promotion-product.
+            $deletepromotionproducts = PromotionProduct::where('promotion_id', $deletepromotion->promotion_id)->get();
+            foreach ($deletepromotionproducts as $deletepromotionproduct) {
+                $deletepromotionproduct->delete();
             }
 
             $deletepromotion->save();
@@ -1391,6 +1445,8 @@ class PromotionAPIController extends ControllerAPI
                 foreach ($with as $relation) {
                     if ($relation === 'retailers') {
                         $promotions->with('retailers');
+                    } elseif ($relation === 'products') {
+                        $promotions->with('products');
                     } elseif ($relation === 'product') {
                         $promotions->with('promotionrule.discountproduct');
                     } elseif ($relation === 'family') {
@@ -2036,6 +2092,21 @@ class PromotionAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.retailer', $retailer);
+
+            return TRUE;
+        });
+
+        // Check the existance of product id
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()->allowedForUser($this->api->user)
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.retailer', $product);
 
             return TRUE;
         });
