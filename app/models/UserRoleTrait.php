@@ -6,6 +6,8 @@
  *
  * @property Merchant[] $merchants
  * @property Role $role
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder consumers()
  */
 trait UserRoleTrait
 {
