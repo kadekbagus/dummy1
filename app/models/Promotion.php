@@ -75,6 +75,7 @@ class Promotion extends Eloquent
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeAllowedForUser($builder, $user)
     {
