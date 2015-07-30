@@ -65,7 +65,6 @@ class TransactionDetail extends Eloquent
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param \Illuminate\Database\Eloquent\Builder  $builder
-     * @param array|int $valueId - List of value ids
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeExcludeDeletedTransaction($builder)
@@ -78,7 +77,7 @@ class TransactionDetail extends Eloquent
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param \Illuminate\Database\Eloquent\Builder  $builder
-     * @param array|int $valueId - List of value ids
+     * @param array|int $ids - List of value ids
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeAttributeValueIds($builder, $ids=array())
