@@ -50,7 +50,7 @@ class Activity extends Eloquent
      * Common task which called by multiple group.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return void
+     * @return static
      */
     protected function fillCommonValues()
     {
@@ -315,7 +315,7 @@ class Activity extends Eloquent
      * Set the value of `object_id`, `object_name`, and `metadata_object`.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param Object $object
+     * @param object $object
      * @return Activity
      */
     public function setObject($object)
