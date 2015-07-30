@@ -4,6 +4,17 @@
  * column.
  *
  * @author Rio Astamal <me@rioastamal.net>
+ *
+ * @property string status
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder active($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder blocked($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder excludeDeleted($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder inactive($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder makeActive($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder makeBlocked($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder pending($table = NULL)
+ * @method static \Illuminate\Database\Eloquent\Builder withDeleted($table = NULL)
  */
 trait ModelStatusTrait
 {
@@ -29,9 +40,9 @@ trait ModelStatusTrait
      * had value 'active'.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param Illuminate\Database\Query\Builder $query
+     * @param Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
-     * @return Illuminate\Database\Query\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive($query, $table=NULL)
     {
@@ -43,9 +54,9 @@ trait ModelStatusTrait
      * had value 'blocked'.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param $query Illuminate\Database\Query\Builder
+     * @param $query Illuminate\Database\Eloquent\Builder
      * @param string $table Table name
-     * @return Illuminate\Database\Query\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeBlocked($query, $table=NULL)
     {
@@ -57,8 +68,9 @@ trait ModelStatusTrait
      * had value 'pending'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
-     * @return Illuminate\Database\Query\Builder
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePending($query, $table=NULL)
     {
@@ -70,8 +82,9 @@ trait ModelStatusTrait
      * had value 'inactive'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
-     * @return Illuminate\Database\Query\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeInactive($query, $table=NULL)
     {
@@ -83,8 +96,9 @@ trait ModelStatusTrait
      * had value 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
-     * @return Illuminate\Database\Query\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeWithDeleted($query, $table=NULL)
     {
@@ -96,8 +110,9 @@ trait ModelStatusTrait
      * had value 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
-     * @return Illuminate\Database\Query\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeExcludeDeleted($query, $table=NULL)
     {
@@ -108,6 +123,7 @@ trait ModelStatusTrait
      * Scope to change the status of an apikey record to 'active'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
      * @return Apikey
      */
@@ -122,6 +138,7 @@ trait ModelStatusTrait
      * Scope to change the status of an apikey record to 'blocked'.
      *
      * @author Rio Astamal <me@rioastamal.net>
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $table Table name
      * @return Apikey
      */
@@ -134,7 +151,7 @@ trait ModelStatusTrait
 
     /**
      * Override Eloquent delete behaviour by only changing the value of `status`
-     * columnt to 'deleted'.
+     * column to 'deleted'.
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param boolean $force Force hard delete (wipe the record from database)
