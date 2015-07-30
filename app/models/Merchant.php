@@ -249,6 +249,7 @@ class Merchant extends Eloquent
      * @author Rio Astamal <me@rioastamal.net>
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeAllowedForUser($builder, $user)
     {
@@ -279,7 +280,7 @@ class Merchant extends Eloquent
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  User $user Instance of object user
+     * @param  array $userIds array of customer IDs
      */
     public function scopeTransactionCustomerIds($builder, array $userIds)
     {
