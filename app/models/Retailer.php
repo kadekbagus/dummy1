@@ -96,6 +96,7 @@ class Retailer extends Eloquent
      * @author Rio Astamal <me@rioastamal.net>
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeAllowedForUser($builder, $user)
     {
