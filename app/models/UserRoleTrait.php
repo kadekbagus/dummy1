@@ -3,18 +3,21 @@
  * Traits for storing role method that used by User
  *
  * @author Ahmad Anshori <ahmad@dominopos.com>
+ *
+ * @property Merchant[] $merchants
+ * @property Role $role
  */
 trait UserRoleTrait
 {
     /**
-     * Flag to incidate whether the prepareMerchant() has been called.
+     * Flag to indicate whether the prepareMerchant() has been called.
      *
      * @var boolean
      */
     protected $prepareMerchantCalled = FALSE;
 
     /**
-     * Flag to incidate whether the prepareEmployeeRetailer() has been called.
+     * Flag to indicate whether the prepareEmployeeRetailer() has been called.
      *
      * @var boolean
      */
@@ -25,7 +28,9 @@ trait UserRoleTrait
      * Filter User by Consumer Role
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeConsumers($query)
     {
@@ -38,7 +43,9 @@ trait UserRoleTrait
      * Filter User by Merchant Role
      *
      * @author Ahmad Anshori <ahmad@dominopos.com>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeMerchantOwners($query)
     {
@@ -52,7 +59,9 @@ trait UserRoleTrait
      * filtered based on merchant_id or retailer_id (shop).
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopePrepareMerchant($query)
     {
@@ -67,7 +76,10 @@ trait UserRoleTrait
      * Filter consumer based on merchant id.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array|string $ids array of IDs or string of comma separated IDs
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeMerchantIds($query, $ids)
     {
@@ -93,7 +105,10 @@ trait UserRoleTrait
      * Filter consumer based on retailer id.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array|string $ids array of IDs or string of comma separated IDs
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeRetailerIds($query, $ids)
     {
@@ -120,7 +135,9 @@ trait UserRoleTrait
      * so it can be filtered based on merchant_id or retailer_id (shop).
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopePrepareEmployeeRetailer($query)
     {
@@ -136,7 +153,10 @@ trait UserRoleTrait
      * Filter employee based on retailer id.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array|string $ids array of IDs or string of comma separated IDs
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeEmployeeRetailerIds($query, $ids)
     {
@@ -162,7 +182,10 @@ trait UserRoleTrait
      * Filter employee based on merchant id.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array|string $ids array of IDs or string of comma separated IDs
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeEmployeeMerchantIds($query, $ids)
     {
@@ -192,7 +215,10 @@ trait UserRoleTrait
      * Filter employee based on employee_id_char.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array|string $ids array of IDs or string of comma separated IDs
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeEmployeeIdChars($query, $ids)
     {
@@ -218,7 +244,10 @@ trait UserRoleTrait
      * Filter employee based on employee_id_char pattern.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @return Illuminate\Database\Query\Builder
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param string $pattern
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeEmployeeIdCharLike($query, $pattern)
     {
