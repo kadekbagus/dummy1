@@ -593,8 +593,8 @@ class UserAPIController extends ControllerAPI
                 $updateduser->user_lastname = $lastname;
             });
 
-            // User with role consumer cannot update status
-            if (! $user->isRoleName('consumer')) {
+            // User cannot update their own status
+            if ((string)$user->user_id !== (string)$updateduser->user_id) {
                 OrbitInput::post('status', function($status) use ($updateduser) {
                     $updateduser->status = $status;
                 });
@@ -1294,13 +1294,13 @@ class UserAPIController extends ControllerAPI
                                             at.group = 'mobile-ci' AND
                                             m2.parent_id = '{$merchant_id}'
                                         ORDER BY at.created_at DESC LIMIT 1) as last_visited_date"),
-                                 DB::raw("(SELECT tr.total_to_pay 
-                                        FROM {$prefix}transactions tr 
-                                        WHERE 
-                                            tr.customer_id={$prefix}users.user_id AND 
-                                            tr.status='paid' AND 
-                                            tr.merchant_id='{$merchant_id}' 
-                                        GROUP BY tr.created_at 
+                                 DB::raw("(SELECT tr.total_to_pay
+                                        FROM {$prefix}transactions tr
+                                        WHERE
+                                            tr.customer_id={$prefix}users.user_id AND
+                                            tr.status='paid' AND
+                                            tr.merchant_id='{$merchant_id}'
+                                        GROUP BY tr.created_at
                                         ORDER BY tr.created_at DESC LIMIT 1) as last_spent_amount")
                                 )
                         ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
