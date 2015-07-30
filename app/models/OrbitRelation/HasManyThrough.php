@@ -1,10 +1,12 @@
 <?php namespace OrbitRelation;
 /**
- * Extends Illuminate\Database\Eloquent\Relations to prodive the third key
+ * Extends Illuminate\Database\Eloquent\Relations to provide the third key
  * (the parent key name) for comparing on join.
  *
  * @author Rio Astamal <me@rioastamal.net>
  */
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough as HMT;
 
 class HasManyThrough extends HMT
@@ -20,11 +22,11 @@ class HasManyThrough extends HMT
      * Create a new has many relationship instance.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Model  $farParent
      * @param  \Illuminate\Database\Eloquent\Model  $parent
      * @param  string  $firstKey
      * @param  string  $secondKey
      * @param  string  $parentKey
-     * @return void
      */
     public function __construct(Builder $query, Model $farParent, Model $parent, $firstKey, $secondKey, $parentKey)
     {
