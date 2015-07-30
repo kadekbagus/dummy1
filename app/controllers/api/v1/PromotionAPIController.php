@@ -96,7 +96,7 @@ class PromotionAPIController extends ControllerAPI
             $location_id = OrbitInput::post('location_id');
             $location_type = OrbitInput::post('location_type');
             $is_all_retailer = OrbitInput::post('is_all_retailer');
-            
+            $is_all_product = OrbitInput::post('is_all_product');
             $product_ids = OrbitInput::post('product_ids');
             $product_ids = (array) $product_ids;
 
@@ -233,6 +233,7 @@ class PromotionAPIController extends ControllerAPI
             $newpromotion->image = $image;
             $newpromotion->created_by = $this->api->user->user_id;
             $newpromotion->is_all_retailer = $is_all_retailer;
+            $newpromotion->is_all_product = $is_all_product;
             $newpromotion->location_id = $location_id;
             $newpromotion->location_type = $location_type;
 
@@ -487,7 +488,6 @@ class PromotionAPIController extends ControllerAPI
             $rule_value = OrbitInput::post('rule_value');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
-
             $product_ids = OrbitInput::post('product_ids');
             $product_ids = (array) $product_ids;
 
@@ -637,6 +637,10 @@ class PromotionAPIController extends ControllerAPI
 
             OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedpromotion) {
                 $updatedpromotion->is_all_retailer = $is_all_retailer;
+            });
+
+            OrbitInput::post('is_all_product', function($is_all_product) use ($updatedpromotion) {
+                $updatedpromotion->is_all_product = $is_all_product;
             });
 
             OrbitInput::post('location_id', function($location_id) use ($updatedpromotion) {
