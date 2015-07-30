@@ -593,9 +593,12 @@ class UserAPIController extends ControllerAPI
                 $updateduser->user_lastname = $lastname;
             });
 
-            OrbitInput::post('status', function($status) use ($updateduser) {
-                $updateduser->status = $status;
-            });
+            // User with role consumer cannot update status
+            if (! $user->isRoleName('consumer')) {
+                OrbitInput::post('status', function($status) use ($updateduser) {
+                    $updateduser->status = $status;
+                });
+            }
 
             OrbitInput::post('role_id', function($role_id) use ($updateduser) {
                 $updateduser->user_role_id = $role_id;
@@ -637,6 +640,8 @@ class UserAPIController extends ControllerAPI
 
             OrbitInput::post('country', function($country) use ($updateduser) {
                 $updateduser->userdetail->country_id = $country;
+
+                // @TODO produce error when $country_name is empty
                 $country_name = Country::where('country_id', $country)->first()->name;
                 $updateduser->userdetail->country = $country_name;
             });
@@ -1244,10 +1249,10 @@ class UserAPIController extends ControllerAPI
              if ($user->isSuperAdmin()) {
 
                     $users = User::Consumers()
-                        ->select('users.*', 
+                        ->select('users.*',
                                     'merchants.name as last_visited_store',
                                     'user_details.last_visit_any_shop as last_visited_date',
-                                    'user_details.last_spent_any_shop as last_spent_amount', 
+                                    'user_details.last_spent_any_shop as last_spent_amount',
                                     DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
                         ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                         ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
@@ -1269,22 +1274,22 @@ class UserAPIController extends ControllerAPI
 
                     $users = User::Consumers()
                         ->excludeDeleted('users')
-                        ->select('users.*', 
+                        ->select('users.*',
                                  DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
-                                 DB::raw("(SELECT m.name 
-                                        FROM {$prefix}activities at 
-                                        LEFT JOIN {$prefix}merchants m on m.merchant_id=at.location_id 
-                                        WHERE 
-                                            at.user_id={$prefix}users.user_id AND 
+                                 DB::raw("(SELECT m.name
+                                        FROM {$prefix}activities at
+                                        LEFT JOIN {$prefix}merchants m on m.merchant_id=at.location_id
+                                        WHERE
+                                            at.user_id={$prefix}users.user_id AND
                                             at.activity_name='login_ok' AND
                                             at.group = 'mobile-ci' AND
                                             m.parent_id = '{$merchant_id}'
                                         ORDER BY at.created_at DESC LIMIT 1) as last_visited_store"),
-                                 DB::raw("(SELECT at.created_at 
-                                        FROM {$prefix}activities at 
-                                        LEFT JOIN {$prefix}merchants m2 on m2.merchant_id=at.location_id 
-                                        WHERE 
-                                            at.user_id={$prefix}users.user_id AND 
+                                 DB::raw("(SELECT at.created_at
+                                        FROM {$prefix}activities at
+                                        LEFT JOIN {$prefix}merchants m2 on m2.merchant_id=at.location_id
+                                        WHERE
+                                            at.user_id={$prefix}users.user_id AND
                                             at.activity_name='login_ok' AND
                                             at.group = 'mobile-ci' AND
                                             m2.parent_id = '{$merchant_id}'
@@ -1293,10 +1298,10 @@ class UserAPIController extends ControllerAPI
                                 )
                         ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                         ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
-                        ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id') 
+                        ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
                         ->groupBy('users.user_id');
-                        
+
              }
 
 
