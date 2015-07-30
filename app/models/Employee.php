@@ -34,7 +34,7 @@ class Employee extends Eloquent
     /**
      * Employee belongs to many merchant ids.
      *
-     * @return
+     * @return array
      */
     public function getMyMerchantIds()
     {
