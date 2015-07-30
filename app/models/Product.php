@@ -145,6 +145,7 @@ class Product extends Eloquent
      * @author Ahmad Anshori <ahmad@dominopos.com>
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @param  User $user Instance of object user
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeAllowedForUser($builder, $user)
     {
@@ -212,7 +213,7 @@ class Product extends Eloquent
      * Determine whether particular attribute Id are already on the product.
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param int $attributeId - The attribute id to check
+     * @param int $id - The attribute id to check
      * @return boolean
      */
     public function isAttributeIdExists($id)
