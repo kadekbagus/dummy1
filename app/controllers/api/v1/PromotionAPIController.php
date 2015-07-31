@@ -766,7 +766,7 @@ class PromotionAPIController extends ControllerAPI
 
 
             OrbitInput::post('product_ids', function($product_ids) use ($updatedpromotion) {
-                // validate retailer_ids
+                // validate product_ids
                 $product_ids = (array) $product_ids;
                 foreach ($product_ids as $product_id_check) {
                     $validator = Validator::make(
@@ -788,10 +788,10 @@ class PromotionAPIController extends ControllerAPI
 
                     Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
                 }
-                // sync new set of retailer ids
+                // sync new set of product ids
                 $updatedpromotion->products()->sync($product_ids);
 
-                // reload retailers relation
+                // reload products relation
                 $updatedpromotion->load('products');
             });
             

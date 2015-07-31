@@ -63,6 +63,11 @@ class Coupon extends Eloquent
         return $this->hasMany('IssuedCoupon', 'promotion_id', 'promotion_id');
     }
 
+    public function products()
+    {
+        return $this->belongsToMany('Product', 'promotion_product', 'promotion_id', 'product_id');
+    }
+
     /**
      * Add Filter coupons based on user who request it.
      *

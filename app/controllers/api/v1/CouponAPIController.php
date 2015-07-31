@@ -120,10 +120,13 @@ class CouponAPIController extends ControllerAPI
             $issue_retailer_ids = (array) $issue_retailer_ids;
             $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
             $redeem_retailer_ids = (array) $redeem_retailer_ids;
+            $product_ids = OrbitInput::post('product_ids');
+            $product_ids = (array) $product_ids;
             $location_id = OrbitInput::post('location_id');
             $location_type = OrbitInput::post('location_type');
             $is_all_retailer = OrbitInput::post('is_all_retailer');
             $is_all_retailer_redeem = OrbitInput::post('is_all_retailer_redeem');
+            $is_all_product = OrbitInput::post('is_all_product');
 
             $validator = Validator::make(
                 array(
@@ -314,6 +317,7 @@ class CouponAPIController extends ControllerAPI
             $newcoupon->created_by = $this->api->user->user_id;
             $newcoupon->is_all_retailer = $is_all_retailer;
             $newcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
+            $newcoupon->is_all_product = $is_all_product;
             $newcoupon->location_id = $location_id;
             $newcoupon->location_type = $location_type;
 
@@ -427,6 +431,17 @@ class CouponAPIController extends ControllerAPI
                 $redeemretailers[] = $redeemretailer;
             }
             $newcoupon->redeemretailers = $redeemretailers;
+
+            // save PromotionProduct.
+            $promotionproducts = array();
+            foreach ($product_ids as $product_id) {
+                $promotionproduct = new PromotionProduct();
+                $promotionproduct->product_id = $product_id;
+                $promotionproduct->promotion_id = $newcoupon->promotion_id;
+                $promotionproduct->save();
+                $promotionproducts[] = $promotionproduct;
+            }
+            $newcoupon->products = $promotionproducts;
 
             Event::fire('orbit.coupon.postnewcoupon.after.save', array($this, $newcoupon));
             $this->response->data = $newcoupon;
@@ -825,6 +840,10 @@ class CouponAPIController extends ControllerAPI
                 $updatedcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
             });
 
+            OrbitInput::post('is_all_product', function($is_all_product) use ($updatedcoupon) {
+                $updatedcoupon->is_all_product = $is_all_product;
+            });
+
             OrbitInput::post('location_id', function($location_id) use ($updatedcoupon) {
                 $updatedcoupon->location_id = $location_id;
             });
@@ -1035,6 +1054,36 @@ class CouponAPIController extends ControllerAPI
                 $updatedcoupon->load('redeemretailers');
             });
 
+            OrbitInput::post('product_ids', function($product_ids) use ($updatedcoupon) {
+                // validate product_ids
+                $product_ids = (array) $product_ids;
+                foreach ($product_ids as $product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.promotion.postupdatepromotion.before.productvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
+                }
+                // sync new set of product ids
+                $updatedcoupon->products()->sync($product_ids);
+
+                // reload products relation
+                $updatedcoupon->load('products');
+            });
+
             Event::fire('orbit.coupon.postupdatecoupon.after.save', array($this, $updatedcoupon));
             $this->response->data = $updatedcoupon;
 
@@ -1223,6 +1272,12 @@ class CouponAPIController extends ControllerAPI
             $deleteredeemretailers = CouponRetailerRedeem::where('promotion_id', $deletecoupon->promotion_id)->get();
             foreach ($deleteredeemretailers as $deleteredeemretailer) {
                 $deleteredeemretailer->delete();
+            }
+
+            // hard delete promotion-product.
+            $deletepromotionproducts = PromotionProduct::where('promotion_id', $deletecoupon->promotion_id)->get();
+            foreach ($deletepromotionproducts as $deletepromotionproduct) {
+                $deletepromotionproduct->delete();
             }
 
             $deletecoupon->save();
@@ -2192,6 +2247,21 @@ class CouponAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check the existance of product id
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()->allowedForUser($this->api->user)
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.retailer', $product);
 
             return TRUE;
         });
