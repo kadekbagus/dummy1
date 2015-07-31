@@ -128,7 +128,8 @@ class CouponAPIController extends ControllerAPI
             $location_type = OrbitInput::post('location_type');
             $is_all_retailer = OrbitInput::post('is_all_retailer');
             $is_all_retailer_redeem = OrbitInput::post('is_all_retailer_redeem');
-            $is_all_product = OrbitInput::post('is_all_product');
+            $is_all_product_rule = OrbitInput::post('is_all_product_rule');
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $validator = Validator::make(
                 array(
@@ -319,7 +320,6 @@ class CouponAPIController extends ControllerAPI
             $newcoupon->created_by = $this->api->user->user_id;
             $newcoupon->is_all_retailer = $is_all_retailer;
             $newcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
-            $newcoupon->is_all_product = $is_all_product;
             $newcoupon->location_id = $location_id;
             $newcoupon->location_type = $location_type;
 
@@ -332,6 +332,7 @@ class CouponAPIController extends ControllerAPI
             $couponrule->rule_type = $rule_type;
             $couponrule->rule_value = $rule_value;
             $couponrule->rule_object_type = $rule_object_type;
+            $couponrule->is_all_product_rule = $is_all_product_rule;
 
             // rule_object_id1
             if (trim($rule_object_id1) === '') {
@@ -369,6 +370,7 @@ class CouponAPIController extends ControllerAPI
             }
 
             $couponrule->discount_object_type = $discount_object_type;
+            $couponrule->is_all_product_discount = $is_all_product_discount;
 
             // discount_object_id1
             if (trim($discount_object_id1) === '') {
@@ -857,10 +859,6 @@ class CouponAPIController extends ControllerAPI
                 $updatedcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
             });
 
-            OrbitInput::post('is_all_product', function($is_all_product) use ($updatedcoupon) {
-                $updatedcoupon->is_all_product = $is_all_product;
-            });
-
             OrbitInput::post('location_id', function($location_id) use ($updatedcoupon) {
                 $updatedcoupon->location_id = $location_id;
             });
@@ -894,6 +892,10 @@ class CouponAPIController extends ControllerAPI
                     $rule_object_type = NULL;
                 }
                 $couponrule->rule_object_type = $rule_object_type;
+            });
+
+            OrbitInput::post('is_all_product_rule', function($is_all_product_rule) use ($couponrule) {
+                $couponrule->is_all_product_rule = $is_all_product_rule;
             });
 
             OrbitInput::post('rule_object_id1', function($rule_object_id1) use ($couponrule) {
@@ -936,6 +938,10 @@ class CouponAPIController extends ControllerAPI
                     $discount_object_type = NULL;
                 }
                 $couponrule->discount_object_type = $discount_object_type;
+            });
+
+            OrbitInput::post('is_all_product_discount', function($is_all_product_discount) use ($couponrule) {
+                $couponrule->is_all_product_discount = $is_all_product_discount;
             });
 
             OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($couponrule) {
@@ -1291,7 +1297,7 @@ class CouponAPIController extends ControllerAPI
                 $deleteredeemretailer->delete();
             }
 
-            // hard delete promotion-product.
+            // hard delete promotionproduct.
             $deletepromotionproducts = PromotionProduct::where('promotion_id', $deletecoupon->promotion_id)->get();
             foreach ($deletepromotionproducts as $deletepromotionproduct) {
                 $deletepromotionproduct->delete();

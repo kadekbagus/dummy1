@@ -96,9 +96,9 @@ class PromotionAPIController extends ControllerAPI
             $location_id = OrbitInput::post('location_id');
             $location_type = OrbitInput::post('location_type');
             $is_all_retailer = OrbitInput::post('is_all_retailer');
-            $is_all_product = OrbitInput::post('is_all_product');
-            $product_ids = OrbitInput::post('product_ids');
-            $product_ids = (array) $product_ids;
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
 
             $validator = Validator::make(
                 array(
@@ -233,7 +233,6 @@ class PromotionAPIController extends ControllerAPI
             $newpromotion->image = $image;
             $newpromotion->created_by = $this->api->user->user_id;
             $newpromotion->is_all_retailer = $is_all_retailer;
-            $newpromotion->is_all_product = $is_all_product;
             $newpromotion->location_id = $location_id;
             $newpromotion->location_type = $location_type;
 
@@ -246,6 +245,7 @@ class PromotionAPIController extends ControllerAPI
             $promotionrule->rule_type = $rule_type;
             $promotionrule->rule_value = $rule_value;
             $promotionrule->discount_object_type = $discount_object_type;
+            $promotionrule->is_all_product_discount = $is_all_product_discount;
 
             // discount_object_id1
             if (trim($discount_object_id1) === '') {
@@ -299,14 +299,16 @@ class PromotionAPIController extends ControllerAPI
 
             // save PromotionProduct.
             $promotionproducts = array();
-            foreach ($product_ids as $product_id) {
+            foreach ($discount_product_ids as $discount_product_id) {
                 $promotionproduct = new PromotionProduct();
-                $promotionproduct->product_id = $product_id;
+                $promotionproduct->product_id = $discount_product_id;
                 $promotionproduct->promotion_id = $newpromotion->promotion_id;
+                $promotionproduct->promotion_rule_id = $promotionrule->promotion_rule_id;
+                $promotionproduct->object_type = 'discount';
                 $promotionproduct->save();
                 $promotionproducts[] = $promotionproduct;
             }
-            $newpromotion->products = $promotionproducts;
+            $newpromotion->discount_products = $promotionproducts;
 
             Event::fire('orbit.promotion.postnewpromotion.after.save', array($this, $newpromotion));
             $this->response->data = $newpromotion;
@@ -639,10 +641,6 @@ class PromotionAPIController extends ControllerAPI
                 $updatedpromotion->is_all_retailer = $is_all_retailer;
             });
 
-            OrbitInput::post('is_all_product', function($is_all_product) use ($updatedpromotion) {
-                $updatedpromotion->is_all_product = $is_all_product;
-            });
-
             OrbitInput::post('location_id', function($location_id) use ($updatedpromotion) {
                 $updatedpromotion->location_id = $location_id;
             });
@@ -680,6 +678,10 @@ class PromotionAPIController extends ControllerAPI
                     $discount_object_type = NULL;
                 }
                 $promotionrule->discount_object_type = $discount_object_type;
+            });
+
+            OrbitInput::post('is_all_product_discount', function($is_all_product_discount) use ($updatedpromotion) {
+                $updatedpromotion->is_all_product_discount = $is_all_product_discount;
             });
 
             OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($promotionrule) {
