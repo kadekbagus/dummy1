@@ -120,8 +120,10 @@ class CouponAPIController extends ControllerAPI
             $issue_retailer_ids = (array) $issue_retailer_ids;
             $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
             $redeem_retailer_ids = (array) $redeem_retailer_ids;
-            $product_ids = OrbitInput::post('product_ids');
-            $product_ids = (array) $product_ids;
+            $rule_product_ids = OrbitInput::post('rule_product_ids');
+            $rule_product_ids = (array) $rule_product_ids;
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
             $location_id = OrbitInput::post('location_id');
             $location_type = OrbitInput::post('location_type');
             $is_all_retailer = OrbitInput::post('is_all_retailer');
@@ -432,16 +434,31 @@ class CouponAPIController extends ControllerAPI
             }
             $newcoupon->redeemretailers = $redeemretailers;
 
-            // save PromotionProduct.
+            // save PromotionProduct (rule object type).
             $promotionproducts = array();
-            foreach ($product_ids as $product_id) {
+            foreach ($rule_product_ids as $rule_product_id) {
                 $promotionproduct = new PromotionProduct();
-                $promotionproduct->product_id = $product_id;
+                $promotionproduct->product_id = $rule_product_id;
                 $promotionproduct->promotion_id = $newcoupon->promotion_id;
+                $promotionproduct->promotion_rule_id = $couponrule->promotion_rule_id;
+                $promotionproduct->object_type = 'rule';
                 $promotionproduct->save();
                 $promotionproducts[] = $promotionproduct;
             }
-            $newcoupon->products = $promotionproducts;
+            $newcoupon->rule_products = $promotionproducts;
+
+            // save PromotionProduct (discount object type).
+            $promotionproducts = array();
+            foreach ($discount_product_ids as $discount_product_id) {
+                $promotionproduct = new PromotionProduct();
+                $promotionproduct->product_id = $discount_product_id;
+                $promotionproduct->promotion_id = $newcoupon->promotion_id;
+                $promotionproduct->promotion_rule_id = $couponrule->promotion_rule_id;
+                $promotionproduct->object_type = 'discount';
+                $promotionproduct->save();
+                $promotionproducts[] = $promotionproduct;
+            }
+            $newcoupon->discount_products = $promotionproducts;
 
             Event::fire('orbit.coupon.postnewcoupon.after.save', array($this, $newcoupon));
             $this->response->data = $newcoupon;
