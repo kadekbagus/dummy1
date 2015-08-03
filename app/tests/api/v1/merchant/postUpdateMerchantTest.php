@@ -342,6 +342,7 @@ class postUpdateMerchantTest extends OrbitTestCase
 
     public function testMerchantIdNotNumeric_POST_api_v1_merchant_update()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['merchant_id'] = 'foo';
 
@@ -401,6 +402,7 @@ class postUpdateMerchantTest extends OrbitTestCase
 
     public function testUserIdNotNumeric_POST_api_v1_merchant_update()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['merchant_id'] = 7;
         $_POST['user_id'] = 'foo';
