@@ -235,6 +235,7 @@ return array(
     'Orbit\\Pagination' => $baseDir . '/app/helpers/Orbit/Pagination.php',
     'Orbit\\Setting' => $baseDir . '/app/helpers/Orbit/Setting.php',
     'Orbit\\Text' => $baseDir . '/app/helpers/Orbit/Text.php',
+    'Orbit\\EncodedUUID' => $baseDir . '/app/helpers/Orbit/EncodedUUID.php',
     'POS\\CashierAPIController' => $baseDir . '/app/controllers/POS/CashierAPIController.php',
     'POS\\Product' => $baseDir . '/app/models/POS/Product.php',
     'Permission' => $baseDir . '/app/models/Permission.php',

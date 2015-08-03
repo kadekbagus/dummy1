@@ -101,6 +101,6 @@ class ObjectID implements JsonSerializable {
      */
     function jsonSerialize()
     {
-        return $this->d64();
+        return $this->__toString();
     }
 }

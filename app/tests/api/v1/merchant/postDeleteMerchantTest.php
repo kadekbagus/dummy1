@@ -326,6 +326,7 @@ class postDeleteMerchantTest extends OrbitTestCase
 
     public function testMerchantIdNotNumeric_POST_api_v1_merchant_delete()
     {
+        $this->markTestIncomplete("Use String ID");
         // Data to be post
         $_POST['merchant_id'] = 'abcd123';
 

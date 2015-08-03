@@ -4,8 +4,8 @@ trait GeneratedUuidTrait {
 
     public static function bootGeneratedUuidTrait()
     {
-//        $my_class = get_called_class();
-//        EncodedUUID::registerUseInModel($my_class);
+        $my_class = get_called_class();
+        Orbit\EncodedUUID::registerUseInModel($my_class);
         // on creating the model (before saving),
         // generate a UUID and ensure it does not
         // overwrite our generated ID with last_insert_id()
@@ -14,7 +14,7 @@ trait GeneratedUuidTrait {
             $model->setIncrementing(false);
 
             $key = $model->getKeyName();
-            $model->setAttribute($key, \OrbitShop\API\V2\ObjectID::make());
+            $model->setAttribute($key, (string) \OrbitShop\API\V2\ObjectID::make());
         });
     }
 

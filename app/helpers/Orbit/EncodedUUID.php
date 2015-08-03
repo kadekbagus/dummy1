@@ -2,35 +2,38 @@
 namespace Orbit;
 
 
+use OrbitShop\API\V2\ObjectID;
+
 class EncodedUUID {
 
-    const CHARS_D64 = ".0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-";
-    const CHARS_B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    protected static $modelsUsing = [];
+    private static $models = [];
 
-    public static function make() {
-        $u = uuid_create(UUID_TYPE_TIME);
-        $hex = substr($u, 14, 4) . substr($u, 9, 4) . substr($u, 0, 8) . substr($u, 19, 4) . substr($u, 24);
-        return rtrim(strtr(base64_encode(hex2bin($hex)), EncodedUUID::CHARS_B64, EncodedUUID::CHARS_D64), '-');
-    }
-
-    public static function makeMany($count) {
-        $result = [];
-        for ($i = 0; $i < $count; $i++) {
-            $result[] = static::make();
-        }
-        return $result;
-    }
-
-    public static function registerUseInModel($class)
+    public static function registerUseInModel($className)
     {
-        if (!in_array($class, static::$modelsUsing)) {
-            static::$modelsUsing[] = $class;
+        if (!in_array($className, static::$models))
+        {
+            static::$models[] = $className;
         }
+    }
+
+    public static function make()
+    {
+        return ObjectID::make();
+    }
+
+    public static function makeMany($t)
+    {
+        $result = [];
+        for($i=0;$i<$t;$i++)
+        {
+            $result[] = ObjectID::make();
+        }
+
+        return $result;
     }
 
     public static function getModelsUsing()
     {
-        return static::$modelsUsing;
+        return static::$models;
     }
 }

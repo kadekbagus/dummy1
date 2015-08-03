@@ -48,7 +48,7 @@ class Generator {
 
     protected function __construct()
     {
-        $this->counter   = 0;
+        $this->counter   = mt_rand(0, 0xFFFFFF);
         $this->machineId = unpack('N', md5(gethostname(), true))[1];
     }
 

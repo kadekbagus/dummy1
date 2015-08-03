@@ -12,6 +12,7 @@
  * https://github.com/laravel/framework/issues/1181#issuecomment-42636346
  */
 if (App::environment('testing')) {
+    /** @var GeneratedUuidTrait|string $class_name */
     foreach (\Orbit\EncodedUUID::getModelsUsing() as $class_name) {
         $class_name::bootGeneratedUuidTrait();
     }

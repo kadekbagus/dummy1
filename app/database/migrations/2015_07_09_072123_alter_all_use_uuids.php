@@ -5,11 +5,11 @@ use Illuminate\Database\Migrations\Migration;
 
 class AlterAllUseUuids extends Migration {
 
-	/**
-	 * Run the migrations.
-	 *
-	 * @return void
-	 */
+    /**
+     * Run the migrations.
+     *
+     * @throws
+     */
 	public function up()
 	{
         $builder = DB::connection()->getSchemaBuilder();
@@ -23,10 +23,10 @@ class AlterAllUseUuids extends Migration {
         foreach ($all_id_columns as $col) {
             $stmt = '';
             if ($col->is_nullable == 'YES') {
-                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` CHAR(22);");
+                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` CHAR(16) CHARACTER SET ASCII COLLATE ASCII_BIN;");
             }
             else {
-                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` CHAR(22) NOT NULL;");
+                $stmt = ("ALTER TABLE `{$col->table_name}` MODIFY `{$col->column_name}` CHAR(16) CHARACTER SET ASCII COLLATE ASCII_BIN NOT NULL;");
             }
             $ok = DB::statement($stmt);
             if (!$ok) {
@@ -34,5 +34,10 @@ class AlterAllUseUuids extends Migration {
             }
         }
 	}
+
+    public function down()
+    {
+        # DO NOTHING
+    }
 
 }
