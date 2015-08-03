@@ -302,7 +302,6 @@ class PromotionAPIController extends ControllerAPI
             foreach ($discount_product_ids as $discount_product_id) {
                 $promotionproduct = new PromotionProduct();
                 $promotionproduct->product_id = $discount_product_id;
-                $promotionproduct->promotion_id = $newpromotion->promotion_id;
                 $promotionproduct->promotion_rule_id = $promotionrule->promotion_rule_id;
                 $promotionproduct->object_type = 'discount';
                 $promotionproduct->save();
@@ -790,24 +789,15 @@ class PromotionAPIController extends ControllerAPI
 
                     Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
                 }
-                // // sync new set of product ids
-                // $updatedpromotion->products()->sync($product_ids);
 
-                // // reload products relation
-                // $updatedpromotion->load('products');
-
-                // sync new set of category ids
+                // sync new set of product ids
                 $pivotData = array_fill(0, count($product_ids), ['object_type' => 'discount']);
                 $syncData = array_combine($product_ids, $pivotData);
-
-                //print_r($syncData);
 
                 $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedpromotion->promotionrule->promotion_rule_id)
                                                        ->where('object_type', 'discount')
                                                        ->get(array('product_id'))
                                                        ->toArray();
-
-                //print_r($deleted_product_ids);
 
                 // detach old relation
                 if (sizeof($deleted_product_ids) > 0) {
@@ -1005,7 +995,7 @@ class PromotionAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deletepromotion = Promotion::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $deletepromotion = Promotion::with('promotionrule')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
             $deletepromotion->status = 'deleted';
             $deletepromotion->modified_by = $this->api->user->user_id;
 
@@ -1018,7 +1008,7 @@ class PromotionAPIController extends ControllerAPI
             }
 
             // hard delete promotion-product.
-            $deletepromotionproducts = PromotionProduct::where('promotion_id', $deletepromotion->promotion_id)->get();
+            $deletepromotionproducts = PromotionProduct::where('promotion_rule_id', $deletepromotion->promotionrule->promotion_rule_id)->get();
             foreach ($deletepromotionproducts as $deletepromotionproduct) {
                 $deletepromotionproduct->delete();
             }

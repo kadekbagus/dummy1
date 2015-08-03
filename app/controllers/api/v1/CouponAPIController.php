@@ -441,7 +441,6 @@ class CouponAPIController extends ControllerAPI
             foreach ($rule_product_ids as $rule_product_id) {
                 $promotionproduct = new PromotionProduct();
                 $promotionproduct->product_id = $rule_product_id;
-                $promotionproduct->promotion_id = $newcoupon->promotion_id;
                 $promotionproduct->promotion_rule_id = $couponrule->promotion_rule_id;
                 $promotionproduct->object_type = 'rule';
                 $promotionproduct->save();
@@ -454,7 +453,6 @@ class CouponAPIController extends ControllerAPI
             foreach ($discount_product_ids as $discount_product_id) {
                 $promotionproduct = new PromotionProduct();
                 $promotionproduct->product_id = $discount_product_id;
-                $promotionproduct->promotion_id = $newcoupon->promotion_id;
                 $promotionproduct->promotion_rule_id = $couponrule->promotion_rule_id;
                 $promotionproduct->object_type = 'discount';
                 $promotionproduct->save();
@@ -665,6 +663,10 @@ class CouponAPIController extends ControllerAPI
             $issue_retailer_ids = (array) $issue_retailer_ids;
             $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
             $redeem_retailer_ids = (array) $redeem_retailer_ids;
+            $rule_product_ids = OrbitInput::post('rule_product_ids');
+            $rule_product_ids = (array) $rule_product_ids;
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -1077,20 +1079,20 @@ class CouponAPIController extends ControllerAPI
                 $updatedcoupon->load('redeemretailers');
             });
 
-            OrbitInput::post('product_ids', function($product_ids) use ($updatedcoupon) {
+            OrbitInput::post('rule_product_ids', function($rule_product_ids) use ($updatedcoupon) {
                 // validate product_ids
-                $product_ids = (array) $product_ids;
-                foreach ($product_ids as $product_id_check) {
+                $rule_product_ids = (array) $rule_product_ids;
+                foreach ($rule_product_ids as $rule_product_id_check) {
                     $validator = Validator::make(
                         array(
-                            'product_id'   => $product_id_check,
+                            'product_id'   => $rule_product_id_check,
                         ),
                         array(
                             'product_id'   => 'orbit.empty.product',
                         )
                     );
 
-                    Event::fire('orbit.promotion.postupdatepromotion.before.productvalidation', array($this, $validator));
+                    Event::fire('orbit.coupon.postupdatecoupon.before.ruleproductvalidation', array($this, $validator));
 
                     // Run the validation
                     if ($validator->fails()) {
@@ -1098,13 +1100,72 @@ class CouponAPIController extends ControllerAPI
                         OrbitShopAPI::throwInvalidArgument($errorMessage);
                     }
 
-                    Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
+                    Event::fire('orbit.coupon.postupdatecoupon.after.ruleproductvalidation', array($this, $validator));
                 }
-                // sync new set of product ids
-                $updatedcoupon->products()->sync($product_ids);
 
-                // reload products relation
-                $updatedcoupon->load('products');
+                // sync new set of product ids
+                $pivotData = array_fill(0, count($rule_product_ids), ['object_type' => 'rule']);
+                $syncData = array_combine($rule_product_ids, $pivotData);
+
+                $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedcoupon->couponrule->promotion_rule_id)
+                                                       ->where('object_type', 'rule')
+                                                       ->get(array('product_id'))
+                                                       ->toArray();
+                // detach old relation
+                if (sizeof($deleted_product_ids) > 0) {
+                    $updatedcoupon->couponrule->discountproducts()->detach($deleted_product_ids);
+                }
+
+                // attach new relation
+                $updatedcoupon->couponrule->discountproducts()->attach($syncData);
+
+                // reload interests relation
+                $updatedcoupon->couponrule->load('discountproducts');
+            });
+
+
+            OrbitInput::post('discount_product_ids', function($discount_product_ids) use ($updatedcoupon) {
+                // validate product_ids
+                $discount_product_ids = (array) $discount_product_ids;
+                foreach ($discount_product_ids as $discount_product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $discount_product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.coupon.postupdatecoupon.before.discountproductvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.coupon.postupdatecoupon.after.discountproductvalidation', array($this, $validator));
+                }
+
+                // sync new set of product ids
+                $pivotData = array_fill(0, count($discount_product_ids), ['object_type' => 'discount']);
+                $syncData = array_combine($discount_product_ids, $pivotData);
+
+                $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedcoupon->couponrule->promotion_rule_id)
+                                                       ->where('object_type', 'discount')
+                                                       ->get(array('product_id'))
+                                                       ->toArray();
+                // detach old relation
+                if (sizeof($deleted_product_ids) > 0) {
+                    $updatedcoupon->couponrule->ruleproducts()->detach($deleted_product_ids);
+                }
+
+                // attach new relation
+                $updatedcoupon->couponrule->ruleproducts()->attach($syncData);
+
+                // reload interests relation
+                $updatedcoupon->couponrule->load('ruleproducts');
             });
 
             Event::fire('orbit.coupon.postupdatecoupon.after.save', array($this, $updatedcoupon));
@@ -1279,7 +1340,7 @@ class CouponAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deletecoupon = Coupon::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $deletecoupon = Coupon::with('couponrule')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
             $deletecoupon->status = 'deleted';
             $deletecoupon->modified_by = $this->api->user->user_id;
 
@@ -1298,7 +1359,7 @@ class CouponAPIController extends ControllerAPI
             }
 
             // hard delete promotionproduct.
-            $deletepromotionproducts = PromotionProduct::where('promotion_id', $deletecoupon->promotion_id)->get();
+            $deletepromotionproducts = PromotionProduct::where('promotion_rule_id', $deletecoupon->couponrule->promotion_rule_id)->get();
             foreach ($deletepromotionproducts as $deletepromotionproduct) {
                 $deletepromotionproduct->delete();
             }
