@@ -790,11 +790,36 @@ class PromotionAPIController extends ControllerAPI
 
                     Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
                 }
-                // sync new set of product ids
-                $updatedpromotion->products()->sync($product_ids);
+                // // sync new set of product ids
+                // $updatedpromotion->products()->sync($product_ids);
 
-                // reload products relation
-                $updatedpromotion->load('products');
+                // // reload products relation
+                // $updatedpromotion->load('products');
+
+                // sync new set of category ids
+                $pivotData = array_fill(0, count($product_ids), ['object_type' => 'discount']);
+                $syncData = array_combine($product_ids, $pivotData);
+
+                //print_r($syncData);
+
+                $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedpromotion->promotionrule->promotion_rule_id)
+                                                       ->where('object_type', 'discount')
+                                                       ->get(array('product_id'))
+                                                       ->toArray();
+
+                //print_r($deleted_product_ids);
+
+                // detach old relation
+                if (sizeof($deleted_product_ids) > 0) {
+                    $updatedpromotion->promotionrule->discountproducts()->detach($deleted_product_ids);
+                }
+
+                // attach new relation
+                $updatedpromotion->promotionrule->discountproducts()->attach($syncData);
+
+                // reload interests relation
+                $updatedpromotion->promotionrule->load('discountproducts');
+
             });
             
 
@@ -1452,7 +1477,7 @@ class PromotionAPIController extends ControllerAPI
                     if ($relation === 'retailers') {
                         $promotions->with('retailers');
                     } elseif ($relation === 'products') {
-                        $promotions->with('products');
+                        $promotions->with('promotionrule.discountproducts');
                     } elseif ($relation === 'product') {
                         $promotions->with('promotionrule.discountproduct');
                     } elseif ($relation === 'family') {
