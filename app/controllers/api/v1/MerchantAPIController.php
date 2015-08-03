@@ -267,6 +267,7 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `mobile_default_language` (optional) - Mobile default language
      * @param string     `pos_language`            (optional) - POS language
      * @param file       `images`                  (optional) - Merchant logo
+     * @param string     `payment`                 (optional) - Enable shopping cart. Valid value: yes, no.
      *
      * @return Illuminate\Support\Facades\Response
      */
@@ -342,6 +343,7 @@ class MerchantAPIController extends ControllerAPI
             $slavebox_number = OrbitInput::post('slavebox_number');
             $mobile_default_language = OrbitInput::post('mobile_default_language');
             $pos_language = OrbitInput::post('pos_language');
+            $payment = OrbitInput::post('payment');
 
             $validator = Validator::make(
                 array(
@@ -456,6 +458,7 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->slavebox_number = $slavebox_number;
             $newmerchant->mobile_default_language = $mobile_default_language;
             $newmerchant->pos_language = $pos_language;
+            $newmerchant->enable_shopping_cart = $payment;
             $newmerchant->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
@@ -1134,6 +1137,7 @@ class MerchantAPIController extends ControllerAPI
      * @param string     `sector_of_activity`       (optional) - Sector of activity
      * @param string     `object_type`              (optional) - Object type
      * @param string     `parent_id`                (optional) - The merchant id
+     * @param string     `payment`                  (optional) - Enable shopping cart. Valid value: yes, no.
      * @param file       `images`                   (optional) - Merchant logo
      * @param string     `mobile_default_language`  (optional) - Mobile default language
      * @param string     `pos_language`             (optional) - POS language
@@ -1449,6 +1453,10 @@ class MerchantAPIController extends ControllerAPI
 
             OrbitInput::post('mobile_default_language', function($mobile_default_language) use ($updatedmerchant) {
                 $updatedmerchant->mobile_default_language = $mobile_default_language;
+            });
+
+            OrbitInput::post('payment', function($payment) use ($updatedmerchant) {
+                $updatedmerchant->enable_shopping_cart = $payment;
             });
 
             OrbitInput::post('pos_language', function($pos_language) use ($updatedmerchant) {
