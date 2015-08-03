@@ -1223,6 +1223,16 @@ class EventAPIController extends ControllerAPI
                 });
             });
 
+            // Filter event product by product id
+            OrbitInput::get('product_id', function ($productIds) use ($events) {
+                $events->whereHas('products', function($q) use ($productIds) {
+                    $q->whereIn('event_product.product_id', $productIds);
+                        $q->orWhere(function ($or) {
+                            $or->where('events.is_all_product', 'Y');
+                        });
+                });
+            });
+
             // Add new relation based on request
             OrbitInput::get('with', function ($with) use ($events) {
                 $with = (array) $with;
@@ -1232,6 +1242,8 @@ class EventAPIController extends ControllerAPI
                         $events->with('retailers');
                     } elseif ($relation === 'product') {
                         $events->with('linkproduct');
+                    } elseif ($relation === 'products') {
+                        $events->with('products');
                     } elseif ($relation === 'family') {
                         $events->with('linkcategory1', 'linkcategory2', 'linkcategory3', 'linkcategory4', 'linkcategory5');
                     } elseif ($relation === 'promotion') {

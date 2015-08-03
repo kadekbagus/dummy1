@@ -1848,6 +1848,19 @@ class CouponAPIController extends ControllerAPI
                 });
             });
 
+            // // Filter coupon by redeem retailer id
+            // OrbitInput::get('product_id', function ($productIds) use ($coupons) {
+            //     $coupons->whereHas('couponrule', function($q) use ($productIds) {
+            //         $q->whereHas('discountproducts', function($q) use ($productIds) {
+            //         $q->whereIn('retailer_id', $productIds);
+
+            //             $coupons->orWhere(function ($or) {
+            //                 $or->where('coupon_rule.is_all_product', 'Y');
+            //             });
+
+            //     });
+            // });
+
             // Add new relation based on request
             OrbitInput::get('with', function ($with) use ($coupons) {
                 $with = (array) $with;
