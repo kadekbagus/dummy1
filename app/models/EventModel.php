@@ -77,6 +77,11 @@ class EventModel extends Eloquent
         return $this->belongsToMany('Retailer', 'event_retailer', 'event_id', 'retailer_id');
     }
 
+    public function products()
+    {
+        return $this->belongsToMany('Product', 'event_product', 'event_id', 'product_id');
+    }
+
     /**
      * Add Filter events based on user who request it.
      *

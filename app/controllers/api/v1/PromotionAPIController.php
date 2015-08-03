@@ -2112,7 +2112,7 @@ class PromotionAPIController extends ControllerAPI
                 return FALSE;
             }
 
-            App::instance('orbit.empty.retailer', $product);
+            App::instance('orbit.empty.product', $product);
 
             return TRUE;
         });

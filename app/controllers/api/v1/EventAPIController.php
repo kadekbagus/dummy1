@@ -88,7 +88,10 @@ class EventAPIController extends ControllerAPI
             $widget_object_type = OrbitInput::post('widget_object_type');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $product_ids = OrbitInput::post('product_ids');
+            $product_ids = (array) $product_ids;
             $is_all_retailer = OrbitInput::post('is_all_retailer');
+            $is_all_product = OrbitInput::post('is_all_product');
 
             $validator = Validator::make(
                 array(
@@ -130,10 +133,10 @@ class EventAPIController extends ControllerAPI
             if($status == 'active') {
                 $validator = Validator::make(
                     array(
-                        'retailer_ids'         => $retailer_ids
+                        'retailer_ids'  => $retailer_ids
                     ),
                     array(
-                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                        'retailer_ids'  => 'orbit.req.link_to_retailer'
                     )
                 );
 
@@ -165,6 +168,27 @@ class EventAPIController extends ControllerAPI
                 Event::fire('orbit.event.postnewevent.after.retailervalidation', array($this, $validator));
             }
 
+            foreach ($product_ids as $product_id_check) {
+                $validator = Validator::make(
+                    array(
+                        'product_id'   => $product_id_check,
+                    ),
+                    array(
+                        'product_id'   => 'numeric|orbit.empty.product',
+                    )
+                );
+
+                Event::fire('orbit.event.postnewevent.before.productvalidation', array($this, $validator));
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                Event::fire('orbit.event.postnewevent.after.productvalidation', array($this, $validator));
+            }
+
             Event::fire('orbit.event.postnewevent.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -181,6 +205,7 @@ class EventAPIController extends ControllerAPI
             $newevent->end_date = $end_date;
             $newevent->is_permanent = $is_permanent;
             $newevent->is_all_retailer = $is_all_retailer;
+            $newevent->is_all_product = $is_all_product;
             $newevent->link_object_type = $link_object_type;
 
             // link_object_id1
@@ -235,6 +260,17 @@ class EventAPIController extends ControllerAPI
                 $eventretailers[] = $eventretailer;
             }
             $newevent->retailers = $eventretailers;
+
+            // save EventProduct.
+            $eventproducts = array();
+            foreach ($product_ids as $product_id) {
+                $eventproduct = new EventProduct();
+                $eventproduct->product_id = $product_id;
+                $eventproduct->event_id = $newevent->event_id;
+                $eventproduct->save();
+                $eventproducts[] = $eventproduct;
+            }
+            $newevent->products = $eventproducts;
 
             Event::fire('orbit.event.postnewevent.after.save', array($this, $newevent));
             $this->response->data = $newevent;
@@ -521,6 +557,10 @@ class EventAPIController extends ControllerAPI
                 $updatedevent->is_all_retailer = $is_all_retailer;
             });
 
+            OrbitInput::post('is_all_product', function($is_all_product) use ($updatedevent) {
+                $updatedevent->is_all_product = $is_all_product;
+            });
+
             OrbitInput::post('link_object_type', function($link_object_type) use ($updatedevent) {
                 if (trim($link_object_type) === '') {
                     $link_object_type = NULL;
@@ -613,6 +653,36 @@ class EventAPIController extends ControllerAPI
 
                 // reload retailers relation
                 $updatedevent->load('retailers');
+            });
+
+            OrbitInput::post('product_ids', function($product_ids) use ($updatedevent) {
+                // validate product ids
+                $product_ids = (array) $product_ids;
+                foreach ($product_ids as $product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.event.postupdateevent.before.productvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.event.postupdateevent.after.productvalidation', array($this, $validator));
+                }
+                // sync new set of product ids
+                $updatedevent->products()->sync($product_ids);
+
+                // reload products relation
+                $updatedevent->load('products');
             });
 
             Event::fire('orbit.event.postupdateevent.after.save', array($this, $updatedevent));
@@ -797,6 +867,12 @@ class EventAPIController extends ControllerAPI
             $deleteeventretailers = EventRetailer::where('event_id', $deleteevent->event_id)->get();
             foreach ($deleteeventretailers as $deleteeventretailer) {
                 $deleteeventretailer->delete();
+            }
+
+            // hard delete event-product.
+            $deleteeventproducts = EventProduct::where('event_id', $deleteevent->event_id)->get();
+            foreach ($deleteeventproducts as $deleteeventproduct) {
+                $deleteeventproduct->delete();
             }
 
             $deleteevent->save();
@@ -1662,6 +1738,21 @@ class EventAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check the existance of product id
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()->allowedForUser($this->api->user)
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.product', $product);
 
             return TRUE;
         });
