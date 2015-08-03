@@ -22,3 +22,11 @@ Route::post('/api/v1/box-control/reboot', ['as' => 'api-box-control-shutdown', f
 {
     return ShutdownAPIController::create()->postRebootBox();
 }]);
+
+/**
+ * Get current retailer
+ */
+Route::get('/api/v1/current-retailer', ['before' => 'orbit-settings', function()
+{
+    return RetailerAPIController::create()->getCurrentRetailer();
+}]);
