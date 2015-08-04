@@ -15,9 +15,28 @@ class ObjectID implements JsonSerializable {
      */
     private $data;
 
+    /**
+     * @return static
+     */
     public static function make()
     {
         return new static;
+    }
+
+    /**
+     * @param string|int $time
+     * @return static
+     */
+    public static function fromTime($time)
+    {
+        if (is_numeric($time))
+        {
+            $time = (int) $time;
+        } else {
+            $time = strtotime((string) $time);
+        }
+
+        return new static(bin2hex(pack('NNXvNX', $time, 0, 0, 0)));
     }
 
     /**
@@ -48,19 +67,25 @@ class ObjectID implements JsonSerializable {
         $this->data = $this->generate();
     }
 
-    public function generate()
-    {
-        return Generator::getInstance()->nextId();
-    }
-
+    /**
+     * @return string
+     */
     public function hex()
     {
         return bin2hex($this->data);
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->d64();
+    }
+
+    public function generationTime()
+    {
+        return unpack('N', $this->data)[1];
     }
 
     /**
@@ -72,6 +97,15 @@ class ObjectID implements JsonSerializable {
         return preg_match('/\\A[0-9a-f]{24}\\z/i', $str) ? true : false;
     }
 
+
+    /**
+     * @return string
+     */
+    private function generate()
+    {
+        return Generator::getInstance()->nextId();
+    }
+
     /**
      * @param $str
      * @return bool
@@ -81,16 +115,27 @@ class ObjectID implements JsonSerializable {
         return preg_match('!\\A[0-9A-Za-z_\\|-]{16}\\z!i', $str) ? true : false;
     }
 
+    /**
+     * @return string
+     */
     public function d64()
     {
         return $this->d64_encode_tr($this->data);
     }
 
+    /**
+     * @param string $enc
+     * @return string
+     */
     private function d64_encode_tr($enc)
     {
         return rtrim(strtr(base64_encode($enc), static::CHARS_B64, static::CHARS_D64), '|');
     }
 
+    /**
+     * @param string $enc
+     * @return string
+     */
     private function d64_decode_tr($enc)
     {
         return base64_decode(strtr($enc, static::CHARS_D64, static::CHARS_B64), true);
