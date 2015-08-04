@@ -101,6 +101,7 @@ return array(
     'AlterUserDetailsAddRetailerId' => $baseDir . '/app/database/migrations/2014_12_24_045024_alter_user_details_add_retailer_id.php',
     'AlterUserDetailsChangePhone1Phone' => $baseDir . '/app/database/migrations/2015_01_19_022906_alter_user_details_change_phone1_phone.php',
     'AlterUsersColumnAccordingTo30Oct2014Changes' => $baseDir . '/app/database/migrations/2014_10_30_063154_alter_users_column_according_to_30-Oct-2014_changes.php',
+    'AlterAllUseUuids' => $baseDir . '/app/database/migrations/2015_07_09_072123_alter_all_use_uuids.php',
     'Apikey' => $baseDir . '/app/models/Apikey.php',
     'Arrays\\Util\\DuplicateChecker' => $baseDir . '/app/helpers/Arrays/Util/DuplicateChecker.php',
     'BaseController' => $baseDir . '/app/controllers/BaseController.php',
