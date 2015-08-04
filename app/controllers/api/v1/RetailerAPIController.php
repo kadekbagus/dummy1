@@ -1776,8 +1776,20 @@ class RetailerAPIController extends ControllerAPI
             $currentRetailerId = Config::get('orbit.shop.id');
 
             // Builder object
-            $retailer = Retailer::where('merchant_id', $currentRetailerId)
-                                ->first();
+            $retailer = Retailer::where('merchant_id', $currentRetailerId);
+
+            // Add new relation based on request
+            OrbitInput::get('with', function ($with) use ($retailer) {
+                $with = (array) $with;
+
+                foreach ($with as $relation) {
+                    if ($relation === 'merchant') {
+                        $retailer->with('merchant');
+                    }
+                }
+            });
+
+            $retailer = $retailer->first();
 
             if (empty($retailer)) {
                 $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
