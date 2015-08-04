@@ -25,10 +25,10 @@ app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$ti
 
     $scope.pathPublic = config.baseUrlServerPublic + '/mobile-ci/';
 
-    serviceAjax.getDataFromServer('/current-retailer').then(function(response) {
+    serviceAjax.getDataFromServer('/current-retailer?with[]=merchant').then(function(response) {
         if(response.code == 0){
             var url = window.location.pathname.split('/');
-            if (response.data.enable_shopping_cart === 'no' && url[url.length - 1] !== 'access-forbidden') {
+            if (response.data.merchant.enable_shopping_cart === 'no' && url[url.length - 1] !== 'access-forbidden') {
                 window.location.assign('access-forbidden');
             };
         }
@@ -88,9 +88,9 @@ app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', funct
 }]);
 
 app.controller('Error404Ctrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', '$location', function($scope,serviceAjax,localStorageService,$timeout, $location) {
-    serviceAjax.getDataFromServer('/current-retailer').then(function(response) {
+    serviceAjax.getDataFromServer('/current-retailer?with[]=merchant').then(function(response) {
         if(response.code == 0){
-            if (response.data.enable_shopping_cart === 'yes') {
+            if (response.data.merchant.enable_shopping_cart === 'yes') {
                 window.location.assign('signin');
             };
         }
