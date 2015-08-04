@@ -1761,4 +1761,65 @@ class RetailerAPIController extends ControllerAPI
 
         return $output;
     }
+
+    /**
+     * GET - Current Retailer
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getCurrentRetailer()
+    {
+        try {
+            $httpCode = 200;
+
+            // set mall id
+            $currentRetailerId = Config::get('orbit.shop.id');
+
+            // Builder object
+            $retailer = Retailer::where('merchant_id', $currentRetailerId)
+                                ->first();
+
+            if (empty($retailer)) {
+                $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
+            } else {
+                $this->response->data = $retailer;
+            }
+
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.retailer.getcurrentretailer.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.retailer.getcurrentretailer.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.retailer.getcurrentretailer.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.retailer.getcurrentretailer.before.render', array($this, &$output));
+
+        return $output;
+    }
+
 }

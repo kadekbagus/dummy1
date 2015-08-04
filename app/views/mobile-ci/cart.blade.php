@@ -52,6 +52,11 @@
                             @endforeach
                             @endif
                         </p>
+                        @if(! empty($cartdetail->variant))
+                        <p>
+                            <i>{{ $cartdetail->variant->sku }}</i>
+                        </p>
+                        @endif
                     </div>
                     <div class="single-body">
                         <div class="unique-column-properties">

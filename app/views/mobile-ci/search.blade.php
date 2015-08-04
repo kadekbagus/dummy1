@@ -86,7 +86,7 @@
                                 </div>
                                 @if(! empty($product->upc_code))
                                 <div class="col-xs-12">
-                                    <h4>{{ Lang::get('mobileci.catalogue.code') }} : {{ $product->upc_code }}</h4>
+                                    <h4>{{ $product->product_code }}</h4>
                                 </div>
                                 @endif
                                 <div class="col-xs-12 price">

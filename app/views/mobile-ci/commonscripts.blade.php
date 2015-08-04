@@ -50,6 +50,27 @@
 {{ HTML::script('mobile-ci/scripts/jquery.cookie.js') }}
 <script type="text/javascript">
     $(document).ready(function(){
+        var run = function () {
+            if (Offline.state === 'up') {
+              $('#offlinemark').attr('class', 'fa fa-check fa-stack-1x').css({
+                'color': '#3c9',
+                'left': '6px',
+                'top': '0px',
+                'font-size': '1em'
+              });
+              Offline.check();
+            } else {
+              $('#offlinemark').attr('class', 'fa fa-times fa-stack-1x').css({
+                'color': 'red',
+                'left': '6px',
+                'top': '0px',
+                'font-size': '1em'
+              });
+            }
+        };
+        run();
+        setInterval(run, 8000);
+
         $('#barcodeBtn2').click(function(){
             $('#get_camera2').click();
         });
