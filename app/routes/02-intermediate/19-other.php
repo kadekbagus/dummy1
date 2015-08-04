@@ -18,3 +18,8 @@ Route::post('/app/v1/box-control/reboot', 'IntermediateAuthController@Shutdown_p
  * Lippo Mall PWU - Network checkout test
  */
 Route::get('/app/v1/captive/user-out', 'DummyAPIController@getUserOutOfNetwork');
+
+/**
+ * Get current retailer
+ */
+Route::get('/app/v1/current-retailer', ['before' => 'orbit-settings', 'uses' => 'IntermediateLoginController@Retailer_getCurrentRetailer']);
