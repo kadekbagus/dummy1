@@ -59,24 +59,26 @@ class ProductController extends MobileCIAPIController
             $promo_products = DB::select(
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on
-                (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
-                    OR
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
                     (
-                        (pr.discount_object_type="family") AND
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
-                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
+                        OR
+                        (
+                            (pr.discount_object_type="family") AND
+                            ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                            ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                            ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                            ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                            ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        )
                     )
-                )
-                WHERE prod.product_id = :productid'
+
+                WHERE p.merchant_id = :merchantid AND CASE WHEN p.is_all_retailer = "N" THEN prr.retailer_id = :retailerid ELSE TRUE END'
                 ),
-                array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
+                array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
             );
 
             $couponstocatchs = DB::select(
@@ -176,6 +178,7 @@ class ProductController extends MobileCIAPIController
 
                 if (! empty($promo_products)) {
                     $promo_price = $variant->price;
+                    $arr_promo = array();
                     foreach ($promo_products as $promo_filter) {
                         if ($promo_filter->rule_type == 'product_discount_by_percentage' || $promo_filter->rule_type == 'cart_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $variant->price;
@@ -197,7 +200,7 @@ class ProductController extends MobileCIAPIController
                             }
                             $promo_price = $promo_price - $discount;
                         }
-
+                        $arr_promo[] = $promo_filter->promotion_id;
                         $temp_price = $temp_price - $discount;
                     }
                 }
@@ -429,21 +432,23 @@ class ProductController extends MobileCIAPIController
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
-                inner join ' . DB::getTablePrefix() . 'products prod on
-                (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
-                    OR
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
                     (
-                        (pr.discount_object_type="family") AND
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
-                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
+                        OR
+                        (
+                            (pr.discount_object_type="family") AND
+                            ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                            ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                            ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                            ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                            ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        )
                     )
-                )
-                WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
+
+                WHERE p.merchant_id = :merchantid AND CASE WHEN p.is_all_retailer = "N" THEN prr.retailer_id = :retailerid ELSE TRUE END'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
             );
@@ -547,40 +552,48 @@ class ProductController extends MobileCIAPIController
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
-                $temp_price = $min_price;
                 $promo_for_this_product = array_filter(
                     $promotions,
                     function ($v) use ($product) {
-                        return $v->product_id == $product->product_id;
+                        if($v->is_all_product_discount == 'N') {
+                            return $v->product_id == $product->product_id;
+                        } else {
+                            return $v;
+                        }
                     }
                 );
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
+                    $temp_price = $min_price;
+                    $arr_promo = array();
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage' || $promotion->rule_type == 'cart_discount_by_percentage') {
-                            $discount = min($prices) * $promotion->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
+                        if (! in_array($promotion->promotion_id, $arr_promo)) {
+                            if ($promotion->rule_type == 'product_discount_by_percentage' || $promotion->rule_type == 'cart_discount_by_percentage') {
+                                $discount = min($prices) * $promotion->discount_value;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $discounts = $discounts + $discount;
+                            } elseif ($promotion->rule_type == 'product_discount_by_value' || $promotion->rule_type == 'cart_discount_by_value') {
+                                $discount = $promotion->discount_value;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $discounts = $discounts + $discount;
+                            } elseif ($promotion->rule_type == 'new_product_price') {
+                                $new_price = $min_price - $promotion->discount_value;
+                                $discount = $new_price;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $discounts = $discounts + $discount;
                             }
-                            $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $promotion->rule_type == 'cart_discount_by_value') {
-                            $discount = $promotion->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'new_product_price') {
-                            $new_price = $min_price - $promotion->discount_value;
-                            $discount = $new_price;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $discounts = $discounts + $discount;
+                            $arr_promo[] = $promotion->promotion_id;
+                            $temp_price = $temp_price - $discount;
                         }
-                        $temp_price = $temp_price - $discount;
                     }
-                    $product->on_promo = true;
                     $product->priceafterpromo = $min_price - $discounts;
+                    $product->on_promo = true;
                 } else {
                     $product->on_promo = false;
                 }
@@ -850,11 +863,12 @@ class ProductController extends MobileCIAPIController
             $promotions = DB::select(
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
-                    inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
-                    inner join ' . DB::getTablePrefix() . 'products prod on
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
                     (
-                        (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                        (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
                         OR
                         (
                             (pr.discount_object_type="family") AND
@@ -865,7 +879,8 @@ class ProductController extends MobileCIAPIController
                             ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
                         )
                     )
-                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid'
+
+                WHERE p.merchant_id = :merchantid AND CASE WHEN p.is_all_retailer = "N" THEN prr.retailer_id = :retailerid ELSE TRUE END'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
             );
@@ -933,40 +948,48 @@ class ProductController extends MobileCIAPIController
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
-                $temp_price = $min_price;
                 $promo_for_this_product = array_filter(
                     $promotions,
                     function ($v) use ($product) {
-                        return $v->product_id == $product->product_id;
+                        if($v->is_all_product_discount == 'N') {
+                            return $v->product_id == $product->product_id;
+                        } else {
+                            return $v;
+                        }
                     }
                 );
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
+                    $temp_price = $min_price;
+                    $arr_promo = array();
                     foreach ($promo_for_this_product as $promotion) {
-                        if ($promotion->rule_type == 'product_discount_by_percentage' || $promotion->rule_type == 'cart_discount_by_percentage') {
-                            $discount = min($prices) * $promotion->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
+                        if (! in_array($promotion->promotion_id, $arr_promo)) {
+                            if ($promotion->rule_type == 'product_discount_by_percentage' || $promotion->rule_type == 'cart_discount_by_percentage') {
+                                $discount = min($prices) * $promotion->discount_value;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $discounts = $discounts + $discount;
+                            } elseif ($promotion->rule_type == 'product_discount_by_value' || $promotion->rule_type == 'cart_discount_by_value') {
+                                $discount = $promotion->discount_value;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $discounts = $discounts + $discount;
+                            } elseif ($promotion->rule_type == 'new_product_price') {
+                                $new_price = $min_price - $promotion->discount_value;
+                                $discount = $new_price;
+                                if ($temp_price < $discount) {
+                                    $discount = $temp_price;
+                                }
+                                $discounts = $discounts + $discount;
                             }
-                            $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'product_discount_by_value' || $promotion->rule_type == 'cart_discount_by_value') {
-                            $discount = $promotion->discount_value;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $discounts = $discounts + $discount;
-                        } elseif ($promotion->rule_type == 'new_product_price') {
-                            $new_price = $min_price - $promotion->discount_value;
-                            $discount = $new_price;
-                            if ($temp_price < $discount) {
-                                $discount = $temp_price;
-                            }
-                            $discounts = $discounts + $discount;
+                            $arr_promo[] = $promotion->promotion_id;
+                            $temp_price = $temp_price - $discount;
                         }
-                        $temp_price = $temp_price - $discount;
                     }
-                    $product->on_promo = true;
                     $product->priceafterpromo = $min_price - $discounts;
+                    $product->on_promo = true;
                 } else {
                     $product->on_promo = false;
                 }
@@ -1095,25 +1118,50 @@ class ProductController extends MobileCIAPIController
 
             $selected_variant = \ProductVariant::active()->where('upc', $upc_code)->first();
 
+            // $promo_products = DB::select(
+            //     DB::raw(
+            //         'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+            //     inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+            //     inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+            //     inner join ' . DB::getTablePrefix() . 'products prod on
+            //     (
+            //         (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+            //         OR
+            //         (
+            //             (pr.discount_object_type="family") AND
+            //             ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+            //             ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+            //             ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+            //             ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+            //             ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+            //         )
+            //     )
+            //     WHERE prod.product_id = :productid'
+            //     ),
+            //     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
+            // );
+            
             $promo_products = DB::select(
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-                inner join ' . DB::getTablePrefix() . 'products prod on
-                (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
-                    OR
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
                     (
-                        (pr.discount_object_type="family") AND
-                        ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
-                        ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                        ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                        ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                        ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
+                        OR
+                        (
+                            (pr.discount_object_type="family") AND
+                            ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                            ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                            ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                            ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                            ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        )
                     )
-                )
-                WHERE prod.product_id = :productid'
+
+                WHERE p.merchant_id = :merchantid AND CASE WHEN p.is_all_retailer = "N" THEN prr.retailer_id = :retailerid ELSE TRUE END AND CASE WHEN pr.is_all_product_discount = "N" THEN prod.product_id = :productid ELSE TRUE END'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
             );
@@ -1215,6 +1263,7 @@ class ProductController extends MobileCIAPIController
 
                 if (! empty($promo_products)) {
                     $promo_price = $variant->price;
+                    $arr_promo = array();
                     foreach ($promo_products as $promo_filter) {
                         if ($promo_filter->rule_type == 'product_discount_by_percentage' || $promo_filter->rule_type == 'cart_discount_by_percentage') {
                             $discount = $promo_filter->discount_value * $variant->price;
@@ -1236,7 +1285,7 @@ class ProductController extends MobileCIAPIController
                             }
                             $promo_price = $promo_price - $discount;
                         }
-
+                        $arr_promo[] = $promo_filter->promotion_id;
                         $temp_price = $temp_price - $discount;
                     }
                 }
