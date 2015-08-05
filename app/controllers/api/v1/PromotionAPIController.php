@@ -166,7 +166,7 @@ class PromotionAPIController extends ControllerAPI
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
                 } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
                 
@@ -307,7 +307,7 @@ class PromotionAPIController extends ControllerAPI
                 $promotionproduct->save();
                 $promotionproducts[] = $promotionproduct;
             }
-            $newpromotion->discount_products = $promotionproducts;
+            $newpromotion->promotionrule->discount_products = $promotionproducts;
 
             Event::fire('orbit.promotion.postnewpromotion.after.save', array($this, $newpromotion));
             $this->response->data = $newpromotion;
