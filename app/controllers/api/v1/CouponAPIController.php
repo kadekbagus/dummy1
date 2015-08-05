@@ -214,14 +214,14 @@ class CouponAPIController extends ControllerAPI
                 if ($rule_object_type == 'family') {
                     $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
                     $errormessages = 'The family to obtain field is required.';
-                } elseif ($rule_object_type == 'product') {
+                } elseif ($rule_object_type == 'product' && $is_all_product_rule == 'N') {
                     $rulefamilyflag = ! empty($rule_product_ids);
                     $errormessages = 'The product to obtain field is required.';
                 }
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
                     $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }

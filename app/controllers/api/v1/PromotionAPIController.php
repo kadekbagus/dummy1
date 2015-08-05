@@ -165,7 +165,7 @@ class PromotionAPIController extends ControllerAPI
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
                     $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
