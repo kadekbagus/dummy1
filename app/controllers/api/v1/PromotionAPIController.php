@@ -490,7 +490,7 @@ class PromotionAPIController extends ControllerAPI
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
             $discount_product_ids = OrbitInput::post('discount_product_ids');
-            $discount_product_ids = (array) $product_ids;
+            $discount_product_ids = (array) $discount_product_ids;
             $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $data = array(
