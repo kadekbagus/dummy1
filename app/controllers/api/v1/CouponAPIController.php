@@ -667,6 +667,8 @@ class CouponAPIController extends ControllerAPI
             $rule_product_ids = (array) $rule_product_ids;
             $discount_product_ids = OrbitInput::post('discount_product_ids');
             $discount_product_ids = (array) $discount_product_ids;
+            $is_all_product_rule = OrbitInput::post('is_all_product_rule');
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -762,15 +764,15 @@ class CouponAPIController extends ControllerAPI
                 if ($rule_object_type == 'family') {
                     $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
                     $errormessages = 'The family to obtain field is required.';
-                } elseif ($rule_object_type == 'product') {
-                    $rulefamilyflag = ! empty($rule_object_id1);
+                } elseif ($rule_object_type == 'product' && $is_all_product_rule == 'N') {
+                    $rulefamilyflag = ! empty($rule_product_ids);
                     $errormessages = 'The product to obtain field is required.';
                 }
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
 

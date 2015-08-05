@@ -489,8 +489,9 @@ class PromotionAPIController extends ControllerAPI
             $rule_value = OrbitInput::post('rule_value');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
-            $product_ids = OrbitInput::post('product_ids');
-            $product_ids = (array) $product_ids;
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $product_ids;
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -568,8 +569,8 @@ class PromotionAPIController extends ControllerAPI
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
 
@@ -766,13 +767,13 @@ class PromotionAPIController extends ControllerAPI
             });
 
 
-            OrbitInput::post('product_ids', function($product_ids) use ($updatedpromotion) {
+            OrbitInput::post('discount_product_ids', function($discount_product_ids) use ($updatedpromotion) {
                 // validate product_ids
-                $product_ids = (array) $product_ids;
-                foreach ($product_ids as $product_id_check) {
+                $discount_product_ids = (array) $discount_product_ids;
+                foreach ($discount_product_ids as $discount_product_id_check) {
                     $validator = Validator::make(
                         array(
-                            'product_id'   => $product_id_check,
+                            'product_id'   => $discount_product_id_check,
                         ),
                         array(
                             'product_id'   => 'orbit.empty.product',
@@ -791,8 +792,8 @@ class PromotionAPIController extends ControllerAPI
                 }
 
                 // sync new set of product ids
-                $pivotData = array_fill(0, count($product_ids), ['object_type' => 'discount']);
-                $syncData = array_combine($product_ids, $pivotData);
+                $pivotData = array_fill(0, count($discount_product_ids), ['object_type' => 'discount']);
+                $syncData = array_combine($discount_product_ids, $pivotData);
 
                 $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedpromotion->promotionrule->promotion_rule_id)
                                                        ->where('object_type', 'discount')
