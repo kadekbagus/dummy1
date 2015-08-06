@@ -680,8 +680,8 @@ class PromotionAPIController extends ControllerAPI
                 $promotionrule->discount_object_type = $discount_object_type;
             });
 
-            OrbitInput::post('is_all_product_discount', function($is_all_product_discount) use ($updatedpromotion) {
-                $updatedpromotion->is_all_product_discount = $is_all_product_discount;
+            OrbitInput::post('is_all_product_discount', function($is_all_product_discount) use ($promotionrule) {
+                $promotionrule->is_all_product_discount = $is_all_product_discount;
             });
 
             OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($promotionrule) {
