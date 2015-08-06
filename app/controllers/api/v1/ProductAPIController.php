@@ -1850,6 +1850,14 @@ class ProductAPIController extends ControllerAPI
             $deleteproduct->status = 'deleted';
             $deleteproduct->modified_by = $this->api->user->user_id;
 
+            // soft delete product variants
+            $deleteProductVariants = ProductVariant::excludeDeleted()->where('product_id', $deleteproduct->product_id)->get();
+            foreach ($deleteProductVariants as $v) {
+                $v->status = 'deleted';
+                $v->modified_by = $this->api->user->user_id;
+                $v->save();
+            }
+
             Event::fire('orbit.product.postdeleteproduct.before.save', array($this, $deleteproduct));
 
             // get product-retailer for the product
@@ -2427,7 +2435,7 @@ class ProductAPIController extends ControllerAPI
 
         // product cannot be deleted if have linked to an event, promotion, or coupon.
         Validator::extend('orbit.exists.product_on_delete_have_linked', function ($attribute, $value, $parameters) {
-            
+
             $product_id = $value;
 
             // check product if exists in promotions.
