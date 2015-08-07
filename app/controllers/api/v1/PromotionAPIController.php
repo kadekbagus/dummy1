@@ -1233,26 +1233,31 @@ class PromotionAPIController extends ControllerAPI
             }
 
             $table_prefix = DB::getTablePrefix();
+            
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
                 ->excludeDeleted('promotions')
                 ->select(DB::raw($table_prefix . "promotions.*,
-                    CASE {$table_prefix}promotion_rules.rule_type
-                        WHEN 'cart_discount_by_percentage' THEN 'percentage'
-                        WHEN 'product_discount_by_percentage' THEN 'percentage'
-                        WHEN 'cart_discount_by_value' THEN 'value'
-                        WHEN 'product_discount_by_value' THEN 'value'
-                        ELSE NULL
-                    END AS 'display_discount_type',
-                    CASE {$table_prefix}promotion_rules.rule_type
-                        WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
-                        WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
-                        ELSE {$table_prefix}promotion_rules.discount_value
-                    END AS 'display_discount_value'
-                    ")
+                            CASE {$table_prefix}promotion_rules.rule_type
+                                WHEN 'cart_discount_by_percentage' THEN 'percentage'
+                                WHEN 'product_discount_by_percentage' THEN 'percentage'
+                                WHEN 'cart_discount_by_value' THEN 'value'
+                                WHEN 'product_discount_by_value' THEN 'value'
+                                ELSE NULL
+                            END AS 'display_discount_type',
+                            CASE {$table_prefix}promotion_rules.rule_type
+                                WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                                WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                                ELSE {$table_prefix}promotion_rules.discount_value
+                            END AS 'display_discount_value'
+                            "),
+                        DB::raw("count(distinct {$table_prefix}merchants.merchant_id) as retailer_count")
                 )
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
+                ->leftJoin('promotion_retailer', 'promotion_retailer.promotion_id', '=', 'promotions.promotion_id')
+                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
+                ->groupBy('promotions.promotion_id');
 
             // Check the value of `include_transaction_status` argument
             OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($promotions) {

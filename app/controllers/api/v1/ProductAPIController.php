@@ -1006,11 +1006,19 @@ class ProductAPIController extends ControllerAPI
                 }
             }
 
+            $table_prefix = DB::getTablePrefix();
+
             $now = date('Y-m-d H:i:s');
+            
             $products = Product::with('retailers')
-                                ->excludeDeleted()
+                                ->excludeDeleted('products')
                                 ->allowedForUser($user)
-                                ->select('products.*', DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'));
+                                ->select('products.*', 
+                                        DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'),
+                                        DB::raw("count(distinct {$table_prefix}merchants.merchant_id) as retailer_count"))
+                                ->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
+                                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
+                                ->groupBy('products.product_id');
 
             // Check the value of `with_params` argument
             OrbitInput::get('with_params', function ($withParams) use ($products) {
