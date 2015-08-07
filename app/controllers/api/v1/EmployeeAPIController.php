@@ -412,6 +412,14 @@ class EmployeeAPIController extends ControllerAPI
                 $updatedUser->status = 'active';
             });
 
+            OrbitInput::post('firstname', function($_firstname) use ($updatedUser) {
+                $updatedUser->user_firstname = $_firstname;
+            });
+
+            OrbitInput::post('lastname', function($_lastname) use ($updatedUser) {
+                $updatedUser->user_lastname = $_lastname;
+            });
+
             OrbitInput::post('employee_role', function($_role) use ($updatedUser) {
                 $role = App::make('orbit.empty.employee.role');
                 $updatedUser->user_role_id = $role->role_id;
@@ -442,6 +450,7 @@ class EmployeeAPIController extends ControllerAPI
             OrbitInput::post('birthdate', function($_birthdate) use ($userDetail) {
                 $userDetail->birthdate = $_birthdate;
             });
+
 
             $userDetail->save();
 

@@ -4,6 +4,7 @@ use Report\DataPrinterController;
 use Config;
 use DB;
 use PDO;
+use OrbitShop\API\v1\Exception\InvalidArgsException;
 use OrbitShop\API\v1\Helper\Input as OrbitInput;
 use Helper\EloquentRecordCounter as RecordCounter;
 use Orbit\Text as OrbitText;
@@ -27,16 +28,16 @@ class ConsumerPrinterController extends DataPrinterController
         // Available retailer to query
         $listOfRetailerIds = [];
 
-        // Builder object
-        $users = User::Consumers()
-                    ->select('users.*',   
-                        'merchants.name as merchant_name',
+        if ($user->isSuperAdmin()) {
+            
+                $users = User::Consumers()
+                ->excludeDeleted('users')
+                ->select('users.*',
                         'user_details.city as city',
                         'user_details.birthdate as birthdate',
                         'user_details.gender as gender',
                         'user_details.country as country',
                         'user_details.last_visit_any_shop as last_visit_date',
-                        'user_details.last_spent_any_shop as last_spent_amount',
                         'user_details.relationship_status as relationship_status',
                         'user_details.number_of_children as number_of_children',
                         'user_details.occupation as occupation',
@@ -44,15 +45,81 @@ class ConsumerPrinterController extends DataPrinterController
                         'user_details.last_education_degree as last_education_degree',
                         'user_details.avg_annual_income1 as avg_annual_income1',
                         'user_details.avg_monthly_spent1 as avg_monthly_spent1',
-                        'user_details.preferred_language as preferred_language',
-                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
-                    ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
-                    ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
-                    ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
-                    ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
-                    ->with(array('userDetail', 'userDetail.lastVisitedShop'))
-                    ->excludeDeleted('users')
-                    ->groupBy('users.user_id');
+                        'user_details.preferred_language as preferred_language', 
+                        'merchants.name as last_visited_store',
+                        'user_details.last_visit_any_shop as last_visited_date',
+                        'user_details.last_spent_any_shop as last_spent_amount',
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list")
+                        )
+                ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
+                ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id') 
+                ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+                ->groupBy('users.user_id');
+
+        } else {
+
+                // get merchant id from the current users
+                $merchant_id = \Merchant::where('user_id', $user->user_id)->first()->merchant_id;
+
+                if (empty($merchant_id)) {
+                    $errorMessage = 'Merchant id not found';
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                $users = User::Consumers()
+                ->excludeDeleted('users')
+                ->select('users.*',
+                        'user_details.city as city',
+                        'user_details.birthdate as birthdate',
+                        'user_details.gender as gender',
+                        'user_details.country as country',
+                        'user_details.last_visit_any_shop as last_visit_date',
+                        'user_details.relationship_status as relationship_status',
+                        'user_details.number_of_children as number_of_children',
+                        'user_details.occupation as occupation',
+                        'user_details.sector_of_activity as sector_of_activity',
+                        'user_details.last_education_degree as last_education_degree',
+                        'user_details.avg_annual_income1 as avg_annual_income1',
+                        'user_details.avg_monthly_spent1 as avg_monthly_spent1',
+                        'user_details.preferred_language as preferred_language', 
+                         DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
+                         DB::raw("(SELECT m.name 
+                                FROM {$prefix}activities at 
+                                LEFT JOIN {$prefix}merchants m on m.merchant_id=at.location_id 
+                                WHERE 
+                                    at.user_id={$prefix}users.user_id AND 
+                                    at.activity_name='login_ok' AND
+                                    at.group = 'mobile-ci' AND
+                                    m.parent_id = '{$merchant_id}'
+                                ORDER BY at.created_at DESC LIMIT 1) as last_visited_store"),
+                         DB::raw("(SELECT at.created_at 
+                                FROM {$prefix}activities at 
+                                LEFT JOIN {$prefix}merchants m2 on m2.merchant_id=at.location_id 
+                                WHERE 
+                                    at.user_id={$prefix}users.user_id AND 
+                                    at.activity_name='login_ok' AND
+                                    at.group = 'mobile-ci' AND
+                                    m2.parent_id = '{$merchant_id}'
+                                ORDER BY at.created_at DESC LIMIT 1) as last_visited_date"),
+                         DB::raw("(SELECT tr.total_to_pay 
+                                FROM {$prefix}transactions tr 
+                                WHERE 
+                                    tr.customer_id={$prefix}users.user_id AND 
+                                    tr.status='paid' AND 
+                                    tr.merchant_id='{$merchant_id}' 
+                                GROUP BY tr.created_at 
+                                ORDER BY tr.created_at DESC LIMIT 1) as last_spent_amount")
+                        )
+                ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id') 
+                ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+                ->groupBy('users.user_id');
+        }
+
+
 
         // Filter by merchant ids
         OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
@@ -243,8 +310,8 @@ class ConsumerPrinterController extends DataPrinterController
                 'firstname'               => 'users.user_firstname',
                 'gender'                  => 'gender',
                 'city'                    => 'city',
-                'last_visit_shop'         => 'merchant_name',
-                'last_visit_date'         => 'last_visit_date',
+                'last_visit_shop'         => 'last_visited_store',
+                'last_visit_date'         => 'last_visited_date',
                 'last_spent_amount'       => 'last_spent_amount'
             );
 
@@ -297,7 +364,7 @@ class ConsumerPrinterController extends DataPrinterController
                     $avg_monthly_spent = $this->printAverageShopping($row);
 
                     printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\", %s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", 
-                        '', $row->user_email, $gender, $address, $this->printUtf8($row->merchant_name), $row->last_visit_date, $row->last_spent_amount, $row->created_at,
+                        '', $row->user_email, $gender, $address, $this->printUtf8($row->last_visited_store), $row->last_visited_date, $row->last_spent_amount, $row->created_at,
                         $this->printUtf8($row->user_firstname), $this->printUtf8($row->user_lastname), $row->birthdate, $row->relationship_status, $row->number_of_children, $occupation, $sector_of_activity,
                         $row->last_education_degree, $preferred_language, $avg_annual_income, $avg_monthly_spent, $row->personal_interest_list);
                 }
@@ -466,8 +533,8 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastVisitDate($consumer)
     {
-        $date = $consumer->last_visit_date;
-        if($consumer->last_visit_date==NULL || empty($consumer->last_visit_date)){
+        $date = $consumer->last_visited_date;
+        if($consumer->last_visited_date==NULL || empty($consumer->last_visited_date)){
             $result = ""; 
         }else {
             $date = explode(' ',$date);
@@ -487,12 +554,27 @@ class ConsumerPrinterController extends DataPrinterController
      */
     public function printLastSpentAmount($consumer)
     {
-        $retailer = $this->getRetailerInfo();
-        $currency = strtolower($retailer->parent->currency);
-        if($currency=='usd'){
-            $result = number_format($consumer->last_spent_amount, 2);
+        $user = $this->loggedUser;
+        if ($user->isSuperAdmin()) {
+            $currency = 'usd';
         } else {
-            $result = number_format($consumer->last_spent_amount);
+            $currency = \Merchant::where('user_id', $user->user_id)->first()->currency;
+            $currency = strtolower($currency);
+        }
+
+        if($currency=='usd'){
+            if (!empty($consumer->last_spent_amount)) {
+                $result = number_format($consumer->last_spent_amount, 2);
+            } else {
+                $result = '';
+            }
+            
+        } else {
+            if (!empty($consumer->last_spent_amount)) {
+                $result = number_format($consumer->last_spent_amount);
+            } else {
+                $result = '';
+            }
         }
         return $result;
     }
