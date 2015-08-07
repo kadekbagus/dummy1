@@ -765,20 +765,13 @@ class ImportAPIController extends ControllerAPI
                         }
 
                         $newproduct->is_featured = 'n';
+                        $newproduct->is_all_retailer = 'Y';
                         $newproduct->status = 'active';
                         $newproduct->created_by = $this->api->user->user_id;
                         $newproduct->save();
 
                         // create default variant
                         ProductVariant::createDefaultVariant($newproduct);
-
-                        // link product to all retailers
-                        foreach ($retailer_ids as $retailer_id) {
-                            $productretailer = new ProductRetailer();
-                            $productretailer->retailer_id = $retailer_id;
-                            $productretailer->product_id = $newproduct->product_id;
-                            $productretailer->save();
-                        }
                     } else {
                         $newproduct = Product::excludeDeleted()
                                              ->where('merchant_id', $merchant->merchant_id)

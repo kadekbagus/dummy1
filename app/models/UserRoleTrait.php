@@ -320,4 +320,19 @@ trait UserRoleTrait
 
         return $merchantIds;
     }
+
+    /**
+     * Super admin check.
+     *
+     * @Todo: Prevent query.
+     *
+     * @Param string $rolename
+     * @return boolean
+     */
+    public function isRoleName($rolename)
+    {
+        $rolename = strtolower($rolename);
+
+        return strtolower($this->role->role_name) === $rolename;
+    }
 }

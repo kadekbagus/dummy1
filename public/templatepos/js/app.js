@@ -20,74 +20,94 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
     $interpolateProvider.endSymbol('%>');
 
 });
-    app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', function($scope,serviceAjax,localStorageService,$timeout) {
-        $scope.datauser  = localStorageService.get('user');
-        var updatetime = function() {
-            $scope.datetime = moment().format('DD MMMM YYYY HH:mm:ss');
-            $timeout(updatetime, 1000);
-        };
-        $timeout(updatetime, 1000);
-    }]);
+app.controller('layoutCtrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', '$location', function($scope,serviceAjax,localStorageService,$timeout, $location) {
+    $scope.datauser  = localStorageService.get('user');
 
-    app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
-         //get merchant info
-        $scope.infomerchant = [];
-        $scope.versions     = {};
-        $scope.language     = en;
-         serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
-                if(response.code == 0){
-                    $scope.language = response.data.pos_language == 'id' ? id : en;
-                    localStorageService.set('currency',response.data.currency)
-                    localStorageService.set('currency_symbol',response.data.currency_symbol)
-                }
-         });
-         serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
-                if(response.code == 0){
-                    $scope.versions.adminBuildDate    = "";
-                    $scope.versions.apiVersion        = 'v'+response.data.version;
-                    $scope.versions.strings           = 'Orbit '+$scope.versions.apiVersion;
-                    localStorageService.add('version',$scope.versions.strings);
-                }
-         });
-        if(localStorageService.get('user')){
-            window.location.assign("dashboard");
+    $scope.pathPublic = config.baseUrlServerPublic + '/mobile-ci/';
+
+    serviceAjax.getDataFromServer('/current-retailer?with[]=merchant').then(function(response) {
+        if(response.code == 0){
+            var url = window.location.pathname.split('/');
+            if (response.data.merchant.enable_shopping_cart === 'no' && url[url.length - 1] !== 'access-forbidden') {
+                window.location.assign('access-forbidden');
+            };
         }
-        //init object
-        $scope.login  = {};
-        $scope.signin = {};
-        $scope.signin.alerts = [{ text: $scope.language.loginerror,active: false} ];
-        $scope.signin.alertDismisser = function(index) {
-            $scope.signin.alerts[index].active = false;
-        };
-        $scope.loginFn = function(){
-            $scope.showloader = true;
-            if(progressJs) progressJs().start().autoIncrease(4, 500);
-            serviceAjax.posDataToServer('/pos/logincashier',$scope.login).then(function(data){
-                if(data.code == 0){
-                    $scope.shownall = false;
-                    localStorageService.add('user',data.data);
-                    window.location.assign("dashboard");
-                }else{
-                    $scope.signin.alerts[0].active = true;
-                }
-                $scope.showloader = false;
-                if(progressJs) progressJs().end();
-            });
-        };
+    });
 
-    }]);
+    var updatetime = function() {
+        $scope.datetime = moment().format('DD MMMM YYYY HH:mm:ss');
+        $timeout(updatetime, 1000);
+    };
+    $timeout(updatetime, 1000);
+}]);
 
-    app.filter('getById', function() {
-      return function(input, id) {
+app.controller('loginCtrl', ['$scope','serviceAjax','localStorageService', function($scope,serviceAjax,localStorageService) {
+    $scope.infomerchant = [];
+    $scope.versions     = {};
+    $scope.language     = en;
+    serviceAjax.getDataFromServer('/pos/getmerchantinfo').then(function(response) {
+        if(response.code == 0){
+            $scope.language = response.data.pos_language == 'id' ? id : en;
+            localStorageService.set('currency',response.data.currency)
+            localStorageService.set('currency_symbol',response.data.currency_symbol)
+        }
+    });
+    serviceAjax.getDataFromServerPublicUrl('/app/orbit-version').then(function(response) {
+        if(response.code == 0){
+            $scope.versions.adminBuildDate    = "";
+            $scope.versions.apiVersion        = 'v'+response.data.version;
+            $scope.versions.strings           = 'Orbit '+$scope.versions.apiVersion;
+            localStorageService.add('version',$scope.versions.strings);
+        }
+    });
+    if(localStorageService.get('user')){
+        window.location.assign("dashboard");
+    }
+    $scope.login  = {};
+    $scope.signin = {};
+    $scope.signin.alerts = [{ text: $scope.language.loginerror,active: false} ];
+    $scope.signin.alertDismisser = function(index) {
+        $scope.signin.alerts[index].active = false;
+    };
+    $scope.loginFn = function(){
+        $scope.showloader = true;
+        if(progressJs) progressJs().start().autoIncrease(4, 500);
+        serviceAjax.posDataToServer('/pos/logincashier',$scope.login).then(function(data){
+            if(data.code == 0){
+                $scope.shownall = false;
+                localStorageService.add('user',data.data);
+                window.location.assign("dashboard");
+            }else{
+                $scope.signin.alerts[0].active = true;
+            }
+            $scope.showloader = false;
+            if(progressJs) progressJs().end();
+        });
+    };
+
+}]);
+
+app.controller('Error404Ctrl', ['$scope','serviceAjax','localStorageService' ,'$timeout', '$location', function($scope,serviceAjax,localStorageService,$timeout, $location) {
+    serviceAjax.getDataFromServer('/current-retailer?with[]=merchant').then(function(response) {
+        if(response.code == 0){
+            if (response.data.merchant.enable_shopping_cart === 'yes') {
+                window.location.assign('signin');
+            };
+        }
+    });
+}]);
+
+app.filter('getById', function() {
+    return function(input, id) {
         var i=0, len=input.length;
         for (; i<len; i++) {
-          if (+input[i].id == +id) {
-            return input[i];
-          }
+            if (+input[i].id == +id) {
+                return input[i];
+            }
         }
         return null;
-      }
-    });
+    }
+});
 
     app.controller('dashboardCtrl', ['$scope', 'localStorageService','$timeout','serviceAjax','$modal','$http', '$anchorScroll','$location', '$filter', function($scope,localStorageService, $timeout, serviceAjax, $modal, $http,$anchorScroll,$location,$filter) {
         //init
@@ -2059,7 +2079,7 @@ var app = angular.module('app', ['ui.bootstrap','ngAnimate','LocalStorageModule'
                 localStorageService.remove('user');
                 window.location.assign("signin");
                 // if(response.code == 0){
-                    
+
                 // }else{
                 //     //alert('gagal logout');
                 // }

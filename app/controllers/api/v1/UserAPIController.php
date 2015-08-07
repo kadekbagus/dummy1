@@ -593,9 +593,12 @@ class UserAPIController extends ControllerAPI
                 $updateduser->user_lastname = $lastname;
             });
 
-            OrbitInput::post('status', function($status) use ($updateduser) {
-                $updateduser->status = $status;
-            });
+            // User cannot update their own status
+            if ((string)$user->user_id !== (string)$updateduser->user_id) {
+                OrbitInput::post('status', function($status) use ($updateduser) {
+                    $updateduser->status = $status;
+                });
+            }
 
             OrbitInput::post('role_id', function($role_id) use ($updateduser) {
                 $updateduser->user_role_id = $role_id;
@@ -637,6 +640,8 @@ class UserAPIController extends ControllerAPI
 
             OrbitInput::post('country', function($country) use ($updateduser) {
                 $updateduser->userdetail->country_id = $country;
+
+                // @TODO produce error when $country_name is empty
                 $country_name = Country::where('country_id', $country)->first()->name;
                 $updateduser->userdetail->country = $country_name;
             });
@@ -1169,6 +1174,7 @@ class UserAPIController extends ControllerAPI
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
+
             Event::fire('orbit.user.getconsumer.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_user')) {
@@ -1240,9 +1246,14 @@ class UserAPIController extends ControllerAPI
 
             $prefix = DB::getTablePrefix();
 
-            // Builder object
-            $users = User::Consumers()
-                        ->select('users.*', DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
+             if ($user->isSuperAdmin()) {
+
+                    $users = User::Consumers()
+                        ->select('users.*',
+                                    'merchants.name as last_visited_store',
+                                    'user_details.last_visit_any_shop as last_visited_date',
+                                    'user_details.last_spent_any_shop as last_spent_amount',
+                                    DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"))
                         ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
                         ->leftJoin('merchants', 'merchants.merchant_id', '=', 'user_details.last_visit_shop_id')
                         ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
@@ -1250,6 +1261,56 @@ class UserAPIController extends ControllerAPI
                         ->with(array('userDetail', 'userDetail.lastVisitedShop'))
                         ->excludeDeleted('users')
                         ->groupBy('users.user_id');
+
+             } else {
+
+                    // get merchant id from the current users
+                    $merchant_id = Merchant::where('user_id', $user->user_id)->first()->merchant_id;
+
+                    if (empty($merchant_id)) {
+                        $errorMessage = 'Merchant id not found';
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    $users = User::Consumers()
+                        ->excludeDeleted('users')
+                        ->select('users.*',
+                                 DB::raw("GROUP_CONCAT(`{$prefix}personal_interests`.`personal_interest_value` SEPARATOR ', ') as personal_interest_list"),
+                                 DB::raw("(SELECT m.name
+                                        FROM {$prefix}activities at
+                                        LEFT JOIN {$prefix}merchants m on m.merchant_id=at.location_id
+                                        WHERE
+                                            at.user_id={$prefix}users.user_id AND
+                                            at.activity_name='login_ok' AND
+                                            at.group = 'mobile-ci' AND
+                                            m.parent_id = '{$merchant_id}'
+                                        ORDER BY at.created_at DESC LIMIT 1) as last_visited_store"),
+                                 DB::raw("(SELECT at.created_at
+                                        FROM {$prefix}activities at
+                                        LEFT JOIN {$prefix}merchants m2 on m2.merchant_id=at.location_id
+                                        WHERE
+                                            at.user_id={$prefix}users.user_id AND
+                                            at.activity_name='login_ok' AND
+                                            at.group = 'mobile-ci' AND
+                                            m2.parent_id = '{$merchant_id}'
+                                        ORDER BY at.created_at DESC LIMIT 1) as last_visited_date"),
+                                 DB::raw("(SELECT tr.total_to_pay
+                                        FROM {$prefix}transactions tr
+                                        WHERE
+                                            tr.customer_id={$prefix}users.user_id AND
+                                            tr.status='paid' AND
+                                            tr.merchant_id='{$merchant_id}'
+                                        GROUP BY tr.created_at
+                                        ORDER BY tr.created_at DESC LIMIT 1) as last_spent_amount")
+                                )
+                        ->join('user_details', 'user_details.user_id', '=', 'users.user_id')
+                        ->leftJoin('user_personal_interest', 'user_personal_interest.user_id', '=', 'users.user_id')
+                        ->leftJoin('personal_interests', 'personal_interests.personal_interest_id', '=', 'user_personal_interest.personal_interest_id')
+                        ->with(array('userDetail', 'userDetail.lastVisitedShop'))
+                        ->groupBy('users.user_id');
+
+             }
+
 
             // Filter by merchant ids
             OrbitInput::get('merchant_id', function($merchantIds) use ($users) {
@@ -1464,9 +1525,9 @@ class UserAPIController extends ControllerAPI
                     'firstname'               => 'users.user_firstname',
                     'gender'                  => 'user_details.gender',
                     'city'                    => 'user_details.city',
-                    'last_visit_shop'         => 'merchants.name',
-                    'last_visit_date'         => 'user_details.last_visit_any_shop',
-                    'last_spent_amount'       => 'user_details.last_spent_any_shop'
+                    'last_visit_shop'         => 'last_visited_store',
+                    'last_visit_date'         => 'last_visited_date',
+                    'last_spent_amount'       => 'last_spent_amount'
                 );
 
                 $sortBy = $sortByMapping[$_sortBy];
@@ -1824,5 +1885,31 @@ class UserAPIController extends ControllerAPI
             return TRUE;
         });
 
+    }
+
+
+    public function getRetailerInfo()
+    {
+        try {
+            $retailer_id = Config::get('orbit.shop.id');
+            $retailer = \Retailer::with('parent')->where('merchant_id', $retailer_id)->first();
+
+            return $retailer;
+        } catch (ACLForbiddenException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (InvalidArgsException $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        } catch (Exception $e) {
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
     }
 }

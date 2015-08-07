@@ -1089,14 +1089,21 @@ class EventAPIController extends ControllerAPI
                 }
             }
 
+            $table_prefix = DB::getTablePrefix();
+
             // Builder object
-            $events = EventModel::excludeDeleted()
+            $events = EventModel::excludeDeleted('events')
                                 ->allowedForViewOnly($user)
-                                ->select('events.*', DB::raw("CASE link_object_type
-                                        WHEN 'widget' THEN 'page'
-                                        ELSE link_object_type
-                                    END AS 'event_redirected_to'
-                                "));
+                                ->select('events.*', 
+                                        DB::raw("CASE link_object_type
+                                            WHEN 'widget' THEN 'page'
+                                            ELSE link_object_type
+                                        END AS 'event_redirected_to'"),
+                                        DB::raw("count(distinct {$table_prefix}merchants.merchant_id) as retailer_count")
+                                        )
+                                ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
+                                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
+                                ->groupBy('events.event_id');
 
             // Filter event by Ids
             OrbitInput::get('event_id', function($eventIds) use ($events)
