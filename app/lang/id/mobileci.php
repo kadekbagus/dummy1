@@ -21,6 +21,7 @@ return array(
         'promotions'    => 'PROMOSI',
         'coupons'       => 'KUPON SAYA',
         'coupon_single' => 'KUPON',
+        'event_single'  => 'EVENT',
         'promotion'     => 'PROMOSI',
         'not_found'     => 'ERROR',
         'recognize_me'  => 'KENALI SAYA'
@@ -203,5 +204,9 @@ return array(
 
     'recognize_me'  => array(
         'recognize_me_message' => 'Agar Anda dapat dikenali, perlihatkan barcode berikut ini kepada kasir.'
+    ),
+
+    'exists' => array(
+        'event'                => 'Event yang Anda cari tidak ditemukan.',
     ),
 );

@@ -21,6 +21,7 @@ return array(
         'promotions'    => 'PROMOTIONS',
         'coupons'       => 'MY COUPONS',
         'coupon_single' => 'COUPON',
+        'event_single'  => 'EVENT',
         'promotion'     => 'PROMOTION',
         'not_found'     => 'ERROR',
         'recognize_me'  => 'RECOGNIZE ME'
@@ -203,5 +204,9 @@ return array(
 
     'recognize_me'  => array(
         'recognize_me_message' => 'To be recognized, show the following barcode to the cashier.'
+    ),
+
+    'exists' => array(
+        'event'                => 'The event you are looking for is not exists.',
     ),
 );

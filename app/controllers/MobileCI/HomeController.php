@@ -195,13 +195,19 @@ class HomeController extends MobileCIAPIController
                 $event_store = \Cookie::get('event');
             }
 
-            $events = EventModel::active()->whereHas(
-                'retailers',
-                function ($q) use ($retailer) {
-                    $q->where('event_retailer.retailer_id', $retailer->merchant_id);
-                }
-            )
-                ->where('merchant_id', $retailer->parent->merchant_id)
+            $events = EventModel::active()
+                ->where(function($q) use ($retailer) {
+                    $q->where(function($q2) use($retailer) {
+                        $q2->where('is_all_retailer', 'Y');
+                        $q2->where('merchant_id', $retailer->parent->merchant_id);
+                    });
+                    $q->orWhere(function($q2) use ($retailer) {
+                        $q2->where('is_all_retailer', 'N');
+                        $q2->whereHas('retailers', function($q3) use($retailer) {
+                            $q3->where('event_retailer.retailer_id', $retailer->merchant_id);
+                        });
+                    });
+                })
                 ->where(
                     function ($q) {
                         $q->where(
@@ -224,7 +230,7 @@ class HomeController extends MobileCIAPIController
             }
 
             $events = $events->orderBy('events.event_id', 'DESC')->first();
-
+            // dd($events);
             $event_families = array();
             if (! empty($events)) {
                 if ($events->link_object_type == 'family') {

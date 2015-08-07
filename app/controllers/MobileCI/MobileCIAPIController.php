@@ -29,6 +29,7 @@ use stdclass;
 use User;
 use Validator;
 use View;
+use EventModel;
 
 class MobileCIAPIController extends ControllerAPI
 {
@@ -535,6 +536,52 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 \App::instance('orbit.validation.issuedcoupons', $coupon);
+
+                return true;
+            }
+        );
+
+        // Check event, it should exists
+        Validator::extend(
+            'orbit.exists.event',
+            function ($attribute, $value, $parameters) {
+                $retailer = $this->getRetailerInfo();
+
+                $event = EventModel::active()
+                ->where('event_id', $value)
+                ->where(function($q) use ($retailer) {
+                    $q->where(function($q2) use($retailer) {
+                        $q2->where('is_all_retailer', 'Y');
+                        $q2->where('merchant_id', $retailer->parent->merchant_id);
+                    });
+                    $q->orWhere(function($q2) use ($retailer) {
+                        $q2->where('is_all_retailer', 'N');
+                        $q2->whereHas('retailers', function($q3) use($retailer) {
+                            $q3->where('event_retailer.retailer_id', $retailer->merchant_id);
+                        });
+                    });
+                })
+                ->where(
+                    function ($q) {
+                        $q->where(
+                            function ($q2) {
+                                $q2->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now());
+                            }
+                        );
+                        $q->orWhere(
+                            function ($q2) {
+                                $q2->where('begin_date', '<=', Carbon::now())->where('is_permanent', 'Y');
+                            }
+                        );
+                    }
+                )
+                ->first();
+
+                if (empty($event)) {
+                    return false;
+                }
+
+                \App::instance('orbit.validation.event', $event);
 
                 return true;
             }
