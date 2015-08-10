@@ -82,7 +82,7 @@ class ApikeyTest extends OrbitTestCase
         $apikey = Apikey::find(static::$apikeyIds[2]);
 
         // id
-        $expect = static::$apikeyIds[2];
+        $expect = (string)static::$apikeyIds[2];
         $return = (string)$apikey->apikey_id;
         $this->assertSame($expect, $return);
 
@@ -97,7 +97,7 @@ class ApikeyTest extends OrbitTestCase
         $this->assertSame($expect, $return);
 
         // user id
-        $expect = static::$userIds[2];
+        $expect = (string)static::$userIds[2];
         $return = (string)$apikey->user_id;
         $this->assertSame($expect, $return);
 
