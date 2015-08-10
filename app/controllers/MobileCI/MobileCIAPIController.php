@@ -113,12 +113,20 @@ class MobileCIAPIController extends ControllerAPI
                 $subfamilies = null;
             }
 
-            $products = Product::with('variants')->whereHas(
-                'retailers',
-                function ($query) use ($retailer) {
-                    $query->where('retailer_id', $retailer->merchant_id);
-                }
-            )->where('merchant_id', $retailer->parent_id)->active()->where(
+            $products = Product::with('variants')
+            ->where(function($q) use ($retailer) {
+                $q->where(function($q2) use($retailer) {
+                    $q2->where('is_all_retailer', 'Y');
+                    $q2->where('merchant_id', $retailer->parent->merchant_id);
+                });
+                $q->orWhere(function($q2) use ($retailer) {
+                    $q2->where('is_all_retailer', 'N');
+                    $q2->whereHas('retailers', function($q3) use($retailer) {
+                        $q3->where('product_retailer.retailer_id', $retailer->merchant_id);
+                    });
+                });
+            })
+            ->active()->where(
                 function ($q) use ($family_level, $family_id, $families) {
                     for ($i = 1; $i < count($families); $i++) {
                         $q->where('category_id' . $i, $families[$i-1]);
@@ -171,7 +179,7 @@ class MobileCIAPIController extends ControllerAPI
 
             $promotions = DB::select(
                 DB::raw(
-                    'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                    'SELECT *, p.promotion_id as promoid, prod.product_id as prodid FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
                 left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
                 left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
@@ -190,15 +198,15 @@ class MobileCIAPIController extends ControllerAPI
                     )
 
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                GROUP BY p.promotion_id
+                
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
             );
-
+            // dd($promotions);
             $couponstocatchs = DB::select(
                 DB::raw(
-                    'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                    'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
                 left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "rule")
                 left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
@@ -216,7 +224,7 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                GROUP BY p.promotion_id
+                
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -224,7 +232,7 @@ class MobileCIAPIController extends ControllerAPI
             
             $coupons = DB::select(
                 DB::raw(
-                    'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+                    'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
                 left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
                 left join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
@@ -243,7 +251,7 @@ class MobileCIAPIController extends ControllerAPI
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
                 WHERE ic.expired_date >= "' . Carbon::now() . '" AND ic.user_id = :userid AND ic.expired_date >= "' . Carbon::now() . '" AND (prr.retailer_id = :retailerid OR (p.is_all_retailer_redeem = "Y" AND p.merchant_id = :merchantid))
-                GROUP BY p.promotion_id'
+                '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id)
             );
@@ -252,7 +260,8 @@ class MobileCIAPIController extends ControllerAPI
             foreach ($promotions as $promotion) {
                 $product_on_promo[] = $promotion->product_id;
             }
-
+            $rr = 0;
+            // $tt = 1;
             foreach ($listOfRec as $product) {
                 $prices = array();
                 foreach ($product->variants as $variant) {
@@ -264,16 +273,18 @@ class MobileCIAPIController extends ControllerAPI
                 $product->min_price = $min_price + 0;
 
                 // set on_promo flag
+                
                 $promo_for_this_product = array_filter(
                     $promotions,
-                    function ($v) use ($product) {
-                        if($v->is_all_product_discount == 'N') {
+                    function ($v) use ($product, $rr) {
+                        if($v->is_all_product_discount === 'N') {
                             return $v->product_id == $product->product_id;
                         } else {
                             return $v;
                         }
                     }
                 );
+                
                 if (count($promo_for_this_product) > 0) {
                     $discounts=0;
                     $temp_price = $min_price;
@@ -882,28 +893,56 @@ class MobileCIAPIController extends ControllerAPI
         $cartdata->cartdetails = $cartdetails;
 
         // get the product based promos
+        // $promo_products = DB::select(
+        //     DB::raw(
+        //         'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
+        //     inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
+        //     inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
+        //     inner join ' . DB::getTablePrefix() . 'products prod on
+        //     (
+        //         (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+        //         OR
+        //         (
+        //             (pr.discount_object_type="family") AND
+        //             ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+        //             ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+        //             ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+        //             ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+        //             ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+        //         )
+        //     )'
+        //     ),
+        //     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
+        // );
+
         $promo_products = DB::select(
             DB::raw(
-                'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
-            inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N" AND p.merchant_id = :merchantid
-            inner join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id AND prr.retailer_id = :retailerid
-            inner join ' . DB::getTablePrefix() . 'products prod on
-            (
-                (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
-                OR
-                (
-                    (pr.discount_object_type="family") AND
-                    ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
-                    ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
-                    ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
-                    ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
-                    ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
-                )
-            )'
+                'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
+                    (
+                        (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
+                        OR
+                        (
+                            (pr.discount_object_type="family") AND
+                            ((pr.discount_object_id1 IS NULL) OR (pr.discount_object_id1=prod.category_id1)) AND
+                            ((pr.discount_object_id2 IS NULL) OR (pr.discount_object_id2=prod.category_id2)) AND
+                            ((pr.discount_object_id3 IS NULL) OR (pr.discount_object_id3=prod.category_id3)) AND
+                            ((pr.discount_object_id4 IS NULL) OR (pr.discount_object_id4=prod.category_id4)) AND
+                            ((pr.discount_object_id5 IS NULL) OR (pr.discount_object_id5=prod.category_id5))
+                        )
+                    )
+
+                WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
+                
+                '
             ),
             array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
         );
-
+        
+        
         // get the used product coupons
         $used_product_coupons = CartCoupon::with(
             array('cartdetail' => function ($q) {
@@ -980,14 +1019,16 @@ class MobileCIAPIController extends ControllerAPI
                 $product_price_wo_tax = $original_price;
 
                 // collect available product based coupon for the item
+
                 $available_product_coupons = DB::select(
                     DB::raw(
-                        'SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                        'SELECT *, p.promotion_id as promoid, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
                         inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
-                        inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                        inner join ' . DB::getTablePrefix() . 'products prod on
+                        left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                        left join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                        left join ' . DB::getTablePrefix() . 'products prod on
                         (
-                            (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                            (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
                             OR
                             (
                                 (pr.discount_object_type="family") AND
@@ -999,13 +1040,28 @@ class MobileCIAPIController extends ControllerAPI
                             )
                         )
                         inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                        WHERE
-                            ic.expired_date >= NOW()
-                            AND p.merchant_id = :merchantid
-                            AND prr.retailer_id = :retailerid
-                            AND ic.user_id = :userid
-                            AND prod.product_id = :productid
-
+                        WHERE ic.expired_date >= "' . Carbon::now() . '" 
+                        AND ic.user_id = :userid 
+                        AND ic.expired_date >= "' . Carbon::now() . '" 
+                        AND 
+                        (
+                            prr.retailer_id = :retailerid 
+                            OR 
+                            (
+                                p.is_all_retailer_redeem = "Y" 
+                                AND p.merchant_id = :merchantid
+                            )
+                        )
+                        AND 
+                        (
+                            (
+                                prod.product_id = :productid 
+                                AND pr.is_all_product_discount = "N"
+                            ) 
+                            OR 
+                            pr.is_all_product_discount = "Y"
+                        )
+                        
                         '
                     ),
                     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id)
@@ -1087,7 +1143,11 @@ class MobileCIAPIController extends ControllerAPI
                 $promo_filters = array_filter(
                     $promo_products,
                     function ($v) use ($cartdetail) {
-                        return $v->product_id == $cartdetail->product_id;
+                        if($v->is_all_product_discount == 'N') {
+                            return $v->product_id == $cartdetail->product_id;
+                        } else {
+                            return $v;
+                        }
                     }
                 );
 
@@ -1503,12 +1563,13 @@ class MobileCIAPIController extends ControllerAPI
 
                 $available_product_coupons = DB::select(
                     DB::raw(
-                        'SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                        inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active"  and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
-                        inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                        inner join ' . DB::getTablePrefix() . 'products prod on
+                        'SELECT *, p.promotion_id as promoid, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
+                        inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
+                        left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                        left join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                        left join ' . DB::getTablePrefix() . 'products prod on
                         (
-                            (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                            (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
                             OR
                             (
                                 (pr.discount_object_type="family") AND
@@ -1520,13 +1581,28 @@ class MobileCIAPIController extends ControllerAPI
                             )
                         )
                         inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                        WHERE
-                            ic.expired_date >= NOW()
-                            AND p.merchant_id = :merchantid
-                            AND prr.retailer_id = :retailerid
-                            AND ic.user_id = :userid
-                            AND prod.product_id = :productid
-
+                        WHERE ic.expired_date >= "' . Carbon::now() . '" 
+                        AND ic.user_id = :userid 
+                        AND ic.expired_date >= "' . Carbon::now() . '" 
+                        AND 
+                        (
+                            prr.retailer_id = :retailerid 
+                            OR 
+                            (
+                                p.is_all_retailer_redeem = "Y" 
+                                AND p.merchant_id = :merchantid
+                            )
+                        )
+                        AND 
+                        (
+                            (
+                                prod.product_id = :productid 
+                                AND pr.is_all_product_discount = "N"
+                            ) 
+                            OR 
+                            pr.is_all_product_discount = "Y"
+                        )
+                        
                         '
                     ),
                     array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $cartdetail->product_id)

@@ -926,7 +926,20 @@ class TransactionController extends MobileCIAPIController
                 $cart->save();
             }
 
-            $product = Product::with('tax1', 'tax2')->where('product_id', $product_id)->first();
+            $product = Product::with('tax1', 'tax2')
+            ->where(function($q) use ($retailer) {
+                $q->where(function($q2) use($retailer) {
+                    $q2->where('is_all_retailer', 'Y');
+                    $q2->where('merchant_id', $retailer->parent->merchant_id);
+                });
+                $q->orWhere(function($q2) use ($retailer) {
+                    $q2->where('is_all_retailer', 'N');
+                    $q2->whereHas('retailers', function($q3) use($retailer) {
+                        $q3->where('product_retailer.retailer_id', $retailer->merchant_id);
+                    });
+                });
+            })
+            ->where('product_id', $product_id)->first();
 
             $cart->total_item = $cart->total_item + 1;
 
