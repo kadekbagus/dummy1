@@ -1582,6 +1582,18 @@ class RetailerAPIController extends ControllerAPI
                 });
             });
 
+            // Filter retailer by name
+            OrbitInput::get('name', function($name) use ($retailers)
+            {
+                $retailers->whereIn('merchants.name', $name);
+            });
+
+            // Filter retailer by matching name pattern
+            OrbitInput::get('name_like', function($name) use ($retailers)
+            {
+                $retailers->where('merchants.name', 'like', "%$name%");
+            });
+
 
             // Add new relation based on request
             OrbitInput::get('with', function($with) use ($retailers) {
