@@ -1082,15 +1082,6 @@ class RetailerAPIController extends ControllerAPI
             });
 
             // Filter retailer by Ids
-            OrbitInput::get('product_id', function($product_id) use ($retailers)
-            {
-                OrbitInput::get('merchant_id2', function($merchant_id2) use ($retailers, $product_id)
-                {
-                    $retailers->RetailerFromProduct($merchant_id2, $product_id);
-                });
-            });
-
-            // Filter retailer by Ids
             OrbitInput::get('user_id', function($userIds) use ($retailers)
             {
                 $retailers->whereIn('merchants.user_id', $userIds);
@@ -1490,9 +1481,25 @@ class RetailerAPIController extends ControllerAPI
 
 
 
-
+    /**
+     * GET - Search Retailer By Product
+     *
+     * @author kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `product_id`                    (optional)
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
+     * @return Illuminate\Support\Facades\Response
+     */
      public function getSearchRetailerByProduct()
-    {
+     {
         try {
             $httpCode = 200;
 
@@ -1566,7 +1573,8 @@ class RetailerAPIController extends ControllerAPI
                                          'merchants.name as retailer_name',
                                          'merchants.parent_id as merchant_id',
                                          'products.product_id',
-                                         'products.product_name')
+                                         'products.product_name',
+                                         'products.is_all_retailer')
                                 ->leftJoin('products', 'products.merchant_id', '=', 'merchants.parent_id')                               
                                 ->leftJoin('product_retailer', function($join) {
                                     $join->on('products.product_id', '=', 'product_retailer.product_id');
