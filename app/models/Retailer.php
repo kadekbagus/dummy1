@@ -161,4 +161,23 @@ class Retailer extends Eloquent
                        ->whereIn('merchants.parent_id', $merchantIds)
                        ->groupBy('merchants.merchant_id');
     }
+
+
+    public function scopeRetailerFromProduct($builder, $merchant_id, $product_id)
+    {
+        $builder->where('merchants.parent_id', $merchant_id)
+            ->where('products.product_id', $product_id)
+            ->where(function($q) {
+                $q->where('products.is_all_retailer', 'Y')
+                  ->orWhere(function($q) {
+                        $q->where(function($q) {
+                              $q->where('products.is_all_retailer', '!=', 'Y')
+                                ->orWhereNull('products.is_all_retailer');
+                          })
+                          ->whereNotNull('product_retailer.retailer_id');
+                  });
+            });
+
+        return $builder;
+    }
 }

@@ -27,3 +27,8 @@ Route::get('/app/v1/retailer/search', 'IntermediateAuthController@Retailer_getSe
  * Retailer city list
  */
 Route::get('/app/v1/retailer/city', 'IntermediateAuthController@Retailer_getCityList');
+
+/**
+ * List and/or Search retailer
+ */
+Route::get('/app/v1/retailer/search-by-product', 'IntermediateAuthController@Retailer_getSearchRetailerByProduct');
