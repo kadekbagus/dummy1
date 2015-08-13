@@ -37,3 +37,8 @@ Route::get('/app/v1/retailer/search-by-product', 'IntermediateAuthController@Ret
  * List and/or Search retailer by promotion
  */
 Route::get('/app/v1/retailer/search-by-promotion', 'IntermediateAuthController@Retailer_getSearchRetailerByPromotion');
+
+/**
+ * List and/or Search retailer by event
+ */
+Route::get('/app/v1/retailer/search-by-event', 'IntermediateAuthController@Retailer_getSearchRetailerByEvent');

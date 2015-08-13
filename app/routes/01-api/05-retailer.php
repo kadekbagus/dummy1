@@ -59,3 +59,12 @@ Route::get('/api/v1/retailer/search-by-promotion', function()
 {
     return RetailerAPIController::create()->getSearchRetailerByPromotion();
 });
+
+
+/**
+ * Retailer by event
+ */
+Route::get('/api/v1/retailer/search-by-event', function()
+{
+    return RetailerAPIController::create()->getSearchRetailerByEvent();
+});
