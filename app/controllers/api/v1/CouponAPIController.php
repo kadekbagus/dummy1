@@ -1595,6 +1595,7 @@ class CouponAPIController extends ControllerAPI
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
                 ->excludeDeleted('promotions')
+                ->excludeDeleted('merchants')
                 ->allowedForViewOnly($user)
                 ->select(DB::raw($table_prefix . "promotions.*,
                             CASE {$table_prefix}promotion_rules.rule_type

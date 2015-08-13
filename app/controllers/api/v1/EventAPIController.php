@@ -1093,6 +1093,7 @@ class EventAPIController extends ControllerAPI
 
             // Builder object
             $events = EventModel::excludeDeleted('events')
+                                ->excludeDeleted('merchants')
                                 ->allowedForViewOnly($user)
                                 ->select('events.*', 
                                         DB::raw("CASE link_object_type

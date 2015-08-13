@@ -1238,6 +1238,7 @@ class PromotionAPIController extends ControllerAPI
             // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
                 ->excludeDeleted('promotions')
+                ->excludeDeleted('merchants')
                 ->select(DB::raw($table_prefix . "promotions.*,
                             CASE {$table_prefix}promotion_rules.rule_type
                                 WHEN 'cart_discount_by_percentage' THEN 'percentage'
