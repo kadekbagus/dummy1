@@ -153,15 +153,9 @@ class CouponController extends MobileCIAPIController
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
-            // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
-            if ($maxRecord <= 0) {
-                $maxRecord = 300;
-            }
-
             $retailer = $this->getRetailerInfo();
 
-            $products = Product::active()
+            $products = Product::from(DB::raw(DB::getTablePrefix() . 'products use index(primary)'))->active()
             ->where(function($q) use ($retailer) {
                 $q->where(function($q2) use($retailer) {
                     $q2->where('is_all_retailer', 'Y');
@@ -206,6 +200,56 @@ class CouponController extends MobileCIAPIController
                 }
             );
             $products->orderBy($sortBy, $sortMode);
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.per_page');
+            if ($perPage <= 0) {
+                $perPage = 20;
+            }
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $products->take($take);
+
+            $skip = 0;
+            OrbitInput::get(
+                'skip',
+                function ($_skip) use (&$skip, $products) {
+                    if ($_skip < 0) {
+                        $_skip = 0;
+                    }
+
+                    $skip = $_skip;
+                }
+            );
+            $products->skip($skip);
+
+            $next_skip = $skip + $take;
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->get();
+
+            $no_more = FALSE;
+            if($next_skip >= $totalRec) {
+                $next_skip = $totalRec;
+                $no_more = TRUE;
+            }
 
             $cartitems = $this->getCartForToolbar();
 
@@ -334,9 +378,6 @@ class CouponController extends MobileCIAPIController
             } else {
                 $products->where('product_id', '-1');
             }
-
-            $totalRec = $_products->count();
-            $listOfRec = $products->get();
 
             foreach ($listOfRec as $product) {
                 $prices = array();
@@ -475,7 +516,7 @@ class CouponController extends MobileCIAPIController
                 ->responseOK()
                 ->save();
 
-            return View::make('mobile-ci.coupons', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_coupon, 'coupons' => $coupons));
+            return View::make('mobile-ci.coupons', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_coupon, 'coupons' => $coupons, 'no_more' => $no_more, 'next_skip' => $next_skip));
 
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: Coupon Detail, Issued Coupon Id: %s', $promoid);

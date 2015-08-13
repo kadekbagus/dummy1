@@ -184,6 +184,17 @@
                         </div>
                     </div>
                 @endforeach
+
+                @if(! $no_more)
+                <div class="catalogue-img more">
+                    <div class="row catalogue-top">
+                        <div class="col-xs-12">
+                            <button class="btn btn-info btn-block load-more" data-more-family-skip="{{ $next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
             @endif
         @endif
     @else
@@ -497,6 +508,7 @@
                 }
             }
         });
+
     });
 </script>
 @stop

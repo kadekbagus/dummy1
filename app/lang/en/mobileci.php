@@ -99,6 +99,7 @@ return array(
         'from'              => 'From',
         'to'                => 'To',
         'in_store_location' => 'In Store Location',
+        'load_more'         => 'Load more...',
     ),
 
     'product_detail'         => array(

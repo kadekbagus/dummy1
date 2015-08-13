@@ -113,7 +113,7 @@ class MobileCIAPIController extends ControllerAPI
                 $subfamilies = null;
             }
 
-            $products = Product::with('variants')
+            $products = Product::from(DB::raw(DB::getTablePrefix() . 'products use index(primary)'))->with('variants')
             ->where(function($q) use ($retailer) {
                 $q->where(function($q2) use($retailer) {
                     $q2->where('is_all_retailer', 'Y');
@@ -173,9 +173,60 @@ class MobileCIAPIController extends ControllerAPI
                 }
             );
             $products->orderBy($sortBy, $sortMode);
+            
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.per_page');
+            if ($perPage <= 0) {
+                $perPage = 20;
+            }
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+
+            $skip = 0;
+            OrbitInput::get(
+                'skip',
+                function ($_skip) use (&$skip) {
+                    $skip = $_skip;
+                }
+            );
+
+            $next_skip = $skip + $take;
 
             $totalRec = $_products->count();
-            $listOfRec = $products->get();
+            $listOfRec = $products->take($take)->skip($skip)->get();
+
+            $no_more = FALSE;
+            if($next_skip >= $totalRec) {
+                $next_skip = $totalRec;
+                $no_more = TRUE;
+            }
+
+            $load_more = 'no';
+            OrbitInput::get(
+                'load_more',
+                function ($_loadmore) use (&$load_more) {
+                    if ($_loadmore == 'yes') {
+                        $load_more = $_loadmore;
+                    }
+                }
+            );
 
             $promotions = DB::select(
                 DB::raw(
@@ -381,6 +432,11 @@ class MobileCIAPIController extends ControllerAPI
             $data->promotions = $promotions;
             $data->promo_products = $product_on_promo;
             $data->couponstocatchs = $couponstocatchs;
+            $data->family_id = $family_id;
+            $data->family_level = $family_level;
+            $data->no_more = $no_more;
+            $data->load_more = $load_more;
+            $data->next_skip = $next_skip;
 
             return $data;
 
@@ -965,12 +1021,26 @@ class MobileCIAPIController extends ControllerAPI
         )->get();
 
         // get the cart based promos
-        $promo_carts = Promotion::with('promotionrule')->active()->where('is_coupon', 'N')->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas(
-            'retailers',
-            function ($q) use ($retailer) {
-                $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-            }
-        )
+        $promo_carts = Promotion::with('promotionrule')->active()->where('is_coupon', 'N')->where('promotion_type', 'cart')
+        // ->where('merchant_id', $retailer->parent_id)
+        // ->whereHas(
+        //     'retailers',
+        //     function ($q) use ($retailer) {
+        //         $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+        //     }
+        // )
+        ->where(function($q) use ($retailer) {
+            $q->where(function($q2) use($retailer) {
+                $q2->where('is_all_retailer', 'Y');
+                $q2->where('merchant_id', $retailer->parent->merchant_id);
+            });
+            $q->orWhere(function($q2) use ($retailer) {
+                $q2->where('is_all_retailer', 'N');
+                $q2->whereHas('retailers', function($q3) use($retailer) {
+                    $q3->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                });
+            });
+        })
         ->where(
             function ($q) {
                 $q->where('begin_date', '<=', Carbon::now())->where('end_date', '>=', Carbon::now())->orWhere(
@@ -1434,12 +1504,26 @@ class MobileCIAPIController extends ControllerAPI
                 function ($q) use ($subtotal) {
                     $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal);
                 }
-            )->active()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas(
-                'issueretailers',
-                function ($q) use ($retailer) {
-                        $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                }
-            )
+            )->active()->where('promotion_type', 'cart')
+            // ->where('merchant_id', $retailer->parent_id)
+            // ->whereHas(
+            //     'issueretailers',
+            //     function ($q) use ($retailer) {
+            //             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+            //     }
+            // )
+            ->where(function($q) use ($retailer) {
+                $q->where(function($q2) use($retailer) {
+                    $q2->where('is_all_retailer', 'Y');
+                    $q2->where('merchant_id', $retailer->parent->merchant_id);
+                });
+                $q->orWhere(function($q2) use ($retailer) {
+                    $q2->where('is_all_retailer', 'N');
+                    $q2->whereHas('issueretailers', function($q3) use($retailer) {
+                        $q3->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                    });
+                });
+            })
             ->whereHas(
                 'issuedcoupons',
                 function ($q) use ($user) {
@@ -1947,12 +2031,26 @@ class MobileCIAPIController extends ControllerAPI
                 function ($q) use ($subtotal_before_cart_promo_without_tax) {
                     $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.discount_object_type', '=', 'cash_rebate')->where('promotion_rules.coupon_redeem_rule_value', '<=', $subtotal_before_cart_promo_without_tax);
                 }
-            )->active()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas(
-                'issueretailers',
-                function ($q) use ($retailer) {
-                        $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                }
-            )
+            )->active()->where('promotion_type', 'cart')
+            // ->where('merchant_id', $retailer->parent_id)
+            // ->whereHas(
+            //     'issueretailers',
+            //     function ($q) use ($retailer) {
+            //             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+            //     }
+            // )
+            ->where(function($q) use ($retailer) {
+                $q->where(function($q2) use($retailer) {
+                    $q2->where('is_all_retailer', 'Y');
+                    $q2->where('merchant_id', $retailer->parent->merchant_id);
+                });
+                $q->orWhere(function($q2) use ($retailer) {
+                    $q2->where('is_all_retailer', 'N');
+                    $q2->whereHas('issueretailers', function($q3) use($retailer) {
+                        $q3->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                    });
+                });
+            })
             ->whereHas(
                 'issuedcoupons',
                 function ($q) use ($user) {

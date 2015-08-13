@@ -99,6 +99,7 @@ return array(
         'from'              => 'Dari',
         'to'                => 'Hingga',
         'in_store_location' => 'Lokasi Dalam Toko',
+        'load_more'         => 'Lihat lebih banyak...',
     ),
 
     'product_detail'         => array(

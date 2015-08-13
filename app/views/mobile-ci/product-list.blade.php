@@ -98,6 +98,17 @@
     </div>
 @endforeach
 
+@if(!$data->no_more)
+<div class="catalogue-img more">
+    <div class="row catalogue-top">
+        <div class="col-xs-12">
+            <button class="btn btn-info btn-block load-more" data-more-family-id="{{ $data->family_id }}" data-more-family-level="{{ $data->family_level }}" data-more-family-skip="{{ $next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($load_more == 'no')
 <ul>
 @if(! is_null($subfamilies))
     @foreach($subfamilies as $subfamily)
@@ -107,3 +118,4 @@
     @endforeach
 @endif
 </ul>
+@endif

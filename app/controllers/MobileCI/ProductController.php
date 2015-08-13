@@ -349,7 +349,7 @@ class ProductController extends MobileCIAPIController
 
             $retailer = $this->getRetailerInfo();
 
-            $products = Product::active()
+            $products = Product::from(DB::raw(DB::getTablePrefix() . 'products use index(primary)'))->active()
             ->where(function($q) use ($retailer) {
                 $q->where(function($q2) use($retailer) {
                     $q2->where('is_all_retailer', 'Y');
@@ -395,32 +395,6 @@ class ProductController extends MobileCIAPIController
 
             $_products = clone $products;
 
-            // Get the take args
-            $take = $maxRecord;
-            OrbitInput::get(
-                'take',
-                function ($_take) use (&$take, $maxRecord) {
-                    if ($_take > $maxRecord) {
-                        $_take = $maxRecord;
-                    }
-                    $take = $_take;
-                }
-            );
-            $products->take($take);
-
-            $skip = 0;
-            OrbitInput::get(
-                'skip',
-                function ($_skip) use (&$skip, $products) {
-                    if ($_skip < 0) {
-                        $_skip = 0;
-                    }
-
-                    $skip = $_skip;
-                }
-            );
-            $products->skip($skip);
-
             // Default sort by
             $sortBy = 'products.product_name';
             // Default sort mode
@@ -450,6 +424,64 @@ class ProductController extends MobileCIAPIController
                 }
             );
             $products->orderBy($sortBy, $sortMode);
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.per_page');
+            if ($perPage <= 0) {
+                $perPage = 20;
+            }
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+
+            $skip = 0;
+            OrbitInput::get(
+                'skip',
+                function ($_skip) use (&$skip, $products) {
+                    if ($_skip < 0) {
+                        $_skip = 0;
+                    }
+
+                    $skip = $_skip;
+                }
+            );
+
+            $next_skip = $skip + $take;
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->take($take)->skip($skip)->get();
+
+            $no_more = FALSE;
+            if($next_skip >= $totalRec) {
+                $next_skip = $totalRec;
+                $no_more = TRUE;
+            }
+
+            // $load_more = 'no';
+            // OrbitInput::get(
+            //     'load_more',
+            //     function ($_loadmore) use (&$load_more) {
+            //         if ($_loadmore == 'yes') {
+            //             $load_more = $_loadmore;
+            //         }
+            //     }
+            // );
 
             $cartitems = $this->getCartForToolbar();
 
@@ -569,9 +601,6 @@ class ProductController extends MobileCIAPIController
                     }
                 }
             );
-
-            $totalRec = $_products->count();
-            $listOfRec = $products->get();
 
             foreach ($listOfRec as $product) {
                 $prices = array();
@@ -720,7 +749,7 @@ class ProductController extends MobileCIAPIController
                     ->save();
             }
 
-            return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo));
+            return View::make('mobile-ci.search', array('page_title'=>$pagetitle, 'retailer' => $retailer, 'data' => $data, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'no_more' => $no_more, 'next_skip' => $next_skip));
 
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view: Search Page, keyword: %s', $keyword);
@@ -762,9 +791,18 @@ class ProductController extends MobileCIAPIController
             $this->registerCustomValidation();
 
             $sort_by = OrbitInput::get('sort_by');
-            $family_id = OrbitInput::get('family_id');
-            $family_level = OrbitInput::get('family_level');
-            $families = OrbitInput::get('families');
+            $family_id = 0;
+            OrbitInput::get('family_id', function ($_family_id) use (&$family_id) {
+                $family_id = $_family_id;
+            });
+            $family_level = 0;
+            OrbitInput::get('family_level', function ($_family_level) use (&$family_level) {
+                $family_level = $_family_level;
+            });
+            $families = array();
+            OrbitInput::get('families', function ($_families) use (&$families) {
+                $families = $_families;
+            });
 
             if (count($families) == 1) {
                 \Session::put('f1', $family_id);
@@ -791,11 +829,11 @@ class ProductController extends MobileCIAPIController
             $validator = Validator::make(
                 array(
                     'sort_by' => $sort_by,
-                    'family_id' => $family_id,
+                    // 'family_id' => $family_id,
                 ),
                 array(
                     'sort_by' => 'in:product_name,price',
-                    'family_id' => 'orbit.exists.category',
+                    // 'family_id' => 'orbit.exists.category',
                 ),
                 array(
                     'in' => Lang::get('validation.orbit.empty.user_sortby'),
@@ -814,40 +852,49 @@ class ProductController extends MobileCIAPIController
                 $maxRecord = 20;
             }
 
-            $retailer = $this->getRetailerInfo();
-            $nextfamily = $family_level + 1;
-
-            $subfamilies = Category::active();
-
-            if ($nextfamily < 6) {
-                $subfamilies = Category::where('merchant_id', $retailer->parent_id)->whereHas(
-                    'product' . $nextfamily,
-                    function ($q) use ($family_id, $family_level, $families, $retailer) {
-                        $nextfamily = $family_level + 1;
-                        for ($i = 1; $i <= count($families); $i++) {
-                            $q->where('products.category_id' . $i, $families[$i-1]);
-                            $q->whereHas(
-                                'retailers',
-                                function ($q2) use ($retailer) {
-                                    $q2->where('product_retailer.retailer_id', $retailer->merchant_id);
-                                }
-                            );
-                        }
-
-                        $q->where('products.category_id' . $family_level, $family_id)
-                            ->where(
-                                function ($query) use ($nextfamily) {
-                                    $query->whereNotNull('products.category_id' . $nextfamily)->orWhere('products.category_id' . $nextfamily, '<>', 0);
-                                }
-                        )
-                            ->where('products.status', 'active');
-                    }
-                )->get();
-            } else {
-                $subfamilies = null;
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.per_page');
+            if ($perPage <= 0) {
+                $perPage = 20;
             }
 
-            $products = Product::with('variants')
+            $retailer = $this->getRetailerInfo();
+
+            $nextfamily = $family_level + 1;
+
+            $subfamilies = null;
+
+            if(! empty($families)) {
+                if ($nextfamily < 6) {
+                    $subfamilies = Category::active()
+                        ->where('merchant_id', $retailer->parent_id)->whereHas(
+                        'product' . $nextfamily,
+                        function ($q) use ($family_id, $family_level, $families, $retailer) {
+                            $nextfamily = $family_level + 1;
+                            for ($i = 1; $i <= count($families); $i++) {
+                                $q->where('products.category_id' . $i, $families[$i-1]);
+                                $q->whereHas(
+                                    'retailers',
+                                    function ($q2) use ($retailer) {
+                                        $q2->where('product_retailer.retailer_id', $retailer->merchant_id);
+                                    }
+                                );
+                            }
+
+                            $q->where('products.category_id' . $family_level, $family_id)
+                                ->where(
+                                    function ($query) use ($nextfamily) {
+                                        $query->whereNotNull('products.category_id' . $nextfamily)->orWhere('products.category_id' . $nextfamily, '<>', 0);
+                                    }
+                            )
+                                ->where('products.status', 'active');
+                        }
+                    )->get();
+                }
+            }
+
+            $products = Product::from(DB::raw(DB::getTablePrefix() . 'products use index(primary)'))->with('variants')
+            // $products = Product::with('variants')
             ->where(function($q) use ($retailer) {
                 $q->where(function($q2) use($retailer) {
                     $q2->where('is_all_retailer', 'Y');
@@ -860,16 +907,50 @@ class ProductController extends MobileCIAPIController
                     });
                 });
             })
-            ->active()->where(
-                function ($q) use ($family_level, $family_id, $families) {
-                    for ($i = 1; $i < count($families); $i++) {
-                        $q->where('category_id' . $i, $families[$i-1]);
+            ->active();
+
+            if(! empty($families)) {
+                $products->where(
+                    function ($q) use ($family_level, $family_id, $families) {
+                        for ($i = 1; $i < count($families); $i++) {
+                            $q->where('category_id' . $i, $families[$i-1]);
+                        }
+                        $q->where('category_id' . $family_level, $family_id);
+                        for ($i = $family_level + 1; $i <= 5; $i++) {
+                            $q->where(
+                                function ($q2) use ($i) {
+                                    $q2->whereNull('category_id' . $i)->orWhere('category_id' . $i, 0);
+                                }
+                            );
+                        }
                     }
-                    $q->where('category_id' . $family_level, $family_id);
-                    for ($i = $family_level + 1; $i <= 5; $i++) {
-                        $q->where(
-                            function ($q2) use ($i) {
-                                $q2->whereNull('category_id' . $i)->orWhere('category_id' . $i, 0);
+                );
+            }
+
+            // Filter product by name pattern
+            OrbitInput::get(
+                'keyword',
+                function ($name) use ($products) {
+                    $products->where(
+                        function ($q) use ($name) {
+                            $q->where('products.product_name', 'like', "%$name%")
+                                ->orWhere('products.upc_code', 'like', "%$name%")
+                                ->orWhere('products.short_description', 'like', "%$name%")
+                                ->orWhere('products.long_description', 'like', "%$name%")
+                                ->orWhere('products.short_description', 'like', "%$name%");
+                        }
+                    );
+                }
+            );
+
+            // Filter by new product
+            OrbitInput::get(
+                'new',
+                function ($name) use ($products) {
+                    if (! empty($name)) {
+                        $products->where(
+                            function ($q) use ($name) {
+                                $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
                             }
                         );
                     }
@@ -908,9 +989,53 @@ class ProductController extends MobileCIAPIController
             );
             $products->orderBy($sortBy, $sortMode);
 
-            $totalRec = $_products->count();
-            $listOfRec = $products->get();
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
 
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+
+            $skip = 0;
+            OrbitInput::get(
+                'skip',
+                function ($_skip) use (&$skip, $products) {
+                    if ($_skip < 0) {
+                        $_skip = 0;
+                    }
+
+                    $skip = $_skip;
+                }
+            );
+
+            $next_skip = $skip + $take;
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->take($take)->skip($skip)->get();
+
+            $no_more = FALSE;
+            if($next_skip >= $totalRec) {
+                $next_skip = $totalRec;
+                $no_more = TRUE;
+            }
+
+            $load_more = 'no';
+            OrbitInput::get(
+                'load_more',
+                function ($_loadmore) use (&$load_more) {
+                    if ($_loadmore == 'yes') {
+                        $load_more = $_loadmore;
+                    }
+                }
+            );
+
+            // dd($listOfRec);
             $promotions = DB::select(
                 DB::raw(
                     'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
@@ -1111,22 +1236,27 @@ class ProductController extends MobileCIAPIController
             $data->total_records = $totalRec;
             $data->returned_records = count($listOfRec);
             $data->records = $listOfRec;
+            $data->family_id = $family_id;
+            $data->family_level = $family_level;
+            $data->no_more = $no_more;
 
             $cartitems = $this->getCartForToolbar();
 
             $activityfamily = Category::where('category_id', $family_id)->first();
 
-            $activityCategoryNotes = sprintf('Category viewed: %s', $activityfamily->category_name);
-            $activityCategory->setUser($user)
-                ->setActivityName('view_catalogue')
-                ->setActivityNameLong('View Catalogue ' . $activityfamily->category_name)
-                ->setObject($activityfamily)
-                ->setModuleName('Catalogue')
-                ->setNotes($activityCategoryNotes)
-                ->responseOK()
-                ->save();
+            if(! empty($families)) {
+                $activityCategoryNotes = sprintf('Category viewed: %s', $activityfamily->category_name);
+                $activityCategory->setUser($user)
+                    ->setActivityName('view_catalogue')
+                    ->setActivityNameLong('View Catalogue ' . $activityfamily->category_name)
+                    ->setObject($activityfamily)
+                    ->setModuleName('Catalogue')
+                    ->setNotes($activityCategoryNotes)
+                    ->responseOK()
+                    ->save();
+            }
 
-            return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs));
+            return View::make('mobile-ci.product-list', array('retailer' => $retailer, 'data' => $data, 'subfamilies' => $subfamilies, 'cartitems' => $cartitems, 'promotions' => $promotions, 'promo_products' => $product_on_promo, 'couponstocatchs' => $couponstocatchs, 'load_more' => $load_more, 'next_skip' => $next_skip));
 
         } catch (Exception $e) {
             $activityCategoryNotes = sprintf('Category viewed: %s', $family_id);
