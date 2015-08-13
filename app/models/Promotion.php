@@ -52,7 +52,7 @@ class Promotion extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
+        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id')->where('merchants.status','!=','deleted');
     }
 
     public function scopeProductPromotionType($query)

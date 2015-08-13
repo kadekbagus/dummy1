@@ -74,7 +74,7 @@ class EventModel extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'event_retailer', 'event_id', 'retailer_id');
+        return $this->belongsToMany('Retailer', 'event_retailer', 'event_id', 'retailer_id')->where('merchants.status','!=','deleted');
     }
 
     public function products()

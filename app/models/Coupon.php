@@ -50,7 +50,7 @@ class Coupon extends Eloquent
 
     public function issueretailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
+        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id')->where('merchants.status','!=','deleted');
     }
 
     public function redeemretailers()
