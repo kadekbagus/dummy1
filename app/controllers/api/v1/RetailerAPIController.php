@@ -1761,7 +1761,7 @@ class RetailerAPIController extends ControllerAPI
 
 
     /**
-     * GET - Search Retailer By Promotion
+     * GET - Search Retailer By Promotion and Coupon
      *
      * @author kadek <kadek@dominopos.com>
      *
@@ -1773,6 +1773,7 @@ class RetailerAPIController extends ControllerAPI
      * @param integer           `skip`                          (optional) - limit offset
      * @param integer           `merchant_id`                   (optional)
      * @param integer           `promotion_id`                  (optional)
+     * @param integer           `coupon_id`                     (optional)
      * @param string|array      `with`                          (optional) - Relation which need to be included
      * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
      * @return Illuminate\Support\Facades\Response
@@ -1782,25 +1783,25 @@ class RetailerAPIController extends ControllerAPI
         try {
             $httpCode = 200;
 
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.before.auth', array($this));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.auth', array($this));
 
             // Require authentication
             $this->checkAuth();
 
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.after.auth', array($this));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
             // perform this action
             $user = $this->api->user;
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.before.authz', array($this, $user));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.authz', array($this, $user));
 
             if (! ACL::create($user)->isAllowed('view_retailer')) {
-                Event::fire('orbit.retailer.getsearchretailerbyproduct.authz.notallowed', array($this, $user));
+                Event::fire('orbit.retailer.getsearchretailerbypromotion.authz.notallowed', array($this, $user));
                 $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
                 $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
                 ACL::throwAccessForbidden($message);
             }
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.after.authz', array($this, $user));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
 
@@ -1817,14 +1818,14 @@ class RetailerAPIController extends ControllerAPI
                 )
             );
 
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.before.validation', array($this, $validator));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.validation', array($this, $validator));
 
             // Run the validation
             if ($validator->fails()) {
                 $errorMessage = $validator->messages()->first();
                 OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.after.validation', array($this, $validator));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.validation', array($this, $validator));
 
             // Get the maximum record
             $maxRecord = (int) Config::get('orbit.pagination.retailer.max_record');
@@ -1860,12 +1861,21 @@ class RetailerAPIController extends ControllerAPI
                                       $join->on('merchants.merchant_id', '=', 'promotion_retailer.retailer_id');
                                 });
 
-            // Filter retailer by product id
+            // Filter retailer by promotion id
             OrbitInput::get('promotion_id', function($promotion_id) use ($retailers)
             {
                 OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $promotion_id)
                 {
                     $retailers->RetailerFromPromotion($merchant_id, $promotion_id);
+                });
+            });
+
+            // Filter retailer by coupon id
+            OrbitInput::get('coupon_id', function($coupon_id) use ($retailers)
+            {
+                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $coupon_id)
+                {
+                    $retailers->RetailerFromCoupon($merchant_id, $coupon_id);
                 });
             });
 
@@ -1990,7 +2000,7 @@ class RetailerAPIController extends ControllerAPI
 
             $this->response->data = $data;
         } catch (ACLForbiddenException $e) {
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.access.forbidden', array($this, $e));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.access.forbidden', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -1998,7 +2008,7 @@ class RetailerAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 403;
         } catch (InvalidArgsException $e) {
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.invalid.arguments', array($this, $e));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.invalid.arguments', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -2010,7 +2020,7 @@ class RetailerAPIController extends ControllerAPI
             $this->response->data = $result;
             $httpCode = 403;
         } catch (QueryException $e) {
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.query.error', array($this, $e));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.query.error', array($this, $e));
 
             $this->response->code = $e->getCode();
             $this->response->status = 'error';
@@ -2024,7 +2034,7 @@ class RetailerAPIController extends ControllerAPI
             $this->response->data = null;
             $httpCode = 500;
         } catch (Exception $e) {
-            Event::fire('orbit.retailer.getsearchretailerbyproduct.general.exception', array($this, $e));
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.general.exception', array($this, $e));
 
             $this->response->code = $this->getNonZeroCode($e->getCode());
             $this->response->status = 'error';
@@ -2033,7 +2043,7 @@ class RetailerAPIController extends ControllerAPI
         }
 
         $output = $this->render($httpCode);
-        Event::fire('orbit.retailer.getsearchretailerbyproduct.before.render', array($this, &$output));
+        Event::fire('orbit.retailer.getsearchretailerbypromotion.before.render', array($this, &$output));
 
         return $output;
     }

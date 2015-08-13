@@ -200,4 +200,24 @@ class Retailer extends Eloquent
 
         return $builder;
     }
+
+
+    public function scopeRetailerFromCoupon($builder, $merchant_id, $coupon_id)
+    {
+        $builder->where('merchants.parent_id', $merchant_id)
+                ->where('promotions.promotion_id', $coupon_id)
+                ->where('promotions.is_coupon', 'Y')
+                ->where(function($q) {
+                    $q->where('promotions.is_all_retailer', 'Y')
+                      ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                  $q->where('promotions.is_all_retailer', '!=', 'Y')
+                                    ->orWhereNull('promotions.is_all_retailer');
+                              })
+                              ->whereNotNull('promotion_retailer.retailer_id');
+                      });
+        });
+
+        return $builder;
+    }
 }
