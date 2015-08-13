@@ -283,10 +283,11 @@ class WidgetController extends MobileCIAPIController
                 DB::raw(
                     'SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                inner join ' . DB::getTablePrefix() . 'products prod on
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                left join ' . DB::getTablePrefix() . 'products prod on
                 (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                    (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
                     OR
                     (
                         (pr.discount_object_type="family") AND
@@ -298,14 +299,8 @@ class WidgetController extends MobileCIAPIController
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE
-                    ic.expired_date >= NOW()
-                    AND p.merchant_id = :merchantid
-                    AND prr.retailer_id = :retailerid
-                    AND ic.user_id = :userid
-                    AND prod.product_id = :productid
-
-                '
+                WHERE ic.expired_date >= "' . Carbon::now() . '" AND ic.user_id = :userid AND ic.expired_date >= "' . Carbon::now() . '" AND (prr.retailer_id = :retailerid OR (p.is_all_retailer_redeem = "Y" AND p.merchant_id = :merchantid)) AND ((prod.product_id = :productid AND pr.is_all_product_discount = "N") OR pr.is_all_product_discount = "Y")
+                GROUP BY p.promotion_id'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id, 'productid' => $product_id)
             );

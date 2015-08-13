@@ -162,15 +162,16 @@ class HomeController extends MobileCIAPIController
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
             );
-
+            
             $coupons = DB::select(
                 DB::raw(
                     'SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" AND ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
-                inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 left join ' . DB::getTablePrefix() . 'products prod on
                 (
-                    (pr.discount_object_type="product" AND pr.discount_object_id1 = prod.product_id)
+                    (pr.discount_object_type="product" AND propro.product_id = prod.product_id)
                     OR
                     (
                         (pr.discount_object_type="family") AND
@@ -182,9 +183,8 @@ class HomeController extends MobileCIAPIController
                     )
                 )
                 inner join ' . DB::getTablePrefix() . 'issued_coupons ic on p.promotion_id = ic.promotion_id AND ic.status = "active"
-                WHERE ic.expired_date >= "' . Carbon::now(). '" AND p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND ic.user_id = :userid AND ic.expired_date >= "' . Carbon::now() . '"
-                GROUP BY prod.product_id
-                '
+                WHERE ic.expired_date >= "' . Carbon::now() . '" AND ic.user_id = :userid AND ic.expired_date >= "' . Carbon::now() . '" AND (prr.retailer_id = :retailerid OR (p.is_all_retailer_redeem = "Y" AND p.merchant_id = :merchantid))
+                GROUP BY p.promotion_id'
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'userid' => $user->user_id)
             );
@@ -285,7 +285,22 @@ class HomeController extends MobileCIAPIController
                 ->responseOK()
                 ->save();
 
-            return View::make('mobile-ci.home', array('page_title'=>Lang::get('mobileci.page_title.home'), 'retailer' => $retailer, 'random_products' => $random_products, 'new_products' => $new_products, 'promo_products' => $promo_products, 'promotion' => $promotion, 'cartitems' => $cartitems, 'coupons' => $coupons, 'events' => $events, 'widgets' => $widgets, 'event_families' => $event_families, 'event_family_url_param' => $event_family_url_param))->withCookie($event_store);
+            return View::make('mobile-ci.home', 
+                array(
+                    'page_title' => Lang::get('mobileci.page_title.home'),
+                    'retailer' => $retailer,
+                    'random_products' => $random_products,
+                    'new_products' => $new_products,
+                    'promo_products' => $promo_products,
+                    'promotion' => $promotion,
+                    'cartitems' => $cartitems,
+                    'coupons' => $coupons,
+                    'events' => $events,
+                    'widgets' => $widgets,
+                    'event_families' => $event_families,
+                    'event_family_url_param' => $event_family_url_param
+                )
+            )->withCookie($event_store);
         } catch (Exception $e) {
             $activityPageNotes = sprintf('Failed to view Page: %s', 'Home');
             $activityPage->setUser($user)
