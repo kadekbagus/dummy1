@@ -66,7 +66,7 @@ return array(
 
         'coupon_use'            => 'Use',
         'coupon_ignore'         => 'Later',
-        'search_label'          => 'Search by Product Name, Code or Description',
+        'search_label'          => 'Search by product name, SKU, barcode or description',
         'search_placeholder'    => 'Insert keyword(s)',
         'search_button'         => 'Search',
         'cancel_button'         => 'Cancel',

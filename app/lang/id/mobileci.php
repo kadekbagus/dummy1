@@ -66,7 +66,7 @@ return array(
         
         'coupon_use'            => 'Gunakan',
         'coupon_ignore'         => 'Lain Kali',
-        'search_label'          => 'Cari berdasarkan Nama Produk, Kode atau Deskripsi',
+        'search_label'          => 'Cari berdasarkan nama produk, SKU, kode atau deskripsi',
         'search_placeholder'    => 'Input kata kunci',
         'search_button'         => 'Cari',
         'cancel_button'         => 'Batal',

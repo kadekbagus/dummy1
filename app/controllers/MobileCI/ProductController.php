@@ -371,6 +371,7 @@ class ProductController extends MobileCIAPIController
                         function ($q) use ($name) {
                             $q->where('products.product_name', 'like', "%$name%")
                                 ->orWhere('products.upc_code', 'like', "%$name%")
+                                ->orWhere('products.product_code', 'like', "%$name%")
                                 ->orWhere('products.short_description', 'like', "%$name%")
                                 ->orWhere('products.long_description', 'like', "%$name%")
                                 ->orWhere('products.short_description', 'like', "%$name%");
@@ -935,6 +936,7 @@ class ProductController extends MobileCIAPIController
                         function ($q) use ($name) {
                             $q->where('products.product_name', 'like', "%$name%")
                                 ->orWhere('products.upc_code', 'like', "%$name%")
+                                ->orWhere('products.product_code', 'like', "%$name%")
                                 ->orWhere('products.short_description', 'like', "%$name%")
                                 ->orWhere('products.long_description', 'like', "%$name%")
                                 ->orWhere('products.short_description', 'like', "%$name%");
