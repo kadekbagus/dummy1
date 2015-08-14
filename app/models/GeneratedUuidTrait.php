@@ -14,7 +14,16 @@ trait GeneratedUuidTrait {
             $model->setIncrementing(false);
 
             $key = $model->getKeyName();
-            $model->setAttribute($key, (string) \OrbitShop\API\V2\ObjectID::make());
+
+            $attr = $model->getAttribute($key);
+
+            try {
+                $attr = new \OrbitShop\API\V2\ObjectID($attr);
+            } catch (\OrbitShop\API\V2\ObjectID\InvalidException $e) {
+                $attr = OrbitShop\API\V2\ObjectID::make();
+            }
+
+            $model->setAttribute($key, (string) $attr);
         });
     }
 

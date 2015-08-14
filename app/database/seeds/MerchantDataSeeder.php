@@ -8,6 +8,10 @@ use Orbit\EncodedUUID;
  */
 class MerchantDataSeeder extends Seeder
 {
+    const ORBIT_EPOCH = 1341072000000;
+    const MERCHANT_ID = "EWv3------------";
+    const RETAILER_ID = "EXs5F-----------";
+
     public function run()
     {
         $passwordMerchant = 'merchant2015';
@@ -75,7 +79,7 @@ class MerchantDataSeeder extends Seeder
 
         // Data for merchant
         $merchantData = [
-            'merchant_id'   => $this->generateId(),
+            'merchant_id'   => static::MERCHANT_ID,
             'omid'          => 'ORBIT-MERCHANT-01',
             'user_id'       => $merchantUser->user_id,
             'email'         => 'merchant@myorbit.com',
@@ -104,7 +108,7 @@ class MerchantDataSeeder extends Seeder
 
         // Data for retailer
         $retailerData = [
-            'merchant_id'   => $this->generateId(),
+            'merchant_id'   => static::RETAILER_ID,
             'omid'          => 'ORBIT-RETAILER-01',
             'user_id'       => $retailerUser->user_id,
             'email'         => 'retailer@myorbit.com',
