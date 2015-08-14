@@ -16,6 +16,11 @@ class EncodedUUID {
         }
     }
 
+    public static function fromTime($time)
+    {
+        return ObjectId::fromTime($time);
+    }
+
     public static function make()
     {
         return ObjectID::make();
