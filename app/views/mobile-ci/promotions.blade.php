@@ -521,7 +521,7 @@
             a.html('<i class="fa fa-circle-o-notch fa-spin"></i>');
 
             $.ajax({
-                url: apiPath+'customer/products?' + param + 'load_more=yes&skip=' + skip,
+                url: apiPath+'customer/products?' + param + '&load_more=yes&skip=' + skip,
                 method: 'GET'
             }).done(function(data){
                 if(data == 'Invalid session data.'){

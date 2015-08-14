@@ -84,7 +84,7 @@
                                 <div class="col-xs-12">
                                     <h3>{{ $product->product_name }}</h3>
                                 </div>
-                                @if(! empty($product->upc_code))
+                                @if(! empty($product->product_code))
                                 <div class="col-xs-12">
                                     <h4>{{ $product->product_code }}</h4>
                                 </div>
@@ -489,7 +489,7 @@
             a.html('<i class="fa fa-circle-o-notch fa-spin"></i>');
 
             $.ajax({
-                url: apiPath+'customer/products?' + param + 'load_more=yes&skip=' + skip,
+                url: apiPath+'customer/products?' + param + '&load_more=yes&skip=' + skip,
                 method: 'GET'
             }).done(function(data){
                 if(data == 'Invalid session data.'){

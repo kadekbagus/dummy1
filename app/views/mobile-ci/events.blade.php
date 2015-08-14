@@ -177,6 +177,17 @@
                         </div>
                     </div>
                 @endforeach
+
+                @if(! $no_more)
+                <div class="catalogue-img more">
+                    <div class="row catalogue-top">
+                        <div class="col-xs-12">
+                            <button class="btn btn-info btn-block load-more" data-more-family-skip="{{ $next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                
             @endif
         @endif
     @else
@@ -489,6 +500,37 @@
                     });
                 }
             }
+        });
+        
+        $('body').on('click', '.load-more', function() {
+            var skip = $(this).data('more-family-skip');
+            var a = $(this);
+            var param = window.location.search.replace("?", "");
+
+            a.attr('disabled', 'disabled');
+            a.html('<i class="fa fa-circle-o-notch fa-spin"></i>');
+
+            $.ajax({
+                url: apiPath+'customer/products?' + param + '&load_more=yes&skip=' + skip,
+                method: 'GET'
+            }).done(function(data){
+                if(data == 'Invalid session data.'){
+                    location.replace('/customer');
+                } else {
+                    var object = $('<div/>').html(data).contents();
+                    @if($retailer->parent->currency == 'IDR')
+                        $(object).find('.formatted-num').each(function(index){
+                            $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
+                        });
+                    @else
+                        $(object).find('.formatted-num').each(function(index){
+                            $(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+                        });
+                    @endif
+                    a.parent().parent().html(object).slideDown('slow');
+                }
+                a.removeAttr('disabled');
+            });
         });
     });
 </script>

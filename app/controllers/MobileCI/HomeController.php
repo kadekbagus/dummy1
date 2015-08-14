@@ -133,6 +133,8 @@ class HomeController extends MobileCIAPIController
                 ->active()
                 ->where('new_from', '<=', Carbon::now())
                 ->where('new_until', '>=', Carbon::now())
+                ->orderByRaw("RAND()")
+                ->take(10)
                 ->get();
 
             // $promotion = Promotion::active()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas(
