@@ -1985,6 +1985,262 @@ class ProductAPIController extends ControllerAPI
         return $output;
     }
 
+
+
+    /**
+     * GET - Search Product by event
+     *
+     * @author kadek <ahmad@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string     `with`                     (optional) - Valid value: family.
+     * @param string     `product_name`             (optional)
+     * @param string     `product_name_like`        (optional)
+     * @param integer    `event_id`                 (optional)
+     *
+     * @return Illuminate\Support\Facades\Response
+     */
+    public function getSearchProductByEvent()
+    {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.product.getsearchproductbyevent.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.product.getsearchproductbyevent.after.auth', array($this));
+
+            // Try to check access control list, does this product allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.product.getsearchproductbyevent.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_product')) {
+                Event::fire('orbit.product.getsearchproductbyevent.authz.notallowed', array($this, $user));
+                $viewUserLang = Lang::get('validation.orbit.actionlist.view_product');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewUserLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.product.getsearchproductbyevent.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sort_by' => $sort_by,
+                    'product_id' => OrbitInput::get('product_id'),
+                ),
+                array(
+                    'sort_by'       => 'in:registered_date,product_id,product_name,product_sku,product_code,product_upc,product_price,product_short_description,product_long_description,product_is_new,product_new_until,product_merchant_id,product_status',
+                    'product_id'    => 'array|min:1'
+                ),
+                array(
+                    'in' => Lang::get('validation.orbit.empty.product_sortby'),
+                )
+            );
+
+            Event::fire('orbit.product.getsearchproductbyevent.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+
+            Event::fire('orbit.product.getsearchproductbyevent.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.product.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.product.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $table_prefix = DB::getTablePrefix();
+
+            $now = date('Y-m-d H:i:s');
+
+            $products = Product::excludeDeleted('products')
+                                ->select('products.product_id',
+                                         'products.product_name',
+                                         'events.event_id',
+                                         'events.event_name',
+                                         'events.is_all_product'
+                                        )
+                                ->leftJoin('events', 'events.merchant_id', '=', 'products.merchant_id')
+                                ->leftJoin('event_product', function($join) {
+                                    $join->on('events.event_id', '=', 'event_product.event_id');
+                                    $join->on('products.product_id', '=', 'event_product.product_id');
+                                });
+
+            // Filter product by event
+            OrbitInput::get('event_id', function ($event_id) use ($products) {
+                $products->ProductFromEvent($event_id);
+            });
+
+            // Filter product by name
+            OrbitInput::get('product_name', function ($name) use ($products) {
+                $products->whereIn('products.product_name', $name);
+            });
+
+            // Filter product by name pattern
+            OrbitInput::get('product_name_like', function ($name) use ($products) {
+                $products->where('products.product_name', 'like', "%$name%");
+            });
+
+            // Add new relation based on request
+            OrbitInput::get('with', function ($with) use ($products) {
+                $with = (array) $with;
+                foreach ($with as $relation) {
+                    if ($relation === 'family') {
+                        $with = array_merge($with, array('category1', 'category2', 'category3', 'category4', 'category5'));
+                        break;
+                    }
+                }
+                $products->with($with);
+            });
+
+            $_products = clone $products;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $products->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function ($_skip) use (&$skip, $products) {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $products->skip($skip);
+
+            // Default sort by
+            $sortBy = 'products.product_name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function ($_sortBy) use (&$sortBy) {
+                // Map the sortby request to the real column name
+                $sortByMapping = array(
+                    'registered_date'           => 'products.created_at',
+                    'product_id'                => 'products.product_id',
+                    'product_name'              => 'products.product_name',
+                    'product_sku'               => 'products.product_code',
+                    'product_code'              => 'products.product_code',
+                    'product_upc'               => 'products.upc_code',
+                    'product_price'             => 'products.price',
+                    'product_short_description' => 'products.short_description',
+                    'product_long_description'  => 'products.long_description',
+                    'product_is_new'            => 'is_new',
+                    'product_new_until'         => 'products.new_until',
+                    'product_merchant_id'       => 'products.merchant_id',
+                    'product_status'            => 'products.status',
+                );
+
+                if (array_key_exists($_sortBy, $sortByMapping)) {
+                    $sortBy = $sortByMapping[$_sortBy];
+                }
+            });
+
+            OrbitInput::get('sortmode', function ($_sortMode) use (&$sortMode) {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $products->orderBy($sortBy, $sortMode);
+
+            $totalRec = RecordCounter::create($_products)->count();
+            $listOfRec = $products->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRec;
+            $data->returned_records = count($listOfRec);
+            $data->records = $listOfRec;
+
+            if ($totalRec === 0) {
+                $data->records = null;
+                $this->response->message = Lang::get('statuses.orbit.nodata.product');
+            }
+
+            $this->response->data = $data;
+
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.product.getsearchproductbyevent.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.product.getsearchproductbyevent.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.product.getsearchproductbyevent.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.product.getsearchproductbyevent.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+        $output = $this->render($httpCode);
+        Event::fire('orbit.product.getsearchproductbyevent.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+
     protected function registerCustomValidation()
     {
         // Check the existance of product id

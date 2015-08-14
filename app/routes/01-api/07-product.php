@@ -82,3 +82,12 @@ Route::post('/api/v1/product-attribute/delete', function()
 {
     return ProductAttributeAPIController::create()->postDeleteAttribute();
 });
+
+
+/**
+ * List/Search product by event
+ */
+Route::get('/api/v1/product/search-by-event', function()
+{
+    return ProductAPIController::create()->getSearchProductByEvent();
+});

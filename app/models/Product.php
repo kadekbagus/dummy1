@@ -249,4 +249,21 @@ class Product extends Eloquent
     }
 
 
+    public function scopeProductFromEvent($builder, $event_id)
+    {
+        $builder->where('events.event_id', $event_id)
+                ->where('events.link_object_type', 'product')
+                ->where(function($q) {
+                        $q->where('events.is_all_product', 'Y')
+                          ->orWhere(function($q) {
+                                $q->where(function($q) {
+                                      $q->where('events.is_all_product', '!=', 'Y')
+                                        ->orWhereNull('events.is_all_product');
+                                  })
+                                  ->whereNotNull('event_product.product_id');
+                });
+        });
+
+        return $builder;
+    }
 }
