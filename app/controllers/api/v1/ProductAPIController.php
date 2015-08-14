@@ -2243,7 +2243,7 @@ class ProductAPIController extends ControllerAPI
 
 
     /**
-     * GET - Search Product by promotion
+     * GET - Search Product by promotion and coupon
      *
      * @author kadek <kadek@dominopos.com>
      *
@@ -2345,9 +2345,14 @@ class ProductAPIController extends ControllerAPI
                                     $join->on('products.product_id', '=', 'promotion_product.product_id');
                                 });
 
-            // Filter product by event
+            // Filter product by promotion
             OrbitInput::get('promotion_id', function ($promotion_id) use ($products) {
                 $products->ProductFromPromotion($promotion_id);
+            });
+
+            // Filter product by coupon
+            OrbitInput::get('coupon_id', function ($coupon_id) use ($products) {
+                $products->ProductFromCoupon($coupon_id);
             });
 
             // Filter product by name
