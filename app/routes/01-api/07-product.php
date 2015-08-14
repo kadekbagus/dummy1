@@ -91,3 +91,12 @@ Route::get('/api/v1/product/search-by-event', function()
 {
     return ProductAPIController::create()->getSearchProductByEvent();
 });
+
+
+/**
+ * List/Search product by promotion
+ */
+Route::get('/api/v1/product/search-by-promotion', function()
+{
+    return ProductAPIController::create()->getSearchProductByPromotion();
+});

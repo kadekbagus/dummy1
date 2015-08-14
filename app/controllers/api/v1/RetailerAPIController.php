@@ -2151,11 +2151,11 @@ class RetailerAPIController extends ControllerAPI
                                   });
 
             // Filter retailer by event id
-            OrbitInput::get('event_id', function($promotion_id) use ($retailers)
+            OrbitInput::get('event_id', function($event_id) use ($retailers)
             {
-                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $promotion_id)
+                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $event_id)
                 {
-                    $retailers->RetailerFromEvent($merchant_id, $promotion_id);
+                    $retailers->RetailerFromEvent($merchant_id, $event_id);
                 });
             });
 

@@ -54,6 +54,11 @@ Route::post('/app/v1/product-attribute/update', 'IntermediateAuthController@Prod
 Route::post('/app/v1/product-attribute/delete', 'IntermediateAuthController@ProductAttribute_postDeleteAttribute');
 
 /**
- * List and/or Search product
+ * List and/or Search product by event
  */
 Route::get('/app/v1/product/search-by-event', 'IntermediateAuthController@Product_getSearchProductByEvent');
+
+/**
+ * List and/or Search product by promotion
+ */
+Route::get('/app/v1/product/search-by-promotion', 'IntermediateAuthController@Product_getSearchProductByPromotion');

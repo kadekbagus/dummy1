@@ -266,4 +266,24 @@ class Product extends Eloquent
 
         return $builder;
     }
+
+
+    public function scopeProductFromPromotion($builder, $promotion_id)
+    {
+        $builder->where('promotions.promotion_id', $promotion_id)
+                ->where('promotions.is_coupon', 'N')
+                ->where('promotion_rules.discount_object_type', 'product')
+                ->where(function($q) {
+                    $q->where('promotion_rules.is_all_product_discount', 'Y')
+                        ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                $q->where('promotion_rules.is_all_product_discount', '!=', 'Y')
+                                    ->orWhereNull('promotion_rules.is_all_product_discount');
+                            })
+                                ->whereNotNull('promotion_product.product_id');
+                });
+        });
+
+        return $builder;
+    }
 }
