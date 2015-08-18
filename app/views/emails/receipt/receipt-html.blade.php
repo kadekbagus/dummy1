@@ -975,7 +975,9 @@
                                             @if(! empty($detail->product_attribute_value2)) / <span style="color : rgb(76, 166, 218);">{{ $detail->product_attribute_value2 }}</span> @endif
                                             @if(! empty($detail->product_attribute_value3)) / <span style="color : rgb(76, 166, 218);">{{ $detail->product_attribute_value3 }}</span> @endif
                                             @if(! empty($detail->product_attribute_value4)) / <span style="color : rgb(76, 166, 218);">{{ $detail->product_attribute_value4 }}</span> @endif
-                                            @if(! empty($detail->product_attribute_value5)) / <span style="color : rgb(76, 166, 218);">{{ $detail->product_attribute_value5 }}</span> @endif<br />
+                                            @if(! empty($detail->product_attribute_value5)) / <span style="color : rgb(76, 166, 218);">{{ $detail->product_attribute_value5 }}</span> @endif
+                                            @if(! empty($detail->variant_sku)) / $detail->variant_sku @endif
+                                            <br />
                                             @endforeach
                                         </p>
                                         
