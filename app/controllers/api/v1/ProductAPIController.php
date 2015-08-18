@@ -2336,13 +2336,15 @@ class ProductAPIController extends ControllerAPI
                                          'products.product_name',
                                          'promotions.promotion_id',
                                          'promotions.promotion_name',
-                                         'promotion_rules.is_all_product_discount'
+                                         'promotion_rules.is_all_product_discount',
+                                         'promotion_product.object_type'
                                         )
                                 ->leftJoin('promotions', 'promotions.merchant_id', '=', 'products.merchant_id')
                                 ->leftJoin('promotion_rules', 'promotion_rules.promotion_id', '=', 'promotions.promotion_id')
                                 ->leftJoin('promotion_product', function($join) {
                                     $join->on('promotion_product.promotion_rule_id', '=', 'promotion_rules.promotion_rule_id');
                                     $join->on('products.product_id', '=', 'promotion_product.product_id');
+                                    $join->where('promotion_product.object_type', '=', DB::raw("discount"));
                                 });
 
             // Filter product by promotion
