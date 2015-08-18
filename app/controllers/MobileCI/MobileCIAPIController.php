@@ -5771,9 +5771,13 @@ class MobileCIAPIController extends ControllerAPI
 
             $image = base64_decode($ticketdata);
 
-            $date = str_replace(' ', '_', $transaction->created_at);
+            $transaction_date = str_replace(' ', '_', $transaction->created_at);
+            $transaction_date = str_replace(':', '', $transaction->created_at);
 
-            $filename = 'receipt-' . $date . ' . png';
+            $tr_date = strtotime($transaction_date);
+            $_tr_date = date('d-m-Y H-i-s', $tr_date);
+
+            $filename = sprintf('receipt-%s_%s.png', $transaction->transaction_id, $_tr_date);
 
             $mailviews = array(
                 'html' => 'emails.receipt.receipt-html',
