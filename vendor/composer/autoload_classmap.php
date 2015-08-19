@@ -103,6 +103,7 @@ return array(
     'AlterUsersColumnAccordingTo30Oct2014Changes' => $baseDir . '/app/database/migrations/2014_10_30_063154_alter_users_column_according_to_30-Oct-2014_changes.php',
     'AlterAllUseUuids' => $baseDir . '/app/database/migrations/2015_07_09_072123_alter_all_use_uuids.php',
     'AlterTableEmployeeRetailerDropTimestampColumns' => $baseDir . '/app/database/migrations/2015_08_19_135501_alter_table_employee_retailer_drop_timestamp_columns.php',
+    'AlterTableProductRetailerDropTimestampColumns' => $baseDir . '/app/database/migrations/2015_08_19_162851_alter_table_product_retailer_drop_timestamp_columns.php',
     'Apikey' => $baseDir . '/app/models/Apikey.php',
     'Arrays\\Util\\DuplicateChecker' => $baseDir . '/app/helpers/Arrays/Util/DuplicateChecker.php',
     'BaseController' => $baseDir . '/app/controllers/BaseController.php',
