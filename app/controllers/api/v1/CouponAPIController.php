@@ -1595,7 +1595,6 @@ class CouponAPIController extends ControllerAPI
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
                 ->excludeDeleted('promotions')
-                ->excludeDeleted('merchants')
                 ->allowedForViewOnly($user)
                 ->select(DB::raw($table_prefix . "promotions.*,
                             CASE {$table_prefix}promotion_rules.rule_type
@@ -1616,6 +1615,10 @@ class CouponAPIController extends ControllerAPI
                 ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
                 ->leftJoin('promotion_retailer_redeem', 'promotion_retailer_redeem.promotion_id', '=', 'promotions.promotion_id')
                 ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer_redeem.retailer_id')
+                ->where(function($q) {
+                        $q->where('merchants.status','!=','deleted')
+                        ->orWhereNull('merchants.status');
+                    })
                 ->groupBy('promotions.promotion_id');
 
             // Check the value of `include_transaction_status` argument
@@ -1855,19 +1858,6 @@ class CouponAPIController extends ControllerAPI
                     });
                 });
             });
-
-            // // Filter coupon by redeem retailer id
-            // OrbitInput::get('product_id', function ($productIds) use ($coupons) {
-            //     $coupons->whereHas('couponrule', function($q) use ($productIds) {
-            //         $q->whereHas('discountproducts', function($q) use ($productIds) {
-            //         $q->whereIn('retailer_id', $productIds);
-
-            //             $coupons->orWhere(function ($or) {
-            //                 $or->where('coupon_rule.is_all_product', 'Y');
-            //             });
-
-            //     });
-            // });
 
             // Add new relation based on request
             OrbitInput::get('with', function ($with) use ($coupons) {

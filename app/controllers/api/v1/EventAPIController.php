@@ -1093,7 +1093,6 @@ class EventAPIController extends ControllerAPI
 
             // Builder object
             $events = EventModel::excludeDeleted('events')
-                                ->excludeDeleted('merchants')
                                 ->allowedForViewOnly($user)
                                 ->select('events.*', 
                                         DB::raw("CASE link_object_type
@@ -1104,6 +1103,10 @@ class EventAPIController extends ControllerAPI
                                         )
                                 ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
                                 ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
+                                ->where(function($q) {
+                                        $q->where('merchants.status','!=','deleted')
+                                        ->orWhereNull('merchants.status');
+                                    })
                                 ->groupBy('events.event_id');
 
             // Filter event by Ids
