@@ -62,6 +62,15 @@ Route::get('/api/v1/retailer/search-by-promotion', function()
 
 
 /**
+ * Retailer by coupon
+ */
+Route::get('/api/v1/retailer/search-by-coupon', function()
+{
+    return RetailerAPIController::create()->getSearchRetailerByCoupon();
+});
+
+
+/**
  * Retailer by event
  */
 Route::get('/api/v1/retailer/search-by-event', function()

@@ -208,13 +208,13 @@ class Retailer extends Eloquent
                 ->where('promotions.promotion_id', $coupon_id)
                 ->where('promotions.is_coupon', 'Y')
                 ->where(function($q) {
-                    $q->where('promotions.is_all_retailer', 'Y')
+                    $q->where('promotions.is_all_retailer_redeem', 'Y')
                       ->orWhere(function($q) {
                             $q->where(function($q) {
-                                  $q->where('promotions.is_all_retailer', '!=', 'Y')
-                                    ->orWhereNull('promotions.is_all_retailer');
+                                  $q->where('promotions.is_all_retailer_redeem', '!=', 'Y')
+                                    ->orWhereNull('promotions.is_all_retailer_redeem');
                               })
-                              ->whereNotNull('promotion_retailer.retailer_id');
+                              ->whereNotNull('promotion_retailer_redeem.retailer_id');
                       });
         });
 
