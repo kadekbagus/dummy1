@@ -207,7 +207,8 @@ class CustomerportalAPIController extends ControllerAPI
 
             if (!is_object($user))
             {
-                OrbitShopAPI::throwInvalidArgument('No such email or user no longer needs activation'); // TODO message?
+                $errorMessage = \Lang::get('validation.orbit.empty.customer_email');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             $this->beginTransaction();
@@ -438,7 +439,8 @@ class CustomerportalAPIController extends ControllerAPI
                 })
                 ->first();
             if (!is_object($user)) {
-                OrbitShopAPI::throwInvalidArgument("email");
+                $errorMessage = \Lang::get('validation.orbit.empty.customer_email');
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
             }
 
             // remove all existing reset tokens
