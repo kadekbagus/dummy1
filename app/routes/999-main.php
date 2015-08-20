@@ -12,7 +12,7 @@
 Route::get('/', ['before' => 'orbit-settings', function()
 {
     // Default to Mobile-CI login page
-    return MobileCI\MobileCIAPIController::create()->getSignInView();
+    return Redirect::to("/customer?" . http_build_query(Input::all()));
 }]);
 
 /*

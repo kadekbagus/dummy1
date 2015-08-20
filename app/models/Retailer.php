@@ -161,4 +161,82 @@ class Retailer extends Eloquent
                        ->whereIn('merchants.parent_id', $merchantIds)
                        ->groupBy('merchants.merchant_id');
     }
+
+
+    public function scopeRetailerFromProduct($builder, $merchant_id, $product_id)
+    {
+        $builder->where('merchants.parent_id', $merchant_id)
+                ->where('products.product_id', $product_id)
+                ->where(function($q) {
+                    $q->where('products.is_all_retailer', 'Y')
+                      ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                  $q->where('products.is_all_retailer', '!=', 'Y')
+                                    ->orWhereNull('products.is_all_retailer');
+                              })
+                              ->whereNotNull('product_retailer.retailer_id');
+                      });
+        });
+
+        return $builder;
+    }
+
+
+    public function scopeRetailerFromPromotion($builder, $merchant_id, $promotion_id)
+    {
+        $builder->where('merchants.parent_id', $merchant_id)
+                ->where('promotions.promotion_id', $promotion_id)
+                ->where('promotions.is_coupon', 'N')
+                ->where(function($q) {
+                    $q->where('promotions.is_all_retailer', 'Y')
+                      ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                  $q->where('promotions.is_all_retailer', '!=', 'Y')
+                                    ->orWhereNull('promotions.is_all_retailer');
+                              })
+                              ->whereNotNull('promotion_retailer.retailer_id');
+                      });
+        });
+
+        return $builder;
+    }
+
+
+    public function scopeRetailerFromCoupon($builder, $merchant_id, $coupon_id)
+    {
+        $builder->where('merchants.parent_id', $merchant_id)
+                ->where('promotions.promotion_id', $coupon_id)
+                ->where('promotions.is_coupon', 'Y')
+                ->where(function($q) {
+                    $q->where('promotions.is_all_retailer_redeem', 'Y')
+                      ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                  $q->where('promotions.is_all_retailer_redeem', '!=', 'Y')
+                                    ->orWhereNull('promotions.is_all_retailer_redeem');
+                              })
+                              ->whereNotNull('promotion_retailer_redeem.retailer_id');
+                      });
+        });
+
+        return $builder;
+    }
+
+
+    public function scopeRetailerFromEvent($builder, $merchant_id, $event_id)
+    {
+        $builder->where('merchants.parent_id', $merchant_id)
+                ->where('events.event_id', $event_id)
+                ->where(function($q) {
+                    $q->where('events.is_all_retailer', 'Y')
+                      ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                  $q->where('events.is_all_retailer', '!=', 'Y')
+                                    ->orWhereNull('events.is_all_retailer');
+                              })
+                             ->whereNotNull('event_retailer.retailer_id');
+                      });
+        });
+
+        return $builder;
+    }
 }

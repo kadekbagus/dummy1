@@ -52,7 +52,7 @@ class Promotion extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
+        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id')->where('merchants.status','!=','deleted');
     }
 
     public function scopeProductPromotionType($query)
@@ -69,6 +69,7 @@ class Promotion extends Eloquent
     {
         return $query->where('promotions.is_permanent', '=', 'Y');
     }
+
 
     /**
      * Add Filter promotions based on user who request it.

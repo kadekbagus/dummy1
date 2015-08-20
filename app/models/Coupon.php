@@ -50,7 +50,7 @@ class Coupon extends Eloquent
 
     public function issueretailers()
     {
-        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id');
+        return $this->belongsToMany('Retailer', 'promotion_retailer', 'promotion_id', 'retailer_id')->where('merchants.status','!=','deleted');
     }
 
     public function redeemretailers()
@@ -61,6 +61,11 @@ class Coupon extends Eloquent
     public function issuedcoupons()
     {
         return $this->hasMany('IssuedCoupon', 'promotion_id', 'promotion_id');
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany('Product', 'promotion_product', 'promotion_id', 'product_id');
     }
 
     /**
