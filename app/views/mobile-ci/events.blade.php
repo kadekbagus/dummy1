@@ -5,39 +5,37 @@
 @stop
 
 @section('content')
-    @if(count($promotions) > 0)
-        <img class="img-responsive text-center promo-cover" src="{{ asset($promotions[0]->promo_image) }}">
+    @if(! empty($event))
+        <img class="img-responsive text-center promo-cover" src="{{ asset($event->image) }}">
         <div class="row">
             <div class="col-xs-12 vertically-spaced">
-                <p>{{ $promotions[0]->description }}</p>
-                @if($promotions[0]->promotion_type == 'product' || $promotions[0]->promotion_type == 'cart')
-                    @if($promotions[0]->discount_object_type == 'product')
-                        <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }} : {{ $promotions[0]->product_name }}</p>
-                    @elseif($promotions[0]->discount_object_type == 'family')
+                <p>{{ $event->description }}</p>
+                @if($event->promotion_type == 'product' || $event->promotion_type == 'cart')
+                    @if($event->discount_object_type == 'product')
+                        <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }} : {{ $event->product_name }}</p>
+                    @elseif($event->discount_object_type == 'family')
                         <p class="promo-item">
-                            {{ Lang::get('mobileci.promotion_list.category_label') }} : 
-                            @if(!is_null($promotions[0]->discount_object_id1))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id1)->first()->category_name }}</span>
+                            {{ Lang::get('mobileci.coupon_list.category_label') }} : 
+                            @if(!is_null($event->discount_object_id1))
+                            <span>{{ Category::where('category_id', $event->discount_object_id1)->first()->category_name }}</span>
                             @endif
-                            @if(!is_null($promotions[0]->discount_object_id2))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id2)->first()->category_name }}</span>
+                            @if(!is_null($event->discount_object_id2))
+                            <span>{{ Category::where('category_id', $event->discount_object_id2)->first()->category_name }}</span>
                             @endif
-                            @if(!is_null($promotions[0]->discount_object_id3))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id3)->first()->category_name }}</span>
+                            @if(!is_null($event->discount_object_id3))
+                            <span>{{ Category::where('category_id', $event->discount_object_id3)->first()->category_name }}</span>
                             @endif
-                            @if(!is_null($promotions[0]->discount_object_id4))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id4)->first()->category_name }}</span>
+                            @if(!is_null($event->discount_object_id4))
+                            <span>{{ Category::where('category_id', $event->discount_object_id4)->first()->category_name }}</span>
                             @endif
-                            @if(!is_null($promotions[0]->discount_object_id5))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id5)->first()->category_name }}</span>
+                            @if(!is_null($event->discount_object_id5))
+                            <span>{{ Category::where('category_id', $event->discount_object_id5)->first()->category_name }}</span>
                             @endif
                         </p>
                     @endif
                 @endif
-                @if($promotions[0]->is_permanent == 'Y')
-                    <h4>{{ Lang::get('mobileci.catalogue.from')}}: {{ date('j M Y', strtotime($promotions[0]->begin_date)) }}</h4>
-                @else
-                     <h4>{{ date('j M Y', strtotime($promotions[0]->begin_date)) }} - {{ date('j M Y', strtotime($promotions[0]->end_date)) }}</h4>
+                @if($event->is_permanent == 'N')
+                    <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($event->end_date)) }}</h4>
                 @endif
             </div>
         </div>
@@ -48,12 +46,12 @@
                     <div class="row">
                         <div class="col-xs-6 search-tool-col">
                             <input type="hidden" name="keyword" value="{{ Input::get('keyword') }}">
-                            <a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-price-up">
+                            <a href="{{ url('/customer/event?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=asc&eventid='.Input::get('eventid')).'#search-tool' }}" id="sort-by-price-up">
                                 <span class="fa-stack">
                                     <i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
                                 </span>
                             </a> 
-                            <a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-price-down">
+                            <a href="{{ url('/customer/event?keyword='.Input::get('keyword').'&sort_by=price&sort_mode=desc&eventid='.Input::get('eventid')).'#search-tool' }}" id="sort-by-price-down">
                                 <span class="fa-stack">
                                     <i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
                                 </span>
@@ -61,12 +59,12 @@
                             <span class="sort-lable">{{ $retailer->parent->currency_symbol }}</span>
                         </div>
                         <div class="col-xs-5 search-tool-col">
-                            <a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-name-up">
+                            <a href="{{ url('/customer/event?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=asc&eventid='.Input::get('eventid')).'#search-tool' }}" id="sort-by-name-up">
                                 <span class="fa-stack">
                                     <i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-up fa-stack-1x sort-chevron"></i>
                                 </span>
                             </a> 
-                            <a href="{{ url('/customer/promotion?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&promoid='.Input::get('promoid')).'#search-tool' }}" id="sort-by-name-down">
+                            <a href="{{ url('/customer/event?keyword='.Input::get('keyword').'&sort_by=product_name&sort_mode=desc&eventid='.Input::get('eventid')).'#search-tool' }}" id="sort-by-name-down">
                                 <span class="fa-stack">
                                     <i class="fa fa-square fa-stack-2x"></i><i class="fa fa-chevron-down fa-stack-1x sort-chevron"></i>
                                 </span>
@@ -123,8 +121,8 @@
                                     @if(! empty($product->product_code))
                                     <div class="col-xs-12">
                                         <h4>{{ $product->product_code }}</h4>
-                                    </div>  
-                                    @endif                
+                                    </div>
+                                    @endif
                                     <div class="col-xs-12 price">
                                         @if(count($product->variants) > 1)
                                         <small>{{ Lang::get('mobileci.catalogue.starting_from') }}</small>
@@ -189,13 +187,13 @@
                     </div>
                 </div>
                 @endif
-
+                
             @endif
         @endif
     @else
         <div class="row padded">
             <div class="col-xs-12">
-                <h4>{{ Lang::get('mobileci.promotion_detail.exp_promo') }} <a href="{{ url('customer/home') }}">{{ Lang::get('mobileci.promotion_detail.back_label') }}</a>.</h4>
+                <h4>{{ Lang::get('mobileci.coupon_detail.exp_coupon') }} <a href="{{ url('customer/home') }}">{{ Lang::get('mobileci.coupon_detail.back_label') }}</a>.</h4>
             </div>
         </div>
     @endif
@@ -254,16 +252,6 @@
     });
     @endif
     $(document).ready(function(){
-        // if(window.location.hash){
-        //  var hash = window.location.hash;
-        //  var producthash = "#product-"+hash.replace(/^.*?(#|$)/,'');
-        //  console.log(producthash);
-        //  var hashoffset = $(producthash).offset();
-        //  var hashoffsettop = hashoffset.top-68;
-        //  setTimeout(function() {
-        //      $(window).scrollTop(hashoffsettop);
-        //  }, 1);
-        // }
         // add to cart          
         $('body').off('click', 'a.product-add-to-cart').on('click', 'a.product-add-to-cart', function(event){
             $('#hasCouponModal .modal-body p').html('');
@@ -304,23 +292,23 @@
                             console.log(data);
                         }
                     });
+
+                    $('#hasCouponModal').on('change', '.used_coupons', function($event){
+                        var event = $(this).val();
+                        if($(this).is(':checked')){
+                            used_coupons.push(event);
+                        }else{
+                            used_coupons = $.grep(used_coupons, function(val){
+                                return val != event;
+                            });
+                        }
+                    });
                     
                     $('#hasCouponModal').on('hide.bs.modal', function(){
                         anchor.show();
                         $('.cart-spinner').hide();
                     });
 
-                    $('#hasCouponModal').on('change', '.used_coupons', function($event){
-                        var coupon = $(this).val();
-                        if($(this).is(':checked')){
-                            used_coupons.push(coupon);
-                        }else{
-                            used_coupons = $.grep(used_coupons, function(val){
-                                return val != coupon;
-                            });
-                        }
-                    });
-                    
                     $('#hasCouponModal').off('click', '#applyCoupon').on('click', '#applyCoupon', function($event){
                         $.ajax({
                             url: apiPath+'customer/addtocart',
@@ -407,6 +395,8 @@
                                 }
                                 $('#hasCouponModal').modal('hide');
                                 if(prodid){
+                                    anchor.show();
+                                    $('.cart-spinner').hide();
                                     var imgclone = img.clone().offset({
                                         top: img.offset().top,
                                         left: img.offset().left

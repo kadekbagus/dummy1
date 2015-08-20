@@ -242,7 +242,6 @@ class AccountController extends MobileCIAPIController
     {
         try {
             $this->prepareSession();
-
             $this->session->start(array(), 'no-session-creation');
             $this->session->destroy();
         } catch (Exception $e) {

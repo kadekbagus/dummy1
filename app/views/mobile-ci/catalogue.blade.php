@@ -138,6 +138,17 @@
 								</div>
 							</div>
 						@endforeach
+
+						@if(!$lvl1->no_more)
+						<div class="catalogue-img more">
+						    <div class="row catalogue-top">
+						        <div class="col-xs-12">
+						            <button class="btn btn-info btn-block load-more" data-more-family-id="{{ $lvl1->family_id }}" data-more-family-level="{{ $lvl1->family_level }}" data-more-family-skip="{{ $lvl1->next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+						        </div>
+						    </div>
+						</div>
+						@endif
+
 						<ul>
 						@if(! is_null($lvl1->subfamilies))
 							@foreach($lvl1->subfamilies as $subfamily)
@@ -243,6 +254,17 @@
 													</div>
 												</div>
 											@endforeach
+
+											@if(!$lvl2->no_more)
+											<div class="catalogue-img more">
+											    <div class="row catalogue-top">
+											        <div class="col-xs-12">
+											            <button class="btn btn-info btn-block load-more" data-more-family-id="{{ $lvl2->family_id }}" data-more-family-level="{{ $lvl2->family_level }}" data-more-family-skip="{{ $lvl2->next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+											        </div>
+											    </div>
+											</div>
+											@endif
+
 											<ul>
 											@if(! is_null($lvl2->subfamilies))
 												@foreach($lvl2->subfamilies as $subfamily2)
@@ -348,6 +370,17 @@
 																		</div>
 																	</div>
 																@endforeach
+
+																@if(!$lvl3->no_more)
+																<div class="catalogue-img more">
+																    <div class="row catalogue-top">
+																        <div class="col-xs-12">
+																            <button class="btn btn-info btn-block load-more" data-more-family-id="{{ $lvl3->family_id }}" data-more-family-level="{{ $lvl3->family_level }}" data-more-family-skip="{{ $lvl3->next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+																        </div>
+																    </div>
+																</div>
+																@endif
+
 																<ul>
 																@if(! is_null($lvl3->subfamilies))
 																	@foreach($lvl3->subfamilies as $subfamily3)
@@ -453,6 +486,17 @@
 																							</div>
 																						</div>
 																					@endforeach
+
+																					@if(!$lvl4->no_more)
+																					<div class="catalogue-img more">
+																					    <div class="row catalogue-top">
+																					        <div class="col-xs-12">
+																					            <button class="btn btn-info btn-block load-more" data-more-family-id="{{ $lvl4->family_id }}" data-more-family-level="{{ $lvl4->family_level }}" data-more-family-skip="{{ $lvl4->next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+																					        </div>
+																					    </div>
+																					</div>
+																					@endif
+
 																					<ul>
 																					@if(! is_null($lvl4->subfamilies))
 																						@foreach($lvl4->subfamilies as $subfamily4)
@@ -558,6 +602,17 @@
 																												</div>
 																											</div>
 																										@endforeach
+
+																										@if(!$lvl5->no_more)
+																										<div class="catalogue-img more">
+																										    <div class="row catalogue-top">
+																										        <div class="col-xs-12">
+																										            <button class="btn btn-info btn-block load-more" data-more-family-id="{{ $lvl5->family_id }}" data-more-family-level="{{ $lvl5->family_level }}" data-more-family-skip="{{ $lvl5->next_skip }}">{{ Lang::get('mobileci.catalogue.load_more') }}</button>
+																										        </div>
+																										    </div>
+																										</div>
+																										@endif
+
 																										{{-- - --}}
 																									@endif
 																								</div>
@@ -686,18 +741,16 @@
 
 				var aopen = $('a[data-family-isopen="1"]');
 				var families = [];
+				var families_txt = '';
 				$.each(aopen, function(index, value) {
 					families.push($(value).attr('data-family-id'));
+					families_txt += '&families[]=' + $(value).attr('data-family-id');
 				});
+				// console.log(families_txt);
 				$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-circle-o-notch fa-spin');
 				$.ajax({
-					url: apiPath+'customer/products',
-					method: 'GET',
-					data: {
-						families: families,
-						family_id: family_id,
-						family_level: family_level
-					}
+					url: apiPath+'customer/products?family_id=' + family_id + '&family_level=' + family_level + families_txt,
+					method: 'GET'
 				}).done(function(data){
 					if(data == 'Invalid session data.'){
 						location.replace('/customer');
@@ -706,11 +759,11 @@
 						$('*[data-family-id="'+ family_id +'"] > .family-label > i').attr('class', 'fa fa-chevron-circle-up');
 						@if($retailer->parent->currency == 'IDR')
 					        a.parent('[data-family-container="'+ family_id +'"]').find('.formatted-num').each(function(index){
-						      $(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
+						      	$(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
 						    });
 					    @else
 					        a.parent('[data-family-container="'+ family_id +'"]').find('.formatted-num').each(function(index){
-						      $(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+						      	$(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
 						    });
 					    @endif
 					}
@@ -725,6 +778,44 @@
 			}
 			
 		});
+
+		$('.family-list').on('click', '.load-more', function() {
+			var family_id = $(this).data('more-family-id');
+			var family_level = $(this).data('more-family-level');
+			var skip = $(this).data('more-family-skip');
+			var aopen = $('a[data-family-isopen="1"]');
+			var a = $(this);
+			var families_txt = '';
+			$.each(aopen, function(index, value) {
+				families_txt += '&families[]=' + $(value).attr('data-family-id');
+			});
+
+			a.attr('disabled', 'disabled');
+			a.html('<i class="fa fa-circle-o-notch fa-spin"></i>');
+
+			$.ajax({
+				url: apiPath+'customer/products?load_more=yes&skip=' + skip + '&family_id=' + family_id + '&family_level=' + family_level + families_txt,
+				method: 'GET'
+			}).done(function(data){
+				if(data == 'Invalid session data.'){
+					location.replace('/customer');
+				} else {
+					var object = $('<div/>').html(data).contents();
+					@if($retailer->parent->currency == 'IDR')
+				        $(object).find('.formatted-num').each(function(index){
+					      	$(this).text(parseFloat($(this).text()).toFixed(0)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 0, vMin: -9999999999.99});
+					    });
+				    @else
+				        $(object).find('.formatted-num').each(function(index){
+					      	$(this).text(parseFloat($(this).text()).toFixed(2)).autoNumeric('init', {aSep: ',', aDec: '.', mDec: 2, vMin: -9999999999.99});
+					    });
+				    @endif
+					a.parent().parent().html(object).slideDown('slow');
+				}
+				a.removeAttr('disabled');
+			});
+		});
+
 		// add to cart
 		$('.family-list').off('click', 'a.product-add-to-cart').on('click', 'a.product-add-to-cart', function(event){
 			$('#hasCouponModal .modal-body p').html('');

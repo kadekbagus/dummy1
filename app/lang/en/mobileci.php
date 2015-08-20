@@ -21,6 +21,7 @@ return array(
         'promotions'    => 'PROMOTIONS',
         'coupons'       => 'MY COUPONS',
         'coupon_single' => 'COUPON',
+        'event_single'  => 'EVENT',
         'promotion'     => 'PROMOTION',
         'not_found'     => 'ERROR',
         'recognize_me'  => 'RECOGNIZE ME'
@@ -65,7 +66,7 @@ return array(
 
         'coupon_use'            => 'Use',
         'coupon_ignore'         => 'Later',
-        'search_label'          => 'Search by Product Name, Code or Description',
+        'search_label'          => 'Search by product name, SKU, barcode or description',
         'search_placeholder'    => 'Insert keyword(s)',
         'search_button'         => 'Search',
         'cancel_button'         => 'Cancel',
@@ -98,6 +99,7 @@ return array(
         'from'              => 'From',
         'to'                => 'To',
         'in_store_location' => 'In Store Location',
+        'load_more'         => 'Load more...',
     ),
 
     'product_detail'         => array(
@@ -203,5 +205,9 @@ return array(
 
     'recognize_me'  => array(
         'recognize_me_message' => 'To be recognized, show the following barcode to the cashier.'
+    ),
+
+    'exists' => array(
+        'event'                => 'The event you are looking for is not exists.',
     ),
 );

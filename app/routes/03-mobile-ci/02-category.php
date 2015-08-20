@@ -21,5 +21,13 @@ Route::group(
             }
         );
 
+        // family page
+        Route::get(
+            '/customer/event',
+            function () {
+
+                return MobileCI\CategoryController::create()->getEventDetailView();
+            }
+        );
     }
 );
