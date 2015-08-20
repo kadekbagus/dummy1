@@ -251,6 +251,7 @@ return array(
                     'sortby'       => 'The sort by argument you specified is not valid, the valid values are: name, last_transaction.',
                 ),
             ),
+            'customer_email' => 'The email you specified is not found.',
         ),
         'queryerror' => 'Database query error, turn on debug mode to see the full query.',
         'jsonerror'  => array(

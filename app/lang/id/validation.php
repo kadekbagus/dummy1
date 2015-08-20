@@ -227,6 +227,7 @@ return array(
                     'sortby'       => 'Argument \'sort by\' Anda tidak valid, nilai yang valid adalah: name, last_transaction.',
                 ),
             ),
+            'customer_email' => 'Email tidak ditemukan.',
         ),
         'queryerror' => 'Error pada database query, nyalakan mode debug untuk melihat seluruh query.',
         'jsonerror'  => array(
