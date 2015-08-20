@@ -88,6 +88,10 @@ class EventAPIController extends ControllerAPI
             $widget_object_type = OrbitInput::post('widget_object_type');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $product_ids = OrbitInput::post('product_ids');
+            $product_ids = (array) $product_ids;
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
+            $is_all_product = OrbitInput::post('is_all_product');
 
             $validator = Validator::make(
                 array(
@@ -129,10 +133,10 @@ class EventAPIController extends ControllerAPI
             if($status == 'active') {
                 $validator = Validator::make(
                     array(
-                        'retailer_ids'         => $retailer_ids
+                        'retailer_ids'  => $retailer_ids
                     ),
                     array(
-                        'retailer_ids'         => 'orbit.req.link_to_retailer'
+                        'retailer_ids'  => 'orbit.req.link_to_retailer'
                     )
                 );
 
@@ -164,6 +168,27 @@ class EventAPIController extends ControllerAPI
                 Event::fire('orbit.event.postnewevent.after.retailervalidation', array($this, $validator));
             }
 
+            foreach ($product_ids as $product_id_check) {
+                $validator = Validator::make(
+                    array(
+                        'product_id'   => $product_id_check,
+                    ),
+                    array(
+                        'product_id'   => 'numeric|orbit.empty.product',
+                    )
+                );
+
+                Event::fire('orbit.event.postnewevent.before.productvalidation', array($this, $validator));
+
+                // Run the validation
+                if ($validator->fails()) {
+                    $errorMessage = $validator->messages()->first();
+                    OrbitShopAPI::throwInvalidArgument($errorMessage);
+                }
+
+                Event::fire('orbit.event.postnewevent.after.productvalidation', array($this, $validator));
+            }
+
             Event::fire('orbit.event.postnewevent.after.validation', array($this, $validator));
 
             // Begin database transaction
@@ -179,6 +204,8 @@ class EventAPIController extends ControllerAPI
             $newevent->begin_date = $begin_date;
             $newevent->end_date = $end_date;
             $newevent->is_permanent = $is_permanent;
+            $newevent->is_all_retailer = $is_all_retailer;
+            $newevent->is_all_product = $is_all_product;
             $newevent->link_object_type = $link_object_type;
 
             // link_object_id1
@@ -233,6 +260,17 @@ class EventAPIController extends ControllerAPI
                 $eventretailers[] = $eventretailer;
             }
             $newevent->retailers = $eventretailers;
+
+            // save EventProduct.
+            $eventproducts = array();
+            foreach ($product_ids as $product_id) {
+                $eventproduct = new EventProduct();
+                $eventproduct->product_id = $product_id;
+                $eventproduct->event_id = $newevent->event_id;
+                $eventproduct->save();
+                $eventproducts[] = $eventproduct;
+            }
+            $newevent->products = $eventproducts;
 
             Event::fire('orbit.event.postnewevent.after.save', array($this, $newevent));
             $this->response->data = $newevent;
@@ -515,6 +553,14 @@ class EventAPIController extends ControllerAPI
                 $updatedevent->is_permanent = $is_permanent;
             });
 
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedevent) {
+                $updatedevent->is_all_retailer = $is_all_retailer;
+            });
+
+            OrbitInput::post('is_all_product', function($is_all_product) use ($updatedevent) {
+                $updatedevent->is_all_product = $is_all_product;
+            });
+
             OrbitInput::post('link_object_type', function($link_object_type) use ($updatedevent) {
                 if (trim($link_object_type) === '') {
                     $link_object_type = NULL;
@@ -607,6 +653,36 @@ class EventAPIController extends ControllerAPI
 
                 // reload retailers relation
                 $updatedevent->load('retailers');
+            });
+
+            OrbitInput::post('product_ids', function($product_ids) use ($updatedevent) {
+                // validate product ids
+                $product_ids = (array) $product_ids;
+                foreach ($product_ids as $product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.event.postupdateevent.before.productvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.event.postupdateevent.after.productvalidation', array($this, $validator));
+                }
+                // sync new set of product ids
+                $updatedevent->products()->sync($product_ids);
+
+                // reload products relation
+                $updatedevent->load('products');
             });
 
             Event::fire('orbit.event.postupdateevent.after.save', array($this, $updatedevent));
@@ -791,6 +867,12 @@ class EventAPIController extends ControllerAPI
             $deleteeventretailers = EventRetailer::where('event_id', $deleteevent->event_id)->get();
             foreach ($deleteeventretailers as $deleteeventretailer) {
                 $deleteeventretailer->delete();
+            }
+
+            // hard delete event-product.
+            $deleteeventproducts = EventProduct::where('event_id', $deleteevent->event_id)->get();
+            foreach ($deleteeventproducts as $deleteeventproduct) {
+                $deleteeventproduct->delete();
             }
 
             $deleteevent->save();
@@ -1007,14 +1089,25 @@ class EventAPIController extends ControllerAPI
                 }
             }
 
+            $table_prefix = DB::getTablePrefix();
+
             // Builder object
-            $events = EventModel::excludeDeleted()
+            $events = EventModel::excludeDeleted('events')
                                 ->allowedForViewOnly($user)
-                                ->select('events.*', DB::raw("CASE link_object_type
-                                        WHEN 'widget' THEN 'page'
-                                        ELSE link_object_type
-                                    END AS 'event_redirected_to'
-                                "));
+                                ->select('events.*', 
+                                        DB::raw("CASE link_object_type
+                                            WHEN 'widget' THEN 'page'
+                                            ELSE link_object_type
+                                        END AS 'event_redirected_to'"),
+                                        DB::raw("count(distinct {$table_prefix}merchants.merchant_id) as retailer_count")
+                                        )
+                                ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
+                                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
+                                ->where(function($q) {
+                                        $q->where('merchants.status','!=','deleted')
+                                        ->orWhereNull('merchants.status');
+                                    })
+                                ->groupBy('events.event_id');
 
             // Filter event by Ids
             OrbitInput::get('event_id', function($eventIds) use ($events)
@@ -1132,6 +1225,22 @@ class EventAPIController extends ControllerAPI
             OrbitInput::get('retailer_id', function ($retailerIds) use ($events) {
                 $events->whereHas('retailers', function($q) use ($retailerIds) {
                     $q->whereIn('retailer_id', $retailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($q) {
+                        $q->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('events.is_all_retailer', 'Y');
+                            $or->where('events.merchant_id', $merchant_id);
+                        });
+                    });
+                });
+            });
+
+            // Filter event product by product id
+            OrbitInput::get('product_id', function ($productIds) use ($events) {
+                $events->whereHas('products', function($q) use ($productIds) {
+                    $q->whereIn('event_product.product_id', $productIds);
+                        $q->orWhere(function ($or) {
+                            $or->where('events.is_all_product', 'Y');
+                        });
                 });
             });
 
@@ -1144,6 +1253,8 @@ class EventAPIController extends ControllerAPI
                         $events->with('retailers');
                     } elseif ($relation === 'product') {
                         $events->with('linkproduct');
+                    } elseif ($relation === 'products') {
+                        $events->with('products');
                     } elseif ($relation === 'family') {
                         $events->with('linkcategory1', 'linkcategory2', 'linkcategory3', 'linkcategory4', 'linkcategory5');
                     } elseif ($relation === 'promotion') {
@@ -1369,8 +1480,8 @@ class EventAPIController extends ControllerAPI
 
             // Builder object
             $events = DB::table('events')
-                ->join('event_retailer', 'events.event_id', '=', 'event_retailer.event_id')
-                ->join('merchants', 'event_retailer.retailer_id', '=', 'merchants.merchant_id')
+                ->leftjoin('event_retailer', 'events.event_id', '=', 'event_retailer.event_id')
+                ->leftjoin('merchants', 'event_retailer.retailer_id', '=', 'merchants.merchant_id')
                 ->select('event_retailer.retailer_id', 'merchants.name AS retailer_name', 'events.*')
                 ->where('events.status', '!=', 'deleted');
 
@@ -1487,6 +1598,12 @@ class EventAPIController extends ControllerAPI
             // Filter event by retailer Ids
             OrbitInput::get('retailer_id', function ($retailerIds) use ($events) {
                 $events->whereIn('event_retailer.retailer_id', $retailerIds);
+                OrbitInput::get('merchant_id', function($merchant_id) use ($events) {
+                        $events->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('events.is_all_retailer', 'Y');
+                            $or->where('events.merchant_id', $merchant_id);
+                        });
+                });
             });
 
             // Clone the query builder which still does not include the take,
@@ -1644,6 +1761,21 @@ class EventAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check the existance of product id
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()->allowedForUser($this->api->user)
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.product', $product);
 
             return TRUE;
         });

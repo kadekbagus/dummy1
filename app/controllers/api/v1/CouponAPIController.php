@@ -120,6 +120,16 @@ class CouponAPIController extends ControllerAPI
             $issue_retailer_ids = (array) $issue_retailer_ids;
             $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
             $redeem_retailer_ids = (array) $redeem_retailer_ids;
+            $rule_product_ids = OrbitInput::post('rule_product_ids');
+            $rule_product_ids = (array) $rule_product_ids;
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
+            $location_id = OrbitInput::post('location_id');
+            $location_type = OrbitInput::post('location_type');
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
+            $is_all_retailer_redeem = OrbitInput::post('is_all_retailer_redeem');
+            $is_all_product_rule = OrbitInput::post('is_all_product_rule');
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $validator = Validator::make(
                 array(
@@ -167,7 +177,7 @@ class CouponAPIController extends ControllerAPI
                     'coupon_validity_in_days' => 'required',
                 )
             );
-            
+
             Event::fire('orbit.coupon.postnewcoupon.before.validation', array($this, $validator));
 
             // Run the validation
@@ -204,15 +214,15 @@ class CouponAPIController extends ControllerAPI
                 if ($rule_object_type == 'family') {
                     $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
                     $errormessages = 'The family to obtain field is required.';
-                } elseif ($rule_object_type == 'product') {
-                    $rulefamilyflag = ! empty($rule_object_id1);
+                } elseif ($rule_object_type == 'product' && $is_all_product_rule == 'N') {
+                    $rulefamilyflag = ! empty($rule_product_ids);
                     $errormessages = 'The product to obtain field is required.';
                 }
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
 
@@ -225,7 +235,7 @@ class CouponAPIController extends ControllerAPI
                     OrbitShopAPI::throwInvalidArgument($errormessages2);
                 }
             }
-            
+
             if ($promotion_type == 'cart') {
                 $validator = Validator::make(
                     array(
@@ -308,6 +318,10 @@ class CouponAPIController extends ControllerAPI
             $newcoupon->coupon_validity_in_days = $coupon_validity_in_days;
             $newcoupon->coupon_notification = $coupon_notification;
             $newcoupon->created_by = $this->api->user->user_id;
+            $newcoupon->is_all_retailer = $is_all_retailer;
+            $newcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
+            $newcoupon->location_id = $location_id;
+            $newcoupon->location_type = $location_type;
 
             Event::fire('orbit.coupon.postnewcoupon.before.save', array($this, $newcoupon));
 
@@ -318,6 +332,7 @@ class CouponAPIController extends ControllerAPI
             $couponrule->rule_type = $rule_type;
             $couponrule->rule_value = $rule_value;
             $couponrule->rule_object_type = $rule_object_type;
+            $couponrule->is_all_product_rule = $is_all_product_rule;
 
             // rule_object_id1
             if (trim($rule_object_id1) === '') {
@@ -355,6 +370,7 @@ class CouponAPIController extends ControllerAPI
             }
 
             $couponrule->discount_object_type = $discount_object_type;
+            $couponrule->is_all_product_discount = $is_all_product_discount;
 
             // discount_object_id1
             if (trim($discount_object_id1) === '') {
@@ -419,6 +435,30 @@ class CouponAPIController extends ControllerAPI
                 $redeemretailers[] = $redeemretailer;
             }
             $newcoupon->redeemretailers = $redeemretailers;
+
+            // save PromotionProduct (rule object type).
+            $promotionproducts = array();
+            foreach ($rule_product_ids as $rule_product_id) {
+                $promotionproduct = new PromotionProduct();
+                $promotionproduct->product_id = $rule_product_id;
+                $promotionproduct->promotion_rule_id = $couponrule->promotion_rule_id;
+                $promotionproduct->object_type = 'rule';
+                $promotionproduct->save();
+                $promotionproducts[] = $promotionproduct;
+            }
+            $newcoupon->couponrule->rule_products = $promotionproducts;
+
+            // save PromotionProduct (discount object type).
+            $promotionproducts = array();
+            foreach ($discount_product_ids as $discount_product_id) {
+                $promotionproduct = new PromotionProduct();
+                $promotionproduct->product_id = $discount_product_id;
+                $promotionproduct->promotion_rule_id = $couponrule->promotion_rule_id;
+                $promotionproduct->object_type = 'discount';
+                $promotionproduct->save();
+                $promotionproducts[] = $promotionproduct;
+            }
+            $newcoupon->couponrule->discount_products = $promotionproducts;
 
             Event::fire('orbit.coupon.postnewcoupon.after.save', array($this, $newcoupon));
             $this->response->data = $newcoupon;
@@ -623,6 +663,12 @@ class CouponAPIController extends ControllerAPI
             $issue_retailer_ids = (array) $issue_retailer_ids;
             $redeem_retailer_ids = OrbitInput::post('redeem_retailer_ids');
             $redeem_retailer_ids = (array) $redeem_retailer_ids;
+            $rule_product_ids = OrbitInput::post('rule_product_ids');
+            $rule_product_ids = (array) $rule_product_ids;
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
+            $is_all_product_rule = OrbitInput::post('is_all_product_rule');
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -718,15 +764,15 @@ class CouponAPIController extends ControllerAPI
                 if ($rule_object_type == 'family') {
                     $rulefamilyflag = ! empty($rule_object_id1) || ! empty($rule_object_id2) || ! empty($rule_object_id3) || ! empty($rule_object_id4) || ! empty($rule_object_id5);
                     $errormessages = 'The family to obtain field is required.';
-                } elseif ($rule_object_type == 'product') {
-                    $rulefamilyflag = ! empty($rule_object_id1);
+                } elseif ($rule_object_type == 'product' && $is_all_product_rule == 'N') {
+                    $rulefamilyflag = ! empty($rule_product_ids);
                     $errormessages = 'The product to obtain field is required.';
                 }
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
 
@@ -739,7 +785,7 @@ class CouponAPIController extends ControllerAPI
                     OrbitShopAPI::throwInvalidArgument($errormessages2);
                 }
             }
-            
+
             if ($promotion_type == 'cart') {
                 $validator = Validator::make(
                     array(
@@ -809,6 +855,22 @@ class CouponAPIController extends ControllerAPI
                 $updatedcoupon->coupon_notification = $coupon_notification;
             });
 
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedcoupon) {
+                $updatedcoupon->is_all_retailer = $is_all_retailer;
+            });
+
+            OrbitInput::post('is_all_retailer_redeem', function($is_all_retailer_redeem) use ($updatedcoupon) {
+                $updatedcoupon->is_all_retailer_redeem = $is_all_retailer_redeem;
+            });
+
+            OrbitInput::post('location_id', function($location_id) use ($updatedcoupon) {
+                $updatedcoupon->location_id = $location_id;
+            });
+
+            OrbitInput::post('location_type', function($location_type) use ($updatedcoupon) {
+                $updatedcoupon->location_type = $location_type;
+            });
+
             $updatedcoupon->modified_by = $this->api->user->user_id;
 
             Event::fire('orbit.coupon.postupdatecoupon.before.save', array($this, $updatedcoupon));
@@ -834,6 +896,10 @@ class CouponAPIController extends ControllerAPI
                     $rule_object_type = NULL;
                 }
                 $couponrule->rule_object_type = $rule_object_type;
+            });
+
+            OrbitInput::post('is_all_product_rule', function($is_all_product_rule) use ($couponrule) {
+                $couponrule->is_all_product_rule = $is_all_product_rule;
             });
 
             OrbitInput::post('rule_object_id1', function($rule_object_id1) use ($couponrule) {
@@ -876,6 +942,10 @@ class CouponAPIController extends ControllerAPI
                     $discount_object_type = NULL;
                 }
                 $couponrule->discount_object_type = $discount_object_type;
+            });
+
+            OrbitInput::post('is_all_product_discount', function($is_all_product_discount) use ($couponrule) {
+                $couponrule->is_all_product_discount = $is_all_product_discount;
             });
 
             OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($couponrule) {
@@ -1009,6 +1079,95 @@ class CouponAPIController extends ControllerAPI
 
                 // reload redeemretailers relation
                 $updatedcoupon->load('redeemretailers');
+            });
+
+            OrbitInput::post('rule_product_ids', function($rule_product_ids) use ($updatedcoupon) {
+                // validate product_ids
+                $rule_product_ids = (array) $rule_product_ids;
+                foreach ($rule_product_ids as $rule_product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $rule_product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.coupon.postupdatecoupon.before.ruleproductvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.coupon.postupdatecoupon.after.ruleproductvalidation', array($this, $validator));
+                }
+
+                // sync new set of product ids
+                $pivotData = array_fill(0, count($rule_product_ids), ['object_type' => 'rule']);
+                $syncData = array_combine($rule_product_ids, $pivotData);
+
+                $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedcoupon->couponrule->promotion_rule_id)
+                                                       ->where('object_type', 'rule')
+                                                       ->get(array('product_id'))
+                                                       ->toArray();
+                // detach old relation
+                if (sizeof($deleted_product_ids) > 0) {
+                    $updatedcoupon->couponrule->discountproducts()->detach($deleted_product_ids);
+                }
+
+                // attach new relation
+                $updatedcoupon->couponrule->discountproducts()->attach($syncData);
+
+                // reload interests relation
+                $updatedcoupon->couponrule->load('discountproducts');
+            });
+
+
+            OrbitInput::post('discount_product_ids', function($discount_product_ids) use ($updatedcoupon) {
+                // validate product_ids
+                $discount_product_ids = (array) $discount_product_ids;
+                foreach ($discount_product_ids as $discount_product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $discount_product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.coupon.postupdatecoupon.before.discountproductvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.coupon.postupdatecoupon.after.discountproductvalidation', array($this, $validator));
+                }
+
+                // sync new set of product ids
+                $pivotData = array_fill(0, count($discount_product_ids), ['object_type' => 'discount']);
+                $syncData = array_combine($discount_product_ids, $pivotData);
+
+                $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedcoupon->couponrule->promotion_rule_id)
+                                                       ->where('object_type', 'discount')
+                                                       ->get(array('product_id'))
+                                                       ->toArray();
+                // detach old relation
+                if (sizeof($deleted_product_ids) > 0) {
+                    $updatedcoupon->couponrule->ruleproducts()->detach($deleted_product_ids);
+                }
+
+                // attach new relation
+                $updatedcoupon->couponrule->ruleproducts()->attach($syncData);
+
+                // reload interests relation
+                $updatedcoupon->couponrule->load('ruleproducts');
             });
 
             Event::fire('orbit.coupon.postupdatecoupon.after.save', array($this, $updatedcoupon));
@@ -1183,7 +1342,7 @@ class CouponAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deletecoupon = Coupon::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $deletecoupon = Coupon::with('couponrule')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
             $deletecoupon->status = 'deleted';
             $deletecoupon->modified_by = $this->api->user->user_id;
 
@@ -1199,6 +1358,12 @@ class CouponAPIController extends ControllerAPI
             $deleteredeemretailers = CouponRetailerRedeem::where('promotion_id', $deletecoupon->promotion_id)->get();
             foreach ($deleteredeemretailers as $deleteredeemretailer) {
                 $deleteredeemretailer->delete();
+            }
+
+            // hard delete promotionproduct.
+            $deletepromotionproducts = PromotionProduct::where('promotion_rule_id', $deletecoupon->couponrule->promotion_rule_id)->get();
+            foreach ($deletepromotionproducts as $deletepromotionproduct) {
+                $deletepromotionproduct->delete();
             }
 
             $deletecoupon->save();
@@ -1425,27 +1590,36 @@ class CouponAPIController extends ControllerAPI
             }
 
             $table_prefix = DB::getTablePrefix();
+
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $coupons = Coupon::with('couponrule')
                 ->excludeDeleted('promotions')
                 ->allowedForViewOnly($user)
                 ->select(DB::raw($table_prefix . "promotions.*,
-                    CASE {$table_prefix}promotion_rules.rule_type
-                        WHEN 'cart_discount_by_percentage' THEN 'percentage'
-                        WHEN 'product_discount_by_percentage' THEN 'percentage'
-                        WHEN 'cart_discount_by_value' THEN 'value'
-                        WHEN 'product_discount_by_value' THEN 'value'
-                        ELSE NULL
-                    END AS 'display_discount_type',
-                    CASE {$table_prefix}promotion_rules.rule_type
-                        WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
-                        WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
-                        ELSE {$table_prefix}promotion_rules.discount_value
-                    END AS 'display_discount_value'
-                    ")
+                            CASE {$table_prefix}promotion_rules.rule_type
+                                WHEN 'cart_discount_by_percentage' THEN 'percentage'
+                                WHEN 'product_discount_by_percentage' THEN 'percentage'
+                                WHEN 'cart_discount_by_value' THEN 'value'
+                                WHEN 'product_discount_by_value' THEN 'value'
+                                ELSE NULL
+                            END AS 'display_discount_type',
+                            CASE {$table_prefix}promotion_rules.rule_type
+                                WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                                WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                                ELSE {$table_prefix}promotion_rules.discount_value
+                            END AS 'display_discount_value'
+                            "),
+                        DB::raw("count(distinct {$table_prefix}merchants.merchant_id) as retailer_redeem_count")
                 )
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
+                ->leftJoin('promotion_retailer_redeem', 'promotion_retailer_redeem.promotion_id', '=', 'promotions.promotion_id')
+                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer_redeem.retailer_id')
+                ->where(function($q) {
+                        $q->where('merchants.status','!=','deleted')
+                        ->orWhereNull('merchants.status');
+                    })
+                ->groupBy('promotions.promotion_id');
 
             // Check the value of `include_transaction_status` argument
             OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($coupons) {
@@ -1661,8 +1835,14 @@ class CouponAPIController extends ControllerAPI
 
             // Filter coupon by issue retailer id
             OrbitInput::get('issue_retailer_id', function ($issueRetailerIds) use ($coupons) {
-                $coupons->whereHas('issueretailers', function($q) use ($issueRetailerIds) {
+                $coupons->whereHas('issueretailers', function($q) use ($issueRetailerIds, $coupons) {
                     $q->whereIn('retailer_id', $issueRetailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($coupons) {
+                        $coupons->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1670,6 +1850,12 @@ class CouponAPIController extends ControllerAPI
             OrbitInput::get('redeem_retailer_id', function ($redeemRetailerIds) use ($coupons) {
                 $coupons->whereHas('redeemretailers', function($q) use ($redeemRetailerIds) {
                     $q->whereIn('retailer_id', $redeemRetailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($coupons) {
+                        $coupons->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer_redeem', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1682,6 +1868,8 @@ class CouponAPIController extends ControllerAPI
                         $coupons->with('issueretailers', 'redeemretailers');
                     } elseif ($relation === 'product') {
                         $coupons->with('couponrule.ruleproduct', 'couponrule.discountproduct');
+                    } elseif ($relation === 'products') {
+                        $coupons->with('couponrule.ruleproducts', 'couponrule.discountproducts');
                     } elseif ($relation === 'family') {
                         $coupons->with('couponrule.rulecategory1', 'couponrule.rulecategory2', 'couponrule.rulecategory3', 'couponrule.rulecategory4', 'couponrule.rulecategory5', 'couponrule.discountcategory1', 'couponrule.discountcategory2', 'couponrule.discountcategory3', 'couponrule.discountcategory4', 'couponrule.discountcategory5');
                     }
@@ -1903,12 +2091,26 @@ class CouponAPIController extends ControllerAPI
             }
 
             // Builder object
-            $coupons = DB::table('promotions')
-                ->join('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
-                ->join('merchants', 'promotion_retailer.retailer_id', '=', 'merchants.merchant_id')
-                ->select('promotion_retailer.retailer_id', 'merchants.name AS issue_retailer_name', 'promotions.*')
-                ->where('promotions.is_coupon', '=', 'Y')
-                ->where('promotions.status', '!=', 'deleted');
+            $coupons = Coupon::excludeDeleted('promotions')
+                 ->select('merchants.merchant_id AS retailer_id', 'merchants.name AS issue_retailer_name', 'promotions.*')
+                 ->leftJoin('promotion_retailer', 'promotion_retailer.promotion_id', '=', 'promotions.promotion_id')
+                 ->leftJoin('merchants', function($q) {
+                     $q->where('merchants.object_type', '=', 'retailer')
+                       ->on('merchants.parent_id', '=', 'promotions.merchant_id');
+                 })
+                 ->whereNotNull('merchants.merchant_id')
+                 ->where(function($q) {
+                     $q->where('promotions.is_all_retailer', '=', 'Y')
+                       ->orWhere(function($q) {
+                            $prefix = DB::getTablePrefix();
+                            $q->where(function($q) {
+                                $q->where('promotions.is_all_retailer', '!=', 'Y')
+                                  ->orWhereNull('promotions.is_all_retailer');
+                              })
+                              ->whereRaw("{$prefix}promotion_retailer.retailer_id = {$prefix}merchants.merchant_id");
+                       });
+                 })
+                 ;
 
             // Filter coupon by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($coupons)
@@ -1993,6 +2195,12 @@ class CouponAPIController extends ControllerAPI
             // Filter coupon by issue retailer Ids
             OrbitInput::get('issue_retailer_id', function ($issueRetailerIds) use ($coupons) {
                 $coupons->whereIn('promotion_retailer.retailer_id', $issueRetailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($coupons) {
+                        $coupons->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
             });
 
             // Clone the query builder which still does not include the take,
@@ -2150,6 +2358,21 @@ class CouponAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.merchant', $merchant);
+
+            return TRUE;
+        });
+
+        // Check the existance of product id
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()->allowedForUser($this->api->user)
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.product', $product);
 
             return TRUE;
         });

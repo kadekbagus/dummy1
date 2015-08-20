@@ -27,3 +27,23 @@ Route::get('/app/v1/retailer/search', 'IntermediateAuthController@Retailer_getSe
  * Retailer city list
  */
 Route::get('/app/v1/retailer/city', 'IntermediateAuthController@Retailer_getCityList');
+
+/**
+ * List and/or Search retailer by product
+ */
+Route::get('/app/v1/retailer/search-by-product', 'IntermediateAuthController@Retailer_getSearchRetailerByProduct');
+
+/**
+ * List and/or Search retailer by promotion
+ */
+Route::get('/app/v1/retailer/search-by-promotion', 'IntermediateAuthController@Retailer_getSearchRetailerByPromotion');
+
+/**
+ * List and/or Search retailer by coupon
+ */
+Route::get('/app/v1/retailer/search-by-coupon', 'IntermediateAuthController@Retailer_getSearchRetailerByCoupon');
+
+/**
+ * List and/or Search retailer by event
+ */
+Route::get('/app/v1/retailer/search-by-event', 'IntermediateAuthController@Retailer_getSearchRetailerByEvent');

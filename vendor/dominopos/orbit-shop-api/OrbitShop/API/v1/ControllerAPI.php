@@ -125,7 +125,7 @@ abstract class ControllerAPI extends Controller
      * Static method to instantiate the object.
      *
      * @param string $contentType
-     * @return ControllerAPI
+     * @return static
      */
     public static function create($contentType = 'application/json')
     {

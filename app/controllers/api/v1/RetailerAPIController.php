@@ -1480,6 +1480,1126 @@ class RetailerAPIController extends ControllerAPI
     }
 
 
+
+    /**
+     * GET - Search Retailer By Product
+     *
+     * @author kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `product_id`                    (optional)
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
+     * @return Illuminate\Support\Facades\Response
+     */
+     public function getSearchRetailerByProduct()
+     {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_retailer')) {
+                Event::fire('orbit.retailer.getsearchretailerbyproduct.authz.notallowed', array($this, $user));
+                $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sortby' => $sort_by,
+                ),
+                array(
+                    'sortby' => 'in:orid,registered_date,retailer_name,retailer_email,retailer_userid,retailer_description,retailerid,retailer_address1,retailer_address2,retailer_address3,retailer_cityid,retailer_city,retailer_province,retailer_countryid,retailer_country,retailer_phone,retailer_fax,retailer_status,retailer_currency,contact_person_firstname,merchant_name',
+                ),
+                array(
+                    'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
+                )
+            );
+
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.retailer.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.retailer.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            $table_prefix = DB::getTablePrefix();
+            // Builder object
+            $retailers = Retailer::excludeDeleted('merchants')
+                                ->select('merchants.merchant_id as retailer_id',
+                                         'merchants.name as retailer_name',
+                                         'merchants.parent_id as merchant_id',
+                                         'products.product_id',
+                                         'products.product_name',
+                                         'products.is_all_retailer')
+                                ->leftJoin('products', 'products.merchant_id', '=', 'merchants.parent_id')                               
+                                ->leftJoin('product_retailer', function($join) {
+                                    $join->on('products.product_id', '=', 'product_retailer.product_id');
+                                    $join->on('merchants.merchant_id', '=', 'product_retailer.retailer_id');
+                                });
+
+            // Filter retailer by product id
+            OrbitInput::get('product_id', function($product_id) use ($retailers)
+            {
+                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $product_id)
+                {
+                    $retailers->RetailerFromProduct($merchant_id, $product_id);
+                });
+            });
+
+            // Filter retailer by name
+            OrbitInput::get('name', function($name) use ($retailers)
+            {
+                $retailers->whereIn('merchants.name', $name);
+            });
+
+            // Filter retailer by matching name pattern
+            OrbitInput::get('name_like', function($name) use ($retailers)
+            {
+                $retailers->where('merchants.name', 'like', "%$name%");
+            });
+
+
+            // Add new relation based on request
+            OrbitInput::get('with', function($with) use ($retailers) {
+                $with = (array)$with;
+
+                // Make sure the with_count also in array format
+                $withCount = array();
+                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
+                    $withCount = (array)$_wcount;
+                });
+
+                foreach ($with as $relation) {
+                    $retailers->with($relation);
+
+                    // Also include number of count if consumer ask it
+                    if (in_array($relation, $withCount)) {
+                        $countRelation = $relation . 'Number';
+                        $retailers->with($countRelation);
+                    }
+                }
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_retailers = clone $retailers;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $retailers->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function($_skip) use (&$skip, $retailers)
+            {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $retailers->skip($skip);
+
+            // Default sort by
+            $sortBy = 'merchants.name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+            {
+                   // Map the sortby request to the real column name
+                  $sortByMapping = array(
+                  'orid' => 'merchants.orid',
+                  'registered_date' => 'merchants.created_at',
+                  'retailer_name' => 'merchants.name',
+                  'retailer_email' => 'merchants.email',
+                  'retailer_userid' => 'merchants.user_id',
+                  'retailer_description' => 'merchants.description',
+                  'retailerid' => 'merchants.merchant_id',
+                  'retailer_address1' => 'merchants.address_line1',
+                  'retailer_address2' => 'merchants.address_line2',
+                  'retailer_address3' => 'merchants.address_line3',
+                  'retailer_cityid' => 'merchants.city_id',
+                  'retailer_city' => 'merchants.city',
+                  'retailer_province' => 'merchants.province',
+                  'retailer_countryid' => 'merchants.country_id',
+                  'retailer_country' => 'merchants.country',
+                  'retailer_phone' => 'merchants.phone',
+                  'retailer_fax' => 'merchants.fax',
+                  'retailer_status' => 'merchants.status',
+                  'retailer_currency' => 'merchants.currency',
+                  'contact_person_firstname' => 'merchants.contact_person_firstname',
+                  'merchant_name' => 'merchant_name',
+                  );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $retailers->orderBy($sortBy, $sortMode);
+
+            $totalRetailers = RecordCounter::create($_retailers)->count();
+            $listOfRetailers = $retailers->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRetailers;
+            $data->returned_records = count($listOfRetailers);
+            $data->records = $listOfRetailers;
+
+            if ($totalRetailers === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyproduct.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.retailer.getsearchretailerbyproduct.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+
+    /**
+     * GET - Search Retailer By Promotion 
+     *
+     * @author kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `promotion_id`                  (optional)
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
+     * @return Illuminate\Support\Facades\Response
+     */
+     public function getSearchRetailerByPromotion()
+     {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_retailer')) {
+                Event::fire('orbit.retailer.getsearchretailerbypromotion.authz.notallowed', array($this, $user));
+                $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sortby' => $sort_by,
+                ),
+                array(
+                    'sortby' => 'in:orid,registered_date,retailer_name,retailer_email,retailer_userid,retailer_description,retailerid,retailer_address1,retailer_address2,retailer_address3,retailer_cityid,retailer_city,retailer_province,retailer_countryid,retailer_country,retailer_phone,retailer_fax,retailer_status,retailer_currency,contact_person_firstname,merchant_name',
+                ),
+                array(
+                    'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
+                )
+            );
+
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.retailer.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.retailer.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            // Builder object
+            $retailers = Retailer::excludeDeleted('merchants')
+                                ->select('merchants.merchant_id as retailer_id',
+                                     'merchants.name as retailer_name',
+                                     'merchants.parent_id as merchant_id',
+                                     'promotions.promotion_id',
+                                     'promotions.promotion_name',
+                                     'promotions.is_all_retailer'
+                                    )
+                                  ->leftJoin('promotions', 'promotions.merchant_id', '=', 'merchants.parent_id')                               
+                                  ->leftJoin('promotion_retailer', function($join) {
+                                      $join->on('promotions.promotion_id', '=', 'promotion_retailer.promotion_id');
+                                      $join->on('merchants.merchant_id', '=', 'promotion_retailer.retailer_id');
+                                });
+
+            // Filter retailer by promotion id
+            OrbitInput::get('promotion_id', function($promotion_id) use ($retailers)
+            {
+                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $promotion_id)
+                {
+                    $retailers->RetailerFromPromotion($merchant_id, $promotion_id);
+                });
+            });
+
+            // Filter retailer by name
+            OrbitInput::get('name', function($name) use ($retailers)
+            {
+                $retailers->whereIn('merchants.name', $name);
+            });
+
+            // Filter retailer by matching name pattern
+            OrbitInput::get('name_like', function($name) use ($retailers)
+            {
+                $retailers->where('merchants.name', 'like', "%$name%");
+            });
+
+
+            // Add new relation based on request
+            OrbitInput::get('with', function($with) use ($retailers) {
+                $with = (array)$with;
+
+                // Make sure the with_count also in array format
+                $withCount = array();
+                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
+                    $withCount = (array)$_wcount;
+                });
+
+                foreach ($with as $relation) {
+                    $retailers->with($relation);
+
+                    // Also include number of count if consumer ask it
+                    if (in_array($relation, $withCount)) {
+                        $countRelation = $relation . 'Number';
+                        $retailers->with($countRelation);
+                    }
+                }
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_retailers = clone $retailers;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $retailers->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function($_skip) use (&$skip, $retailers)
+            {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $retailers->skip($skip);
+
+            // Default sort by
+            $sortBy = 'merchants.name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+            {
+                   // Map the sortby request to the real column name
+                  $sortByMapping = array(
+                  'orid' => 'merchants.orid',
+                  'registered_date' => 'merchants.created_at',
+                  'retailer_name' => 'merchants.name',
+                  'retailer_email' => 'merchants.email',
+                  'retailer_userid' => 'merchants.user_id',
+                  'retailer_description' => 'merchants.description',
+                  'retailerid' => 'merchants.merchant_id',
+                  'retailer_address1' => 'merchants.address_line1',
+                  'retailer_address2' => 'merchants.address_line2',
+                  'retailer_address3' => 'merchants.address_line3',
+                  'retailer_cityid' => 'merchants.city_id',
+                  'retailer_city' => 'merchants.city',
+                  'retailer_province' => 'merchants.province',
+                  'retailer_countryid' => 'merchants.country_id',
+                  'retailer_country' => 'merchants.country',
+                  'retailer_phone' => 'merchants.phone',
+                  'retailer_fax' => 'merchants.fax',
+                  'retailer_status' => 'merchants.status',
+                  'retailer_currency' => 'merchants.currency',
+                  'contact_person_firstname' => 'merchants.contact_person_firstname',
+                  'merchant_name' => 'merchant_name',
+                  );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $retailers->orderBy($sortBy, $sortMode);
+
+            $totalRetailers = RecordCounter::create($_retailers)->count();
+            $listOfRetailers = $retailers->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRetailers;
+            $data->returned_records = count($listOfRetailers);
+            $data->records = $listOfRetailers;
+
+            if ($totalRetailers === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.retailer.getsearchretailerbypromotion.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+
+
+
+    /**
+     * GET - Search Retailer By Coupon
+     *
+     * @author kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `coupon_id`                     (optional)
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
+     * @return Illuminate\Support\Facades\Response
+     */
+     public function getSearchRetailerByCoupon()
+     {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_retailer')) {
+                Event::fire('orbit.retailer.getsearchretailerbypromotion.authz.notallowed', array($this, $user));
+                $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sortby' => $sort_by,
+                ),
+                array(
+                    'sortby' => 'in:orid,registered_date,retailer_name,retailer_email,retailer_userid,retailer_description,retailerid,retailer_address1,retailer_address2,retailer_address3,retailer_cityid,retailer_city,retailer_province,retailer_countryid,retailer_country,retailer_phone,retailer_fax,retailer_status,retailer_currency,contact_person_firstname,merchant_name',
+                ),
+                array(
+                    'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
+                )
+            );
+
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.retailer.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.retailer.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            // Builder object
+            $retailers = Retailer::excludeDeleted('merchants')
+                                ->select('merchants.merchant_id as retailer_id',
+                                     'merchants.name as retailer_name',
+                                     'merchants.parent_id as merchant_id',
+                                     'promotions.promotion_id',
+                                     'promotions.promotion_name',
+                                     'promotions.is_all_retailer_redeem'
+                                    )
+                                  ->leftJoin('promotions', 'promotions.merchant_id', '=', 'merchants.parent_id')                               
+                                  ->leftJoin('promotion_retailer_redeem', function($join) {
+                                      $join->on('promotions.promotion_id', '=', 'promotion_retailer_redeem.promotion_id');
+                                      $join->on('merchants.merchant_id', '=', 'promotion_retailer_redeem.retailer_id');
+                                });
+
+            // Filter retailer by coupon id
+            OrbitInput::get('coupon_id', function($coupon_id) use ($retailers)
+            {
+                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $coupon_id)
+                {
+                    $retailers->RetailerFromCoupon($merchant_id, $coupon_id);
+                });
+            });
+
+            // Filter retailer by name
+            OrbitInput::get('name', function($name) use ($retailers)
+            {
+                $retailers->whereIn('merchants.name', $name);
+            });
+
+            // Filter retailer by matching name pattern
+            OrbitInput::get('name_like', function($name) use ($retailers)
+            {
+                $retailers->where('merchants.name', 'like', "%$name%");
+            });
+
+
+            // Add new relation based on request
+            OrbitInput::get('with', function($with) use ($retailers) {
+                $with = (array)$with;
+
+                // Make sure the with_count also in array format
+                $withCount = array();
+                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
+                    $withCount = (array)$_wcount;
+                });
+
+                foreach ($with as $relation) {
+                    $retailers->with($relation);
+
+                    // Also include number of count if consumer ask it
+                    if (in_array($relation, $withCount)) {
+                        $countRelation = $relation . 'Number';
+                        $retailers->with($countRelation);
+                    }
+                }
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_retailers = clone $retailers;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $retailers->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function($_skip) use (&$skip, $retailers)
+            {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $retailers->skip($skip);
+
+            // Default sort by
+            $sortBy = 'merchants.name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+            {
+                   // Map the sortby request to the real column name
+                  $sortByMapping = array(
+                  'orid' => 'merchants.orid',
+                  'registered_date' => 'merchants.created_at',
+                  'retailer_name' => 'merchants.name',
+                  'retailer_email' => 'merchants.email',
+                  'retailer_userid' => 'merchants.user_id',
+                  'retailer_description' => 'merchants.description',
+                  'retailerid' => 'merchants.merchant_id',
+                  'retailer_address1' => 'merchants.address_line1',
+                  'retailer_address2' => 'merchants.address_line2',
+                  'retailer_address3' => 'merchants.address_line3',
+                  'retailer_cityid' => 'merchants.city_id',
+                  'retailer_city' => 'merchants.city',
+                  'retailer_province' => 'merchants.province',
+                  'retailer_countryid' => 'merchants.country_id',
+                  'retailer_country' => 'merchants.country',
+                  'retailer_phone' => 'merchants.phone',
+                  'retailer_fax' => 'merchants.fax',
+                  'retailer_status' => 'merchants.status',
+                  'retailer_currency' => 'merchants.currency',
+                  'contact_person_firstname' => 'merchants.contact_person_firstname',
+                  'merchant_name' => 'merchant_name',
+                  );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $retailers->orderBy($sortBy, $sortMode);
+
+            $totalRetailers = RecordCounter::create($_retailers)->count();
+            $listOfRetailers = $retailers->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRetailers;
+            $data->returned_records = count($listOfRetailers);
+            $data->records = $listOfRetailers;
+
+            if ($totalRetailers === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.retailer.getsearchretailerbypromotion.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.retailer.getsearchretailerbypromotion.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+
+    /**
+     * GET - Search Retailer By Event
+     *
+     * @author kadek <kadek@dominopos.com>
+     *
+     * List of API Parameters
+     * ----------------------
+     * @param string            `sort_by`                       (optional) - column order by
+     * @param string            `sort_mode`                     (optional) - asc or desc
+     * @param integer           `take`                          (optional) - limit
+     * @param integer           `skip`                          (optional) - limit offset
+     * @param integer           `merchant_id`                   (optional)
+     * @param integer           `event_id`                      (optional)
+     * @param string|array      `with`                          (optional) - Relation which need to be included
+     * @param string|array      `with_count`                    (optional) - Also include the "count" relation or not, should be used in conjunction with `with`
+     * @return Illuminate\Support\Facades\Response
+     */
+     public function getSearchRetailerByEvent()
+     {
+        try {
+            $httpCode = 200;
+
+            Event::fire('orbit.retailer.getsearchretailerbyevent.before.auth', array($this));
+
+            // Require authentication
+            $this->checkAuth();
+
+            Event::fire('orbit.retailer.getsearchretailerbyevent.after.auth', array($this));
+
+            // Try to check access control list, does this user allowed to
+            // perform this action
+            $user = $this->api->user;
+            Event::fire('orbit.retailer.getsearchretailerbyevent.before.authz', array($this, $user));
+
+            if (! ACL::create($user)->isAllowed('view_retailer')) {
+                Event::fire('orbit.retailer.getsearchretailerbyevent.authz.notallowed', array($this, $user));
+                $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
+                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
+                ACL::throwAccessForbidden($message);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbyevent.after.authz', array($this, $user));
+
+            $this->registerCustomValidation();
+
+            $sort_by = OrbitInput::get('sortby');
+            $validator = Validator::make(
+                array(
+                    'sortby' => $sort_by,
+                ),
+                array(
+                    'sortby' => 'in:orid,registered_date,retailer_name,retailer_email,retailer_userid,retailer_description,retailerid,retailer_address1,retailer_address2,retailer_address3,retailer_cityid,retailer_city,retailer_province,retailer_countryid,retailer_country,retailer_phone,retailer_fax,retailer_status,retailer_currency,contact_person_firstname,merchant_name',
+                ),
+                array(
+                    'sortby.in' => Lang::get('validation.orbit.empty.retailer_sortby'),
+                )
+            );
+
+            Event::fire('orbit.retailer.getsearchretailerbyevent.before.validation', array($this, $validator));
+
+            // Run the validation
+            if ($validator->fails()) {
+                $errorMessage = $validator->messages()->first();
+                OrbitShopAPI::throwInvalidArgument($errorMessage);
+            }
+            Event::fire('orbit.retailer.getsearchretailerbyevent.after.validation', array($this, $validator));
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.retailer.max_record');
+            if ($maxRecord <= 0) {
+                // Fallback
+                $maxRecord = (int) Config::get('orbit.pagination.max_record');
+                if ($maxRecord <= 0) {
+                    $maxRecord = 20;
+                }
+            }
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.retailer.per_page');
+            if ($perPage <= 0) {
+                // Fallback
+                $perPage = (int) Config::get('orbit.pagination.per_page');
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+            }
+
+            // Builder object
+            $retailers = Retailer::excludeDeleted('merchants')
+                                ->select('merchants.merchant_id as retailer_id',
+                                     'merchants.name as retailer_name',
+                                     'merchants.parent_id as merchant_id',
+                                     'events.event_id',
+                                     'events.event_name',
+                                     'events.is_all_retailer'
+                                    )
+                                  ->leftJoin('events', 'events.merchant_id', '=', 'merchants.parent_id')                               
+                                  ->leftJoin('event_retailer', function($join) {
+                                      $join->on('events.event_id', '=', 'event_retailer.event_id');
+                                      $join->on('merchants.merchant_id', '=', 'event_retailer.retailer_id');
+                                  });
+
+            // Filter retailer by event id
+            OrbitInput::get('event_id', function($event_id) use ($retailers)
+            {
+                OrbitInput::get('merchant_id', function($merchant_id) use ($retailers, $event_id)
+                {
+                    $retailers->RetailerFromEvent($merchant_id, $event_id);
+                });
+            });
+
+            // Filter retailer by name
+            OrbitInput::get('name', function($name) use ($retailers)
+            {
+                $retailers->whereIn('merchants.name', $name);
+            });
+
+            // Filter retailer by matching name pattern
+            OrbitInput::get('name_like', function($name) use ($retailers)
+            {
+                $retailers->where('merchants.name', 'like', "%$name%");
+            });
+
+            // Add new relation based on request
+            OrbitInput::get('with', function($with) use ($retailers) {
+                $with = (array)$with;
+
+                // Make sure the with_count also in array format
+                $withCount = array();
+                OrbitInput::get('with_count', function($_wcount) use (&$withCount) {
+                    $withCount = (array)$_wcount;
+                });
+
+                foreach ($with as $relation) {
+                    $retailers->with($relation);
+
+                    // Also include number of count if consumer ask it
+                    if (in_array($relation, $withCount)) {
+                        $countRelation = $relation . 'Number';
+                        $retailers->with($countRelation);
+                    }
+                }
+            });
+
+            // Clone the query builder which still does not include the take,
+            // skip, and order by
+            $_retailers = clone $retailers;
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $retailers->take($take);
+
+            $skip = 0;
+            OrbitInput::get('skip', function($_skip) use (&$skip, $retailers)
+            {
+                if ($_skip < 0) {
+                    $_skip = 0;
+                }
+
+                $skip = $_skip;
+            });
+            $retailers->skip($skip);
+
+            // Default sort by
+            $sortBy = 'merchants.name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get('sortby', function($_sortBy) use (&$sortBy)
+            {
+                   // Map the sortby request to the real column name
+                  $sortByMapping = array(
+                  'orid' => 'merchants.orid',
+                  'registered_date' => 'merchants.created_at',
+                  'retailer_name' => 'merchants.name',
+                  'retailer_email' => 'merchants.email',
+                  'retailer_userid' => 'merchants.user_id',
+                  'retailer_description' => 'merchants.description',
+                  'retailerid' => 'merchants.merchant_id',
+                  'retailer_address1' => 'merchants.address_line1',
+                  'retailer_address2' => 'merchants.address_line2',
+                  'retailer_address3' => 'merchants.address_line3',
+                  'retailer_cityid' => 'merchants.city_id',
+                  'retailer_city' => 'merchants.city',
+                  'retailer_province' => 'merchants.province',
+                  'retailer_countryid' => 'merchants.country_id',
+                  'retailer_country' => 'merchants.country',
+                  'retailer_phone' => 'merchants.phone',
+                  'retailer_fax' => 'merchants.fax',
+                  'retailer_status' => 'merchants.status',
+                  'retailer_currency' => 'merchants.currency',
+                  'contact_person_firstname' => 'merchants.contact_person_firstname',
+                  'merchant_name' => 'merchant_name',
+                  );
+
+                $sortBy = $sortByMapping[$_sortBy];
+            });
+
+            OrbitInput::get('sortmode', function($_sortMode) use (&$sortMode)
+            {
+                if (strtolower($_sortMode) !== 'asc') {
+                    $sortMode = 'desc';
+                }
+            });
+            $retailers->orderBy($sortBy, $sortMode);
+
+            $totalRetailers = RecordCounter::create($_retailers)->count();
+            $listOfRetailers = $retailers->get();
+
+            $data = new stdclass();
+            $data->total_records = $totalRetailers;
+            $data->returned_records = count($listOfRetailers);
+            $data->records = $listOfRetailers;
+
+            if ($totalRetailers === 0) {
+                $data->records = NULL;
+                $this->response->message = Lang::get('statuses.orbit.nodata.retailer');
+            }
+
+            $this->response->data = $data;
+        } catch (ACLForbiddenException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyevent.access.forbidden', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+            $httpCode = 403;
+        } catch (InvalidArgsException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyevent.invalid.arguments', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $result['total_records'] = 0;
+            $result['returned_records'] = 0;
+            $result['records'] = null;
+
+            $this->response->data = $result;
+            $httpCode = 403;
+        } catch (QueryException $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyevent.query.error', array($this, $e));
+
+            $this->response->code = $e->getCode();
+            $this->response->status = 'error';
+
+            // Only shows full query error when we are in debug mode
+            if (Config::get('app.debug')) {
+                $this->response->message = $e->getMessage();
+            } else {
+                $this->response->message = Lang::get('validation.orbit.queryerror');
+            }
+            $this->response->data = null;
+            $httpCode = 500;
+        } catch (Exception $e) {
+            Event::fire('orbit.retailer.getsearchretailerbyevent.general.exception', array($this, $e));
+
+            $this->response->code = $this->getNonZeroCode($e->getCode());
+            $this->response->status = 'error';
+            $this->response->message = $e->getMessage();
+            $this->response->data = null;
+        }
+
+        $output = $this->render($httpCode);
+        Event::fire('orbit.retailer.getsearchretailerbyevent.before.render', array($this, &$output));
+
+        return $output;
+    }
+
+
+
+
     protected function registerCustomValidation()
     {
         // Check the existance of retailer id

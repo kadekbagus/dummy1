@@ -93,6 +93,12 @@ class PromotionAPIController extends ControllerAPI
             $discount_value = OrbitInput::post('discount_value');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $location_id = OrbitInput::post('location_id');
+            $location_type = OrbitInput::post('location_type');
+            $is_all_retailer = OrbitInput::post('is_all_retailer');
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
 
             $validator = Validator::make(
                 array(
@@ -159,8 +165,8 @@ class PromotionAPIController extends ControllerAPI
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
                 
@@ -226,6 +232,9 @@ class PromotionAPIController extends ControllerAPI
             $newpromotion->is_permanent = $is_permanent;
             $newpromotion->image = $image;
             $newpromotion->created_by = $this->api->user->user_id;
+            $newpromotion->is_all_retailer = $is_all_retailer;
+            $newpromotion->location_id = $location_id;
+            $newpromotion->location_type = $location_type;
 
             Event::fire('orbit.promotion.postnewpromotion.before.save', array($this, $newpromotion));
 
@@ -236,6 +245,7 @@ class PromotionAPIController extends ControllerAPI
             $promotionrule->rule_type = $rule_type;
             $promotionrule->rule_value = $rule_value;
             $promotionrule->discount_object_type = $discount_object_type;
+            $promotionrule->is_all_product_discount = $is_all_product_discount;
 
             // discount_object_id1
             if (trim($discount_object_id1) === '') {
@@ -286,6 +296,18 @@ class PromotionAPIController extends ControllerAPI
                 $promotionretailers[] = $promotionretailer;
             }
             $newpromotion->retailers = $promotionretailers;
+
+            // save PromotionProduct.
+            $promotionproducts = array();
+            foreach ($discount_product_ids as $discount_product_id) {
+                $promotionproduct = new PromotionProduct();
+                $promotionproduct->product_id = $discount_product_id;
+                $promotionproduct->promotion_rule_id = $promotionrule->promotion_rule_id;
+                $promotionproduct->object_type = 'discount';
+                $promotionproduct->save();
+                $promotionproducts[] = $promotionproduct;
+            }
+            $newpromotion->promotionrule->discount_products = $promotionproducts;
 
             Event::fire('orbit.promotion.postnewpromotion.after.save', array($this, $newpromotion));
             $this->response->data = $newpromotion;
@@ -467,6 +489,9 @@ class PromotionAPIController extends ControllerAPI
             $rule_value = OrbitInput::post('rule_value');
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
+            $discount_product_ids = OrbitInput::post('discount_product_ids');
+            $discount_product_ids = (array) $discount_product_ids;
+            $is_all_product_discount = OrbitInput::post('is_all_product_discount');
 
             $data = array(
                 'promotion_id'         => $promotion_id,
@@ -544,8 +569,8 @@ class PromotionAPIController extends ControllerAPI
                 if ($discount_object_type == 'family') {
                     $discountfamilyflag = ! empty($discount_object_id1) || ! empty($discount_object_id2) || ! empty($discount_object_id3) || ! empty($discount_object_id4) || ! empty($discount_object_id5);
                     $errormessages2 = 'The discounted family field is required.';
-                } elseif ($discount_object_type == 'product') {
-                    $discountfamilyflag = ! empty($discount_object_id1);
+                } elseif ($discount_object_type == 'product' && $is_all_product_discount == 'N') {
+                    $discountfamilyflag = ! empty($discount_product_ids);
                     $errormessages2 = 'The discounted product field is required.';
                 }
 
@@ -612,6 +637,18 @@ class PromotionAPIController extends ControllerAPI
                 $updatedpromotion->is_permanent = $is_permanent;
             });
 
+            OrbitInput::post('is_all_retailer', function($is_all_retailer) use ($updatedpromotion) {
+                $updatedpromotion->is_all_retailer = $is_all_retailer;
+            });
+
+            OrbitInput::post('location_id', function($location_id) use ($updatedpromotion) {
+                $updatedpromotion->location_id = $location_id;
+            });
+
+            OrbitInput::post('location_type', function($location_type) use ($updatedpromotion) {
+                $updatedpromotion->location_type = $location_type;
+            });
+
             OrbitInput::post('image', function($image) use ($updatedpromotion) {
                 $updatedpromotion->image = $image;
             });
@@ -641,6 +678,10 @@ class PromotionAPIController extends ControllerAPI
                     $discount_object_type = NULL;
                 }
                 $promotionrule->discount_object_type = $discount_object_type;
+            });
+
+            OrbitInput::post('is_all_product_discount', function($is_all_product_discount) use ($promotionrule) {
+                $promotionrule->is_all_product_discount = $is_all_product_discount;
             });
 
             OrbitInput::post('discount_object_id1', function($discount_object_id1) use ($promotionrule) {
@@ -723,6 +764,53 @@ class PromotionAPIController extends ControllerAPI
 
                 // reload retailers relation
                 $updatedpromotion->load('retailers');
+            });
+
+
+            OrbitInput::post('discount_product_ids', function($discount_product_ids) use ($updatedpromotion) {
+                // validate product_ids
+                $discount_product_ids = (array) $discount_product_ids;
+                foreach ($discount_product_ids as $discount_product_id_check) {
+                    $validator = Validator::make(
+                        array(
+                            'product_id'   => $discount_product_id_check,
+                        ),
+                        array(
+                            'product_id'   => 'orbit.empty.product',
+                        )
+                    );
+
+                    Event::fire('orbit.promotion.postupdatepromotion.before.productvalidation', array($this, $validator));
+
+                    // Run the validation
+                    if ($validator->fails()) {
+                        $errorMessage = $validator->messages()->first();
+                        OrbitShopAPI::throwInvalidArgument($errorMessage);
+                    }
+
+                    Event::fire('orbit.promotion.postupdatepromotion.after.productvalidation', array($this, $validator));
+                }
+
+                // sync new set of product ids
+                $pivotData = array_fill(0, count($discount_product_ids), ['object_type' => 'discount']);
+                $syncData = array_combine($discount_product_ids, $pivotData);
+
+                $deleted_product_ids = PromotionProduct::where('promotion_rule_id', $updatedpromotion->promotionrule->promotion_rule_id)
+                                                       ->where('object_type', 'discount')
+                                                       ->get(array('product_id'))
+                                                       ->toArray();
+
+                // detach old relation
+                if (sizeof($deleted_product_ids) > 0) {
+                    $updatedpromotion->promotionrule->discountproducts()->detach($deleted_product_ids);
+                }
+
+                // attach new relation
+                $updatedpromotion->promotionrule->discountproducts()->attach($syncData);
+
+                // reload interests relation
+                $updatedpromotion->promotionrule->load('discountproducts');
+
             });
             
 
@@ -908,7 +996,7 @@ class PromotionAPIController extends ControllerAPI
             // Begin database transaction
             $this->beginTransaction();
 
-            $deletepromotion = Promotion::excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
+            $deletepromotion = Promotion::with('promotionrule')->excludeDeleted()->allowedForUser($user)->where('promotion_id', $promotion_id)->first();
             $deletepromotion->status = 'deleted';
             $deletepromotion->modified_by = $this->api->user->user_id;
 
@@ -918,6 +1006,12 @@ class PromotionAPIController extends ControllerAPI
             $deletepromotionretailers = PromotionRetailer::where('promotion_id', $deletepromotion->promotion_id)->get();
             foreach ($deletepromotionretailers as $deletepromotionretailer) {
                 $deletepromotionretailer->delete();
+            }
+
+            // hard delete promotion-product.
+            $deletepromotionproducts = PromotionProduct::where('promotion_rule_id', $deletepromotion->promotionrule->promotion_rule_id)->get();
+            foreach ($deletepromotionproducts as $deletepromotionproduct) {
+                $deletepromotionproduct->delete();
             }
 
             $deletepromotion->save();
@@ -1139,26 +1233,35 @@ class PromotionAPIController extends ControllerAPI
             }
 
             $table_prefix = DB::getTablePrefix();
+            
             // Builder object
             // Addition select case and join for sorting by discount_value.
             $promotions = Promotion::with('promotionrule')
                 ->excludeDeleted('promotions')
                 ->select(DB::raw($table_prefix . "promotions.*,
-                    CASE {$table_prefix}promotion_rules.rule_type
-                        WHEN 'cart_discount_by_percentage' THEN 'percentage'
-                        WHEN 'product_discount_by_percentage' THEN 'percentage'
-                        WHEN 'cart_discount_by_value' THEN 'value'
-                        WHEN 'product_discount_by_value' THEN 'value'
-                        ELSE NULL
-                    END AS 'display_discount_type',
-                    CASE {$table_prefix}promotion_rules.rule_type
-                        WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
-                        WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
-                        ELSE {$table_prefix}promotion_rules.discount_value
-                    END AS 'display_discount_value'
-                    ")
+                            CASE {$table_prefix}promotion_rules.rule_type
+                                WHEN 'cart_discount_by_percentage' THEN 'percentage'
+                                WHEN 'product_discount_by_percentage' THEN 'percentage'
+                                WHEN 'cart_discount_by_value' THEN 'value'
+                                WHEN 'product_discount_by_value' THEN 'value'
+                                ELSE NULL
+                            END AS 'display_discount_type',
+                            CASE {$table_prefix}promotion_rules.rule_type
+                                WHEN 'cart_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                                WHEN 'product_discount_by_percentage' THEN {$table_prefix}promotion_rules.discount_value * 100
+                                ELSE {$table_prefix}promotion_rules.discount_value
+                            END AS 'display_discount_value'
+                            "),
+                        DB::raw("count(distinct {$table_prefix}merchants.merchant_id) as retailer_count")
                 )
-                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id');
+                ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
+                ->leftJoin('promotion_retailer', 'promotion_retailer.promotion_id', '=', 'promotions.promotion_id')
+                ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
+                ->where(function($q) {
+                        $q->where('merchants.status','!=','deleted')
+                        ->orWhereNull('merchants.status');
+                    })
+                ->groupBy('promotions.promotion_id');
 
             // Check the value of `include_transaction_status` argument
             OrbitInput::get('include_transaction_status', function ($include_transaction_status) use ($promotions) {
@@ -1355,8 +1458,14 @@ class PromotionAPIController extends ControllerAPI
 
             // Filter promotion retailer by retailer id
             OrbitInput::get('retailer_id', function ($retailerIds) use ($promotions) {
-                $promotions->whereHas('retailers', function($q) use ($retailerIds) {
+                $promotions->whereHas('retailers', function($q) use ($retailerIds, $promotions) {
                     $q->whereIn('retailer_id', $retailerIds);
+                    OrbitInput::get('merchant_id', function($merchant_id) use ($promotions) {
+                        $promotions->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
                 });
             });
 
@@ -1367,6 +1476,8 @@ class PromotionAPIController extends ControllerAPI
                 foreach ($with as $relation) {
                     if ($relation === 'retailers') {
                         $promotions->with('retailers');
+                    } elseif ($relation === 'products') {
+                        $promotions->with('promotionrule.discountproducts');
                     } elseif ($relation === 'product') {
                         $promotions->with('promotionrule.discountproduct');
                     } elseif ($relation === 'family') {
@@ -1676,6 +1787,12 @@ class PromotionAPIController extends ControllerAPI
             // Filter promotion by retailer Ids
             OrbitInput::get('retailer_id', function ($retailerIds) use ($promotions) {
                 $promotions->whereIn('promotion_retailer.retailer_id', $retailerIds);
+                OrbitInput::get('merchant_id', function($merchant_id) use ($promotions) {
+                        $promotions->orWhere(function ($or) use ($merchant_id) {
+                            $or->where('promotions.is_all_retailer', 'Y');
+                            $or->where('promotions.merchant_id', $merchant_id);
+                        });
+                    });
             });
 
             // Clone the query builder which still does not include the take,
@@ -2006,6 +2123,21 @@ class PromotionAPIController extends ControllerAPI
             }
 
             App::instance('orbit.empty.retailer', $retailer);
+
+            return TRUE;
+        });
+
+        // Check the existance of product id
+        Validator::extend('orbit.empty.product', function ($attribute, $value, $parameters) {
+            $product = Product::excludeDeleted()->allowedForUser($this->api->user)
+                        ->where('product_id', $value)
+                        ->first();
+
+            if (empty($product)) {
+                return FALSE;
+            }
+
+            App::instance('orbit.empty.product', $product);
 
             return TRUE;
         });
