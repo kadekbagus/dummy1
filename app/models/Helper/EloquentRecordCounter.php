@@ -1,27 +1,28 @@
 <?php namespace Helper;
 /**
- * A helper class for counting records on Eqoluent based query builder. This
+ * A helper class for counting records on Eloquent based query builder. This
  * helper used to wrap the original query into a sub query so we got the right
  * result.
  *
- * @auhor Rio Astamal <me@rioastamal.net>
+ * @author Rio Astamal <me@rioastamal.net>
  * @credit http://stackoverflow.com/questions/24823915/how-to-select-from-subquery-using-laravel-query-builder/24838367#24838367
  */
 use DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class EloquentRecordCounter
 {
     /**
      * The query builder
      *
-     * @var Eloquent
+     * @var \Eloquent
      */
     protected $model;
 
     /**
      * Class constructor
      *
-     * @param Builder $builder
+     * @param Builder $model
      */
     public function __construct($model)
     {
@@ -32,8 +33,8 @@ class EloquentRecordCounter
      * Static method to instantiate the class
      *
      * @author Rio Astamal <me@rioastamal.net>
-     * @param Builder $builder
-     * @return EloquentRecordsCounter
+     * @param Builder $model
+     * @return EloquentRecordCounter
      */
     public static function create($model)
     {

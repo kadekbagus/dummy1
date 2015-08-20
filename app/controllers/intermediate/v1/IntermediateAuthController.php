@@ -5,10 +5,8 @@
  * @author Rio Astamal <me@rioastamal.net>
  */
 use DominoPOS\OrbitACL\ACL;
-use DominoPOS\OrbitACL\ACL\Exception\ACLForbiddenException;
+use DominoPOS\OrbitACL\Exception\ACLForbiddenException;
 use OrbitShop\API\v1\ResponseProvider;
-use DominoPOS\OrbitSession\Session;
-use DominoPOS\OrbitSession\SessionConfig;
 
 class IntermediateAuthController extends IntermediateBaseController
 {

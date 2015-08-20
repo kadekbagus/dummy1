@@ -267,7 +267,7 @@ class ActivityAPIController extends ControllerAPI
 
             // Filter by object ids
             OrbitInput::get('object_ids', function($objectIds) use ($activities) {
-                $activities->whereIn('activities.object_id', $roleIds);
+                $activities->whereIn('activities.object_id', $objectIds);
             });
 
             // Filter by object names

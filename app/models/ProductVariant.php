@@ -155,8 +155,6 @@ class ProductVariant extends Eloquent
      *
      * @author Rio Astamal <me@rioastamal.net>
      * @param Product $product Instance of Product Object
-     * @param int $creator User ID who create the product
-     * @param
      * @return ProductVariant
      */
     public static function createDefaultVariant($product)
