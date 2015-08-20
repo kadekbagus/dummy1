@@ -7,7 +7,6 @@
 use OrbitShop\API\v1\ResponseProvider;
 use MobileCI\MobileCIAPIController;
 use Net\Security\Firewall;
-use \Cookie;
 use DominoPOS\OrbitSession\Session as MySession;
 
 class IntermediateLoginController extends IntermediateBaseController
