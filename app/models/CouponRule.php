@@ -76,4 +76,16 @@ class CouponRule extends Eloquent
     {
         return $this->belongsTo('Category', 'discount_object_id5', 'category_id');
     }
+
+    public function discountproducts()
+    {
+        return $this->belongsToMany('Product', 'promotion_product', 'promotion_rule_id', 'product_id')
+                    ->where('object_type', 'discount');
+    }
+
+    public function ruleproducts()
+    {
+        return $this->belongsToMany('Product', 'promotion_product', 'promotion_rule_id', 'product_id')
+                    ->where('object_type', 'rule');
+    }
 }

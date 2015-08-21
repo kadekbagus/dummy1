@@ -20,10 +20,11 @@ Route::post('/app/v1/pos/logout', 'IntermediateLoginController@Customerportal\Cu
 
 
 // customer resend activation
-Route::post('/app/v1/customerportal/resend-activation-email', 'Customerportal\CustomerportalAPIController@postResendActivationEmail');
+Route::post('/{endpoint}/v1/customerportal/resend-activation-email', 'Customerportal\CustomerportalAPIController@postResendActivationEmail')
+    ->where('endpoint', '(api|app)');
 
 // customer reset password
-Route::post('/app/v1/customerportal/request-password-reset', 'Customerportal\CustomerportalAPIController@postRequestPasswordReset');
-Route::post('/app/v1/customerportal/reset-password', 'Customerportal\CustomerportalAPIController@postResetPassword');
-
-
+Route::post('/{endpoint}/v1/customerportal/request-password-reset', 'Customerportal\CustomerportalAPIController@postRequestPasswordReset')
+    ->where('endpoint', '(api|app)');
+Route::post('/{endpoint}/v1/customerportal/reset-password', 'Customerportal\CustomerportalAPIController@postResetPassword')
+    ->where('endpoint', '(api|app)');

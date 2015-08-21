@@ -110,6 +110,8 @@ return array(
     'CashierAPIController' => $baseDir . '/app/controllers/api/v1/CashierAPIController.php',
     'Category' => $baseDir . '/app/models/Category.php',
     'CategoryAPIController' => $baseDir . '/app/controllers/api/v1/CategoryAPIController.php',
+    'ChangeTableMerchantAddLocationIdAndType' => $baseDir . '/app/database/migrations/2015_07_08_062903_change_table_merchant_add_location_id_and_type.php',
+    'ChangeTablePromotionAddMallIdAndAllRetailer' => $baseDir . '/app/database/migrations/2015_07_09_024640_change_table_promotion_add_mall_id_and_all_retailer.php',
     'Country' => $baseDir . '/app/models/Country.php',
     'CountryAPIController' => $baseDir . '/app/controllers/api/v1/CountryAPIController.php',
     'CountryTableSeeder' => $baseDir . '/app/database/seeds/CountryTableSeeder.php',

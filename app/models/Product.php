@@ -77,7 +77,7 @@ class Product extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'retailer_id');
+        return $this->belongsToMany('Retailer', 'product_retailer', 'product_id', 'retailer_id')->where('merchants.status','!=','deleted');
     }
 
     public function suggestions()
@@ -250,4 +250,60 @@ class Product extends Eloquent
     }
 
 
+    public function scopeProductFromEvent($builder, $event_id)
+    {
+        $builder->where('events.event_id', $event_id)
+                ->where('events.link_object_type', 'product')
+                ->where(function($q) {
+                        $q->where('events.is_all_product', 'Y')
+                          ->orWhere(function($q) {
+                                $q->where(function($q) {
+                                      $q->where('events.is_all_product', '!=', 'Y')
+                                        ->orWhereNull('events.is_all_product');
+                                  })
+                                  ->whereNotNull('event_product.product_id');
+                });
+        });
+
+        return $builder;
+    }
+
+
+    public function scopeProductFromPromotion($builder, $promotion_id)
+    {
+        $builder->where('promotions.promotion_id', $promotion_id)
+                ->where('promotions.is_coupon', 'N')
+                ->where('promotion_rules.discount_object_type', 'product')
+                ->where(function($q) {
+                    $q->where('promotion_rules.is_all_product_discount', 'Y')
+                        ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                $q->where('promotion_rules.is_all_product_discount', '!=', 'Y')
+                                    ->orWhereNull('promotion_rules.is_all_product_discount');
+                            })
+                                ->whereNotNull('promotion_product.product_id');
+                });
+        });
+
+        return $builder;
+    }
+
+    public function scopeProductFromCoupon($builder, $coupon_id)
+    {
+        $builder->where('promotions.promotion_id', $coupon_id)
+                ->where('promotions.is_coupon', 'Y')
+                ->where('promotion_rules.discount_object_type', 'product')
+                ->where(function($q) {
+                    $q->where('promotion_rules.is_all_product_discount', 'Y')
+                        ->orWhere(function($q) {
+                            $q->where(function($q) {
+                                $q->where('promotion_rules.is_all_product_discount', '!=', 'Y')
+                                    ->orWhereNull('promotion_rules.is_all_product_discount');
+                            })
+                                ->whereNotNull('promotion_product.product_id');
+                });
+        });
+
+        return $builder;
+    }
 }

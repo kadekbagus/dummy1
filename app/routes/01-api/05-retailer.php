@@ -42,3 +42,38 @@ Route::get('/api/v1/retailer/city', function()
 {
     return RetailerAPIController::create()->getCityList();
 });
+
+/**
+ * Retailer by product
+ */
+Route::get('/api/v1/retailer/search-by-product', function()
+{
+    return RetailerAPIController::create()->getSearchRetailerByProduct();
+});
+
+
+/**
+ * Retailer by promotion
+ */
+Route::get('/api/v1/retailer/search-by-promotion', function()
+{
+    return RetailerAPIController::create()->getSearchRetailerByPromotion();
+});
+
+
+/**
+ * Retailer by coupon
+ */
+Route::get('/api/v1/retailer/search-by-coupon', function()
+{
+    return RetailerAPIController::create()->getSearchRetailerByCoupon();
+});
+
+
+/**
+ * Retailer by event
+ */
+Route::get('/api/v1/retailer/search-by-event', function()
+{
+    return RetailerAPIController::create()->getSearchRetailerByEvent();
+});
