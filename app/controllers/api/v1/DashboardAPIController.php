@@ -2473,7 +2473,7 @@ class DashboardAPIController extends ControllerAPI
                     'transactions.currency_symbol',
                     DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
-                    DB::raw("sum({$tablePrefix}transactions.total_to_pay) as transaction_total"),
+                    DB::raw("ifnull(sum(orbs_transactions.total_to_pay),0)as transaction_total"),
                     DB::raw("sum(distinct {$tablePrefix}activities.visit_count) as visit_count"),
                     DB::raw("max({$tablePrefix}activities.created_at) as last_visit")
                 )
