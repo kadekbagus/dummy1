@@ -311,8 +311,7 @@ class MobileCIAPIController extends ControllerAPI
             foreach ($promotions as $promotion) {
                 $product_on_promo[] = $promotion->product_id;
             }
-            $rr = 0;
-            // $tt = 1;
+            
             foreach ($listOfRec as $product) {
                 $prices = array();
                 foreach ($product->variants as $variant) {
@@ -327,7 +326,7 @@ class MobileCIAPIController extends ControllerAPI
                 
                 $promo_for_this_product = array_filter(
                     $promotions,
-                    function ($v) use ($product, $rr) {
+                    function ($v) use ($product) {
                         if($v->is_all_product_discount === 'N') {
                             return $v->product_id == $product->product_id;
                         } else {
