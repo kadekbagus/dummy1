@@ -131,8 +131,10 @@ class HomeController extends MobileCIAPIController
                     });
                 })
                 ->active()
-                ->where('new_from', '<=', Carbon::now())
-                ->where('new_until', '>=', Carbon::now())
+                ->where(function($q) {
+                    $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                })
+                ->orWhere('new_from', '<=', Carbon::now())
                 ->orderBy('created_at', 'desc')
                 ->take(20)
                 ->get();

@@ -387,7 +387,10 @@ class ProductController extends MobileCIAPIController
                     if (! empty($name)) {
                         $products->where(
                             function ($q) use ($name) {
-                                $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                $q->where(function($q2) {
+                                    $q2->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                });
+                                $q->orWhere('new_from', '<=', Carbon::now());
                             }
                         );
                     }
@@ -707,7 +710,7 @@ class ProductController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;
@@ -958,7 +961,10 @@ class ProductController extends MobileCIAPIController
                     if (! empty($name)) {
                         $products->where(
                             function ($q) use ($name) {
-                                $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                $q->where(function($q2) {
+                                    $q2->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                });
+                                $q->orWhere('new_from', '<=', Carbon::now());
                             }
                         );
                     }
@@ -1232,7 +1238,7 @@ class ProductController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;

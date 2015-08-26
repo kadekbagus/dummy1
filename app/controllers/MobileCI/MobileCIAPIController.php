@@ -424,7 +424,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;
