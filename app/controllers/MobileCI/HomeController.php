@@ -113,8 +113,8 @@ class HomeController extends MobileCIAPIController
                     });
                 })
                 ->active()
-                ->orderByRaw("RAND()")
-                ->take(10)
+                ->orderBy('created_at', 'desc')
+                ->take(20)
                 ->get();
 
             $new_products = Product::with('media')
@@ -131,10 +131,12 @@ class HomeController extends MobileCIAPIController
                     });
                 })
                 ->active()
-                ->where('new_from', '<=', Carbon::now())
-                ->where('new_until', '>=', Carbon::now())
-                ->orderByRaw("RAND()")
-                ->take(10)
+                ->where(function($q) {
+                    $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                })
+                ->orWhere('new_from', '<=', Carbon::now())
+                ->orderBy('created_at', 'desc')
+                ->take(20)
                 ->get();
 
             // $promotion = Promotion::active()->where('is_coupon', 'N')->where('merchant_id', $retailer->parent_id)->whereHas(
