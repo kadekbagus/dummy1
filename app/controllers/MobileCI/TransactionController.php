@@ -381,23 +381,25 @@ class TransactionController extends MobileCIAPIController
 
                     $coupons = DB::select(
                         DB::raw(
-                            'SELECT *, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
-                    inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
-                    inner join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                    inner join ' . DB::getTablePrefix() . 'products prod on
-                    (
-                        (pr.rule_object_type="product" AND pr.rule_object_id1 = prod.product_id)
-                        OR
+                            'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
+                        inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
+                        left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "rule")
+                        left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
+                        left join ' . DB::getTablePrefix() . 'products prod on
                         (
-                            (pr.rule_object_type="family") AND
-                            ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND
-                            ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
-                            ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
-                            ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
-                            ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                            (pr.rule_object_type="product" AND propro.product_id = prod.product_id)
+                            OR
+                            (
+                                (pr.rule_object_type="family") AND
+                                ((pr.rule_object_id1 IS NULL) OR (pr.rule_object_id1=prod.category_id1)) AND
+                                ((pr.rule_object_id2 IS NULL) OR (pr.rule_object_id2=prod.category_id2)) AND
+                                ((pr.rule_object_id3 IS NULL) OR (pr.rule_object_id3=prod.category_id3)) AND
+                                ((pr.rule_object_id4 IS NULL) OR (pr.rule_object_id4=prod.category_id4)) AND
+                                ((pr.rule_object_id5 IS NULL) OR (pr.rule_object_id5=prod.category_id5))
+                            )
                         )
-                    )
-                    WHERE p.merchant_id = :merchantid AND prr.retailer_id = :retailerid AND prod.product_id = :productid '
+                        WHERE ((prod.product_id = :productid AND pr.is_all_product_rule = "N") OR pr.is_all_product_rule = "Y") AND (prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid))
+                        '
                         ),
                         array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id)
                     );
@@ -436,12 +438,26 @@ class TransactionController extends MobileCIAPIController
                     function ($q) use ($total_to_pay) {
                         $q->on('promotions.promotion_id', '=', 'promotion_rules.promotion_id')->where('promotion_rules.rule_value', '<=', $total_to_pay);
                     }
-                )->active()->where('promotion_type', 'cart')->where('merchant_id', $retailer->parent_id)->whereHas(
-                    'issueretailers',
-                    function ($q) use ($retailer) {
-                            $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                    }
-                )
+                )->active()->where('promotion_type', 'cart')
+                // ->where('merchant_id', $retailer->parent_id)
+                // ->whereHas(
+                //     'issueretailers',
+                //     function ($q) use ($retailer) {
+                //             $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                //     }
+                // )
+                ->where(function($q) use ($retailer) {
+                    $q->where(function($q2) use($retailer) {
+                        $q2->where('is_all_retailer', 'Y');
+                        $q2->where('merchant_id', $retailer->parent->merchant_id);
+                    });
+                    $q->orWhere(function($q2) use ($retailer) {
+                        $q2->where('is_all_retailer', 'N');
+                        $q2->whereHas('issueretailers', function($q3) use($retailer) {
+                            $q3->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                        });
+                    });
+                })
                 ->get();
 
                 if (! empty($coupon_carts)) {
