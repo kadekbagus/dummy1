@@ -350,13 +350,13 @@ class PromotionController extends MobileCIAPIController
                     function ($v) use ($product) {
                         if ($v->maximum_issued_coupon != 0) {
                             $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                            if($v->is_all_product_rule == 'N') {
+                            if($v->is_all_product_rule == 'N' || $v->is_all_product_rule === NULL) {
                                 return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued;
                             } else {
                                 return $v;
                             }
                         } else {
-                            if($v->is_all_product_rule == 'N') {
+                            if($v->is_all_product_rule == 'N' || $v->is_all_product_rule === NULL) {
                                 return $v->product_id == $product->product_id;
                             } else {
                                 return $v;

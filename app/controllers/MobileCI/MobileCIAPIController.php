@@ -281,7 +281,6 @@ class MobileCIAPIController extends ControllerAPI
                     )
                 )
                 WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)
-                
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
@@ -383,7 +382,7 @@ class MobileCIAPIController extends ControllerAPI
                     function ($v) use ($product) {
                         if ($v->maximum_issued_coupon != 0) {
                             $issued = IssuedCoupon::where('promotion_id', $v->promotion_id)->count();
-                            if($v->is_all_product_rule == 'N') {
+                            if($v->is_all_product_rule == 'N' || $v->is_all_product_rule === NULL) {
                                 return $v->product_id == $product->product_id && $v->maximum_issued_coupon > $issued;
                             } else {
                                 return $v;
@@ -520,11 +519,24 @@ class MobileCIAPIController extends ControllerAPI
             function ($attribute, $value, $parameters) {
                 $retailer = $this->getRetailerInfo();
 
-                $promotion = Promotion::with(
-                    array('retailers' => function ($q) use ($retailer) {
-                        $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                    })
-                )->active()
+                $promotion = Promotion::active()
+                // ->with(
+                //     array('retailers' => function ($q) use ($retailer) {
+                //         $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                //     })
+                // )
+                ->where(function($q) use ($retailer) {
+                    $q->where(function($q2) use($retailer) {
+                        $q2->where('is_all_retailer', 'Y');
+                        $q2->where('merchant_id', $retailer->parent->merchant_id);
+                    });
+                    $q->orWhere(function($q2) use ($retailer) {
+                        $q2->where('is_all_retailer', 'N');
+                        $q2->whereHas('retailers', function($q3) use($retailer) {
+                            $q3->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                        });
+                    });
+                })
                 ->where('promotion_id', $value)
                 ->first();
 
@@ -544,11 +556,24 @@ class MobileCIAPIController extends ControllerAPI
             function ($attribute, $value, $parameters) {
                 $retailer = $this->getRetailerInfo();
 
-                $coupon = Coupon::with(
-                    array('issueretailers' => function ($q) use ($retailer) {
-                        $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
-                    })
-                )->active()
+                $coupon = Coupon::active()
+                // ->with(
+                //     array('issueretailers' => function ($q) use ($retailer) {
+                //         $q->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                //     })
+                // )
+                ->where(function($q) use ($retailer) {
+                    $q->where(function($q2) use($retailer) {
+                        $q2->where('is_all_retailer', 'Y');
+                        $q2->where('merchant_id', $retailer->parent->merchant_id);
+                    });
+                    $q->orWhere(function($q2) use ($retailer) {
+                        $q2->where('is_all_retailer', 'N');
+                        $q2->whereHas('issueretailers', function($q3) use($retailer) {
+                            $q3->where('promotion_retailer.retailer_id', $retailer->merchant_id);
+                        });
+                    });
+                })
                 ->where('promotion_id', $value)
                 ->first();
 
@@ -594,12 +619,24 @@ class MobileCIAPIController extends ControllerAPI
                         $q->where('issued_coupons.user_id', $user->user_id)->where('issued_coupons.issued_coupon_id', $value)->where('expired_date', '>=', Carbon::now());
                     }
                 )
-                ->whereHas(
-                    'redeemretailers',
-                    function ($q) use ($retailer) {
-                        $q->where('promotion_retailer_redeem.retailer_id', $retailer->merchant_id);
-                    }
-                )
+                // ->whereHas(
+                //     'redeemretailers',
+                //     function ($q) use ($retailer) {
+                //         $q->where('promotion_retailer_redeem.retailer_id', $retailer->merchant_id);
+                //     }
+                // )
+                ->where(function($q) use ($retailer) {
+                    $q->where(function($q2) use($retailer) {
+                        $q2->where('is_all_retailer_redeem', 'Y');
+                        $q2->where('merchant_id', $retailer->parent->merchant_id);
+                    });
+                    $q->orWhere(function($q2) use ($retailer) {
+                        $q2->where('is_all_retailer_redeem', 'N');
+                        $q2->whereHas('redeemretailers', function($q3) use($retailer) {
+                            $q3->where('promotion_retailer_redeem.retailer_id', $retailer->merchant_id);
+                        });
+                    });
+                })
                 ->active()
                 ->first();
 
