@@ -169,88 +169,6 @@ class CouponController extends MobileCIAPIController
                 });
             });
 
-            $_products = clone $products;
-
-            // Default sort by
-            $sortBy = 'products.product_name';
-            // Default sort mode
-            $sortMode = 'asc';
-
-            OrbitInput::get(
-                'sort_by',
-                function ($_sortBy) use (&$sortBy) {
-                    // Map the sortby request to the real column name
-                    $sortByMapping = array(
-                    'product_name'      => 'products.product_name',
-                    'price'             => 'products.price',
-                    );
-
-                    $sortBy = $sortByMapping[$_sortBy];
-                }
-            );
-
-            OrbitInput::get(
-                'sort_mode',
-                function ($_sortMode) use (&$sortMode) {
-                    if (strtolower($_sortMode) !== 'desc') {
-                        $sortMode = 'asc';
-                    } else {
-                        $sortMode = 'desc';
-                    }
-                }
-            );
-            $products->orderBy($sortBy, $sortMode);
-
-            // Get the maximum record
-            $maxRecord = (int) Config::get('orbit.pagination.max_record');
-            if ($maxRecord <= 0) {
-                $maxRecord = 20;
-            }
-
-            // Get default per page (take)
-            $perPage = (int) Config::get('orbit.pagination.per_page');
-            if ($perPage <= 0) {
-                $perPage = 20;
-            }
-
-            // Get the take args
-            $take = $perPage;
-            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
-                if ($_take > $maxRecord) {
-                    $_take = $maxRecord;
-                }
-                $take = $_take;
-
-                if ((int)$take <= 0) {
-                    $take = $maxRecord;
-                }
-            });
-            $products->take($take);
-
-            $skip = 0;
-            OrbitInput::get(
-                'skip',
-                function ($_skip) use (&$skip, $products) {
-                    if ($_skip < 0) {
-                        $_skip = 0;
-                    }
-
-                    $skip = $_skip;
-                }
-            );
-            $products->skip($skip);
-
-            $next_skip = $skip + $take;
-
-            $totalRec = $_products->count();
-            $listOfRec = $products->get();
-
-            $no_more = FALSE;
-            if($next_skip >= $totalRec) {
-                $next_skip = $totalRec;
-                $no_more = TRUE;
-            }
-
             $cartitems = $this->getCartForToolbar();
 
             $all_promotions = DB::select(
@@ -379,6 +297,88 @@ class CouponController extends MobileCIAPIController
                 $products->where('product_id', '-1');
             }
 
+            $_products = clone $products;
+
+            // Default sort by
+            $sortBy = 'products.product_name';
+            // Default sort mode
+            $sortMode = 'asc';
+
+            OrbitInput::get(
+                'sort_by',
+                function ($_sortBy) use (&$sortBy) {
+                    // Map the sortby request to the real column name
+                    $sortByMapping = array(
+                    'product_name'      => 'products.product_name',
+                    'price'             => 'products.price',
+                    );
+
+                    $sortBy = $sortByMapping[$_sortBy];
+                }
+            );
+
+            OrbitInput::get(
+                'sort_mode',
+                function ($_sortMode) use (&$sortMode) {
+                    if (strtolower($_sortMode) !== 'desc') {
+                        $sortMode = 'asc';
+                    } else {
+                        $sortMode = 'desc';
+                    }
+                }
+            );
+            $products->orderBy($sortBy, $sortMode);
+
+            // Get the maximum record
+            $maxRecord = (int) Config::get('orbit.pagination.max_record');
+            if ($maxRecord <= 0) {
+                $maxRecord = 20;
+            }
+
+            // Get default per page (take)
+            $perPage = (int) Config::get('orbit.pagination.per_page');
+            if ($perPage <= 0) {
+                $perPage = 20;
+            }
+
+            // Get the take args
+            $take = $perPage;
+            OrbitInput::get('take', function ($_take) use (&$take, $maxRecord) {
+                if ($_take > $maxRecord) {
+                    $_take = $maxRecord;
+                }
+                $take = $_take;
+
+                if ((int)$take <= 0) {
+                    $take = $maxRecord;
+                }
+            });
+            $products->take($take);
+
+            $skip = 0;
+            OrbitInput::get(
+                'skip',
+                function ($_skip) use (&$skip, $products) {
+                    if ($_skip < 0) {
+                        $_skip = 0;
+                    }
+
+                    $skip = $_skip;
+                }
+            );
+            $products->skip($skip);
+
+            $next_skip = $skip + $take;
+
+            $totalRec = $_products->count();
+            $listOfRec = $products->get();
+
+            $no_more = FALSE;
+            if($next_skip >= $totalRec) {
+                $next_skip = $totalRec;
+                $no_more = TRUE;
+            }
+            
             foreach ($listOfRec as $product) {
                 $prices = array();
                 foreach ($product->variants as $variant) {
@@ -483,7 +483,7 @@ class CouponController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;

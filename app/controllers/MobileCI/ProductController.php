@@ -387,7 +387,10 @@ class ProductController extends MobileCIAPIController
                     if (! empty($name)) {
                         $products->where(
                             function ($q) use ($name) {
-                                $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                $q->where(function($q2) {
+                                    $q2->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                });
+                                $q->orWhere('new_from', '<=', Carbon::now());
                             }
                         );
                     }
@@ -707,7 +710,7 @@ class ProductController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;
@@ -874,12 +877,18 @@ class ProductController extends MobileCIAPIController
                             $nextfamily = $family_level + 1;
                             for ($i = 1; $i <= count($families); $i++) {
                                 $q->where('products.category_id' . $i, $families[$i-1]);
-                                $q->whereHas(
-                                    'retailers',
-                                    function ($q2) use ($retailer) {
-                                        $q2->where('product_retailer.retailer_id', $retailer->merchant_id);
-                                    }
-                                );
+                                $q->where(function($q2) use ($retailer) {
+                                    $q2->where(function($q3) use($retailer) {
+                                        $q3->where('is_all_retailer', 'Y');
+                                        $q3->where('merchant_id', $retailer->parent->merchant_id);
+                                    });
+                                    $q2->orWhere(function($q3) use ($retailer) {
+                                        $q3->where('is_all_retailer', 'N');
+                                        $q3->whereHas('retailers', function($q4) use($retailer) {
+                                            $q4->where('product_retailer.retailer_id', $retailer->merchant_id);
+                                        });
+                                    });
+                                });
                             }
 
                             $q->where('products.category_id' . $family_level, $family_id)
@@ -952,7 +961,10 @@ class ProductController extends MobileCIAPIController
                     if (! empty($name)) {
                         $products->where(
                             function ($q) use ($name) {
-                                $q->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                $q->where(function($q2) {
+                                    $q2->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
+                                });
+                                $q->orWhere('new_from', '<=', Carbon::now());
                             }
                         );
                     }
@@ -1226,7 +1238,7 @@ class ProductController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;

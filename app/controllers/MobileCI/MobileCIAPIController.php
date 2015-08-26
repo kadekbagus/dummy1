@@ -92,12 +92,18 @@ class MobileCIAPIController extends ControllerAPI
                         $nextfamily = $family_level + 1;
                         for ($i = 1; $i <= count($families); $i++) {
                             $q->where('products.category_id' . $i, $families[$i-1]);
-                            $q->whereHas(
-                                'retailers',
-                                function ($q2) use ($retailer) {
-                                    $q2->where('product_retailer.retailer_id', $retailer->merchant_id);
-                                }
-                            );
+                            $q->where(function($q2) use ($retailer) {
+                                $q2->where(function($q3) use($retailer) {
+                                    $q3->where('is_all_retailer', 'Y');
+                                    $q3->where('merchant_id', $retailer->parent->merchant_id);
+                                });
+                                $q2->orWhere(function($q3) use ($retailer) {
+                                    $q3->where('is_all_retailer', 'N');
+                                    $q3->whereHas('retailers', function($q4) use($retailer) {
+                                        $q4->where('product_retailer.retailer_id', $retailer->merchant_id);
+                                    });
+                                });
+                            });
                         }
 
                         $q->where('products.category_id' . $family_level, $family_id)
@@ -311,8 +317,7 @@ class MobileCIAPIController extends ControllerAPI
             foreach ($promotions as $promotion) {
                 $product_on_promo[] = $promotion->product_id;
             }
-            $rr = 0;
-            // $tt = 1;
+            
             foreach ($listOfRec as $product) {
                 $prices = array();
                 foreach ($product->variants as $variant) {
@@ -327,7 +332,7 @@ class MobileCIAPIController extends ControllerAPI
                 
                 $promo_for_this_product = array_filter(
                     $promotions,
-                    function ($v) use ($product, $rr) {
+                    function ($v) use ($product) {
                         if($v->is_all_product_discount === 'N') {
                             return $v->product_id == $product->product_id;
                         } else {
@@ -419,7 +424,7 @@ class MobileCIAPIController extends ControllerAPI
                 }
 
                 // set is_new flag
-                if ($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;
