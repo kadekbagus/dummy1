@@ -20,6 +20,8 @@ class EventPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
+        $merchant_id = \Merchant::where('user_id', $user->user_id)->first()->merchant_id;
+
         // Builder object
         $events = EventModel::select(DB::raw($prefix . "events.*"),
                                      DB::raw('retailer.*'),
@@ -48,7 +50,7 @@ class EventPrinterController extends DataPrinterController
                                         from {$prefix}events e
                                         inner join {$prefix}event_retailer er on er.event_id = e.event_id
                                         inner join {$prefix}merchants r on r.merchant_id = er.retailer_id
-                                        where e.merchant_id = 12 and e.status != 'deleted'
+                                        where e.merchant_id = {$merchant_id} and e.status != 'deleted'
                                         group by e.event_id 
                                       )AS retailer"
                                       ), function ($q) {
@@ -66,7 +68,7 @@ class EventPrinterController extends DataPrinterController
                                         from {$prefix}events e
                                         inner join {$prefix}event_product ep on ep.event_id = e.event_id
                                         inner join {$prefix}products p on p.product_id = ep.product_id
-                                        where e.merchant_id = 12 and e.status != 'deleted'
+                                        where e.merchant_id = {$merchant_id} and e.status != 'deleted'
                                         group by e.event_id
                                         ) AS product"
                                        ), function ($q) {
