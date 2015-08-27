@@ -174,7 +174,7 @@ class EventAPIController extends ControllerAPI
                         'product_id'   => $product_id_check,
                     ),
                     array(
-                        'product_id'   => 'numeric|orbit.empty.product',
+                        'product_id'   => 'orbit.empty.product',
                     )
                 );
 
@@ -1094,7 +1094,7 @@ class EventAPIController extends ControllerAPI
             // Builder object
             $events = EventModel::excludeDeleted('events')
                                 ->allowedForViewOnly($user)
-                                ->select('events.*', 
+                                ->select('events.*',
                                         DB::raw("CASE link_object_type
                                             WHEN 'widget' THEN 'page'
                                             ELSE link_object_type
