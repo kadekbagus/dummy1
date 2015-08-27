@@ -983,10 +983,10 @@ class TransactionController extends MobileCIAPIController
                     'promotion_rules',
                     function ($join) use ($merchant_id, $prefix) {
                         $join->on('promotion_rules.promotion_id', '=', 'promotions.promotion_id');
-                        $join->on('promotions.promotion_type', '=', DB::raw("'product'"));
-                        $join->on('promotions.status', '=', DB::raw("'active'"));
-                        $join->on('promotions.is_coupon', '=', DB::raw("'N'"));
-                        $join->on('promotions.merchant_id', '=', DB::raw($merchant_id));
+                        $join->where('promotions.promotion_type', '=', 'product');
+                        $join->where('promotions.status', '=', 'active');
+                        $join->where('promotions.is_coupon', '=', 'N');
+                        $join->where('promotions.merchant_id', '=', $merchant_id);
                         $join->on(
                             DB::raw("(({$prefix}promotions.begin_date <= NOW() AND {$prefix}promotions.end_date >= NOW())"),
                             'OR',
@@ -998,7 +998,7 @@ class TransactionController extends MobileCIAPIController
                     'promotion_retailer',
                     function ($join) use ($retailer_id) {
                         $join->on('promotion_retailer.promotion_id', '=', 'promotions.promotion_id');
-                        $join->on('promotion_retailer.retailer_id', '=', DB::raw($retailer_id));
+                        $join->where('promotion_retailer.retailer_id', '=', $retailer_id);
                     }
                 )
                 ->join(
