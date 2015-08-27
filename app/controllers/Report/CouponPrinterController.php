@@ -62,8 +62,8 @@ class CouponPrinterController extends DataPrinterController
                                 GROUP_CONCAT(r.`name` SEPARATOR ', ')
                             END AS retailer_list
                         from {$prefix}promotions p
-                        inner join {$prefix}promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                        inner join {$prefix}merchants r on r.merchant_id = prr.retailer_id
+                        left join {$prefix}promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
+                        left join {$prefix}merchants r on r.merchant_id = prr.retailer_id
                         where p.merchant_id = {$merchant_id} and p.status != 'deleted'
                         group by p.promotion_id 
                     ) AS retailer "), function ($q) {
@@ -80,17 +80,17 @@ class CouponPrinterController extends DataPrinterController
                                 GROUP_CONCAT(p1.`product_name` SEPARATOR ', ')
                             END AS product_name
                         from {$prefix}promotions p
-                        inner join {$prefix}promotion_rules pr on pr.promotion_id = p.promotion_id
-                        inner join {$prefix}promotion_product prr on prr.promotion_rule_id = pr.promotion_rule_id and prr.object_type = 'discount'
-                        inner join {$prefix}products p1 on p1.product_id = prr.product_id
+                        left join {$prefix}promotion_rules pr on pr.promotion_id = p.promotion_id
+                        left join {$prefix}promotion_product prr on prr.promotion_rule_id = pr.promotion_rule_id and prr.object_type = 'discount'
+                        left join {$prefix}products p1 on p1.product_id = prr.product_id
                         where p.merchant_id = {$merchant_id} and p.status != 'deleted'
                         group by p.promotion_id 
                     ) AS product "), function ($q) {
                         $q->on( DB::raw('product.promotion_id2'), '=', 'promotions.promotion_id' );
                     })
             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
-            ->leftJoin('promotion_retailer_redeem', 'promotions.promotion_id', '=', 'promotion_retailer_redeem.promotion_id')
-            ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer_redeem.retailer_id')
+            // ->leftJoin('promotion_retailer_redeem', 'promotions.promotion_id', '=', 'promotion_retailer_redeem.promotion_id')
+            // ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer_redeem.retailer_id')
             ->leftJoin(DB::raw("{$prefix}categories cat1"), function($join) {
                 $join->on(DB::raw('cat1.category_id'), '=', 'promotion_rules.discount_object_id1');
                 $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
