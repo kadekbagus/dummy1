@@ -82,7 +82,7 @@ class EventModel extends Eloquent
 
     public function products()
     {
-        return $this->belongsToMany('Product', 'event_product', 'event_id', 'product_id');
+        return (new BelongsToManyWithUUIDPivot(with(new Product())->newQuery(), $this, 'event_product', 'event_id', 'product_id', 'event_product_id', 'products'))->withTimestamps();
     }
 
     /**

@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Orbit\EncodedUUID;
-use OrbitShop\API\V2\ObjectID;
 
 /**
  * Just like Eloquent's BelongsToMany but this one generates UUIDs for the pivot table.
@@ -33,7 +32,7 @@ class BelongsToManyWithUUIDPivot extends BelongsToMany {
     protected function createAttachRecord($id, $timed)
     {
         $record = parent::createAttachRecord($id, $timed);
-        $record[$this->pivotKey] =         ObjectID::Make();
+        $record[$this->pivotKey] = (string) EncodedUUID::make();
         return $record;
     }
 
