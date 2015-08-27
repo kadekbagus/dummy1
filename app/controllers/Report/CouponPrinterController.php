@@ -59,12 +59,12 @@ class CouponPrinterController extends DataPrinterController
                             THEN
                                 'All Retailer' 
                             ELSE 
-                                GROUP_CONCAT(r.`name` SEPARATOR ', ')
+                                GROUP_CONCAT(r.`name` ORDER BY r.`name` SEPARATOR ', ')
                             END AS retailer_list
                         from {$prefix}promotions p
                         left join {$prefix}promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
-                        left join {$prefix}merchants r on r.merchant_id = prr.retailer_id
-                        where p.merchant_id = {$merchant_id} and p.status != 'deleted'
+                        left join {$prefix}merchants r on r.merchant_id = prr.retailer_id and r.status != 'deleted'
+                        where p.merchant_id = {$merchant_id} and p.status != 'deleted' 
                         group by p.promotion_id 
                     ) AS retailer "), function ($q) {
                         $q->on( DB::raw('retailer.promotion_id1'), '=', 'promotions.promotion_id' );
@@ -77,13 +77,13 @@ class CouponPrinterController extends DataPrinterController
                             THEN
                                 'All Product' 
                             ELSE 
-                                GROUP_CONCAT(p1.`product_name` SEPARATOR ', ')
+                                GROUP_CONCAT(p1.`product_name` ORDER BY p1.`product_name` SEPARATOR ', ')
                             END AS product_name
                         from {$prefix}promotions p
                         left join {$prefix}promotion_rules pr on pr.promotion_id = p.promotion_id
                         left join {$prefix}promotion_product prr on prr.promotion_rule_id = pr.promotion_rule_id and prr.object_type = 'discount'
-                        left join {$prefix}products p1 on p1.product_id = prr.product_id
-                        where p.merchant_id = {$merchant_id} and p.status != 'deleted'
+                        left join {$prefix}products p1 on p1.product_id = prr.product_id and p1.status != 'deleted'
+                        where p.merchant_id = {$merchant_id} and p.status != 'deleted' 
                         group by p.promotion_id 
                     ) AS product "), function ($q) {
                         $q->on( DB::raw('product.promotion_id2'), '=', 'promotions.promotion_id' );
@@ -595,5 +595,18 @@ class CouponPrinterController extends DataPrinterController
     public function printUtf8($input)
     {
         return utf8_encode($input);
+    }
+
+
+    /**
+     * change comma to br.
+     *
+     * @param $string $string
+     * @return string
+     */
+    public function commaToBr($string)
+    {
+        
+        return str_replace(',', '<br/>', $string);
     }
 }

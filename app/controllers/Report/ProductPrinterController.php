@@ -36,11 +36,12 @@ class ProductPrinterController extends DataPrinterController
                                                 THEN
                                                     'All Retailer' 
                                                 ELSE 
-                                                    GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ')
+                                                    GROUP_CONCAT(`{$prefix}merchants`.`name` ORDER BY `{$prefix}merchants`.`name` SEPARATOR ', ')
                                                 END AS retailer_list")
                                     )
                             ->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
                             ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
+                            ->where('merchants.status','!=', DB::raw("'deleted'"))
                             ->groupBy('products.product_id');
                                  
 
@@ -349,5 +350,17 @@ class ProductPrinterController extends DataPrinterController
     public function printUtf8($input)
     {
         return utf8_encode($input);
+    }
+
+    /**
+     * change comma to br.
+     *
+     * @param $string $string
+     * @return string
+     */
+    public function commaToBr($string)
+    {
+        
+        return str_replace(',', '<br/>', $string);
     }
 }
