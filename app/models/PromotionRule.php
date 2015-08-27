@@ -1,5 +1,7 @@
 <?php
 
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class PromotionRule extends Eloquent
 {
     use GeneratedUuidTrait;
@@ -52,6 +54,15 @@ class PromotionRule extends Eloquent
 
     public function discountproducts()
     {
-        return $this->belongsToMany('Product', 'promotion_product', 'promotion_rule_id', 'product_id');
+        return (
+            new BelongsToManyWithUUIDPivot(
+                with(new Product())->newQuery(),
+                $this,
+                'promotion_product',
+                'promotion_rule_id',
+                'product_id',
+                'promotion_product_id',
+                'discountproducts'
+        ))->withTimestamps()->withPivot(['object_type']);
     }
 }
