@@ -45,7 +45,7 @@ class EventPrinterController extends DataPrinterController
                                             THEN
                                                 'All Retailer' 
                                             ELSE 
-                                                GROUP_CONCAT(r.name SEPARATOR ', ')
+                                                GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ', ')
                                             END AS retailer_list
                                         from {$prefix}events e
                                         left join {$prefix}event_retailer er on er.event_id = e.event_id
@@ -63,7 +63,7 @@ class EventPrinterController extends DataPrinterController
                                             THEN
                                                 'All Product' 
                                             ELSE 
-                                                GROUP_CONCAT(p.`product_name` SEPARATOR ', ')
+                                                GROUP_CONCAT(p.`product_name` ORDER BY p.`product_name` SEPARATOR ', ')
                                             END AS product_name
                                         from {$prefix}events e
                                         left join {$prefix}event_product ep on ep.event_id = e.event_id
@@ -389,6 +389,19 @@ class EventPrinterController extends DataPrinterController
         }
         
         return $result;
+    }
+
+
+    /**
+     * change comma to br.
+     *
+     * @param $string $string
+     * @return string
+     */
+    public function commaToBr($string)
+    {
+        
+        return str_replace(',', '<br/>', $string);
     }
 
 
