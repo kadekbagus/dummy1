@@ -48,8 +48,8 @@ class EventPrinterController extends DataPrinterController
                                                 GROUP_CONCAT(r.name SEPARATOR ', ')
                                             END AS retailer_list
                                         from {$prefix}events e
-                                        inner join {$prefix}event_retailer er on er.event_id = e.event_id
-                                        inner join {$prefix}merchants r on r.merchant_id = er.retailer_id
+                                        left join {$prefix}event_retailer er on er.event_id = e.event_id
+                                        left join {$prefix}merchants r on r.merchant_id = er.retailer_id
                                         where e.merchant_id = {$merchant_id} and e.status != 'deleted'
                                         group by e.event_id 
                                       )AS retailer"
@@ -66,16 +66,16 @@ class EventPrinterController extends DataPrinterController
                                                 GROUP_CONCAT(p.`product_name` SEPARATOR ', ')
                                             END AS product_name
                                         from {$prefix}events e
-                                        inner join {$prefix}event_product ep on ep.event_id = e.event_id
-                                        inner join {$prefix}products p on p.product_id = ep.product_id
+                                        left join {$prefix}event_product ep on ep.event_id = e.event_id
+                                        left join {$prefix}products p on p.product_id = ep.product_id
                                         where e.merchant_id = {$merchant_id} and e.status != 'deleted'
                                         group by e.event_id
                                         ) AS product"
                                        ), function ($q) {
                                             $q->on( DB::raw('product.event_id3'), '=', 'events.event_id' );
                                 })
-                            ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
-                            ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
+                            // ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
+                            // ->leftJoin('merchants', 'merchants.merchant_id', '=', 'event_retailer.retailer_id')
                             ->leftJoin(DB::raw("{$prefix}promotions"), function($join) {
                                 $join->on('promotions.promotion_id', '=', 'events.link_object_id1');
                                 $join->on('events.link_object_type', '=', DB::raw("'promotion'"));
