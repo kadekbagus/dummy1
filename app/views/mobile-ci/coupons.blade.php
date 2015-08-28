@@ -12,7 +12,9 @@
                 <p>{{ $coupons[0]->description }}</p>
                 @if($coupons[0]->promotion_type == 'product' || $coupons[0]->promotion_type == 'cart')
                     @if($coupons[0]->discount_object_type == 'product')
+                        @if(sizeof($data->records) == 1)
                         <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }} : {{ $coupons[0]->product_name }}</p>
+                        @endif
                     @elseif($coupons[0]->discount_object_type == 'family')
                         <p class="promo-item">
                             {{ Lang::get('mobileci.coupon_list.category_label') }} : 

@@ -221,7 +221,7 @@ class WidgetController extends MobileCIAPIController
                 DB::raw(
                     'SELECT * FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "N"
-                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_rule_id = propro.promotion_rule_id AND object_type = "discount")
                 left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
                 left join ' . DB::getTablePrefix() . 'products prod on
                     (
@@ -299,7 +299,7 @@ class WidgetController extends MobileCIAPIController
                 DB::raw(
                     'SELECT *, p.promotion_id as promoid, p.image AS promo_image FROM ' . DB::getTablePrefix() . 'promotions p
                 inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.is_coupon = "Y" and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y"))
-                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "discount")
+                left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_rule_id = propro.promotion_rule_id AND object_type = "discount")
                 left join ' . DB::getTablePrefix() . 'promotion_retailer_redeem prr on prr.promotion_id = p.promotion_id
                 left join ' . DB::getTablePrefix() . 'products prod on
                 (

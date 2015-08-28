@@ -12,7 +12,9 @@
                 <p>{{ $promotions[0]->description }}</p>
                 @if($promotions[0]->promotion_type == 'product' || $promotions[0]->promotion_type == 'cart')
                     @if($promotions[0]->discount_object_type == 'product')
+                        @if(! empty($promotions[0]->product_name))
                         <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }} : {{ $promotions[0]->product_name }}</p>
+                        @endif
                     @elseif($promotions[0]->discount_object_type == 'family')
                         <p class="promo-item">
                             {{ Lang::get('mobileci.promotion_list.category_label') }} : 

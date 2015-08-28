@@ -383,7 +383,7 @@ class TransactionController extends MobileCIAPIController
                         DB::raw(
                             'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
                         inner join ' . DB::getTablePrefix() . 'promotion_rules pr on p.promotion_id = pr.promotion_id and p.status = "active" and ((p.begin_date <= "' . Carbon::now() . '"  and p.end_date >= "' . Carbon::now() . '") or (p.begin_date <= "' . Carbon::now() . '" AND p.is_permanent = "Y")) and p.is_coupon = "Y"
-                        left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_id = propro.promotion_rule_id AND object_type = "rule")
+                        left join ' . DB::getTablePrefix() . 'promotion_product propro on (pr.promotion_rule_id = propro.promotion_rule_id AND object_type = "rule")
                         left join ' . DB::getTablePrefix() . 'promotion_retailer prr on prr.promotion_id = p.promotion_id
                         left join ' . DB::getTablePrefix() . 'products prod on
                         (
@@ -403,8 +403,8 @@ class TransactionController extends MobileCIAPIController
                         ),
                         array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id)
                     );
-
-                    if ($coupons!=null) {
+                    
+                    if (! empty($coupons)) {
                         foreach ($coupons as $c) {
                             if ($c->maximum_issued_coupon != 0) {
                                 $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
@@ -425,6 +425,22 @@ class TransactionController extends MobileCIAPIController
                                     $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
                                     $acquired_coupons[] = $acquired_coupon;
                                 }
+                            } else {
+                                $issue_coupon = new IssuedCoupon();
+                                $issue_coupon->promotion_id = $c->promotion_id;
+                                $issue_coupon->issued_coupon_code = '';
+                                $issue_coupon->user_id = $customer_id;
+                                $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
+                                $issue_coupon->issued_date = Carbon::now();
+                                $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                                $issue_coupon->status = 'active';
+                                $issue_coupon->transaction_id = $transaction->transaction_id;
+                                $issue_coupon->save();
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                                $issue_coupon->save();
+
+                                $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
+                                $acquired_coupons[] = $acquired_coupon;
                             }
                         }
                     }
@@ -481,6 +497,22 @@ class TransactionController extends MobileCIAPIController
                                 $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
                                 $acquired_coupons[] = $acquired_coupon;
                             }
+                        } else {
+                            $issue_coupon = new IssuedCoupon();
+                            $issue_coupon->promotion_id = $kupon->promotion_id;
+                            $issue_coupon->issued_coupon_code = '';
+                            $issue_coupon->user_id = $customer_id;
+                            $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
+                            $issue_coupon->issued_date = Carbon::now();
+                            $issue_coupon->issuer_retailer_id = $retailer->merchant_id;
+                            $issue_coupon->status = 'active';
+                            $issue_coupon->transaction_id = $transaction->transaction_id;
+                            $issue_coupon->save();
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
+                            $issue_coupon->save();
+
+                            $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
+                            $acquired_coupons[] = $acquired_coupon;
                         }
                     }
                 }
