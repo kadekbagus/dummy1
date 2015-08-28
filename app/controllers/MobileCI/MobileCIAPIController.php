@@ -285,7 +285,7 @@ class MobileCIAPIController extends ControllerAPI
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id)
             );
-            
+
             $coupons = DB::select(
                 DB::raw(
                     'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
@@ -388,7 +388,7 @@ class MobileCIAPIController extends ControllerAPI
                                 return $v;
                             }
                         } else {
-                            if($v->is_all_product_rule == 'N') {
+                            if($v->is_all_product_rule == 'N' || $v->is_all_product_rule === NULL) {
                                 return $v->product_id == $product->product_id;
                             } else {
                                 return $v;
@@ -396,6 +396,7 @@ class MobileCIAPIController extends ControllerAPI
                         }
                     }
                 );
+
                 $product->on_couponstocatch = false;
                 foreach ($couponstocatch_this_product as $couponstocatchsflag) {
                     if ($couponstocatchsflag->coupon_notification == 'Y') {
