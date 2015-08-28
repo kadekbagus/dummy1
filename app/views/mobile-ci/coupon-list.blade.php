@@ -24,7 +24,9 @@
                                 @if($promo->promotion_type == 'product' || $promo->promotion_type == 'cart')
                                     <div class="col-xs-12">
                                     @if($promo->discount_object_type == 'product')
+                                        @if($promo->product_count == 1)
                                         <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }}: {{ $promo->product_name }}</p>
+                                        @endif
                                     @elseif($promo->discount_object_type == 'family')
                                         <p class="promo-item">
                                             {{ Lang::get('mobileci.coupon_list.category_label') }}: 
