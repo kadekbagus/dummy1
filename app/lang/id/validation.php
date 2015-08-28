@@ -205,7 +205,7 @@ return array(
                         'variant'       => 'Product variant ID tidak ditemukan.'
                     ),
             ),
-            'upc_code'             => 'Kode UPC produk tidak ditemukan.',
+            'upc_code'             => 'Barcode produk tidak ditemukan.',
             'transaction'          => 'Transaction tidak ditemukan.',
             'widget'               => 'Widget ID tidak ditemukan.',
             'employee'             => array(
