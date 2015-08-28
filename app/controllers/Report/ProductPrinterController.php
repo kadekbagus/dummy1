@@ -21,13 +21,28 @@ class ProductPrinterController extends DataPrinterController
 
         $now = date('Y-m-d H:i:s');
 
-        $products = Product::excludeDeleted('products')->select(
-            "products.*","merchants.name as merchant_name",
-            DB::raw('CASE WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") THEN "Yes" ELSE "No" END AS is_new'),
-            DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name`,' ',`{$prefix}merchants`.`city` SEPARATOR ', ') as retailer_list")
-        )->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
-        ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
-        ->groupBy('products.product_id');
+        $products = Product::excludeDeleted('products')
+                            ->select("products.*",
+                                     DB::raw('CASE 
+                                                WHEN (new_from <= "'.$now.'" AND new_from != "0000-00-00 00:00:00") AND (new_until >= "'.$now.'" OR new_until = "0000-00-00 00:00:00") 
+                                                THEN 
+                                                    "Yes" 
+                                                ELSE 
+                                                    "No" 
+                                                END AS is_new'),
+                                     DB::raw("CASE
+                                                WHEN
+                                                    (`{$prefix}products`.is_all_retailer = 'Y')
+                                                THEN
+                                                    'All Retailer' 
+                                                ELSE 
+                                                    GROUP_CONCAT(`{$prefix}merchants`.`name` ORDER BY `{$prefix}merchants`.`name` SEPARATOR ', ')
+                                                END AS retailer_list")
+                                    )
+                            ->leftJoin('product_retailer', 'product_retailer.product_id', '=', 'products.product_id')
+                            ->leftJoin('merchants', 'merchants.merchant_id', '=', 'product_retailer.retailer_id')
+                            ->where('merchants.status','!=', DB::raw("'deleted'"))
+                            ->groupBy('products.product_id');
                                  
 
         // Check the value of `with_params` argument
@@ -335,5 +350,17 @@ class ProductPrinterController extends DataPrinterController
     public function printUtf8($input)
     {
         return utf8_encode($input);
+    }
+
+    /**
+     * change comma to br.
+     *
+     * @param $string $string
+     * @return string
+     */
+    public function commaToBr($string)
+    {
+        
+        return str_replace(',', '<br/>', $string);
     }
 }

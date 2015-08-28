@@ -134,10 +134,10 @@
             <tr class="{{ $rowCounter % 2 === 0 ? 'zebra' : '' }}">
                 <td><?php echo $me->printUtf8($row->promotion_name); ?></td>
                 <td><?php echo $me->printExpirationDate($row); ?></td>
-                <td><?php echo $me->printUtf8($row->retailer_list); ?></td>
+                <td><?php echo $me->commaToBr($me->printUtf8($row->retailer_list)); ?></td>
                 <td><?php echo $me->printDiscountType($row); ?></td>
                 <td><?php echo $me->printDiscountValue($row); ?></td>
-                <td><?php echo $me->printProductFamilyLink($row); ?></td>
+                <td><?php echo $me->commaToBr($me->printProductFamilyLink($row)); ?></td>
                 <td><?php echo ($row->status); ?></td>
             </tr>
         <?php endwhile; ?>

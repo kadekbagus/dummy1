@@ -2499,7 +2499,7 @@ class DashboardAPIController extends ControllerAPI
             });
 
             OrbitInput::get('transaction_count', function($trxCount) use ($activities) {
-                $activities->having('transaction_count', '=', $trxCount);
+                $activities->having('transaction_count', 'like', "%{$trxCount}%");
             });
 
             $transactionFilterMapping = [

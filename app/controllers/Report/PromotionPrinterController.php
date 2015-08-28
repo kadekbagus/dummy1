@@ -21,6 +21,8 @@ class PromotionPrinterController extends DataPrinterController
         $user = $this->loggedUser;
         $now = date('Y-m-d H:i:s');
 
+        $merchant_id = \Merchant::where('user_id', $user->user_id)->first()->merchant_id;
+
         $promotions = Promotion::excludeDeleted('promotions')
             ->select(DB::raw($prefix . "promotions.*, 
                     CASE rule_type
@@ -36,7 +38,8 @@ class PromotionPrinterController extends DataPrinterController
                         ELSE discount_value
                     END AS 'display_discount_value'
                     "), 
-                    DB::raw("GROUP_CONCAT(`{$prefix}merchants`.`name` SEPARATOR ', ') as retailer_list"),
+                    DB::raw('retailer.*'),
+                    DB::raw('product.*'),
                     DB::raw('cat1.category_name as family_name1'),
                     DB::raw('cat2.category_name as family_name2'),
                     DB::raw('cat3.category_name as family_name3'),
@@ -44,16 +47,48 @@ class PromotionPrinterController extends DataPrinterController
                     DB::raw('cat5.category_name as family_name5'),
                     "promotion_rules.rule_type as rule_type",
                     "promotion_rules.discount_value as discount_value",
-                    "promotion_rules.discount_object_type as discount_object_type",
-                    "products.product_name as product_name"
+                    "promotion_rules.discount_object_type as discount_object_type"
             )
+            ->leftJoin(DB::raw("(
+                        select p.promotion_id as promotion_id1, 
+                            CASE
+                            WHEN
+                                (p.is_all_retailer = 'Y')
+                            THEN
+                                'All Retailer' 
+                            ELSE 
+                                GROUP_CONCAT(r.`name` ORDER BY r.`name` SEPARATOR ', ')
+                            END AS retailer_list
+                        from {$prefix}promotions p
+                        left join {$prefix}promotion_retailer pr on pr.promotion_id = p.promotion_id
+                        left join {$prefix}merchants r on r.merchant_id = pr.retailer_id and r.status != 'deleted'
+                        where p.merchant_id = {$merchant_id} and p.status != 'deleted' 
+                        group by p.promotion_id 
+                    ) AS retailer "), function ($q) {
+                        $q->on( DB::raw('retailer.promotion_id1'), '=', 'promotions.promotion_id' );
+                    })
+            ->leftJoin(DB::raw(" (
+                        select p.promotion_id as promotion_id2, 
+                            CASE
+                            WHEN
+                                (pr.is_all_product_discount = 'Y')
+                            THEN
+                                'All Product' 
+                            ELSE 
+                                GROUP_CONCAT(p1.`product_name` ORDER BY p1.`product_name` SEPARATOR ', ')
+                            END AS product_name
+                        from {$prefix}promotions p
+                        left join {$prefix}promotion_rules pr on pr.promotion_id = p.promotion_id
+                        left join {$prefix}promotion_product prr on prr.promotion_rule_id = pr.promotion_rule_id and prr.object_type = 'discount'
+                        left join {$prefix}products p1 on p1.product_id = prr.product_id and p1.status != 'deleted'
+                        where p.merchant_id = {$merchant_id} and p.status != 'deleted' 
+                        group by p.promotion_id 
+                    ) AS product "), function ($q) {
+                        $q->on( DB::raw('product.promotion_id2'), '=', 'promotions.promotion_id' );
+                    })
             ->join('promotion_rules', 'promotions.promotion_id', '=', 'promotion_rules.promotion_id')
-            ->leftJoin('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
-            ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
-            ->leftJoin(DB::raw("{$prefix}products"), function($join) {
-                $join->on('products.product_id', '=', 'promotion_rules.discount_object_id1');
-                $join->on('promotion_rules.discount_object_type', '=', DB::raw("'product'"));
-            })
+            // ->leftJoin('promotion_retailer', 'promotions.promotion_id', '=', 'promotion_retailer.promotion_id')
+            // ->leftJoin('merchants', 'merchants.merchant_id', '=', 'promotion_retailer.retailer_id')
             ->leftJoin(DB::raw("{$prefix}categories cat1"), function($join) {
                 $join->on(DB::raw('cat1.category_id'), '=', 'promotion_rules.discount_object_id1');
                 $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
@@ -535,4 +570,18 @@ class PromotionPrinterController extends DataPrinterController
     {
         return utf8_encode($input);
     }
+
+
+    /**
+     * Print event link friendly name.
+     *
+     * @param $event $event
+     * @return string
+     */
+    public function commaToBr($string)
+    {
+        
+        return str_replace(',', '<br/>', $string);
+    }
+
 }
