@@ -118,7 +118,7 @@ return array(
                 'variant'           => array(
                     'transaction'   => 'Product combination ID :id has one or more transactions linked to it, so it cannot be edited or deleted.'
                 ),
-                'upc_code'          => 'Barcode (UPC) :upc has already been used by other product.',
+                'upc_code'          => 'Barcode :upc has already been used by other product.',
                 'sku_code'          => 'SKU :sku has already been used by other product.',
                 'transaction'       => 'Product \':name\' has one or more transactions linked to it, so it cannot be edited or deleted.',
                 'variant_value_unique' => 'Product combination/variant already exists.',
@@ -228,7 +228,7 @@ return array(
                         'variant'       => 'The product combination ID you specified is not found.'
                     ),
             ),
-            'upc_code'             => 'The Barcode (UPC) code of the product is not found.',
+            'upc_code'             => 'The Barcode code of the product is not found.',
             'transaction'          => 'The Transaction is not found.',
             'widget'               => 'The Widget ID you specified is not found.',
             'employee'             => array(
