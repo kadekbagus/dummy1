@@ -40,7 +40,7 @@ class IssuedCouponAPIController extends ControllerAPI
             Event::fire('orbit.issuedcoupon.postnewissuedcoupon.before.auth', array($this));
 
             $this->checkAuth();
-            
+
             Event::fire('orbit.issuedcoupon.postnewissuedcoupon.after.auth', array($this));
 
             // Try to check access control list, does this user allowed to
@@ -824,12 +824,26 @@ class IssuedCouponAPIController extends ControllerAPI
             }
 
             // Builder object
-            $issuedcoupons = DB::table('issued_coupons')
+            $issuedcoupons = IssuedCoupon::excludeDeleted('issued_coupons')
+                ->select('merchants.merchant_id AS retailer_id', 'merchants.name AS redeem_retailer_name', 'promotions.*', 'issued_coupons.*')
                 ->join('promotions', 'issued_coupons.promotion_id', '=', 'promotions.promotion_id')
-                ->join('promotion_retailer_redeem', 'promotions.promotion_id', '=', 'promotion_retailer_redeem.promotion_id')
-                ->join('merchants', 'promotion_retailer_redeem.retailer_id', '=', 'merchants.merchant_id')
-                ->select('promotion_retailer_redeem.retailer_id', 'merchants.name AS redeem_retailer_name', 'promotions.*', 'issued_coupons.*')
-                ->where('issued_coupons.status', '!=', 'deleted');
+                ->leftJoin('promotion_retailer_redeem', 'promotion_retailer_redeem.promotion_id', '=', 'promotions.promotion_id')
+                ->leftJoin('merchants', function($q) {
+                    $q->where('merchants.object_type', '=', 'retailer')
+                        ->on('merchants.parent_id', '=', 'promotions.merchant_id');
+                })
+                ->whereNotNull('merchants.merchant_id')
+                ->where(function($q) {
+                    $q->where('promotions.is_all_retailer', '=', 'Y')
+                        ->orWhere(function($q) {
+                            $prefix = DB::getTablePrefix();
+                            $q->where(function($q) {
+                                $q->where('promotions.is_all_retailer', '!=', 'Y')
+                                    ->orWhereNull('promotions.is_all_retailer');
+                            })
+                                ->whereRaw("{$prefix}promotion_retailer_redeem.retailer_id = {$prefix}merchants.merchant_id");
+                        });
+                });
 
             // Filter coupon by Ids
             OrbitInput::get('promotion_id', function($promotionIds) use ($issuedcoupons)
