@@ -140,17 +140,25 @@
                                 @foreach($promo_products as $promo_product)
                                     <li>
                                         <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
-                                            @if($promo_product->promotion_type == 'cart')
+                                            @if($promo_product->is_all_product_discount == 'Y')
                                                 @if(!is_null($promo_product->promo_image))
                                                 <img class="img-responsive vcenter" src="{{ asset($promo_product->promo_image) }}"/>
                                                 @else
                                                 <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
                                                 @endif
                                             @else
-                                                @if(!is_null($promo_product->image))
-                                                <img class="img-responsive vcenter" src="{{ asset($promo_product->image) }}"/>
+                                                @if($promo_product->promotion_type == 'cart')
+                                                    @if(!is_null($promo_product->promo_image))
+                                                    <img class="img-responsive vcenter" src="{{ asset($promo_product->promo_image) }}"/>
+                                                    @else
+                                                    <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    @endif
                                                 @else
-                                                <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    @if(!is_null($promo_product->image))
+                                                    <img class="img-responsive vcenter" src="{{ asset($promo_product->image) }}"/>
+                                                    @else
+                                                    <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    @endif
                                                 @endif
                                             @endif
                                         </a>
