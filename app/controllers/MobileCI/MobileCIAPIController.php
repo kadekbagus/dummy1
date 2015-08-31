@@ -1799,7 +1799,11 @@ class MobileCIAPIController extends ControllerAPI
                 $promo_filters = array_filter(
                     $promo_products,
                     function ($v) use ($cartdetail) {
-                        return $v->product_id == $cartdetail->product_id;
+                        if($v->is_all_product_discount == 'N') {
+                            return $v->product_id == $cartdetail->product_id;
+                        } else {
+                            return $v;
+                        }
                     }
                 );
 
