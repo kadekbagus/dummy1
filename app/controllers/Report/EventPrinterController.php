@@ -43,7 +43,7 @@ class EventPrinterController extends DataPrinterController
                                             WHEN
                                                 (e.is_all_retailer = 'Y')
                                             THEN
-                                                'All Retailer' 
+                                                'All Retailers' 
                                             ELSE 
                                                 GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ', ')
                                             END AS retailer_list
@@ -61,7 +61,7 @@ class EventPrinterController extends DataPrinterController
                                             WHEN
                                                 (e.is_all_product = 'Y')
                                             THEN
-                                                'All Product' 
+                                                'All Products' 
                                             ELSE 
                                                 GROUP_CONCAT(p.`product_name` ORDER BY p.`product_name` SEPARATOR ', ')
                                             END AS product_name

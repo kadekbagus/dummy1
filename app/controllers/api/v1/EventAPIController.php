@@ -1479,11 +1479,25 @@ class EventAPIController extends ControllerAPI
             }
 
             // Builder object
-            $events = DB::table('events')
-                ->leftjoin('event_retailer', 'events.event_id', '=', 'event_retailer.event_id')
-                ->leftjoin('merchants', 'event_retailer.retailer_id', '=', 'merchants.merchant_id')
-                ->select('event_retailer.retailer_id', 'merchants.name AS retailer_name', 'events.*')
-                ->where('events.status', '!=', 'deleted');
+            $events = EventModel::excludeDeleted('events')
+                ->select('merchants.merchant_id AS retailer_id', 'merchants.name AS retailer_name', 'events.*')
+                ->leftJoin('event_retailer', 'event_retailer.event_id', '=', 'events.event_id')
+                ->leftJoin('merchants', function($q) {
+                    $q->where('merchants.object_type', '=', 'retailer')
+                        ->on('merchants.parent_id', '=', 'events.merchant_id');
+                })
+                ->whereNotNull('merchants.merchant_id')
+                ->where(function($q) {
+                    $q->where('events.is_all_retailer', '=', 'Y')
+                        ->orWhere(function($q) {
+                            $prefix = DB::getTablePrefix();
+                            $q->where(function($q) {
+                                $q->where('events.is_all_retailer', '!=', 'Y')
+                                    ->orWhereNull('events.is_all_retailer');
+                            })
+                                ->whereRaw("{$prefix}event_retailer.retailer_id = {$prefix}merchants.merchant_id");
+                        });
+                });
 
             // Filter event by Ids
             OrbitInput::get('event_id', function($eventIds) use ($events)

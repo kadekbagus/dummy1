@@ -27,33 +27,35 @@
                 <section class="widget-single">
                     <ul class="rslides" @if($widget->animation == 'horizontal') id="slider1" @endif>
                         @if($widget->animation == 'none')
-                        <li>
-                            <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
-                                @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
-                                <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
-                                @else
-                                <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_catalogue.png') }}" />
-                                @endif
-                            </a>
-                        </li>
+                            <li>
+                                <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
+                                    @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                        <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
+                                    @else
+                                        <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_catalogue.png') }}" />
+                                    @endif
+                                </a>
+                            </li>
                         @elseif($widget->animation == 'horizontal')
-                        @if(count($random_products) > 0)
-                        @foreach($random_products as $random_product)
-                        <li>
-                            <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
-                                @if(!is_null($random_product->image))
-                                <img class="img-responsive vcenter" src="{{ asset($random_product->image) }}"/>
-                                @else
-                                <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_product.png') }}"/>
-                                @endif
-                            </a>
-                        </li>
-                        @endforeach
-                        @else
-                        <li>
-                            <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_catalogue.png') }}"/>
-                        </li>
-                        @endif
+                            @if(count($random_products) > 0)
+                                @foreach($random_products as $random_product)
+                                    <li>
+                                        <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/catalogue') }}">
+                                            @if(!is_null($random_product->image))
+                                                <img class="img-responsive vcenter" src="{{ asset($random_product->image) }}"/>
+                                            @else
+                                                <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_product.png') }}"/>
+                                            @endif
+                                        </a>
+                                    </li>
+                                @endforeach
+                            @else
+                                <li>
+                                    <a>
+                                        <img id="emptyNew" class="img-responsive" src="{{ asset('mobile-ci/images/default_catalogue.png') }}"/>
+                                    </a>
+                                </li>
+                            @endif
                         @endif
                     </ul>
                 </section>
@@ -72,33 +74,35 @@
                     <div class="callbacks_container">
                         <ul class="rslides" @if($widget->animation == 'horizontal') id="slider2" @endif>
                             @if($widget->animation == 'none')
-                            <li>
-                                <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/search?new=1') }}">
-                                    @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
-                                    <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
-                                    @else
-                                    <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_new_product.png') }}" />
-                                    @endif
-                                </a>
-                            </li>
+                                <li>
+                                    <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/search?new=1') }}">
+                                        @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                            <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
+                                        @else
+                                            <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_new_product.png') }}" />
+                                        @endif
+                                    </a>
+                                </li>
                             @elseif($widget->animation == 'horizontal')
-                            @if(count($new_products) > 0)
-                            @foreach($new_products as $new_product)
-                            <li>
-                                <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
-                                    @if(!is_null($new_product->image))
-                                    <img class="img-responsive vcenter" src="{{ asset($new_product->image) }}"/>
-                                    @else
-                                    <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_new_product.png') }}"/>
-                                    @endif
-                                </a>
-                            </li>
-                            @endforeach
-                            @else
-                            <li>
-                                <img id="emptyNew" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_new_product.png') }}"/>
-                            </li>
-                            @endif
+                                @if(count($new_products) > 0)
+                                    @foreach($new_products as $new_product)
+                                        <li>
+                                            <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/search?new=1#'.$new_product->product_id) }}">
+                                                @if(!is_null($new_product->image))
+                                                <img class="img-responsive vcenter" src="{{ asset($new_product->image) }}"/>
+                                                @else
+                                                <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_new_product.png') }}"/>
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                @else
+                                    <li>
+                                        <a>
+                                            <img id="emptyNew" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_new_product.png') }}"/>
+                                        </a>
+                                    </li>
+                                @endif
                             @endif
                         </ul>
                     </div>
@@ -128,11 +132,13 @@
                                 </li>
                             @else
                                 <li>
-                                    @if(!empty($widget->media->path))
-                                        <img class="img-responsive text-center vcenter" src="{{ asset($widget->media->path) }}" />
-                                    @else
-                                        <img id="emptyPromo" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
-                                    @endif
+                                    <a>
+                                        @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                            <img id="emptyPromo" class="img-responsive vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
+                                        @else
+                                            <img id="emptyPromo" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
+                                        @endif
+                                    </a>
                                 </li>
                             @endif
                         @elseif($widget->animation == 'horizontal')
@@ -140,17 +146,25 @@
                                 @foreach($promo_products as $promo_product)
                                     <li>
                                         <a class="widget-link" data-widget="{{ $widget->widget_id }}" href="{{ url('customer/promotions#'.$promo_product->promotion_id) }}">
-                                            @if($promo_product->promotion_type == 'cart')
+                                            @if($promo_product->is_all_product_discount == 'Y')
                                                 @if(!is_null($promo_product->promo_image))
-                                                <img class="img-responsive vcenter" src="{{ asset($promo_product->promo_image) }}"/>
+                                                    <img class="img-responsive vcenter" src="{{ asset($promo_product->promo_image) }}"/>
                                                 @else
-                                                <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
                                                 @endif
                                             @else
-                                                @if(!is_null($promo_product->image))
-                                                <img class="img-responsive vcenter" src="{{ asset($promo_product->image) }}"/>
+                                                @if($promo_product->promotion_type == 'cart')
+                                                    @if(!is_null($promo_product->promo_image))
+                                                        <img class="img-responsive vcenter" src="{{ asset($promo_product->promo_image) }}"/>
+                                                    @else
+                                                        <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    @endif
                                                 @else
-                                                <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    @if(!is_null($promo_product->image))
+                                                        <img class="img-responsive vcenter" src="{{ asset($promo_product->image) }}"/>
+                                                    @else
+                                                        <img class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_promotion.png') }}"/>
+                                                    @endif
                                                 @endif
                                             @endif
                                         </a>
@@ -158,7 +172,9 @@
                                 @endforeach
                             @else
                                 <li>
-                                    <img id="emptyPromo" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
+                                    <a>
+                                        <img id="emptyPromo" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_promotion.png') }}"/>
+                                    </a>
                                 </li>
                             @endif
                         @endif
@@ -181,19 +197,21 @@
                                 <li>
                                     <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/coupons') }}">
                                         @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
-                                        <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
+                                            <img class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
                                         @else
-                                        <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
+                                            <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
                                         @endif
                                     </a>
                                 </li>
                             @else
                                 <li>
-                                    @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
-                                    <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
-                                    @else
-                                    <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
-                                    @endif
+                                    <a>
+                                        @if(!empty($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()))
+                                            <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset($widget->media()->where('media_name_long', 'home_widget_resized_default')->first()->path) }}" />
+                                        @else
+                                            <img id="emptyCoupon" class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
+                                        @endif
+                                    </a>
                                 </li>
                             @endif
                         @elseif($widget->animation == 'horizontal')
@@ -203,15 +221,15 @@
                                         <a data-widget="{{ $widget->widget_id }}" class="widget-link" href="{{ url('customer/coupons#'.$coupon->promotion_id) }}" >
                                             @if($coupon->promotion_type == 'cart')
                                                 @if(!is_null($coupon->promo_image))
-                                                <img class="img-responsive text-center vcenter" src="{{ asset($coupon->promo_image) }}"/>
+                                                    <img class="img-responsive text-center vcenter" src="{{ asset($coupon->promo_image) }}"/>
                                                 @else
-                                                <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
+                                                    <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
                                                 @endif
                                             @else
                                                 @if(!empty($coupon->image))
-                                                <img class="img-responsive text-center vcenter" src="{{ asset($coupon->image) }}"/>
+                                                    <img class="img-responsive text-center vcenter" src="{{ asset($coupon->image) }}"/>
                                                 @else
-                                                <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
+                                                    <img class="img-responsive text-center vcenter" src="{{ asset('mobile-ci/images/default_coupon.png') }}" />
                                                 @endif
                                             @endif
                                         </a>
@@ -219,7 +237,9 @@
                                 @endforeach
                             @else
                                 <li>
-                                    <img id="emptyCoupon" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
+                                    <a>
+                                        <img id="emptyCoupon" class="img-responsive vcenter" src="{{ asset('mobile-ci/images/default_no_coupon.png') }}"/>
+                                    </a>
                                 </li>
                             @endif
                         @endif

@@ -55,7 +55,7 @@ class PromotionPrinterController extends DataPrinterController
                             WHEN
                                 (p.is_all_retailer = 'Y')
                             THEN
-                                'All Retailer' 
+                                'All Retailers' 
                             ELSE 
                                 GROUP_CONCAT(r.`name` ORDER BY r.`name` SEPARATOR ', ')
                             END AS retailer_list
@@ -73,7 +73,7 @@ class PromotionPrinterController extends DataPrinterController
                             WHEN
                                 (pr.is_all_product_discount = 'Y')
                             THEN
-                                'All Product' 
+                                'All Products' 
                             ELSE 
                                 GROUP_CONCAT(p1.`product_name` ORDER BY p1.`product_name` SEPARATOR ', ')
                             END AS product_name
