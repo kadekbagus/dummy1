@@ -322,7 +322,7 @@ class WidgetAPIController extends ControllerAPI
                     'widget_id'             => 'required|orbit.empty.widget',
                     'object_id'             => '',
                     'merchant_id'           => 'orbit.empty.merchant',
-                    'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon|orbit.exists.widget_type_but_me:' . $merchantId . ', ' . $widgetId,
+                    'widget_type'           => ['required', 'in:catalogue,new_product,promotion,coupon', ['orbit.exists.widget_type_but_me', $merchantId, $widgetId]],
                     'animation'             => 'in:none,horizontal,vertical',
                     'images'                => 'required_if:animation,none',
                     'widget_order'          => 'numeric',
