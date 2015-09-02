@@ -42,6 +42,7 @@ return array(
     'DominoPOS\\OrbitSession\\' => array($vendorDir . '/dominopos/orbit-session'),
     'DominoPOS\\OrbitAPI\\' => array($vendorDir . '/dominopos/orbit-api'),
     'DominoPOS\\OrbitACL\\' => array($vendorDir . '/dominopos/orbit-acl'),
+    'DominoPOS\\SymmetricDS\\' => array($vendorDir . '/dominopos/symmetricds/src'),
     'DebugBar' => array($vendorDir . '/maximebf/debugbar/src'),
     'Crypt' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'ClassPreloader' => array($vendorDir . '/classpreloader/classpreloader/src'),
