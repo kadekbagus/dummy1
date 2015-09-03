@@ -195,7 +195,7 @@ class AccountController extends MobileCIAPIController
                     $cart->retailer_id = $retailer->merchant_id;
                     $cart->status = 'active';
                     $cart->save();
-                    $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                    $cart->cart_code = Cart::generatCartCode();
                     $cart->save();
                 }
             }

@@ -163,7 +163,7 @@ class Merchant extends Eloquent
         $orid   = static::OMID_INCREMENT . $time;
 
         $exists = function($orid) {
-            return static::where('orid', $orid)->exists();
+            return static::where('omid', $orid)->exists();
         };
 
         while($exists($orid))

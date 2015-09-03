@@ -403,7 +403,7 @@ class TransactionController extends MobileCIAPIController
                         ),
                         array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id)
                     );
-                    
+
                     if (! empty($coupons)) {
                         foreach ($coupons as $c) {
                             $lastcoupon = IssuedCoupon::orderBy('created_at', 'desc')->first();
@@ -972,7 +972,7 @@ class TransactionController extends MobileCIAPIController
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
 
@@ -1256,7 +1256,7 @@ class TransactionController extends MobileCIAPIController
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
 
@@ -1386,7 +1386,7 @@ class TransactionController extends MobileCIAPIController
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
 
