@@ -460,13 +460,10 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->pos_language = $pos_language;
             $newmerchant->enable_shopping_cart = $payment;
             $newmerchant->modified_by = $this->api->user->user_id;
+            $newmerchant->omid = Merchant::generateOmid();
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
 
-            $newmerchant->save();
-
-            // add omid to newly created merchant
-            $newmerchant->omid = Merchant::OMID_INCREMENT + $newmerchant->merchant_id;
             $newmerchant->save();
 
             Event::fire('orbit.merchant.postnewmerchant.after.save', array($this, $newmerchant));

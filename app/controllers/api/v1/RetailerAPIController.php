@@ -430,13 +430,10 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->masterbox_number = $masterbox_number;
             $newretailer->slavebox_number = $slavebox_number;
             $newretailer->modified_by = $this->api->user->user_id;
+            $newretailer->orid = Retailer::generateOrid();
 
             Event::fire('orbit.retailer.postnewretailer.before.save', array($this, $newretailer));
 
-            $newretailer->save();
-
-            // add orid to newly created retailer
-            $newretailer->orid = Retailer::ORID_INCREMENT + $newretailer->merchant_id;
             $newretailer->save();
 
             Event::fire('orbit.retailer.postnewretailer.after.save', array($this, $newretailer));
@@ -640,7 +637,7 @@ class RetailerAPIController extends ControllerAPI
                     'retailer_id'       => 'required|orbit.empty.retailer',
                     'user_id'           => 'orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.retailer_status|orbit.exists.inactive_retailer_is_box_current_retailer:'.$retailer_id,
+                    'status'            => ['orbit.empty.retailer_status',['orbit.exists.inactive_retailer_is_box_current_retailer', $retailer_id]],
                     'parent_id'         => 'orbit.empty.merchant',
                     'url'               => 'orbit.formaterror.url.web'
                 ),
