@@ -391,7 +391,9 @@ class ProductController extends MobileCIAPIController
                                 $q->where(function($q2) {
                                     $q2->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
                                 });
-                                $q->orWhere('new_from', '<=', Carbon::now());
+                                $q->orWhere(function($q2) {
+                                    $q2->where('new_from', '<=', Carbon::now())->where('new_from', '<>', '0000-00-00 00:00:00');
+                                });
                             }
                         );
                     }
@@ -711,7 +713,7 @@ class ProductController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from !== '0000-00-00 00:00:00' && $product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;
@@ -965,7 +967,9 @@ class ProductController extends MobileCIAPIController
                                 $q->where(function($q2) {
                                     $q2->where('new_from', '<=', Carbon::now())->where('new_until', '>=', Carbon::now());
                                 });
-                                $q->orWhere('new_from', '<=', Carbon::now());
+                                $q->orWhere(function($q2) {
+                                    $q2->where('new_from', '<=', Carbon::now())->where('new_from', '<>', '0000-00-00 00:00:00');
+                                });
                             }
                         );
                     }
@@ -1239,7 +1243,7 @@ class ProductController extends MobileCIAPIController
                 }
 
                 // set is_new flag
-                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now())) {
+                if (($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from !== '0000-00-00 00:00:00' && $product->new_from <= \Carbon\Carbon::now())) {
                     $product->is_new = true;
                 } else {
                     $product->is_new = false;

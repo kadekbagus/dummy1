@@ -280,14 +280,14 @@
                         <img class="img-responsive" src="{{ asset($events->image) }}">
                     </a>
                     <br>
-                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/eventid?id='.$events->event_id) }}">{{ $events->event_name }}</a></b> <br>
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/event?eventid='.$events->event_id) }}">{{ $events->event_name }}</a></b> <br>
                     {{ nl2br($events->description) }}
                     @else
-                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/eventid?id='.$events->event_id) }}">
+                    <a data-event="{{ $events->event_id }}" href="{{ url('customer/event?eventid='.$events->event_id) }}">
                         <img class="img-responsive" src="{{ asset('mobile-ci/images/default_event.png') }}">
                     </a>
                     <br>
-                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/eventid?id='.$events->event_id) }}">{{ $events->event_name }}</a></b> <br>
+                    <b><a data-event="{{ $events->event_id }}" href="{{ url('customer/event?eventid='.$events->event_id) }}">{{ $events->event_name }}</a></b> <br>
                     {{ nl2br($events->description) }}
                     @endif
                     @elseif($events->link_object_type == 'family')
