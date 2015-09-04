@@ -89,7 +89,7 @@ class EventAPIController extends ControllerAPI
             $retailer_ids = OrbitInput::post('retailer_ids');
             $retailer_ids = (array) $retailer_ids;
             $product_ids = OrbitInput::post('product_ids');
-            $product_ids = (array) $product_ids;
+            $product_ids = empty($product_ids) ? [] : (array) $product_ids;
             $is_all_retailer = OrbitInput::post('is_all_retailer');
             $is_all_product = OrbitInput::post('is_all_product');
 

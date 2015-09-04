@@ -641,13 +641,11 @@ class RetailerAPIController extends ControllerAPI
                     'user_id'           => 'numeric|orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
                     'status'            => 'orbit.empty.retailer_status|orbit.exists.inactive_retailer_is_box_current_retailer:'.$retailer_id,
-                    'orid'              => 'orid_exists_but_me',
                     'parent_id'         => 'numeric|orbit.empty.merchant',
                     'url'               => 'orbit.formaterror.url.web'
                 ),
                 array(
                    'email_exists_but_me' => Lang::get('validation.orbit.exists.email'),
-                   'orid_exists_but_me'  => Lang::get('validation.orbit.exists.orid'),
                )
             );
 
