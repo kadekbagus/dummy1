@@ -172,7 +172,6 @@ class AccountController extends MobileCIAPIController
                     }
                 )->sharedLock()
                 ->first();
-
             if (! is_object($user)) {
                 $response = \LoginAPIController::create('raw')->setUseTransaction(false)->postRegisterUserInShop();
                 if ($response->code !== 0) {
@@ -195,7 +194,7 @@ class AccountController extends MobileCIAPIController
                     $cart->retailer_id = $retailer->merchant_id;
                     $cart->status = 'active';
                     $cart->save();
-                    $cart->cart_code = Cart::generatCartCode();
+                    $cart->cart_code = Cart::generateCartCode();
                     $cart->save();
                 }
             }
