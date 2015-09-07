@@ -403,16 +403,15 @@ class TransactionController extends MobileCIAPIController
                         ),
                         array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product_id)
                     );
-                    
+
                     if (! empty($coupons)) {
                         foreach ($coupons as $c) {
-                            $lastcoupon = IssuedCoupon::orderBy('created_at', 'desc')->first();
                             if ($c->maximum_issued_coupon != 0) {
                                 $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
                                 if ($issued < $c->maximum_issued_coupon) {
                                     $issue_coupon = new IssuedCoupon();
                                     $issue_coupon->promotion_id = $c->promotion_id;
-                                    $issue_coupon->issued_coupon_code = !empty($lastcoupon) ? ($lastcoupon->issued_coupon_code + 1) : (IssuedCoupon::ISSUE_COUPON_INCREMENT + 1);
+                                    $issue_coupon->issued_coupon_code = IssuedCoupon::generateIssuedCouponCode();
                                     $issue_coupon->user_id = $customer_id;
                                     $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
                                     $issue_coupon->issued_date = Carbon::now();
@@ -420,8 +419,6 @@ class TransactionController extends MobileCIAPIController
                                     $issue_coupon->status = 'active';
                                     $issue_coupon->transaction_id = $transaction->transaction_id;
                                     $issue_coupon->save();
-                                    // $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                                    // $issue_coupon->save();
 
                                     $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
                                     $acquired_coupons[] = $acquired_coupon;
@@ -429,7 +426,7 @@ class TransactionController extends MobileCIAPIController
                             } else {
                                 $issue_coupon = new IssuedCoupon();
                                 $issue_coupon->promotion_id = $c->promotion_id;
-                                $issue_coupon->issued_coupon_code = !empty($lastcoupon) ? ($lastcoupon->issued_coupon_code + 1) : (IssuedCoupon::ISSUE_COUPON_INCREMENT + 1);
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::generateIssuedCouponCode();
                                 $issue_coupon->user_id = $customer_id;
                                 $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
                                 $issue_coupon->issued_date = Carbon::now();
@@ -437,8 +434,6 @@ class TransactionController extends MobileCIAPIController
                                 $issue_coupon->status = 'active';
                                 $issue_coupon->transaction_id = $transaction->transaction_id;
                                 $issue_coupon->save();
-                                // $issue_coupon->issued_coupon_code = IssuedCoupon::ISSUE_COUPON_INCREMENT+$issue_coupon->issued_coupon_id;
-                                // $issue_coupon->save();
 
                                 $acquired_coupon = IssuedCoupon::with('coupon', 'coupon.couponrule', 'coupon.redeemretailers')->where('issued_coupon_id', $issue_coupon->issued_coupon_id)->first();
                                 $acquired_coupons[] = $acquired_coupon;
@@ -972,7 +967,7 @@ class TransactionController extends MobileCIAPIController
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
 
@@ -1256,7 +1251,7 @@ class TransactionController extends MobileCIAPIController
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
 
@@ -1386,7 +1381,7 @@ class TransactionController extends MobileCIAPIController
                 $cart->retailer_id = $retailer->merchant_id;
                 $cart->status = 'active';
                 $cart->save();
-                $cart->cart_code = Cart::CART_INCREMENT + $cart->cart_id;
+                $cart->cart_code = Cart::generateCartCode();
                 $cart->save();
             }
 

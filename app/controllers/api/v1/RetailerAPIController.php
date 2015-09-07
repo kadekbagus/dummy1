@@ -430,13 +430,10 @@ class RetailerAPIController extends ControllerAPI
             $newretailer->masterbox_number = $masterbox_number;
             $newretailer->slavebox_number = $slavebox_number;
             $newretailer->modified_by = $this->api->user->user_id;
+            $newretailer->orid = Retailer::generateOrid();
 
             Event::fire('orbit.retailer.postnewretailer.before.save', array($this, $newretailer));
 
-            $newretailer->save();
-
-            // add orid to newly created retailer
-            $newretailer->orid = Retailer::ORID_INCREMENT + $newretailer->merchant_id;
             $newretailer->save();
 
             Event::fire('orbit.retailer.postnewretailer.after.save', array($this, $newretailer));
@@ -640,14 +637,12 @@ class RetailerAPIController extends ControllerAPI
                     'retailer_id'       => 'required|orbit.empty.retailer',
                     'user_id'           => 'orbit.empty.user',
                     'email'             => 'email|email_exists_but_me',
-                    'status'            => 'orbit.empty.retailer_status|orbit.exists.inactive_retailer_is_box_current_retailer:'.$retailer_id,
-                    'orid'              => 'orid_exists_but_me',
+                    'status'            => ['orbit.empty.retailer_status',['orbit.exists.inactive_retailer_is_box_current_retailer', $retailer_id]],
                     'parent_id'         => 'orbit.empty.merchant',
                     'url'               => 'orbit.formaterror.url.web'
                 ),
                 array(
                    'email_exists_but_me' => Lang::get('validation.orbit.exists.email'),
-                   'orid_exists_but_me'  => Lang::get('validation.orbit.exists.orid'),
                )
             );
 
@@ -1575,7 +1570,7 @@ class RetailerAPIController extends ControllerAPI
                                          'products.product_id',
                                          'products.product_name',
                                          'products.is_all_retailer')
-                                ->leftJoin('products', 'products.merchant_id', '=', 'merchants.parent_id')                               
+                                ->leftJoin('products', 'products.merchant_id', '=', 'merchants.parent_id')
                                 ->leftJoin('product_retailer', function($join) {
                                     $join->on('products.product_id', '=', 'product_retailer.product_id');
                                     $join->on('merchants.merchant_id', '=', 'product_retailer.retailer_id');
@@ -1761,7 +1756,7 @@ class RetailerAPIController extends ControllerAPI
 
 
     /**
-     * GET - Search Retailer By Promotion 
+     * GET - Search Retailer By Promotion
      *
      * @author kadek <kadek@dominopos.com>
      *
@@ -1854,7 +1849,7 @@ class RetailerAPIController extends ControllerAPI
                                      'promotions.promotion_name',
                                      'promotions.is_all_retailer'
                                     )
-                                  ->leftJoin('promotions', 'promotions.merchant_id', '=', 'merchants.parent_id')                               
+                                  ->leftJoin('promotions', 'promotions.merchant_id', '=', 'merchants.parent_id')
                                   ->leftJoin('promotion_retailer', function($join) {
                                       $join->on('promotions.promotion_id', '=', 'promotion_retailer.promotion_id');
                                       $join->on('merchants.merchant_id', '=', 'promotion_retailer.retailer_id');
@@ -2135,7 +2130,7 @@ class RetailerAPIController extends ControllerAPI
                                      'promotions.promotion_name',
                                      'promotions.is_all_retailer_redeem'
                                     )
-                                  ->leftJoin('promotions', 'promotions.merchant_id', '=', 'merchants.parent_id')                               
+                                  ->leftJoin('promotions', 'promotions.merchant_id', '=', 'merchants.parent_id')
                                   ->leftJoin('promotion_retailer_redeem', function($join) {
                                       $join->on('promotions.promotion_id', '=', 'promotion_retailer_redeem.promotion_id');
                                       $join->on('merchants.merchant_id', '=', 'promotion_retailer_redeem.retailer_id');
@@ -2414,7 +2409,7 @@ class RetailerAPIController extends ControllerAPI
                                      'events.event_name',
                                      'events.is_all_retailer'
                                     )
-                                  ->leftJoin('events', 'events.merchant_id', '=', 'merchants.parent_id')                               
+                                  ->leftJoin('events', 'events.merchant_id', '=', 'merchants.parent_id')
                                   ->leftJoin('event_retailer', function($join) {
                                       $join->on('events.event_id', '=', 'event_retailer.event_id');
                                       $join->on('merchants.merchant_id', '=', 'event_retailer.retailer_id');

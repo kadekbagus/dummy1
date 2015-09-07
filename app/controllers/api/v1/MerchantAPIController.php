@@ -460,13 +460,10 @@ class MerchantAPIController extends ControllerAPI
             $newmerchant->pos_language = $pos_language;
             $newmerchant->enable_shopping_cart = $payment;
             $newmerchant->modified_by = $this->api->user->user_id;
+            $newmerchant->omid = Merchant::generateOmid();
 
             Event::fire('orbit.merchant.postnewmerchant.before.save', array($this, $newmerchant));
 
-            $newmerchant->save();
-
-            // add omid to newly created merchant
-            $newmerchant->omid = Merchant::OMID_INCREMENT + $newmerchant->merchant_id;
             $newmerchant->save();
 
             Event::fire('orbit.merchant.postnewmerchant.after.save', array($this, $newmerchant));
@@ -1250,7 +1247,6 @@ class MerchantAPIController extends ControllerAPI
                     'user_id'                    => 'orbit.empty.user',
                     'email'                      => 'sometimes|required|email|email_exists_but_me',
                     'status'                     => 'orbit.empty.merchant_status|orbit.exists.merchant_retailers_is_box_current_retailer:'.$merchant_id,
-                    'omid'                       => 'omid_exists_but_me',
                     'ticket_header'              => 'ticket_header_max_length',
                     'ticket_footer'              => 'ticket_footer_max_length',
                     'url'                        => 'orbit.formaterror.url.web',
@@ -1266,7 +1262,6 @@ class MerchantAPIController extends ControllerAPI
                 ),
                 array(
                    'email_exists_but_me'         => Lang::get('validation.orbit.exists.email'),
-                   'omid_exists_but_me'          => Lang::get('validation.orbit.exists.omid'),
                    'ticket_header_max_length'    => Lang::get('validation.orbit.formaterror.merchant.ticket_header.max_length'),
                    'ticket_footer_max_length'    => Lang::get('validation.orbit.formaterror.merchant.ticket_footer.max_length')
                )

@@ -17,7 +17,7 @@
             </div>
             <?php $x++;?>
             @endif
-            @if(($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now()))
+            @if(($product->new_from <= \Carbon\Carbon::now() && $product->new_until >= \Carbon\Carbon::now()) || ($product->new_from <= \Carbon\Carbon::now() && $product->new_from !== '0000-00-00 00:00:00' && $product->new_until === '0000-00-00 00:00:00'))
             <div class="ribbon-wrapper-red ribbon{{$x}}">
                 <div class="ribbon-red">{{ Lang::get('mobileci.catalogue.new_ribbon') }}</div>
             </div>

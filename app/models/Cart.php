@@ -10,7 +10,7 @@ class Cart extends Eloquent
      */
     use ModelStatusTrait;
 
-    const CART_INCREMENT = 111111;
+    const CART_INCREMENT = 3000;
 
     protected $table = 'carts';
 
@@ -24,6 +24,23 @@ class Cart extends Eloquent
     public function users()
     {
         return $this->belongsTo('User', 'customer_id', 'user_id');
+    }
+
+    public static function generateCartCode()
+    {
+        $time   = time();
+        $cartCode   = static::CART_INCREMENT . $time;
+
+        $exists = function($cartCode) {
+            return static::where('cart_code', $cartCode)->exists();
+        };
+
+        while($exists($cartCode))
+        {
+            $cartCode = (static::CART_INCREMENT + 1) . $time;
+        };
+
+        return $cartCode;
     }
 
 }

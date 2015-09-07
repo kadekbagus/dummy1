@@ -99,7 +99,6 @@ class AlterAllUseUuids extends Migration {
         [ 'events', 'link_object_id3', 'YES'],
         [ 'events', 'link_object_id4', 'YES'],
         [ 'events', 'link_object_id5', 'YES'],
-        [ 'events', 'widget_object_type', 'YES'],
         [ 'events', 'created_by', 'YES'],
         [ 'events', 'modified_by', 'YES'],
         [ 'issued_coupons', 'issued_coupon_id', 'NO'],
@@ -264,10 +263,7 @@ class AlterAllUseUuids extends Migration {
         [ 'widget_retailer', 'widget_id', 'NO'],
         [ 'widget_retailer', 'retailer_id', 'NO'],
         [ 'widgets', 'widget_id', 'NO'],
-        [ 'widgets', 'widget_type', 'YES'],
         [ 'widgets', 'widget_object_id', 'YES'],
-        [ 'widgets', 'widget_slogan', 'YES'],
-        [ 'widgets', 'widget_order', 'YES'],
         [ 'widgets', 'merchant_id', 'YES'],
         [ 'widgets', 'created_by', 'YES'],
         [ 'widgets', 'modified_by', 'YES']];

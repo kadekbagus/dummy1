@@ -31,7 +31,7 @@ class Retailer extends Eloquent
      */
     const OBJECT_TYPE = 'object_type';
 
-    const ORID_INCREMENT = 111111;
+    const ORID_INCREMENT = 2000;
 
     protected $primaryKey = 'merchant_id';
 
@@ -93,6 +93,26 @@ class Retailer extends Eloquent
     public function getUserCountAttribute()
     {
         return $this->userNumber ? $this->userNumber->count : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public static function generateOrid()
+    {
+        $time   = time();
+        $orid   = static::ORID_INCREMENT . $time;
+
+        $exists = function($orid) {
+            return static::where('orid', $orid)->exists();
+        };
+
+        while($exists($orid))
+        {
+            $orid = (static::ORID_INCREMENT + 1) . $time;
+        };
+
+        return $orid;
     }
 
     /**
