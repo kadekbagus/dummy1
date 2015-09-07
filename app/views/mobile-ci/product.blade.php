@@ -144,7 +144,7 @@
         @endforeach
         @endif
     </div>
-    <!-- <pre>{{ var_dump($product->attribute1) }}</pre> -->
+
     <div class="col-xs-12 product-attributes" id="select-attribute">
         <div class="row">
             @if(! is_null($product->attribute1))

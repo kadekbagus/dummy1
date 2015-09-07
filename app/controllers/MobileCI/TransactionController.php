@@ -408,10 +408,10 @@ class TransactionController extends MobileCIAPIController
                         foreach ($coupons as $c) {
                             $lastcoupon = IssuedCoupon::orderBy('created_at', 'desc')->first();
                             if ($c->maximum_issued_coupon != 0) {
-                                $issued = IssuedCoupon::where('promotion_id', $c->promotion_id)->count();
+                                $issued = IssuedCoupon::where('promotion_id', $c->promoid)->count();
                                 if ($issued < $c->maximum_issued_coupon) {
                                     $issue_coupon = new IssuedCoupon();
-                                    $issue_coupon->promotion_id = $c->promotion_id;
+                                    $issue_coupon->promotion_id = $c->promoid;
                                     $issue_coupon->issued_coupon_code = !empty($lastcoupon) ? ($lastcoupon->issued_coupon_code + 1) : (IssuedCoupon::ISSUE_COUPON_INCREMENT + 1);
                                     $issue_coupon->user_id = $customer_id;
                                     $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
@@ -428,7 +428,7 @@ class TransactionController extends MobileCIAPIController
                                 }
                             } else {
                                 $issue_coupon = new IssuedCoupon();
-                                $issue_coupon->promotion_id = $c->promotion_id;
+                                $issue_coupon->promotion_id = $c->promoid;
                                 $issue_coupon->issued_coupon_code = !empty($lastcoupon) ? ($lastcoupon->issued_coupon_code + 1) : (IssuedCoupon::ISSUE_COUPON_INCREMENT + 1);
                                 $issue_coupon->user_id = $customer_id;
                                 $issue_coupon->expired_date = Carbon::now()->addDays($c->coupon_validity_in_days);
