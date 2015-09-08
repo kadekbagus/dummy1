@@ -1287,7 +1287,7 @@ class MobileCIAPIController extends ControllerAPI
                         }
                         $promo_for_this_product->discount_str = $promo_filter->discount_value;
                     }
-                    $promo_for_this_product->promotion_id = $promo_filter->promotion_id;
+                    $promo_for_this_product->promotion_id = $promo_filter->promoid;
                     $promo_for_this_product->promotion_name = $promo_filter->promotion_name;
                     $promo_for_this_product->rule_type = $promo_filter->rule_type;
                     $promo_for_this_product->discount = $discount;
