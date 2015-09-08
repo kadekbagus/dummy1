@@ -1,6 +1,7 @@
 <?php
 class IssuedCoupon extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * IssuedCoupon Model
      *
@@ -32,6 +33,29 @@ class IssuedCoupon extends Eloquent
     public function issuerretailer()
     {
         return $this->belongsTo('Retailer', 'issuer_retailer_id', 'merchant_id');
+    }
+
+    public static function generateIssuedCouponCode()
+    {
+        $last  = static::orderBy('issued_coupon_code', 'desc')->first();
+        $exists = function ($max) {
+            static::where('issued_coupon_code', $max)->exists();
+        };
+
+        if (is_null($last))
+        {
+            $max = static::ISSUE_COUPON_INCREMENT;
+        } else  {
+            $max = (int) $last->issued_coupon_code + 1;
+        }
+
+        while ($exists($max))
+        {
+            $max = $max + 1;
+
+        }
+
+        return $max;
     }
 
 }

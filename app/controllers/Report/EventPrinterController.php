@@ -38,37 +38,37 @@ class EventPrinterController extends DataPrinterController
                                         "),
                                      "promotions.promotion_name as promotion_name"
                                      )
-                            ->leftJoin(DB::raw("( select e.event_id as event_id2, 
+                            ->leftJoin(DB::raw("( select e.event_id as event_id2,
                                             CASE
                                             WHEN
                                                 (e.is_all_retailer = 'Y')
                                             THEN
-                                                'All Retailers' 
-                                            ELSE 
+                                                'All Retailers'
+                                            ELSE
                                                 GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ', ')
                                             END AS retailer_list
                                         from {$prefix}events e
                                         left join {$prefix}event_retailer er on er.event_id = e.event_id
                                         left join {$prefix}merchants r on r.merchant_id = er.retailer_id
-                                        where e.merchant_id = {$merchant_id} and e.status != 'deleted'
-                                        group by e.event_id 
+                                        where e.merchant_id = '{$merchant_id}' and e.status != 'deleted'
+                                        group by e.event_id
                                       )AS retailer"
                                       ), function ($q) {
                                         $q->on( DB::raw('retailer.event_id2'), '=', 'events.event_id' );
                                 })
-                            ->leftJoin(DB::raw("( select e.event_id as event_id3, 
+                            ->leftJoin(DB::raw("( select e.event_id as event_id3,
                                             CASE
                                             WHEN
                                                 (e.is_all_product = 'Y')
                                             THEN
-                                                'All Products' 
-                                            ELSE 
+                                                'All Products'
+                                            ELSE
                                                 GROUP_CONCAT(p.`product_name` ORDER BY p.`product_name` SEPARATOR ', ')
                                             END AS product_name
                                         from {$prefix}events e
                                         left join {$prefix}event_product ep on ep.event_id = e.event_id
                                         left join {$prefix}products p on p.product_id = ep.product_id
-                                        where e.merchant_id = {$merchant_id} and e.status != 'deleted'
+                                        where e.merchant_id = '{$merchant_id}' and e.status != 'deleted'
                                         group by e.event_id
                                         ) AS product"
                                        ), function ($q) {
@@ -91,7 +91,7 @@ class EventPrinterController extends DataPrinterController
                             ->leftJoin(DB::raw("{$prefix}categories cat2"), function($join) {
                                 $join->on(DB::raw('cat2.category_id'), '=', 'events.link_object_id2');
                                 $join->on('events.link_object_type', '=', DB::raw("'family'"));
-                            }) 
+                            })
                             ->leftJoin(DB::raw("{$prefix}categories cat3"), function($join) {
                                 $join->on(DB::raw('cat3.category_id'), '=', 'events.link_object_id3');
                                 $join->on('events.link_object_type', '=', DB::raw("'family'"));
@@ -304,7 +304,7 @@ class EventPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date & Time', 'Retailer', 'Event Type', 'Event Redirected To', 'Event Link', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                
+
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
@@ -385,9 +385,9 @@ class EventPrinterController extends DataPrinterController
                 $result = $families;
                 break;
             default:
-                $result = str_replace("_"," ",$event->widget_object_type); 
+                $result = str_replace("_"," ",$event->widget_object_type);
         }
-        
+
         return $result;
     }
 
@@ -400,7 +400,7 @@ class EventPrinterController extends DataPrinterController
      */
     public function commaToBr($string)
     {
-        
+
         return str_replace(',', '<br/>', $string);
     }
 

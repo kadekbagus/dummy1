@@ -2,6 +2,7 @@
 
 class PromotionProduct extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * PromotionProduct Model
      *
@@ -12,9 +13,9 @@ class PromotionProduct extends Eloquent
 
     protected $table = 'promotion_product';
 
-    public function promotion()
+    public function promotionRule()
     {
-        return $this->belongsTo('Promotion', 'promotion_id', 'promotion_id');
+        return $this->belongsTo('PromotionRule', 'promotion_rule_id', 'promotion_rule_id');
     }
 
     public function product()

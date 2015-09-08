@@ -61,7 +61,7 @@ class getUserByAgeTest extends TestCase
         foreach ($users as $user)
         {
             $created_at = $faker->dateTimeBetween('-1years', '-1days')->format('Y-m-d H:i:s');
-            $insert .= "({$id}, 'mobile-ci', 'registration_ok', {$user->user_id}, '{$created_at}'),";
+            $insert .= "({$id}, 'mobile-ci', 'registration_ok', '{$user->user_id}', '{$created_at}'),";
             $id++;
         }
 

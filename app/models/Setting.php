@@ -6,6 +6,7 @@
  */
 class Setting extends Eloquent
 {
+    use GeneratedUuidTrait;
     protected $table = 'settings';
     protected $primaryKey = 'setting_id';
 

@@ -1,7 +1,12 @@
 <?php
 
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class Role extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     protected $primaryKey = 'role_id';
 
     protected $table = 'roles';
@@ -13,6 +18,6 @@ class Role extends Eloquent
 
     public function permissions()
     {
-        return $this->belongsToMany('Permission', 'permission_role', 'role_id', 'permission_id')->withPivot('allowed');
+        return (new BelongsToManyWithUUIDPivot((new Permission())->newQuery(), $this, 'permission_role', 'role_id', 'permission_id', 'permission_role_id', 'permissions'))->withPivot('allowed');
     }
 }

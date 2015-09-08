@@ -86,8 +86,8 @@ class WidgetAPIController extends ControllerAPI
                     'images'                => $images
                 ),
                 array(
-                    'object_id'             => 'required|numeric',
-                    'merchant_id'           => 'required|numeric|orbit.empty.merchant',
+                    'object_id'             => 'required',
+                    'merchant_id'           => 'required|orbit.empty.merchant',
                     'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon|orbit.exists.widget_type:' . $merchantId,
                     'slogan'                => 'required',
                     'animation'             => 'required|in:none,horizontal,vertical',
@@ -319,10 +319,10 @@ class WidgetAPIController extends ControllerAPI
                     'images'                => $images
                 ),
                 array(
-                    'widget_id'             => 'required|numeric|orbit.empty.widget',
-                    'object_id'             => 'numeric',
-                    'merchant_id'           => 'numeric|orbit.empty.merchant',
-                    'widget_type'           => 'required|in:catalogue,new_product,promotion,coupon|orbit.exists.widget_type_but_me:' . $merchantId . ', ' . $widgetId,
+                    'widget_id'             => 'required|orbit.empty.widget',
+                    'object_id'             => '',
+                    'merchant_id'           => 'orbit.empty.merchant',
+                    'widget_type'           => ['required', 'in:catalogue,new_product,promotion,coupon', ['orbit.exists.widget_type_but_me', $merchantId, $widgetId]],
                     'animation'             => 'in:none,horizontal,vertical',
                     'images'                => 'required_if:animation,none',
                     'widget_order'          => 'numeric',
@@ -548,7 +548,7 @@ class WidgetAPIController extends ControllerAPI
                     'widget_id'             => $widgetId,
                 ),
                 array(
-                    'widget_id'             => 'required|numeric|orbit.empty.widget',
+                    'widget_id'             => 'required|orbit.empty.widget',
                 )
             );
 

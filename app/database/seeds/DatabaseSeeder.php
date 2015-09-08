@@ -24,5 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call('SettingTableSeeder');
 
         DB::connection()->getPdo()->commit();
+
+        //$this->call('ProductSeeder');
     }
 }

@@ -315,7 +315,7 @@ class HomeController extends MobileCIAPIController
                 ->responseOK()
                 ->save();
 
-            return View::make('mobile-ci.home', 
+            return View::make('mobile-ci.home',
                 array(
                     'page_title' => Lang::get('mobileci.page_title.home'),
                     'retailer' => $retailer,

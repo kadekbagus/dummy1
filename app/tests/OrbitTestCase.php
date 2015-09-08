@@ -6,6 +6,9 @@
  *
  * @author Rio Astamal <me@rioastamal>
  */
+
+use Illuminate\Support\Str;
+
 class OrbitTestCase extends Illuminate\Foundation\Testing\TestCase
 {
     /**
