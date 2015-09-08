@@ -1,6 +1,9 @@
 <?php
+use OrbitRelation\BelongsToManyWithUUIDPivot;
+
 class EventModel extends Eloquent
 {
+    use GeneratedUuidTrait;
     /**
      * Event Model
      *
@@ -74,12 +77,12 @@ class EventModel extends Eloquent
 
     public function retailers()
     {
-        return $this->belongsToMany('Retailer', 'event_retailer', 'event_id', 'retailer_id')->where('merchants.status','!=','deleted');
+        return (new BelongsToManyWithUUIDPivot((new Retailer())->newQuery(), $this, 'event_retailer', 'event_id', 'retailer_id', 'event_retailer_id', 'retailers'));
     }
 
     public function products()
     {
-        return $this->belongsToMany('Product', 'event_product', 'event_id', 'product_id');
+        return (new BelongsToManyWithUUIDPivot(with(new Product())->newQuery(), $this, 'event_product', 'event_id', 'product_id', 'event_product_id', 'products'))->withTimestamps();
     }
 
     /**

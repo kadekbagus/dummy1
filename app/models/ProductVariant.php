@@ -6,6 +6,8 @@
  */
 class ProductVariant extends Eloquent
 {
+    use GeneratedUuidTrait;
+
     protected $primaryKey = 'product_variant_id';
     protected $table = 'product_variants';
 

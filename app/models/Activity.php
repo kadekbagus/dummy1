@@ -10,6 +10,9 @@ use DominoPOS\OrbitSession\SessionConfig;
 
 class Activity extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     /**
      * @var DominoPOS\OrbitSession\Session
      */

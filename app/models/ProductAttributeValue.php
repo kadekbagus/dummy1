@@ -6,6 +6,8 @@
  */
 class ProductAttributeValue extends Eloquent
 {
+    use GeneratedUuidTrait;
+
     protected $primaryKey = 'product_attribute_value_id';
     protected $table = 'product_attribute_values';
 

@@ -24,7 +24,7 @@ class PromotionPrinterController extends DataPrinterController
         $merchant_id = \Merchant::where('user_id', $user->user_id)->first()->merchant_id;
 
         $promotions = Promotion::excludeDeleted('promotions')
-            ->select(DB::raw($prefix . "promotions.*, 
+            ->select(DB::raw($prefix . "promotions.*,
                     CASE rule_type
                         WHEN 'cart_discount_by_percentage' THEN 'percentage'
                         WHEN 'product_discount_by_percentage' THEN 'percentage'
@@ -37,7 +37,7 @@ class PromotionPrinterController extends DataPrinterController
                         WHEN 'product_discount_by_percentage' THEN discount_value * 100
                         ELSE discount_value
                     END AS 'display_discount_value'
-                    "), 
+                    "),
                     DB::raw('retailer.*'),
                     DB::raw('product.*'),
                     DB::raw('cat1.category_name as family_name1'),
@@ -50,39 +50,39 @@ class PromotionPrinterController extends DataPrinterController
                     "promotion_rules.discount_object_type as discount_object_type"
             )
             ->leftJoin(DB::raw("(
-                        select p.promotion_id as promotion_id1, 
+                        select p.promotion_id as promotion_id1,
                             CASE
                             WHEN
                                 (p.is_all_retailer = 'Y')
                             THEN
-                                'All Retailers' 
-                            ELSE 
+                                'All Retailers'
+                            ELSE
                                 GROUP_CONCAT(r.`name` ORDER BY r.`name` SEPARATOR ', ')
                             END AS retailer_list
                         from {$prefix}promotions p
                         left join {$prefix}promotion_retailer pr on pr.promotion_id = p.promotion_id
                         left join {$prefix}merchants r on r.merchant_id = pr.retailer_id and r.status != 'deleted'
-                        where p.merchant_id = {$merchant_id} and p.status != 'deleted' 
-                        group by p.promotion_id 
+                        where p.merchant_id = '{$merchant_id}' and p.status != 'deleted'
+                        group by p.promotion_id
                     ) AS retailer "), function ($q) {
                         $q->on( DB::raw('retailer.promotion_id1'), '=', 'promotions.promotion_id' );
                     })
             ->leftJoin(DB::raw(" (
-                        select p.promotion_id as promotion_id2, 
+                        select p.promotion_id as promotion_id2,
                             CASE
                             WHEN
                                 (pr.is_all_product_discount = 'Y')
                             THEN
-                                'All Products' 
-                            ELSE 
+                                'All Products'
+                            ELSE
                                 GROUP_CONCAT(p1.`product_name` ORDER BY p1.`product_name` SEPARATOR ', ')
                             END AS product_name
                         from {$prefix}promotions p
                         left join {$prefix}promotion_rules pr on pr.promotion_id = p.promotion_id
                         left join {$prefix}promotion_product prr on prr.promotion_rule_id = pr.promotion_rule_id and prr.object_type = 'discount'
                         left join {$prefix}products p1 on p1.product_id = prr.product_id and p1.status != 'deleted'
-                        where p.merchant_id = {$merchant_id} and p.status != 'deleted' 
-                        group by p.promotion_id 
+                        where p.merchant_id = '{$merchant_id}' and p.status != 'deleted'
+                        group by p.promotion_id
                     ) AS product "), function ($q) {
                         $q->on( DB::raw('product.promotion_id2'), '=', 'promotions.promotion_id' );
                     })
@@ -96,7 +96,7 @@ class PromotionPrinterController extends DataPrinterController
             ->leftJoin(DB::raw("{$prefix}categories cat2"), function($join) {
                 $join->on(DB::raw('cat2.category_id'), '=', 'promotion_rules.discount_object_id2');
                 $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
-            }) 
+            })
             ->leftJoin(DB::raw("{$prefix}categories cat3"), function($join) {
                 $join->on(DB::raw('cat3.category_id'), '=', 'promotion_rules.discount_object_id3');
                 $join->on('promotion_rules.discount_object_type', '=', DB::raw("'family'"));
@@ -371,7 +371,7 @@ class PromotionPrinterController extends DataPrinterController
 
         $statement = $this->pdo->prepare($sql);
         $statement->execute($binds);
-        
+
         $pageTitle = 'Promotion';
         switch ($mode) {
             case 'csv':
@@ -386,7 +386,7 @@ class PromotionPrinterController extends DataPrinterController
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', 'Name', 'Expiration Date', 'Retailer', 'Discount Type', 'Discount Value', 'Product or Family Link', 'Status');
                 printf("%s,%s,%s,%s,%s,%s,%s,%s\n", '', '', '', '', '', '', '','');
-                
+
                 while ($row = $statement->fetch(PDO::FETCH_OBJ)) {
 
                     $expiration_date = $this->printExpirationDate($row);
@@ -511,7 +511,7 @@ class PromotionPrinterController extends DataPrinterController
                 $discount =  $promotion->discount_value*100;
                 $result = $discount."%";
                 break;
-                
+
             default:
                 if($currency=='usd'){
                     $result = number_format($promotion->discount_value, 2);
@@ -553,9 +553,9 @@ class PromotionPrinterController extends DataPrinterController
                 $result = $families;
                 break;
             default:
-                $result = ''; 
+                $result = '';
         }
-        
+
         return $result;
     }
 
@@ -580,7 +580,7 @@ class PromotionPrinterController extends DataPrinterController
      */
     public function commaToBr($string)
     {
-        
+
         return str_replace(',', '<br/>', $string);
     }
 

@@ -2,6 +2,9 @@
 
 class Category extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     /**
      * Category Model
      *

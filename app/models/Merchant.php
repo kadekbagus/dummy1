@@ -3,6 +3,9 @@ use OrbitRelation\HasManyThrough;
 
 class Merchant extends Eloquent
 {
+
+    use GeneratedUuidTrait;
+
     /**
      * Merchant Model
      *
@@ -28,7 +31,7 @@ class Merchant extends Eloquent
      */
     const OBJECT_TYPE = 'object_type';
 
-    const OMID_INCREMENT = 111111;
+    const OMID_INCREMENT = 1000;
 
     protected $primaryKey = 'merchant_id';
 
@@ -149,6 +152,26 @@ class Merchant extends Eloquent
         }
 
         return $contact_person_phone[0];
+    }
+
+    /**
+     * @return int
+     */
+    public static function generateOmid()
+    {
+        $time   = time();
+        $orid   = static::OMID_INCREMENT . $time;
+
+        $exists = function($orid) {
+            return static::where('omid', $orid)->exists();
+        };
+
+        while($exists($orid))
+        {
+            $orid = (static::OMID_INCREMENT + 1) . $time;
+        };
+
+        return $orid;
     }
 
     /**
@@ -346,7 +369,7 @@ class Merchant extends Eloquent
      * Scope to determine merchant with transaction and add custom
      * attribute named 'has_transaction' which hold value 'yes' or 'no'.
      *
-     * @author Kadek 
+     * @author Kadek
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @return \Illuminate\Database\Eloquent\Builder
      */

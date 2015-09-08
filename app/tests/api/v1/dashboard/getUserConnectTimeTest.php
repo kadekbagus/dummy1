@@ -35,10 +35,10 @@ class getUserConnectTimeTest extends TestCase
                 $loginTime = $faker->dateTimeBetween("-{$j}days -1hours", "-{$j}days -2minutes")->format('Y-m-d H:i:s');
                 $logoutTime= $faker->dateTimeBetween("-{$j}days +2minutes", "-{$j}days +1hours")->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id}, 'mobile-ci', 'login_ok', {$user->user_id}, {$retailer->merchant_id}, '{$loginTime}'),";
+                    ({$id}, 'mobile-ci', 'login_ok', '{$user->user_id}', '{$retailer->merchant_id}', '{$loginTime}'),";
                 $id++;
                 $insert .= "
-                    ({$id}, 'mobile-ci', 'logout_ok', {$user->user_id}, {$retailer->merchant_id}, '{$logoutTime}'),";
+                    ({$id}, 'mobile-ci', 'logout_ok', '{$user->user_id}', '{$retailer->merchant_id}', '{$logoutTime}'),";
                 $id++;
             }
             $i++;

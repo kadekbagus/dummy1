@@ -6,6 +6,8 @@
  */
 class PersonalInterest extends Eloquent
 {
+
+    use GeneratedUuidTrait;
     /**
      * Import trait ModelStatusTrait so we can use some common scope dealing
      * with `status` field.

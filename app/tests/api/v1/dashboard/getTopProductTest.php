@@ -40,7 +40,7 @@ class getTopProductTest extends TestCase
             {
                 $created_at = $faker->dateTimeBetween('-1years', '+1years')->format('Y-m-d H:i:s');
                 $insert .= "
-                    ({$id},'view_product', {$product->product_id}, '{$created_at}'),";
+                    ({$id},'view_product', '{$product->product_id}', '{$created_at}'),";
                 $id++;
             }
             $i++;
