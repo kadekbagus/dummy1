@@ -84,13 +84,13 @@ class ProductController extends MobileCIAPIController
                         )
                     )
 
-                WHERE prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid) AND ((prod.product_id = :productid AND pr.is_all_product_discount = "N") OR pr.is_all_product_discount = "Y")
+                WHERE (prr.retailer_id = :retailerid OR (p.is_all_retailer = "Y" AND p.merchant_id = :merchantid)) AND ((prod.product_id = :productid AND pr.is_all_product_discount = "N") OR pr.is_all_product_discount = "Y")
                 GROUP BY p.promotion_id
                 '
                 ),
                 array('merchantid' => $retailer->parent_id, 'retailerid' => $retailer->merchant_id, 'productid' => $product->product_id)
             );
-            
+            // dd($promo_products);
             $couponstocatchs = DB::select(
                 DB::raw(
                     'SELECT *, p.promotion_id as promoid FROM ' . DB::getTablePrefix() . 'promotions p
