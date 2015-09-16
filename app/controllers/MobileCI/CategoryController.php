@@ -40,9 +40,21 @@ class CategoryController extends MobileCIAPIController
         try {
             $user = $this->getLoggedInUser();
             $retailer = $this->getRetailerInfo();
-            $families = Category::whereHas('product1', function($q) {
-                $q->where('products.status', 'active');
-            })->where('merchant_id', $retailer->parent_id)->active()->get();
+            $families = Category::whereHas('product1', function($q) use($retailer) {
+                    $q->where('products.status', 'active');
+                    $q->where(function($q2) use ($retailer) {
+                        $q2->where(function($q3) use($retailer) {
+                            $q3->where('is_all_retailer', 'Y');
+                            $q3->where('merchant_id', $retailer->parent->merchant_id);
+                        });
+                        $q2->orWhere(function($q3) use ($retailer) {
+                            $q3->where('is_all_retailer', 'N');
+                            $q3->whereHas('retailers', function($q4) use($retailer) {
+                                $q4->where('product_retailer.retailer_id', $retailer->merchant_id);
+                            });
+                        });
+                    });
+                })->where('merchant_id', $retailer->parent_id)->active()->get();
 
             $cartitems = $this->getCartForToolbar();
 
