@@ -10,32 +10,6 @@
         <div class="row">
             <div class="col-xs-12 vertically-spaced">
                 <p>{{ $coupons[0]->description }}</p>
-                @if($coupons[0]->promotion_type == 'product' || $coupons[0]->promotion_type == 'cart')
-                    @if($coupons[0]->discount_object_type == 'product')
-                        @if(sizeof($data->records) == 1)
-                        <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }} : {{ $coupons[0]->product_name }}</p>
-                        @endif
-                    @elseif($coupons[0]->discount_object_type == 'family')
-                        <p class="promo-item">
-                            {{ Lang::get('mobileci.coupon_list.category_label') }} : 
-                            @if(!is_null($coupons[0]->discount_object_id1))
-                            <span>{{ Category::where('category_id', $coupons[0]->discount_object_id1)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($coupons[0]->discount_object_id2))
-                            <span>{{ Category::where('category_id', $coupons[0]->discount_object_id2)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($coupons[0]->discount_object_id3))
-                            <span>{{ Category::where('category_id', $coupons[0]->discount_object_id3)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($coupons[0]->discount_object_id4))
-                            <span>{{ Category::where('category_id', $coupons[0]->discount_object_id4)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($coupons[0]->discount_object_id5))
-                            <span>{{ Category::where('category_id', $coupons[0]->discount_object_id5)->first()->category_name }}</span>
-                            @endif
-                        </p>
-                    @endif
-                @endif
                 <h4>{{ Lang::get('mobileci.coupon_detail.coupon_code_label') }} : {{ $coupons[0]->issued_coupon_code }}</h4>
                 @if($coupons[0]->is_permanent == 'N')
                     @if(strtotime($coupons[0]->expired_date) < strtotime($coupons[0]->end_date))

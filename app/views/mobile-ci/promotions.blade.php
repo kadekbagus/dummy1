@@ -10,32 +10,6 @@
         <div class="row">
             <div class="col-xs-12 vertically-spaced">
                 <p>{{ $promotions[0]->description }}</p>
-                @if($promotions[0]->promotion_type == 'product' || $promotions[0]->promotion_type == 'cart')
-                    @if($promotions[0]->discount_object_type == 'product')
-                        @if(! empty($promotions[0]->product_name))
-                        <p class="promo-item">{{ Lang::get('mobileci.promotion_list.product_label') }} : {{ $promotions[0]->product_name }}</p>
-                        @endif
-                    @elseif($promotions[0]->discount_object_type == 'family')
-                        <p class="promo-item">
-                            {{ Lang::get('mobileci.promotion_list.category_label') }} : 
-                            @if(!is_null($promotions[0]->discount_object_id1))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id1)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($promotions[0]->discount_object_id2))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id2)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($promotions[0]->discount_object_id3))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id3)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($promotions[0]->discount_object_id4))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id4)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($promotions[0]->discount_object_id5))
-                            <span>{{ Category::where('category_id', $promotions[0]->discount_object_id5)->first()->category_name }}</span>
-                            @endif
-                        </p>
-                    @endif
-                @endif
                 @if($promotions[0]->is_permanent == 'Y')
                     <h4>{{ Lang::get('mobileci.catalogue.from')}}: {{ date('j M Y', strtotime($promotions[0]->begin_date)) }}</h4>
                 @else

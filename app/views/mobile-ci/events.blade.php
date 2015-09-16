@@ -10,30 +10,6 @@
         <div class="row">
             <div class="col-xs-12 vertically-spaced">
                 <p>{{ $event->description }}</p>
-                @if($event->promotion_type == 'product' || $event->promotion_type == 'cart')
-                    @if($event->discount_object_type == 'product')
-                        <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }} : {{ $event->product_name }}</p>
-                    @elseif($event->discount_object_type == 'family')
-                        <p class="promo-item">
-                            {{ Lang::get('mobileci.coupon_list.category_label') }} : 
-                            @if(!is_null($event->discount_object_id1))
-                            <span>{{ Category::where('category_id', $event->discount_object_id1)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($event->discount_object_id2))
-                            <span>{{ Category::where('category_id', $event->discount_object_id2)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($event->discount_object_id3))
-                            <span>{{ Category::where('category_id', $event->discount_object_id3)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($event->discount_object_id4))
-                            <span>{{ Category::where('category_id', $event->discount_object_id4)->first()->category_name }}</span>
-                            @endif
-                            @if(!is_null($event->discount_object_id5))
-                            <span>{{ Category::where('category_id', $event->discount_object_id5)->first()->category_name }}</span>
-                            @endif
-                        </p>
-                    @endif
-                @endif
                 @if($event->is_permanent == 'N')
                     <h4>{{ Lang::get('mobileci.coupon_detail.validity_label') }}: <br>{{ date('j M Y', strtotime($event->end_date)) }}</h4>
                 @endif
