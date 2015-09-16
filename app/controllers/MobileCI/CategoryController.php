@@ -54,7 +54,7 @@ class CategoryController extends MobileCIAPIController
                             });
                         });
                     });
-                })->where('merchant_id', $retailer->parent_id)->active()->get();
+                })->where('merchant_id', $retailer->parent_id)->active()->orderBy('categories.category_name', 'asc')->get();
 
             $cartitems = $this->getCartForToolbar();
 
