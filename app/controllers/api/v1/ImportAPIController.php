@@ -1417,8 +1417,8 @@ class ImportAPIController extends ControllerAPI
             $variant_value = $parameters;
 
             $productVariant = ProductVariant::excludeDeleted()
-                                            ->where('merchant_id', $merchant->merchant_id)
-                                            ->where('product_id', $product_id);
+                                            ->where(DB::raw('BINARY merchant_id'), $merchant->merchant_id)
+                                            ->where(DB::raw('BINARY product_id'), $product_id);
 
             for ($i = 1; $i <= count($variant_value); $i++) {
                 $variant_value[$i-1] = trim($variant_value[$i-1]);
@@ -1427,7 +1427,7 @@ class ImportAPIController extends ControllerAPI
                     $productVariant->whereNull("product_attribute_value_id{$i}");
                 } else {
                     $productVariant->whereHas("attributeValue{$i}", function ($q) use ($variant_value, $i) {
-                        $q->where('value', $variant_value[$i-1]);
+                        $q->where(DB::raw('BINARY value'), $variant_value[$i-1]);
                     });
                 }
             }
