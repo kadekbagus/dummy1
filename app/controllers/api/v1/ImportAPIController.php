@@ -410,7 +410,7 @@ class ImportAPIController extends ControllerAPI
                             'variant3_value'        => 'orbit.empty.variant_value_name:'.$variant3_name,
                             'variant4_value'        => 'orbit.empty.variant_value_name:'.$variant4_name,
                             'variant5_value'        => 'orbit.empty.variant_value_name:'.$variant5_name,
-                            'variant_sku'           => 'required|orbit.exists.product.sku_code',
+                            'variant_sku'           => 'orbit.exists.product.sku_code',
                             'variant_barcode'       => 'numeric|orbit.exists.product.upc_code',
                             'variant_price'         => 'numeric',
                         ),
