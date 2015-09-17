@@ -168,15 +168,7 @@ class UploadAPIController extends ControllerAPI
 
             // Delete each files
             $oldMediaFiles = $pastMedia->get();
-            foreach ($oldMediaFiles as $oldMedia) {
-                // No need to check the return status, just delete and forget
-                @unlink($oldMedia->realpath);
-            }
 
-            // Delete from database
-            if (count($oldMediaFiles) > 0) {
-                $pastMedia->delete();
-            }
 
             // Callback to rename the file, we will format it as follow
             // [MERCHANT_ID]-[MERCHANT_NAME_SLUG]
@@ -223,6 +215,16 @@ class UploadAPIController extends ControllerAPI
 
             $this->response->data = $mediaList;
             $this->response->message = Lang::get('statuses.orbit.uploaded.merchant.logo');
+
+            foreach ($oldMediaFiles as $oldMedia) {
+                // No need to check the return status, just delete and forget
+                @unlink($oldMedia->realpath);
+            }
+
+            // Delete from database
+            if (count($oldMediaFiles) > 0) {
+                $pastMedia->delete();
+            }
 
             // Commit the changes
             if (! $this->calledFrom('merchant.new, merchant.update')) {
