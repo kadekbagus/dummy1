@@ -252,7 +252,7 @@ class TransactionController extends MobileCIAPIController
                             $transactiondetailcoupon = new TransactionDetailCoupon();
                             $transactiondetailcoupon->transaction_detail_id = $transactiondetail->transaction_detail_id;
                             $transactiondetailcoupon->transaction_id = $transaction->transaction_id;
-                            $transactiondetailcoupon->promotion_id = $value->issuedcoupon->issued_coupon_id;
+                            $transactiondetailcoupon->promotion_id = $value->issuedcoupon->promotion_id;
                             $transactiondetailcoupon->promotion_name = $value->issuedcoupon->coupon->promotion_name;
                             $transactiondetailcoupon->promotion_type = $value->issuedcoupon->coupon->promotion_type;
                             $transactiondetailcoupon->rule_type = $value->issuedcoupon->rule_type;
