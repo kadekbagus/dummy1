@@ -480,7 +480,7 @@ class TransactionController extends MobileCIAPIController
                             if ($issued < $kupon->maximum_issued_coupon) {
                                 $issue_coupon = new IssuedCoupon();
                                 $issue_coupon->promotion_id = $kupon->promotion_id;
-                                $issue_coupon->issued_coupon_code = !empty($lastcoupon) ? ($lastcoupon->issued_coupon_code + 1) : (IssuedCoupon::ISSUE_COUPON_INCREMENT + 1);
+                                $issue_coupon->issued_coupon_code = IssuedCoupon::generateIssuedCouponCode();
                                 $issue_coupon->user_id = $customer_id;
                                 $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
                                 $issue_coupon->issued_date = Carbon::now();
@@ -497,7 +497,7 @@ class TransactionController extends MobileCIAPIController
                         } else {
                             $issue_coupon = new IssuedCoupon();
                             $issue_coupon->promotion_id = $kupon->promotion_id;
-                            $issue_coupon->issued_coupon_code = !empty($lastcoupon) ? ($lastcoupon->issued_coupon_code + 1) : (IssuedCoupon::ISSUE_COUPON_INCREMENT + 1);
+                            $issue_coupon->issued_coupon_code = IssuedCoupon::generateIssuedCouponCode();
                             $issue_coupon->user_id = $customer_id;
                             $issue_coupon->expired_date = Carbon::now()->addDays($kupon->coupon_validity_in_days);
                             $issue_coupon->issued_date = Carbon::now();
@@ -1542,6 +1542,7 @@ class TransactionController extends MobileCIAPIController
     {
         $user = null;
         $cartdetailid = null;
+        $cartid = null;
         $productid = null;
         $activityPage = Activity::mobileci()
                         ->setActivityType('delete');
