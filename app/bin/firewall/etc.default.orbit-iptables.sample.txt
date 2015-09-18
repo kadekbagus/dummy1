@@ -1,0 +1,26 @@
+# Place this in /etc/default/orbit-iptables
+
+# interface where guests are
+ORBIT_GUEST_INTERFACE=wlan0
+# interface where public traffic should be routed
+ORBIT_GW_INTERFACE=eth0
+# subnet where guests are placed. used to limit masquerading and to set ipset range
+ORBIT_GUEST_SUBNET=172.18.18.0/24
+# host where captive portal is placed (destination for DNAT of port 80 & 443)
+ORBIT_PORTAL_HOST=172.18.18.1
+# host & port of guest DNS that resolves most things to the portal host IP
+ORBIT_GUEST_DNS_HOST=172.18.18.1
+ORBIT_GUEST_DNS_PORT=53
+# host & port of real DNS that resolves things to the real external IP
+ORBIT_REAL_DNS_HOST=172.18.18.1
+ORBIT_REAL_DNS_PORT=5353
+# default: 80 & 443 only. all: all
+ORBIT_REDIRECT_MODE=default
+# timeout in seconds for users who have not activated their email
+ORBIT_TEMPORARY_ALLOW_TIMEOUT=1800
+# timeout in seconds for new users to access *any* https sites.
+# This is started when the user clicks the social login button
+# on the captive portal. The user must complete the social login
+# within this timeout period before the user loses access to the
+# HTTPS sites.
+ORBIT_GUEST_HTTPS_TIMEOUT=600
