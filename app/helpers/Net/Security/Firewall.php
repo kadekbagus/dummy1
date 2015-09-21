@@ -157,21 +157,19 @@ class Firewall
         // i.e: arp command output are "? (192.168.0.109) at 08:00:27:4c:5b:cc [ether] on eth0"
         preg_match('/at\s(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))/i', $output, $matches);
         if (! isset($matches[1])) {
-            $return['message'] = sprintf('I could not find mac pattern inside arp output "%s"', $output);
-
-            return $return;
+            // not found
+            $mac = '00:00:00:00:00:00';
+        } else {
+            $mac = $matches[1];
         }
-
-        // We got the mac address
-        $mac = $matches[1];
 
         // Register or deregister it to router
         if ($mode === 'register') {
             $message = sprintf('IP %s with mac %s has been successfully registered.', $userIp, $mac);
-            $stdin = "$mac\n";
+            $stdin = "$userIp\n";
         } else {
             $message = sprintf('IP %s with mac %s has been successfully revoked.', $userIp, $mac);
-            $stdin = "$mac delete\n";
+            $stdin = "$userIp delete\n";
         }
 
         $iptablesCmd = Command::Factory($addMacCmd)->run($stdin);
