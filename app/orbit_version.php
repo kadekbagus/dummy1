@@ -22,9 +22,9 @@ if (! defined('ORBIT_APP_BUILD_NUMBER')) {
  */
 if (! defined('ORBIT_APP_VERSION')) {
     if (Config::get('app.debug')) {
-        define('ORBIT_APP_VERSION', '1.1-dev-' . ORBIT_APP_BUILD_NUMBER);
+        define('ORBIT_APP_VERSION', '1.2-dev-' . ORBIT_APP_BUILD_NUMBER);
     } else {
-        define('ORBIT_APP_VERSION', '1.1');
+        define('ORBIT_APP_VERSION', '1.2');
     }
 }
 
@@ -32,14 +32,14 @@ if (! defined('ORBIT_APP_VERSION')) {
  * Constant storing codename.
  */
 if (! defined('ORBIT_APP_CODENAME')) {
-    define('ORBIT_APP_CODENAME', 'Hubble');
+    define('ORBIT_APP_CODENAME', 'Kepler');
 }
 
 /**
  * Constant storing the release date, ISO 8601.
  */
 if (! defined('ORBIT_APP_RELEASE_DATE')) {
-    define('ORBIT_APP_RELEASE_DATE', '2015-09-17');
+    define('ORBIT_APP_RELEASE_DATE', '');
 }
 
 /**
