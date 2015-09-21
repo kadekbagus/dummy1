@@ -32,14 +32,14 @@ if (! defined('ORBIT_APP_VERSION')) {
  * Constant storing codename.
  */
 if (! defined('ORBIT_APP_CODENAME')) {
-    define('ORBIT_APP_CODENAME', 'Huble');
+    define('ORBIT_APP_CODENAME', 'Hubble');
 }
 
 /**
  * Constant storing the release date, ISO 8601.
  */
 if (! defined('ORBIT_APP_RELEASE_DATE')) {
-    define('ORBIT_APP_RELEASE_DATE', '');
+    define('ORBIT_APP_RELEASE_DATE', '2015-09-17');
 }
 
 /**
