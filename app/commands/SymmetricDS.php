@@ -108,10 +108,10 @@ class SymmetricDS extends Command
         $router->targetNode()->associate(NodeGroup::getMerchant());
         $router->router_type = 'lookuptable';
         $router->router_expression = '
-            LOOKUP_TABLE='. $this->tablePrefix .'product_attributes
-		    KEY_COLUMN=product_attribute_id
-		    LOOKUP_KEY_COLUMN=product_attribute_id
-		    EXTERNAL_ID_COLUMN=merchant_id
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'product_attributes`
+			    KEY_COLUMN=product_attribute_id
+			    LOOKUP_KEY_COLUMN=product_attribute_id
+			    EXTERNAL_ID_COLUMN=merchant_id
         ';
         if ($router->save()) $routers['cloud_product_attr_val_to_merchant'] = $router;
 
@@ -121,7 +121,7 @@ class SymmetricDS extends Command
         $router->targetNode()->associate(NodeGroup::getMerchant());
         $router->router_type = 'lookuptable';
         $router->router_expression = '
-            LOOKUP_TABLE='. $this->tablePrefix .'products
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'products`
             KEY_COLUMN=product_id
             LOOKUP_KEY_COLUMN=product_id
             EXTERNAL_ID_COLUMN=merchant_id
@@ -134,7 +134,7 @@ class SymmetricDS extends Command
         $router->targetNode()->associate(NodeGroup::getMerchant());
         $router->router_type = 'lookuptable';
         $router->router_expression = '
-            LOOKUP_TABLE='. $this->tablePrefix .'merchants
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants`
             KEY_COLUMN=retailer_id
             LOOKUP_KEY_COLUMN=merchant_id
             EXTERNAL_ID_COLUMN=parent_id
@@ -147,7 +147,7 @@ class SymmetricDS extends Command
         $router->targetNode()->associate(NodeGroup::getMerchant());
         $router->router_type = 'lookuptable';
         $router->router_expression = '
-            LOOKUP_TABLE='. $this->tablePrefix .'promotions
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'promotions`
             KEY_COLUMN=promotion_id
             LOOKUP_KEY_COLUMN=promotion_id
             EXTERNAL_ID_COLUMN=merchant_id
@@ -165,11 +165,11 @@ class SymmetricDS extends Command
                 select (case
                     when length(parent_id) = 16 then parent_id
                     else merchant_id
-                    end) as merchant_id from '. $this->tablePrefix .'merchants where user_id = :USER_ID
+                    end) as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` where user_id = :USER_ID
                 union all
-                select m.parent_id as merchant_id from '. $this->tablePrefix .'employees e
-                    inner join '. $this->tablePrefix .'employee_retailer er on er.employee_id = e.employee_id
-                    inner join '. $this->tablePrefix .'merchants m on m.merchant_id = er.retailer_id
+                select m.parent_id as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e
+                    inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er on er.employee_id = e.employee_id
+                    inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
                 where e.user_id = :USER_ID
 		    )
         ';
@@ -183,8 +183,8 @@ class SymmetricDS extends Command
         $router->router_type = 'subselect';
         $router->router_expression = '
             c.external_id in (
-                select m.parent_id from '. $this->tablePrefix .'employee_retailer er
-                    inner join '. $this->tablePrefix .'merchants m on m.merchant_id = er.retailer_id
+                select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                    inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
                 where er.employee_id = :EMPLOYEE_ID
 			)
         ';
