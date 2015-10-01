@@ -15,19 +15,19 @@ use Symfony\Component\Console\Input\InputArgument;
 class SymmetricDS extends Command
 {
 
-	/**
-	 * The console command name.
-	 *
-	 * @var string
-	 */
-	protected $name = 'sym:seed';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'sym:seed';
 
-	/**
-	 * The console command description.
-	 *
-	 * @var string
-	 */
-	protected $description = 'Seed Default Configuration to SymmetricDS database';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Seed Default Configuration to SymmetricDS database';
 
     protected $sourceSchemaName;
 
@@ -47,12 +47,12 @@ class SymmetricDS extends Command
      * Create a new command instance.
      *
      */
-	public function __construct()
-	{
+    public function __construct()
+    {
         $this->sourceSchemaName = DB::getDatabaseName();
         $this->tablePrefix      = DB::getTablePrefix();
         parent::__construct();
-	}
+    }
 
     protected function createTrigger(Model $channel, $names = [])
     {
@@ -83,6 +83,13 @@ class SymmetricDS extends Command
         $router->router_expression = 'merchant_id=:EXTERNAL_ID';
         if ($router->save()) $routers['cloud_to_merchant'] = $router;
 
+        $router = new Router();
+        $router->router_id = 'cloud_to_mall';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'column';
+        $router->router_expression = 'mall_id=:EXTERNAL_ID';
+        if ($router->save()) $routers['cloud_to_mall'] = $router;
 
         $router = new Router();
         $router->router_id = 'cloud_to_all_merchant';
@@ -109,9 +116,9 @@ class SymmetricDS extends Command
         $router->router_type = 'lookuptable';
         $router->router_expression = '
             LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'product_attributes`
-			    KEY_COLUMN=product_attribute_id
-			    LOOKUP_KEY_COLUMN=product_attribute_id
-			    EXTERNAL_ID_COLUMN=merchant_id
+                KEY_COLUMN=product_attribute_id
+                LOOKUP_KEY_COLUMN=product_attribute_id
+                EXTERNAL_ID_COLUMN=merchant_id
         ';
         if ($router->save()) $routers['cloud_product_attr_val_to_merchant'] = $router;
 
@@ -140,6 +147,19 @@ class SymmetricDS extends Command
             EXTERNAL_ID_COLUMN=parent_id
         ';
         if ($router->save()) $routers['cloud_retailer_pivot_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_tenant_pivot_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants`
+            KEY_COLUMN=merchant_id
+            LOOKUP_KEY_COLUMN=merchant_id
+            EXTERNAL_ID_COLUMN=parent_id
+        ';
+        if ($router->save()) $routers['cloud_tenant_pivot_to_merchant'] = $router;
 
         $router = new Router();
         $router->router_id = 'cloud_promotion_pivot_to_merchant';
@@ -171,7 +191,7 @@ class SymmetricDS extends Command
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er on er.employee_id = e.employee_id
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
                 where e.user_id = :USER_ID
-		    )
+            )
         ';
         if ($router->save()) $routers['cloud_user_merchant_to_merchant'] = $router;
 
@@ -186,9 +206,74 @@ class SymmetricDS extends Command
                 select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
                 where er.employee_id = :EMPLOYEE_ID
-			)
+            )
         ';
         if ($router->save()) $routers['cloud_employee_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_event_translations_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'events`
+            KEY_COLUMN=event_id
+            LOOKUP_KEY_COLUMN=event_id
+            EXTERNAL_ID_COLUMN=merchant_id
+        ';
+        if ($router->save()) $routers['cloud_event_translations_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_news_translations_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'news`
+            KEY_COLUMN=news_id
+            LOOKUP_KEY_COLUMN=news_id
+            EXTERNAL_ID_COLUMN=mall_id
+        ';
+        if ($router->save()) $routers['cloud_news_translations_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_promotion_translations_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'promotions`
+            KEY_COLUMN=promotion_id
+            LOOKUP_KEY_COLUMN=promotion_id
+            EXTERNAL_ID_COLUMN=merchant_id
+        ';
+        if ($router->save()) $routers['cloud_promotion_translations_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_category_translations_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'categories`
+            KEY_COLUMN=category_id
+            LOOKUP_KEY_COLUMN=category_id
+            EXTERNAL_ID_COLUMN=merchant_id
+        ';
+        if ($router->save()) $routers['cloud_category_translations_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_lucky_draws_pivot_to_mall';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'lucky_draws`
+            KEY_COLUMN=lucky_draw_id
+            LOOKUP_KEY_COLUMN=lucky_draw_id
+            EXTERNAL_ID_COLUMN=mall_id
+        ';
+        if ($router->save()) $routers['cloud_lucky_draws_pivot_to_mall'] = $router;
 
         // MERCHANT TO CLOUD
         $router = new Router();
@@ -202,13 +287,13 @@ class SymmetricDS extends Command
         return $routers;
     }
 
-	/**
-	 * Execute the console command.
-	 *
-	 * @return mixed
-	 */
-	protected function seedChannelAndTrigger()
-	{
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    protected function seedChannelAndTrigger()
+    {
 
         // Configure Products Channel
         $cProduct = new Channel;
@@ -242,20 +327,24 @@ class SymmetricDS extends Command
         if ($cMerchant->save())
         {
             $this->createTrigger($cMerchant, [
-                'merchants' => 'cloud_merchant_data_to_merchant',
-                'merchant_taxes' => 'cloud_to_merchant',
-                'roles' => 'cloud_to_all_merchant',
-                'permissions' => 'cloud_to_all_merchant',
-                'employee_retailer' => 'cloud_retailer_pivot_to_merchant',
-                'employees' => 'cloud_employee_to_merchant',
-                'users' => 'cloud_user_merchant_to_merchant',
-                'user_details' => 'cloud_user_merchant_to_merchant',
-                'apikeys' => 'cloud_user_merchant_to_merchant',
-                'custom_permission' => 'cloud_user_merchant_to_merchant',
+                'merchants'          => 'cloud_merchant_data_to_merchant',
+                'merchant_taxes'     => 'cloud_to_merchant',
+                'roles'              => 'cloud_to_all_merchant',
+                'permissions'        => 'cloud_to_all_merchant',
+                'employee_retailer'  => 'cloud_retailer_pivot_to_merchant',
+                'employees'          => 'cloud_employee_to_merchant',
+                'users'              => 'cloud_user_merchant_to_merchant',
+                'user_details'       => 'cloud_user_merchant_to_merchant',
+                'apikeys'            => 'cloud_user_merchant_to_merchant',
+                'custom_permission'  => 'cloud_user_merchant_to_merchant',
                 'user_personal_interest' => 'cloud_user_merchant_to_merchant',
-                'permission_role' => 'cloud_to_all_merchant',
+                'permission_role'    => 'cloud_to_all_merchant',
                 'personal_interests' => 'cloud_to_all_merchant',
-                'countries' => 'cloud_to_all_merchant'
+                'countries'          => 'cloud_to_all_merchant',
+                'category_merchant'  => 'cloud_tenant_pivot_to_merchant',
+                'merchant_translations'  => 'cloud_to_merchant',
+                'merchant_languages' => 'cloud_to_merchant',
+                'languages'          => 'cloud_to_all_merchant',
             ]);
         }
 
@@ -283,12 +372,12 @@ class SymmetricDS extends Command
         if ($cPromotion->save())
         {
             $this->createTrigger($cPromotion, [
-                'promotions' => 'cloud_to_merchant',
-                'promotion_retailer' => 'cloud_retailer_pivot_to_merchant',
-                'promotion_product' => 'cloud_product_pivot_to_merchant',
+                'promotions'                => 'cloud_to_merchant',
+                'promotion_retailer'        => 'cloud_retailer_pivot_to_merchant',
+                'promotion_product'         => 'cloud_product_pivot_to_merchant',
                 'promotion_retailer_redeem' => 'cloud_retailer_pivot_to_merchant',
-                'promotion_rules' => 'cloud_promotion_pivot_to_merchant',
-                'issued_coupons' => 'merchant_to_cloud'
+                'promotion_rules'           => 'cloud_promotion_pivot_to_merchant',
+                'issued_coupons'            => 'merchant_to_cloud'
             ]);
         }
 
@@ -318,11 +407,11 @@ class SymmetricDS extends Command
         if ($cTransaction->save())
         {
             $this->createTrigger($cTransaction, [
-                'transaction_details' => 'merchant_to_cloud',
-                'transaction_detail_taxes' => 'merchant_to_cloud',
+                'transaction_details'           => 'merchant_to_cloud',
+                'transaction_detail_taxes'      => 'merchant_to_cloud',
                 'transaction_detail_promotions' => 'merchant_to_cloud',
-                'transaction_detail_coupons' => 'merchant_to_cloud',
-                'transactions' => 'merchant_to_cloud'
+                'transaction_detail_coupons'    => 'merchant_to_cloud',
+                'transactions'                  => 'merchant_to_cloud'
             ]);
         }
 
@@ -336,11 +425,63 @@ class SymmetricDS extends Command
         if ($cWidgets->save())
         {
             $this->createTrigger($cWidgets, [
-                'widgets' => 'cloud_to_merchant',
+                'widgets'         => 'cloud_to_merchant',
                 'widget_retailer' => 'cloud_retailer_pivot_to_merchant'
             ]);
         }
-	}
+
+        $cNews = new Channel;
+        $cNews->channel_id = 'news';
+        $cNews->processing_order = 8;
+        $cNews->max_batch_size = 1e3;
+        $cNews->enabled = 1;
+        $cNews->description = 'News Data';
+
+        if ($cNews->save())
+        {
+            $this->createTrigger($cNews, [
+                'news'          => 'cloud_to_mall',
+                'news_merchant' => 'cloud_to_merchant',
+            ]);
+        }
+
+        $cTranslation = new Channel;
+        $cTranslation->channel_id = 'translations';
+        $cTranslation->processing_order = 9;
+        $cTranslation->max_batch_size = 1e3;
+        $cTranslation->enabled = 1;
+        $cTranslation->description = 'Entity Translations Data';
+
+        if ($cTranslation->save())
+        {
+            $this->createTrigger($cTranslation, [
+                'coupon_translations'     => 'cloud_promotion_translations_to_merchant',
+                'category_translations'   => 'cloud_category_translations_to_merchant',
+                'event_translations'      => 'cloud_event_translations_to_merchant',
+                'news_translations'       => 'cloud_news_translations_to_merchant',
+                'promotion_translations'  => 'cloud_promotion_translations_to_merchant',
+            ]);
+        }
+
+        $cLuckyDraw = new Channel;
+        $cLuckyDraw->channel_id = 'lucky_draws';
+        $cLuckyDraw->processing_order = 10;
+        $cLuckyDraw->max_batch_size = 1e3;
+        $cLuckyDraw->enabled = 1;
+        $cLuckyDraw->description = 'Lucky Draws Objects';
+
+
+        if ($cLuckyDraw->save())
+        {
+            $this->createTrigger($cLuckyDraw, [
+                'lucky_draws'               => 'cloud_to_mall',
+                'lucky_draw_numbers'        => 'cloud_lucky_draws_pivot_to_mall',
+                'lucky_draw_winners'        => 'merchant_to_cloud',
+                'lucky_draw_receipts'       => 'merchant_to_cloud',
+                'lucky_draw_number_receipt' => 'merchant_to_cloud',
+            ]);
+        }
+    }
 
     protected function seedNodeGroup()
     {
@@ -371,9 +512,14 @@ class SymmetricDS extends Command
         $this->info('Seeding Node Group...');
         $this->seedNodeGroup();
 
-        if ($this->argument('merchantId'))
+        if ($this->argument('externalId'))
         {
-            $merchant = Merchant::findOrFail($this->argument('merchantId'));
+            $merchant = DB::table('merchants')->where('merchant_id', '=', $this->argument('externalId'))->first();
+
+            if (is_null($merchant))
+            {
+                throw new Exception("Your External ID not associated to any merchants");
+            }
 
             $nMerchant = new Node;
             $nMerchant->node_id = $merchant->merchant_id;
@@ -418,28 +564,28 @@ class SymmetricDS extends Command
         }
     }
 
-	/**
-	 * Get the console command arguments.
-	 *
-	 * @return array
-	 */
-	protected function getArguments()
-	{
-		return array(
-			array('merchantId', InputArgument::OPTIONAL, 'Force Rewrite the configurations'),
-		);
-	}
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getArguments()
+    {
+        return array(
+            array('externalId', InputArgument::OPTIONAL, 'Force Rewrite the configurations'),
+        );
+    }
 
-	/**
-	 * Get the console command options.
-	 *
-	 * @return array
-	 */
-	protected function getOptions()
-	{
-		return array(
-			array('inspect', null, InputOption::VALUE_OPTIONAL, 'Inspect trigger and table', null),
-		);
-	}
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return array(
+            array('inspect', null, InputOption::VALUE_OPTIONAL, 'Inspect trigger and table', null),
+        );
+    }
 
 }
