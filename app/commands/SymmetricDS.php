@@ -35,12 +35,17 @@ class SymmetricDS extends Command
 
 
     protected $tableWhiteList = [
-        'carts',
-        'cart_coupons',
-        'cart_details',
-        'sessions',
-        'migrations',
-        'settings'
+        'carts', // BOX ONLY DATA
+        'cart_coupons', // BOX ONLY DATA
+        'cart_details', // BOX ONLY DATA
+        'sessions', // BOX ONLY DATA
+        'migrations', // BOX ONLY DATA
+        'settings', // BOX ONLY DATA
+        'inboxes', // BOX ONLY DATA
+        'mac_addresses', // BOX ONLY DATA
+        'failed_jobs', // BOX ONLY DATA
+        'tokens', // CLOUD ONLY DATA
+        'user_acquisitions', // CLOUD ONLY DATA
     ];
 
     /**
@@ -185,7 +190,9 @@ class SymmetricDS extends Command
                 select (case
                     when length(parent_id) = 16 then parent_id
                     else merchant_id
-                    end) as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` where user_id = :USER_ID
+                    end) as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.user_id = :USER_ID
+                union all
+                    select acquirer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'user_acquisitions` ua where ua.user_id = :USER_ID
                 union all
                 select m.parent_id as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er on er.employee_id = e.employee_id
@@ -195,6 +202,27 @@ class SymmetricDS extends Command
         ';
         if ($router->save()) $routers['cloud_user_merchant_to_merchant'] = $router;
 
+        $router = new Router();
+        $router->router_id = 'cloud_media_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'subselect';
+        $router->router_expression = "
+            c.external_id in (
+                select m.object_name, (
+                    case m.object_name
+                    when 'event'     then (select e.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e where e.event_id = m.object_id)
+                    when 'coupon'    then (select c.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` c where c.promotion_id = m.object_id)
+                    when 'promotion' then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` p where p.promotion_id = m.object_id)
+                    when 'merchant'  then m.object_id
+                    when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}`products p where p.product_id = m.object_id)
+                    when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}`widgets w where w.widget_id = m.object_id)
+                    when 'user'      then null
+                    end
+                ) as external_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m where m.media_id = :MEDIA_ID
+            )
+        ";
+        if ($router->save()) $routers['cloud_media_to_merchant'] = $router;
 
         $router = new Router();
         $router->router_id = 'cloud_employee_to_merchant';
@@ -275,6 +303,32 @@ class SymmetricDS extends Command
         ';
         if ($router->save()) $routers['cloud_lucky_draws_pivot_to_mall'] = $router;
 
+        $router = new Router();
+        $router->router_id = 'cloud_object_relation_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'objects`
+            KEY_COLUMN=main_object_id
+            LOOKUP_KEY_COLUMN=object_id
+            EXTERNAL_ID_COLUMN=merchant_id
+        ';
+        if ($router->save()) $routers['cloud_object_relation_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_acquired_user_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'user_acquisitions`
+            KEY_COLUMN=user_id
+            LOOKUP_KEY_COLUMN=user_id
+            EXTERNAL_ID_COLUMN=acquirer_id
+        ';
+        if ($router->save()) $routers['cloud_acquired_user_to_merchant'] = $router;
+
         // MERCHANT TO CLOUD
         $router = new Router();
         $router->router_id = 'merchant_to_cloud';
@@ -345,6 +399,9 @@ class SymmetricDS extends Command
                 'merchant_translations'  => 'cloud_to_merchant',
                 'merchant_languages' => 'cloud_to_merchant',
                 'languages'          => 'cloud_to_all_merchant',
+                'media'              => 'cloud_media_to_merchant',
+                'objects'            => 'cloud_to_merchant',
+                'object_relation'    => 'cloud_object_relation_to_merchant',
             ]);
         }
 
@@ -560,6 +617,7 @@ class SymmetricDS extends Command
             $this->info('Result: ');
             $this->info('Table Count: ' . DB::table(DB::raw('information_schema.tables'))->where('table_schema', '=', $this->sourceSchemaName)->count('table_name'));
             $this->info('Trigger Count: ' . Trigger::count());
+            $this->info('Ignored Table Count: ' . count($whiteListTables));
             $this->info('Table Diff: ' . json_encode($diffTables));
         }
     }
