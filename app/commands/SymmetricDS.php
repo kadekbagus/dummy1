@@ -109,8 +109,16 @@ class SymmetricDS extends Command
         $router->router_id = 'cloud_merchant_data_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
         $router->targetNode()->associate(NodeGroup::getMerchant());
-        $router->router_type = 'column';
-        $router->router_expression = 'merchant_id=:EXTERNAL_ID OR parent_id=:EXTERNAL_ID';
+        $router->router_type = 'subquery';
+        $router->router_expression = "
+            c.external_id in (
+                 select :MERCHANT_ID
+                 uninon all
+                 select parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.merchant_id = :MERCHANT_ID
+                 uninon all
+                 select merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.parent_id = :MERCHANT_ID
+            );
+          ";
         if ($router->save()) $routers['cloud_merchant_data_to_merchant'] = $router;
 
 
