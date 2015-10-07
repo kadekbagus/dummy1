@@ -109,7 +109,7 @@ class SymmetricDS extends Command
         $router->router_id = 'cloud_merchant_data_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
         $router->targetNode()->associate(NodeGroup::getMerchant());
-        $router->router_type = 'subquery';
+        $router->router_type = 'subselect';
         $router->router_expression = "
             c.external_id in (
                  select :MERCHANT_ID
