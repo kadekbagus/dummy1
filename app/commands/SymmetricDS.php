@@ -113,10 +113,10 @@ class SymmetricDS extends Command
         $router->router_expression = "
             c.external_id in (
                  select :MERCHANT_ID
-                 uninon all
-                 select parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.merchant_id = :MERCHANT_ID
-                 uninon all
-                 select merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.parent_id = :MERCHANT_ID
+                 union all
+                 select parent_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}merchants` m where m.merchant_id = :MERCHANT_ID
+                 union all
+                 select merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}merchants` m where m.parent_id = :MERCHANT_ID
             );
           ";
         if ($router->save()) $routers['cloud_merchant_data_to_merchant'] = $router;
