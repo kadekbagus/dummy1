@@ -40,7 +40,6 @@ class SymmetricDS extends Command
         'cart_details', // BOX ONLY DATA
         'sessions', // BOX ONLY DATA
         'migrations', // BOX ONLY DATA
-        'settings', // BOX ONLY DATA
         'inboxes', // BOX ONLY DATA
         'mac_addresses', // BOX ONLY DATA
         'failed_jobs', // BOX ONLY DATA
@@ -217,7 +216,7 @@ class SymmetricDS extends Command
         $router->router_type = 'subselect';
         $router->router_expression = "
             c.external_id in (
-                select m.object_name, (
+                select (
                     case m.object_name
                     when 'event'     then (select e.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e where e.event_id = m.object_id)
                     when 'coupon'    then (select c.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` c where c.promotion_id = m.object_id)
@@ -225,12 +224,24 @@ class SymmetricDS extends Command
                     when 'merchant'  then m.object_id
                     when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}`products p where p.product_id = m.object_id)
                     when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}`widgets w where w.widget_id = m.object_id)
-                    when 'user'      then null
                     end
                 ) as external_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m where m.media_id = :MEDIA_ID
+                union all
+                select ua.acquirer_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}user_acquisitions` ua
+                        inner join `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m
+                        on ua.user_id = m.object_id
+                        where m.media_id = :MEDIA_ID and m.object_name = 'user'
             )
         ";
         if ($router->save()) $routers['cloud_media_to_merchant'] = $router;
+
+        $router = new Router;
+        $router->router_id = 'cloud_setting_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'column';
+        $router->router_expression = "object_id = :EXTERNAL_ID";
+        if ($router->save()) $routers['cloud_setting_to_merchant'] = $router;
 
         $router = new Router();
         $router->router_id = 'cloud_employee_to_merchant';
@@ -410,6 +421,7 @@ class SymmetricDS extends Command
                 'media'              => 'cloud_media_to_merchant',
                 'objects'            => 'cloud_to_merchant',
                 'object_relation'    => 'cloud_object_relation_to_merchant',
+                'settings'           => 'cloud_setting_to_merchant',
             ]);
         }
 
