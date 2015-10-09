@@ -145,6 +145,32 @@ class SymmetricDS extends Command
         if ($router->save()) $routers['cloud_product_attr_val_to_merchant'] = $router;
 
         $router = new Router();
+        $router->router_id = 'cloud_sub_widgets_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'widgets`
+            KEY_COLUMN=widget_id
+            LOOKUP_KEY_COLUMN=widget_id
+            EXTERNAL_ID_COLUMN=merchant_id
+        ';
+        if ($router->save()) $routers['cloud_sub_widgets_to_merchant'] = $router;
+
+        $router = new Router();
+        $router->router_id = 'cloud_sub_settings_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'settings`
+            KEY_COLUMN=setting_id
+            LOOKUP_KEY_COLUMN=setting_id
+            EXTERNAL_ID_COLUMN=object_id
+        ';
+        if ($router->save()) $routers['cloud_sub_settings_to_merchant'] = $router;
+
+        $router = new Router();
         $router->router_id = 'cloud_product_pivot_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
         $router->targetNode()->associate(NodeGroup::getMerchant());
@@ -445,6 +471,7 @@ class SymmetricDS extends Command
                 'objects'            => 'cloud_to_merchant',
                 'object_relation'    => 'cloud_object_relation_to_merchant',
                 'settings'           => 'cloud_setting_to_merchant',
+                'setting_translations' => 'cloud_sub_settings_to_merchant',
             ]);
         }
 
@@ -526,7 +553,8 @@ class SymmetricDS extends Command
         {
             $this->createTrigger($cWidgets, [
                 'widgets'         => 'cloud_to_merchant',
-                'widget_retailer' => 'cloud_retailer_pivot_to_merchant'
+                'widget_retailer' => ['cloud_sub_widgets_to_merchant'],
+                'widget_translations' => ['cloud_sub_widgets_to_merchant'],
             ]);
         }
 
