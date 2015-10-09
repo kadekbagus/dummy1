@@ -60,7 +60,7 @@ class SymmetricDS extends Command
 
     protected function createTrigger(Model $channel, $names = [])
     {
-        foreach ($names as $name => $router) {
+        foreach ($names as $name => $route) {
             $trigger = new Trigger;
             $trigger->trigger_id = $name;
             $trigger->source_catalog_name = $this->sourceSchemaName;
@@ -68,9 +68,19 @@ class SymmetricDS extends Command
             $trigger->channel()->associate($channel);
             $trigger->save();
 
-            if (! in_array($router, $trigger->routers()->getRelatedIds()))
-            {
-                $trigger->routers()->attach($router, ['initial_load_order' => 100, 'enabled' => 1]);
+            if (!is_array($route)) {
+              $routers = [$route];
+            } else {
+              $routers = $route;
+            }
+
+            $relatedIds = $trigger->routers()->getRelatedIds();
+
+            foreach ($routers as $router) {
+              if (! in_array($router, $relatedIds))
+              {
+                  $trigger->routers()->attach($router, ['initial_load_order' => 100, 'enabled' => 1]);
+              }
             }
         }
     }
@@ -161,6 +171,14 @@ class SymmetricDS extends Command
         if ($router->save()) $routers['cloud_retailer_pivot_to_merchant'] = $router;
 
         $router = new Router();
+        $router->router_id = 'cloud_mall_pivot_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'column';
+        $router->router_expression = 'retailer_id=:EXTERNAL_ID';
+        if ($router->save()) $routers['cloud_mall_pivot_to_merchant'] = $router;
+
+        $router = new Router();
         $router->router_id = 'cloud_tenant_pivot_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
         $router->targetNode()->associate(NodeGroup::getMerchant());
@@ -204,6 +222,10 @@ class SymmetricDS extends Command
                 select m.parent_id as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er on er.employee_id = e.employee_id
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
+                where e.user_id = :USER_ID
+                union all
+                select er.retailer_id as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e
+                    inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er on er.employee_id = e.employee_id
                 where e.user_id = :USER_ID
             )
         ';
@@ -378,13 +400,13 @@ class SymmetricDS extends Command
 
         if ($cProduct->save()) {
             $this->createTrigger($cProduct, [
-                'products' => 'cloud_to_merchant',
-                'product_retailer' => 'cloud_retailer_pivot_to_merchant',
-                'product_variants' => 'cloud_to_merchant',
-                'product_attributes' => 'cloud_to_merchant',
+                'products'                 => 'cloud_to_merchant',
+                'product_retailer'         => 'cloud_retailer_pivot_to_merchant',
+                'product_variants'         => 'cloud_to_merchant',
+                'product_attributes'       => 'cloud_to_merchant',
                 'product_attribute_values' => 'cloud_product_attr_val_to_merchant',
-                'pos_quick_products' => 'cloud_to_merchant',
-                'categories' => 'cloud_to_merchant',
+                'pos_quick_products'       => 'cloud_to_merchant',
+                'categories'               => 'cloud_to_merchant',
             ]);
         }
 
@@ -404,8 +426,8 @@ class SymmetricDS extends Command
                 'merchant_taxes'     => 'cloud_to_merchant',
                 'roles'              => 'cloud_to_all_merchant',
                 'permissions'        => 'cloud_to_all_merchant',
-                'employee_retailer'  => 'cloud_retailer_pivot_to_merchant',
-                'employees'          => 'cloud_employee_to_merchant',
+                'employee_retailer'  => ['cloud_retailer_pivot_to_merchant', 'cloud_mall_pivot_to_merchant'],
+                'employees'          => 'cloud_user_merchant_to_merchant',
                 'users'              => 'cloud_user_merchant_to_merchant',
                 'user_details'       => 'cloud_user_merchant_to_merchant',
                 'apikeys'            => 'cloud_user_merchant_to_merchant',
