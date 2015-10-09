@@ -213,9 +213,10 @@ class SymmetricDS extends Command
         $router->router_expression = '
            c.external_id in (
                 select (case
+                    when object_type = \'mall\' then merchant_id
                     when length(parent_id) = 16 then parent_id
                     else merchant_id
-                    end) as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.user_id = :USER_ID
+                  end) as merchant_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m where m.user_id = :USER_ID
                 union all
                     select acquirer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'user_acquisitions` ua where ua.user_id = :USER_ID
                 union all
