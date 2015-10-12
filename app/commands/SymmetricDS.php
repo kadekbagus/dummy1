@@ -113,7 +113,6 @@ class SymmetricDS extends Command
         $router->router_expression = null;
         if ($router->save()) $routers['cloud_to_all_merchant'] = $router;
 
-
         $router = new Router();
         $router->router_id = 'cloud_merchant_data_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
@@ -230,6 +229,18 @@ class SymmetricDS extends Command
         ';
         if ($router->save()) $routers['cloud_promotion_pivot_to_merchant'] = $router;
 
+        $router = new Router();
+        $router->router_id = 'cloud_news_merchant_to_mall';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'news`
+            KEY_COLUMN=news_id
+            LOOKUP_KEY_COLUMN=news_id
+            EXTERNAL_ID_COLUMN=mall_id
+        ';
+        if ($router->save()) $routers['cloud_news_merchant_to_mall'] = $router;
 
         $router = new Router();
         $router->router_id = 'cloud_user_merchant_to_merchant';
@@ -569,7 +580,7 @@ class SymmetricDS extends Command
         {
             $this->createTrigger($cNews, [
                 'news'          => 'cloud_to_mall',
-                'news_merchant' => 'cloud_to_merchant',
+                'news_merchant' => 'cloud_news_merchant_to_mall',
             ]);
         }
 
