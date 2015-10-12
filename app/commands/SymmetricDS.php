@@ -271,8 +271,8 @@ class SymmetricDS extends Command
                     when 'coupon'    then (select c.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` c where c.promotion_id = m.object_id)
                     when 'promotion' then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` p where p.promotion_id = m.object_id)
                     when 'merchant'  then m.object_id
-                    when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}`products p where p.product_id = m.object_id)
-                    when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}`widgets w where w.widget_id = m.object_id)
+                    when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}products` p where p.product_id = m.object_id)
+                    when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}widgets` w where w.widget_id = m.object_id)
                     end
                 ) as external_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m where m.media_id = :MEDIA_ID
                 union all
