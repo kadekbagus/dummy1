@@ -284,6 +284,8 @@ class SymmetricDS extends Command
                     when 'merchant'  then m.object_id
                     when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}products` p where p.product_id = m.object_id)
                     when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}widgets` w where w.widget_id = m.object_id)
+                    when 'retailer'  then (select r.parent_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}merchants` r where r.merchant_id = m.object_id)
+                    when 'merchant'  then (select x.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}merchants` x where x.merchant_id = m.object_id)
                     end
                 ) as external_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m where m.media_id = :MEDIA_ID
                 union all
