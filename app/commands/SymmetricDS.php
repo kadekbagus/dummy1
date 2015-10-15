@@ -292,7 +292,7 @@ class SymmetricDS extends Command
                     )
                     when 'event_translation'  then (
                       select e.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}event_translations` et
-                      inner join  `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e.event_id = et.event_id
+                      inner join  `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e on e.event_id = et.event_id
                       where et.event_translation_id = m.object_id
                     )
                     when 'news_translation'  then (
