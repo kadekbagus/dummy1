@@ -300,12 +300,11 @@ class SymmetricDS extends Command
                       inner join  `{$this->sourceSchemaName}`.`{$this->tablePrefix}news` n on n.news_id = nt.news_id
                       where nt.news_translation_id = :OBJECT_ID
                     )
-                    when 'user' then (
-                      select ua.acquirer_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}user_acquisitions` ua
-                      where ua.user_id = :OBJECT_ID
-                    )
                     end
                 ) as external_id
+                UNION ALL
+                select ua.acquirer_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}user_acquisitions` ua
+                where ua.user_id = :OBJECT_ID and :OBJECT_NAME = 'user'
             )
         ";
         if ($router->save()) $routers['cloud_media_to_merchant'] = $router;
@@ -706,6 +705,11 @@ class SymmetricDS extends Command
             }, $this->tableWhiteList);
 
             $sourceTables = DB::table(DB::raw('information_schema.tables'))->where('table_schema', '=', $this->sourceSchemaName)->lists('table_name');
+
+            $tableWithStatus = DB::table(DB::raw('information_schema.columns'))->where('table_schema', '=', $this->sourceSchemaName)->where('column_name', '=', 'status')->lists('table_name');
+
+            $tableWithoutStatus = array_diff($sourceTables, $tableWithStatus);
+
             $sourceTables = array_filter($sourceTables, function ($i) use ($whiteListTables) {
                 return !in_array($i, $whiteListTables);
             });
@@ -716,6 +720,8 @@ class SymmetricDS extends Command
             $this->info('Trigger Count: ' . Trigger::count());
             $this->info('Ignored Table Count: ' . count($whiteListTables));
             $this->info('Table Diff: ' . json_encode($diffTables));
+            $this->info('Table With Status: '. json_encode($tableWithStatus));
+            $this->info('Table Without Status: '. json_encode($tableWithoutStatus));
         }
     }
 
