@@ -67,6 +67,7 @@ return array(
     'AlterTableLanguageAddNameLogAndIndex' => $baseDir . '/app/database/migrations/2015_08_25_132645_alter_table_language_add_name_log_and_index.php',
     'AlterTableLanguagesAddNativeNameAndStatus' => $baseDir . '/app/database/migrations/2015_09_23_065804_alter_table_languages_add_native_name_and_status.php',
     'AlterTableMacAddressesAddColumnStatus' => $baseDir . '/app/database/migrations/2015_08_21_083832_alter_table_mac_addresses_add_column_status.php',
+    'AlterTableMediaColumnMediaNameIdDatatype' => $baseDir . '/app/database/migrations/2015_10_16_024702_alter_table_media_column_media_name_id_datatype.php',
     'AlterTableMerchantAddColumnModifiedBy' => $baseDir . '/app/database/migrations/2014_11_10_030122_alter_table_merchant_add_column_modified_by.php',
     'AlterTableMerchantTaxesAddColumnStatus' => $baseDir . '/app/database/migrations/2014_12_09_024548_alter_table_merchant_taxes_add_column_status.php',
     'AlterTableMerchantTaxesAddColumnTaxType' => $baseDir . '/app/database/migrations/2015_02_10_073405_alter_table_merchant_taxes_add_column_tax_type.php',
