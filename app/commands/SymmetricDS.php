@@ -196,6 +196,19 @@ class SymmetricDS extends Command
         if ($router->save()) $routers['cloud_retailer_pivot_to_merchant'] = $router;
 
         $router = new Router();
+        $router->router_id = 'cloud_tenant_id_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'lookuptable';
+        $router->router_expression = '
+            LOOKUP_TABLE=`'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants`
+            KEY_COLUMN=tenant_id
+            LOOKUP_KEY_COLUMN=merchant_id
+            EXTERNAL_ID_COLUMN=parent_id
+        ';
+        if ($router->save()) $routers['cloud_tenant_id_to_merchant'] = $router;
+
+        $router = new Router();
         $router->router_id = 'cloud_mall_pivot_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
         $router->targetNode()->associate(NodeGroup::getMerchant());
@@ -476,6 +489,7 @@ class SymmetricDS extends Command
             $this->createTrigger($cMerchant, [
                 'merchants'          => 'cloud_merchant_data_to_merchant',
                 'merchant_taxes'     => 'cloud_to_merchant',
+                'retailer_tenant'    => ['cloud_tenant_id_to_merchant', 'cloud_retailer_pivot_to_merchant'],
                 'roles'              => 'cloud_to_all_merchant',
                 'permissions'        => 'cloud_to_all_merchant',
                 'employee_retailer'  => ['cloud_retailer_pivot_to_merchant', 'cloud_mall_pivot_to_merchant'],
@@ -708,13 +722,13 @@ class SymmetricDS extends Command
 
             $tableWithStatus = DB::table(DB::raw('information_schema.columns'))->where('table_schema', '=', $this->sourceSchemaName)->where('column_name', '=', 'status')->lists('table_name');
 
-            $tableWithoutStatus = array_diff($sourceTables, $tableWithStatus);
+            $tableWithoutStatus = array_values(array_diff($sourceTables, $tableWithStatus));
 
             $sourceTables = array_filter($sourceTables, function ($i) use ($whiteListTables) {
                 return !in_array($i, $whiteListTables);
             });
             $tTables = Trigger::lists('source_table_name');
-            $diffTables = array_diff($sourceTables, $tTables);
+            $diffTables = array_values(array_diff($sourceTables, $tTables));
             $this->info('Result: ');
             $this->info('Table Count: ' . DB::table(DB::raw('information_schema.tables'))->where('table_schema', '=', $this->sourceSchemaName)->count('table_name'));
             $this->info('Trigger Count: ' . Trigger::count());
