@@ -138,7 +138,6 @@ class AlterAllKeyColumnsUseUuid extends Migration {
         ['lucky_draw_winners', 'modified_by', 'YES'],
         ['mac_addresses', 'mac_address_id', 'NO'],
         ['media', 'media_id', 'NO'],
-        ['media', 'media_name_id', 'NO'],
         ['media', 'object_id', 'YES'],
         ['media', 'modified_by', 'YES'],
         ['merchants', 'merchant_id', 'NO'],
