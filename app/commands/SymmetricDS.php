@@ -277,36 +277,35 @@ class SymmetricDS extends Command
         $router->router_expression = "
             c.external_id in (
                 select (
-                    case m.object_name
-                    when 'event'     then (select e.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e where e.event_id = m.object_id)
-                    when 'coupon'    then (select c.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` c where c.promotion_id = m.object_id)
-                    when 'promotion' then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` p where p.promotion_id = m.object_id)
-                    when 'merchant'  then m.object_id
-                    when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}products` p where p.product_id = m.object_id)
-                    when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}widgets` w where w.widget_id = m.object_id)
-                    when 'retailer'  then (select r.parent_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}merchants` r where r.merchant_id = m.object_id)
+                    case :OBJECT_NAME
+                    when 'event'     then (select e.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e where e.event_id = :OBJECT_ID)
+                    when 'coupon'    then (select c.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` c where c.promotion_id = :OBJECT_ID)
+                    when 'promotion' then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` p where p.promotion_id = :OBJECT_ID)
+                    when 'merchant'  then :OBJECT_ID
+                    when 'product'   then (select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}products` p where p.product_id = :OBJECT_ID)
+                    when 'widget'    then (select w.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}widgets` w where w.widget_id = :OBJECT_ID)
+                    when 'retailer'  then (select r.parent_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}merchants` r where r.merchant_id = :OBJECT_ID)
                     when 'coupon_translation'  then (
                       select p.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}coupon_translations` ct
                       inner join  `{$this->sourceSchemaName}`.`{$this->tablePrefix}promotions` p on p.promotion_id = ct.promotion_id
-                      where ct.coupon_translation_id = m.object_id
+                      where ct.coupon_translation_id = :OBJECT_ID
                     )
                     when 'event_translation'  then (
                       select e.merchant_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}event_translations` et
                       inner join  `{$this->sourceSchemaName}`.`{$this->tablePrefix}events` e on e.event_id = et.event_id
-                      where et.event_translation_id = m.object_id
+                      where et.event_translation_id = :OBJECT_ID
                     )
                     when 'news_translation'  then (
                       select n.mall_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}news_translations` nt
                       inner join  `{$this->sourceSchemaName}`.`{$this->tablePrefix}news` n on n.news_id = nt.news_id
-                      where nt.news_translation_id = m.object_id
+                      where nt.news_translation_id = :OBJECT_ID
+                    )
+                    when 'user' then (
+                      select ua.acquirer_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}user_acquisitions` ua
+                      where ua.user_id = :OBJECT_ID
                     )
                     end
-                ) as external_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m where m.media_id = :MEDIA_ID
-                union all
-                select ua.acquirer_id from `{$this->sourceSchemaName}`.`{$this->tablePrefix}user_acquisitions` ua
-                        inner join `{$this->sourceSchemaName}`.`{$this->tablePrefix}media` m
-                        on ua.user_id = m.object_id
-                        where m.media_id = :MEDIA_ID and m.object_name = 'user'
+                ) as external_id
             )
         ";
         if ($router->save()) $routers['cloud_media_to_merchant'] = $router;
