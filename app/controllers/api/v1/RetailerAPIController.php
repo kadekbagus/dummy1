@@ -1013,12 +1013,14 @@ class RetailerAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.retailer.getsearchretailer.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_retailer')) {
-                Event::fire('orbit.retailer.getsearchretailer.authz.notallowed', array($this, $user));
-                $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
-                ACL::throwAccessForbidden($message);
-            }
+            // disable for this version
+            // if (! ACL::create($user)->isAllowed('view_retailer')) {
+            //     Event::fire('orbit.retailer.getsearchretailer.authz.notallowed', array($this, $user));
+            //     $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
+            //     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
+            //     ACL::throwAccessForbidden($message);
+            // }
+
             Event::fire('orbit.retailer.getsearchretailer.after.authz', array($this, $user));
 
             $this->registerCustomValidation();
@@ -2805,16 +2807,19 @@ class RetailerAPIController extends ControllerAPI
             $user = $this->api->user;
             Event::fire('orbit.retailer.getcitylist.before.authz', array($this, $user));
 
-            if (! ACL::create($user)->isAllowed('view_retailer')) {
-                Event::fire('orbit.retailer.getcitylist.authz.notallowed', array($this, $user));
-                $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
-                $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
-                ACL::throwAccessForbidden($message);
-            }
+            // disable for this version
+            // if (! ACL::create($user)->isAllowed('view_retailer')) {
+            //     Event::fire('orbit.retailer.getcitylist.authz.notallowed', array($this, $user));
+            //     $viewRetailerLang = Lang::get('validation.orbit.actionlist.view_retailer');
+            //     $message = Lang::get('validation.orbit.access.forbidden', array('action' => $viewRetailerLang));
+            //     ACL::throwAccessForbidden($message);
+            // }
+
             Event::fire('orbit.retailer.getcitylist.after.authz', array($this, $user));
 
             $retailers = Retailer::excludeDeleted()
                 ->select('city')
+                ->where('city', '!=', 'null')
                 ->orderBy('city', 'asc')
                 ->groupBy('city')
                 ->get();
