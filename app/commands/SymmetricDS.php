@@ -58,13 +58,16 @@ class SymmetricDS extends Command
         parent::__construct();
     }
 
-    protected function createTrigger(Model $channel, $names = [])
+    protected function createTrigger(Model $channel, $names = [], $attributes = [])
     {
         foreach ($names as $name => $route) {
             $trigger = new Trigger;
             $trigger->trigger_id = $name;
             $trigger->source_catalog_name = $this->sourceSchemaName;
             $trigger->source_table_name  = $this->tablePrefix . $name;
+            foreach ($attributes as $k => $v) {
+                $trigger->{$k} = $v;
+            }
             $trigger->channel()->associate($channel);
             $trigger->save();
 
@@ -494,8 +497,6 @@ class SymmetricDS extends Command
                 'permissions'        => 'cloud_to_all_merchant',
                 'employee_retailer'  => ['cloud_retailer_pivot_to_merchant', 'cloud_mall_pivot_to_merchant'],
                 'employees'          => 'cloud_user_merchant_to_merchant',
-                'users'              => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
-                'user_details'       => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
                 'apikeys'            => 'cloud_user_merchant_to_merchant',
                 'custom_permission'  => 'cloud_user_merchant_to_merchant',
                 'user_personal_interest' => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
@@ -511,6 +512,34 @@ class SymmetricDS extends Command
                 'object_relation'    => 'cloud_object_relation_to_merchant',
                 'settings'           => 'cloud_setting_to_merchant',
                 'setting_translations' => 'cloud_sub_settings_to_merchant',
+            ]);
+
+            // the insert should not be brought to the cloud
+            $this->createTrigger($cMerchant, [
+                'users'              => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
+                'user_details'       => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
+            ], [
+                'sync_on_insert' => false,
+                'sync_on_delete' => true,
+                'sync_on_update' => true,
+            ]);
+
+            // inserts should be cloud to merchant only
+            $this->createTrigger($cMerchant, [
+                'users'              => ['cloud_user_merchant_to_merchant'],
+            ], [
+                'sync_on_insert' => true,
+                'sync_on_delete' => false,
+                'sync_on_update' => false,
+                'trigger_id' => 'users_insert',
+            ]);
+            $this->createTrigger($cMerchant, [
+                'user_details'       => ['cloud_user_merchant_to_merchant'],
+            ], [
+                'sync_on_insert' => true,
+                'sync_on_delete' => false,
+                'sync_on_update' => false,
+                'trigger_id' => 'user_details_insert',
             ]);
         }
 
