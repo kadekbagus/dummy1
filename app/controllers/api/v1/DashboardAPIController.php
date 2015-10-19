@@ -2484,7 +2484,6 @@ class DashboardAPIController extends ControllerAPI
                 })
                 ->join('merchants', function($q) {
                     $q->on('merchants.merchant_id', '=', 'activities.location_id');
-                    $q->where('merchants.object_type', '=', 'retailer');
                 })
                 ->leftJoin('merchants as parent', DB::raw('parent.merchant_id'), '=', 'merchants.parent_id')
                 ->groupBy('activities.location_id');
