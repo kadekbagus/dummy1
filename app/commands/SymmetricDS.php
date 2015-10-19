@@ -514,7 +514,8 @@ class SymmetricDS extends Command
                 'setting_translations' => 'cloud_sub_settings_to_merchant',
             ]);
 
-            // the insert should not be brought to the cloud
+            // the insert should not be synced, ever.
+            // both merchant and cloud will insert the user (on login or on cs create)
             $this->createTrigger($cMerchant, [
                 'users'              => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
                 'user_details'       => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
@@ -522,24 +523,6 @@ class SymmetricDS extends Command
                 'sync_on_insert' => false,
                 'sync_on_delete' => true,
                 'sync_on_update' => true,
-            ]);
-
-            // inserts should be cloud to merchant only
-            $this->createTrigger($cMerchant, [
-                'users'              => ['cloud_user_merchant_to_merchant'],
-            ], [
-                'sync_on_insert' => true,
-                'sync_on_delete' => false,
-                'sync_on_update' => false,
-                'trigger_id' => 'users_insert',
-            ]);
-            $this->createTrigger($cMerchant, [
-                'user_details'       => ['cloud_user_merchant_to_merchant'],
-            ], [
-                'sync_on_insert' => true,
-                'sync_on_delete' => false,
-                'sync_on_update' => false,
-                'trigger_id' => 'user_details_insert',
             ]);
         }
 
