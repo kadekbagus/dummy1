@@ -343,6 +343,9 @@ class SymmetricDS extends Command
                 select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
                 where er.employee_id = :EMPLOYEE_ID
+                union all
+                select er.retailer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                where er.employee_id = :EMPLOYEE_ID
             )
         ';
         if ($router->save()) $routers['cloud_employee_to_merchant'] = $router;
@@ -438,6 +441,23 @@ class SymmetricDS extends Command
         ';
         if ($router->save()) $routers['cloud_acquired_user_to_merchant'] = $router;
 
+        $router = new Router();
+        $router->router_id = 'cloud_employee_user_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'subselect';
+        $router->router_expression = '
+            c.external_id in (
+                select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                    inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
+                where er.user_id = :USER_ID
+                union all
+                select er.retailer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                where er.user_id = :USER_ID
+            )
+        ';
+        if ($router->save()) $routers['cloud_employee_user_to_merchant'] = $router;
+
         // MERCHANT TO CLOUD
         $router = new Router();
         $router->router_id = 'merchant_to_cloud';
@@ -523,6 +543,25 @@ class SymmetricDS extends Command
                 'sync_on_insert' => false,
                 'sync_on_delete' => true,
                 'sync_on_update' => true,
+            ]);
+
+
+            // these should route employee inserts only
+            $this->createTrigger($cMerchant, [
+                'users'              => ['cloud_employee_user_to_merchant'],
+            ], [
+                'sync_on_insert' => true,
+                'sync_on_delete' => false,
+                'sync_on_update' => false,
+                'trigger_id' => 'employee_users_insert',
+            ]);
+            $this->createTrigger($cMerchant, [
+                'user_details'       => ['cloud_employee_user_to_merchant'],
+            ], [
+                'sync_on_insert' => true,
+                'sync_on_delete' => false,
+                'sync_on_update' => false,
+                'trigger_id' => 'employee_user_details_insert',
             ]);
         }
 
