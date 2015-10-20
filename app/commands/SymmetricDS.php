@@ -449,11 +449,13 @@ class SymmetricDS extends Command
         $router->router_expression = '
             c.external_id in (
                 select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
-                    inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
-                where er.user_id = :USER_ID
+                  inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
+                  inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e on e.employee_id = er.employee_id
+                where e.user_id = :USER_ID
                 union all
                 select er.retailer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
-                where er.user_id = :USER_ID
+                  inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e on e.employee_id = er.employee_id
+                where e.user_id = :USER_ID
             )
         ';
         if ($router->save()) $routers['cloud_employee_user_to_merchant'] = $router;
