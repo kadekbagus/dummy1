@@ -18,7 +18,7 @@ class CreateTableSettingTranslations extends Migration {
     });
     $builder->create('setting_translations', function(OrbitBlueprint $table)
     {
-      $table->encodedId('setting_translation_id');
+      $table->encodedId('setting_translation_id')->primary();
       $table->encodedId('setting_id');
       $table->encodedId('merchant_language_id');
       $table->string('setting_value', 255)->nullable();
