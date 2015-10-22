@@ -555,6 +555,7 @@ class SymmetricDS extends Command
                 'merchant_translations'  => 'cloud_merchant_translations_to_merchant',
                 'merchant_languages' => 'cloud_to_merchant',
                 'languages'          => 'cloud_to_all_merchant',
+                'timezones'          => 'cloud_to_all_merchant',
                 'media'              => 'cloud_media_to_merchant',
                 'objects'            => 'cloud_to_merchant',
                 'object_relation'    => 'cloud_object_relation_to_merchant',
