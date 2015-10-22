@@ -350,6 +350,32 @@ class SymmetricDS extends Command
         ';
         if ($router->save()) $routers['cloud_employee_to_merchant'] = $router;
 
+        // a "merchant" in merchant_translations can be any of:
+        // merchant, retailer, tenant, mall, mall group
+        // tenants do not have box and their translations are sent to the parent mall
+        // malls and retailers receive their own translations
+        // merchants and mall groups probably do not have box (?)
+        $router = new Router();
+        $router->router_id = 'cloud_merchant_translations_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'subselect';
+        $router->router_expression = '
+            c.external_id in (
+                select case m.object_type
+                    when \'tenant\' then m.parent_id
+                    when \'mall\' then m.merchant_id
+                    when \'mall_group\' then m.merchant_id
+                    when \'retailer\' then m.merchant_id
+                    when \'merchant\' then m.merchant_id
+                end
+                from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m
+                where m.merchant_id = :MERCHANT_ID
+                and m.object_type in (\'tenant\', \'mall\', \'mall_group\', \'retailer\', \'merchant\')
+            )
+        ';
+        if ($router->save()) $routers['cloud_merchant_translations_to_merchant'] = $router;
+
         $router = new Router();
         $router->router_id = 'cloud_event_translations_to_merchant';
         $router->sourceNode()->associate(NodeGroup::getCloud());
@@ -526,7 +552,7 @@ class SymmetricDS extends Command
                 'personal_interests' => 'cloud_to_all_merchant',
                 'countries'          => 'cloud_to_all_merchant',
                 'category_merchant'  => 'cloud_tenant_pivot_to_merchant',
-                'merchant_translations'  => 'cloud_to_merchant',
+                'merchant_translations'  => 'cloud_merchant_translations_to_merchant',
                 'merchant_languages' => 'cloud_to_merchant',
                 'languages'          => 'cloud_to_all_merchant',
                 'media'              => 'cloud_media_to_merchant',
