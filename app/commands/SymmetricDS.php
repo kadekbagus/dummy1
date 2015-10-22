@@ -547,7 +547,6 @@ class SymmetricDS extends Command
                 'employees'          => 'cloud_user_merchant_to_merchant',
                 'apikeys'            => 'cloud_user_merchant_to_merchant',
                 'custom_permission'  => 'cloud_user_merchant_to_merchant',
-                'user_personal_interest' => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
                 'permission_role'    => 'cloud_to_all_merchant',
                 'personal_interests' => 'cloud_to_all_merchant',
                 'countries'          => 'cloud_to_all_merchant',
@@ -563,6 +562,14 @@ class SymmetricDS extends Command
                 'setting_translations' => 'cloud_sub_settings_to_merchant',
             ]);
 
+            // for bidirectional syncs we should set sync_on_incoming_batch so when the cloud gets the data,
+            // from a merchant, it can record it to pass to other merchants interested in the data.
+            $this->createTrigger($cMerchant, [
+                'user_personal_interest' => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
+            ], [
+                'sync_on_incoming_batch' => true,
+            ]);
+
             // the insert should not be synced, ever.
             // both merchant and cloud will insert the user (on login or on cs create)
             $this->createTrigger($cMerchant, [
@@ -572,6 +579,7 @@ class SymmetricDS extends Command
                 'sync_on_insert' => false,
                 'sync_on_delete' => true,
                 'sync_on_update' => true,
+                'sync_on_incoming_batch' => true,
             ]);
 
 
