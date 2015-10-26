@@ -2471,7 +2471,7 @@ class DashboardAPIController extends ControllerAPI
                     'merchants.name as retailer_name',
                     'transactions.currency',
                     'transactions.currency_symbol',
-                    DB::raw("ifnull({$tablePrefix}merchants.logo, parent.logo) as retailer_logo"),
+                    DB::raw("ifnull({$tablePrefix}media.path, merchants.logo) as retailer_logo"),
                     DB::raw("{$tablePrefix}merchants.object_type as object_type"),
                     DB::raw("count(distinct {$tablePrefix}transactions.transaction_id) as transaction_count"),
                     DB::raw("ifnull(sum({$tablePrefix}transactions.total_to_pay),0)as transaction_total"),
@@ -2485,6 +2485,9 @@ class DashboardAPIController extends ControllerAPI
                 })
                 ->join('merchants', function($q) {
                     $q->on('merchants.merchant_id', '=', 'activities.location_id');
+                })
+                ->leftJoin('media', function($join) {
+                    $join->on('merchants.merchant_id', '=', 'media.object_id')->where('media.object_name', '=', 'mall')
                 })
                 ->leftJoin('merchants as parent', DB::raw('parent.merchant_id'), '=', 'merchants.parent_id')
                 ->groupBy('activities.location_id');
