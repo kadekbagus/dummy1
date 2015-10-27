@@ -475,6 +475,7 @@ class CustomerportalAPIController extends ControllerAPI
             $data = array(
                 'token'             => $token->token_value,
                 'email'             => $email,
+                'first_name'        => $user->user_firstname,
                 'token_url'         => $tokenUrl,
                 'cs_phone'          => $contactInfo['phone'],
                 'cs_email'          => $contactInfo['email'],

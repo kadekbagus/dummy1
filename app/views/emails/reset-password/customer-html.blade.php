@@ -204,7 +204,7 @@ AAAAAElFTkSuQmCC" alt="You are almost in Orbit!">
     </div>
 
     <div id="main" style="width:95%;margin: 0 auto;">
-        <p>Hi <strong style="font-size:18px">{{ $email }}</strong>,</p>
+        <p>Hi <strong style="font-size:18px">{{ $first_name }}</strong>,</p>
         <p style="text-align:justify">Someone (hopefully you) recently requested a password reset.</p>
         <p style="text-align:justify">To reset your password, follow the link below:
 
