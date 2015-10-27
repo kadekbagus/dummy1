@@ -7,13 +7,41 @@ class OrbitMySqlSchemaGrammar extends \Illuminate\Database\Schema\Grammars\MySql
 {
 
     /**
+     * Sets an instance of myself as the schema grammar for a connection,
+     * with that connection's table prefix.
+     *
+     * @param \Illuminate\Database\Connection $conn
+     * @return void
+     */
+    public static function useFor(\Illuminate\Database\Connection $conn)
+    {
+        $me = new OrbitMySqlSchemaGrammar();
+        $conn->setSchemaGrammar($conn->withTablePrefix($me));
+    }
+
+    /**
      * Constructs and adds some modifiers handled here.
      */
     function __construct()
     {
-        // must be added in this order
-        $this->modifiers[] = "CharacterSet";
-        $this->modifiers[] = "Collation";
+        // put "CharacterSet" and "Collation" before "After"
+
+        $added = false;
+        $modifiers = $this->modifiers;
+        $this->modifiers = [];
+        foreach ($modifiers as $mod) {
+            if ($mod === 'After') {
+                $added = true;
+                // must be added in this order
+                $this->modifiers[] = "CharacterSet";
+                $this->modifiers[] = "Collation";
+            }
+            $this->modifiers[] = $mod;
+        }
+        if (!$added) {
+            $this->modifiers[] = "CharacterSet";
+            $this->modifiers[] = "Collation";
+        }
     }
 
     /**

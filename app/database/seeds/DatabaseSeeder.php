@@ -9,6 +9,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        try {
+            $this->doRun();
+        } catch(Exception $e)
+        {
+            $this->command->error($e);
+        }
+    }
+
+    public function doRun()
+    {
         Eloquent::unguard();
 
 

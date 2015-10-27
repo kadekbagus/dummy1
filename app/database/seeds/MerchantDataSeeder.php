@@ -9,8 +9,8 @@ use Orbit\EncodedUUID;
 class MerchantDataSeeder extends Seeder
 {
     const ORBIT_EPOCH = 1341072000000;
-    const MERCHANT_ID = "EWv3------------";
-    const RETAILER_ID = "EXs5F-----------";
+    const MERCHANT_ID = "EWv3retailer----";
+    const RETAILER_ID = "EXs5Fretailer---";
 
     public function run()
     {
@@ -40,7 +40,7 @@ class MerchantDataSeeder extends Seeder
         // ------- MERCHANT USER
         $this->command->info('Seeding merchant and retailer data...');
         try {
-            DB::table('merchants')->truncate();
+            /* DB::table('merchants')->truncate(); */
         } catch (Illuminate\Database\QueryException $e) {
         }
 

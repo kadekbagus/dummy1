@@ -13,6 +13,7 @@
 
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use OrbitShop\API\v1\Helper\Input as OrbitInput;
 
 App::before(function($request)
 {
@@ -23,6 +24,18 @@ App::before(function($request)
 App::after(function($request, $response)
 {
     //
+});
+
+App::bind('current_retailer', function () {
+    $currentRetailer = Retailer::with('parent')->excludeDeleted();
+
+    $currentRetailer->where('merchant_id', Config::get('orbit.shop.id'));
+
+    OrbitInput::get('retailer_id', function ($retailerId)  use ($currentRetailer){
+        $currentRetailer->where('merchant_id', $retailerId);
+    });
+
+    return $currentRetailer->first();
 });
 
 /*
@@ -114,7 +127,11 @@ Route::filter('orbit-settings', function()
 
     $browserLang = substr(Request::server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
 
-    $merchantLang = Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->excludeDeleted()->first()->parent->mobile_default_language;
+    $currentRetailer = App::make('current_retailer');
+    $merchantLang    = null;
+    if ($currentRetailer) {
+       $merchantLang = $currentRetailer->parent->mobile_default_language;
+    }
 
     if ($merchantLang == 'user') {
         if (! empty($browserLang) AND in_array($browserLang, Config::get('orbit.languages', ['en']))) {
@@ -137,7 +154,8 @@ Route::filter('orbit-settings', function()
 
 Route::filter('enable-cart', function()
 {
-    if (Retailer::with('parent')->where('merchant_id', Config::get('orbit.shop.id'))->excludeDeleted()->first()->parent->enable_shopping_cart != 'yes') {
+    $currentRetailer = App::make('current_retailer');
+    if ($currentRetailer && $currentRetailer->parent->enable_shopping_cart != 'yes') {
         return Redirect::route('home');
     }
 });

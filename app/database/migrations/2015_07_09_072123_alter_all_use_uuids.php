@@ -107,7 +107,6 @@ class AlterAllUseUuids extends Migration {
         [ 'issued_coupons', 'user_id', 'YES'],
         [ 'issued_coupons', 'issuer_retailer_id', 'YES'],
         [ 'media', 'media_id', 'NO'],
-        [ 'media', 'media_name_id', 'NO'],
         [ 'media', 'object_id', 'YES'],
         [ 'media', 'modified_by', 'YES'],
         [ 'merchant_taxes', 'merchant_tax_id', 'NO'],
