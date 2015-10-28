@@ -103,7 +103,7 @@ class EmployeeAPIController extends ControllerAPI
                     'birthdate'         => 'required|date_format:Y-m-d|before:' . $dateOfBirthLimit,
                     'employee_id_char'  => 'orbit.exists.employeeid',
                     'username'          => 'required|orbit.exists.username',
-                    'password'          => 'required|min:5|confirmed',
+                    'password'          => 'required|min:6|confirmed',
                     'employee_role'     => 'required|orbit.empty.employee.role',
                     'retailer_ids'      => 'array|min:1|orbit.empty.retailer'
                 ),

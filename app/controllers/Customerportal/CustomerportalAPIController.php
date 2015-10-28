@@ -330,7 +330,7 @@ class CustomerportalAPIController extends ControllerAPI
                 ),
                 array(
                     'token_value'   => 'required|orbit.empty.reset_password.token',
-                    'password'      => 'required|min:5|confirmed',
+                    'password'      => 'required|min:6|confirmed',
                 )
             );
 

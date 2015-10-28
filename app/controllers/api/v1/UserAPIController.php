@@ -1692,8 +1692,8 @@ class UserAPIController extends ControllerAPI
                 ),
                 array(
                     'user_id'                   => 'required|orbit.empty.user',
-                    'old_password'              => 'required|min:5|valid_user_password:'.$user_id,
-                    'new_password'              => 'required|min:5|confirmed',
+                    'old_password'              => 'required|min:6|valid_user_password:'.$user_id,
+                    'new_password'              => 'required|min:6|confirmed',
                 ),
                 array(
                     'valid_user_password'       => $message,
