@@ -1,4 +1,4 @@
-Hi {{ $email }},
+Hi {{ $first_name }},
 
 Someone (hopefully you) recently requested a password reset.
 
@@ -13,7 +13,6 @@ Orbit Team
 -----------------------------------------------------------
 ORBIT CUSTOMER SERVICE
 
-Phone: {{ $cs_phone }} ({{ $cs_office_hour }})
 Email: {{ $cs_email }}
 ------------------------------------------------------------
 
