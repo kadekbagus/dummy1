@@ -361,6 +361,7 @@ return array(
     'EventModel' => $baseDir . '/app/models/EventModel.php',
     'EventProduct' => $baseDir . '/app/models/EventProduct.php',
     'EventRetailer' => $baseDir . '/app/models/EventRetailer.php',
+    'Fideloper\\Proxy\\ProxyServiceProvider' => $vendorDir . '/fideloper/proxy/src/Fideloper/Proxy/ProxyServiceProvider.php',
     'File_ANSI' => $vendorDir . '/phpseclib/phpseclib/phpseclib/File/ANSI.php',
     'File_ASN1' => $vendorDir . '/phpseclib/phpseclib/phpseclib/File/ASN1.php',
     'File_ASN1_Element' => $vendorDir . '/phpseclib/phpseclib/phpseclib/File/ASN1.php',
