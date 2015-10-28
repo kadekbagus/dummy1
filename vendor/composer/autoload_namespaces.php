@@ -38,6 +38,7 @@ return array(
     'Jeremeamia\\SuperClosure' => array($vendorDir . '/jeremeamia/SuperClosure/src'),
     'Illuminate' => array($vendorDir . '/laravel/framework/src'),
     'File' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
+    'Fideloper\\Proxy' => array($vendorDir . '/fideloper/proxy/src'),
     'DominoPOS\\SymmetricDS\\' => array($vendorDir . '/dominopos/symmetricds/src'),
     'DominoPOS\\OrbitUploader\\' => array($vendorDir . '/dominopos/orbit-uploader'),
     'DominoPOS\\OrbitSession\\' => array($vendorDir . '/dominopos/orbit-session'),
