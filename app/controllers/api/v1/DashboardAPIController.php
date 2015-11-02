@@ -2530,6 +2530,14 @@ class DashboardAPIController extends ControllerAPI
                 $activities->having('transaction_total', '<=', $trxTotal);
             });
 
+            OrbitInput::get('transaction_visit_gte', function ($trxTotal) use ($activities) {
+               $activities->having('visit_count', '>=', $trxTotal);
+            });
+
+            OrbitInput::get('transaction_visit_lte', function ($trxTotal) use ($activities) {
+                $activities->having('visit_count', '<=', $trxTotal);
+            });
+
             $_activities = clone $activities;
 
             // Get the take args
