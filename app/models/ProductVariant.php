@@ -143,10 +143,16 @@ class ProductVariant extends Eloquent
     public function scopeIncludeTransactionStatus($builder)
     {
         $prefix = DB::getTablePrefix();
-        return $builder->select('product_variants.*', DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+        $hasTransactionSelect = DB::raw("
+            case
+                when {$prefix}transactions.transaction_id is null then 'no'
+                else 'yes'
+            end as has_transaction
+        ");
+        return $builder->select('product_variants.*', $hasTransactionSelect)
                        ->leftJoin('transaction_details', 'transaction_details.product_variant_id', '=', 'product_variants.product_variant_id')
                        ->leftJoin('transactions', function($join) {
-                            $join->on('transactions.status', '!=', DB::Raw("'deleted'"));
+                            $join->where('transactions.status', '!=', 'deleted');
                             $join->on('transactions.transaction_id', '=', 'transaction_details.transaction_id');
                        })
                        ->groupBy('product_variants.product_variant_id');

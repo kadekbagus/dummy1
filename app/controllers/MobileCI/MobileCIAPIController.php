@@ -114,7 +114,7 @@ class MobileCIAPIController extends ControllerAPI
                             )
                         ->where('products.status', 'active');
                     }
-                )->get();
+                )->orderBy('categories.category_name', 'asc')->get();
             } else {
                 $subfamilies = null;
             }

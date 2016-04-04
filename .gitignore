@@ -44,3 +44,6 @@ app/storage/imports/
 
 # Compiled routes
 app/routes/orbit-compiled-routes.php
+
+# Proxy config
+app/config/packages/fideloper/proxy/config.php

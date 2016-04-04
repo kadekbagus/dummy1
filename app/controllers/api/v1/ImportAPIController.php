@@ -410,7 +410,7 @@ class ImportAPIController extends ControllerAPI
                             'variant3_value'        => 'orbit.empty.variant_value_name:'.$variant3_name,
                             'variant4_value'        => 'orbit.empty.variant_value_name:'.$variant4_name,
                             'variant5_value'        => 'orbit.empty.variant_value_name:'.$variant5_name,
-                            'variant_sku'           => 'required|orbit.exists.product.sku_code',
+                            'variant_sku'           => 'orbit.exists.product.sku_code',
                             'variant_barcode'       => 'numeric|orbit.exists.product.upc_code',
                             'variant_price'         => 'numeric',
                         ),
@@ -780,65 +780,70 @@ class ImportAPIController extends ControllerAPI
                     }
 
                     // validation rule before creating product variant
+                    $hasVariant = FALSE;
                     for ($i = 1; $i <= 5; $i++) {
-                        ${"variant{$i}_value"} = trim($row[$columnIndex["variant{$i}_value"]]);
-                    }
-
-                    $validator = Validator::make(
-                        array(
-                            'variant_value_unique_fields' => $newproduct->product_id,
-                        ),
-                        array(
-                            'variant_value_unique_fields' => 'variant_value_unique:'.$variant1_value.','.$variant2_value.','.$variant3_value.','.$variant4_value.','.$variant5_value,
-                        ),
-                        array(
-                            'variant_value_unique' => Lang::get('validation.orbit.exists.product.variant_value_unique'),
-                        )
-                    );
-
-                    // Run the validation
-                    if ($validator->fails()) {
-                        foreach($validator->messages()->all() as $msg)
-                        {
-                            // log error message to array
-                            $errorMessage = array(
-                                'row'       => $rowCounter,
-                                'message'   => $msg
-                            );
-                            $errorLog[] = $errorMessage;
-
-                            // if total error reach max error, then throw exception
-                            if (count($errorLog) === $errorLogMax) {
-                                $this->response->data = $errorLog;
-                                OrbitShopAPI::throwInvalidArgument('error');
-                            }
+                        ${"variant{$i}_value"} = $value = trim($row[$columnIndex["variant{$i}_value"]]);
+                        if (!empty($value)) {
+                            $hasVariant = TRUE;
                         }
-                    } else {
-                        // create variant
-                        $product_variant = new ProductVariant();
-                        $product_variant->merchant_id = $merchant->merchant_id;
-                        $product_variant->product_id = $newproduct->product_id;
-
-                        // variant_value
-                        for ($i = 1; $i <= 5; $i++) {
-                            if (${"variant{$i}_value"} !== '') {
-                                $attributeValue = ProductAttributeValue::excludeDeleted()
-                                                                       ->where('value', ${"variant{$i}_value"})
-                                                                       ->where('product_attribute_id', $newproduct->{'attribute_id' . $i})
-                                                                       ->first();
-                                $product_variant->{'product_attribute_value_id' . $i} = $attributeValue->product_attribute_value_id;
-                            }
-                        }
-
-                        $product_variant->sku = trim($row[$columnIndex['variant_sku']]);
-                        $product_variant->upc = trim($row[$columnIndex['variant_barcode']]);
-                        $product_variant->price = (float)$row[$columnIndex['variant_price']];
-
-                        $product_variant->default_variant = 'no';
-                        $product_variant->status = 'active';
-                        $product_variant->created_by = $this->api->user->user_id;
-                        $product_variant->save();
                     }
+                    if ($hasVariant): //has variant
+                        $validator = Validator::make(
+                            array(
+                                'variant_value_unique_fields' => $newproduct->product_id,
+                            ),
+                            array(
+                                'variant_value_unique_fields' => [['variant_value_unique', $variant1_value, $variant2_value, $variant3_value, $variant4_value, $variant5_value]],
+                            ),
+                            array(
+                                'variant_value_unique' => Lang::get('validation.orbit.exists.product.variant_value_unique'),
+                            )
+                        );
+
+                        // Run the validation
+                        if ($validator->fails()) {
+                            foreach($validator->messages()->all() as $msg)
+                            {
+                                // log error message to array
+                                $errorMessage = array(
+                                    'row'       => $rowCounter,
+                                    'message'   => $msg
+                                );
+                                $errorLog[] = $errorMessage;
+
+                                // if total error reach max error, then throw exception
+                                if (count($errorLog) === $errorLogMax) {
+                                    $this->response->data = $errorLog;
+                                    OrbitShopAPI::throwInvalidArgument('error');
+                                }
+                            }
+                        } else {
+                            // create variant
+                            $product_variant = new ProductVariant();
+                            $product_variant->merchant_id = $merchant->merchant_id;
+                            $product_variant->product_id = $newproduct->product_id;
+
+                            // variant_value
+                            for ($i = 1; $i <= 5; $i++) {
+                                if (${"variant{$i}_value"} !== '') {
+                                    $attributeValue = ProductAttributeValue::excludeDeleted()
+                                                                           ->where('value', ${"variant{$i}_value"})
+                                                                           ->where('product_attribute_id', $newproduct->{'attribute_id' . $i})
+                                                                           ->first();
+                                    $product_variant->{'product_attribute_value_id' . $i} = $attributeValue->product_attribute_value_id;
+                                }
+                            }
+
+                            $product_variant->sku = trim($row[$columnIndex['variant_sku']]);
+                            $product_variant->upc = trim($row[$columnIndex['variant_barcode']]);
+                            $product_variant->price = (float)$row[$columnIndex['variant_price']];
+
+                            $product_variant->default_variant = 'no';
+                            $product_variant->status = 'active';
+                            $product_variant->created_by = $this->api->user->user_id;
+                            $product_variant->save();
+                        }
+                    endif; // has variant
 
                     // set to current default_sku
                     $previous_row_default_sku = $default_sku;

@@ -18,7 +18,7 @@ class CreateTableWidgetTranslations extends Migration {
     });
     $builder->create('widget_translations', function(OrbitBlueprint $table)
     {
-      $table->encodedId('widget_translation_id');
+      $table->encodedId('widget_translation_id')->primary();
       $table->encodedId('widget_id');
       $table->encodedId('merchant_language_id');
       $table->string('widget_slogan', 255)->nullable();

@@ -654,6 +654,10 @@ class UserAPIController extends ControllerAPI
                 $updateduser->userdetail->phone2 = $phone2;
             });
 
+            OrbitInput::post('phone3', function($phone3) use ($updateduser) {
+                $updateduser->userdetail->phone3 = $phone3;
+            });
+
             OrbitInput::post('relationship_status', function($status) use ($updateduser) {
                 $updateduser->userdetail->relationship_status = $status;
             });
@@ -1688,8 +1692,8 @@ class UserAPIController extends ControllerAPI
                 ),
                 array(
                     'user_id'                   => 'required|orbit.empty.user',
-                    'old_password'              => 'required|min:5|valid_user_password:'.$user_id,
-                    'new_password'              => 'required|min:5|confirmed',
+                    'old_password'              => 'required|min:6|valid_user_password:'.$user_id,
+                    'new_password'              => 'required|min:6|confirmed',
                 ),
                 array(
                     'valid_user_password'       => $message,

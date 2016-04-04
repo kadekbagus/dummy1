@@ -58,13 +58,16 @@ class SymmetricDS extends Command
         parent::__construct();
     }
 
-    protected function createTrigger(Model $channel, $names = [])
+    protected function createTrigger(Model $channel, $names = [], $attributes = [])
     {
         foreach ($names as $name => $route) {
             $trigger = new Trigger;
             $trigger->trigger_id = $name;
             $trigger->source_catalog_name = $this->sourceSchemaName;
             $trigger->source_table_name  = $this->tablePrefix . $name;
+            foreach ($attributes as $k => $v) {
+                $trigger->{$k} = $v;
+            }
             $trigger->channel()->associate($channel);
             $trigger->save();
 
@@ -340,9 +343,38 @@ class SymmetricDS extends Command
                 select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
                     inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
                 where er.employee_id = :EMPLOYEE_ID
+                union all
+                select er.retailer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                where er.employee_id = :EMPLOYEE_ID
             )
         ';
         if ($router->save()) $routers['cloud_employee_to_merchant'] = $router;
+
+        // a "merchant" in merchant_translations can be any of:
+        // merchant, retailer, tenant, mall, mall group
+        // tenants do not have box and their translations are sent to the parent mall
+        // malls and retailers receive their own translations
+        // merchants and mall groups probably do not have box (?)
+        $router = new Router();
+        $router->router_id = 'cloud_merchant_translations_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'subselect';
+        $router->router_expression = '
+            c.external_id in (
+                select case m.object_type
+                    when \'tenant\' then m.parent_id
+                    when \'mall\' then m.merchant_id
+                    when \'mall_group\' then m.merchant_id
+                    when \'retailer\' then m.merchant_id
+                    when \'merchant\' then m.merchant_id
+                end
+                from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m
+                where m.merchant_id = :MERCHANT_ID
+                and m.object_type in (\'tenant\', \'mall\', \'mall_group\', \'retailer\', \'merchant\')
+            )
+        ';
+        if ($router->save()) $routers['cloud_merchant_translations_to_merchant'] = $router;
 
         $router = new Router();
         $router->router_id = 'cloud_event_translations_to_merchant';
@@ -435,6 +467,25 @@ class SymmetricDS extends Command
         ';
         if ($router->save()) $routers['cloud_acquired_user_to_merchant'] = $router;
 
+        $router = new Router();
+        $router->router_id = 'cloud_employee_user_to_merchant';
+        $router->sourceNode()->associate(NodeGroup::getCloud());
+        $router->targetNode()->associate(NodeGroup::getMerchant());
+        $router->router_type = 'subselect';
+        $router->router_expression = '
+            c.external_id in (
+                select m.parent_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                  inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'merchants` m on m.merchant_id = er.retailer_id
+                  inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e on e.employee_id = er.employee_id
+                where e.user_id = :USER_ID
+                union all
+                select er.retailer_id from `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employee_retailer` er
+                  inner join `'. $this->sourceSchemaName .'`.`'. $this->tablePrefix .'employees` e on e.employee_id = er.employee_id
+                where e.user_id = :USER_ID
+            )
+        ';
+        if ($router->save()) $routers['cloud_employee_user_to_merchant'] = $router;
+
         // MERCHANT TO CLOUD
         $router = new Router();
         $router->router_id = 'merchant_to_cloud';
@@ -494,23 +545,60 @@ class SymmetricDS extends Command
                 'permissions'        => 'cloud_to_all_merchant',
                 'employee_retailer'  => ['cloud_retailer_pivot_to_merchant', 'cloud_mall_pivot_to_merchant'],
                 'employees'          => 'cloud_user_merchant_to_merchant',
-                'users'              => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
-                'user_details'       => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
                 'apikeys'            => 'cloud_user_merchant_to_merchant',
                 'custom_permission'  => 'cloud_user_merchant_to_merchant',
-                'user_personal_interest' => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
                 'permission_role'    => 'cloud_to_all_merchant',
                 'personal_interests' => 'cloud_to_all_merchant',
                 'countries'          => 'cloud_to_all_merchant',
                 'category_merchant'  => 'cloud_tenant_pivot_to_merchant',
-                'merchant_translations'  => 'cloud_to_merchant',
+                'merchant_translations'  => 'cloud_merchant_translations_to_merchant',
                 'merchant_languages' => 'cloud_to_merchant',
                 'languages'          => 'cloud_to_all_merchant',
+                'timezones'          => 'cloud_to_all_merchant',
                 'media'              => 'cloud_media_to_merchant',
                 'objects'            => 'cloud_to_merchant',
                 'object_relation'    => 'cloud_object_relation_to_merchant',
                 'settings'           => 'cloud_setting_to_merchant',
                 'setting_translations' => 'cloud_sub_settings_to_merchant',
+            ]);
+
+            // for bidirectional syncs we should set sync_on_incoming_batch so when the cloud gets the data,
+            // from a merchant, it can record it to pass to other merchants interested in the data.
+            $this->createTrigger($cMerchant, [
+                'user_personal_interest' => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
+            ], [
+                'sync_on_incoming_batch' => true,
+            ]);
+
+            // the insert should not be synced, ever.
+            // both merchant and cloud will insert the user (on login or on cs create)
+            $this->createTrigger($cMerchant, [
+                'users'              => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
+                'user_details'       => ['merchant_to_cloud', 'cloud_user_merchant_to_merchant'],
+            ], [
+                'sync_on_insert' => false,
+                'sync_on_delete' => true,
+                'sync_on_update' => true,
+                'sync_on_incoming_batch' => true,
+            ]);
+
+
+            // these should route employee inserts only
+            $this->createTrigger($cMerchant, [
+                'users'              => ['cloud_employee_user_to_merchant'],
+            ], [
+                'sync_on_insert' => true,
+                'sync_on_delete' => false,
+                'sync_on_update' => false,
+                'trigger_id' => 'employee_users_insert',
+            ]);
+            $this->createTrigger($cMerchant, [
+                'user_details'       => ['cloud_employee_user_to_merchant'],
+            ], [
+                'sync_on_insert' => true,
+                'sync_on_delete' => false,
+                'sync_on_update' => false,
+                'trigger_id' => 'employee_user_details_insert',
             ]);
         }
 

@@ -303,7 +303,7 @@ class DummyAPIController extends ControllerAPI
                 ),
                 array(
                     'email'     => 'required|email|orbit.email.exists',
-                    'password'  => 'required|min:5|confirmed',
+                    'password'  => 'required|min:6|confirmed',
                 )
             );
 

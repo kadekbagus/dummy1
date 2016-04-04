@@ -21,34 +21,6 @@
                                 <div class="col-xs-12">
                                     <h3>{{ $promo->promotion_name }}</h3>
                                 </div>
-                                @if($promo->promotion_type == 'product' || $promo->promotion_type == 'cart')
-                                    <div class="col-xs-12">
-                                    @if($promo->discount_object_type == 'product')
-                                        @if($promo->product_count == 1)
-                                        <p class="promo-item">{{ Lang::get('mobileci.coupon_list.product_label') }}: {{ $promo->product_name }}</p>
-                                        @endif
-                                    @elseif($promo->discount_object_type == 'family')
-                                        <p class="promo-item">
-                                            {{ Lang::get('mobileci.coupon_list.category_label') }}: 
-                                            @if(!is_null($promo->discount_object_id1))
-                                            <span>{{ Category::where('category_id', $promo->discount_object_id1)->first()->category_name }}</span>
-                                            @endif
-                                            @if(!is_null($promo->discount_object_id2))
-                                            <span>{{ Category::where('category_id', $promo->discount_object_id2)->first()->category_name }}</span>
-                                            @endif
-                                            @if(!is_null($promo->discount_object_id3))
-                                            <span>{{ Category::where('category_id', $promo->discount_object_id3)->first()->category_name }}</span>
-                                            @endif
-                                            @if(!is_null($promo->discount_object_id4))
-                                            <span>{{ Category::where('category_id', $promo->discount_object_id4)->first()->category_name }}</span>
-                                            @endif
-                                            @if(!is_null($promo->discount_object_id5))
-                                            <span>{{ Category::where('category_id', $promo->discount_object_id5)->first()->category_name }}</span>
-                                            @endif
-                                        </p>
-                                    @endif
-                                    </div>
-                                @endif
                                 <div class="col-xs-12">
                                     <h4>{{ Lang::get('mobileci.coupon_detail.coupon_code_label') }}: {{ $promo->issued_coupon_code }}</h4>
                                 </div>

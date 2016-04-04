@@ -933,7 +933,7 @@ class LoginAPIController extends ControllerAPI
                 ),
                 array(
                     'token_value'   => 'required|orbit.empty.token',
-                    'password'      => 'required|min:5|confirmed',
+                    'password'      => 'required|min:6|confirmed',
                 )
             );
 

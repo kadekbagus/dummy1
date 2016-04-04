@@ -9,7 +9,7 @@ class MerchantTax extends Eloquent
      * @author Ahmad Anshori <ahmad@dominopos.com>
      */
     use ModelStatusTrait;
-    
+
     protected $table = 'merchant_taxes';
 
     protected $primaryKey = 'merchant_tax_id';
@@ -79,10 +79,16 @@ class MerchantTax extends Eloquent
     public function scopeIncludeTransactionStatus($builder)
     {
         $prefix = DB::getTablePrefix();
-        return $builder->select('merchant_taxes.*', DB::Raw("IF(IFNULL({$prefix}transactions.transaction_id, 'yes'), 'yes', 'no') AS has_transaction"))
+        $hasTransactionSelect = DB::raw("
+            case
+                when {$prefix}transactions.transaction_id is null then 'no'
+                else 'yes'
+            end as has_transaction
+        ");
+        return $builder->select('merchant_taxes.*', $hasTransactionSelect)
                        ->leftJoin('transaction_detail_taxes', 'transaction_detail_taxes.tax_id', '=', 'merchant_taxes.merchant_tax_id')
                         ->leftJoin('transactions', function($join) {
-                             $join->on('transactions.status', '!=', DB::Raw("'deleted'"));
+                             $join->where('transactions.status', '!=', 'deleted');
                              $join->on('transactions.transaction_id', '=', 'transaction_detail_taxes.transaction_id');
                         })
                        ->groupBy('merchant_taxes.merchant_tax_id');
